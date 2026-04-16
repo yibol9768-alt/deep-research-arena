@@ -1,0 +1,154 @@
+{
+  "task_id": "dev_0001",
+  "version": "1.0.0",
+  "domain": "development",
+  "difficulty": 3,
+  "instruction": {
+    "natural_language": "Review the failing test in the repository. Identify the bug in the implementation that causes the test to fail. Create a fix and verify the test passes.",
+    "structured": {
+      "goals": [
+        {
+          "id": "goal_1",
+          "description": "Understand the failing test",
+          "constraints": null,
+          "priority": "must"
+        },
+        {
+          "id": "goal_2",
+          "description": "Identify root cause of failure",
+          "constraints": null,
+          "priority": "must"
+        },
+        {
+          "id": "goal_3",
+          "description": "Implement and verify fix",
+          "constraints": null,
+          "priority": "must"
+        }
+      ],
+      "required_tools": [
+        "code_executor",
+        "file_system",
+        "search"
+      ],
+      "preconditions": null
+    }
+  },
+  "output_format_specification": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "bug_description": {
+        "type": "string"
+      },
+      "root_cause": {
+        "type": "string"
+      },
+      "fix_applied": {
+        "type": "string"
+      },
+      "test_passed": {
+        "type": "boolean"
+      },
+      "files_modified": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": [
+      "status",
+      "bug_description",
+      "test_passed"
+    ],
+    "examples": [
+      {
+        "status": "SUCCESS",
+        "bug_description": "Off-by-one error in loop iteration",
+        "root_cause": "Loop condition used < instead of <=",
+        "fix_applied": "Changed line 42 from 'i < n' to 'i <= n'",
+        "test_passed": true,
+        "files_modified": [
+          "src/algorithm.py"
+        ]
+      }
+    ],
+    "counterexamples": null
+  },
+  "success_criteria": {
+    "primary": {
+      "type": "deterministic_match",
+      "weight": 0.75,
+      "verification_function": "verify_test_passes",
+      "acceptance_criteria": null
+    },
+    "secondary": [
+      {
+        "type": "process_quality",
+        "weight": 0.15,
+        "metric": "bug_correctly_identified",
+        "target": null,
+        "tolerance": null
+      },
+      {
+        "type": "efficiency",
+        "weight": 0.1,
+        "metric": "minimal_changes",
+        "target": null,
+        "tolerance": null
+      }
+    ]
+  },
+  "error_codes": {
+    "SUCCESS": "Test passing",
+    "TEST_STILL_FAILING": "Test still fails after fix",
+    "CANNOT_RUN_TEST": "Test execution failed",
+    "WRONG_FIX": "Fix applied but incorrect",
+    "TIMEOUT_ERROR": "Code execution timeout"
+  },
+  "initial_state": {
+    "start_url": "http://git.local/repo",
+    "environment": "development",
+    "logged_in": true,
+    "user_account": null,
+    "environment_seed": 123,
+    "cache_state": "warm"
+  },
+  "noise_profile": {
+    "name": "realistic",
+    "network_latency_ms": [
+      50,
+      200
+    ],
+    "request_timeout_probability": 0.01,
+    "image_load_failure_rate": 0.0,
+    "visual_noise_level": 0.0,
+    "ocr_error_rate": 0.0,
+    "ad_injection_rate": 0.0,
+    "content_change_rate": 0.0
+  },
+  "estimated_complexity": {
+    "expected_steps": 8,
+    "expected_tokens": 4000,
+    "expected_duration_seconds": 300,
+    "unique_tools_required": 3,
+    "information_integration_level": "few_sources"
+  },
+  "annotations": {
+    "created_by": "system",
+    "created_date": "2026-03-30T11:17:24.427891",
+    "annotators": [
+      "dev1",
+      "dev2"
+    ],
+    "inter_annotator_agreement": 0.82,
+    "revision": 1,
+    "revision_notes": null,
+    "status": "pilot"
+  },
+  "dependencies": null,
+  "difficulty_evidence": null
+}

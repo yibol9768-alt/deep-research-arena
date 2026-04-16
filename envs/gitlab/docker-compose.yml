@@ -1,0 +1,31 @@
+services:
+  gitlab:
+    # WebArena gitlab image — hostname is baked into the image config so
+    # we pass the external URL via environment override. The upstream
+    # name uses `gitlab-populated-final-port8023`.
+    image: gitlab-populated-final-port8023:latest
+    container_name: webarena_gitlab
+    restart: unless-stopped
+    # GitLab needs more memory than our other containers; cap to keep
+    # WSL host stable.
+    shm_size: "256m"
+    ports:
+      - "8023:8023"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8023'
+        gitlab_rails['time_zone'] = 'UTC'
+        nginx['listen_port'] = 8023
+    networks:
+      - webarena_net
+    healthcheck:
+      # gitlab-ctl status is reliable; HTTP 302 on / is also fine.
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8023/users/sign_in >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 180s
+
+networks:
+  webarena_net:
+    driver: bridge

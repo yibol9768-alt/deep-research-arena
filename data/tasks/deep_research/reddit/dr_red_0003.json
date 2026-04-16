@@ -1,0 +1,45 @@
+{
+  "task_id": "dr_red_0003",
+  "sites": ["reddit"],
+  "intent": "On Postmill, on the first page of /f/wallstreetbets, count how many submissions each unique author posted. Report the top 3 most-prolific authors by submission count, with each author's: username, submission_count (on this page), and a permalink to one of their submissions.",
+  "start_url": "__REDDIT__/f/wallstreetbets",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 2,
+  "expected_steps": 5,
+  "author_notes": "Group-by-author aggregation. All 25 posts on page 1 are inspected; the MarvelsGrantMan136 seed user typically dominates (WebArena seed user).",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "authors": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "required": ["username", "submission_count", "sample_permalink"],
+          "properties": {
+            "username":         {"type": "string"},
+            "submission_count": {"type": "integer", "minimum": 1},
+            "sample_permalink": {"type": "string"}
+          }
+        }
+      }
+    },
+    "required": ["authors"]
+  },
+
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 1
+  },
+
+  "eval": {
+    "eval_types": ["report_match"],
+    "report_expected": {
+      "products": null
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "task_id": "dr_shop_0005",
+  "sites": ["shopping"],
+  "intent": "Find the single best-matching product on the One Stop Market that simultaneously satisfies: (a) keyword 'backpack' appears in the name, (b) price ≤ $100, (c) rating ≥ 4.0. Among candidates meeting all three, pick the one with the highest rating (break ties by lowest price). Report its name, price, rating, product_url, and a 1-sentence rationale.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=backpack",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "Multi-constraint search; selection rule is explicit so there is a deterministic winner.",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "best": {
+        "type": "object",
+        "required": ["name", "price", "rating", "product_url"],
+        "properties": {
+          "name":        {"type": "string"},
+          "price":       {"type": "number"},
+          "rating":      {"type": "number", "minimum": 0, "maximum": 5},
+          "product_url": {"type": "string"}
+        }
+      },
+      "rationale": {"type": "string", "minLength": 10}
+    },
+    "required": ["best", "rationale"]
+  },
+
+  "citation_policy": {
+    "required_for": ["best.price", "best.rating"],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 1
+  },
+
+  "eval": {
+    "eval_types": ["report_match", "citation_check"],
+    "report_expected": {
+      "facts": ["backpack"]
+    }
+  }
+}

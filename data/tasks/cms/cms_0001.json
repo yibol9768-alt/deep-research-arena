@@ -1,0 +1,136 @@
+{
+  "task_id": "cms_0001",
+  "version": "1.0.0",
+  "domain": "cms",
+  "difficulty": 1,
+  "instruction": {
+    "natural_language": "Create a new blog post with the title 'Introduction to AI Safety', category 'Technology', and publish it.",
+    "structured": {
+      "goals": [
+        {
+          "id": "goal_1",
+          "description": "Navigate to create new post",
+          "constraints": null,
+          "priority": "must"
+        },
+        {
+          "id": "goal_2",
+          "description": "Fill in post details",
+          "constraints": null,
+          "priority": "must"
+        },
+        {
+          "id": "goal_3",
+          "description": "Publish the post",
+          "constraints": null,
+          "priority": "must"
+        }
+      ],
+      "required_tools": [
+        "web_browser"
+      ],
+      "preconditions": null
+    }
+  },
+  "output_format_specification": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      },
+      "post_id": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "category": {
+        "type": "string"
+      },
+      "published": {
+        "type": "boolean"
+      },
+      "publish_url": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "status",
+      "post_id",
+      "published"
+    ],
+    "examples": [
+      {
+        "status": "SUCCESS",
+        "post_id": "post_12345",
+        "title": "Introduction to AI Safety",
+        "category": "Technology",
+        "published": true,
+        "publish_url": "http://blog.local/posts/intro-ai-safety"
+      }
+    ],
+    "counterexamples": null
+  },
+  "success_criteria": {
+    "primary": {
+      "type": "deterministic_match",
+      "weight": 0.8,
+      "verification_function": null,
+      "acceptance_criteria": null
+    },
+    "secondary": null
+  },
+  "error_codes": {
+    "SUCCESS": "Post published successfully",
+    "CREATION_FAILED": "Could not create post",
+    "PUBLISH_FAILED": "Could not publish post",
+    "VALIDATION_ERROR": "Post validation failed"
+  },
+  "initial_state": {
+    "start_url": "http://cms.local",
+    "environment": "cms",
+    "logged_in": true,
+    "user_account": {
+      "username": "admin",
+      "roles": [
+        "editor",
+        "admin"
+      ]
+    },
+    "environment_seed": null,
+    "cache_state": "warm"
+  },
+  "noise_profile": {
+    "name": "clean",
+    "network_latency_ms": [
+      50,
+      100
+    ],
+    "request_timeout_probability": 0.0,
+    "image_load_failure_rate": 0.0,
+    "visual_noise_level": 0.0,
+    "ocr_error_rate": 0.0,
+    "ad_injection_rate": 0.0,
+    "content_change_rate": 0.0
+  },
+  "estimated_complexity": {
+    "expected_steps": 4,
+    "expected_tokens": 1500,
+    "expected_duration_seconds": 120,
+    "unique_tools_required": 1,
+    "information_integration_level": "single_source"
+  },
+  "annotations": {
+    "created_by": "system",
+    "created_date": "2026-03-30T11:17:24.427917",
+    "annotators": [
+      "cms_annotator"
+    ],
+    "inter_annotator_agreement": 0.95,
+    "revision": 1,
+    "revision_notes": null,
+    "status": "published"
+  },
+  "dependencies": null,
+  "difficulty_evidence": null
+}

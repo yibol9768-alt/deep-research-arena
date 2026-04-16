@@ -1,0 +1,52 @@
+{
+  "task_id": "dr_shop_0004",
+  "sites": ["shopping"],
+  "intent": "Compare two shampoo products on the One Stop Market. Pick the two most-reviewed shampoos under /beauty-personal-care/hair-care/shampoo-conditioner.html. For each, record name, price, rating, review_count, and product_url. Then produce a 'cheaper_per_star' ratio (price / rating) for each and name the better value.",
+  "start_url": "__SHOPPING__/beauty-personal-care/hair-care/shampoo-conditioner.html",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 3,
+  "expected_steps": 10,
+  "author_notes": "Requires scraping review counts; needs arithmetic on the result.",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "products": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "object",
+          "required": ["name", "price", "rating", "review_count", "product_url"],
+          "properties": {
+            "name":         {"type": "string"},
+            "price":        {"type": "number"},
+            "rating":       {"type": "number", "minimum": 0, "maximum": 5},
+            "review_count": {"type": "integer", "minimum": 1},
+            "product_url":  {"type": "string"}
+          }
+        }
+      },
+      "better_value":  {"type": "string"},
+      "ratio_summary": {"type": "string"}
+    },
+    "required": ["products", "better_value", "ratio_summary"]
+  },
+
+  "citation_policy": {
+    "required_for": ["products[*].price", "products[*].review_count"],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 2
+  },
+
+  "eval": {
+    "eval_types": ["report_match", "citation_check"],
+    "report_expected": {
+      "products": [
+        {"rating_min": 0.0, "price_range": [0.01, 300.0], "url_regex": "^http://localhost:7770/"},
+        {"rating_min": 0.0, "price_range": [0.01, 300.0], "url_regex": "^http://localhost:7770/"}
+      ]
+    }
+  }
+}

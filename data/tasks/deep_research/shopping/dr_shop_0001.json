@@ -1,0 +1,51 @@
+{
+  "task_id": "dr_shop_0001",
+  "sites": ["shopping"],
+  "intent": "On the One Stop Market, find three distinct On-Ear / Over-Ear headphones that have a customer rating of at least 4.0 stars. For each, report the product name, current price (USD), rating, and the product-page URL. Also provide a one-sentence recommendation naming your top pick and why.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=headphones",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 2,
+  "expected_steps": 8,
+  "author_notes": "Product catalog is seeded; over-ear headphones exist in electronics. Filter by 'Headphones' category facet or keyword 'over ear'.",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "products": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "required": ["name", "price", "rating", "product_url"],
+          "properties": {
+            "name":        {"type": "string"},
+            "price":       {"type": "number", "minimum": 0},
+            "rating":      {"type": "number", "minimum": 0, "maximum": 5},
+            "product_url": {"type": "string"}
+          }
+        }
+      },
+      "recommendation": {"type": "string", "minLength": 10}
+    },
+    "required": ["products", "recommendation"]
+  },
+
+  "citation_policy": {
+    "required_for": ["products[*].price", "products[*].rating"],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 3
+  },
+
+  "eval": {
+    "eval_types": ["report_match", "citation_check"],
+    "report_expected": {
+      "products": [
+        {"rating_min": 4.0, "price_range": [0.01, 1000.0], "url_regex": "^http://localhost:7770/"},
+        {"rating_min": 4.0, "price_range": [0.01, 1000.0], "url_regex": "^http://localhost:7770/"},
+        {"rating_min": 4.0, "price_range": [0.01, 1000.0], "url_regex": "^http://localhost:7770/"}
+      ]
+    }
+  }
+}

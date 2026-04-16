@@ -1,0 +1,19 @@
+services:
+  reddit:
+    image: postmill-populated-exposed-withimg:latest
+    container_name: webarena_reddit
+    restart: unless-stopped
+    ports:
+      - "9999:80"
+    networks:
+      - webarena_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+networks:
+  webarena_net:
+    driver: bridge

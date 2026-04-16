@@ -1,0 +1,44 @@
+{
+  "_README": "DRACO-style coverage checklists per task. Each item is a binary pass/fail check evaluated by an LLM judge against the agent's report. Items should be deterministic ('does the report contain X?') not subjective ('is X well written?').",
+
+  "dr_shop_0001": [
+    "Lists exactly 3 distinct headphone products (not duplicates).",
+    "Every listed product has a customer rating of 4.0 stars or higher.",
+    "Every listed product has a price (in USD) and the price is between $0.01 and $500.",
+    "Every listed product has a product-page URL on the One Stop Market (starts with http://localhost:7770/ or http://shopping/ etc.).",
+    "Provides a top-pick recommendation that names ONE specific product from the list.",
+    "The recommendation includes at least one concrete reason (price, rating, feature) — not just 'it is the best'."
+  ],
+
+  "dr_shop_0002": [
+    "Lists exactly 3 products.",
+    "All 3 products are from the shampoo or conditioner category (judged by name or context).",
+    "Products are ordered by price ascending (cheapest first).",
+    "Every product has a rating of 3.0 stars or higher.",
+    "Every product has a product-page URL on the shopping site."
+  ],
+
+  "dr_shop_0003": [
+    "Lists exactly 3 distinct complaints (not duplicates and not generic 'Other issues' placeholder).",
+    "Each complaint has a short label (about 1-6 words) and an example review snippet.",
+    "Each example snippet appears to be a real, verbatim quote from a customer review (not paraphrased / synthesized).",
+    "The complaints cover different aspects (e.g. one about sound, one about comfort, one about durability) — not 3 variants of the same issue.",
+    "Snippets are taken from low-rated reviews (rating ≤ 3 stars), not from positive reviews."
+  ],
+
+  "dr_shop_0004": [
+    "Includes exactly 2 products in the comparison.",
+    "Both products are from the shampoo or conditioner category.",
+    "Each product reports name, price, rating, review_count, and product_url.",
+    "Explicitly computes a price-per-star (or price/rating) ratio for each product.",
+    "Names the better-value product based on the ratio with a numeric justification."
+  ],
+
+  "dr_shop_0005": [
+    "Identifies a single best product.",
+    "The product's name contains the word 'backpack' (case-insensitive).",
+    "The product's price is ≤ $100.",
+    "The product's customer rating is ≥ 4.0.",
+    "Provides a rationale that explicitly references the selection rule (highest rating, then lowest price)."
+  ]
+}

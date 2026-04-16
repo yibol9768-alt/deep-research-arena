@@ -1,0 +1,62 @@
+{
+  "task_id": "dr_red_0002",
+  "sites": ["reddit"],
+  "intent": "On Postmill, visit /f/technology. Compare the rankings by score (vote__net-score) vs. by comment_count among the submissions on the first page. Return: (a) the top-3 by score, (b) the top-3 by comment_count, and (c) how many posts appear in BOTH top-3 lists. For each post listed report title, score, comment_count, permalink.",
+  "start_url": "__REDDIT__/f/technology",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 2,
+  "expected_steps": 6,
+  "author_notes": "Two-list intersection analysis. Ranking by score and by comments usually diverge — this task forces the agent to realize that.",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "top_by_score": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "required": ["title", "score", "comment_count", "permalink"],
+          "properties": {
+            "title":         {"type": "string"},
+            "score":         {"type": "integer"},
+            "comment_count": {"type": "integer"},
+            "permalink":     {"type": "string"}
+          }
+        }
+      },
+      "top_by_comments": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "required": ["title", "score", "comment_count", "permalink"],
+          "properties": {
+            "title":         {"type": "string"},
+            "score":         {"type": "integer"},
+            "comment_count": {"type": "integer"},
+            "permalink":     {"type": "string"}
+          }
+        }
+      },
+      "overlap_count": {"type": "integer", "minimum": 0, "maximum": 3}
+    },
+    "required": ["top_by_score", "top_by_comments", "overlap_count"]
+  },
+
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 1
+  },
+
+  "eval": {
+    "eval_types": ["report_match"],
+    "report_expected": {
+      "products": null
+    }
+  }
+}

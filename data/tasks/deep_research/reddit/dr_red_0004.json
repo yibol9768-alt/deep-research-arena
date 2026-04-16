@@ -1,0 +1,49 @@
+{
+  "task_id": "dr_red_0004",
+  "sites": ["reddit"],
+  "intent": "Compare engagement between /f/news and /f/worldnews on Postmill. For each of the two forums, compute over the first-page listing: number_of_submissions, average_score, average_comment_count, median_comment_count. Then identify which forum has a higher median engagement (comments). Report structured numbers and a one-sentence conclusion.",
+  "start_url": "__REDDIT__/f/news",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 3,
+  "expected_steps": 6,
+  "author_notes": "Cross-forum aggregation. Requires visiting two pages and doing stats (mean/median).",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "forums": {
+        "type": "array",
+        "minItems": 2,
+        "maxItems": 2,
+        "items": {
+          "type": "object",
+          "required": ["forum", "number_of_submissions", "average_score", "average_comment_count", "median_comment_count"],
+          "properties": {
+            "forum":                 {"type": "string"},
+            "number_of_submissions": {"type": "integer", "minimum": 1},
+            "average_score":         {"type": "number"},
+            "average_comment_count": {"type": "number"},
+            "median_comment_count":  {"type": "number"}
+          }
+        }
+      },
+      "higher_median_comments": {"type": "string"},
+      "conclusion":             {"type": "string", "minLength": 10}
+    },
+    "required": ["forums", "higher_median_comments", "conclusion"]
+  },
+
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 2
+  },
+
+  "eval": {
+    "eval_types": ["report_match"],
+    "report_expected": {
+      "products": null
+    }
+  }
+}

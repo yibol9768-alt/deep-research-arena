@@ -1,0 +1,44 @@
+{
+  "task_id": "dr_shop_0003",
+  "sites": ["shopping"],
+  "intent": "For the product '6S Wireless Headphones Over Ear Noise Canceling Hi-Fi Bass' (the headphones page at /6s-wireless-headphones-over-ear-noise-canceling-hi-fi-bass-...black-gold.html), read ALL customer reviews and summarize the three most frequently mentioned complaints. Report them as short labels (≤ 6 words each) plus one example snippet per complaint quoted verbatim from a real review.",
+  "start_url": "__SHOPPING__/6s-wireless-headphones-over-ear-noise-canceling-hi-fi-bass-foldable-stereo-wireless-kid-headsets-earbuds-with-built-in-mic-micro-sd-tf-fm-for-iphone-samsung-ipad-pc-black-gold.html",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 3,
+  "expected_steps": 10,
+  "author_notes": "Reviews are paginated via /review/product/listAjax/id/76525/?p=N.",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "complaints": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "required": ["label", "example_snippet"],
+          "properties": {
+            "label": {"type": "string", "maxLength": 60},
+            "example_snippet": {"type": "string", "minLength": 5}
+          }
+        }
+      }
+    },
+    "required": ["complaints"]
+  },
+
+  "citation_policy": {
+    "required_for": ["complaints[*].example_snippet"],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 2
+  },
+
+  "eval": {
+    "eval_types": ["report_match"],
+    "report_expected": {
+      "products": null
+    }
+  }
+}

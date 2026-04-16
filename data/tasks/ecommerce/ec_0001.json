@@ -1,0 +1,203 @@
+{
+  "task_id": "ec_0001",
+  "version": "1.0.0",
+  "domain": "ecommerce",
+  "difficulty": 2,
+  "instruction": {
+    "natural_language": "Find a blue winter jacket priced between $50-$150 with at least 4 stars rating. Add it to your shopping cart. Use the search functionality and filters to complete this task.",
+    "structured": {
+      "goals": [
+        {
+          "id": "goal_1",
+          "description": "Find a blue winter jacket",
+          "constraints": {
+            "color": "blue",
+            "product_type": "winter jacket",
+            "price_range": [
+              50,
+              150
+            ],
+            "min_rating": 4.0
+          },
+          "priority": "must"
+        },
+        {
+          "id": "goal_2",
+          "description": "Add the product to cart",
+          "constraints": null,
+          "priority": "must"
+        }
+      ],
+      "required_tools": [
+        "web_browser",
+        "search"
+      ],
+      "preconditions": [
+        "Connected to e-commerce website",
+        "Shopping cart is accessible"
+      ]
+    }
+  },
+  "output_format_specification": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string",
+        "enum": [
+          "SUCCESS",
+          "ELEMENT_NOT_FOUND",
+          "FORMAT_MISMATCH",
+          "TIMEOUT_ERROR"
+        ]
+      },
+      "product": {
+        "type": "object",
+        "properties": {
+          "product_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "color": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "in_stock": {
+            "type": "boolean"
+          }
+        }
+      },
+      "cart_action": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "added",
+              "updated",
+              "failed"
+            ]
+          },
+          "cart_item_count": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "required": [
+      "status",
+      "product"
+    ],
+    "examples": [
+      {
+        "status": "SUCCESS",
+        "product": {
+          "product_id": "JACKET-BLUE-001",
+          "name": "Premium Blue Winter Jacket",
+          "price": 95.99,
+          "color": "blue",
+          "rating": 4.5,
+          "in_stock": true
+        },
+        "cart_action": {
+          "action": "added",
+          "cart_item_count": 1
+        }
+      }
+    ],
+    "counterexamples": null
+  },
+  "success_criteria": {
+    "primary": {
+      "type": "deterministic_match",
+      "weight": 0.7,
+      "verification_function": "verify_product_and_cart",
+      "acceptance_criteria": {
+        "correct_product": "Product must be blue, winter jacket, within price and rating range",
+        "added_to_cart": "Product must be in final cart",
+        "json_valid": "Output must be valid JSON matching schema"
+      }
+    },
+    "secondary": [
+      {
+        "type": "process_quality",
+        "weight": 0.15,
+        "metric": "steps_taken",
+        "target": 6,
+        "tolerance": 4
+      },
+      {
+        "type": "format_check",
+        "weight": 0.1,
+        "metric": "json_schema_valid",
+        "target": null,
+        "tolerance": null
+      },
+      {
+        "type": "efficiency",
+        "weight": 0.05,
+        "metric": "token_efficiency",
+        "target": 2000,
+        "tolerance": 1000
+      }
+    ]
+  },
+  "error_codes": {
+    "SUCCESS": "Task completed successfully",
+    "PRODUCT_NOT_FOUND": "Product matching criteria not found",
+    "FILTER_NOT_AVAILABLE": "Search filters unavailable",
+    "ADD_TO_CART_FAILED": "Could not add product to cart",
+    "TIMEOUT_ERROR": "Request timeout or page load failure"
+  },
+  "initial_state": {
+    "start_url": "http://www.shop.local",
+    "environment": "ecommerce",
+    "logged_in": false,
+    "user_account": null,
+    "environment_seed": 42,
+    "cache_state": "warm"
+  },
+  "noise_profile": {
+    "name": "realistic",
+    "network_latency_ms": [
+      100,
+      300
+    ],
+    "request_timeout_probability": 0.02,
+    "image_load_failure_rate": 0.05,
+    "visual_noise_level": 0.1,
+    "ocr_error_rate": 0.0,
+    "ad_injection_rate": 0.2,
+    "content_change_rate": 0.05
+  },
+  "estimated_complexity": {
+    "expected_steps": 6,
+    "expected_tokens": 3000,
+    "expected_duration_seconds": 180,
+    "unique_tools_required": 2,
+    "information_integration_level": "few_sources"
+  },
+  "annotations": {
+    "created_by": "system",
+    "created_date": "2026-03-30T11:17:24.427834",
+    "annotators": [
+      "annotator_1",
+      "annotator_2",
+      "annotator_3"
+    ],
+    "inter_annotator_agreement": 0.85,
+    "revision": 1,
+    "revision_notes": null,
+    "status": "pilot"
+  },
+  "dependencies": null,
+  "difficulty_evidence": null
+}

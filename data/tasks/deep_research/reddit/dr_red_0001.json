@@ -1,0 +1,47 @@
+{
+  "task_id": "dr_red_0001",
+  "sites": ["reddit"],
+  "intent": "On the Postmill forum hosted at http://localhost:9999, browse /f/news. Report the three most-commented submissions currently visible on the first page. For each, provide title, comment_count, score, and the permalink URL on the forum (NOT the external article URL).",
+  "start_url": "__REDDIT__/f/news",
+  "storage_state": null,
+  "require_login": false,
+  "difficulty": 1,
+  "expected_steps": 4,
+  "author_notes": "Simple aggregation task. First page of /f/news on Postmill has 25 submissions; agent must pick top 3 by comment count and cite permalinks.",
+
+  "report_schema": {
+    "type": "object",
+    "properties": {
+      "posts": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+          "type": "object",
+          "required": ["title", "comment_count", "score", "permalink"],
+          "properties": {
+            "title":         {"type": "string", "minLength": 5},
+            "comment_count": {"type": "integer", "minimum": 0},
+            "score":         {"type": "integer"},
+            "permalink":     {"type": "string"}
+          }
+        }
+      }
+    },
+    "required": ["posts"]
+  },
+
+  "citation_policy": {
+    "required_for": ["posts[*].comment_count"],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 1
+  },
+
+  "eval": {
+    "eval_types": ["report_match", "citation_check"],
+    "report_expected": {
+      "products": null,
+      "numeric": {}
+    }
+  }
+}
