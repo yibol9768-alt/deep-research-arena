@@ -596,7 +596,7 @@ def glm_react_agent(page, task_cfg: dict) -> str:
 
     system_prompt = _render_system_prompt(task_cfg)
     messages: list[dict] = [
-        {"role": "user", "content": f"Task spec (JSON):\n{user_prompt}\n\nThe browser is already on {page.url}. Use tools to complete the task."}
+        {"role": "user", "content": f"Task spec (JSON):\n{user_prompt}\n\nThe browser is already on {page.url if page else start_url}. Use tools to complete the task."}
     ]
 
     final_answer = ""
