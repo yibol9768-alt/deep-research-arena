@@ -32,10 +32,11 @@ _CHECKLIST_ROOT = Path(__file__).resolve().parents[2] / "data" / "tasks" / "deep
 # v3 (new) checklists are loaded FIRST so they win on duplicate task_id keys.
 # v2 files stay so old tasks continue to score (until Phase 6 cleanup).
 _CHECKLIST_PATHS = [
-    _CHECKLIST_ROOT / "shopping" / "checklists_v3.json",
-    _CHECKLIST_ROOT / "reddit"   / "checklists_v3.json",
-    _CHECKLIST_ROOT / "shopping" / "checklists.json",
-    _CHECKLIST_ROOT / "reddit"   / "checklists.json",
+    _CHECKLIST_ROOT / "shopping"   / "checklists_v3.json",
+    _CHECKLIST_ROOT / "reddit"     / "checklists_v3.json",
+    _CHECKLIST_ROOT / "cross_site" / "checklists_v3.json",
+    _CHECKLIST_ROOT / "shopping"   / "checklists.json",
+    _CHECKLIST_ROOT / "reddit"     / "checklists.json",
 ]
 DEFAULT_CHECKLIST_PATH = _CHECKLIST_PATHS[0]  # legacy — aggregated loader below
 

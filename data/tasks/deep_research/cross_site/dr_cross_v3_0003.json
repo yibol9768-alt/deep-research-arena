@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0003",
+  "sites": ["shopping", "shopping_admin", "reddit"],
+  "intent": "Write a market intelligence report on the 'Home & Kitchen' product category by triangulating THREE sources: (1) Shopping site (customer-facing) — find the top 5 products in Home & Kitchen sorted by rating, recording each product's name, price, rating, and review count. (2) Shopping Admin (backend) — access the admin dashboard to find any sales/order volume data or inventory information for home & kitchen products. (3) Reddit /f/personalfinance or /f/AskReddit — search for posts where users discuss home purchases, kitchen upgrades, or budget product recommendations. The report must: (a) present the top products from the storefront with price and rating, (b) add backend context from admin (order trends, stock levels if visible), (c) cross-reference with Reddit discussions on real consumer behavior and budget priorities, (d) conclude with a gap analysis — what products are highly rated but under-discussed (or vice versa)? Cite all data points.",
+  "start_url": "__SHOPPING__/",
+  "storage_state": null,
+  "require_login": true,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3500,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__SHOPPING_ADMIN__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0003.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 20,
+  "author_notes": "3-site task: shopping frontend + shopping admin backend + reddit. Hardest task — requires login to admin, cross-referencing 3 different data types (product catalog, backend metrics, community opinions). DeerFlow should massively outperform single-agent here."
+}

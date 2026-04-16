@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0002",
+  "sites": ["gitlab", "reddit"],
+  "intent": "Write a technology landscape report about 'right to repair' by researching TWO sources: (1) GitLab — search for open-source projects related to 'repair', 'ifixit', 'hardware', or 'right to repair'. For at least 2 relevant projects, report their description, star count, and any open issues that discuss repairability or documentation. (2) Reddit /f/technology — find posts discussing 'right to repair' legislation, consumer advocacy, or repair culture. For at least 3 posts, note the title, score, comment count, and the main arguments in the discussion. The report must: (a) map the open-source ecosystem supporting right-to-repair, (b) summarize the Reddit community's stance and key debates, (c) analyze how the OSS projects and community discussions complement or contradict each other. Every claim must cite the specific GitLab project page or Reddit post URL.",
+  "start_url": "__GITLAB__/explore",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 3000,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__GITLAB__", "__REDDIT__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0002.json",
+    "expected_predicates": ["stars", "forks", "description", "forum", "score", "comment_count", "title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Cross-site: gitlab (OSS projects) + reddit (community sentiment on right-to-repair). Tests agent's ability to connect code repos with social discourse."
+}

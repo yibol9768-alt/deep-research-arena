@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0001",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a consumer research report about noise-cancelling headphones by cross-referencing TWO sources: (1) the One Stop Market shopping site — find at least 3 noise-cancelling or wireless headphones in the $30-100 range, noting their price, rating, and review summaries; (2) the Reddit /f/technology forum — find posts or comments where users discuss headphone quality, brand preferences, or audio tech. The report must: (a) present each product's specs from the shopping site with citations, (b) identify relevant Reddit discussions and what users actually say about headphone brands or features, (c) synthesize a cross-source verdict — do the shopping site ratings align with Reddit community sentiment? Where do they diverge? Cite every factual claim with a markdown link to the specific shopping product page or Reddit post.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=headphones",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 3000,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0001.json",
+    "expected_predicates": ["price", "rating", "review_count", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Cross-site: shopping (product data) + reddit (community sentiment). DeerFlow's planner should assign separate researchers to each site then have analyst synthesize. Single-agent ReAct must context-switch between sites manually."
+}

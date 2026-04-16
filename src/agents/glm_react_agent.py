@@ -56,6 +56,58 @@ _SYSTEM_PROMPT = textwrap.dedent(
 ) % MAX_STEPS
 
 
+_SYSTEM_PROMPT_V3 = textwrap.dedent(
+    """\
+    You are a deep-research agent operating inside sandboxed websites
+    (listed in the task's `sites` field). Your job is to produce a
+    **long-form markdown research report** that answers the task's
+    `intent` in depth.
+
+    Output contract:
+      - Submit via the `finish` tool, passing the **full markdown report**
+        as the `answer_json` argument (the name is legacy — treat it as
+        free-form text).
+      - DO NOT emit JSON. The expected output is prose + tables + lists,
+        with markdown formatting.
+      - Structure: intro paragraph → findings section(s) → conclusion.
+        At minimum %d paragraphs, ~%d words, %d inline citations.
+      - EVERY factual claim about a specific product, post, user, forum,
+        rating, score, or comment count MUST be backed by a markdown
+        citation like `[text](url)`. URLs must be sandboxed site pages.
+      - Browse first, write last. Use site tools (page_products,
+        list_submissions, get_submission, etc.) to collect facts before
+        synthesizing.
+      - You have up to %d tool calls. Visit distinct pages — the task's
+        `min_pages_browsed` is a structural floor.
+      - Write as an analyst, not a database dump: include reasoning,
+        tradeoffs, comparisons.
+
+    Common failure modes (AVOID):
+      - Wrapping the report in JSON — it must be raw markdown.
+      - Copying product titles as "reviews" — quote actual review bodies.
+      - Making claims without a backing citation URL.
+      - Skipping the synthesis / "why" / "tradeoff" discussion.
+    """
+)
+
+
+def _render_system_prompt(task_cfg: dict) -> str:
+    """Pick the prompt variant based on whether this is a v3 markdown task."""
+    spec = task_cfg.get("markdown_spec") or {}
+    if not spec:
+        return _SYSTEM_PROMPT
+    sites = task_cfg.get("sites") or []
+    steps = MAX_STEPS
+    if len(sites) > 1:
+        steps = max(MAX_STEPS, int(task_cfg.get("expected_steps", 20)) + 10)
+    return _SYSTEM_PROMPT_V3 % (
+        int(spec.get("min_paragraphs", 4) or 4),
+        int(spec.get("min_words", 400) or 400),
+        int(spec.get("min_citations", 3) or 3),
+        steps,
+    )
+
+
 _COMMON_TOOLS = [
     {
         "name": "browse",
@@ -139,6 +191,42 @@ _REDDIT_TOOLS = [
 ]
 
 
+_GITLAB_TOOLS = [
+    {
+        "name": "gitlab_search",
+        "description": "Search GitLab for projects by keyword. Returns array of {id, name, path, url, description, stars, forks}.",
+        "input_schema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]},
+    },
+    {
+        "name": "gitlab_issues",
+        "description": "List issues for a GitLab project. Pass numeric project ID. `state` can be 'opened','closed','all'. Returns array of {iid, title, state, labels, author, url}.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "project_id": {"type": "integer"},
+                "state": {"type": "string", "default": "all"},
+                "per_page": {"type": "integer", "default": 10},
+            },
+            "required": ["project_id"],
+        },
+    },
+    {
+        "name": "gitlab_browse",
+        "description": "Fetch a GitLab page (project, issue, MR). If it's an issue URL, returns structured data via API. Otherwise returns page text.",
+        "input_schema": {"type": "object", "properties": {"url": {"type": "string"}}, "required": ["url"]},
+    },
+]
+
+
+_ADMIN_TOOLS = [
+    {
+        "name": "admin_browse",
+        "description": "Browse a Shopping Admin page (Magento backend). Pass a path like '/admin/dashboard/' or '/admin/sales/order/'. Requires login (handled automatically). Returns page text content.",
+        "input_schema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]},
+    },
+]
+
+
 def _pick_tools(task_cfg: dict) -> list[dict]:
     sites = set(task_cfg.get("sites") or [])
     tools = list(_COMMON_TOOLS)
@@ -146,6 +234,10 @@ def _pick_tools(task_cfg: dict) -> list[dict]:
         tools.extend(_SHOPPING_TOOLS)
     if "reddit" in sites:
         tools.extend(_REDDIT_TOOLS)
+    if "gitlab" in sites:
+        tools.extend(_GITLAB_TOOLS)
+    if "shopping_admin" in sites:
+        tools.extend(_ADMIN_TOOLS)
     return tools
 
 
@@ -158,14 +250,136 @@ def _summary(page, limit: int = 2000) -> str:
     return text[:limit]
 
 
-def _exec_tool(name: str, args: dict, page, base_url: str) -> str:
+def _http_get(url: str) -> str:
+    """Simple HTTP GET via requests (no Playwright needed)."""
+    import requests as _req
     try:
+        r = _req.get(url, timeout=30, allow_redirects=True)
+        return r.text if r.ok else ""
+    except Exception as e:
+        return ""
+
+
+def _http_scrape_products(html: str) -> list[dict]:
+    """Parse Magento product listing from HTML (requests-based)."""
+    from bs4 import BeautifulSoup as _BS
+    soup = _BS(html, "html.parser")
+    items = []
+    for el in soup.select("li.item.product.product-item")[:20]:
+        a = el.select_one("a.product-item-link, .product-item-name a")
+        name = a.get_text(strip=True) if a else ""
+        url = a.get("href", "") if a else ""
+        price = None
+        pEl = el.select_one("[data-price-amount]")
+        if pEl:
+            try: price = float(pEl["data-price-amount"])
+            except: pass
+        rating = None
+        rEl = el.select_one(".rating-result")
+        if rEl:
+            m = re.search(r"(\d+)%", rEl.get("title", ""))
+            if m: rating = int(m.group(1)) / 20
+        items.append({"name": name, "url": url, "price": price, "rating": rating})
+    return items
+
+
+def _http_scrape_product_detail(html: str, url: str) -> dict:
+    """Parse Magento product detail page from HTML."""
+    from bs4 import BeautifulSoup as _BS
+    soup = _BS(html, "html.parser")
+    d: dict = {"product_url": url}
+    h1 = soup.select_one("h1.page-title span")
+    d["name"] = h1.get_text(strip=True) if h1 else ""
+    pEl = soup.select_one("[data-price-amount]")
+    if pEl:
+        try: d["price"] = float(pEl["data-price-amount"])
+        except: pass
+    rEl = soup.select_one(".rating-result")
+    if rEl:
+        m = re.search(r"(\d+)%", rEl.get("title", ""))
+        if m: d["rating"] = int(m.group(1)) / 20
+    rc = soup.select_one("a[href*='#reviews']")
+    if rc:
+        m = re.search(r"(\d+)", rc.get_text())
+        if m: d["review_count"] = int(m.group(1))
+    return d
+
+
+_SUB_RE_AGENT = re.compile(r'<article[^>]*class="[^"]*submission[^"]*"[\s\S]*?</article>', re.I)
+
+def _http_reddit_posts(url: str) -> list[dict]:
+    """Parse Postmill submissions from HTML (requests-based)."""
+    html = _http_get(url)
+    posts = []
+    for m in _SUB_RE_AGENT.finditer(html or ""):
+        block = m.group(0)
+        p: dict = {}
+        tm = re.search(r'class="submission__link"[^>]*>([^<]+)</a>', block)
+        if tm: p["title"] = re.sub(r"&#039;", "'", tm.group(1)).strip()
+        um = re.search(r'href="(/f/[A-Za-z0-9_]+/\d+/[^"]+)"', block)
+        reddit_base = os.environ.get("REDDIT", "http://localhost:9999")
+        if um: p["url"] = reddit_base + um.group(1)
+        am = re.search(r'class="submission__submitter[^"]*"[^>]*><strong>([^<]+)', block)
+        if am: p["author"] = am.group(1).strip()
+        sm = re.search(r'vote__net-score[^>]*>(-?\d+)', block)
+        p["score"] = int(sm.group(1)) if sm else 0
+        cm = re.search(r'data-comment-count="(\d+)"', block)
+        p["comments"] = int(cm.group(1)) if cm else 0
+        posts.append(p)
+    return posts[:25]
+
+
+def _http_reddit_detail(url: str) -> dict:
+    """Parse a Postmill submission detail page."""
+    html = _http_get(url)
+    if not html:
+        return {"error": "empty response"}
+    out: dict = {"url": url}
+    tm = re.search(r'<a[^>]*class="submission__link"[^>]*>([^<]+)</a>', html)
+    if tm: out["title"] = re.sub(r"&#039;", "'", tm.group(1)).strip()
+    sm = re.search(r'class="vote__net-score"[^>]*>(-?\d+)', html)
+    out["score"] = int(sm.group(1)) if sm else 0
+    comment_re = re.compile(r'<article[^>]*class="[^"]*comment[^"]*"[\s\S]*?</article>', re.I)
+    comments = []
+    for cm in comment_re.finditer(html):
+        blk = cm.group(0)
+        c: dict = {}
+        am = re.search(r'comment__author[^>]*>([^<]+)|href="/user/([^"]+)"', blk)
+        if am: c["author"] = (am.group(1) or am.group(2) or "").strip()
+        bm = re.search(r'class="comment__body[^"]*"[^>]*>([\s\S]*?)</div>', blk)
+        if bm: c["body"] = re.sub(r"<[^>]+>", " ", bm.group(1)).strip()[:400]
+        sm2 = re.search(r'vote__net-score[^>]*>(-?\d+)', blk)
+        c["score"] = int(sm2.group(1)) if sm2 else 0
+        comments.append(c)
+    out["comments"] = comments[:20]
+    out["num_comments"] = len(comments)
+    return out
+
+
+def _exec_tool(name: str, args: dict, page, base_url: str, *, cross_site: bool = False) -> str:
+    """Execute a tool call. When cross_site=True, use requests instead of Playwright for reliability."""
+    try:
+        shopping_url = os.environ.get("SHOPPING", "http://localhost:7770")
+        reddit_url = os.environ.get("REDDIT", "http://localhost:9999")
+
         # ---- common ----
         if name == "browse":
-            page.goto(args["url"], timeout=30_000)
+            url = args["url"]
+            if cross_site:
+                html = _http_get(url)
+                if not html:
+                    return json.dumps({"error": "empty response", "url": url})
+                from bs4 import BeautifulSoup as _BS
+                soup = _BS(html, "html.parser")
+                for t in soup.select("script,style"): t.decompose()
+                text = re.sub(r"\s+", " ", soup.get_text(" ", strip=True))[:2000]
+                return json.dumps({"url": url, "text": text})
+            page.goto(url, timeout=30_000)
             page.wait_for_load_state("domcontentloaded")
             return json.dumps({"url": page.url, "text": _summary(page, 1200)})
         if name == "click_text":
+            if cross_site:
+                return json.dumps({"ok": False, "reason": "click_text not supported in cross-site mode, use browse with full URL instead"})
             target = args["text"].lower()
             handle = page.evaluate_handle(
                 "(t) => { const as=[...document.querySelectorAll('a')]; return as.find(a => (a.innerText||'').toLowerCase().includes(t)); }",
@@ -178,44 +392,162 @@ def _exec_tool(name: str, args: dict, page, base_url: str) -> str:
             page.wait_for_load_state("domcontentloaded")
             return json.dumps({"ok": True, "url": page.url})
         if name == "read_visible":
+            if cross_site:
+                return json.dumps({"error": "read_visible not supported in cross-site mode, use browse with the URL"})
             return json.dumps({"url": page.url, "text": _summary(page, 2500)})
 
-        # ---- shopping ----
+        # ---- shopping (requests-based for cross-site) ----
         if name == "search":
-            url = f"{base_url.rstrip('/')}/catalogsearch/result/?q={args['query']}"
+            url = f"{shopping_url}/catalogsearch/result/?q={args['query']}"
+            if cross_site:
+                html = _http_get(url)
+                items = _http_scrape_products(html)
+                return json.dumps({"url": url, "count": len(items), "items": items}, ensure_ascii=False)
             page.goto(url, timeout=30_000)
             page.wait_for_load_state("domcontentloaded")
             return json.dumps({"url": page.url, "text": _summary(page, 1200)})
         if name == "page_products":
+            if cross_site:
+                return json.dumps({"error": "page_products requires browse first in cross-site mode. Use 'search' tool which returns items directly."})
             return json.dumps(list_products(page))
         if name == "page_product":
+            if cross_site:
+                return json.dumps({"error": "page_product not available in cross-site mode. Use 'browse' on the product URL."})
             return json.dumps(product_details(page))
         if name == "list_reviews":
             pid = args["pid"]
             max_pages = int(args.get("max_pages") or 3)
-            origin = base_url.rstrip("/")
-            out = []
+            reviews = []
             for p in range(1, max_pages + 1):
-                page.goto(f"{origin}/review/product/listAjax/id/{pid}/?p={p}", timeout=20_000)
-                batch = list_reviews(page)
-                if not batch:
+                url = f"{shopping_url}/review/product/listAjax/id/{pid}/?p={p}"
+                html = _http_get(url)
+                if not html or "review-item" not in html:
                     break
-                out.extend(batch)
-            return json.dumps(out)
+                from bs4 import BeautifulSoup as _BS
+                soup = _BS(html, "html.parser")
+                for el in soup.select(".review-item, li.item.review-item"):
+                    author = el.select_one(".review-details-value, [itemprop='author']")
+                    body = el.select_one(".review-content, [itemprop='description']")
+                    title_el = el.select_one(".review-title")
+                    rating = None
+                    ratEl = el.select_one(".rating-result [title]")
+                    if ratEl:
+                        m = re.search(r"(\d+)%", ratEl.get("title") or "")
+                        if m: rating = int(m.group(1)) // 20
+                    reviews.append({
+                        "author": author.get_text(strip=True) if author else "",
+                        "title": title_el.get_text(strip=True) if title_el else "",
+                        "body": body.get_text(" ", strip=True) if body else "",
+                        "rating": rating,
+                    })
+            return json.dumps(reviews)
 
-        # ---- reddit (Postmill) ----
+        # ---- reddit (requests-based for cross-site) ----
         if name == "list_submissions":
-            subs = red_list_submissions(args["forum_or_url"], base=base_url, page=page)
-            return json.dumps(subs[:25])  # cap to page-worth
+            forum = args["forum_or_url"]
+            if "://" in forum:
+                url = forum
+            elif forum.startswith("/"):
+                url = reddit_url + forum
+            else:
+                url = f"{reddit_url}/f/{forum}"
+            if cross_site:
+                posts = _http_reddit_posts(url)
+                return json.dumps(posts)
+            subs = red_list_submissions(args["forum_or_url"], base=reddit_url, page=page)
+            return json.dumps(subs[:25])
         if name == "get_submission":
-            d = red_get_submission(args["url_or_path"], base=base_url, page=page)
-            # Truncate comments to avoid blowing up the context
+            url_or_path = args["url_or_path"]
+            if "://" not in url_or_path:
+                url_or_path = reddit_url + ("" if url_or_path.startswith("/") else "/") + url_or_path
+            if cross_site:
+                return json.dumps(_http_reddit_detail(url_or_path))
+            d = red_get_submission(args["url_or_path"], base=reddit_url, page=page)
             if isinstance(d.get("comments"), list):
                 d["comments"] = d["comments"][:30]
             return json.dumps(d)
         if name == "list_user_submissions":
-            subs = red_list_user_submissions(args["username"], base=base_url, page=page)
+            if cross_site:
+                url = f"{reddit_url}/user/{args['username']}/submissions"
+                posts = _http_reddit_posts(url)
+                return json.dumps(posts)
+            subs = red_list_user_submissions(args["username"], base=reddit_url, page=page)
             return json.dumps(subs[:25])
+
+        # ---- gitlab ----
+        if name == "gitlab_search":
+            import requests as _req
+            gitlab_url = os.environ.get("GITLAB", "http://localhost:8023")
+            r = _req.get(f"{gitlab_url}/api/v4/projects",
+                         params={"search": args["query"], "per_page": 10}, timeout=20)
+            projects = [{"id": p["id"], "name": p["name"],
+                         "path": p["path_with_namespace"],
+                         "url": f"{gitlab_url}/{p['path_with_namespace']}",
+                         "description": (p.get("description") or "")[:200],
+                         "stars": p.get("star_count", 0),
+                         "forks": p.get("forks_count", 0)}
+                        for p in (r.json() if r.ok else [])]
+            return json.dumps({"count": len(projects), "projects": projects})
+        if name == "gitlab_issues":
+            import requests as _req
+            gitlab_url = os.environ.get("GITLAB", "http://localhost:8023")
+            pid = args["project_id"]
+            r = _req.get(f"{gitlab_url}/api/v4/projects/{pid}/issues",
+                         params={"state": args.get("state", "all"),
+                                 "per_page": args.get("per_page", 10)},
+                         timeout=20)
+            issues = [{"iid": i["iid"], "title": i["title"], "state": i["state"],
+                       "labels": i.get("labels", []),
+                       "author": i.get("author", {}).get("username", ""),
+                       "url": i.get("web_url", ""),
+                       "description_preview": (i.get("description") or "")[:300]}
+                      for i in (r.json() if r.ok else [])]
+            return json.dumps({"count": len(issues), "issues": issues})
+        if name == "gitlab_browse":
+            import requests as _req
+            url = args["url"]
+            gitlab_url = os.environ.get("GITLAB", "http://localhost:8023")
+            # Try API for issues
+            m = re.search(r'/([^/]+/[^/]+)/-/issues/(\d+)', url)
+            if m:
+                from urllib.parse import quote
+                proj, iid = quote(m.group(1), safe=""), m.group(2)
+                r = _req.get(f"{gitlab_url}/api/v4/projects/{proj}/issues/{iid}", timeout=20)
+                if r.ok:
+                    i = r.json()
+                    return json.dumps({"kind": "issue", "title": i["title"],
+                                       "state": i["state"], "labels": i.get("labels", []),
+                                       "description": (i.get("description") or "")[:2000]})
+            # Fallback: fetch HTML
+            r = _req.get(url, timeout=20)
+            from bs4 import BeautifulSoup as _BS
+            soup = _BS(r.text, "html.parser")
+            for t in soup.select("script,style,nav"): t.decompose()
+            return json.dumps({"kind": "page", "url": url,
+                               "text": soup.get_text(" ", strip=True)[:3000]})
+
+        # ---- shopping admin ----
+        if name == "admin_browse":
+            import requests as _req
+            from bs4 import BeautifulSoup as _BS
+            admin_url = os.environ.get("SHOPPING_ADMIN", "http://localhost:7780")
+            sess = _req.Session()
+            # Login
+            r = sess.get(f"{admin_url}/admin/", timeout=20, allow_redirects=True)
+            soup = _BS(r.text, "html.parser")
+            fk = soup.select_one('input[name="form_key"]')
+            sess.post(f"{admin_url}/admin/admin/dashboard/", data={
+                "form_key": fk["value"] if fk else "",
+                "login[username]": "admin", "login[password]": "admin1234",
+            }, timeout=20, allow_redirects=True)
+            path = args["path"]
+            if not path.startswith("http"):
+                path = f"{admin_url}{'' if path.startswith('/') else '/'}{path}"
+            r = sess.get(path, timeout=30, allow_redirects=True)
+            soup = _BS(r.text, "html.parser")
+            for t in soup.select("script,style,nav,header"): t.decompose()
+            return json.dumps({"kind": "admin_page", "url": path,
+                               "text": soup.get_text(" ", strip=True)[:5000]})
 
     except Exception as e:
         return json.dumps({"error": f"{type(e).__name__}: {e}"})
@@ -247,28 +579,38 @@ def glm_react_agent(page, task_cfg: dict) -> str:
 
     tools = _pick_tools(task_cfg)
 
+    # v3 tasks don't have a report_schema; include markdown_spec instead
+    # so the agent sees its concrete floors.
+    is_v3 = bool(task_cfg.get("markdown_spec"))
+    spec_field = "markdown_spec" if is_v3 else "report_schema"
     user_prompt = json.dumps(
         {
             "sites": task_cfg.get("sites"),
             "intent": task_cfg.get("intent"),
             "start_url": task_cfg.get("start_url"),
-            "report_schema": task_cfg.get("report_schema"),
+            spec_field: task_cfg.get(spec_field),
             "citation_policy": task_cfg.get("citation_policy"),
         },
         ensure_ascii=False,
     )
 
+    system_prompt = _render_system_prompt(task_cfg)
     messages: list[dict] = [
         {"role": "user", "content": f"Task spec (JSON):\n{user_prompt}\n\nThe browser is already on {page.url}. Use tools to complete the task."}
     ]
 
     final_answer = ""
-    for _ in range(MAX_STEPS):
+    # Cross-site tasks need more steps; use expected_steps or 2× for multi-site
+    sites = task_cfg.get("sites") or []
+    max_steps = MAX_STEPS
+    if len(sites) > 1:
+        max_steps = max(MAX_STEPS, int(task_cfg.get("expected_steps", 20)) + 10)
+    for _ in range(max_steps):
         try:
             resp = client.messages.create(
                 model=MODEL,
                 max_tokens=4000,
-                system=_SYSTEM_PROMPT,
+                system=system_prompt,
                 tools=tools,
                 messages=messages,
             )
@@ -301,7 +643,8 @@ def glm_react_agent(page, task_cfg: dict) -> str:
                 })
                 saw_finish = True
                 continue
-            result = _exec_tool(block.name, dict(block.input or {}), page, base_url)
+            result = _exec_tool(block.name, dict(block.input or {}), page, base_url,
+                                cross_site=len(sites) > 1)
             metrics.add_tool_call(block.name)
             tool_results.append({
                 "type": "tool_result",

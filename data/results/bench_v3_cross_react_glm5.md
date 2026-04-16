@@ -1,0 +1,63 @@
+# Deep Research Benchmark v3 — Arena Leaderboard
+_Generated 2026-04-16 20:08:10_
+
+Composite weights (v3): `{'markdown_structure': 0.1, 'citation': 0.15, 'fact_kg': 0.3, 'llm_judge': 0.2, 'checklist': 0.2, 'efficiency': 0.05}`
+
+## Composite Elo (driven by the 6-pillar weighted score)
+
+_(need ≥2 agents per task for Elo)_
+
+## Pairwise-judge Elo (LLM judge, position-debiased)
+
+_(skipped)_
+
+## Per-pillar Elo (each pillar → its own arena)
+
+_(no data)_
+
+## Per-task composite scores
+
+| Agent | Task | Composite | Md | Cite | Fact-KG | Judge | Chk | Eff |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| react-glm5 | dr_cross_v3_0002 | **0.09** | 0.40 | 0.00 | 0.00 | 0.00 | 0.00 | 1.00 |
+| react-glm5 | dr_cross_v3_0003 | **0.09** | 0.40 | 0.00 | 0.00 | 0.00 | 0.00 | 1.00 |
+| react-glm5 | dr_cross_v3_0004 | **0.09** | 0.40 | 0.00 | 0.00 | 0.00 | 0.00 | 1.00 |
+| react-glm5 | dr_cross_v3_0001 | **0.06** | 0.40 | 0.00 | 0.00 | 0.00 | 0.00 | 0.30 |
+
+## Per-run details
+
+### `react-glm5` — `dr_cross_v3_0001` — composite **0.055**
+
+- **markdown_structure**: 0.400 (passed=False)
+- **citation**: 0.000 (passed=False)
+- **fact_kg**: 0.000 (passed=False)
+- **llm_judge**: 0.000 (passed=False)
+- **checklist**: 0.000 (passed=False)
+- **efficiency**: 0.300 (passed=False)
+
+### `react-glm5` — `dr_cross_v3_0002` — composite **0.090**
+
+- **markdown_structure**: 0.400 (passed=False)
+- **citation**: 0.000 (passed=False)
+- **fact_kg**: 0.000 (passed=False)
+- **llm_judge**: 0.000 (passed=False)
+- **checklist**: 0.000 (passed=False)
+- **efficiency**: 1.000 (passed=True)
+
+### `react-glm5` — `dr_cross_v3_0003` — composite **0.090**
+
+- **markdown_structure**: 0.400 (passed=False)
+- **citation**: 0.000 (passed=False)
+- **fact_kg**: 0.000 (passed=False)
+- **llm_judge**: 0.000 (passed=False)
+- **checklist**: 0.000 (passed=False)
+- **efficiency**: 1.000 (passed=True)
+
+### `react-glm5` — `dr_cross_v3_0004` — composite **0.090**
+
+- **markdown_structure**: 0.400 (passed=False)
+- **citation**: 0.000 (passed=False)
+- **fact_kg**: 0.000 (passed=False)
+- **llm_judge**: 0.000 (passed=False)
+- **checklist**: 0.000 (passed=False)
+- **efficiency**: 1.000 (passed=True)

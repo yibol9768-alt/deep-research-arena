@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0004",
+  "sites": ["gitlab", "reddit", "shopping"],
+  "intent": "Write a deep research report on 'open source and consumer technology' by connecting THREE sandbox sites: (1) GitLab — find the a11yproject/a11yproject.com project (a community accessibility resource). Report its star count, recent issues (at least 3), and what accessibility topics they cover. (2) Reddit /f/technology — find posts about accessibility, assistive technology, or inclusive design. Report at least 3 posts with their titles, scores, and main discussion points. (3) Shopping site — search for 'accessible' or 'ergonomic' products and find at least 2 products that could serve users with accessibility needs, noting price and ratings. The report must: (a) present what the A11Y Project covers on GitLab, (b) summarize Reddit community discussions on tech accessibility, (c) evaluate whether the shopping site has products addressing accessibility concerns raised in GitLab issues and Reddit discussions, (d) conclude with recommendations on gaps between open-source advocacy, community needs, and available products.",
+  "start_url": "__GITLAB__/a11yproject/a11yproject.com",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 900,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__GITLAB__", "__REDDIT__", "__SHOPPING__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0004.json",
+    "expected_predicates": ["stars", "title", "state", "labels", "forum", "score", "comment_count", "price", "rating"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 18,
+  "author_notes": "3-site task: gitlab (A11Y Project OSS) + reddit (accessibility discussions) + shopping (accessible/ergonomic products). Tests whether agent can connect an OSS advocacy project's concerns with real community discourse and product availability."
+}
