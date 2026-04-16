@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_shop_v3_0001",
+  "sites": ["shopping"],
+  "intent": "On the One Stop Market, write a comparative buying guide for headphones in the $30-100 price band that distinguishes three form-factors: over-ear, on-ear, and earbud / in-ear. For EACH form-factor pick the strongest representative product (≥4.0 rating preferred, ≥1 review minimum) by browsing relevant search results AND each product's detail page. The report must explain: (a) what differentiates each form-factor for the buyer, (b) which specific product wins each form-factor and why (price, rating, review_count, key features), (c) an overall top-pick across the three with a one-paragraph rationale. Cite each product's permalink with a markdown link.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=headphones",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 600,
+    "max_words": 2500,
+    "min_paragraphs": 5,
+    "min_citations": 6,
+    "min_pages_browsed": 6
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 5
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_shop_v3_0001.json",
+    "expected_predicates": ["price", "rating", "review_count", "category"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/shopping/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "3 form-factors × 1+ pick each = ≥3 product detail pages + ≥3 search/category pages. Form-factor differentiation forces real research, not single-page scrape."
+}

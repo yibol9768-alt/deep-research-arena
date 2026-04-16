@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_shop_v3_0004",
+  "sites": ["shopping"],
+  "intent": "Investigate quality complaints in the bluetooth-headphones segment of the One Stop Market. Search 'bluetooth headphones' and pick THREE products that have customer reviews available (visit each product page AND each product's review-list AJAX endpoint at /review/product/listAjax/id/<product_id>/?p=1). Read the customer reviews and identify recurring criticisms (≥2 mentions across reviews). Write a 'common quality issues' report that: (a) names the 3 products examined with name + price + rating + product_url, (b) identifies 3 recurring complaint themes (e.g. battery life, build quality, sound, connectivity) with concrete VERBATIM quoted snippets from real reviews, (c) suggests which complaint affects the most products. Cite every product page and avoid quoting from the title — quote actual review bodies.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=bluetooth+headphones",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 200,
+    "max_words": 2400,
+    "min_paragraphs": 4,
+    "min_citations": 3,
+    "min_pages_browsed": 5
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 3
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_shop_v3_0004.json",
+    "expected_predicates": ["price", "rating", "review_count", "review_text"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/shopping/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Pages: 1 search + 3 product detail + 3 review AJAX = 7. Forces multi-page browsing AND content analysis (theme extraction)."
+}

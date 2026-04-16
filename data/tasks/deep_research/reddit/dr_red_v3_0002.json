@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_red_v3_0002",
+  "sites": ["reddit"],
+  "intent": "Produce a 'top discussions digest' for /f/wallstreetbets. From the first page of /f/wallstreetbets, identify the FIVE submissions with the highest comment_count. For each: visit the submission's permalink page and read the comments section (top 10 comments by score). For each of the 5 posts report: title, score, comment_count, permalink, and a 1-2 sentence summary of the dominant viewpoint in the top comments (e.g. bullish / bearish / cautious / mocking). Then conclude with: (a) which post drove the most polarized discussion; (b) what overall sentiment the wallstreetbets community has on the front page right now; (c) name 2 unique users who appear as authors of multiple high-scoring comments across these 5 posts.",
+  "start_url": "__REDDIT__/f/wallstreetbets",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 500,
+    "max_words": 2500,
+    "min_paragraphs": 5,
+    "min_citations": 5,
+    "min_pages_browsed": 6
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 5
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_red_v3_0002.json",
+    "expected_predicates": ["score", "comment_count", "comment_author"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/reddit/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 12,
+  "author_notes": "Pages: forum + 5 submission detail pages = 6. Comment-level analysis pushes beyond surface aggregation."
+}

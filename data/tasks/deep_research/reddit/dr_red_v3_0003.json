@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_red_v3_0003",
+  "sites": ["reddit"],
+  "intent": "Conduct a topic-trend survey of /f/technology. Browse the first page (25 submissions) of /f/technology AND the second page (?p=2). From the combined ~50 titles, identify 3-5 recurring TOPIC THEMES (e.g. 'AI / large language models', 'tech regulation', 'big-tech layoffs', 'crypto', 'consumer hardware'). For each theme report: theme_name, n_posts (how many submissions fit), 2-3 example post titles with permalinks, average_score and average_comment_count for those posts. Then write a 'trending discourse' summary that names which theme dominates by submission count and which dominates by engagement (these may differ). Cite ≥6 example posts.",
+  "start_url": "__REDDIT__/f/technology",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 450,
+    "max_words": 2400,
+    "min_paragraphs": 5,
+    "min_citations": 6,
+    "min_pages_browsed": 4
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_red_v3_0003.json",
+    "expected_predicates": ["score", "comment_count", "post_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/reddit/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 10,
+  "author_notes": "Pages: page 1 + page 2 + sample post permalinks = 4+. Theme clustering forces synthesis, not enumeration."
+}

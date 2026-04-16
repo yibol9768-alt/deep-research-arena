@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_shop_v3_0003",
+  "sites": ["shopping"],
+  "intent": "Survey the `grocery-gourmet-food` category for tea products. Search 'tea' and pick at least SIX distinct tea products from the results (visit each product page). Group them into types based on the product name (e.g. green / black / herbal / white / oolong / fruit-infusion). For each type that has ≥1 product report: number_of_products, price_range, average_rating. Then write a 'price–quality quadrant' analysis identifying which type appears to deliver the best value (highest rating / lowest price ratio) on this market and suggest one concrete product to buy. Cite every product mentioned.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=tea",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 400,
+    "max_words": 2500,
+    "min_paragraphs": 5,
+    "min_citations": 6,
+    "min_pages_browsed": 7
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_shop_v3_0003.json",
+    "expected_predicates": ["price", "rating", "category"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/shopping/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 14,
+  "author_notes": "6+ product pages + classification by type + value analysis. Tea is broad enough on this catalog to give 4-6 distinct subtypes."
+}

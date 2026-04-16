@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_red_v3_0001",
+  "sites": ["reddit"],
+  "intent": "Conduct a comparative engagement analysis between /f/news and /f/worldnews on this Postmill instance. For EACH forum: visit the forum page and collect the first-page submissions (up to 25). Compute number_of_submissions, average_score, average_comment_count, median_comment_count, and identify the top-3 most-commented posts (cite their permalinks). Then write a comparative report that: (a) reports the metrics side-by-side; (b) identifies which forum has higher MEDIAN comment engagement and what the gap is; (c) names 1-2 hypotheses for the difference (e.g. topic breadth, audience size, more controversial topics); (d) concludes with which forum a researcher should monitor for high-debate news content. Every claim about a specific post must cite its permalink.",
+  "start_url": "__REDDIT__/f/news",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 350,
+    "max_words": 2300,
+    "min_paragraphs": 4,
+    "min_citations": 4,
+    "min_pages_browsed": 3
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_red_v3_0001.json",
+    "expected_predicates": ["score", "comment_count", "forum"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/reddit/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 8,
+  "author_notes": "Pages: /f/news + /f/worldnews + at least 3 cited posts × 1 permalink each = 5+ pages. Cross-forum stats + hypothesis = real research."
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_shop_v3_0002",
+  "sites": ["shopping"],
+  "intent": "Browse the One Stop Market's `home-kitchen` category. Identify the FIVE most-reviewed products on the first listing page, then visit each one's product page. Build a market-analysis report covering: (a) for each of the 5 products report name, price, rating, review_count, product_url; (b) compute the simple correlation between review_count and rating (positive / negative / weak / none) and EXPLAIN whether high-review products tend to have higher ratings in this category; (c) name two factors that could explain the observed correlation (or lack thereof); (d) recommend ONE product as the 'best evidence' pick — meaning the rating you trust most because it has the largest sample. Cite each product page.",
+  "start_url": "__SHOPPING__/home-kitchen.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 400,
+    "max_words": 2200,
+    "min_paragraphs": 4,
+    "min_citations": 5,
+    "min_pages_browsed": 6
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__"],
+    "min_distinct_sources": 5
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_shop_v3_0002.json",
+    "expected_predicates": ["price", "rating", "review_count", "category"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/shopping/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 10,
+  "author_notes": "Forces correlation analysis on real numbers, not single-page top-N. 5 product pages + 1 category page."
+}

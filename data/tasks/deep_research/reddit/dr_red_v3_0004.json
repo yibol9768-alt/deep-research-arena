@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_red_v3_0004",
+  "sites": ["reddit"],
+  "intent": "Build a user profile for the seeded user 'MarvelsGrantMan136'. Visit /user/MarvelsGrantMan136/submissions and collect their visible submissions (up to 25). For this user, report: (a) total_visible_submissions; (b) the top-3 forums they post to most often (forum_name + n_posts in each); (c) the top-3 highest-scored individual posts (title + score + comment_count + permalink); (d) average_score across all visible submissions. Then write a 'posting behavior profile' paragraph characterizing this user (e.g. heavy news poster / cross-forum generalist / niche enthusiast) and supporting it with the data above. Cite ≥5 individual permalinks.",
+  "start_url": "__REDDIT__/user/MarvelsGrantMan136/submissions",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 180,
+    "max_words": 2000,
+    "min_paragraphs": 4,
+    "min_citations": 3,
+    "min_pages_browsed": 3
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__"],
+    "min_distinct_sources": 3
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_red_v3_0004.json",
+    "expected_predicates": ["score", "comment_count", "forum", "author"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/reddit/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 8,
+  "author_notes": "Pages: user page + 3+ permalinks = 4+. Behavioral synthesis from cross-forum activity."
+}
