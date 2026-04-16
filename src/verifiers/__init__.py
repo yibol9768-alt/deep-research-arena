@@ -6,6 +6,8 @@ from .report_verifier import ReportVerifier
 from .citation_verifier import CitationVerifier
 from .llm_judge_verifier import LLMJudgeVerifier
 from .checklist_verifier import ChecklistVerifier
+from .fact_kg_verifier import FactKGVerifier
+from .markdown_report_verifier import MarkdownReportVerifier
 
 __all__ = [
     "Verifier",
@@ -17,4 +19,6 @@ __all__ = [
     "CitationVerifier",
     "LLMJudgeVerifier",
     "ChecklistVerifier",
+    "FactKGVerifier",
+    "MarkdownReportVerifier",
 ]
