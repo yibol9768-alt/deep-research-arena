@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0007",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a comprehensive 'budget-conscious home cook' guide that merges market data with community wisdom. You MUST research BOTH sources in depth: (1) the One Stop Market shopping site — browse the home-kitchen and grocery-gourmet-food categories and collect at least 6 products across kitchen tools (pots, pans, utensils, storage) and pantry staples. For each product record name/price/rating/review_count from its detail page. (2) Reddit — browse /f/LifeProTips for money-saving kitchen/cooking tips AND /f/personalfinance for grocery-budgeting advice; collect at least 4 relevant posts with title/score/comment_count. The final report MUST: (a) present a kitchen starter-kit shopping list from the storefront (with exact prices/ratings and a running total), (b) reinforce or challenge each item using advice from Reddit (e.g. 'Reddit says you don't actually need X, here's why'), (c) add at least 3 practical cost-saving hacks drawn from the reddit posts, (d) conclude with a 'Minimum viable kitchen' recommendation: what 5 items truly matter for a first-time home cook. Every claim needs a citation.",
+  "start_url": "__SHOPPING__/home-kitchen.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3500,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0007.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 22,
+  "author_notes": "Forces multi-product browsing in 2 shopping categories + 2 reddit forums. Reinforce/challenge structure requires actual synthesis, not listing. 'Minimum viable kitchen' conclusion forces prioritization."
+}

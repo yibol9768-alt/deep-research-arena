@@ -87,6 +87,10 @@ _SYSTEM_PROMPT_V3 = textwrap.dedent(
       - Copying product titles as "reviews" — quote actual review bodies.
       - Making claims without a backing citation URL.
       - Skipping the synthesis / "why" / "tradeoff" discussion.
+      - *** CRITICAL: When your research is done, you MUST call the `finish`
+        tool with the full markdown report in `answer_json`. Do NOT just
+        write a plain-text message saying "now let me compile the report".
+        The ONLY way to submit your report is the `finish` tool call. ***
     """
 )
 
@@ -624,9 +628,8 @@ def glm_react_agent(page, task_cfg: dict) -> str:
         messages.append({"role": "assistant", "content": resp.content})
 
         if resp.stop_reason != "tool_use":
-            for block in resp.content:
-                if getattr(block, "type", None) == "text":
-                    final_answer = block.text
+            text_parts = [b.text for b in resp.content if getattr(b, "type", None) == "text"]
+            final_answer = "\n".join(text_parts)
             break
 
         tool_results = []
@@ -655,6 +658,54 @@ def glm_react_agent(page, task_cfg: dict) -> str:
             messages.append({"role": "user", "content": tool_results})
         if saw_finish:
             break
+
+    # Fallback: if the final answer is missing OR is just short meta-commentary
+    # (e.g. "Let me compile the report"), force a final prose report
+    _looks_like_report = (len(final_answer or "") >= 300 and
+                          ("#" in (final_answer or "") or "[" in (final_answer or "")))
+    if not final_answer or not _looks_like_report:
+        try:
+            # Extract gathered tool-result data as plain-text context
+            # (rebuild a CLEAN message list with only string content — some proxies
+            # reject mixed tool_result blocks)
+            gathered = []
+            for m in messages:
+                c = m.get("content")
+                if isinstance(c, str):
+                    gathered.append(c[:1500])
+                elif isinstance(c, list):
+                    for item in c:
+                        if isinstance(item, dict):
+                            if item.get("type") == "text":
+                                gathered.append(str(item.get("text", ""))[:1500])
+                            elif item.get("type") == "tool_result":
+                                gathered.append(str(item.get("content", ""))[:1500])
+                        else:
+                            # Anthropic TextBlock / ToolUseBlock
+                            t = getattr(item, "text", None) or getattr(item, "input", None)
+                            if t:
+                                gathered.append(str(t)[:1500])
+            context = "\n\n".join(gathered)[:30000]
+
+            final_msg = (
+                "You have used all your tool calls. Based on the data you gathered, "
+                "write the complete markdown research report as your response — "
+                "no more tool calls.\n\n"
+                "Task intent: " + task_cfg.get("intent", "") + "\n\n"
+                "Data gathered during research:\n" + context + "\n\n"
+                "Now write the full report with citations [text](url), "
+                "following the required structure."
+            )
+            resp_final = client.messages.create(
+                model=MODEL, max_tokens=6000, system=system_prompt,
+                messages=[{"role": "user", "content": final_msg}],
+            )
+            t_in, t_out = from_anthropic_response(resp_final, MODEL)
+            metrics.add_llm_call(tokens_in=t_in, tokens_out=t_out, model=MODEL)
+            text_parts = [b.text for b in resp_final.content if getattr(b, "type", None) == "text"]
+            final_answer = "\n".join(text_parts)
+        except Exception as e:
+            final_answer = f'{{"error": "fallback failed: {type(e).__name__}: {e}"}}'
 
     metrics.wall_time_s = _time.time() - _t0
     return final_answer or '{"error": "agent did not produce an answer"}'

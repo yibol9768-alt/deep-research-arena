@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0006",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a gamer-focused buying guide for 'upgrade from console to PC gaming' on a budget. You MUST research BOTH sources in depth: (1) the One Stop Market shopping site — browse video-games, electronics, and cell-phones-accessories categories. Collect data on at least 5 gaming-relevant products such as gaming headphones, controllers, mice, keyboards, monitor accessories, with price/rating/review_count from product detail pages. (2) Reddit — browse /f/gaming AND /f/technology for posts discussing gaming hardware, PC builds, peripheral recommendations, or gaming industry news; collect at least 4 posts with title/score/comment_count. The final report MUST: (a) categorize the available shopping products into 'essential' vs 'nice-to-have' tiers based on price and function, (b) integrate community voices — what real gamers on Reddit recommend or warn against, (c) identify any mismatches between shopping ratings and community reputation (e.g. heavily advertised products that the community dislikes), (d) deliver a concrete priority-ordered shopping list for a console-to-PC gamer with budget $400, citing every data point.",
+  "start_url": "__SHOPPING__/video-games.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3500,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0006.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 22,
+  "author_notes": "Multi-category shopping + multi-forum reddit research. Requires synthesis of quantitative product data with qualitative community wisdom. Essential vs nice-to-have categorization forces prioritization reasoning."
+}

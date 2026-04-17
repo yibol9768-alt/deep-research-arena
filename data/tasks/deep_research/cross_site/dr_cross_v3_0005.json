@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0005",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a budget-constrained home office setup guide (target $500 total budget) for a first-time remote worker. You MUST research BOTH sources in depth: (1) the One Stop Market shopping site — browse at least 4 distinct categories (office-products, home-kitchen, electronics, and at least one more like health-household or cell-phones-accessories). For EACH category, find 2-3 specific products with price, rating, and review_count; aim to cover office chair OR desk, monitor OR laptop stand, keyboard OR mouse, and lighting/accessories. (2) Reddit — browse /f/LifeProTips for ergonomic/remote-work tips AND /f/personalfinance for budget productivity advice; collect at least 4 relevant posts with title/score/comment_count. The final report MUST: (a) present a concrete $500 build-list with exact products and permalinks, (b) surface 3+ key pieces of community wisdom from the Reddit posts (how to save money, what to prioritize, what NOT to buy), (c) flag any divergence between storefront ratings and community sentiment (e.g. product X is 4.5-star on shopping but Reddit warns against it), (d) conclude with a buying-priority rank explaining what to buy first vs last if budget is limited.",
+  "start_url": "__SHOPPING__/office-products.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3500,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0005.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 22,
+  "author_notes": "Multi-category shopping browsing forces 4+ category pages + 6+ product detail pages. Reddit budget/remote-work discussion adds community angle. True cross-site deep research: quantitative product data from shopping must be reconciled with qualitative advice from reddit."
+}
