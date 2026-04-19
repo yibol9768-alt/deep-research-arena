@@ -1,0 +1,48 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0118",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "intent": "Produce a 3000-word investor-style buyer guide on 'mid-range headphones in 2026: which will age well?'. (1) One Stop Market — enumerate ALL noise-cancelling and wireless headphones in the $50-150 range (browse electronics AND cell-phones-accessories), at least 8 products. For each: name, price, rating, review count, category. (2) Reddit — browse /f/headphones AND /f/technology for longevity / repairability / build-quality threads; collect at least 5 posts with title, score, comment count, 1-line thesis. (3) Wikipedia — open 'Active noise control', 'Bluetooth', and 'Planned obsolescence'. Extract 4+ facts on ANC technology generations, codec support (LDAC / aptX), and why consumer electronics get discontinued. The report must: (a) organise the 8 products into 3 tiers (value / balanced / premium-budget) with a markdown table, (b) apply Reddit longevity signals to flag 2 likely write-offs, (c) use Wikipedia citations to explain ANC / codec tradeoffs, (d) close with a 3-year buying recommendation. Cite every claim; no external URLs.",
+  "start_url": "__SHOPPING__/electronics.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3000,
+    "max_words": 5000,
+    "min_paragraphs": 15,
+    "min_citations": 20,
+    "min_pages_browsed": 15
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 12
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0118.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "category",
+      "forum",
+      "score",
+      "comment_count",
+      "article_title",
+      "product_url"
+    ]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 7,
+  "expected_steps": 30,
+  "author_notes": "Expert. 8 products + 5 reddit + 3 wiki + tier table + 3-yr rec.",
+  "tier": "expert"
+}
