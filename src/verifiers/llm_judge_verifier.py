@@ -31,6 +31,7 @@ import re
 from typing import Any
 
 from .base import VerifierResult
+from .judge_client import call_judge, judge_identity
 
 
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "glm-5.1")
@@ -122,23 +123,13 @@ class LLMJudgeVerifier:
             "Grade the report now. Think step-by-step, then emit the JSON."
         )
 
-        client, err = _build_judge_client()
-        if client is None:
-            return VerifierResult.fail(f"judge client unavailable: {err}")
-
-        try:
-            resp = client.messages.create(
-                model=self.model,
-                max_tokens=self.max_tokens,
-                system=_SYSTEM,
-                messages=[{"role": "user", "content": user_msg}],
-            )
-            text = ""
-            for block in resp.content:
-                if getattr(block, "type", None) == "text":
-                    text += block.text
-        except Exception as e:
-            return VerifierResult.fail(f"judge call failed: {type(e).__name__}: {e}")
+        # Route through the pluggable judge backend. When JUDGE_PROVIDER=openai
+        # is set, this hits DeepSeek / GPT-4.1 / any OpenAI-compat endpoint
+        # instead of the legacy Zhipu Anthropic-compat path — the self-
+        # preference mitigation flagged by the methodology audit.
+        text, err = call_judge(_SYSTEM, user_msg, max_tokens=self.max_tokens)
+        if text is None:
+            return VerifierResult.fail(f"judge call failed: {err}")
 
         parsed = _extract_json(text)
         if not parsed:
@@ -167,7 +158,8 @@ class LLMJudgeVerifier:
             details={
                 **dim_scores,
                 "weighted_1_5": round(weighted_5, 3),
-                "judge_model": self.model,
+                "judge_model": judge_identity()["model"],
+                "judge_provider": judge_identity()["provider"],
                 "reason": parsed.get("reason", ""),
                 "weights": {n: w for n, w in DIMENSIONS},
             },

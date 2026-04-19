@@ -211,6 +211,27 @@ def test_citation_prose_unrelated_urls_fail():
     assert r.details["citation_recall"] == 0.0
 
 
+def test_citation_prose_numeric_reference_uses_sentence_context():
+    """Numeric-reference style `[1](url)` falls back to surrounding sentence.
+
+    Real research reports (e.g. qwen on dr_cross_v3_0007) use academic
+    `[1]`, `[2]` markers. The anchor text itself has no distinctive
+    tokens, so the verifier must extract the preceding sentence to check
+    whether the citation is supported.
+    """
+    ans = (
+        "# Report\n\n"
+        "The Rachael Ray Cucina 12-piece cookware set is priced at $169.99 [1](http://shop.local/p/1).\n"
+    )
+    page = FakePage({
+        "http://shop.local/p/1": FakeResp(200, "Rachael Ray Cucina Nonstick Cookware 12 Piece Set"),
+    })
+    r = CitationVerifier().verify(task_config=_ctask(), answer=ans, page=page)
+    assert r.details["prose_mode"] is True
+    assert r.details["total_citations"] == 1
+    assert r.details["citation_precision"] == 1.0  # sentence tokens found on page
+
+
 def test_citation_out_of_domain():
     ans = json.dumps({
         "products": [{"name": "A", "price": 10}, {"name": "B", "price": 20}],

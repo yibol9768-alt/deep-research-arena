@@ -39,7 +39,7 @@ def test_word_floor_fails():
         answer="tiny report.",
     )
     assert r.score < 1.0
-    assert r.details["checks"]["min_words"] is False
+    assert r.details["checks"]["min_words"] == 0.0
 
 
 def test_max_words_fails_on_bloat():
@@ -48,7 +48,28 @@ def test_max_words_fails_on_bloat():
         task_config=_cfg(min_words=1, max_words=200, min_paragraphs=1, min_citations=0),
         answer=long,
     )
-    assert r.details["checks"]["max_words"] is False
+    # 3000 words vs cap=200 is 14× over → well beyond the 20% tolerance → 0.
+    assert r.details["checks"]["max_words"] == 0.0
+
+
+def test_max_words_soft_near_cap_keeps_most_credit():
+    # 1% over the cap should keep almost full credit — a binary fail would
+    # be too punitive for such a small overage (regression fix for DeerFlow
+    # 0007 where 3504 / 3500 gave score 0.80 = 4/5 binary checks).
+    ans = ("word " * 101) + "."  # ~101 words
+    r = MarkdownReportVerifier().verify(
+        task_config=_cfg(min_words=1, max_words=100, min_paragraphs=1, min_citations=0),
+        answer=ans,
+    )
+    # 101/100 = 1.01 over, 1% / 20% tolerance → 0.95 credit
+    assert 0.94 <= r.details["checks"]["max_words"] <= 1.0
+    # 10% over gets mid-range credit
+    ans2 = ("word " * 110) + "."
+    r2 = MarkdownReportVerifier().verify(
+        task_config=_cfg(min_words=1, max_words=100, min_paragraphs=1, min_citations=0),
+        answer=ans2,
+    )
+    assert 0.4 <= r2.details["checks"]["max_words"] <= 0.55
 
 
 def test_citation_counting_uses_domain_whitelist():
@@ -75,7 +96,7 @@ def test_pages_browsed_passes_when_unknown():
         task_config=_cfg(min_words=1, min_paragraphs=1, min_citations=0, min_pages_browsed=5),
         answer="hi",
     )
-    assert r.details["checks"]["min_pages_browsed"] is True
+    assert r.details["checks"]["min_pages_browsed"] == 1.0
 
 
 def test_skip_when_no_spec():

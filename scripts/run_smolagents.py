@@ -63,7 +63,19 @@ def _build_agent():
     from smolagents import CodeAgent, OpenAIServerModel, ApiWebSearchTool
     from smolagents.default_tools import VisitWebpageTool
 
-    model = OpenAIServerModel(
+    # GLM / DeepSeek both habitually emit `</code>` instead of the
+    # smolagents sentinel `<end_code>`, which breaks the CodeAgent parser
+    # and leaves the agent in zero-tool-call hallucination mode. Patch
+    # the model output on the way out.
+    class SentinelRewriteModel(OpenAIServerModel):
+        def generate(self, *a, **kw):  # type: ignore[override]
+            out = super().generate(*a, **kw)
+            # smolagents ≥1.20 returns a ChatMessage with .content
+            if hasattr(out, "content") and isinstance(out.content, str):
+                out.content = out.content.replace("</code>", "<end_code>")
+            return out
+
+    model = SentinelRewriteModel(
         model_id="deepseek-chat",
         api_base=os.environ.get("OPENAI_BASE_URL"),
         api_key=os.environ.get("OPENAI_API_KEY"),

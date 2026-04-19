@@ -3,14 +3,17 @@
 Replaces the v2 `ReportVerifier` (which enforced a strict JSON schema) for v3
 tasks. Agents now emit free-form markdown, but must satisfy:
 
-  - `min_words`          — lower bound on answer length
-  - `max_words`          — upper bound (soft; no huge essays)
-  - `min_paragraphs`     — number of paragraph-like blocks
-  - `min_citations`      — count of markdown [text](url) links to allowed domains
-  - `min_pages_browsed`  — distinct pages visited during execution (from trace)
+  - `min_words`          — lower bound on answer length (hard)
+  - `max_words`          — upper bound (SOFT; linear decay over 20% overage)
+  - `min_paragraphs`     — number of paragraph-like blocks (hard)
+  - `min_citations`      — count of markdown [text](url) links to allowed domains (hard)
+  - `min_pages_browsed`  — distinct pages visited during execution (from trace, hard)
   - `require_markdown_links` — soft requirement that ≥1 link exists
 
-Each floor returns a 0/1 bool; the verifier's score is the fraction passed.
+Each floor returns a float in [0, 1]; the verifier's score is the mean of
+those floats. A hard check is {0, 1}; `max_words` is continuous so a report
+slightly over the cap gets almost full credit (being 1% over shouldn't cost
+20% of the pillar score).
 
 This is a *structural* check — it doesn't judge content quality. Content is
 the job of CitationVerifier (ALCE), FactKGVerifier (KG), ChecklistVerifier
@@ -110,23 +113,33 @@ class MarkdownReportVerifier:
         min_c = int(spec.get("min_citations", 0) or 0)
         min_pages = int(spec.get("min_pages_browsed", 0) or 0)
 
-        checks = {
-            "min_words":         words >= min_w,
-            "max_words":         words <= max_w,
-            "min_paragraphs":    paras >= min_p,
-            "min_citations":     cites >= min_c,
+        # max_words is a SOFT cap. 1% over the limit shouldn't cost 20% of the
+        # pillar score. Linear decay: full credit ≤cap, 0 credit ≥cap*(1+20%).
+        if max_w <= 0 or words <= max_w:
+            max_words_score: float = 1.0
+        else:
+            over_frac = (words - max_w) / max(max_w, 1)
+            max_words_score = max(0.0, 1.0 - over_frac / 0.20)
+
+        checks: dict[str, float] = {
+            "min_words":         1.0 if words >= min_w else 0.0,
+            "max_words":         max_words_score,
+            "min_paragraphs":    1.0 if paras >= min_p else 0.0,
+            "min_citations":     1.0 if cites >= min_c else 0.0,
             # If the runner didn't attach pages_browsed (e.g. dry-run), we
             # don't penalize — treat the gate as "pass" when we don't know.
-            "min_pages_browsed": (pages_browsed == 0 and task_config.get("pages_browsed") is None)
-                                  or pages_browsed >= min_pages,
+            "min_pages_browsed": 1.0 if (
+                (pages_browsed == 0 and task_config.get("pages_browsed") is None)
+                or pages_browsed >= min_pages
+            ) else 0.0,
         }
-        passed = sum(1 for ok in checks.values() if ok)
         total = len(checks)
-        score = passed / total
+        score = sum(checks.values()) / total
+        all_passed = all(v >= 0.999 for v in checks.values())
 
         return VerifierResult(
             score=round(score, 3),
-            passed=(passed == total),
+            passed=all_passed,
             details={
                 "words": words,
                 "paragraphs": paras,
@@ -137,6 +150,6 @@ class MarkdownReportVerifier:
                     "min_paragraphs": min_p, "min_citations": min_c,
                     "min_pages_browsed": min_pages,
                 },
-                "checks": checks,
+                "checks": {k: round(v, 3) for k, v in checks.items()},
             },
         )
