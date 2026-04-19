@@ -48,11 +48,11 @@ NEW_WEIGHTS = {
     # `evidence_density` pillar (= DeepResearch Bench's "Effective
     # Primary-Source Citations").
     "markdown_structure": 0.05,
-    "citation":           0.25,   # ALCE F1 of cited URLs supporting claims
-    "fact_kg":            0.05,   # kept tiny as sanity until oracle is rebuilt
+    "citation":           0.20,   # ALCE F1 of cited URLs supporting claims
+    "fact_kg":            0.15,   # Oracle v2 (filtered) now in use → restored
     "llm_judge":          0.20,   # DR Bench RACE 4-dim
     "checklist":          0.20,   # DRACO-style rubric
-    "evidence_density":   0.20,   # = Effective Primary-Source Citations
+    "evidence_density":   0.15,   # = Effective Primary-Source Citations
     "efficiency":         0.05,
 }
 

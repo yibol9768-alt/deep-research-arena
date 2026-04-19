@@ -118,14 +118,24 @@ def _looks_numeric(s: str) -> bool:
 
 
 def _load_golden(task_id: str) -> list[dict]:
-    path = GOLDEN_DIR / f"{task_id}.json"
-    if not path.exists():
-        return []
-    try:
-        data = json.loads(path.read_text())
-        return [t for t in data if isinstance(t, dict)]
-    except Exception:
-        return []
+    # Oracle v2: intent-aware filtered oracle preferred when available.
+    # Set ORACLE_VERSION=v1 to force the legacy top-N-per-category oracle.
+    version = (os.environ.get("ORACLE_VERSION") or "v2").lower()
+    candidates: list[Path] = []
+    if version == "v2":
+        candidates.append(GOLDEN_DIR / f"{task_id}.filtered.json")
+    candidates.append(GOLDEN_DIR / f"{task_id}.json")
+    for path in candidates:
+        if not path.exists():
+            continue
+        try:
+            data = json.loads(path.read_text())
+            rows = [t for t in data if isinstance(t, dict)]
+            if rows:
+                return rows
+        except Exception:
+            continue
+    return []
 
 
 class FactKGVerifier:
