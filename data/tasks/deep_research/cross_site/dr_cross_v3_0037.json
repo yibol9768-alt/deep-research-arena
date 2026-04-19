@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0037",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write a short explainer on 'a popular science misconception you see in /f/explainlikeimfive' with a Wikipedia-grounded correction. You MUST research BOTH sources: (1) Reddit — browse /f/explainlikeimfive AND /f/science for posts that contain a misconception worth correcting (you select one concrete misconception). Collect at least 3 posts with title, score, comment count, and the specific claim. (2) Wikipedia — open the relevant scientific article(s) and extract 3-4 facts that correct or nuance the misconception. The report must: (a) state the misconception in one sentence with Reddit citations, (b) present the correction from Wikipedia, (c) explain why the misconception persists, (d) close with a one-paragraph 'how to explain the real answer to a curious 12-year-old'. Cite every claim.",
+  "start_url": "__REDDIT__/f/explainlikeimfive",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 2200,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0037.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "Easy tier. Reddit (ELI5 + science) + Wikipedia. Misconception-correction framing."
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0042",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write a brief 'TIL fact-check' covering 3 surprising claims from /f/todayilearned, verified against Wikipedia. You MUST research BOTH sources: (1) Reddit — browse /f/todayilearned for at least 3 top posts that each make a single factual claim. Collect title, score, comment count, and the exact claim. (2) Wikipedia — for each claim, open the relevant article and extract the authoritative wording. The report must: (a) present each TIL claim verbatim with Reddit citation, (b) show the Wikipedia version with citation, (c) label each claim 'confirmed', 'partially true', or 'misleading', (d) close with a pattern observation. Cite every claim.",
+  "start_url": "__REDDIT__/f/todayilearned",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 2200,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0042.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 10,
+  "author_notes": "Easy tier. Reddit (TIL) + Wikipedia. Clean fact-check template."
+}

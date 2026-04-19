@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from .base import VerifierResult
+from .judge_client import call_judge, judge_identity
 
 
 JUDGE_MODEL = os.environ.get("CHECKLIST_JUDGE_MODEL", "glm-5.1")
@@ -68,18 +69,50 @@ def _build_user_prompt(intent: str, items: list[str], answer: str) -> str:
 
 
 def _parse(text: str, n_items: int) -> list[dict[str, Any]]:
-    """Extract per-item PASS/FAIL verdicts."""
+    """Extract per-item PASS/FAIL verdicts.
+
+    Supports several formats judges emit in practice:
+      - ``1. PASS - reason``  (numbered, with reason)  ← strictest
+      - ``1) PASS``           (numbered, no reason)
+      - ``PASS`` per line     (unnumbered, one verdict per line)  ← DeepSeek default
+      - mixed lines
+    """
+    text = text or ""
     out: list[dict[str, Any]] = []
+
+    # Pass 1: strict numbered parse
     for i in range(n_items):
-        # Look for "1. PASS|FAIL" or "1) PASS|FAIL" lines
         pat = rf"(?:^|\n)\s*{i+1}[\.\)]\s*(PASS|FAIL)\b\s*[:.\-—)]?\s*(.*?)(?=\n\s*\d+[\.\)]|\nNOTES:|\Z)"
-        m = re.search(pat, text or "", re.S | re.I)
-        if not m:
-            out.append({"index": i + 1, "passed": False, "reason": "judge did not emit a verdict"})
-            continue
-        passed = m.group(1).upper() == "PASS"
-        reason = m.group(2).strip().split("\n")[0][:120]
-        out.append({"index": i + 1, "passed": passed, "reason": reason})
+        m = re.search(pat, text, re.S | re.I)
+        if m:
+            out.append({
+                "index": i + 1,
+                "passed": m.group(1).upper() == "PASS",
+                "reason": m.group(2).strip().split("\n")[0][:120],
+            })
+        else:
+            out.append(None)  # placeholder, filled below
+
+    # Pass 2: if ≥ half of positions are missing, fall back to unnumbered
+    # one-verdict-per-line parse (DeepSeek's default output shape).
+    missing_idx = [i for i, v in enumerate(out) if v is None]
+    if len(missing_idx) > n_items // 2:
+        # Strip NOTES tail
+        body = re.split(r"\n\s*NOTES:", text, maxsplit=1, flags=re.I)[0]
+        # Collect all standalone PASS/FAIL tokens in order
+        tokens = re.findall(r"(?:^|\n)\s*(PASS|FAIL)\b", body, re.I)
+        if len(tokens) >= n_items:
+            for i in range(n_items):
+                out[i] = {
+                    "index": i + 1,
+                    "passed": tokens[i].upper() == "PASS",
+                    "reason": "",
+                }
+
+    # Fill any still-missing slots with "judge did not emit" fail
+    for i, v in enumerate(out):
+        if v is None:
+            out[i] = {"index": i + 1, "passed": False, "reason": "judge did not emit a verdict"}
     return out
 
 
@@ -133,20 +166,16 @@ class ChecklistVerifier:
                 details={"reason": f"no checklist for {task_id}", "checklist_path": str(self.checklist_path)},
             )
 
-        client = _client()
-        if client is None:
-            return VerifierResult.fail("anthropic SDK unavailable")
-
-        try:
-            resp = client.messages.create(
-                model=self.model,
-                max_tokens=1500,
-                system=_SYSTEM,
-                messages=[{"role": "user", "content": _build_user_prompt(task_config.get("intent", ""), items, answer)}],
-            )
-            text = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
-        except Exception as e:
-            return VerifierResult.fail(f"judge call failed: {type(e).__name__}: {e}")
+        # Route through the pluggable judge backend (DeepSeek / Claude / etc.)
+        # — different family from the agent LLM removes the self-preference
+        # confound flagged by the methodology audit.
+        text, err = call_judge(
+            _SYSTEM,
+            _build_user_prompt(task_config.get("intent", ""), items, answer),
+            max_tokens=1500,
+        )
+        if text is None:
+            return VerifierResult.fail(f"judge call failed: {err}")
 
         per_item = _parse(text, len(items))
         passed_count = sum(1 for x in per_item if x["passed"])
@@ -164,7 +193,8 @@ class ChecklistVerifier:
                 "passed_count": passed_count,
                 "total": len(items),
                 "per_item": per_item,
-                "judge_model": self.model,
+                "judge_model": judge_identity()["model"],
+                "judge_provider": judge_identity()["provider"],
                 "raw_judge_output": text[:800],
             },
         )

@@ -7,39 +7,47 @@
 
 ## Finding 1: Cross-site Deep Research framework works end-to-end
 
-All 4 cross-site tasks produced valid composite scores (0.32 - 0.66) after 3 rounds of agent robustness fixes. The framework — 4 sandboxed sites + KG-grounded golden answers + 6-pillar composite scoring — is production-ready.
+All 4 cross-site tasks produced valid composite scores (0.44 - 0.66) after 3 rounds of agent robustness fixes. The framework — 4 sandboxed sites + KG-grounded golden answers + 6-pillar composite scoring — is production-ready.
 
 | Task | glm-5 | qwen3.5-plus |
 |---|---:|---:|
-| dr_cross_v3_0001 (headphones, shop+reddit) | **0.659** | **0.652** |
+| dr_cross_v3_0001 (headphones, shop+reddit) | **0.659** | 0.652 |
 | dr_cross_v3_0005 ($500 home office, shop×4 + reddit×2) | 0.437 | 0.440 |
 | dr_cross_v3_0006 (PC gaming, shop×3 + reddit×2) | 0.476 | **0.514** |
-| dr_cross_v3_0007 (budget home cook, shop×2 + reddit×2) | **0.440** | 0.324 |
-| **Average** | **0.503** | 0.483 |
+| dr_cross_v3_0007 (budget home cook, shop×2 + reddit×2) | 0.440 | **0.464** |
+| **Average** | 0.503 | **0.518** |
 
-Both agents achieve markdown_structure ≥ 0.80 and citation ≥ 0.86 on 3/4 tasks — they reliably produce long-form cited reports. The bottleneck is fact_kg (0.00–0.46), which reflects partial overlap between agent-chosen product subsets and oracle-chosen golden triples.
+Both agents achieve markdown_structure ≥ 0.80 and citation ≥ 0.93 on all 4 tasks — they reliably produce long-form cited reports. The bottleneck is fact_kg (0.00–0.46), which reflects partial overlap between agent-chosen product subsets and oracle-chosen golden triples.
 
 ---
 
-## Finding 2: LLM-judge disagreement reveals style bias (confirmed on cross-site)
+## Finding 2: Composite and LLM-judge agree on overall ranking; fine-grained disagreement reveals verifier coverage gaps
 
-Pairwise LLM judge (glm-5 as judge, position-debiased) on the same 4 tasks:
+Pairwise LLM judge (glm-5 as judge, position-debiased) on the same 4 tasks, glm-5 vs qwen head-to-head:
 
-| Verdict source | glm-5 wins | qwen wins | tie |
-|---|---:|---:|---:|
-| **Composite 6-pillar (deterministic)** | 1 | 1 | **2** |
-| **LLM judge pairwise** | **0** | **4** | 0 |
+| Metric | glm-5 | qwen |
+|---|---:|---:|
+| **Composite avg** | 0.503 | **0.518** |
+| **Pairwise judge (glm-5 vs qwen)** | 1 | **3** |
 
-**Divergence**: composite scoring says they're evenly matched; LLM judge unanimously prefers qwen. This replicates the v2 MEGA Arena finding (where glm-4.5 was ranked #4 by composite but #1 by judge) — **now validated on cross-site tasks**.
+Both metrics now rank **qwen > glm-5 > DeerFlow**, agreeing on the overall winner. But at the per-task level, 2 of 4 head-to-head battles still show disagreement *in direction*:
 
-**Interpretation**: LLM judges have systematic style preferences that diverge from grounded correctness metrics. This is why v3 caps `llm_judge` weight at 0.20 and relies on `fact_kg` (0.30) + `checklist` (0.20) + structural metrics as primary signals.
+| Task | composite winner | margin | judge winner | agree? |
+|---|---|---:|---|:---:|
+| 0001 | glm-5 | 0.007 | qwen | ❌ |
+| 0005 | qwen  | 0.003 | glm-5 | ❌ |
+| 0006 | qwen  | 0.038 | qwen | ✅ |
+| 0007 | qwen  | 0.024 | qwen | ✅ |
 
-**Concrete numbers from battles**:
+**Pattern**: when composite margin < 0.01 (0001/0005), the two agents are essentially tied on deterministic pillars, and judge provides the tiebreak. When margin ≥ 0.02 (0006/0007), both metrics agree. **LLM judge and composite are complementary — judge differentiates where deterministic tie exists.**
+
+**Important methodological note (added 2026-04-17)**:
+The original draft of this finding claimed "composite rank: glm-5 > qwen; judge rank: qwen > glm-5 — top-2 swap" and framed it as a major disagreement. That claim was an artifact of a citation-verifier bug: qwen on dr_cross_v3_0007 uses academic `[1](url)` numeric-reference style, and the prose-mode verifier tokenized the anchor `"1"` and got an empty token set → 0/0 match → supported=False for all 7 citations → citation F1 = 0.0, dragging qwen composite from 0.464 to 0.324. After fixing `_parse_prose_urls` to extract surrounding sentence context when anchor text has <2 distinctive tokens (see `src/verifiers/citation_verifier.py::_sentence_before`), the top-2 swap disappears. **Verifier bugs can manufacture apparent composite-judge disagreement; dual-metric evaluation is useful precisely because it exposes such bugs.**
+
+Answer length concrete numbers (unchanged by fix):
 - Avg glm-5 answer: 14,072 chars
 - Avg qwen answer: 11,699 chars
-- qwen is *shorter* yet preferred 4-0 by the judge → the bias isn't pure length
-
-This suggests the preference is stylistic (tone, structure, phrasing) rather than length-based. Deserves dedicated analysis in the paper.
+- Judge still slightly prefers qwen on 3/4 tasks despite shorter reports → preference is stylistic (tone, structure, phrasing), not length-based.
 
 ---
 

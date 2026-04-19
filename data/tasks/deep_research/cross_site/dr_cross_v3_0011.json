@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0011",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write an explainer on 'why is everyone on Reddit talking about inflation?' that grounds community reactions in encyclopedic facts. You MUST research BOTH sources: (1) Reddit — browse /f/personalfinance AND /f/news for posts discussing inflation, cost of living, grocery prices, or wage stagnation. Collect at least 4 posts with title, score, comment count, and the dominant sentiment or concern in the comments. (2) Wikipedia — open the articles on 'Inflation' and at least one related topic (e.g. 'Consumer price index', 'Stagflation', or 'Monetary policy') and summarize the core definitions and mechanisms in your own words. The report must: (a) state what inflation is according to Wikipedia with a direct citation, (b) present at least 3 distinct Reddit concerns or anecdotes with citations, (c) analyze whether the community concerns align with, exaggerate, or misunderstand the encyclopedic definition, (d) conclude with one 'clearest explanation' paragraph a layperson could share. Do not invent statistics; if a number is not in the cited sources, omit it.",
+  "start_url": "__REDDIT__/f/personalfinance",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0011.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Reddit (personalfinance + news) + Wikipedia (Inflation article). Tests the agent's ability to map folk concerns onto formal definitions."
+}

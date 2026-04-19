@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0033",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write an explainer on 'why discussions of AI on Reddit often get heated' grounded in encyclopedic definitions. You MUST research BOTH sources: (1) Reddit — browse /f/technology AND /f/science for posts on large language models, AI safety, job displacement, or AI in education. Collect at least 4 posts with title, score, comment count, and the dominant sentiment. (2) Wikipedia — open the articles on 'Artificial intelligence' and 'Large language model' (or a closely related page like 'Generative artificial intelligence') and extract 3-4 key definitions and historical milestones. The report must: (a) state in 1-2 paragraphs what AI and LLMs actually are per Wikipedia, (b) cluster the Reddit discussion into at least 3 distinct themes (e.g. hype, fear, utility) with citations, (c) analyze which Reddit concerns are historically grounded versus where the community may be conflating terms, (d) close with a neutral explainer a layperson could use. Do not invent statistics.",
+  "start_url": "__REDDIT__/f/technology",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0033.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Reddit (technology + science) + Wikipedia (AI, LLM articles). Theme clustering + fact-checking community claims."
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0049",
+  "sites": ["shopping", "reddit", "wikipedia"],
+  "intent": "Write a 3-source research memo on 'nutrition-conscious grocery choices for weight management on a $75 weekly budget'. (1) One Stop Market shopping site — browse the grocery-gourmet-food category and collect at least 5 products relevant to protein, fiber, healthy fats, and whole grains. Record name, price, rating, review count. (2) Reddit — browse /f/personalfinance AND /f/science for posts on budget grocery hacks, macro-tracking, or skepticism of marketing claims. Collect at least 3 posts with title, score, comment count. (3) Wikipedia — open 'Dietary fiber' and 'Protein (nutrient)' (or equivalent canonical pages) and extract 3-4 facts about recommended intake. The report must: (a) design a $75 weekly cart from the storefront with running totals and per-serving macros where inferrable, (b) back each selection with a Wikipedia citation on the relevant nutrient, (c) inject community tips on grocery-hack efficiency, (d) close with three rules for grocery-store decision-making. Cite every claim.",
+  "start_url": "__SHOPPING__/grocery-gourmet-food.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1200,
+    "max_words": 3500,
+    "min_paragraphs": 8,
+    "min_citations": 12,
+    "min_pages_browsed": 12
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 10
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0049.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 24,
+  "author_notes": "Hard 3-site. Grocery + budget + nutrition science. Weekly cart with macro reasoning."
+}

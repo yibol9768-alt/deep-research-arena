@@ -176,16 +176,48 @@ def _value_matches(value: Any, body: str) -> bool:
     return s[:40] in low
 
 
+def _sentence_before(answer: str, pos: int, max_lookback: int = 400) -> str:
+    """Return the sentence (or paragraph slice) ending at `pos`.
+
+    Used to augment prose-mode snippets when the anchor text is a short
+    numeric reference like `[1]`.  Looks back up to `max_lookback` chars,
+    cuts at the start of the current sentence/paragraph.
+    """
+    start = max(0, pos - max_lookback)
+    window = answer[start:pos]
+    cut = 0
+    for sep in ("\n\n", ". ", "! ", "? ", "\n"):
+        idx = window.rfind(sep)
+        if idx > cut:
+            cut = idx + len(sep)
+    return window[cut:].strip()
+
+
 def _parse_prose_urls(answer: str) -> list[dict[str, Any]]:
-    """For DeerFlow-style markdown answers, return [{field, url, snippet}]."""
+    """For DeerFlow-style markdown answers, return [{field, url, snippet}].
+
+    If the anchor text is too short to yield distinctive tokens (e.g.
+    numeric academic-style references like `[1](url)`), the snippet is
+    augmented with the sentence preceding the citation.  This lets the
+    precision check find keywords on the cited page even when the writer
+    uses numbered references instead of descriptive link text.
+    """
     seen: dict[str, dict[str, Any]] = {}
     for m in _MD_LINK_RE.finditer(answer):
         txt, url = m.group(1), m.group(2)
-        seen.setdefault(url, {"field": f"prose:{txt[:40]}", "url": url, "snippet": txt})
+        anchor_tokens = re.findall(r"[A-Za-z0-9]{3,}", txt)
+        if len(anchor_tokens) < 2:
+            ctx = _sentence_before(answer, m.start())
+            snippet = f"{ctx} {txt}".strip() if ctx else txt
+        else:
+            snippet = txt
+        # First occurrence wins per URL.
+        if url not in seen:
+            seen[url] = {"field": f"prose:{txt[:40]}", "url": url, "snippet": snippet}
     for m in _URL_RE.finditer(answer):
         url = m.group(0).rstrip(".,;:!?)")
         if url not in seen:
-            seen[url] = {"field": f"prose:bare", "url": url}
+            seen[url] = {"field": "prose:bare", "url": url}
     return list(seen.values())
 
 
@@ -291,7 +323,33 @@ class CitationVerifier:
             cite_results.append(r)
 
         total_citations = len(citations)
-        precision = (supported_count / total_citations) if total_citations else 0.0
+        precision_substring = (supported_count / total_citations) if total_citations else 0.0
+        precision = precision_substring  # default mode
+
+        # ---- Claim-level NLI entailment (if enabled) ----
+        # CITATION_MODE=entailment swaps the headline precision from
+        # substring-matching to judge-LLM entailment (DeepResearch Bench
+        # FACT / RAGChecker protocol). The substring number is still
+        # emitted as a baseline in `details` for ablation.
+        nli_result: dict[str, Any] | None = None
+        import os as _os_local
+        if _os_local.environ.get("CITATION_MODE", "substring").lower() == "entailment" and prose_mode:
+            try:
+                from .citation_nli import nli_score_citations
+                # Build {url: body} from whatever we already fetched.
+                page_bodies: dict[str, str] = {}
+                for c, r in zip(citations, cite_results):
+                    url = c.get("url") or ""
+                    if url and r.get("status") == 200:
+                        # Re-fetch body if we didn't retain it above.
+                        s2, b2 = _fetch(url, page)
+                        if s2 == 200 and b2:
+                            # strip html tags roughly
+                            page_bodies[url] = re.sub(r"<[^>]+>", " ", b2)[:20000]
+                nli_result = nli_score_citations(answer, page_bodies, max_claims=20)
+                precision = nli_result["citation_precision_nli"]
+            except Exception as e:
+                nli_result = {"error": f"{type(e).__name__}: {e}"}
 
         # ---- Recall: required claims that got a *supported* citation ----
         # JSON mode  : recall = covered_required / total_required, where
@@ -322,6 +380,10 @@ class CitationVerifier:
         details = {
             "citation_recall": round(recall, 3),
             "citation_precision": round(precision, 3),
+            "citation_precision_substring_baseline": round(precision_substring, 3),
+            "citation_precision_nli": (nli_result or {}).get("citation_precision_nli"),
+            "citation_mode": _os_local.environ.get("CITATION_MODE", "substring"),
+            "nli_result": nli_result,
             "citation_f1": round(f1, 3),
             "total_citations": total_citations,
             "supported_citations": supported_count,

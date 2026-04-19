@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0007",
   "agent": "react-glm5",
-  "composite": 0.44,
+  "composite": 0.423,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 1.0,
+        "citation_precision_substring_baseline": 1.0,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 1.0,
         "total_citations": 10,
         "supported_citations": 10,
@@ -193,16 +197,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.43,
+      "score": 0.53,
       "passed": false,
       "details": {
-        "comprehensiveness": 2,
+        "comprehensiveness": 3,
         "insight_depth": 2,
         "instruction_following": 2,
-        "readability": 3,
-        "weighted_1_5": 2.15,
-        "judge_model": "glm-5",
-        "reason": "Report admits Reddit data collection was limited, missing required review counts for all products, no Reddit posts cited with title/score/comment_count, and report is truncated before completing required sections (b), (c), and (d).",
+        "readability": 4,
+        "weighted_1_5": 2.65,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Report has good structure but misses key data points, Reddit citations, and several required sections.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -212,220 +217,113 @@
       }
     },
     "checklist": {
-      "score": 0.467,
+      "score": 0.333,
       "passed": false,
       "details": {
-        "passed_count": 7,
+        "passed_count": 5,
         "total": 15,
         "per_item": [
           {
             "index": 1,
-            "passed": true,
-            "reason": "Both categories represented with specific products",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report browse both home-kitchen AND grocery-gourmet-food categories?"
           },
           {
             "index": 2,
-            "passed": true,
-            "reason": "Lists 10 products with exact prices",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report list at least 6 specific kitchen products with prices?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "No specific Reddit posts with title/score/comment_count",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts from /f/LifeProTips or /f/personalfinance?"
           },
           {
             "index": 4,
             "passed": true,
-            "reason": "Multiple product page markdown links included",
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 5,
             "passed": false,
-            "reason": "No Reddit post URLs as markdown links",
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 6,
             "passed": true,
-            "reason": "Shopping list table with $186.31 total",
+            "reason": "",
             "criterion": "Does the report present a starter-kit shopping list with a running price total?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "No cost-saving hacks visible in truncated report",
+            "reason": "",
             "criterion": "Does the report include at least 3 cost-saving hacks drawn from Reddit?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "No item-by-item Reddit reinforcement/challenge",
+            "reason": "",
             "criterion": "Does the report reinforce or challenge each item using Reddit advice?"
           },
           {
             "index": 9,
             "passed": false,
-            "reason": "No \"Minimum viable kitchen\" section visible",
+            "reason": "",
             "criterion": "Does the report deliver a 'Minimum viable kitchen' recommendation with exactly 5 items?"
           },
           {
             "index": 10,
             "passed": false,
-            "reason": "No substantive discussion of what NOT to buy",
+            "reason": "",
             "criterion": "Does the report discuss what NOT to buy (gadgets / gimmicks)?"
           },
           {
             "index": 11,
-            "passed": false,
-            "reason": "Introduction present but no conclusion visible",
+            "passed": true,
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "Products have legitimate URLs, no obvious fabrication",
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
             "passed": true,
-            "reason": "No fabricated Reddit titles (none cited at all)",
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
             "passed": false,
-            "reason": "Quantitative data present but Reddit voices missing",
+            "reason": "",
             "criterion": "Does the report synthesize quantitative data with qualitative community voices?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "10 product page citations present",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Both categories represented with specific products\n2. PASS - Lists 10 products with exact prices\n3. FAIL - No specific Reddit posts with title/score/comment_count\n4. PASS - Multiple product page markdown links included\n5. FAIL - No Reddit post URLs as markdown links\n6. PASS - Shopping list table with $186.31 total\n7. FAIL - No cost-saving hacks visible in truncated report\n8. FAIL - No item-by-item Reddit reinforcement/challenge\n9. FAIL - No \"Minimum viable kitchen\" section visible\n10. FAIL - No substantive discussion of what NOT to buy\n11. FAIL - Introduction present but no conclusion visible\n12. PASS - Products have legitimate URLs, no obvious fabrication\n13. PASS - No fabricated Reddit titles (none cited at all)\n14. FAIL - Quantitative data present but Reddit voices missing\n15."
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nPASS\nFAIL\nPASS\nFAIL\nFAIL\nFAIL\nFAIL\nPASS\nPASS\nPASS\nFAIL\nFAIL\nNOTES: Report is truncated mid-sentence, preventing verification of many criteria. It shows browsing of both categories and includes product links, but lacks required Reddit data, hacks, and full synthesis."
       }
     },
     "efficiency": {
-      "score": 0.207,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "wall_time_s": 486.33,
-        "tokens_in": 777065,
-        "tokens_out": 9999,
-        "llm_calls": 27,
-        "tool_calls": 56,
-        "cost_usd": 0.80706,
-        "model": "glm-5",
-        "per_call": [
-          {
-            "in": 1682,
-            "out": 351,
-            "model": "glm-5"
-          },
-          {
-            "in": 1741,
-            "out": 53,
-            "model": "glm-5"
-          },
-          {
-            "in": 2155,
-            "out": 39,
-            "model": "glm-5"
-          },
-          {
-            "in": 3474,
-            "out": 58,
-            "model": "glm-5"
-          },
-          {
-            "in": 7369,
-            "out": 77,
-            "model": "glm-5"
-          },
-          {
-            "in": 11433,
-            "out": 68,
-            "model": "glm-5"
-          },
-          {
-            "in": 14759,
-            "out": 99,
-            "model": "glm-5"
-          },
-          {
-            "in": 15285,
-            "out": 22,
-            "model": "glm-5"
-          },
-          {
-            "in": 15317,
-            "out": 67,
-            "model": "glm-5"
-          },
-          {
-            "in": 18851,
-            "out": 51,
-            "model": "glm-5"
-          },
-          {
-            "in": 21472,
-            "out": 49,
-            "model": "glm-5"
-          },
-          {
-            "in": 24350,
-            "out": 44,
-            "model": "glm-5"
-          },
-          {
-            "in": 26285,
-            "out": 52,
-            "model": "glm-5"
-          },
-          {
-            "in": 28645,
-            "out": 89,
-            "model": "glm-5"
-          },
-          {
-            "in": 31678,
-            "out": 55,
-            "model": "glm-5"
-          },
-          {
-            "in": 34005,
-            "out": 53,
-            "model": "glm-5"
-          },
-          {
-            "in": 37623,
-            "out": 48,
-            "model": "glm-5"
-          },
-          {
-            "in": 39910,
-            "out": 46,
-            "model": "glm-5"
-          },
-          {
-            "in": 43063,
-            "out": 53,
-            "model": "glm-5"
-          },
-          {
-            "in": 46658,
-            "out": 59,
-            "model": "glm-5"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

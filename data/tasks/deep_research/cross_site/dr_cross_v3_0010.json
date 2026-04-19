@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0010",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a short 'should I buy this category' brief on pet supplies for a first-time dog owner. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the pet-supplies category and collect at least 3 products covering different needs (feeding, grooming, and toys/enrichment). Record name, price, rating, and review count for each. (2) Reddit — search /f/LifeProTips for posts about pet ownership costs, money-saving tips for new pet owners, or items new owners regret buying; collect at least 2 relevant posts with title, score, and comment count. The report must: (a) present the 3 storefront products with a one-line pitch and citation, (b) summarize what Reddit says is worth the money versus a waste, (c) conclude with a single sentence recommendation for a first-week buy. Keep it short but every factual claim needs a markdown citation.",
+  "start_url": "__SHOPPING__/pet-supplies.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 2200,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0010.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "Easy-tier shopping+reddit task. Short brief format; only 2 sites, 3 products, 2 posts."
+}

@@ -1,10 +1,10 @@
 {
   "task_id": "dr_cross_v3_0005",
   "agent": "deerflow-glm46",
-  "composite": 0.471,
+  "composite": 0.377,
   "pillars": {
     "markdown_structure": {
-      "score": 0.8,
+      "score": 0.95,
       "passed": false,
       "details": {
         "words": 3674,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": false,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 0.751,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 0.87,
+        "citation_precision_substring_baseline": 0.87,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 0.93,
         "total_citations": 23,
         "supported_citations": 20,
@@ -232,16 +236,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.51,
-      "passed": false,
+      "score": 0.71,
+      "passed": true,
       "details": {
-        "comprehensiveness": 2,
-        "insight_depth": 3,
-        "instruction_following": 2,
-        "readability": 4,
-        "weighted_1_5": 2.55,
-        "judge_model": "glm-5",
-        "reason": "Report failed to extract actual products from 2 of 4 required categories, leaving chair/desk/lighting as budget allocations rather than concrete items; missing complete build list, proper Reddit post documentation, and visible priority ranking despite good structure and honest acknowledgment of limitations.",
+        "comprehensiveness": 3,
+        "insight_depth": 4,
+        "instruction_following": 3,
+        "readability": 5,
+        "weighted_1_5": 3.55,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "The report is well-structured and insightful but does not fully meet the product research requirements or provide a completely concrete build-list.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -251,119 +256,113 @@
       }
     },
     "checklist": {
-      "score": 0.533,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "passed_count": 8,
+        "passed_count": 0,
         "total": 15,
         "per_item": [
           {
             "index": 1,
-            "passed": true,
-            "reason": "Five categories cited in Key Citations section",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report browse at least 4 distinct shopping categories?"
           },
           {
             "index": 2,
-            "passed": true,
-            "reason": "Six products with prices explicitly stated in report",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report list at least 6 specific products with prices from the shopping site?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "Only 3 Reddit posts shown; no scores visible",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts with titles and scores?"
           },
           {
             "index": 4,
             "passed": false,
-            "reason": "LifeProTips posts not shown with titles/content",
+            "reason": "",
             "criterion": "Does the report cover both /f/LifeProTips AND /f/personalfinance posts?"
           },
           {
             "index": 5,
             "passed": false,
-            "reason": "Category/search URLs only; no individual product page links",
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 6,
-            "passed": true,
-            "reason": "Reddit post URLs formatted as markdown links",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "Chair/desk/lamp are budget allocations without specific products",
+            "reason": "",
             "criterion": "Does the report propose a concrete $500 build-list with specific products?"
           },
           {
             "index": 8,
-            "passed": true,
-            "reason": "Three fiscal wisdom principles extracted from Reddit",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report extract at least 3 pieces of community wisdom from Reddit?"
           },
           {
             "index": 9,
             "passed": false,
-            "reason": "No explicit divergence flagging between ratings and Reddit sentiment",
+            "reason": "",
             "criterion": "Does the report flag divergences between storefront ratings and Reddit sentiment?"
           },
           {
             "index": 10,
             "passed": false,
-            "reason": "No explicit priority ranking list visible in report",
+            "reason": "",
             "criterion": "Does the report include a buying-priority rank (what to buy first vs last)?"
           },
           {
             "index": 11,
             "passed": false,
-            "reason": "Overview present but conclusion not visible (truncated)",
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
-            "passed": true,
-            "reason": "Product names appear extracted from actual site data",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
-            "passed": true,
-            "reason": "Reddit titles appear legitimate, not fabricated",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
-            "passed": true,
-            "reason": "Ergonomic foundation and impact discussed throughout",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report discuss ergonomic considerations for remote work?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "15+ distinct citations in Key Citations section",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Five categories cited in Key Citations section\n2. PASS - Six products with prices explicitly stated in report\n3. FAIL - Only 3 Reddit posts shown; no scores visible\n4. FAIL - LifeProTips posts not shown with titles/content\n5. FAIL - Category/search URLs only; no individual product page links\n6. PASS - Reddit post URLs formatted as markdown links\n7. FAIL - Chair/desk/lamp are budget allocations without specific products\n8. PASS - Three fiscal wisdom principles extracted from Reddit\n9. FAIL - No explicit divergence flagging between ratings and Reddit sentiment\n10. FAIL - No explicit priority ranking list visible in report\n11. FAIL - Overview present but conclusion not visible (truncated)\n12. PASS - Product names appear extracted from actual site data\n13. PASS - Reddit titles appear"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nNOTES: Report is a truncated analysis of methodology and challenges, not a final guide. It lacks the required concrete build-list, product details, Reddit post specifics, and most other mandated elements. It explicitly states data for critical categories is missing."
       }
     },
     "efficiency": {
-      "score": 0.85,
-      "passed": true,
+      "score": 0.0,
+      "passed": false,
       "details": {
-        "wall_time_s": 600.0,
-        "tokens_in": 0,
-        "tokens_out": 0,
-        "llm_calls": 0,
-        "tool_calls": 0,
-        "cost_usd": 0.0,
-        "model": "glm-4.6",
-        "per_call": []
+        "reason": "metrics unavailable"
       }
     }
   },

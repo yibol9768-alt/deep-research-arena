@@ -1,10 +1,10 @@
 {
   "task_id": "dr_cross_v3_0006",
   "agent": "deerflow-glm46",
-  "composite": 0.402,
+  "composite": 0.33,
   "pillars": {
     "markdown_structure": {
-      "score": 0.8,
+      "score": 0.931,
       "passed": false,
       "details": {
         "words": 3740,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": false,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 0.657,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 0.531,
+        "citation_precision_substring_baseline": 0.531,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 0.694,
         "total_citations": 32,
         "supported_citations": 17,
@@ -233,16 +237,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.41,
+      "score": 0.53,
       "passed": false,
       "details": {
-        "comprehensiveness": 2,
+        "comprehensiveness": 3,
         "insight_depth": 2,
-        "instruction_following": 1,
+        "instruction_following": 2,
         "readability": 4,
-        "weighted_1_5": 2.05,
-        "judge_model": "glm-5",
-        "reason": "The report failed to collect the required product data and community posts, providing only methodological explanations and estimated frameworks instead of the data-driven buying guide specified in the instructions.",
+        "weighted_1_5": 2.65,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Well-structured but fails to collect the required product and community data, making its analysis speculative rather than evidence-based.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -252,119 +257,113 @@
       }
     },
     "checklist": {
-      "score": 0.467,
+      "score": 0.133,
       "passed": false,
       "details": {
-        "passed_count": 7,
+        "passed_count": 2,
         "total": 15,
         "per_item": [
           {
             "index": 1,
-            "passed": true,
-            "reason": "Video Games, Electronics, Cell Phones & Accessories categories confirmed.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report browse at least 3 distinct shopping categories (e.g. video-games, electronics)?"
           },
           {
             "index": 2,
             "passed": false,
-            "reason": "Report explicitly states data extraction failed, no products with prices listed.",
+            "reason": "",
             "criterion": "Does the report list at least 5 specific gaming-relevant products with prices?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "Only 3 posts listed; report states no gaming-hardware posts found.",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts from /f/gaming or /f/technology?"
           },
           {
             "index": 4,
             "passed": false,
-            "reason": "Report mentions \"four-tier essential framework\" but no nice-to-have tier shown.",
+            "reason": "",
             "criterion": "Does the report categorize products into essential vs nice-to-have tiers?"
           },
           {
             "index": 5,
             "passed": false,
-            "reason": "Category and search URLs cited, but no individual product page URLs.",
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 6,
-            "passed": true,
-            "reason": "Three Reddit post URLs included as markdown links in citations.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "Report states mismatch criteria defined for \"future cross-validation\" only.",
+            "reason": "",
             "criterion": "Does the report identify mismatches between shopping ratings and community reputation?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "Report truncated; shopping list not visible in provided content.",
+            "reason": "",
             "criterion": "Does the report deliver a concrete priority-ordered shopping list?"
           },
           {
             "index": 9,
-            "passed": true,
-            "reason": "$400 budget referenced multiple times throughout report.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report target a $400 budget as specified in the task?"
           },
           {
             "index": 10,
-            "passed": true,
-            "reason": "Mouse, keyboard, headphones, monitor discussed as peripheral categories.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report discuss at least 3 categories of peripherals (keyboard, mouse, headset, etc.)?"
           },
           {
             "index": 11,
             "passed": false,
-            "reason": "Introduction present but report truncated before conclusion.",
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "No invented product names; report acknowledges data extraction failure.",
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
             "passed": true,
-            "reason": "Reddit post titles appear legitimate with valid URL structure.",
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
             "passed": false,
-            "reason": "Report admits quantitative data and community sentiment could not be extracted.",
+            "reason": "",
             "criterion": "Does the report synthesize quantitative data with qualitative community voices?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "17 distinct citations listed in Key Citations section.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Video Games, Electronics, Cell Phones & Accessories categories confirmed.\n2. FAIL - Report explicitly states data extraction failed, no products with prices listed.\n3. FAIL - Only 3 posts listed; report states no gaming-hardware posts found.\n4. FAIL - Report mentions \"four-tier essential framework\" but no nice-to-have tier shown.\n5. FAIL - Category and search URLs cited, but no individual product page URLs.\n6. PASS - Three Reddit post URLs included as markdown links in citations.\n7. FAIL - Report states mismatch criteria defined for \"future cross-validation\" only.\n8. FAIL - Report truncated; shopping list not visible in provided content.\n9. PASS - $400 budget referenced multiple times throughout report.\n10. PASS - Mouse, keyboard, headphones, monitor discussed as peripheral categ"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nPASS\nPASS\nFAIL\nFAIL\nNOTES: Report acknowledges data extraction failure, providing a framework instead of the required data and analysis."
       }
     },
     "efficiency": {
-      "score": 0.85,
-      "passed": true,
+      "score": 0.0,
+      "passed": false,
       "details": {
-        "wall_time_s": 600.0,
-        "tokens_in": 0,
-        "tokens_out": 0,
-        "llm_calls": 0,
-        "tool_calls": 0,
-        "cost_usd": 0.0,
-        "model": "glm-4.6",
-        "per_call": []
+        "reason": "metrics unavailable"
       }
     }
   },

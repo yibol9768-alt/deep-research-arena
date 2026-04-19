@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0024",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a trend-analysis brief on 'what Reddit wallstreetbets-adjacent users are buying with disposable income' versus what the storefront actually sells at those price points. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the electronics and video-games categories and collect at least 4 products priced above a reasonable splurge threshold (you decide, but note the threshold). Record name, price, rating, review count. (2) Reddit — browse /f/wallstreetbets AND /f/gaming for posts that mention specific tech splurges, flex purchases, or 'YOLO' buying. Collect at least 3 posts with title, score, comment count. The report must: (a) propose a plausible splurge threshold and justify it, (b) present the storefront splurge items with data, (c) map each community splurge mention to whether the storefront stocks a comparable item, (d) conclude with observations on where community wants diverge from store availability. Cite every claim.",
+  "start_url": "__SHOPPING__/electronics.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 900,
+    "max_words": 2800,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0024.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 18,
+  "author_notes": "Shopping (electronics + video-games) + Reddit (wallstreetbets + gaming). Trend mapping task, forces threshold reasoning."
+}

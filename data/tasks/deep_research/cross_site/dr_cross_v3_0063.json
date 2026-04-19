@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0063",
+  "sites": ["shopping", "wikipedia"],
+  "intent": "Write a small-cap buying brief on 'vitamin and supplement basics' grounded by encyclopedia facts rather than reviews. (1) One Stop Market shopping site — browse the health-household category and collect at least 3 supplement products (multivitamin, vitamin D, omega-3, or similar). Record name, price, rating, review count. (2) Wikipedia — open 'Dietary supplement' and 'Vitamin D' (or most relevant vitamin article) and extract 3-4 facts on recommended daily allowance and evidence. The report must: (a) present the storefront picks with stats, (b) match each to the Wikipedia-documented recommendation, (c) flag any product whose marketing exceeds Wikipedia's evidence base, (d) close with one sentence on 'start here if you start anywhere'. Cite every claim.",
+  "start_url": "__SHOPPING__/health-household.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 2200,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0063.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "Easy tier. Shopping + Wikipedia only (no Reddit). Good for testing non-social fact check."
+}

@@ -1,7 +1,7 @@
 # Deep Research Benchmark — v3 Final Results
 
 **状态**: Phase 6 完成 — 4 跨站任务 × 3 agent × 6-pillar composite × 3-way pairwise Arena 全部跑通
-**最后更新**: 2026-04-17
+**最后更新**: 2026-04-17 (citation verifier fix for numeric-reference citations)
 **部署**: westd 服务器(WSL Ubuntu + Docker + Python 3.10/3.12 双 venv)
 
 ---
@@ -12,21 +12,24 @@
 
 | Task | 跨站组合 | glm-5 | qwen3.5-plus | DeerFlow-glm46 |
 |---|---|---:|---:|---:|
-| 0001 | shop + reddit 耳机 | **0.659** | **0.652** | 0.441 |
-| 0005 | shop×4 + reddit×2 home office | 0.437 | 0.440 | **0.471** |
-| 0006 | shop×3 + reddit×2 gaming | 0.476 | **0.514** | 0.402 |
-| 0007 | shop×2 + reddit×2 home cook | **0.440** | 0.324 | **0.442** |
-| **avg** | | **0.503** | 0.483 | 0.439 |
+| 0001 | shop + reddit 耳机 | **0.659** | 0.652 | 0.441 |
+| 0005 | shop×4 + reddit×2 home office | 0.437 | 0.440 | **0.486**‡ |
+| 0006 | shop×3 + reddit×2 gaming | 0.476 | **0.514** | 0.415‡ |
+| 0007 | shop×2 + reddit×2 home cook | 0.440 | **0.464**† | 0.462‡ |
+| **avg** | | 0.503 | **0.518** | 0.451 |
+
+† qwen/0007 citation 原为 0.000 因为 verifier 对 `[1](url)` 数字引用无法抽 token。修复后 F1=0.933,composite 0.324 → 0.464。详见 `src/verifiers/citation_verifier.py` `_sentence_before`。
+‡ DeerFlow 在 0005/0006/0007 上 words 超 max_words 4-240,原本 binary check 导致 markdown_structure=0.80。改为 soft cap(20% 超出线性衰减)后,这三次分数 0.800 → 0.95/0.93/0.999,composite 分别 +0.015/+0.013/+0.020。详见 `src/verifiers/markdown_report_verifier.py`。
 
 ### 两种评判方式的最终排名
 
 | Rank | By Composite avg | By Pairwise Judge wins |
 |---|---|---|
-| 🥇 | **glm-5 (0.503)** | **qwen3.5-plus (6/12)** |
-| 🥈 | qwen3.5-plus (0.483) | glm-5 (4/12) |
+| 🥇 | **qwen3.5-plus (0.518)** | **qwen3.5-plus (6/12)** |
+| 🥈 | glm-5 (0.503) | glm-5 (4/12) |
 | 🥉 | DeerFlow (0.439) | DeerFlow (1/12) |
 
-**两个排名的 top-2 互换** — 这是论文级的 composite ↔ judge 分歧证据。
+**两个排名**现在**总体一致** — composite 和 pairwise judge 都把 qwen 排在第一。但在个别任务上仍有分歧(见 §2),尤其是当 composite 差距 < 0.01 时,judge 能给出明确胜者。
 
 ---
 
@@ -67,18 +70,18 @@
 | 0001 | 0.652 | 1.00 | 1.00 | **0.46** | 0.51 | 0.73 | 0.30 |
 | 0005 | 0.440 | 1.00 | 1.00 | 0.00 | 0.41 | 0.47 | 0.30 |
 | 0006 | 0.514 | 1.00 | 1.00 | 0.00 | 0.51 | **0.73** | 0.30 |
-| 0007 | 0.324 | 1.00 | 0.00 | 0.00 | 0.51 | 0.53 | 0.30 |
-| avg  | 0.483 | **1.00** | 0.75 | 0.12 | **0.49** | 0.62 | 0.30 |
+| 0007 | **0.464** | 1.00 | **0.93** | 0.00 | 0.51 | 0.53 | 0.30 |
+| avg  | **0.518** | **1.00** | **0.98** | 0.12 | **0.49** | 0.62 | 0.30 |
 
 ### DeerFlow-glm46 (multi-agent)
 
 | Task | Composite | Md | Cite | Fact-KG | Judge | Chk | Eff |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | 0001 | 0.441 | 1.00 | 0.83 | 0.00 | 0.34 | 0.53 | 0.85 |
-| 0005 | 0.471 | 0.80 | 0.93 | 0.00 | 0.51 | 0.53 | 0.85 |
-| 0006 | 0.402 | 0.80 | 0.69 | 0.00 | 0.41 | 0.47 | 0.85 |
-| 0007 | 0.442 | 0.80 | 0.97 | 0.00 | 0.34 | 0.53 | 0.85 |
-| avg  | 0.439 | 0.85 | 0.85 | 0.00 | 0.40 | 0.52 | **0.85** |
+| 0005 | 0.486 | 0.95 | 0.93 | 0.00 | 0.51 | 0.53 | 0.85 |
+| 0006 | 0.415 | 0.93 | 0.69 | 0.00 | 0.41 | 0.47 | 0.85 |
+| 0007 | 0.462 | 1.00 | 0.97 | 0.00 | 0.34 | 0.53 | 0.85 |
+| avg  | 0.451 | 0.97 | 0.85 | 0.00 | 0.40 | 0.52 | **0.85** |
 
 **DeerFlow 特点**: 报告最长(19k-29k chars), efficiency 最高(0.85), 但 fact_kg 全 0 — 它选的产品/帖子跟 oracle 不重叠。
 
@@ -89,11 +92,12 @@
 ### Finding A: Cross-site framework works end-to-end
 所有 3 agent × 4 task = 12 runs 全部产出有效分数 (0.32-0.66)。markdown_structure 平均 ≥ 0.85, citation 平均 ≥ 0.85 — agent 确实在跨站采集信息并生成真实 research 报告。
 
-### Finding B: Composite ↔ Pairwise Judge 排名分歧(cross-site 复现 v2 MEGA 发现)
-- **Composite rank**: glm-5 > qwen > DeerFlow
-- **Judge rank**: qwen > glm-5 > DeerFlow (top-2 互换)
-- qwen 平均报告更短(11.7k vs glm-5 的 14.1k), 但 pairwise judge 更偏好它
-- 判别 bias 并非单纯长度, 而是风格(tone/structure/phrasing)
+### Finding B: Composite vs Pairwise Judge 在任务级别仍分歧,总体一致
+- **Composite rank (fixed)**: qwen > glm-5 > DeerFlow
+- **Judge rank**:            qwen > glm-5 > DeerFlow (总体一致)
+- 但**任务级 head-to-head**:0001 和 0005 两个任务上 composite 和 judge 给出**相反**的 qwen-vs-glm5 胜者,而这两个任务 composite 差距都 < 0.01(实际上是平局)。**composite 平局时 judge 才给出差异**。
+- 原先"top-2 互换"结论被 revise:此前 qwen/0007 的 citation=0 是 verifier bug(无法处理 `[1](url)` 数字引用)——fix 后 qwen composite 才反超 glm-5,与 judge 结论一致。
+- **方法学意义**:verifier bug 会制造虚假的 composite-judge 分歧;合理的工程修复 → 两个评估 pipeline 在主信号上其实是高度一致的。
 
 ### Finding C: Agent robustness 比模型选择更重要
 三轮 fallback 修复后(v3→v4→v5), composite 从 0.09 → 0.50+. 修复前:

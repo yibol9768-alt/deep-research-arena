@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0028",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a tradeoff analysis for a small-apartment dweller deciding between a vacuum, a steam mop, or a handheld cordless — $150 ceiling. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the home-kitchen and health-household categories and collect 1-2 products per cleaning device type (so 3-6 total). Record name, price, rating, review count. (2) Reddit — browse /f/LifeProTips for posts on which cleaning tool matters most in small spaces, multi-use hacks, or regrets. Collect at least 2 posts with title, score, comment count. The report must: (a) table the three device categories with storefront stats, (b) extract community rules about small-space cleaning, (c) pick ONE device as the best $150 spend and defend it against the other two. Cite every claim.",
+  "start_url": "__SHOPPING__/home-kitchen.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 2200,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0028.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "Easy tier. Forced single-winner recommendation."
+}

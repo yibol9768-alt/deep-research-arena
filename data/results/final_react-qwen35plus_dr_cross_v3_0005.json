@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0005",
   "agent": "react-qwen35plus",
-  "composite": 0.44,
+  "composite": 0.539,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 1.0,
+        "citation_precision_substring_baseline": 1.0,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 1.0,
         "total_citations": 17,
         "supported_citations": 17,
@@ -233,16 +237,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.41,
-      "passed": false,
+      "score": 0.78,
+      "passed": true,
       "details": {
-        "comprehensiveness": 2,
-        "insight_depth": 2,
-        "instruction_following": 1,
-        "readability": 4,
-        "weighted_1_5": 2.05,
-        "judge_model": "glm-5",
-        "reason": "Report is truncated and missing critical required elements: no Reddit research, no review_counts on products, no $500 build list, no community wisdom synthesis, no divergence analysis, and no priority ranking - fulfilling almost none of the four mandatory report components.",
+        "comprehensiveness": 4,
+        "insight_depth": 4,
+        "instruction_following": 3,
+        "readability": 5,
+        "weighted_1_5": 3.9,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Thorough product analysis and structure, but incomplete Reddit details and build-list in truncated section.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -252,220 +257,113 @@
       }
     },
     "checklist": {
-      "score": 0.467,
+      "score": 0.667,
       "passed": false,
       "details": {
-        "passed_count": 7,
+        "passed_count": 10,
         "total": 15,
         "per_item": [
           {
             "index": 1,
             "passed": true,
-            "reason": "Four categories explicitly mentioned and products shown",
+            "reason": "2. PASS",
             "criterion": "Does the report browse at least 4 distinct shopping categories?"
           },
           {
             "index": 2,
             "passed": true,
-            "reason": "12+ products with prices listed",
+            "reason": "3. FAIL",
             "criterion": "Does the report list at least 6 specific products with prices from the shopping site?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "No Reddit posts visible in truncated report",
+            "reason": "4. FAIL",
             "criterion": "Does the report include at least 4 Reddit posts with titles and scores?"
           },
           {
             "index": 4,
             "passed": false,
-            "reason": "No Reddit posts from either forum shown",
+            "reason": "5. PASS",
             "criterion": "Does the report cover both /f/LifeProTips AND /f/personalfinance posts?"
           },
           {
             "index": 5,
             "passed": true,
-            "reason": "Multiple markdown links to products included",
+            "reason": "6. FAIL",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 6,
             "passed": false,
-            "reason": "No Reddit URLs visible in report",
+            "reason": "7. PASS",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 7,
-            "passed": false,
-            "reason": "Build list not shown in truncated report",
+            "passed": true,
+            "reason": "8. PASS",
             "criterion": "Does the report propose a concrete $500 build-list with specific products?"
           },
           {
             "index": 8,
-            "passed": false,
-            "reason": "No community wisdom extracted in visible portion",
+            "passed": true,
+            "reason": "9. FAIL",
             "criterion": "Does the report extract at least 3 pieces of community wisdom from Reddit?"
           },
           {
             "index": 9,
             "passed": false,
-            "reason": "No divergences flagged in visible portion",
+            "reason": "10. PASS",
             "criterion": "Does the report flag divergences between storefront ratings and Reddit sentiment?"
           },
           {
             "index": 10,
-            "passed": false,
-            "reason": "No priority ranking visible in truncated report",
+            "passed": true,
+            "reason": "11. PASS",
             "criterion": "Does the report include a buying-priority rank (what to buy first vs last)?"
           },
           {
             "index": 11,
-            "passed": false,
-            "reason": "Introduction present but conclusion missing",
+            "passed": true,
+            "reason": "12. PASS",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "Product names have legitimate URLs",
+            "reason": "13. PASS",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
             "passed": true,
-            "reason": "No fabricated Reddit posts present",
+            "reason": "14. PASS",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
             "passed": true,
-            "reason": "Ergonomic considerations discussed throughout",
+            "reason": "15. FAIL",
             "criterion": "Does the report discuss ergonomic considerations for remote work?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "12+ inline citations present",
+            "passed": false,
+            "reason": "NOTES: Report truncated; cannot verify full Reddit coverage or citation count.",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Four categories explicitly mentioned and products shown\n2. PASS - 12+ products with prices listed\n3. FAIL - No Reddit posts visible in truncated report\n4. FAIL - No Reddit posts from either forum shown\n5. PASS - Multiple markdown links to products included\n6. FAIL - No Reddit URLs visible in report\n7. FAIL - Build list not shown in truncated report\n8. FAIL - No community wisdom extracted in visible portion\n9. FAIL - No divergences flagged in visible portion\n10. FAIL - No priority ranking visible in truncated report\n11. FAIL - Introduction present but conclusion missing\n12. PASS - Product names have legitimate URLs\n13. PASS - No fabricated Reddit posts present\n14. PASS - Ergonomic considerations discussed throughout\n15. PASS - 12+ inline citations present\nNOTES: Report is truncate"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "1. PASS\n2. PASS\n3. FAIL\n4. FAIL\n5. PASS\n6. FAIL\n7. PASS\n8. PASS\n9. FAIL\n10. PASS\n11. PASS\n12. PASS\n13. PASS\n14. PASS\n15. FAIL\nNOTES: Report truncated; cannot verify full Reddit coverage or citation count."
       }
     },
     "efficiency": {
-      "score": 0.3,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "wall_time_s": 247.87,
-        "tokens_in": 396673,
-        "tokens_out": 9787,
-        "llm_calls": 28,
-        "tool_calls": 27,
-        "cost_usd": 0.42603,
-        "model": "qwen3.5-plus",
-        "per_call": [
-          {
-            "in": 1869,
-            "out": 242,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2144,
-            "out": 77,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2625,
-            "out": 61,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2725,
-            "out": 158,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 3287,
-            "out": 101,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 3792,
-            "out": 55,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 4252,
-            "out": 99,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 5757,
-            "out": 191,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 6395,
-            "out": 53,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 6485,
-            "out": 722,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 7244,
-            "out": 252,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 7511,
-            "out": 315,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 9191,
-            "out": 319,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 10692,
-            "out": 45,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 12233,
-            "out": 37,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 13731,
-            "out": 41,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 15248,
-            "out": 331,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 18110,
-            "out": 346,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 20526,
-            "out": 241,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 22226,
-            "out": 93,
-            "model": "qwen3.5-plus"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0038",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write a piece on 'how /f/movies and Wikipedia disagree about a film's legacy'. You MUST research BOTH sources: (1) Reddit — browse /f/movies AND /f/showerthoughts for posts about a specific film, franchise, or director (you pick one concrete subject). Collect at least 4 posts with title, score, comment count, and the prevailing opinion. (2) Wikipedia — open the article on the film or filmmaker and extract 3-4 facts on production, reception, and critical legacy. The report must: (a) name the subject and summarize the Wikipedia entry, (b) present the community's rolling opinion from Reddit, (c) analyze where fandom memory diverges from documented critical history, (d) conclude with a one-paragraph fair assessment. Cite every claim.",
+  "start_url": "__REDDIT__/f/movies",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 900,
+    "max_words": 2800,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0038.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Reddit (movies + showerthoughts) + Wikipedia. Memory-vs-record divergence analysis."
+}

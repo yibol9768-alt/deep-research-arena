@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0035",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write an analytical piece 'what /f/history tells us about how Reddit distorts the past', reconciling forum claims with encyclopedia entries. You MUST research BOTH sources: (1) Reddit — browse /f/history AND /f/todayilearned for posts that make specific historical claims. Collect at least 4 posts with title, score, comment count, and the specific claim. (2) Wikipedia — for each claim, open the relevant article and extract the accurate version (dates, actors, key events). The report must: (a) present each Reddit claim verbatim with citation, (b) compare it against the Wikipedia article and mark it as 'accurate', 'oversimplified', or 'incorrect', (c) analyze patterns in which types of claims get distorted in the forum, (d) end with three rules a reader should apply when seeing a history post on Reddit. Cite every claim.",
+  "start_url": "__REDDIT__/f/history",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0035.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 18,
+  "author_notes": "Reddit (history + todayilearned) + Wikipedia. Fact-checking framework forces per-claim resolution."
+}

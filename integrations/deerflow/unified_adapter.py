@@ -34,7 +34,11 @@ GITLAB         = os.environ.get("GITLAB",         "http://localhost:8023").rstri
 SHOPPING_ADMIN = os.environ.get("SHOPPING_ADMIN", "http://localhost:7780").rstrip("/")
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
+# When imported as a library (e.g. from scripts/run_deerflow_cross.py's
+# subprocess runner), do NOT insert ROOT at sys.path[0] — that shadows
+# DeerFlow's own `src.*` namespace. Only insert when run standalone.
+if __name__ == "__main__":
+    sys.path.insert(0, str(ROOT))
 
 
 def _fetch(url: str) -> str:
@@ -476,6 +480,33 @@ async def run_dr_task(task_id: str):
 ## Available tools:
 {tools_block}
 
+## Research protocol (MANDATORY — override default researcher instructions):
+
+**You are doing deep research, not surface search.** The `multi_search` /
+`shop_search` / `reddit_search` tools only give you a listing overview —
+they are NOT sufficient on their own. You MUST drill deeper.
+
+1. **For the Shopping site**: after `shop_search` or `shop_browse` on a
+   category, you MUST call `shop_browse(product_url)` on **at least 6
+   individual product detail pages** (URLs ending in `.html` with a
+   product slug, e.g. `sony-zx110nc-noise-cancelling-headphones.html`).
+   Optionally call `shop_reviews(product_url)` to get buyer quotes.
+2. **For the Reddit site**: after `reddit_search` on a forum, you MUST
+   call `reddit_browse(post_url)` on **at least 4 individual post URLs**
+   (URLs like `/f/<board>/<id>/...`) to read the actual title, body, and
+   top comments with upvote scores. Forum listing pages do NOT count.
+3. Cite EVERY factual claim with a markdown link `[descriptive text](url)`
+   pointing to the specific product or post URL you crawled — NOT the
+   category/forum page.
+4. A "product exists" citation is not enough — you must quote a specific
+   price, rating, or buyer comment taken from the crawled page.
+
+**IMPORTANT — do not write a meta-report about tool failures.** If a tool
+returns empty or an error, retry with a different URL or search query.
+Do not spend words describing "extraction challenges" or
+"methodology limitations"; readers want product/forum substance, not
+process commentary.
+
 ## Output requirements:
 Write a **long-form markdown research report** (NOT JSON).
 - Minimum {ms.get('min_words', 500)} words, {ms.get('min_paragraphs', 5)} paragraphs
@@ -484,6 +515,9 @@ Write a **long-form markdown research report** (NOT JSON).
 - Structure: introduction → findings per site → cross-site analysis → conclusion
 - Every factual claim MUST have a citation linking to the sandbox page where you found it
 - URLs must be from the sandbox sites listed above — NO external URLs
+- Do NOT include sections like "Methodology", "Limitations", "Literature Review",
+  "Survey Note", or "Future Research Directions" — they add word count without
+  research substance. Spend all words on actual product/forum findings.
 """
 
     graph = build_graph()

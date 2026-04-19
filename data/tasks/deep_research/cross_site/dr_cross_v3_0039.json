@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0039",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write a short 'behind the headline' piece on a current /f/worldnews topic with Wikipedia context. You MUST research BOTH sources: (1) Reddit — browse /f/worldnews AND /f/news for posts on a single concrete current-events topic (pick one with multiple posts). Collect at least 3 posts with title, score, comment count, and representative comments. (2) Wikipedia — open the article that provides background (country, organization, historical event) and extract 3-4 facts. The report must: (a) name the story and its Wikipedia background, (b) summarize the community reaction, (c) point out one fact from Wikipedia that complicates the dominant Reddit framing, (d) close with a neutral one-paragraph summary. Cite every claim. Do not fabricate news events.",
+  "start_url": "__REDDIT__/f/worldnews",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 2200,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0039.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "Easy tier. Reddit (worldnews + news) + Wikipedia. News-with-context pattern."
+}

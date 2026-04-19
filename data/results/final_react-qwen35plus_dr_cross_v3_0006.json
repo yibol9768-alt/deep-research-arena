@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0006",
   "agent": "react-qwen35plus",
-  "composite": 0.514,
+  "composite": 0.473,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 1.0,
+        "citation_precision_substring_baseline": 1.0,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 1.0,
         "total_citations": 9,
         "supported_citations": 9,
@@ -185,16 +189,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.51,
+      "score": 0.58,
       "passed": false,
       "details": {
-        "comprehensiveness": 2,
+        "comprehensiveness": 3,
         "insight_depth": 3,
         "instruction_following": 2,
         "readability": 4,
-        "weighted_1_5": 2.55,
-        "judge_model": "glm-5",
-        "reason": "Report misses critical required data: no review_count for any product, no properly formatted Reddit post citations (title/score/comment_count), and no mismatch analysis between ratings and community reputation.",
+        "weighted_1_5": 2.9,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Report covers core facets but misses required Reddit posts, mismatches analysis, and a complete budget list.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -204,220 +209,113 @@
       }
     },
     "checklist": {
-      "score": 0.733,
-      "passed": true,
+      "score": 0.533,
+      "passed": false,
       "details": {
-        "passed_count": 11,
+        "passed_count": 8,
         "total": 15,
         "per_item": [
           {
             "index": 1,
             "passed": false,
-            "reason": "(No explicit evidence of browsing 3 categories)",
+            "reason": "",
             "criterion": "Does the report browse at least 3 distinct shopping categories (e.g. video-games, electronics)?"
           },
           {
             "index": 2,
-            "passed": true,
-            "reason": "(5 products with prices listed)",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report list at least 5 specific gaming-relevant products with prices?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "(Only 2 Reddit posts shown in report)",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts from /f/gaming or /f/technology?"
           },
           {
             "index": 4,
             "passed": true,
-            "reason": "(Essential and Nice-to-Have tiers defined)",
+            "reason": "",
             "criterion": "Does the report categorize products into essential vs nice-to-have tiers?"
           },
           {
             "index": 5,
             "passed": true,
-            "reason": "(Product URLs as markdown links)",
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 6,
             "passed": true,
-            "reason": "(Reddit URLs as markdown links present)",
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "(Mismatches not clearly identified)",
+            "reason": "",
             "criterion": "Does the report identify mismatches between shopping ratings and community reputation?"
           },
           {
             "index": 8,
-            "passed": true,
-            "reason": "(Priority-ordered list provided)",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report deliver a concrete priority-ordered shopping list?"
           },
           {
             "index": 9,
             "passed": true,
-            "reason": "($400 budget explicitly targeted)",
+            "reason": "",
             "criterion": "Does the report target a $400 budget as specified in the task?"
           },
           {
             "index": 10,
             "passed": true,
-            "reason": "(Headset, keyboard, mouse, monitor, controller discussed)",
+            "reason": "",
             "criterion": "Does the report discuss at least 3 categories of peripherals (keyboard, mouse, headset, etc.)?"
           },
           {
             "index": 11,
             "passed": true,
-            "reason": "(Introduction present, conclusion likely in truncated section)",
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "(Products match mock site format)",
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
-            "passed": false,
-            "reason": "(Only 2 Reddit posts shown, need 4)",
+            "passed": true,
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
-            "passed": true,
-            "reason": "(Quantitative ratings combined with qualitative insights)",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report synthesize quantitative data with qualitative community voices?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "(More than 10 inline citations present)",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. FAIL (No explicit evidence of browsing 3 categories)\n2. PASS (5 products with prices listed)\n3. FAIL (Only 2 Reddit posts shown in report)\n4. PASS (Essential and Nice-to-Have tiers defined)\n5. PASS (Product URLs as markdown links)\n6. PASS (Reddit URLs as markdown links present)\n7. FAIL (Mismatches not clearly identified)\n8. PASS (Priority-ordered list provided)\n9. PASS ($400 budget explicitly targeted)\n10. PASS (Headset, keyboard, mouse, monitor, controller discussed)\n11. PASS (Introduction present, conclusion likely in truncated section)\n12. PASS (Products match mock site format)\n13. FAIL (Only 2 Reddit posts shown, need 4)\n14. PASS (Quantitative ratings combined with qualitative insights)\n15. PASS (More than 10 inline citations present)\nNOTES: Report appears truncated at 6000 chars - "
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nPASS\nPASS\nPASS\nFAIL\nFAIL\nPASS\nPASS\nPASS\nPASS\nPASS\nFAIL\nFAIL\nNOTES: Report is truncated mid-sentence, preventing full evaluation of criteria 3, 7, 8, 14, 15. Essential vs. nice-to-have categorization is present."
       }
     },
     "efficiency": {
-      "score": 0.3,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "wall_time_s": 186.46,
-        "tokens_in": 334824,
-        "tokens_out": 7743,
-        "llm_calls": 26,
-        "tool_calls": 25,
-        "cost_usd": 0.35805,
-        "model": "qwen3.5-plus",
-        "per_call": [
-          {
-            "in": 1835,
-            "out": 289,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2157,
-            "out": 62,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2623,
-            "out": 48,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2710,
-            "out": 84,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 4231,
-            "out": 188,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 4894,
-            "out": 36,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 4967,
-            "out": 339,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 5781,
-            "out": 42,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 5860,
-            "out": 330,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 6594,
-            "out": 36,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 6669,
-            "out": 115,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 8360,
-            "out": 46,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 9938,
-            "out": 40,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 11257,
-            "out": 43,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 13323,
-            "out": 115,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 14875,
-            "out": 435,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 16785,
-            "out": 148,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 19098,
-            "out": 255,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 20142,
-            "out": 94,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 21031,
-            "out": 322,
-            "model": "qwen3.5-plus"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0015",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a sentiment vs storefront ratings analysis on over-the-counter health-household products. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the health-household category and collect at least 5 products spanning at least three subtypes (sleep aid, pain relief, vitamin/supplement, first aid, or cleaning). Record name, price, rating, and review count. (2) Reddit — browse /f/science AND /f/AskReddit for posts discussing which OTC products actually have evidence behind them, placebo effects, or consumer warnings. Collect at least 3 posts with title, score, and comment count. The report must: (a) list each storefront product with a storefront-confidence score (rating * log(review_count)), (b) for each product, summarize whatever community scrutiny exists — is it 'community-validated', 'mixed', or 'community-skeptical', (c) highlight any divergence where storefront ratings look trustworthy but community sentiment is skeptical, (d) recommend 3 products a cautious buyer should still feel good about. Cite every claim.",
+  "start_url": "__SHOPPING__/health-household.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0015.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 18,
+  "author_notes": "Shopping (health-household) + Reddit (science + AskReddit). Forces quantitative ranking (rating * log(reviews)) plus qualitative skepticism mapping."
+}

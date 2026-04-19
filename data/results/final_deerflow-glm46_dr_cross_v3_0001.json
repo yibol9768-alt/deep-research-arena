@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0001",
   "agent": "deerflow-glm46",
-  "composite": 0.441,
+  "composite": 0.446,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 8
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 0.706,
+        "citation_precision_substring_baseline": 0.706,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 0.828,
         "total_citations": 17,
         "supported_citations": 12,
@@ -229,16 +233,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.34,
+      "score": 0.51,
       "passed": false,
       "details": {
-        "comprehensiveness": 1,
+        "comprehensiveness": 2,
         "insight_depth": 2,
-        "instruction_following": 1,
+        "instruction_following": 3,
         "readability": 4,
-        "weighted_1_5": 1.7,
-        "judge_model": "glm-5",
-        "reason": "A well-structured report that documents technical barriers thoroughly but fails to deliver any of the requested product data, Reddit discussions, or cross-source synthesis required by the research intent.",
+        "weighted_1_5": 2.55,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Well-structured but fails to deliver required product specs, Reddit discussions, or meaningful cross-source synthesis due to data extraction issues.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -248,119 +253,113 @@
       }
     },
     "checklist": {
-      "score": 0.533,
+      "score": 0.6,
       "passed": false,
       "details": {
-        "passed_count": 8,
+        "passed_count": 9,
         "total": 15,
         "per_item": [
           {
             "index": 1,
             "passed": false,
-            "reason": "Products mentioned by ID only, no prices provided",
+            "reason": "",
             "criterion": "Does the report mention at least 3 specific headphone products from the shopping site with prices?"
           },
           {
             "index": 2,
             "passed": false,
-            "reason": "No specific post titles and scores included",
+            "reason": "",
             "criterion": "Does the report include at least 2 Reddit /f/technology posts with titles and scores?"
           },
           {
             "index": 3,
             "passed": true,
-            "reason": "Multiple shopping site URLs as markdown links present",
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 4,
             "passed": true,
-            "reason": "Reddit post URLs as markdown links included",
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 5,
-            "passed": false,
-            "reason": "States comparison was indeterminable, no actual comparison",
+            "passed": true,
+            "reason": "",
             "criterion": "Does the report include a cross-source comparison section?"
           },
           {
             "index": 6,
             "passed": false,
-            "reason": "States ratings could not be extracted, none provided",
+            "reason": "",
             "criterion": "Does the report mention product ratings from the shopping site?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "No actual community sentiment discussed, only topics listed",
+            "reason": "",
             "criterion": "Does the report discuss community sentiment about tech companies from Reddit?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "Explicitly states divergence analysis was indeterminable",
+            "reason": "",
             "criterion": "Does the report identify any divergence between product ratings and community sentiment?"
           },
           {
             "index": 9,
             "passed": true,
-            "reason": "Methodology explained in Overview section",
+            "reason": "",
             "criterion": "Does the report include an introduction explaining the cross-source methodology?"
           },
           {
             "index": 10,
-            "passed": false,
-            "reason": "Report truncated, no conclusion section visible",
+            "passed": true,
+            "reason": "",
             "criterion": "Does the report include a conclusion with synthesis?"
           },
           {
             "index": 11,
             "passed": true,
-            "reason": "Uses only Product IDs, no invented product names",
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not found on the shopping site?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "No fabricated post titles, acknowledges data unavailable",
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles not on the forum?"
           },
           {
             "index": 13,
             "passed": true,
-            "reason": "$30-100 price range mentioned in Overview",
+            "reason": "",
             "criterion": "Does the report mention the $30-100 price range as specified in the task?"
           },
           {
             "index": 14,
             "passed": true,
-            "reason": "ANC and noise-cancelling features discussed throughout",
+            "reason": "",
             "criterion": "Does the report discuss noise-cancelling or wireless features?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "Multiple distinct markdown citations in Key Citations section",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 6 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. FAIL - Products mentioned by ID only, no prices provided\n2. FAIL - No specific post titles and scores included\n3. PASS - Multiple shopping site URLs as markdown links present\n4. PASS - Reddit post URLs as markdown links included\n5. FAIL - States comparison was indeterminable, no actual comparison\n6. FAIL - States ratings could not be extracted, none provided\n7. FAIL - No actual community sentiment discussed, only topics listed\n8. FAIL - Explicitly states divergence analysis was indeterminable\n9. PASS - Methodology explained in Overview section\n10. FAIL - Report truncated, no conclusion section visible\n11. PASS - Uses only Product IDs, no invented product names\n12. PASS - No fabricated post titles, acknowledges data unavailable\n13. PASS - $30-100 price range mentioned in Overview\n14. PAS"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nPASS\nPASS\nPASS\nFAIL\nFAIL\nFAIL\nPASS\nPASS\nPASS\nPASS\nPASS\nPASS\nFAIL\nNOTES: The report explicitly states it could not extract product names, prices, ratings, or review summaries from the shopping site, and found no headphone discussions on Reddit, failing several criteria. It cites URLs but lacks the required factual content."
       }
     },
     "efficiency": {
-      "score": 0.85,
-      "passed": true,
+      "score": 0.0,
+      "passed": false,
       "details": {
-        "wall_time_s": 600.0,
-        "tokens_in": 0,
-        "tokens_out": 0,
-        "llm_calls": 0,
-        "tool_calls": 0,
-        "cost_usd": 0.0,
-        "model": "glm-4.6",
-        "per_call": []
+        "reason": "metrics unavailable"
       }
     }
   },

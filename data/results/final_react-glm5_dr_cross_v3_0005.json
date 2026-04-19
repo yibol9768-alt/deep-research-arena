@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0005",
   "agent": "react-glm5",
-  "composite": 0.437,
+  "composite": 0.362,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 0.947,
+        "citation_precision_substring_baseline": 0.947,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 0.973,
         "total_citations": 19,
         "supported_citations": 18,
@@ -47,7 +51,7 @@
             "url": "http://localhost:7770/duorest-d2-high-back-office-chair-office-chair-for-bad-back-office-chair-for-back-pain-posture-office-chair-back-support-office-chair-ergonomic-office-chair-black-black.html",
             "status": 200,
             "match": "snippet_tokens",
-            "snippet_hits": "1/1",
+            "snippet_hits": "6/6",
             "supported": true
           },
           {
@@ -231,16 +235,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.38,
+      "score": 0.58,
       "passed": false,
       "details": {
-        "comprehensiveness": 2,
-        "insight_depth": 2,
-        "instruction_following": 1,
-        "readability": 3,
-        "weighted_1_5": 1.9,
-        "judge_model": "glm-5",
-        "reason": "Report is truncated and missing most critical requirements: no Reddit research, no $500 build-list, no community wisdom, no divergence analysis, no priority ranking, missing 2 required categories, and no review counts for products.",
+        "comprehensiveness": 3,
+        "insight_depth": 3,
+        "instruction_following": 2,
+        "readability": 4,
+        "weighted_1_5": 2.9,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "The report covers product research well but misses key required elements like a full $500 build-list, Reddit post details, and priority ranking.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -250,170 +255,113 @@
       }
     },
     "checklist": {
-      "score": 0.4,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "passed_count": 6,
+        "passed_count": 0,
         "total": 15,
         "per_item": [
           {
             "index": 1,
             "passed": false,
-            "reason": "Only office-products and electronics shown, missing home-kitchen",
+            "reason": "",
             "criterion": "Does the report browse at least 4 distinct shopping categories?"
           },
           {
             "index": 2,
-            "passed": true,
-            "reason": "15+ products with prices listed",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report list at least 6 specific products with prices from the shopping site?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "No Reddit posts visible in truncated report",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts with titles and scores?"
           },
           {
             "index": 4,
             "passed": false,
-            "reason": "No Reddit posts from either subreddit shown",
+            "reason": "",
             "criterion": "Does the report cover both /f/LifeProTips AND /f/personalfinance posts?"
           },
           {
             "index": 5,
-            "passed": true,
-            "reason": "Multiple markdown links to products present",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 6,
             "passed": false,
-            "reason": "No Reddit post URLs visible in report",
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "No concrete $500 build-list visible in truncated portion",
+            "reason": "",
             "criterion": "Does the report propose a concrete $500 build-list with specific products?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "No community wisdom extracted in visible portion",
+            "reason": "",
             "criterion": "Does the report extract at least 3 pieces of community wisdom from Reddit?"
           },
           {
             "index": 9,
             "passed": false,
-            "reason": "No divergences between ratings and Reddit flagged",
+            "reason": "",
             "criterion": "Does the report flag divergences between storefront ratings and Reddit sentiment?"
           },
           {
             "index": 10,
             "passed": false,
-            "reason": "No buying-priority rank visible in truncated portion",
+            "reason": "",
             "criterion": "Does the report include a buying-priority rank (what to buy first vs last)?"
           },
           {
             "index": 11,
             "passed": false,
-            "reason": "Introduction present but conclusion not visible",
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
-            "passed": true,
-            "reason": "Products have URLs from shopping site",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
-            "passed": true,
-            "reason": "No fabricated Reddit posts visible",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
-            "passed": true,
-            "reason": "Ergonomic considerations discussed throughout",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report discuss ergonomic considerations for remote work?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "15+ inline citations present",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. FAIL - Only office-products and electronics shown, missing home-kitchen\n2. PASS - 15+ products with prices listed\n3. FAIL - No Reddit posts visible in truncated report\n4. FAIL - No Reddit posts from either subreddit shown\n5. PASS - Multiple markdown links to products present\n6. FAIL - No Reddit post URLs visible in report\n7. FAIL - No concrete $500 build-list visible in truncated portion\n8. FAIL - No community wisdom extracted in visible portion\n9. FAIL - No divergences between ratings and Reddit flagged\n10. FAIL - No buying-priority rank visible in truncated portion\n11. FAIL - Introduction present but conclusion not visible\n12. PASS - Products have URLs from shopping site\n13. PASS - No fabricated Reddit posts visible\n14. PASS - Ergonomic considerations discussed throughout\n15. PASS - 1"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nNOTES: Report is truncated mid-sentence, preventing full evaluation of most criteria. Cannot verify Reddit research, build-list, community wisdom, divergences, priority rank, or full citation count."
       }
     },
     "efficiency": {
-      "score": 0.696,
-      "passed": true,
+      "score": 0.0,
+      "passed": false,
       "details": {
-        "wall_time_s": 290.57,
-        "tokens_in": 157825,
-        "tokens_out": 9692,
-        "llm_calls": 10,
-        "tool_calls": 30,
-        "cost_usd": 0.1869,
-        "model": "glm-5",
-        "per_call": [
-          {
-            "in": 1706,
-            "out": 412,
-            "model": "glm-5"
-          },
-          {
-            "in": 2975,
-            "out": 69,
-            "model": "glm-5"
-          },
-          {
-            "in": 8190,
-            "out": 142,
-            "model": "glm-5"
-          },
-          {
-            "in": 12928,
-            "out": 183,
-            "model": "glm-5"
-          },
-          {
-            "in": 14391,
-            "out": 72,
-            "model": "glm-5"
-          },
-          {
-            "in": 18609,
-            "out": 209,
-            "model": "glm-5"
-          },
-          {
-            "in": 24202,
-            "out": 84,
-            "model": "glm-5"
-          },
-          {
-            "in": 30706,
-            "out": 119,
-            "model": "glm-5"
-          },
-          {
-            "in": 35865,
-            "out": 4524,
-            "model": "glm-5"
-          },
-          {
-            "in": 8253,
-            "out": 3878,
-            "model": "glm-5"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

@@ -1,0 +1,43 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0090",
+  "sites": [
+    "wikipedia",
+    "reddit",
+    "shopping"
+  ],
+  "intent": "Create a consumer-health report on 'sunscreen: what the science says and what people actually buy'. (1) Wikipedia — 'Sunscreen' and 'Ultraviolet': extract the mechanism of action, SPF scale definition, and known limitations. (2) One Stop Market — browse beauty-personal-care for at least 3 sunscreen products under $30 (name, price, rating, SPF if stated). (3) Reddit /f/LifeProTips — 2+ posts on how people actually reapply / mistakes to avoid. Report must: (a) ground biology via Wikipedia, (b) evaluate each product against that biology, (c) close with 'what Reddit gets wrong or right'. Cite every claim.",
+  "start_url": "__WIKIPEDIA__/A/Sunscreen",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 2800,
+    "min_paragraphs": 7,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": [
+      "__WIKIPEDIA__",
+      "__REDDIT__",
+      "__SHOPPING__"
+    ],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0090.json",
+    "expected_predicates": [
+      "article_title",
+      "price",
+      "rating",
+      "forum",
+      "score"
+    ]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 18,
+  "author_notes": "3-site: medicine + consumer + community."
+}

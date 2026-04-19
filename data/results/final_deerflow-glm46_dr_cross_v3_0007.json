@@ -1,10 +1,10 @@
 {
   "task_id": "dr_cross_v3_0007",
   "agent": "deerflow-glm46",
-  "composite": 0.442,
+  "composite": 0.357,
   "pillars": {
     "markdown_structure": {
-      "score": 0.8,
+      "score": 0.999,
       "passed": false,
       "details": {
         "words": 3504,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": false,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 0.994,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 0.933,
+        "citation_precision_substring_baseline": 0.933,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 0.966,
         "total_citations": 15,
         "supported_citations": 14,
@@ -232,16 +236,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.34,
+      "score": 0.56,
       "passed": false,
       "details": {
-        "comprehensiveness": 1,
-        "insight_depth": 2,
-        "instruction_following": 1,
+        "comprehensiveness": 2,
+        "insight_depth": 4,
+        "instruction_following": 2,
         "readability": 4,
-        "weighted_1_5": 1.7,
-        "judge_model": "glm-5",
-        "reason": "The report fails to deliver the core required data—zero products collected instead of six, one Reddit post instead of four, and no actual shopping list with prices—making it impossible to fulfill the synthesis task despite honest acknowledgment of technical limitations.",
+        "weighted_1_5": 2.8,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Insightful analysis and clear structure, but misses key required data and outputs due to technical extraction failures.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -251,119 +256,113 @@
       }
     },
     "checklist": {
-      "score": 0.533,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "passed_count": 8,
+        "passed_count": 0,
         "total": 15,
         "per_item": [
           {
             "index": 1,
-            "passed": true,
-            "reason": "Browsed both categories, citations confirm",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report browse both home-kitchen AND grocery-gourmet-food categories?"
           },
           {
             "index": 2,
             "passed": false,
-            "reason": "No products with prices listed",
+            "reason": "",
             "criterion": "Does the report list at least 6 specific kitchen products with prices?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "Only 1 Reddit post cited, not 4",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts from /f/LifeProTips or /f/personalfinance?"
           },
           {
             "index": 4,
             "passed": false,
-            "reason": "No product URLs, only category/search URLs",
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 5,
-            "passed": true,
-            "reason": "One Reddit post URL cited as markdown",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 6,
             "passed": false,
-            "reason": "No shopping list with running total",
+            "reason": "",
             "criterion": "Does the report present a starter-kit shopping list with a running price total?"
           },
           {
             "index": 7,
-            "passed": true,
-            "reason": "Three cost-saving hacks mentioned",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report include at least 3 cost-saving hacks drawn from Reddit?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "No systematic reinforcement/challenge of items",
+            "reason": "",
             "criterion": "Does the report reinforce or challenge each item using Reddit advice?"
           },
           {
             "index": 9,
-            "passed": true,
-            "reason": "Five items specified for minimum kitchen",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report deliver a 'Minimum viable kitchen' recommendation with exactly 5 items?"
           },
           {
             "index": 10,
-            "passed": true,
-            "reason": "Discusses gadget trap",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report discuss what NOT to buy (gadgets / gimmicks)?"
           },
           {
             "index": 11,
             "passed": false,
-            "reason": "No visible conclusion in truncated report",
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
-            "passed": true,
-            "reason": "No invented product names",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
-            "passed": true,
-            "reason": "No fabricated Reddit titles",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
             "passed": false,
-            "reason": "No quantitative product data synthesized",
+            "reason": "",
             "criterion": "Does the report synthesize quantitative data with qualitative community voices?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "14 citations listed",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Browsed both categories, citations confirm\n2. FAIL - No products with prices listed\n3. FAIL - Only 1 Reddit post cited, not 4\n4. FAIL - No product URLs, only category/search URLs\n5. PASS - One Reddit post URL cited as markdown\n6. FAIL - No shopping list with running total\n7. PASS - Three cost-saving hacks mentioned\n8. FAIL - No systematic reinforcement/challenge of items\n9. PASS - Five items specified for minimum kitchen\n10. PASS - Discusses gadget trap\n11. FAIL - No visible conclusion in truncated report\n12. PASS - No invented product names\n13. PASS - No fabricated Reddit titles\n14. FAIL - No quantitative product data synthesized\n15. PASS - 14 citations listed\n\nNOTES: Report explicitly acknowledges it could not extract product data due to JavaScript rendering, and only 1 Reddit "
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nNOTES: Report is a methodology/limitations summary, not the required guide. It lacks all specific product data, Reddit posts, shopping list, hacks, and MVK list."
       }
     },
     "efficiency": {
-      "score": 0.85,
-      "passed": true,
+      "score": 0.0,
+      "passed": false,
       "details": {
-        "wall_time_s": 600.0,
-        "tokens_in": 0,
-        "tokens_out": 0,
-        "llm_calls": 0,
-        "tool_calls": 0,
-        "cost_usd": 0.0,
-        "model": "glm-4.6",
-        "per_call": []
+        "reason": "metrics unavailable"
       }
     }
   },

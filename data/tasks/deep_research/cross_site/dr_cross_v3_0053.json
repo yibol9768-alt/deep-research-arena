@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0053",
+  "sites": ["shopping", "reddit", "wikipedia"],
+  "intent": "Write a 3-source report on 'pet nutrition basics for dog owners' — storefront inventory, community wisdom, and Wikipedia-backed fundamentals. (1) One Stop Market shopping site — browse the pet-supplies category and collect at least 4 dog-food-relevant products (dry food, wet food, supplement, treat). Record name, price, rating, review count. (2) Reddit — browse /f/AskReddit AND /f/science for posts discussing dog nutrition, brand skepticism, or supplement evidence. Collect at least 3 posts with title, score, comment count. (3) Wikipedia — open 'Dog food' or 'Canine nutrition' (whichever is available) and extract 3-4 facts about AAFCO standards or nutrient requirements. The report must: (a) present the 4 storefront picks with stats, (b) reconcile any storefront marketing claim with Wikipedia nutrition facts, (c) integrate community skepticism about grain-free, raw, or premium marketing, (d) close with a buyer's checklist. Cite every claim.",
+  "start_url": "__SHOPPING__/pet-supplies.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1100,
+    "max_words": 3300,
+    "min_paragraphs": 8,
+    "min_citations": 12,
+    "min_pages_browsed": 12
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 10
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0053.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 22,
+  "author_notes": "Hard 3-site. Dog nutrition with science grounding."
+}

@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0007",
   "agent": "react-qwen35plus",
-  "composite": 0.324,
+  "composite": 0.356,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,24 +19,28 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
     "citation": {
-      "score": 0.0,
+      "score": 0.933,
       "passed": false,
       "details": {
-        "citation_recall": 0.0,
-        "citation_precision": 0.0,
-        "citation_f1": 0.0,
+        "citation_recall": 0.875,
+        "citation_precision": 1.0,
+        "citation_precision_substring_baseline": 1.0,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
+        "citation_f1": 0.933,
         "total_citations": 7,
-        "supported_citations": 0,
-        "covered_required": 0,
+        "supported_citations": 7,
+        "covered_required": 7,
         "total_required": 8,
         "distinct_sources": 7,
         "min_distinct_sources": 8,
@@ -46,50 +50,57 @@
             "field": "prose:1",
             "url": "http://localhost:7770/home-kitchen.html",
             "status": 200,
-            "supported": false,
-            "reason": "value_not_supported_on_page"
+            "match": "snippet_tokens",
+            "snippet_hits": "3/6",
+            "supported": true
           },
           {
             "field": "prose:2",
             "url": "http://localhost:9999/f/LifeProTips/34429/lpt-shop-for-kitchen-supplies-at-restaurant-supply-stores",
             "status": 200,
-            "supported": false,
-            "reason": "value_not_supported_on_page"
+            "match": "snippet_tokens",
+            "snippet_hits": "4/6",
+            "supported": true
           },
           {
             "field": "prose:3",
             "url": "http://localhost:7770/rachael-ray-cucina-nonstick-cookware-pots-and-pans-set-12-piece-lavender.html",
             "status": 200,
-            "supported": false,
-            "reason": "value_not_supported_on_page"
+            "match": "snippet_tokens",
+            "snippet_hits": "5/6",
+            "supported": true
           },
           {
             "field": "prose:4",
             "url": "http://localhost:7770/colavita-premium-selection-extra-virgin-olive-oil-34-ounce.html",
             "status": 200,
-            "supported": false,
-            "reason": "value_not_supported_on_page"
+            "match": "snippet_tokens",
+            "snippet_hits": "6/6",
+            "supported": true
           },
           {
             "field": "prose:5",
             "url": "http://localhost:7770/cambro-4-qt-round-polypropylene-food-storage-container-camwearr.html",
             "status": 200,
-            "supported": false,
-            "reason": "value_not_supported_on_page"
+            "match": "snippet_tokens",
+            "snippet_hits": "5/6",
+            "supported": true
           },
           {
             "field": "prose:7",
             "url": "http://localhost:9999/f/LifeProTips/77502/lpt-a-good-financial-habit-to-get-into-is-treating-money-as",
             "status": 200,
-            "supported": false,
-            "reason": "value_not_supported_on_page"
+            "match": "snippet_tokens",
+            "snippet_hits": "6/6",
+            "supported": true
           },
           {
             "field": "prose:8",
             "url": "http://localhost:9999/f/LifeProTips/34440/lpt-if-your-microwave-dies-donate-the-glass-tray-before",
             "status": 200,
-            "supported": false,
-            "reason": "value_not_supported_on_page"
+            "match": "snippet_tokens",
+            "snippet_hits": "4/6",
+            "supported": true
           }
         ]
       }
@@ -162,16 +173,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.51,
+      "score": 0.58,
       "passed": false,
       "details": {
-        "comprehensiveness": 2,
+        "comprehensiveness": 3,
         "insight_depth": 3,
         "instruction_following": 2,
         "readability": 4,
-        "weighted_1_5": 2.55,
-        "judge_model": "glm-5",
-        "reason": "Report is truncated and missing critical requirements: no personalfinance subreddit research, only 2-3 Reddit posts without proper format, missing review counts, and cannot verify the minimum viable kitchen section or third hack.",
+        "weighted_1_5": 2.9,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Covers most requirements with clear structure but misses specific counts and category distinctions.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -181,220 +193,113 @@
       }
     },
     "checklist": {
-      "score": 0.533,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "passed_count": 8,
+        "passed_count": 0,
         "total": 15,
         "per_item": [
           {
             "index": 1,
-            "passed": true,
-            "reason": "Both categories explicitly browsed and products listed from each.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report browse both home-kitchen AND grocery-gourmet-food categories?"
           },
           {
             "index": 2,
-            "passed": true,
-            "reason": "Six products listed with exact prices in the table.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report list at least 6 specific kitchen products with prices?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "Only three distinct Reddit posts cited (34429, 77502, 34440).",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts from /f/LifeProTips or /f/personalfinance?"
           },
           {
             "index": 4,
-            "passed": true,
-            "reason": "Product URLs cited as markdown links [3], [4], [5].",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 5,
-            "passed": true,
-            "reason": "Reddit post URLs cited as markdown links [6], [7], [8].",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 6,
-            "passed": true,
-            "reason": "Table shows running total column with final total $302.68.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report present a starter-kit shopping list with a running price total?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "Only one hack visible before truncation; cannot verify three.",
+            "reason": "",
             "criterion": "Does the report include at least 3 cost-saving hacks drawn from Reddit?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "Rice item not reinforced or challenged; only 5 of 6 addressed.",
+            "reason": "",
             "criterion": "Does the report reinforce or challenge each item using Reddit advice?"
           },
           {
             "index": 9,
             "passed": false,
-            "reason": "Truncated report does not show minimum viable kitchen section.",
+            "reason": "",
             "criterion": "Does the report deliver a 'Minimum viable kitchen' recommendation with exactly 5 items?"
           },
           {
             "index": 10,
             "passed": false,
-            "reason": "No explicit discussion of gadgets/gimmicks to avoid visible.",
+            "reason": "",
             "criterion": "Does the report discuss what NOT to buy (gadgets / gimmicks)?"
           },
           {
             "index": 11,
             "passed": false,
-            "reason": "Introduction present but conclusion not visible in truncated text.",
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
-            "passed": true,
-            "reason": "Product names match URLs provided; no evidence of invention.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
-            "passed": true,
-            "reason": "Reddit titles appear genuine with matching URLs provided.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
-            "passed": true,
-            "reason": "Combines price/rating data with Reddit commentary throughout.",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report synthesize quantitative data with qualitative community voices?"
           },
           {
             "index": 15,
             "passed": false,
-            "reason": "Only 7 distinct citations visible (citations [2] and [6] are identical).",
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Both categories explicitly browsed and products listed from each.\n2. PASS - Six products listed with exact prices in the table.\n3. FAIL - Only three distinct Reddit posts cited (34429, 77502, 34440).\n4. PASS - Product URLs cited as markdown links [3], [4], [5].\n5. PASS - Reddit post URLs cited as markdown links [6], [7], [8].\n6. PASS - Table shows running total column with final total $302.68.\n7. FAIL - Only one hack visible before truncation; cannot verify three.\n8. FAIL - Rice item not reinforced or challenged; only 5 of 6 addressed.\n9. FAIL - Truncated report does not show minimum viable kitchen section.\n10. FAIL - No explicit discussion of gadgets/gimmicks to avoid visible.\n11. FAIL - Introduction present but conclusion not visible in truncated text.\n12. PASS - Product names "
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nFAIL\nNOTES: Report is truncated; many criteria cannot be fully assessed due to missing content."
       }
     },
     "efficiency": {
-      "score": 0.3,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "wall_time_s": 211.67,
-        "tokens_in": 374851,
-        "tokens_out": 8754,
-        "llm_calls": 26,
-        "tool_calls": 25,
-        "cost_usd": 0.40111,
-        "model": "qwen3.5-plus",
-        "per_call": [
-          {
-            "in": 1841,
-            "out": 339,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2213,
-            "out": 67,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2684,
-            "out": 49,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2772,
-            "out": 103,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 3282,
-            "out": 85,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 4830,
-            "out": 74,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 6217,
-            "out": 142,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 6791,
-            "out": 33,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 6861,
-            "out": 196,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 8342,
-            "out": 65,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 9793,
-            "out": 61,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 10820,
-            "out": 72,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 12243,
-            "out": 44,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 13368,
-            "out": 54,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 14540,
-            "out": 69,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 15709,
-            "out": 348,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 18588,
-            "out": 143,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 20801,
-            "out": 215,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 22195,
-            "out": 95,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 23749,
-            "out": 498,
-            "model": "qwen3.5-plus"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0014",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a 'daily-driver toy recommendations' guide for parents of 5-to-8-year-olds. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the toys-games category and collect at least 4 products across different play modes (board game, construction/STEM, creative/art, and outdoor/active). Record price, rating, and review count for each. (2) Reddit — browse /f/AskReddit AND /f/LifeProTips for posts about which toys get played with long-term, screen-time alternatives, or toys parents regret. Collect at least 3 posts with title, score, and comment count. The report must: (a) present each storefront pick with a short play-value argument, (b) cross-check each pick against community patterns (toys that get abandoned fast, toys with hidden costs, toys that break), (c) organize the final picks by 'stays fun for months' versus 'novelty-only', (d) close with a $100 birthday-gift bundle. Cite every price, rating, and community claim.",
+  "start_url": "__SHOPPING__/toys-games.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0014.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 18,
+  "author_notes": "Shopping (toys-games) + Reddit (AskReddit + LifeProTips). Longevity vs novelty framing forces categorization reasoning."
+}

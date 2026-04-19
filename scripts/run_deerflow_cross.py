@@ -17,9 +17,9 @@ load_dotenv(ROOT / ".env")
 
 TASKS = [
     "dr_cross_v3_0001",
-    "dr_cross_v3_0002",
-    "dr_cross_v3_0003",
-    "dr_cross_v3_0004",
+    "dr_cross_v3_0005",
+    "dr_cross_v3_0006",
+    "dr_cross_v3_0007",
 ]
 
 
@@ -45,6 +45,31 @@ def _run_one_task(task_id: str):
 ## Available sandbox sites:
 {sites_block}
 
+## Research protocol (MANDATORY — override default researcher instructions):
+
+**You are doing deep research, not surface search.** The search tools only give
+you a listing overview — they are NOT sufficient on their own. You MUST drill
+deeper into individual product / post pages.
+
+1. **Shopping site**: after searching or browsing a category, you MUST call
+   `crawl_tool` (= shop_browse) on **at least 6 individual product detail URLs**
+   (ending in `.html` with a product slug, e.g.
+   `sony-zx110nc-noise-cancelling-headphones.html`). Extract the exact price,
+   star rating, and description from each PDP.
+2. **Reddit site**: after listing a forum, you MUST `crawl_tool` on **at least
+   4 individual post URLs** (form `/f/<board>/<id>/...`) and read the post body
+   and top comments. Forum listing pages alone do NOT count.
+3. Cite EVERY factual claim with a markdown link `[descriptive text](url)` —
+   the URL must be a specific PDP or post URL you actually crawled, NOT the
+   category/forum landing page.
+
+**Do NOT write meta-commentary about tool failures, JavaScript rendering, or
+extraction challenges.** The tools return full HTML. If a tool returns empty,
+retry with a different URL. Do not include sections like "Methodology",
+"Limitations", "Literature Review", "Survey Note", or "Future Research
+Directions" — they waste words. Spend all words on actual product/forum
+findings backed by crawled sources.
+
 ## Output requirements:
 Write a **long-form markdown research report** (NOT JSON).
 - Minimum {ms.get('min_words', 500)} words, {ms.get('min_paragraphs', 5)} paragraphs
@@ -56,58 +81,128 @@ Write a **long-form markdown research report** (NOT JSON).
 
     # Write a self-contained runner script that runs inside DeerFlow's directory
     _escaped_prompt = prompt.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+    our_root = str(ROOT)
     runner_script = f'''
 import sys, os, json, asyncio
-sys.path.insert(0, ".")
+sys.path.insert(0, ".")  # DeerFlow root first: src.* resolves to DeerFlow
+# Our project root AFTER DeerFlow, so `integrations.*` imports us but `src.*`
+# still picks DeerFlow's (we have src/ too, must not shadow)
+sys.path.append("{our_root}")
 
-os.environ["OPENAI_API_KEY"] = "{os.environ.get('OPENAI_API_KEY', os.environ.get('GLM_API_KEY', ''))}"
-os.environ["OPENAI_API_BASE"] = "{os.environ.get('OPENAI_API_BASE', 'http://35.220.164.252:3888/v1/')}"
-os.environ["FAST_LLM_MODEL"] = "glm-5"
-os.environ["SMART_LLM_MODEL"] = "glm-5"
-os.environ["STRATEGIC_LLM_MODEL"] = "glm-5"
+# NOTE: API key / base URL / model come from .env in the parent shell
+# (see scripts/run_deerflow_cross.py's env=). We deliberately do NOT
+# override them here so operators can swap Coding-Plan vs general API
+# at the .env layer without editing code.
 
-# Monkey-patch DeerFlow tools with our multi-site scrapers
-import requests
-from langchain_core.tools import tool
+# Rate-limit safety: serialise every openai chat-completions call and
+# insert a sleep between calls. Defaults match a "slow & single" budget
+# (one call at a time, 2 s gap). Tune via env vars.
+import threading as _thr
+import time as _time
+_RATE_LOCK = _thr.Lock()
+_LAST_CALL_T = [0.0]
+_MIN_GAP = float(os.environ.get("OPENAI_MIN_GAP_S", "2.0"))
+_RETRY_BASE = float(os.environ.get("OPENAI_RETRY_BASE_S", "15.0"))
+_RETRY_MAX = int(os.environ.get("OPENAI_RETRY_MAX", "6"))
 
-@tool
-def multi_search(query: str) -> str:
-    """Search across sandbox sites (shopping, reddit, gitlab). Returns combined results."""
-    results = {{}}
-    # Shopping
+def _install_rate_limit():
     try:
-        r = requests.get("http://localhost:7770/catalogsearch/result/", params={{"q": query}}, timeout=20)
-        results["shopping"] = {{"status": r.status_code, "url": r.url, "text": r.text[:2000]}}
-    except: pass
-    # GitLab
-    try:
-        r = requests.get("http://localhost:8023/api/v4/projects", params={{"search": query, "per_page": 5}}, timeout=20)
-        results["gitlab"] = r.json() if r.ok else []
-    except: pass
-    # Reddit
-    try:
-        r = requests.get(f"http://localhost:9999/f/technology", timeout=20)
-        results["reddit"] = {{"text": r.text[:2000]}}
-    except: pass
-    return json.dumps(results, ensure_ascii=False)[:8000]
+        from openai.resources.chat.completions import completions as _comp
+    except Exception:
+        return
+    _orig_create = _comp.Completions.create
 
-@tool
-def multi_browse(url: str) -> str:
-    """Fetch any sandbox URL. Returns the page content."""
+    def _throttled(self, *a, **kw):
+        for attempt in range(_RETRY_MAX + 1):
+            with _RATE_LOCK:
+                dt = _time.time() - _LAST_CALL_T[0]
+                if dt < _MIN_GAP:
+                    _time.sleep(_MIN_GAP - dt)
+                try:
+                    resp = _orig_create(self, *a, **kw)
+                    _LAST_CALL_T[0] = _time.time()
+                    return resp
+                except Exception as e:
+                    _LAST_CALL_T[0] = _time.time()
+                    msg = str(e)
+                    if ("429" in msg or "RateLimit" in msg or "rate_limit" in msg) and attempt < _RETRY_MAX:
+                        backoff = _RETRY_BASE * (2 ** attempt)
+                        print(f"[rate-limit attempt {{attempt+1}}] backoff {{backoff:.0f}}s: {{msg[:120]}}", flush=True)
+                    else:
+                        raise
+            _time.sleep(backoff)
+        # unreachable
+        return _orig_create(self, *a, **kw)
+
+    _comp.Completions.create = _throttled
+
+_install_rate_limit()
+
+_SHIM_URL = os.environ.get("DEERFLOW_SHIM_URL", "")
+
+if _SHIM_URL:
+    # Path B — ZERO-CODE integration via the sandbox search-API shim.
+    # DeerFlow's default Tavily client is preserved; we only redirect
+    # its base URL at the langchain-tavily layer. The shim serves
+    # Tavily-schema responses backed by Magento + Postmill. The crawl
+    # tool is ALSO routed through the shim's /extract (the only place
+    # the shim surface needs to appear to the agent).
+    os.environ.setdefault("TAVILY_API_KEY", "tvly-shim-fake")
+    os.environ["SEARCH_API"] = "tavily"
+    import langchain_tavily._utilities as _lt_util
+    _lt_util.TAVILY_API_URL = _SHIM_URL
     try:
-        r = requests.get(url, timeout=20, allow_redirects=True)
-        return r.text[:5000]
-    except Exception as e:
-        return json.dumps({{"error": str(e)}})
+        import src.tools.tavily_search.tavily_search_api_wrapper as _tw
+        _tw.TAVILY_API_URL = _SHIM_URL
+    except Exception:
+        pass
 
-import src.tools.search as search_mod
-import src.tools.crawl as crawl_mod
-import src.graph.nodes as nodes_mod
+    # Crawl routing: replace crawl_tool with a thin client that POSTs to
+    # the shim's /extract endpoint. No DeerFlow source code changes.
+    import json as _json
+    import requests as _req
+    from langchain_core.tools import tool as _tool_dec
 
-search_mod.get_web_search_tool = lambda *a, **kw: multi_search
-nodes_mod.get_web_search_tool = lambda *a, **kw: multi_search
-nodes_mod.crawl_tool = multi_browse
-crawl_mod.crawl_tool = multi_browse
+    @_tool_dec
+    def _shim_crawl(url: str) -> str:
+        \"\"\"Fetch a URL via the sandbox shim /extract endpoint.\"\"\"
+        try:
+            r = _req.post(
+                f"{{_SHIM_URL}}/extract",
+                json={{"urls": [url], "format": "markdown"}},
+                timeout=30,
+            )
+            if r.status_code >= 400:
+                return _json.dumps({{"error": f"status {{r.status_code}}", "url": url}})
+            data = r.json()
+            results = data.get("results") or []
+            if not results:
+                return _json.dumps({{"error": "no result", "url": url}})
+            return _json.dumps(results[0], ensure_ascii=False)
+        except Exception as e:
+            return _json.dumps({{"error": str(e), "url": url}})
+
+    import src.tools.crawl as _crawl_mod
+    import src.graph.nodes as _nodes_mod
+    _crawl_mod.crawl_tool = _shim_crawl
+    _nodes_mod.crawl_tool = _shim_crawl
+
+    print(f"[shim mode] TAVILY_API_URL={{_SHIM_URL}} ; crawl_tool -> shim /extract", flush=True)
+else:
+    # Path A — monkey-patch DeerFlow's search/crawl with our full
+    # unified_adapter (historical path — kept for A/B comparison).
+    from integrations.deerflow.unified_adapter import (
+        multi_search, multi_browse,
+        shop_search, shop_browse, shop_reviews,
+        reddit_search, reddit_browse,
+    )
+    import src.tools.search as search_mod
+    import src.tools.crawl as crawl_mod
+    import src.graph.nodes as nodes_mod
+    search_mod.get_web_search_tool = lambda *a, **kw: multi_search
+    nodes_mod.get_web_search_tool = lambda *a, **kw: multi_search
+    nodes_mod.crawl_tool = multi_browse
+    crawl_mod.crawl_tool = multi_browse
 
 from src.graph import build_graph
 from src.config.configuration import get_recursion_limit
@@ -162,11 +257,15 @@ asyncio.run(run())
     print(f"{'='*60}")
 
     t0 = time.time()
+    # Runtime can be long when the LLM endpoint is rate-limited (the
+    # openai rate-limit wrapper in runner_script sleeps + exponential
+    # backoff). Give it a half-hour; still bounded.
+    _timeout_s = int(os.environ.get("DEERFLOW_TASK_TIMEOUT_S", "1800"))
     result = subprocess.run(
         [DEERFLOW_PYTHON, str(script_path)],
         cwd=str(DEERFLOW_ROOT),
         capture_output=True, text=True,
-        timeout=600,
+        timeout=_timeout_s,
         env={**os.environ},
     )
     elapsed = time.time() - t0
@@ -193,7 +292,7 @@ def main():
         try:
             _run_one_task(tid)
         except subprocess.TimeoutExpired:
-            print(f"  TIMEOUT after 300s")
+            print(f"  TIMEOUT")
             (ROOT / "data" / "results" / f"deerflow_{tid}.md").write_text("(DeerFlow timeout)")
         except Exception as e:
             print(f"  ERROR: {e}")

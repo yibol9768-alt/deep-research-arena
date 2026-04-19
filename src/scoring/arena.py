@@ -74,35 +74,21 @@ def _battles_for_task(task_records: list[Record], tie_eps: float) -> list[tuple[
     return out
 
 
-def compute_elo(
-    records: list[dict],
-    *,
-    k: float = DEFAULT_K,
-    tie_eps: float = DEFAULT_TIE_EPS,
-    passes: int = DEFAULT_PASSES,
-    seed: int = 42,
+def _run_elo(
+    battles: list[tuple[str, str, float]],
+    agents: set[str],
+    k: float,
+    passes: int,
+    seed: int,
 ) -> dict[str, dict]:
-    """Compute Elo ratings. Returns per-agent dict with final rating."""
-    recs = [Record(**r) for r in records]
-    by_task: dict[str, list[Record]] = defaultdict(list)
-    for r in recs:
-        by_task[r.task_id].append(r)
-
-    all_battles: list[tuple[str, str, float]] = []
-    for task_id, task_recs in by_task.items():
-        all_battles.extend(_battles_for_task(task_recs, tie_eps))
-
-    if not all_battles:
+    """Multi-pass Elo averaging over a fixed list of (a, b, score_a) battles."""
+    if not battles:
         return {}
-
     rng = random.Random(seed)
-    agents = {r.agent for r in recs}
-
-    # Multi-pass: for each pass shuffle battles, average final elos.
     elos_sum: dict[str, float] = defaultdict(float)
     rows_last: dict[str, EloRow] = {}
-    for p in range(passes):
-        order = list(all_battles)
+    for _ in range(passes):
+        order = list(battles)
         rng.shuffle(order)
         rows = {a: EloRow(agent=a) for a in agents}
         for a, b, sa in order:
@@ -128,7 +114,6 @@ def compute_elo(
     out: dict[str, dict] = {}
     for a in agents:
         r = rows_last[a]
-        # Battle counts/W/L/D come from the final pass (same per pass)
         out[a] = {
             "elo":       round(elos_sum[a] / passes, 1),
             "wins":      r.wins,
@@ -137,6 +122,258 @@ def compute_elo(
             "n_battles": r.n_battles,
         }
     return out
+
+
+def compute_elo(
+    records: list[dict],
+    *,
+    k: float = DEFAULT_K,
+    tie_eps: float = DEFAULT_TIE_EPS,
+    passes: int = DEFAULT_PASSES,
+    seed: int = 42,
+) -> dict[str, dict]:
+    """Composite-proxy Elo: synthesise battles from composite scores.
+
+    Backward-compatible. For true pairwise-judge Elo, use
+    `compute_elo_from_battles`.
+    """
+    recs = [Record(**r) for r in records]
+    by_task: dict[str, list[Record]] = defaultdict(list)
+    for r in recs:
+        by_task[r.task_id].append(r)
+    all_battles: list[tuple[str, str, float]] = []
+    for task_id, task_recs in by_task.items():
+        all_battles.extend(_battles_for_task(task_recs, tie_eps))
+    agents = {r.agent for r in recs}
+    return _run_elo(all_battles, agents, k, passes, seed)
+
+
+def compute_elo_from_battles(
+    battles: list[dict],
+    *,
+    k: float = DEFAULT_K,
+    passes: int = DEFAULT_PASSES,
+    seed: int = 42,
+) -> dict[str, dict]:
+    """Elo from real pairwise-judge battle outcomes.
+
+    `battles` items accept any of these shapes (keys are auto-detected):
+
+        {"a1": ..., "a2": ..., "agent_winner": "a1"|"a2"|"tie"}
+        {"agent_a": ..., "agent_b": ..., "winner": "a"|"b"|"tie"}
+        {"a": ..., "b": ..., "score_a": 1.0|0.5|0.0}
+
+    Returns {agent: {elo, wins, losses, draws, n_battles}}.
+    """
+    normalised: list[tuple[str, str, float]] = []
+    agents: set[str] = set()
+    for raw in battles:
+        a, b, sa = _normalise_battle(raw)
+        if a is None or b is None:
+            continue
+        normalised.append((a, b, sa))
+        agents.add(a); agents.add(b)
+    return _run_elo(normalised, agents, k, passes, seed)
+
+
+def compute_elo_with_ci(
+    battles: list[dict],
+    *,
+    k: float = DEFAULT_K,
+    n_resamples: int = 1000,
+    confidence: float = 0.95,
+    seed: int = 42,
+) -> dict[str, dict]:
+    """Bootstrap Elo confidence intervals over pairwise-battle outcomes.
+
+    Chatbot Arena (Zheng et al. 2023) and Arena-Hard-Auto both report
+    bootstrap 95% CIs on Elo. Without this, two agents whose true
+    strength differs by < 1 CI-half-width can't be statistically
+    distinguished. The peer-review audit flagged this as a P1 fix.
+
+    We resample the battle list with replacement `n_resamples` times,
+    run single-pass Elo each time, and report per-agent percentile CIs.
+    """
+    normalised: list[tuple[str, str, float]] = []
+    agents: set[str] = set()
+    for raw in battles:
+        a, b, sa = _normalise_battle(raw)
+        if a is None or b is None:
+            continue
+        normalised.append((a, b, sa))
+        agents.add(a); agents.add(b)
+
+    if not normalised:
+        return {}
+
+    import statistics
+    rng = random.Random(seed)
+    all_elos: dict[str, list[float]] = {a: [] for a in agents}
+
+    for _ in range(n_resamples):
+        resampled = [normalised[rng.randrange(len(normalised))]
+                     for _ in range(len(normalised))]
+        rows = {a: EloRow(agent=a) for a in agents}
+        rng.shuffle(resampled)
+        for a, b, sa in resampled:
+            ra, rb = rows[a], rows[b]
+            ra_elo, rb_elo = ra.elo, rb.elo
+            ra.update(sa, rb_elo, k)
+            rb.update(1.0 - sa, ra_elo, k)
+        for a, row in rows.items():
+            all_elos[a].append(row.elo)
+
+    alpha = (1 - confidence) / 2
+    q_lo = alpha
+    q_hi = 1 - alpha
+
+    def _pct(lst: list[float], q: float) -> float:
+        if not lst:
+            return START_RATING
+        sl = sorted(lst)
+        idx = min(len(sl) - 1, max(0, int(q * len(sl))))
+        return sl[idx]
+
+    # Also compute the point-estimate Elo (full sample, no resampling)
+    point = _run_elo(normalised, agents, k, passes=DEFAULT_PASSES, seed=seed)
+
+    out: dict[str, dict] = {}
+    for a in agents:
+        elos = all_elos[a]
+        out[a] = {
+            "elo":      point.get(a, {}).get("elo", START_RATING),
+            "elo_mean": round(statistics.fmean(elos), 1) if elos else START_RATING,
+            "elo_lo":   round(_pct(elos, q_lo), 1),
+            "elo_hi":   round(_pct(elos, q_hi), 1),
+            "elo_half_width": round((_pct(elos, q_hi) - _pct(elos, q_lo)) / 2, 1),
+            "n_resamples":   n_resamples,
+            "confidence":    confidence,
+            "n_battles":     point.get(a, {}).get("n_battles", 0),
+            "wins":          point.get(a, {}).get("wins", 0),
+            "losses":        point.get(a, {}).get("losses", 0),
+            "draws":         point.get(a, {}).get("draws", 0),
+        }
+    return out
+
+
+def rank_significance_test(
+    battles: list[dict],
+    *,
+    n_permutations: int = 1000,
+    k: float = DEFAULT_K,
+    seed: int = 42,
+) -> dict:
+    """Permutation test: how much of the observed Elo ordering survives
+    when we randomly shuffle battle outcomes? Returns p-value per
+    adjacent rank pair (probability the null could produce the same
+    gap or larger).
+    """
+    normalised: list[tuple[str, str, float]] = []
+    agents: set[str] = set()
+    for raw in battles:
+        a, b, sa = _normalise_battle(raw)
+        if a is None or b is None:
+            continue
+        normalised.append((a, b, sa))
+        agents.add(a); agents.add(b)
+    if not normalised:
+        return {}
+
+    point = _run_elo(normalised, agents, k, passes=DEFAULT_PASSES, seed=seed)
+    ordered = sorted(point.items(), key=lambda kv: -kv[1]["elo"])
+    observed_gaps = [
+        (ordered[i][0], ordered[i+1][0],
+         point[ordered[i][0]]["elo"] - point[ordered[i+1][0]]["elo"])
+        for i in range(len(ordered) - 1)
+    ]
+
+    rng = random.Random(seed)
+    bigger_counts = {(a, b): 0 for a, b, _ in observed_gaps}
+
+    for _ in range(n_permutations):
+        shuffled = [
+            (a, b, rng.choice([1.0, 0.0, 0.5]))  # null: random outcome
+            for (a, b, _) in normalised
+        ]
+        perm_rows = _run_elo(shuffled, agents, k, passes=1, seed=rng.randint(0, 1 << 30))
+        for (a, b, obs_gap) in observed_gaps:
+            null_gap = perm_rows.get(a, {}).get("elo", 0) - perm_rows.get(b, {}).get("elo", 0)
+            if abs(null_gap) >= abs(obs_gap):
+                bigger_counts[(a, b)] += 1
+
+    return {
+        "ordered": [a for a, _ in ordered],
+        "adjacent_pairs": [
+            {
+                "higher":   a,
+                "lower":    b,
+                "gap":      round(gap, 1),
+                "p_value":  round(bigger_counts[(a, b)] / n_permutations, 4),
+                "significant": bigger_counts[(a, b)] / n_permutations < 0.05,
+            }
+            for (a, b, gap) in observed_gaps
+        ],
+    }
+
+
+def render_elo_table_with_ci(elos_ci: dict[str, dict]) -> str:
+    """Return a markdown leaderboard including 95% bootstrap CI."""
+    lines = ["| Rank | Agent | Elo | 95% CI | W | L | D | Battles |",
+             "|---:|---|---:|---|---:|---:|---:|---:|"]
+    ordered = sorted(elos_ci.items(), key=lambda kv: -kv[1]["elo"])
+    for i, (a, s) in enumerate(ordered, 1):
+        lines.append(
+            f"| {i} | {a} | **{s['elo']:.1f}** | "
+            f"[{s['elo_lo']:.0f}, {s['elo_hi']:.0f}] ±{s['elo_half_width']:.0f} | "
+            f"{s['wins']} | {s['losses']} | {s['draws']} | {s['n_battles']} |"
+        )
+    return "\n".join(lines)
+
+
+def compute_elo_per_judge(
+    battles: list[dict],
+    *,
+    judge_field: str = "judge_model",
+    k: float = DEFAULT_K,
+    passes: int = DEFAULT_PASSES,
+    seed: int = 42,
+) -> dict[str, dict[str, dict]]:
+    """Compute Elo separately per judge to measure judge-agreement.
+
+    Returns {judge_name: {agent: {elo, ...}}}. A battle missing `judge_field`
+    goes into the key "unknown".
+    """
+    by_judge: dict[str, list[dict]] = defaultdict(list)
+    for b in battles:
+        j = b.get(judge_field) or "unknown"
+        by_judge[j].append(b)
+    return {j: compute_elo_from_battles(blist, k=k, passes=passes, seed=seed)
+            for j, blist in by_judge.items()}
+
+
+def _normalise_battle(raw: dict) -> tuple[str | None, str | None, float]:
+    """Return (agent_a, agent_b, score_a) in canonical form."""
+    # Shape 1: a1/a2 + agent_winner
+    if "a1" in raw and "a2" in raw:
+        a, b = raw["a1"], raw["a2"]
+        w = raw.get("agent_winner", raw.get("winner", "tie"))
+        if w == a or w == "a1" or w == "a":
+            sa = 1.0
+        elif w == b or w == "a2" or w == "b":
+            sa = 0.0
+        else:
+            sa = 0.5
+        return a, b, sa
+    # Shape 2: agent_a/agent_b + winner={"a","b","tie"}
+    if "agent_a" in raw and "agent_b" in raw:
+        a, b = raw["agent_a"], raw["agent_b"]
+        w = (raw.get("winner") or "tie").lower()
+        sa = 1.0 if w == "a" else 0.0 if w == "b" else 0.5
+        return a, b, sa
+    # Shape 3: a/b + explicit score_a
+    if "a" in raw and "b" in raw and "score_a" in raw:
+        return raw["a"], raw["b"], float(raw["score_a"])
+    return None, None, 0.5
 
 
 def render_elo_table(elos: dict[str, dict]) -> str:

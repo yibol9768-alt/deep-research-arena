@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0006",
   "agent": "react-glm5",
-  "composite": 0.476,
+  "composite": 0.455,
   "pillars": {
     "markdown_structure": {
       "score": 0.8,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 10
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": false,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 0.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 0.75,
+        "citation_precision_substring_baseline": 0.75,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 0.857,
         "total_citations": 24,
         "supported_citations": 18,
@@ -232,16 +236,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.48,
+      "score": 0.58,
       "passed": false,
       "details": {
-        "comprehensiveness": 2,
+        "comprehensiveness": 3,
         "insight_depth": 3,
         "instruction_following": 2,
-        "readability": 3,
-        "weighted_1_5": 2.4,
-        "judge_model": "glm-5",
-        "reason": "Report is truncated mid-sentence missing the critical priority-ordered shopping list; review_count data absent from all products; only 1 Reddit post visible instead of required 4; core deliverable (d) completely missing.",
+        "readability": 4,
+        "weighted_1_5": 2.9,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Well-structured and insightful but incomplete in data and deliverables, likely due to truncation.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -251,220 +256,113 @@
       }
     },
     "checklist": {
-      "score": 0.6,
+      "score": 0.467,
       "passed": false,
       "details": {
-        "passed_count": 9,
+        "passed_count": 7,
         "total": 15,
         "per_item": [
           {
             "index": 1,
             "passed": false,
-            "reason": "No evidence of browsing 3 distinct site categories",
+            "reason": "",
             "criterion": "Does the report browse at least 3 distinct shopping categories (e.g. video-games, electronics)?"
           },
           {
             "index": 2,
-            "passed": true,
-            "reason": "14+ products with prices listed",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report list at least 5 specific gaming-relevant products with prices?"
           },
           {
             "index": 3,
             "passed": false,
-            "reason": "Only 1 Reddit post visible in truncated report",
+            "reason": "",
             "criterion": "Does the report include at least 4 Reddit posts from /f/gaming or /f/technology?"
           },
           {
             "index": 4,
             "passed": true,
-            "reason": "Essential vs nice-to-have tiers clearly labeled",
+            "reason": "",
             "criterion": "Does the report categorize products into essential vs nice-to-have tiers?"
           },
           {
             "index": 5,
             "passed": true,
-            "reason": "Multiple shopping URLs as markdown links",
+            "reason": "",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 6,
             "passed": true,
-            "reason": "At least one Reddit URL as markdown link",
+            "reason": "",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 7,
             "passed": false,
-            "reason": "Mismatches section not visible due to truncation",
+            "reason": "",
             "criterion": "Does the report identify mismatches between shopping ratings and community reputation?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "Priority-ordered shopping list not visible",
+            "reason": "",
             "criterion": "Does the report deliver a concrete priority-ordered shopping list?"
           },
           {
             "index": 9,
-            "passed": true,
-            "reason": "$400 budget mentioned multiple times",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report target a $400 budget as specified in the task?"
           },
           {
             "index": 10,
             "passed": true,
-            "reason": "Keyboards, headsets, mouse pads, controllers discussed",
+            "reason": "",
             "criterion": "Does the report discuss at least 3 categories of peripherals (keyboard, mouse, headset, etc.)?"
           },
           {
             "index": 11,
-            "passed": false,
-            "reason": "Conclusion not visible due to truncation",
+            "passed": true,
+            "reason": "",
             "criterion": "Does the report include both an introduction and a conclusion?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "Product names appear legitimate",
+            "reason": "",
             "criterion": "Does the report avoid inventing product names not on the shopping site?"
           },
           {
             "index": 13,
             "passed": true,
-            "reason": "Reddit post title appears legitimate",
+            "reason": "",
             "criterion": "Does the report avoid fabricating Reddit post titles?"
           },
           {
             "index": 14,
             "passed": false,
-            "reason": "Community synthesis section truncated",
+            "reason": "",
             "criterion": "Does the report synthesize quantitative data with qualitative community voices?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "15+ inline citations visible",
+            "passed": false,
+            "reason": "",
             "criterion": "Does the report contain at least 10 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. FAIL - No evidence of browsing 3 distinct site categories\n2. PASS - 14+ products with prices listed\n3. FAIL - Only 1 Reddit post visible in truncated report\n4. PASS - Essential vs nice-to-have tiers clearly labeled\n5. PASS - Multiple shopping URLs as markdown links\n6. PASS - At least one Reddit URL as markdown link\n7. FAIL - Mismatches section not visible due to truncation\n8. FAIL - Priority-ordered shopping list not visible\n9. PASS - $400 budget mentioned multiple times\n10. PASS - Keyboards, headsets, mouse pads, controllers discussed\n11. FAIL - Conclusion not visible due to truncation\n12. PASS - Product names appear legitimate\n13. PASS - Reddit post title appears legitimate\n14. FAIL - Community synthesis section truncated\n15. PASS - 15+ inline citations visible\n\nNOTES: Report is trunc"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "FAIL\nFAIL\nFAIL\nPASS\nPASS\nPASS\nFAIL\nFAIL\nFAIL\nPASS\nPASS\nPASS\nPASS\nFAIL\nFAIL\nNOTES: Report is truncated mid-sentence, preventing verification of several criteria (e.g., 4 Reddit posts, mismatches, budget list, synthesis, citation count). Essential vs. nice-to-have categorization is present."
       }
     },
     "efficiency": {
-      "score": 0.3,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "wall_time_s": 266.78,
-        "tokens_in": 739335,
-        "tokens_out": 5478,
-        "llm_calls": 27,
-        "tool_calls": 49,
-        "cost_usd": 0.75577,
-        "model": "glm-5",
-        "per_call": [
-          {
-            "in": 1674,
-            "out": 348,
-            "model": "glm-5"
-          },
-          {
-            "in": 1702,
-            "out": 37,
-            "model": "glm-5"
-          },
-          {
-            "in": 2116,
-            "out": 24,
-            "model": "glm-5"
-          },
-          {
-            "in": 2150,
-            "out": 43,
-            "model": "glm-5"
-          },
-          {
-            "in": 6407,
-            "out": 105,
-            "model": "glm-5"
-          },
-          {
-            "in": 6938,
-            "out": 30,
-            "model": "glm-5"
-          },
-          {
-            "in": 6970,
-            "out": 86,
-            "model": "glm-5"
-          },
-          {
-            "in": 10942,
-            "out": 119,
-            "model": "glm-5"
-          },
-          {
-            "in": 11500,
-            "out": 52,
-            "model": "glm-5"
-          },
-          {
-            "in": 13983,
-            "out": 54,
-            "model": "glm-5"
-          },
-          {
-            "in": 17237,
-            "out": 133,
-            "model": "glm-5"
-          },
-          {
-            "in": 20328,
-            "out": 61,
-            "model": "glm-5"
-          },
-          {
-            "in": 24397,
-            "out": 39,
-            "model": "glm-5"
-          },
-          {
-            "in": 27145,
-            "out": 36,
-            "model": "glm-5"
-          },
-          {
-            "in": 29567,
-            "out": 36,
-            "model": "glm-5"
-          },
-          {
-            "in": 31858,
-            "out": 41,
-            "model": "glm-5"
-          },
-          {
-            "in": 34667,
-            "out": 39,
-            "model": "glm-5"
-          },
-          {
-            "in": 37753,
-            "out": 36,
-            "model": "glm-5"
-          },
-          {
-            "in": 40458,
-            "out": 39,
-            "model": "glm-5"
-          },
-          {
-            "in": 43001,
-            "out": 44,
-            "model": "glm-5"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0032",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write an analysis of storefront inventory versus 'gifts people actually want' sentiment on Reddit for a sub-$50 gift-giving scenario. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the toys-games, home-kitchen, and office-products categories and collect at least 5 giftable products below $50. Record name, price, rating, review count. (2) Reddit — browse /f/AskReddit AND /f/AskMen for posts on surprisingly good cheap gifts, gifts people love but would not buy for themselves, or gifts that always flop. Collect at least 3 posts with title, score, comment count. The report must: (a) list storefront picks with data, (b) pull at least three qualitative gift archetypes from Reddit (e.g. 'hobby upgrade', 'daily annoyance solver'), (c) tag each storefront product with the archetype it fits (or mark 'none'), (d) recommend top 3 gifts. Cite every claim.",
+  "start_url": "__SHOPPING__/toys-games.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0032.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 18,
+  "author_notes": "Shopping (toys-games + home-kitchen + office-products) + Reddit (AskReddit + AskMen). Archetype-tagging forces taxonomy reasoning."
+}

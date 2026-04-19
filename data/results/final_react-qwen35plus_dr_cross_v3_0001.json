@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0001",
   "agent": "react-qwen35plus",
-  "composite": 0.652,
+  "composite": 0.741,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 8
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 1.0,
+        "citation_precision_substring_baseline": 1.0,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 1.0,
         "total_citations": 10,
         "supported_citations": 10,
@@ -193,16 +197,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.51,
-      "passed": false,
+      "score": 0.83,
+      "passed": true,
       "details": {
-        "comprehensiveness": 2,
-        "insight_depth": 3,
-        "instruction_following": 2,
-        "readability": 4,
-        "weighted_1_5": 2.55,
-        "judge_model": "glm-5",
-        "reason": "Report gathers required products and Reddit discussions with proper citations but is truncated and missing the mandated cross-source synthesis verdict, leaving the core analytical question unaddressed.",
+        "comprehensiveness": 4,
+        "insight_depth": 4,
+        "instruction_following": 4,
+        "readability": 5,
+        "weighted_1_5": 4.15,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "Well-structured and insightful but synthesis is brief and shopping site review summaries are not detailed.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -212,220 +217,113 @@
       }
     },
     "checklist": {
-      "score": 0.733,
+      "score": 0.933,
       "passed": true,
       "details": {
-        "passed_count": 11,
+        "passed_count": 14,
         "total": 15,
         "per_item": [
           {
             "index": 1,
             "passed": true,
-            "reason": "Four products listed with prices: Harphonic E7, Tapvos E7 Pro, Reverbix E7, Mojawa",
+            "reason": "2. PASS",
             "criterion": "Does the report mention at least 3 specific headphone products from the shopping site with prices?"
           },
           {
             "index": 2,
-            "passed": false,
-            "reason": "Reddit posts are from /f/headphones, not /f/technology as required; no scores shown",
+            "passed": true,
+            "reason": "3. PASS",
             "criterion": "Does the report include at least 2 Reddit /f/technology posts with titles and scores?"
           },
           {
             "index": 3,
             "passed": true,
-            "reason": "Multiple markdown links to localhost:7770 product pages",
+            "reason": "4. PASS",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 4,
             "passed": true,
-            "reason": "Multiple markdown links to localhost:9999 Reddit posts",
+            "reason": "5. PASS",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 5,
-            "passed": false,
-            "reason": "No dedicated cross-source comparison section visible in report",
+            "passed": true,
+            "reason": "6. PASS",
             "criterion": "Does the report include a cross-source comparison section?"
           },
           {
             "index": 6,
             "passed": true,
-            "reason": "Ratings mentioned: 4.25, 3.65, 4.25, 4.1 stars for products",
+            "reason": "7. PASS",
             "criterion": "Does the report mention product ratings from the shopping site?"
           },
           {
             "index": 7,
             "passed": true,
-            "reason": "Discusses sentiment about Raycon, Moondrop, Sony, budget audio brands",
+            "reason": "8. FAIL",
             "criterion": "Does the report discuss community sentiment about tech companies from Reddit?"
           },
           {
             "index": 8,
             "passed": false,
-            "reason": "No explicit divergence analysis between shopping ratings and Reddit sentiment",
+            "reason": "9. PASS",
             "criterion": "Does the report identify any divergence between product ratings and community sentiment?"
           },
           {
             "index": 9,
             "passed": true,
-            "reason": "Introduction explains cross-source methodology from two platforms",
+            "reason": "10. PASS",
             "criterion": "Does the report include an introduction explaining the cross-source methodology?"
           },
           {
             "index": 10,
-            "passed": false,
-            "reason": "Report truncated; no conclusion section visible",
+            "passed": true,
+            "reason": "11. PASS",
             "criterion": "Does the report include a conclusion with synthesis?"
           },
           {
             "index": 11,
             "passed": true,
-            "reason": "Products have corresponding URLs on shopping site",
+            "reason": "12. PASS",
             "criterion": "Does the report avoid inventing product names not found on the shopping site?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "Reddit post titles appear genuine with URLs provided",
+            "reason": "13. PASS",
             "criterion": "Does the report avoid fabricating Reddit post titles not on the forum?"
           },
           {
             "index": 13,
             "passed": true,
-            "reason": "\"$30-100 price range\" explicitly mentioned in introduction",
+            "reason": "14. PASS",
             "criterion": "Does the report mention the $30-100 price range as specified in the task?"
           },
           {
             "index": 14,
             "passed": true,
-            "reason": "Active noise cancellation, Bluetooth, wireless features discussed throughout",
+            "reason": "15. PASS",
             "criterion": "Does the report discuss noise-cancelling or wireless features?"
           },
           {
             "index": 15,
             "passed": true,
-            "reason": "Nine distinct inline citations with markdown links",
+            "reason": "NOTES: Report is truncated, but the visible portion meets all criteria except #8. It discusses Reddit sentiment but does",
             "criterion": "Does the report contain at least 6 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Four products listed with prices: Harphonic E7, Tapvos E7 Pro, Reverbix E7, Mojawa\n2. FAIL - Reddit posts are from /f/headphones, not /f/technology as required; no scores shown\n3. PASS - Multiple markdown links to localhost:7770 product pages\n4. PASS - Multiple markdown links to localhost:9999 Reddit posts\n5. FAIL - No dedicated cross-source comparison section visible in report\n6. PASS - Ratings mentioned: 4.25, 3.65, 4.25, 4.1 stars for products\n7. PASS - Discusses sentiment about Raycon, Moondrop, Sony, budget audio brands\n8. FAIL - No explicit divergence analysis between shopping ratings and Reddit sentiment\n9. PASS - Introduction explains cross-source methodology from two platforms\n10. FAIL - Report truncated; no conclusion section visible\n11. PASS - Products have correspondi"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "1. PASS\n2. PASS\n3. PASS\n4. PASS\n5. PASS\n6. PASS\n7. PASS\n8. FAIL\n9. PASS\n10. PASS\n11. PASS\n12. PASS\n13. PASS\n14. PASS\n15. PASS\nNOTES: Report is truncated, but the visible portion meets all criteria except #8. It discusses Reddit sentiment but does not explicitly compare/contrast that sentiment with the specific shopping site product ratings to identify divergence."
       }
     },
     "efficiency": {
-      "score": 0.3,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "wall_time_s": 212.13,
-        "tokens_in": 298335,
-        "tokens_out": 9839,
-        "llm_calls": 21,
-        "tool_calls": 35,
-        "cost_usd": 0.32785,
-        "model": "qwen3.5-plus",
-        "per_call": [
-          {
-            "in": 1772,
-            "out": 212,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 2023,
-            "out": 58,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 3462,
-            "out": 479,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 5322,
-            "out": 56,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 5415,
-            "out": 134,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 5582,
-            "out": 371,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 8118,
-            "out": 699,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 9408,
-            "out": 215,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 9664,
-            "out": 324,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 13494,
-            "out": 669,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 14204,
-            "out": 369,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 14606,
-            "out": 285,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 16338,
-            "out": 558,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 19785,
-            "out": 368,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 22135,
-            "out": 256,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 22858,
-            "out": 398,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 23283,
-            "out": 504,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 23814,
-            "out": 355,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 24196,
-            "out": 590,
-            "model": "qwen3.5-plus"
-          },
-          {
-            "in": 25981,
-            "out": 88,
-            "model": "qwen3.5-plus"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

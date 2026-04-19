@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0012",
+  "sites": ["shopping", "reddit", "wikipedia"],
+  "intent": "Write a deep research brief on 'starting a home fitness routine for under $200' that triangulates THREE sources. (1) One Stop Market shopping site — browse sports-outdoors and health-household categories and collect at least 5 products (e.g. resistance bands, yoga mat, dumbbell, foam roller, jump rope). Record name, price, rating, and review count from the detail pages. (2) Reddit — browse /f/LifeProTips AND /f/personalfinance for advice on home workouts, avoiding gym contracts, or which cheap equipment actually gets used. Collect at least 3 posts with title, score, and comment count. (3) Wikipedia — open the articles on 'Physical exercise' and 'Strength training' (or one similar) and extract 2-3 factual claims about minimum recommended weekly activity or beginner-appropriate movements. The report must: (a) propose a $200 starter kit from the storefront with itemized prices and a running total, (b) justify each item with either a Reddit testimonial or a Wikipedia-grounded exercise rationale, (c) flag any storefront item the community considers useless, (d) conclude with a one-week sample plan referencing the Wikipedia exercise guidance. Cite every data point with a markdown link.",
+  "start_url": "__SHOPPING__/sports-outdoors.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1200,
+    "max_words": 3500,
+    "min_paragraphs": 8,
+    "min_citations": 12,
+    "min_pages_browsed": 12
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 10
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0012.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 5,
+  "expected_steps": 24,
+  "author_notes": "Three-site hard task: storefront products + community advice + encyclopedic grounding for exercise claims. Tests full cross-source synthesis."
+}

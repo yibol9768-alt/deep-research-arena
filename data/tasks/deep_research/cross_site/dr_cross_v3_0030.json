@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0030",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a community-sentiment dashboard on 'cat owner essentials', mixing storefront signals with forum pain points. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the pet-supplies category and collect at least 4 cat-relevant products across feeding, litter/hygiene, health, and enrichment. Record name, price, rating, review count. (2) Reddit — browse /f/AskReddit AND /f/LifeProTips for posts on cat ownership surprises, hidden costs, and items that matter more than owners expect. Collect at least 3 posts with title, score, comment count. The report must: (a) present the 4 storefront picks with data, (b) surface at least three pain points from Reddit, (c) match each pain point to either a storefront product that addresses it or a gap in the catalog, (d) conclude with a buying priority for a first-week cat rescue. Cite every claim.",
+  "start_url": "__SHOPPING__/pet-supplies.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 900,
+    "max_words": 2800,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0030.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Shopping (pet-supplies) + Reddit (AskReddit + LifeProTips). Pain-point-to-product matching."
+}

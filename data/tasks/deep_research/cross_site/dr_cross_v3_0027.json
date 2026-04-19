@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0027",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a critique-style review of 'impulse-buy hazards in the beauty aisle' grounded in storefront ratings and Reddit skepticism. You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the beauty-personal-care category and collect at least 4 products that have either very high review counts or high prices (they are the products most likely to be impulse triggers). Record name, price, rating, review count. (2) Reddit — browse /f/TwoXChromosomes AND /f/askreddit for posts about beauty products users regret buying, marketing overhype, or dupes. Collect at least 3 posts with title, score, comment count. The report must: (a) explain which products likely trigger impulse buys (and why, based on storefront signals), (b) pair each impulse candidate with the most relevant community skepticism, (c) identify one item where storefront and community agree it is worth the money, (d) close with rules for avoiding beauty impulse buys. Cite every claim.",
+  "start_url": "__SHOPPING__/beauty-personal-care.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0027.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 18,
+  "author_notes": "Shopping (beauty-personal-care) + Reddit (TwoXChromosomes + askreddit). Critique framing: flag impulse vs genuine value."
+}

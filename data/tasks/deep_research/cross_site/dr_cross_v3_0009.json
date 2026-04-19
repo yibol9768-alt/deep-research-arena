@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0009",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a sentiment-aware product comparison on 'budget smartphone accessories' (cases, chargers, cables, stands). You MUST research BOTH sources: (1) the One Stop Market shopping site — browse the cell-phones-accessories category and collect at least 5 products spanning at least three sub-types (e.g. case, charger, cable, mount/stand, power bank). Record price, rating, and review count from each detail page. (2) Reddit — browse /f/technology AND /f/LifeProTips for posts discussing which cheap phone accessories are worth buying, safety of off-brand chargers, or longevity of budget cables. Collect at least 3 posts with title, score, and comment count. The report must: (a) rank the storefront products by price-to-rating ratio, (b) surface at least two specific Reddit warnings about risks of budget accessories (electrical safety, short lifespan, counterfeit), (c) mark each of your storefront picks as 'community-supported', 'community-neutral', or 'community-concerned', (d) end with a recommendation for a $40 accessory bundle. Cite every price, rating, and community claim with a markdown link.",
+  "start_url": "__SHOPPING__/cell-phones-accessories.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 900,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0009.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 18,
+  "author_notes": "Shopping (cell-phones-accessories) + Reddit (technology + LifeProTips). Tests price-vs-rating ranking plus community-risk tagging."
+}

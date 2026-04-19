@@ -62,31 +62,19 @@ def _extract_verdict(text: str) -> str:
     return v if v in ("A", "B", "TIE") else "tie"
 
 
-def _client():
-    try:
-        import anthropic  # type: ignore
-    except Exception:
-        return None
-    os.environ.setdefault("ANTHROPIC_BASE_URL", "https://open.bigmodel.cn/api/anthropic")
-    if not (os.environ.get("ANTHROPIC_AUTH_TOKEN") or os.environ.get("ANTHROPIC_API_KEY")):
-        return None
-    return anthropic.Anthropic()
+from src.verifiers.judge_client import call_judge  # pluggable backend
 
 
-def _judge_once(client, model: str, task_intent: str, ans_a: str, ans_b: str) -> tuple[str, str]:
+def _judge_once(model_unused: str, task_intent: str, ans_a: str, ans_b: str) -> tuple[str, str]:
     user = (
         f"Research task:\n{task_intent}\n\n"
         f"--- Report A ---\n{(ans_a or '')[:5000]}\n\n"
         f"--- Report B ---\n{(ans_b or '')[:5000]}\n\n"
         "Reason briefly, then emit `VERDICT: A | B | TIE`."
     )
-    resp = client.messages.create(
-        model=model,
-        max_tokens=1500,
-        system=_SYSTEM,
-        messages=[{"role": "user", "content": user}],
-    )
-    text = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
+    text, err = call_judge(_SYSTEM, user, max_tokens=1500)
+    if text is None:
+        return "tie", f"(judge error: {err})"
     return _extract_verdict(text), text[:600]
 
 
@@ -113,16 +101,12 @@ def battle(
     `agent_winner` resolves the "A"/"B" labels back to the agent names,
     accounting for the swap.
     """
-    client = _client()
-    if client is None:
-        return {"winner": "tie", "agent_winner": "tie", "error": "anthropic SDK unavailable"}
-
     m = model or JUDGE_MODEL
     try:
-        v1, r1 = _judge_once(client, m, task_intent, answer_a, answer_b)
+        v1, r1 = _judge_once(m, task_intent, answer_a, answer_b)
         if not swap_for_position_bias:
             return _resolve(v1, [v1], [r1], agent_a, agent_b)
-        v2_swapped, r2 = _judge_once(client, m, task_intent, answer_b, answer_a)
+        v2_swapped, r2 = _judge_once(m, task_intent, answer_b, answer_a)
         # Un-swap verdict 2: if judge said A under swap (= original B),
         # then the real winner is B
         v2 = {"A": "B", "B": "A", "TIE": "TIE"}[v2_swapped]

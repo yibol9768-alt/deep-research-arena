@@ -1,7 +1,7 @@
 {
   "task_id": "dr_cross_v3_0001",
   "agent": "react-glm5",
-  "composite": 0.659,
+  "composite": 0.718,
   "pillars": {
     "markdown_structure": {
       "score": 1.0,
@@ -19,11 +19,11 @@
           "min_pages_browsed": 8
         },
         "checks": {
-          "min_words": true,
-          "max_words": true,
-          "min_paragraphs": true,
-          "min_citations": true,
-          "min_pages_browsed": true
+          "min_words": 1.0,
+          "max_words": 1.0,
+          "min_paragraphs": 1.0,
+          "min_citations": 1.0,
+          "min_pages_browsed": 1.0
         }
       }
     },
@@ -33,6 +33,10 @@
       "details": {
         "citation_recall": 1.0,
         "citation_precision": 1.0,
+        "citation_precision_substring_baseline": 1.0,
+        "citation_precision_nli": null,
+        "citation_mode": "substring",
+        "nli_result": null,
         "citation_f1": 1.0,
         "total_citations": 11,
         "supported_citations": 11,
@@ -201,16 +205,17 @@
       }
     },
     "llm_judge": {
-      "score": 0.51,
-      "passed": false,
+      "score": 0.78,
+      "passed": true,
       "details": {
-        "comprehensiveness": 2,
-        "insight_depth": 3,
-        "instruction_following": 2,
-        "readability": 4,
-        "weighted_1_5": 2.55,
-        "judge_model": "glm-5",
-        "reason": "The report provides solid product research with citations but is incomplete—missing the critical cross-source synthesis and cutting off mid-analysis in the Reddit section.",
+        "comprehensiveness": 4,
+        "insight_depth": 4,
+        "instruction_following": 3,
+        "readability": 5,
+        "weighted_1_5": 3.9,
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "reason": "The report covers most requirements well with good insights but is truncated and lacks a fully developed synthesis section.",
         "weights": {
           "comprehensiveness": 0.35,
           "insight_depth": 0.25,
@@ -220,215 +225,113 @@
       }
     },
     "checklist": {
-      "score": 0.733,
+      "score": 0.867,
       "passed": true,
       "details": {
-        "passed_count": 11,
+        "passed_count": 13,
         "total": 15,
         "per_item": [
           {
             "index": 1,
             "passed": true,
-            "reason": "Six products listed with specific prices.",
+            "reason": "2. FAIL",
             "criterion": "Does the report mention at least 3 specific headphone products from the shopping site with prices?"
           },
           {
             "index": 2,
             "passed": false,
-            "reason": "Only one Reddit post visible with title.",
+            "reason": "3. PASS",
             "criterion": "Does the report include at least 2 Reddit /f/technology posts with titles and scores?"
           },
           {
             "index": 3,
             "passed": true,
-            "reason": "Multiple shopping URLs in markdown format.",
+            "reason": "4. PASS",
             "criterion": "Does the report cite shopping product URLs as markdown links?"
           },
           {
             "index": 4,
             "passed": true,
-            "reason": "Reddit post URL cited as markdown link.",
+            "reason": "5. PASS",
             "criterion": "Does the report cite Reddit post URLs as markdown links?"
           },
           {
             "index": 5,
-            "passed": false,
-            "reason": "No dedicated cross-source comparison section visible.",
+            "passed": true,
+            "reason": "6. PASS",
             "criterion": "Does the report include a cross-source comparison section?"
           },
           {
             "index": 6,
             "passed": true,
-            "reason": "Ratings mentioned for all products.",
+            "reason": "7. PASS",
             "criterion": "Does the report mention product ratings from the shopping site?"
           },
           {
             "index": 7,
             "passed": true,
-            "reason": "Discusses skepticism about reviews and tech companies.",
+            "reason": "8. PASS",
             "criterion": "Does the report discuss community sentiment about tech companies from Reddit?"
           },
           {
             "index": 8,
-            "passed": false,
-            "reason": "No explicit divergence between ratings and sentiment identified.",
+            "passed": true,
+            "reason": "9. PASS",
             "criterion": "Does the report identify any divergence between product ratings and community sentiment?"
           },
           {
             "index": 9,
             "passed": true,
-            "reason": "Introduction explains cross-source methodology clearly.",
+            "reason": "10. PASS",
             "criterion": "Does the report include an introduction explaining the cross-source methodology?"
           },
           {
             "index": 10,
-            "passed": false,
-            "reason": "Report truncated, no conclusion section visible.",
+            "passed": true,
+            "reason": "11. PASS",
             "criterion": "Does the report include a conclusion with synthesis?"
           },
           {
             "index": 11,
             "passed": true,
-            "reason": "Products have specific URLs suggesting legitimate sourcing.",
+            "reason": "12. PASS",
             "criterion": "Does the report avoid inventing product names not found on the shopping site?"
           },
           {
             "index": 12,
             "passed": true,
-            "reason": "Reddit post has URL provided.",
+            "reason": "13. PASS",
             "criterion": "Does the report avoid fabricating Reddit post titles not on the forum?"
           },
           {
             "index": 13,
             "passed": true,
-            "reason": "$30-100 range mentioned in title and intro.",
+            "reason": "14. PASS",
             "criterion": "Does the report mention the $30-100 price range as specified in the task?"
           },
           {
             "index": 14,
             "passed": true,
-            "reason": "Noise-cancelling and wireless features extensively discussed.",
+            "reason": "15. FAIL",
             "criterion": "Does the report discuss noise-cancelling or wireless features?"
           },
           {
             "index": 15,
-            "passed": true,
-            "reason": "Seven distinct inline citations counted.",
+            "passed": false,
+            "reason": "NOTES: The report only cites one specific Reddit post (Google Pixel fake reviews). It mentions a second theme (Right to ",
             "criterion": "Does the report contain at least 6 distinct inline citations?"
           }
         ],
-        "judge_model": "glm-5",
-        "raw_judge_output": "1. PASS - Six products listed with specific prices.\n2. FAIL - Only one Reddit post visible with title.\n3. PASS - Multiple shopping URLs in markdown format.\n4. PASS - Reddit post URL cited as markdown link.\n5. FAIL - No dedicated cross-source comparison section visible.\n6. PASS - Ratings mentioned for all products.\n7. PASS - Discusses skepticism about reviews and tech companies.\n8. FAIL - No explicit divergence between ratings and sentiment identified.\n9. PASS - Introduction explains cross-source methodology clearly.\n10. FAIL - Report truncated, no conclusion section visible.\n11. PASS - Products have specific URLs suggesting legitimate sourcing.\n12. PASS - Reddit post has URL provided.\n13. PASS - $30-100 range mentioned in title and intro.\n14. PASS - Noise-cancelling and wireless features e"
+        "judge_model": "deepseek-chat",
+        "judge_provider": "openai",
+        "raw_judge_output": "1. PASS\n2. FAIL\n3. PASS\n4. PASS\n5. PASS\n6. PASS\n7. PASS\n8. PASS\n9. PASS\n10. PASS\n11. PASS\n12. PASS\n13. PASS\n14. PASS\n15. FAIL\nNOTES: The report only cites one specific Reddit post (Google Pixel fake reviews). It mentions a second theme (Right to Repair) but provides no post title, score, or URL for it, failing criterion 2. It also likely has fewer than 6 distinct inline citations due to the missing second Reddit citation."
       }
     },
     "efficiency": {
-      "score": 0.444,
+      "score": 0.0,
       "passed": false,
       "details": {
-        "wall_time_s": 220.59,
-        "tokens_in": 242791,
-        "tokens_out": 5403,
-        "llm_calls": 19,
-        "tool_calls": 31,
-        "cost_usd": 0.259,
-        "model": "glm-5",
-        "per_call": [
-          {
-            "in": 1613,
-            "out": 226,
-            "model": "glm-5"
-          },
-          {
-            "in": 1647,
-            "out": 27,
-            "model": "glm-5"
-          },
-          {
-            "in": 2976,
-            "out": 362,
-            "model": "glm-5"
-          },
-          {
-            "in": 4537,
-            "out": 28,
-            "model": "glm-5"
-          },
-          {
-            "in": 4569,
-            "out": 36,
-            "model": "glm-5"
-          },
-          {
-            "in": 4597,
-            "out": 62,
-            "model": "glm-5"
-          },
-          {
-            "in": 5887,
-            "out": 372,
-            "model": "glm-5"
-          },
-          {
-            "in": 7346,
-            "out": 71,
-            "model": "glm-5"
-          },
-          {
-            "in": 8763,
-            "out": 196,
-            "model": "glm-5"
-          },
-          {
-            "in": 11729,
-            "out": 92,
-            "model": "glm-5"
-          },
-          {
-            "in": 13689,
-            "out": 61,
-            "model": "glm-5"
-          },
-          {
-            "in": 14310,
-            "out": 114,
-            "model": "glm-5"
-          },
-          {
-            "in": 16820,
-            "out": 116,
-            "model": "glm-5"
-          },
-          {
-            "in": 18028,
-            "out": 95,
-            "model": "glm-5"
-          },
-          {
-            "in": 20577,
-            "out": 134,
-            "model": "glm-5"
-          },
-          {
-            "in": 22676,
-            "out": 135,
-            "model": "glm-5"
-          },
-          {
-            "in": 25439,
-            "out": 367,
-            "model": "glm-5"
-          },
-          {
-            "in": 27419,
-            "out": 127,
-            "model": "glm-5"
-          },
-          {
-            "in": 30169,
-            "out": 2782,
-            "model": "glm-5"
-          }
-        ]
+        "reason": "metrics unavailable"
       }
     }
   },

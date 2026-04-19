@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0040",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write an explainer on 'why personal finance advice on Reddit keeps repeating certain rules' (e.g. emergency fund size, index investing), grounded in encyclopedia definitions. You MUST research BOTH sources: (1) Reddit — browse /f/personalfinance AND /f/wallstreetbets for posts that repeatedly surface specific financial rules of thumb. Collect at least 4 posts with title, score, comment count, and the rule each emphasizes. (2) Wikipedia — open articles on 'Index fund', 'Emergency fund', or similarly relevant canonical pages and extract 3-4 facts about each concept. The report must: (a) list 3 rules of thumb surfaced by the community with citations, (b) match each to its Wikipedia grounding, (c) note any rule the community invokes that Wikipedia does not support as stated, (d) close with a 'what the evidence really says' box. Cite every claim.",
+  "start_url": "__REDDIT__/f/personalfinance",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 3000,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0040.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Reddit (personalfinance + wallstreetbets) + Wikipedia. Rules-of-thumb to definitions mapping."
+}

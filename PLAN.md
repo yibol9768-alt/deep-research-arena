@@ -1,7 +1,7 @@
 # Deep Research Benchmark — 进度 & 规划
 
 **项目**:刘奕博
-**最后更新**:2026-04-16 深夜(v3 Phase 6 + 跨站任务)
+**最后更新**:2026-04-19 凌晨(Phase 7–8:Shim + 多框架 Arena + DeepSeek judge + 107 task)
 **目标(总)**:构建一个**真实网站沙盒 + Deep Research 任务 + 确定性评分 + Arena Elo 排位**的 AI Agent 评测框架,用于量化比较不同多智能体系统在 Deep Research 上的能力。最终产出:**学术论文 + 可复现 benchmark**。
 
 ---
@@ -12,9 +12,13 @@
 >
 > **v3(跨站任务上线)**:Phase 1-5 完成 + **Phase 6 跨站扩展**:4 个容器全部运行(Shopping/Reddit/GitLab/Shopping Admin) + **4 条跨站 Deep Research 任务**(dr_cross_v3_0001~0004,跨 2-3 个站) + 统一多站适配器(unified_adapter.py) + 140 条 KG 三元组 + 60 条 DRACO rubric + ReAct agent 支持 gitlab/admin 工具 + DeerFlow 跨站适配。**3 个 ReAct 模型 + DeerFlow × 4 跨站任务 Arena 跑分中**。
 >
+> **Phase 7–8(2026-04-18 → 04-19)**:(a) **Shim 统一搜索层**(FastAPI :8081,Tavily+Firecrawl 兼容,零代码接任何 DR 框架);(b) **8 agent × 4 task MEGA Arena**(React-qwen35plus/glm5 + DeerFlow 三版 + GPT-Researcher + CAMEL-AI + smolagents);(c) **DeepSeek V3.2 judge**(self-preference 解决,P0-1);(d) **Citation NLI entailment** (P0-2);(e) **107 task**(87 consumer + 20 scholarly/policy,P0-3);(f) bootstrap 95% CI + permutation rank test;(g) `fact_kg` oracle v2(intent-aware filter,拒绝误标 $607 printer in $500 budget)。排名:react-qwen35plus 1172 Elo > gpt-researcher 1158 > react-glm5 1138 > deerflow-shim 1019 > camel-ai 983 > deerflow-new 939 > deerflow 854 > smolagents 737。
+>
 > **核心 v2 发现**:加 reddit 后 DeerFlow 优势从 +122 缩到 +5 Elo(GLM 内容安全在长 prompt 上拦了 DeerFlow);glm-4.6 反超到第 2;**LLM judge 暴露 length-bias**(glm-4.5 简洁回答被 judge 排第 1,composite 排第 4)→ v3 用 `fact_kg` 客观信号化解,`llm_judge` 权重降至 0.20。
 >
-> **v3 vs 业界**:我们的路线 = DeepResearch Bench 的"LLM 参考报告"(oracle 生成 markdown)+ DRACO 2026 的"二值 rubric"(15-item checklist)+ LiveDRBench 的"结构化可验证事实"(KG 三元组)的交集。独家优势是**沙盒 DB 直连做 fact verifier**,零方差 / 零成本 / 零人工标注。
+> **Phase 7-8 核心发现**:(1) DeerFlow 原本"弱"是 custom adapter 把搜索结果截断 5000 chars 导致,走 shim 后 +162 Elo,说明**评测不能对框架降级**。(2) smolagents 排第 8 / 0 胜,根因是 GLM-4.7 输出 `</code>` 代替 `<end_code>` 哨兵,code parser 每步失败,报告完全幻觉 — 暴露**智能体格式协议与模型训练格式耦合**。(3) ODR/dzhng 装好但 GLM OpenAI-compat 不返 JSON mode,langchain `with_structured_output` + ai-sdk `generate-object` 双双 ValidationError — **国产模型 JSON schema 兼容性是开源 DR 框架普遍盲点**。
+>
+> **v3 vs 业界**:我们的路线 = DeepResearch Bench 的"LLM 参考报告"(oracle 生成 markdown)+ DRACO 2026 的"二值 rubric"(15-item checklist)+ LiveDRBench 的"结构化可验证事实"(KG 三元组)的交集。独家优势是**沙盒 DB 直连做 fact verifier**,零方差 / 零成本 / 零人工标注。再加 Phase 7 的 **Shim 层 + 8 agent 多框架 Arena**,定位明确落在 **BrowseComp-Plus(静态语料库)与 WebArena-Verified(事务性沙盒)之间**(见 `PAPER_POSITIONING.md`)。
 
 ---
 
@@ -48,7 +52,12 @@
 | 24 | **v3-Phase 6 跨站扩展**:GitLab(8023) + Shopping Admin(7780) 容器启动;清理 24GB 无关镜像;4 条跨站 DR 任务(shopping+reddit / gitlab+reddit / 3 站三角) + 140 KG 三元组 + 60 DRACO rubric |
 | 25 | **统一多站适配器**:`integrations/deerflow/unified_adapter.py` + `envs/gitlab/scrape.py` + `envs/shopping_admin/scrape.py`;ReAct agent 加 gitlab_search/gitlab_issues/gitlab_browse/admin_browse 工具 |
 | 🟡 进行中 | 3 ReAct 模型 + DeerFlow × 4 跨站任务 Arena 跑分中 |
-| 🔲 下一步 | 汇总跨站 Elo 排行榜;跟 v3 单站结果对比;RESULTS_SUMMARY 写终版 |
+| 26 | **Phase 7 — Shim 层(统一 Tavily/Firecrawl-compat)**:`integrations/search_shim/` FastAPI 在 :8081 暴露 Tavily `/search` + Firecrawl v1/v2 `/v1|v2/search` `/v1|v2/scrape` + kiwix Wikipedia,后端统一到 Magento + Postmill + kiwix。**任何 DR 框架零代码可接**(只需 `TAVILY_API_KEY=anything` + `TAVILY_API_URL=http://shim/...` 或 monkey-patch `tavily.TavilyClient.base_url`) |
+| 27 | **Phase 7 — 多框架 Arena**:DeerFlow 通过 shim 而非 custom adapter(+162 Elo)、GPT-Researcher、CAMEL-AI、smolagents 接入;ODR/dzhng/LDR/STORM 接入受阻(文档化)。3 个 ReAct 变体(glm5 / qwen35plus / glm46-new)+ DeerFlow 三版(legacy / new adapter / shim) = **8 agent × 4 task = 32 runs** |
+| 28 | **Phase 8 — Peer-review P0 三项修复**:(a) **DeepSeek V3.2 judge**(`deepseek-chat`,不同 family,self-preference 解决);(b) `CITATION_MODE=entailment` NLI via DeepSeek(ALCE 替代方案);(c) 20 条 scholarly/policy task(0088-0107,医学/经济/历史/AI 伦理/城市规划)。**Task 总量 87 → 107** |
+| 29 | **Phase 8 — 统计显著性**:`compute_elo_with_ci`(N=1000 bootstrap)+ `rank_significance_test`(N=1000 permutation)+ `per_pillar_elo`(7 pillar 独立 Elo)。**FINAL_LEADERBOARD.md 纸 ready** |
+| 30 | **Oracle v2**:`rebuild_oracle_filtered.py` 跑完 87 consumer task,按 intent 提取 budget ceiling + category allowlist,拒绝"Magic Home Nightstands in kitchen build"类伪阳性,产出 `data/golden/*.filtered.json` |
+| 🔲 下一步 | (a) 把 ODR/dzhng 切换到 DeepSeek 或加 JSON-mode adapter 解 GLM 结构化输出兼容;(b) 8 agent 在 20 条 scholarly task 上再跑一轮,domain 覆盖度提升;(c) 飞书 wiki 同步 Phase 7-8 |
 
 ---
 

@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0078",
+  "sites": ["shopping", "reddit"],
+  "intent": "Write a sentiment-heavy report on 'what /f/gaming thinks of in-store peripheral brands' combining storefront listings with forum voice. (1) One Stop Market shopping site — browse the video-games and electronics categories and collect at least 4 peripherals (controller, headset, mouse, cable) noting brands that appear. Record name, price, rating, review count. (2) Reddit — browse /f/gaming AND /f/technology for posts that call out specific peripheral brands positively or negatively. Collect at least 3 posts with title, score, comment count. The report must: (a) present the 4 storefront picks with brands highlighted, (b) tag each pick with community sentiment, (c) identify one brand where Reddit and storefront diverge, (d) close with a 'go/no-go' mini-verdict. Cite every claim.",
+  "start_url": "__SHOPPING__/video-games.html",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 1000,
+    "max_words": 2800,
+    "min_paragraphs": 7,
+    "min_citations": 10,
+    "min_pages_browsed": 10
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__SHOPPING__", "__REDDIT__"],
+    "min_distinct_sources": 8
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0078.json",
+    "expected_predicates": ["price", "rating", "review_count", "category", "forum", "score", "comment_count"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 4,
+  "expected_steps": 16,
+  "author_notes": "Medium tier. Brand sentiment tagging."
+}

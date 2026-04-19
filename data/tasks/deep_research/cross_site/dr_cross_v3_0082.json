@@ -1,0 +1,29 @@
+{
+  "schema_version": "3.0.0",
+  "task_id": "dr_cross_v3_0082",
+  "sites": ["reddit", "wikipedia"],
+  "intent": "Write a short comparative on 'what /f/technology believes about a specific cybersecurity concept and what Wikipedia says'. (1) Reddit — browse /f/technology AND /f/news for posts on a specific security concept (password management, 2FA, social engineering, ransomware). Collect at least 3 posts with title, score, comment count. (2) Wikipedia — open the article on that exact concept and extract 3-4 facts. The report must: (a) name the concept and the Wikipedia definition, (b) present community beliefs and concerns, (c) identify any mismatch between the community's mental model and the encyclopedic definition, (d) close with two verified takeaways. Cite every claim.",
+  "start_url": "__REDDIT__/f/technology",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 800,
+    "max_words": 2200,
+    "min_paragraphs": 6,
+    "min_citations": 8,
+    "min_pages_browsed": 8
+  },
+  "citation_policy": {
+    "required_for": [],
+    "must_be_in_domain": ["__REDDIT__", "__WIKIPEDIA__"],
+    "min_distinct_sources": 6
+  },
+  "golden": {
+    "triples_path": "data/golden/dr_cross_v3_0082.json",
+    "expected_predicates": ["forum", "score", "comment_count", "title", "article_title"]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site/checklists_v3.json",
+  "difficulty": 3,
+  "expected_steps": 12,
+  "author_notes": "Easy tier. Security-concept check."
+}
