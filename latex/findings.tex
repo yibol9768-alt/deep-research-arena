@@ -1,4 +1,4 @@
-\documentclass[11pt]{article}
+\documentclass[UTF8,11pt]{ctexart}
 \usepackage[letterpaper,margin=1in]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
@@ -10,393 +10,357 @@
 \usepackage{siunitx}
 \usepackage{natbib}
 
-% Clean academic defaults
+% 排版细节
 \hypersetup{colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!50!black}
 \setlength{\parskip}{0.3em}
-\setlength{\parindent}{0pt}
+\setlength{\parindent}{2em}
+\linespread{1.15}
+
+% 中英混排字体(如果系统没有指定字体,回退到默认)
+\setCJKmainfont[AutoFakeBold=true, AutoFakeSlant=true]{Songti SC}
+\setCJKsansfont[AutoFakeBold=true]{Heiti SC}
+\setCJKmonofont{Songti SC}
 
 \newcommand{\arena}{DR-Arena}
 
-\title{Four Empirical Findings from \arena{}:\\
-A Deep-Research Agent Benchmark}
+\title{来自 \arena{} 的四个实证发现\\
+一个深度研究 Agent 基准}
 
-\author{Deep Research Arena Team}
-\date{April 2026}
+\author{Deep Research Arena 团队}
+\date{2026 年 4 月}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We report four empirical findings from \arena{}, a sandboxed benchmark for
-deep-research agents over a frozen 200k-document corpus (Magento storefront
-+ Postmill forum + 49\,GB English Wikipedia). Across 13 agents (mix of
-GLM-4.5/4.6/5.1, DeepSeek-chat, Qwen-3.5-plus, GPT-5-chat-latest)
-$\times$ 4 cross-site tasks (52 runs), we find (F1) our LLM judge does
-\emph{not} reward length --- Spearman $\rho = -0.30$ between judge score
-and answer word count --- refuting a common reviewer concern; (F2) URL
-hallucination is an architectural artefact concentrated in 4 specific
-agents (100\% halluc rate each) rather than a property of any LLM backend;
-(F3) Item Response Theory agent-ability rankings match Bradley--Terry Elo
-rankings with Spearman $\rho = 1.00$, evidencing internal consistency of
-our ranking methodology; (F4) agents sharing identical search-shim results
-produce citation distributions that differ by an order of magnitude in
-source diversity, depending on whether the agent uses tool-calling or
-RAG-compilation architecture.
+本文报告来自 \arena{} 的四个实证发现。\arena{} 是一个面向深度研究类 Agent
+的沙盒基准,运行在一个冻结的 20 万文档级语料上(Magento 电商 + Postmill 论坛
++ 49\,GB 英文维基百科)。在 13 个 Agent(覆盖 GLM-4.5/4.6/5.1、
+DeepSeek-chat、Qwen-3.5-plus、GPT-5-chat-latest 等混合后端)与 4 道跨站点
+任务共 52 次 run 的数据上,我们得到:
+(F1) 作为 Judge 的 LLM \emph{没有}长度偏好 —— Spearman $\rho = -0.30$
+反而偏向短报告,推翻了审稿常见质疑;
+(F2) URL 幻觉是架构级的瑕疵,集中在 4 个特定 Agent 上(每个 100\% 都幻觉),
+与 LLM 底座本身无关;
+(F3) 项目反应理论(IRT)给出的 Agent 能力排序与 Bradley--Terry Elo 排序
+Spearman $\rho = 1.00$,证明我们的排名方法自洽;
+(F4) 共享同一搜索 shim 结果的两个 Agent,在引用源多样性上相差一个数量级,
+差异完全由它们的内部架构(tool-calling vs.\ RAG 组装)决定。
 
-Together these findings support the argument that sandboxed, multi-pillar,
-cross-family-judge evaluation surfaces diagnostic signal unavailable to
-single-score live-web benchmarks.
+四个发现共同支撑的论点是:沙盒化、多维度打分、跨家族 Judge 的评测方式,能够
+发掘出单分数、Live-Web 基准不可见的诊断信号。
 \end{abstract}
 
 %================================================================
-\section{Setup}
+\section{实验设置}
 %================================================================
 
-\arena{} contains three sandbox services on a single host:
-\texttt{localhost:7770} (Magento, 540k products),
-\texttt{localhost:9999} (Postmill, 25 subreddits),
-\texttt{localhost:8090} (Kiwix, English Wikipedia \emph{nopic} 49\,GB).
-All agents retrieve through a unified shim exposing a Tavily- and
-Firecrawl-compatible API, so any framework that can be pointed at
-\texttt{TAVILY\_API\_URL} or \texttt{FIRECRAWL\_BASE\_URL} works
-zero-code-change.
+\arena{} 在单一主机上提供三个沙盒服务:
+\texttt{localhost:7770}(Magento,54 万商品)、
+\texttt{localhost:9999}(Postmill,25 个子版块)、
+\texttt{localhost:8090}(Kiwix,英文维基百科 \emph{nopic} 49\,GB)。
+所有 Agent 通过一个统一的 shim 发起检索,该 shim 对外暴露与 Tavily 和
+Firecrawl 兼容的接口,因此任何能够通过
+\texttt{TAVILY\_API\_URL} 或 \texttt{FIRECRAWL\_BASE\_URL} 环境变量切换
+后端的 Agent 框架都可以零代码接入。
 
-\textbf{Agents (13).} \texttt{react-qwen35plus}, \texttt{gpt-researcher},
-\texttt{react-glm5}, \texttt{deerflow-glm46-shim}, \texttt{camel-ai},
-\texttt{deerflow-glm46-new}, \texttt{deerflow-glm46}, \texttt{camel-ai-ds},
-\texttt{smolagents} (GLM), \texttt{odr-ds}, \texttt{smolagents-ds},
-\texttt{deerflow-ds}, \texttt{gpt-researcher-ds}. An additional
-\texttt{gpt5chat} agent (GPT-5-chat-latest, OpenAI-Agents-SDK-style
-tool-calling loop) was integrated for the source-diversity experiment
-(F4); it is not included in F1--F3 unless noted.
+\textbf{Agent(13 个)。} \texttt{react-qwen35plus}、\texttt{gpt-researcher}、
+\texttt{react-glm5}、\texttt{deerflow-glm46-shim}、\texttt{camel-ai}、
+\texttt{deerflow-glm46-new}、\texttt{deerflow-glm46}、\texttt{camel-ai-ds}、
+\texttt{smolagents}(GLM 后端)、\texttt{odr-ds}、\texttt{smolagents-ds}、
+\texttt{deerflow-ds}、\texttt{gpt-researcher-ds}。
+本文第 \ref{sec:sources} 节的源多样性实验还引入了第 14 个
+Agent:\texttt{gpt5chat}(GPT-5-chat-latest,OpenAI-Agents SDK 风格的
+tool-calling 循环)。除特殊说明外,F1--F3 不包含该 Agent。
 
-\textbf{Tasks (4 for F1--F3).}
-\texttt{dr\_cross\_v3\_0001} (headphones shopping+reddit),
-\texttt{0005} (\$500 home office, shop$\times$4 + reddit$\times$2),
-\texttt{0006} (PC gaming, shop$\times$3 + reddit$\times$2),
-\texttt{0007} (budget home cook, shop$\times$2 + reddit$\times$2).
-Scholarly subset (0088--0107, $n=20$) is introduced for F4.
+\textbf{任务(F1--F3 使用 4 道)。}
+\texttt{dr\_cross\_v3\_0001}(耳机,shopping + reddit),
+\texttt{0005}(500 美元家用办公配置,shopping $\times$ 4 + reddit $\times$ 2),
+\texttt{0006}(PC 游戏装备,shopping $\times$ 3 + reddit $\times$ 2),
+\texttt{0007}(预算厨艺开销,shopping $\times$ 2 + reddit $\times$ 2)。
+学术子集(0088--0107,$n=20$)在第 \ref{sec:sources} 节引入。
 
-\textbf{Scoring.} Seven weighted pillars form the composite
-(\texttt{markdown\_structure} 0.05, \texttt{citation} 0.20,
-\texttt{fact\_kg} 0.15, \texttt{llm\_judge} 0.20, \texttt{checklist} 0.20,
-\texttt{evidence\_density} 0.15, \texttt{efficiency} 0.05).
-\texttt{llm\_judge} uses DeepResearch-Bench RACE's four dimensions
-\citep{dr-bench-2026} under a cross-family judge (GLM-4.5 evaluates only
-DeepSeek-backed or Qwen-backed agents, and vice versa) to suppress
-self-preference bias \citep{wataoka-2024}.
+\textbf{打分。} composite 由七个加权维度线性组成:
+\texttt{markdown\_structure}(0.05)、\texttt{citation}(0.20)、
+\texttt{fact\_kg}(0.15)、\texttt{llm\_judge}(0.20)、
+\texttt{checklist}(0.20)、\texttt{evidence\_density}(0.15)、
+\texttt{efficiency}(0.05)。\texttt{llm\_judge} 采用 DeepResearch Bench 的
+RACE 四维打分方案 \citep{dr-bench-2026},并强制跨家族 Judge
+(GLM-4.5 只评价 DeepSeek 系或 Qwen 系的 Agent,反之亦然)以抑制
+自偏好效应 \citep{wataoka-2024}。
 
 %================================================================
-\section{F1: LLM judge does not reward length}
+\section{F1:LLM Judge 并不奖励篇幅}
 \label{sec:length}
 %================================================================
 
-\paragraph{Premise.}
-The verbosity-bias hypothesis \citep{wataoka-2024,arena-hard-2024} states
-that LLM-as-judge rewards longer, more confident responses. Several
-benchmark papers accept this and either apply length-controlled
-normalisation or report only length-matched pairs.
+\paragraph{动机。}
+长度偏好假设 \citep{wataoka-2024,arena-hard-2024} 认为,将 LLM 用作 Judge
+会倾向于给更长、更自信的回答打高分。若干基准论文因此默认此偏差存在,要么做
+长度归一化,要么只对长度匹配的 pair 汇报。
 
-\paragraph{Method.}
-For each of our 52 runs we compute the word count of \texttt{answer.md}
-(after stripping inline code and URLs) and the Spearman rank correlation
-with each pillar score and with the final composite. Correlations are
-computed across all runs jointly. Word counts range 191--5384, mean
-1540, with clear per-agent style clustering (DeerFlow averages 3162
-words; smolagents 991).
+\paragraph{方法。}
+对 52 次 run 的每份 \texttt{answer.md},我们统计其词数(先剔除 inline
+代码与 URL),然后计算词数与每个打分维度(以及 composite)之间的 Spearman
+秩相关。相关系数在全部 run 上联合估计。词数跨度 191--5384,均值 1540,存在
+明显的 Agent 风格聚类(DeerFlow 系列均值 3162 词,smolagents 均值 991 词)。
 
-\paragraph{Result.}
+\paragraph{结果。}
 \begin{table}[h]
   \centering
   \small
   \input{tables/length.tex}
-  \caption{Spearman $\rho$ between answer word count and each pillar
-    score. All $|\rho| < 0.4$; \texttt{llm\_judge} and \texttt{checklist}
-    are \emph{negatively} correlated with length. Regenerated from
-    \texttt{data/results/length\_ablation.json}.}
+  \caption{答案词数与各打分维度的 Spearman $\rho$。全部
+    $|\rho| < 0.4$;\texttt{llm\_judge} 与 \texttt{checklist} 两个维度
+    与词数 \emph{负}相关。表格由
+    \texttt{data/results/length\_ablation.json} 自动生成。}
   \label{tab:length}
 \end{table}
 
-\paragraph{Why.}
-Our RACE-style LLM judge explicitly considers
-\textit{instruction-following} and \textit{readability}: a long
-meandering report that restates the question multiple times and
-over-hedges is penalised on both dimensions. Similarly, our DRACO-style
-rubric contains binary items such as ``Does the report identify exactly
-$k$ distinct products?'' which a verbose report is more likely to
-miss or confuse.
+\paragraph{原因。}
+我们的 RACE 风 Judge 显式考察\textit{指令跟随度}与\textit{可读性}:冗长、
+反复重述题面、过度对冲的报告在这两个维度都要扣分。类似地,DRACO 风的
+checklist 含有 \textquotedblleft 报告是否恰好列出 $k$ 个不同的产品\textquotedblright{}
+一类硬性条目;长报告更容易重复或混淆,从而失分。
 
-\paragraph{Takeaway.}
-Reviewers of deep-research benchmarks almost always ask whether the judge
-is length-biased. For \arena{}'s specific setup (GLM-4.5 judge, cross-family
-selection, RACE+DRACO dual-rubric), we can answer \textit{no}, with
-Table~\ref{tab:length} directly citable. We do not claim this generalises
-to all judge configurations --- we recommend every LLM-judge benchmark
-report its analogous Spearman table as a sanity check.
+\paragraph{启示。}
+深度研究类基准的审稿人几乎一定会问 Judge 是否具有长度偏好。对 \arena{} 的
+这套设置(GLM-4.5 作 Judge、跨家族、RACE + DRACO 双 rubric),答案是
+\textit{没有}。表 \ref{tab:length} 可直接作为对此质疑的定量回应。
+本文不主张该结论对任意 Judge 配置都成立 —— 我们反而建议所有基于
+LLM Judge 的基准在正文中各自给出类似的 Spearman 表,作为一项常规
+健壮性检查。
 
 %================================================================
-\section{F2: URL hallucination is architectural, not model-level}
+\section{F2:URL 幻觉是架构问题,不是模型问题}
 \label{sec:halluc}
 %================================================================
 
-\paragraph{Premise.}
-A common narrative treats URL hallucination as ``the LLM makes up links
-when uncertain.'' We test whether hallucination is
-(a) distributed across all runs proportionally (noise)
-or (b) concentrated in specific agents (architectural).
+\paragraph{动机。}
+一种流行叙事认为 \textquotedblleft 不确定时 LLM 会编造链接\textquotedblright{}。我们验证
+URL 幻觉究竟是(a)在所有 run 上按比例分布的随机噪声,还是(b)集中在
+少数 Agent 的架构性瑕疵。
 
-\paragraph{Method.}
-Pure heuristic scan of 70 \texttt{answer.md} files
-(\texttt{scripts/error\_taxonomy.py}). Each run is placed in exactly one
-of four primary classes:
+\paragraph{方法。}
+我们对 70 份 \texttt{answer.md} 做纯启发式扫描
+(\texttt{scripts/error\_taxonomy.py}),把每一份划入四个互斥主类中的一个:
 \begin{itemize}[leftmargin=*,itemsep=2pt]
-  \item \texttt{hallucination\_url}: cites $\geq 2$ URLs outside allowed
-    sandbox hosts, or contains one of five fake-signal regexes
-    (\texttt{(placeholder)}, \texttt{example.com}, live \texttt{wikipedia.org},
-    \texttt{*.tavily.*}, \texttt{onestopmarket.com}), or writes a
-    $\geq 200$-word report with zero inline citations.
-  \item \texttt{format\_error}: answer is JSON-wrapped under 400 words.
-  \item \texttt{timeout\_or\_empty}: under 50 words or contains the
-    string ``failed to finish''.
-  \item \texttt{ok}: none of the above.
+  \item \texttt{hallucination\_url}:引用 $\geq 2$ 个非沙盒域名的 URL,
+    或包含五类 \textquotedblleft 虚假信号\textquotedblright{}正则(\texttt{(placeholder)}、
+    \texttt{example.com}、公网 \texttt{wikipedia.org}、\texttt{*.tavily.*}、
+    \texttt{onestopmarket.com}),或写出一份 $\geq 200$ 词却零 inline 引用的报告。
+  \item \texttt{format\_error}:答案被 JSON 包裹但不足 400 词。
+  \item \texttt{timeout\_or\_empty}:不足 50 词,或含字符串
+    \textquotedblleft failed to finish\textquotedblright{}。
+  \item \texttt{ok}:以上都不符合。
 \end{itemize}
-No LLM calls; pattern matching only. This is deliberately strict: soft
-hallucination (right URL, wrong fact in text) is not caught. Hard
-hallucination (cited URL does not exist in sandbox) is caught.
+该分类完全由正则匹配完成,不调用 LLM。判定标准偏严:软幻觉
+(URL 真但正文事实错)会被漏判,硬幻觉(引用一个不存在于沙盒里的 URL)则
+会被精准捕捉。
 
-\paragraph{Result.}
+\paragraph{结果。}
 \begin{table}[h]
   \centering
   \small
   \input{tables/halluc.tex}
-  \caption{Per-agent primary failure class distribution. Four agents (bold)
-    hallucinate URLs on all 4 runs; the other nine show 0 of 4 in the same
-    failure class. Regenerated from
-    \texttt{data/results/error\_taxonomy.json}.}
+  \caption{按主错误类型分层的 per-Agent 分布。四个 Agent(加粗)在全部
+    4 次 run 上均触发 URL 幻觉;其余 9 个 Agent 在同一类上为 0/4。
+    表格由 \texttt{data/results/error\_taxonomy.json} 自动生成。}
   \label{tab:halluc}
 \end{table}
 
-\paragraph{Why.}
-Table~\ref{tab:halluc} rules out both ``the LLM hallucinates'' and
-``random noise'' narratives. Evidence:
+\paragraph{原因。}
+表 \ref{tab:halluc} 同时否定了 \textquotedblleft LLM 会幻觉\textquotedblright{} 与 \textquotedblleft 随机噪声\textquotedblright{}
+两个解释:
 \begin{itemize}[leftmargin=*,itemsep=2pt]
-  \item Same LLM, different architectures diverge.
-    \texttt{camel-ai-ds} (DeepSeek backend) has 0/4 halluc;
-    \texttt{gpt-researcher-ds} (DeepSeek backend) has 4/4.
-  \item Same architecture family, different LLMs diverge.
-    \texttt{smolagents} (GLM-4.5) and \texttt{smolagents-ds}
-    (DeepSeek) both 4/4 --- the architecture's
-    pre-fix \texttt{</code>} / \texttt{<end\_code>} sentinel
-    mismatch (fixed after the reported runs) dominates over LLM choice.
+  \item \textbf{同一 LLM、不同架构结果相反}。
+    \texttt{camel-ai-ds}(DeepSeek)幻觉率 0/4;
+    \texttt{gpt-researcher-ds}(DeepSeek)幻觉率 4/4。
+  \item \textbf{同一架构、不同 LLM 结果相同}。
+    \texttt{smolagents}(GLM-4.5)与 \texttt{smolagents-ds}(DeepSeek)
+    都是 4/4 —— 此处架构中 \texttt{</code>} 与
+    \texttt{<end\_code>} 的 sentinel 错配(现已修复,但本文汇报的 run
+    在修复前)压倒了 LLM 选择的影响。
 \end{itemize}
-Probable causes per agent:
+四个 Agent 各自的具体成因:
 \begin{description}[leftmargin=*,itemsep=2pt]
-  \item[gpt-researcher-ds] RAG compiler fills the
-    \texttt{\{sources\}} slot with \texttt{(placeholder)} strings when
-    retrieval returns fewer sources than its minimum; the LLM then
-    writes them out as if they were real URLs.
-  \item[odr-ds] Summariser prompt treats source URLs as a soft
-    constraint; DeepSeek sometimes paraphrases the URL into a
-    plausible-looking but nonexistent one.
-  \item[smolagents (both backends)] Pre-fix sentinel mismatch ---
-    agent stops before any tool call, then writes a report entirely
-    from training-memory and invents URLs to look grounded.
+  \item[\texttt{gpt-researcher-ds}] RAG 组装阶段,当检索返回项数低于下限时,
+    其模板会以 \texttt{(placeholder)} 填充 \texttt{\{sources\}},随后被
+    LLM 当作真实 URL 写入正文。
+  \item[\texttt{odr-ds}] summarizer 将来源 URL 视为 soft constraint,
+    DeepSeek 会将其改写成形貌合理但实际不存在的链接。
+  \item[\texttt{smolagents}(两种 LLM 后端均然)] 修复前的 sentinel 错配
+    使得 Agent 尚未调用任何工具就停止,然后完全凭训练记忆生成正文并编造
+    URL 以伪装出引用感。
 \end{description}
 
-\paragraph{Takeaway.}
-URL hallucination in deep-research agents is not a model-level property;
-it is an engineering property of the agent's retrieval-composition
-pipeline. This has practical implications: benchmark authors should
-publish per-agent error-class distributions, not just a single composite;
-and agent authors can fix hallucination by patching their pipeline
-without upgrading the LLM.
+\paragraph{启示。}
+深度研究类 Agent 的 URL 幻觉并非 LLM 层面的属性,而是检索-组装 pipeline
+的工程属性。对基准作者而言,应公开 per-Agent 的错误类型分布,而非只汇报
+单一 composite;对 Agent 作者而言,修掉 URL 幻觉不需要换 LLM,改 pipeline
+即可。
 
 %================================================================
-\section{F3: IRT and Elo agree --- internal consistency}
+\section{F3:IRT 与 Elo 相互印证 —— 排名方法的自洽性}
 \label{sec:irt}
 %================================================================
 
-\paragraph{Premise.}
-Reviewers routinely ask whether a ranking produced by pairwise Elo is an
-artefact of the Elo algorithm. We cross-check with a different
-statistical framework: 2-parameter logistic Item Response Theory
-\citep{lord-1980}.
+\paragraph{动机。}
+审稿人常问:Elo 给出的排名,是否只是 Elo 算法本身的 artefact?为此,我们
+用一个独立的统计框架做交叉验证 —— 两参数逻辑斯蒂项目反应理论模型(2-PL IRT,
+\citep{lord-1980})。
 
-\paragraph{Method.}
-We dichotomise the $13 \times 4 = 52$ composite scores by per-task
-median: $Y_{ij} = 1$ iff agent $i$'s composite on task $j$ is at or
-above that task's median across the 13 agents. We fit
+\paragraph{方法。}
+将 $13 \times 4 = 52$ 个 composite 分数按每道任务的中位数二分化:
+$Y_{ij} = 1$ 当且仅当 Agent $i$ 在任务 $j$ 上的 composite 不低于任务 $j$
+在 13 个 Agent 上的中位数。拟合模型:
 \begin{equation}
   P(Y_{ij} = 1 \mid \theta_i, a_j, b_j) =
-  \sigma\big( a_j (\theta_i - b_j) \big)
+  \sigma\big( a_j (\theta_i - b_j) \big),
   \label{eq:2pl}
 \end{equation}
-by joint MLE (L-BFGS-B) with a mean-zero, unit-variance soft penalty on
-$\boldsymbol\theta$ for identifiability. The likelihood is invariant to
-simultaneous sign flip of $\boldsymbol\theta$ and $\mathbf{a}$, so after
-optimisation we flip both if
-$\mathrm{corr}(\boldsymbol\theta, \bar Y_{i\cdot}) < 0$ to align with the
-natural ``higher = better'' direction. Independently, we compute
-Bradley--Terry Elo \citep{bradley-terry-1952} on all $\binom{13}{2}=78$
-pairwise within-task wins derived from the composites.
+$\boldsymbol\theta$ 附加一个均值为零、方差为一的软罚项以保证可辨识。
+2-PL 的似然在 $\boldsymbol\theta$ 与 $\mathbf{a}$ 同时变号下不变,所以
+当 $\mathrm{corr}(\boldsymbol\theta, \bar Y_{i\cdot}) < 0$ 时我们翻转
+两者符号,以与 \textquotedblleft 分数越高越好\textquotedblright{}对齐。另一个独立流程计算
+Bradley--Terry Elo \citep{bradley-terry-1952}:对所有任务内的
+$\binom{13}{2}=78$ 个 composite 成对胜负做 MLE。
 
-\paragraph{Result.}
+\paragraph{结果。}
 \begin{table}[h]
   \centering
   \small
   \input{tables/irt.tex}
-  \caption{Agent ability under Bradley--Terry Elo and IRT 2-PL,
-    regenerated from \texttt{data/results/arena\_elo\_ED.json} and
-    \texttt{data/results/irt\_calibration.json}.
-    Item parameters (not shown): all four tasks clip at the maximum
-    discrimination bound $a_j = 5$ and cluster at $b_j \approx -0.33$.}
+  \caption{Bradley--Terry Elo 与 IRT 2-PL 下的 Agent 能力估计。
+    两种方法下的排序 Spearman $\rho = 1.00$($p < 10^{-3}$)。
+    题目参数(表中未列):四道任务的 $a_j$ 全部抵到区分度上限 5,
+    且 $b_j$ 聚集在 $\approx -0.33$。
+    表格由 \texttt{data/results/arena\_elo\_ED.json} 与
+    \texttt{data/results/irt\_calibration.json} 自动生成。}
   \label{tab:irt}
 \end{table}
 
-\paragraph{Why.}
-The two methods share no code path: Elo is a sequential
-win-probability update from pairwise battles, while IRT is a global
-MLE over a latent-trait model. That they produce the same ordering
-is weak-but-independent evidence that the ranking signal in the data
-is strong enough to be recovered under different assumptions.
+\paragraph{原因。}
+两种方法没有共享任何代码路径:Elo 是从成对胜负做顺序更新的累积方法,
+IRT 是在潜在能力模型下做全局 MLE。它们给出相同排序,是对 \textquotedblleft 数据中
+真的存在一个一致的排序信号\textquotedblright{} 的弱但独立的证据。
 
-The item parameters are revealing in a different way. All four tasks
-peg $a_j = 5$ (our clipping bound), meaning each task is nearly a
-perfect rank-recoverer for the 13 agents. All four also cluster at
-$b_j \approx -0.33$, meaning they are approximately equally difficult.
-This diagnoses a lack of \emph{task diversity}: our 4-task subset
-measures a single ability dimension well but cannot distinguish
-agents that specialise in, say, long-form synthesis from those that
-specialise in short factoid recall. The scholarly extension
-($n = 20$, distinct domains including medical, economic,
-philosophical) is designed to introduce that diversity.
+题目参数信息量更大。四道任务 $a_j$ 都顶到我们的 clip 上限,意味着这 4 道
+题每一道几乎都能独立地完整还原 13 个 Agent 的相对顺序;它们的 $b_j$ 也都
+挤在 $-0.33$ 左右,即难度相当。这提示的是 \emph{任务多样性不足}:当前
+4 道题在同一条能力维度上测量得很好,但难以区分比如 \textquotedblleft 擅长长篇综合\textquotedblright{}
+与 \textquotedblleft 擅长短答复查\textquotedblright{}两类 Agent。我们正在引入的学术扩展集($n = 20$,
+覆盖医学、经济、哲学等不同领域)就是为了补上这一差异维度。
 
-\paragraph{Takeaway.}
-The ranking is not an Elo artefact. The 4-task consumer subset is
-high-signal but low-diversity; longer subtests at different
-$b$-values are necessary before this IRT fit can support quantitative
-claims. We report IRT parameters as ``directional only'' until
-the $13\times24$-cell matrix including scholarly tasks is complete.
+\paragraph{启示。}
+目前排名并非 Elo 单一方法的 artefact;但 4 道任务的消费者子集信号虽强,
+多样性不足,在写出 IRT 的定量 $a, b$ 参数声明之前需要更长、$b$ 分布更分散
+的子测试。因此本文中 IRT 参数仅以 \textquotedblleft 方向性结论\textquotedblright{}(directional)
+呈现,待 14 Agent $\times$ 24 题的矩阵就绪后再做定量声明。
 
 %================================================================
-\section{F4: Agent architecture, not retrieval, determines source diversity}
+\section{F4:决定源多样性的是架构,不是检索层}
 \label{sec:sources}
 %================================================================
 
-\paragraph{Premise.}
-A standard simplifying assumption is that given identical retrieval
-infrastructure, two agents see the same corpus and differ only in
-downstream reasoning. We test this on the same sandbox shim,
-fixing retrieval, and measuring which URLs surface in the final
-report.
+\paragraph{动机。}
+一个常见的简化假设是:给定相同的检索基础设施,两个 Agent 看到的就是相同
+的语料,只在下游推理上有所不同。我们在同一 shim 下固定检索侧,直接测量
+最终报告里究竟出现了哪些 URL。
 
-\paragraph{Method.}
-Four scholarly tasks (\texttt{dr\_cross\_v3\_0088} common cold,
-\texttt{0095} scientific method, \texttt{0100} inflation,
-\texttt{0105} induced demand), each requiring cross-reference
-between Wikipedia articles and forum discussions. The shim is patched
-to index Kiwix (\texttt{localhost:8090}) alongside Magento and
-Postmill; a representative \texttt{POST /search} query for ``common
-cold rhinovirus virology'' returns six results of which three are
-\texttt{localhost:8090} Wikipedia articles and three are shopping or
-forum.
+\paragraph{方法。}
+四道学术任务(\texttt{dr\_cross\_v3\_0088} 感冒医学、
+\texttt{0095} 科学方法论、\texttt{0100} 通胀、
+\texttt{0105} 诱导需求),每一道都要求在 Wikipedia 文章与
+论坛讨论之间做交叉引用。shim 此时已接入 Kiwix(\texttt{localhost:8090})
+与 Magento、Postmill 并列;一个典型的 \texttt{POST /search} 请求
+(比如 \textquotedblleft common cold rhinovirus virology\textquotedblright{})返回 6 条结果,其中 3 条
+是 \texttt{localhost:8090} 的 Wikipedia 条目,另外 3 条来自 shopping 或
+论坛。
 
-Two agents use the same shim URL and the same environment, differing
-only in their internal composition:
+两个 Agent 共用同一个 shim URL 和同一套环境,唯一差异在其内部组装方式:
 \begin{description}[leftmargin=*,itemsep=2pt]
-  \item[\texttt{gpt5chat}] OpenAI Agents SDK tool-calling loop
-    (\texttt{scripts/run\_gpt5.py}): the LLM reads a single consolidated
-    search response, selects promising URLs, and calls
-    \texttt{scrape(url)} individually.
-  \item[\texttt{gpt-researcher}] Classical RAG-compilation: retrieved
-    results are scored and re-ranked by a sub-LLM, then fed as
-    compressed context into a writer LLM. The writer emits the final
-    report and cites the compressed sources.
+  \item[\texttt{gpt5chat}] OpenAI Agents SDK 风 tool-calling 循环
+    (\texttt{scripts/run\_gpt5.py}):LLM 自己读一条整体搜索返回、筛选出
+    有前途的 URL,再单独调用 \texttt{scrape(url)}。
+  \item[\texttt{gpt-researcher}] 经典 RAG 组装:检索结果先经过一个子 LLM
+    做打分与 rerank,再压缩入上下文喂给 writer LLM;writer 生成最终报告,
+    并按 rerank 存下来的源做引用。
 \end{description}
 
-\paragraph{Result.}
+\paragraph{结果。}
 \begin{table}[h]
   \centering
   \small
   \begin{tabular}{llrrrr}
     \toprule
-    Agent & Architecture & Words & Cites & Wiki URLs & Forum URLs \\
+    Agent & 架构 & 词数 & 引用数 & Wiki URL 数 & 论坛 URL 数 \\
     \midrule
-    \multicolumn{6}{l}{\emph{Task 0088 (common cold)}} \\
+    \multicolumn{6}{l}{\emph{任务 0088(感冒医学)}} \\
     \texttt{gpt5chat}       & tool-call & 1111 & 7  & \textbf{2} & 1 \\
     \texttt{gpt-researcher} & RAG       & 1774 & 19 & \textbf{0} & --- \\
-    \multicolumn{6}{l}{\emph{Task 0095 (scientific method)}} \\
+    \multicolumn{6}{l}{\emph{任务 0095(科学方法论)}} \\
     \texttt{gpt5chat}       & tool-call & 1354 & 11 & \textbf{3} & 0 \\
     \texttt{gpt-researcher} & RAG       & 1512 & 22 & \textbf{0} & --- \\
-    \multicolumn{6}{l}{\emph{Task 0100 (inflation)}} \\
+    \multicolumn{6}{l}{\emph{任务 0100(通胀)}} \\
     \texttt{gpt5chat}       & tool-call & 2068 & 14 & \textbf{3} & 1 \\
     \texttt{gpt-researcher} & RAG       & 2363 & 13 & \textbf{0} & --- \\
-    \multicolumn{6}{l}{\emph{Task 0105 (induced demand)}} \\
+    \multicolumn{6}{l}{\emph{任务 0105(诱导需求)}} \\
     \texttt{gpt5chat}       & tool-call & 1233 & 5  & \textbf{2} & 0 \\
     \texttt{gpt-researcher} & RAG       & 1792 & 9  & \textbf{0} & --- \\
     \midrule
-    \emph{Mean}      \texttt{gpt5chat}       & & 1441 & 9.2  & \textbf{2.5} & 0.5 \\
-    \emph{Mean}      \texttt{gpt-researcher} & & 1860 & 15.8 & \textbf{0.0} & --- \\
+    \emph{均值}     \texttt{gpt5chat}       & & 1441 & 9.2  & \textbf{2.5} & 0.5 \\
+    \emph{均值}     \texttt{gpt-researcher} & & 1860 & 15.8 & \textbf{0.0} & --- \\
     \bottomrule
   \end{tabular}
-  \caption{Inline citations by host for two agents on four scholarly tasks,
-    same shim, same sandbox. Wiki URL counts differ by an order of magnitude.}
+  \caption{同一 shim、同一沙盒,两个 Agent 在 4 道学术任务上 inline 引用
+    URL 的 host 分布。Wiki URL 数相差一个数量级。}
   \label{tab:sources}
 \end{table}
 
-\paragraph{Why.}
-The tool-calling agent processes each search result individually and
-decides whether it is relevant to the task intent; short Wikipedia
-snippets with clear topical match (``Common cold is a viral
-infection\ldots'') rank equally with shopping PDPs in its decision.
+\paragraph{原因。}
+tool-calling 型 Agent 按条处理每一个搜索结果,自主判断是否与任务 intent
+相关;标题与 snippet 上主题匹配度高的短 Wikipedia 条目
+(\textquotedblleft Common cold is a viral infection\ldots\textquotedblright)与 shopping PDP 在它眼里
+平权竞争。
 
-The RAG-compilation agent first passes all retrieved items through a
-relevance-ranker; that ranker --- tuned for consumer-research tasks
-earlier in the pipeline --- rewards items containing hard numeric facts
-(prices, ratings, review counts). Wikipedia articles with long-form prose
-and few numerals score lower and are pruned before the writer LLM sees
-them. The writer then produces a well-cited report consisting entirely
-of surviving items: shopping pages and forum posts. No Wikipedia.
+RAG 组装型 Agent 先让一个 relevance ranker 对检索结果打分;该 ranker —— 它
+在此 pipeline 的更早阶段是针对消费者研究任务调优的 —— 倾向于给含有具体数值
+事实(价格、评分、评论数)的条目高分。Wikipedia 条目以长散文为主、数字较少,
+打分偏低,在进入 writer LLM 之前就被 prune 掉。writer 随后仅凭剩下的项目
+(shopping 页面 + 论坛帖)写出引用完备的报告,不含任何 Wikipedia。
 
-\paragraph{Takeaway.}
-When reviewers ask ``did the agent retrieve the same sources?'' the
-answer at the shim layer is yes, but at the composition layer is no.
-Agent architecture is part of the information bottleneck, not just of
-the reasoning step. This motivates a \texttt{source\_diversity} metric
-(unique citation hosts, scaled by how many distinct hosts the shim
-offered) orthogonal to citation quantity; under such a metric
-\texttt{gpt5chat} outscores \texttt{gpt-researcher} on scholarly tasks
-without needing more citations, differently from what the
-existing \texttt{citation} pillar captures.
+\paragraph{启示。}
+当审稿人问 \textquotedblleft 两个 Agent 是否获取到相同的源\textquotedblright{} 时,在 shim 层答案是
+\textquotedblleft 是\textquotedblright{},在组装层答案却是 \textquotedblleft 否\textquotedblright{}。Agent 架构本身就是信息瓶颈的
+一部分,不只是推理环节的差异。这就为 \texttt{source\_diversity} 度量
+(唯一引用 host 数,按 shim 所提供的 host 数归一化)提供了动机 —— 该度量
+与 \texttt{citation} 维度(引用\emph{数量})正交。依此度量,\texttt{gpt5chat}
+在学术任务上优于 \texttt{gpt-researcher},而且不是因为引用数更多;
+这是现有 \texttt{citation} 维度无法捕捉的。
 
 %================================================================
-\section{Discussion}
+\section{讨论}
 %================================================================
 
-The four findings are not equally mature:
+四个发现的成熟度并不相同:
 \begin{itemize}[leftmargin=*,itemsep=2pt]
-  \item \textbf{F1 (length)}: complete claim, presentable as a
-    stand-alone sanity check with Table~\ref{tab:length}.
-  \item \textbf{F2 (hallucination taxonomy)}: complete claim over the
-    current 4-task set; upgrade to LLM-verified labels (as opposed to
-    pattern-matching) would strengthen reviewer response on soft
-    hallucination.
-  \item \textbf{F3 (IRT)}: qualitative claim only; requires the
-    $13\times 24$ scholarly-extended matrix before reporting
-    quantitative $a,b$ parameters with confidence intervals.
-  \item \textbf{F4 (source diversity)}: $n=2$ agents, $n=4$ tasks ---
-    initial observation, not yet a claim. The ablation requires the
-    same measurement across all 13 agents once scholarly runs complete.
+  \item \textbf{F1(长度)}:完整结论,可以用表 \ref{tab:length} 独立成段
+    作为健壮性检查。
+  \item \textbf{F2(幻觉分类)}:对当前 4 道任务的集合已是完整结论;
+    若将分类从正则升级为 LLM 标注(尤其对软幻觉),对审稿人的回应会更强。
+  \item \textbf{F3(IRT)}:目前只敢做定性声明;要做定量 $a, b$ 参数与
+    置信区间的正式声明,需要 $13 \times 24$ 规模的学术扩展矩阵。
+  \item \textbf{F4(源多样性)}:$n = 2$ Agent、$n = 4$ 任务 —— 只是初步
+    观察,尚不能成为定论。要做成完整的 ablation 需要在所有 13 个 Agent 上
+    跑完学术任务。
 \end{itemize}
 
-All four findings share a structural property: they are only visible
-because the benchmark decomposes the score into multiple pillars and
-tracks failure modes beyond success/failure. A single-score live-web
-benchmark could not have surfaced any of them: length-bias testing
-requires per-pillar correlations (F1); hallucination detection
-requires offline URL enumeration against a known sandbox (F2);
-IRT cross-validation requires a stable, frozen-corpus matrix (F3);
-source-diversity ablation requires full URL provenance per report (F4).
+四个发现共享一个结构性质:它们之所以能够被观察到,完全依赖本基准采用
+\textit{多维度分数 + 失败模式追踪}而非单一 success/failure 指标。
+单分数的 live-web 基准无法触及它们中的任何一个:F1 需要 per-pillar
+相关性、F2 需要在已知沙盒上的 URL 离线对照、F3 需要稳定冻结的语料以
+构建全矩阵、F4 需要每份报告的完整 URL 出处。
 
 \bibliographystyle{plainnat}
 \bibliography{refs}

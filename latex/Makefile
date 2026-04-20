@@ -1,7 +1,7 @@
 TEX     := findings
 BIB     := refs
 BUILD   := build
-LATEX   := pdflatex -interaction=nonstopmode -halt-on-error -output-directory=$(BUILD)
+LATEX   := xelatex -interaction=nonstopmode -halt-on-error -output-directory=$(BUILD)
 BIBTEX  := bibtex
 TABLES  := tables/length.tex tables/halluc.tex tables/irt.tex
 
