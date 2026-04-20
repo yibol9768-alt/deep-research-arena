@@ -285,6 +285,116 @@ def firecrawl_scrape(
 
 
 # ============================================================================
+# DB lookup endpoints — structured JSON lookup to equalize info access
+# across agents (fixes the methodology bias flagged in 2026-04-20 paper
+# discussion: react uses envs.*.scrape directly, everyone else only sees
+# Tavily-compat snippets; these endpoints expose the same structured data
+# via HTTP so any agent can call them).
+# ============================================================================
+
+class PostLookupRequest(BaseModel):
+    url: str  # full Postmill post URL, or /f/<forum>/<id>/<slug> path
+
+
+class PostLookupResponse(BaseModel):
+    ok: bool
+    url: str
+    title: str | None = None
+    author: str | None = None
+    forum: str | None = None
+    score: int | None = None
+    comment_count: int | None = None
+    body: str | None = None
+    top_comments: list[dict] = Field(default_factory=list)
+    error: str | None = None
+
+
+@app.post("/post_lookup", response_model=PostLookupResponse)
+def post_lookup(req: PostLookupRequest) -> PostLookupResponse:
+    """Return structured JSON for a single Postmill submission. Delegates
+    to envs.reddit.scrape.get_submission (requests-based, no Playwright)."""
+    try:
+        from envs.reddit.scrape import get_submission  # lazy import
+        data = get_submission(req.url)
+        if not data or not data.get("title"):
+            return PostLookupResponse(ok=False, url=req.url, error="post not found or empty")
+        return PostLookupResponse(
+            ok=True,
+            url=req.url,
+            title=data.get("title"),
+            author=data.get("author"),
+            forum=data.get("forum"),
+            score=data.get("score"),
+            comment_count=data.get("comment_count"),
+            body=data.get("body"),
+            top_comments=data.get("comments") or [],
+        )
+    except Exception as e:
+        return PostLookupResponse(ok=False, url=req.url, error=f"{type(e).__name__}: {e}")
+
+
+class ProductLookupRequest(BaseModel):
+    url: str  # full Magento PDP URL (e.g. http://localhost:7770/some-product.html)
+
+
+class ProductLookupResponse(BaseModel):
+    ok: bool
+    url: str
+    name: str | None = None
+    price: float | None = None
+    rating: float | None = None
+    sku: str | None = None
+    description: str | None = None
+    review_count: int | None = None
+    in_stock: bool | None = None
+    error: str | None = None
+
+
+@app.post("/product_lookup", response_model=ProductLookupResponse)
+def product_lookup(req: ProductLookupRequest) -> ProductLookupResponse:
+    """Return structured JSON for a single Magento PDP. This is an HTTP-only
+    best-effort extractor (no Playwright) — it parses price/rating/sku from
+    the server-rendered HTML. Accuracy is lower than the Playwright-based
+    envs.shopping.oracle_dr.magento_scrape.product_details, but all agents
+    can call it through the shim."""
+    import re
+    try:
+        import requests  # type: ignore
+        r = requests.get(req.url, timeout=20, allow_redirects=True)
+        if r.status_code >= 400:
+            return ProductLookupResponse(ok=False, url=req.url,
+                                         error=f"HTTP {r.status_code}")
+        html = r.text
+    except Exception as e:
+        return ProductLookupResponse(ok=False, url=req.url,
+                                     error=f"{type(e).__name__}: {e}")
+
+    def _first(pattern: str, flags=0):
+        m = re.search(pattern, html, flags)
+        return m.group(1).strip() if m else None
+
+    name = _first(r'<span[^>]+itemprop="name"[^>]*>([^<]+)</span>') or \
+           _first(r'<h1[^>]*class="page-title"[^>]*>\s*<span[^>]*>([^<]+)</span>')
+    price_raw = _first(r'data-price-amount="([0-9.]+)"')
+    price = float(price_raw) if price_raw else None
+    # Magento stores rating in title="N%" of .rating-result; decode to 0..5
+    pct_raw = _first(r'class="rating-result"[^>]*title="([0-9]+)%"')
+    rating = round(int(pct_raw)/20 * 10)/10 if pct_raw else None
+    sku = _first(r'<div[^>]+itemprop="sku"[^>]*>([^<]+)</div>') or \
+          _first(r'"sku":"([^"]+)"')
+    desc = _first(r'<meta[^>]+name="description"[^>]+content="([^"]+)"')
+    review_count_raw = _first(r'id="customer-reviews"[^>]*>[\s\S]{0,4000}?\((\d+)\s+Reviews?\)', re.I)
+    review_count = int(review_count_raw) if review_count_raw else None
+    in_stock = "In stock" in html or "in-stock" in html.lower()
+
+    return ProductLookupResponse(
+        ok=True, url=req.url,
+        name=name, price=price, rating=rating, sku=sku,
+        description=desc, review_count=review_count, in_stock=in_stock,
+    )
+
+
+# ============================================================================
 # Health
 # ============================================================================
 

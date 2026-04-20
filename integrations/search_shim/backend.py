@@ -19,6 +19,9 @@ from bs4 import BeautifulSoup
 
 SHOPPING = os.environ.get("SHOPPING", "http://localhost:7770").rstrip("/")
 REDDIT = os.environ.get("REDDIT", "http://localhost:9999").rstrip("/")
+KIWIX = os.environ.get("KIWIX", "http://localhost:8090").rstrip("/")
+KIWIX_BOOK = os.environ.get("KIWIX_BOOK", "wikipedia_en_all_nopic")
+
 # Reddit forums we search by default. Overridable via env.
 _DEFAULT_REDDIT_FORUMS = os.environ.get(
     "SHIM_REDDIT_FORUMS",
@@ -222,6 +225,45 @@ def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
 # Unified entry point + extract
 # ---------------------------------------------------------------------------
 
+
+
+# ---------------------------------------------------------------------------
+# Wikipedia (kiwix) search
+# ---------------------------------------------------------------------------
+
+def _search_kiwix(query: str, max_results: int) -> list[SearchHit]:
+    """Kiwix returns HTML for /search; parse result list."""
+    url = f"{KIWIX}/search"
+    params = {"pattern": query, "books.name": KIWIX_BOOK, "pageLength": max_results}
+    try:
+        r = requests.get(url, params=params, timeout=20)
+        if r.status_code >= 400:
+            return []
+    except Exception:
+        return []
+    soup = BeautifulSoup(r.text, "html.parser")
+    hits: list[SearchHit] = []
+    # Result items are <li>..<a href="..."><cite>..snippet</cite></a>..</li>
+    for i, li in enumerate(soup.select("ul.results li, .results li")):
+        a = li.select_one("a[href]")
+        if not a:
+            continue
+        title = a.get_text(strip=True)
+        href = a.get("href") or ""
+        if not href.startswith("http"):
+            href = f"{KIWIX}{href if href.startswith('/') else '/' + href}"
+        snippet_el = li.select_one("cite") or li.select_one("p")
+        snippet = snippet_el.get_text(" ", strip=True) if snippet_el else title
+        hits.append(SearchHit(
+            url=href, title=title, content=snippet[:400],
+            score=max(0.0, 1.0 - i / max_results),
+            source="wiki",
+        ))
+        if len(hits) >= max_results:
+            break
+    return hits
+
+
 def search(
     query: str,
     *,
@@ -236,11 +278,14 @@ def search(
 
     want_shopping = (not include) or any(d in {"shopping", "localhost:7770", "magento"} for d in include)
     want_reddit = (not include) or any(d in {"reddit", "localhost:9999", "postmill", "reddit.com"} for d in include)
+    want_wiki = (not include) or any(d in {"wiki", "wikipedia", "wikipedia.org", "localhost:8090", "kiwix"} for d in include)
 
     if want_shopping:
         results.extend(_search_shopping(query, max_results))
     if want_reddit:
         results.extend(_search_reddit(query, max_results))
+    if want_wiki:
+        results.extend(_search_kiwix(query, max_results))
 
     # Exclude filter
     if exclude:
@@ -289,7 +334,8 @@ def extract(urls: Iterable[str]) -> list[dict]:
             if h1:
                 entry["title"] = h1.get_text(strip=True)
             entry["source"] = "shopping" if "localhost:7770" in url or "magento" in url else (
-                "reddit" if "localhost:9999" in url or "reddit" in url else "other"
+                "reddit" if "localhost:9999" in url or "reddit" in url else (
+                "wiki" if "localhost:8090" in url or "wikipedia" in url else "other")
             )
             entry["elapsed_ms"] = int((time.time() - t0) * 1000)
         except Exception as e:
