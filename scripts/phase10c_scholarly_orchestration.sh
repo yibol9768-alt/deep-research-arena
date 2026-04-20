@@ -43,6 +43,12 @@ safe_rename() {
   fi
 }
 
+# Check if target file already exists with reasonable size — if so, skip work.
+# usage: have_target <path>   (returns 0 if target already present and >500B)
+have_target() {
+  [ -s "$1" ] && [ "$(stat -c%s "$1")" -gt 500 ]
+}
+
 run_cmd() {
   local tag="$1"; shift
   local t="$1"; shift
@@ -61,60 +67,88 @@ for tid in "${SCHOLARLY[@]}"; do
   log "======== task $TID ========"
 
   # --- gpt-researcher-ds ---
-  (
-    export GPTR_ONLY_TASK="$TID"
-    run_cmd "gptr_ds_${tid}" 1800 -- ./.venv-gptr/bin/python scripts/run_gpt_researcher.py || true
-  )
-  safe_rename "$RESULTS/gpt-researcher_${TID}.md" "$RESULTS/gpt-researcher-ds_${TID}.md"
+  if have_target "$RESULTS/gpt-researcher-ds_${TID}.md"; then
+    log "  = skip gptr_ds_${tid} (target exists)"
+  else
+    (
+      export GPTR_ONLY_TASK="$TID"
+      run_cmd "gptr_ds_${tid}" 1800 -- ./.venv-gptr/bin/python scripts/run_gpt_researcher.py || true
+    )
+    safe_rename "$RESULTS/gpt-researcher_${TID}.md" "$RESULTS/gpt-researcher-ds_${TID}.md"
+  fi
 
   # --- camel-ai-ds ---
-  (
-    export CAMEL_ONLY_TASK="$TID"
-    run_cmd "camel_ds_${tid}" 1800 -- ./.venv-camel/bin/python scripts/run_camel_ai.py || true
-  )
-  safe_rename "$RESULTS/camel-ai_${TID}.md" "$RESULTS/camel-ai-ds_${TID}.md"
+  if have_target "$RESULTS/camel-ai-ds_${TID}.md"; then
+    log "  = skip camel_ds_${tid} (target exists)"
+  else
+    (
+      export CAMEL_ONLY_TASK="$TID"
+      run_cmd "camel_ds_${tid}" 1800 -- ./.venv-camel/bin/python scripts/run_camel_ai.py || true
+    )
+    safe_rename "$RESULTS/camel-ai_${TID}.md" "$RESULTS/camel-ai-ds_${TID}.md"
+  fi
 
   # --- smolagents-ds ---
-  (
-    export SMOL_ONLY_TASK="$TID"
-    run_cmd "smol_ds_${tid}" 1800 -- ./.venv-smol/bin/python scripts/run_smolagents.py || true
-  )
-  safe_rename "$RESULTS/smolagents_${TID}.md" "$RESULTS/smolagents-ds_${TID}.md"
+  if have_target "$RESULTS/smolagents-ds_${TID}.md"; then
+    log "  = skip smol_ds_${tid} (target exists)"
+  else
+    (
+      export SMOL_ONLY_TASK="$TID"
+      run_cmd "smol_ds_${tid}" 1800 -- ./.venv-smol/bin/python scripts/run_smolagents.py || true
+    )
+    safe_rename "$RESULTS/smolagents_${TID}.md" "$RESULTS/smolagents-ds_${TID}.md"
+  fi
 
   # --- odr-ds ---
-  (
-    export ODR_ONLY_TASK="$TID"
-    run_cmd "odr_ds_${tid}" 1800 -- ./.venv-odr/bin/python scripts/run_open_deep_research.py || true
-  )
-  safe_rename "$RESULTS/open-deep-research_${TID}.md" "$RESULTS/open-deep-research-ds_${TID}.md"
+  if have_target "$RESULTS/open-deep-research-ds_${TID}.md"; then
+    log "  = skip odr_ds_${tid} (target exists)"
+  else
+    (
+      export ODR_ONLY_TASK="$TID"
+      run_cmd "odr_ds_${tid}" 1800 -- ./.venv-odr/bin/python scripts/run_open_deep_research.py || true
+    )
+    safe_rename "$RESULTS/open-deep-research_${TID}.md" "$RESULTS/open-deep-research-ds_${TID}.md"
+  fi
 
   # --- deerflow-ds ---
-  (
-    export DEERFLOW_ONLY_TASK="$TID"
-    run_cmd "deer_ds_${tid}" 1800 -- ./.venv-camel/bin/python scripts/run_deerflow_cross.py || true
-  )
-  safe_rename "$RESULTS/deerflow_${TID}.md" "$RESULTS/deerflow-ds_${TID}.md"
+  if have_target "$RESULTS/deerflow-ds_${TID}.md"; then
+    log "  = skip deer_ds_${tid} (target exists)"
+  else
+    (
+      export DEERFLOW_ONLY_TASK="$TID"
+      run_cmd "deer_ds_${tid}" 1800 -- ./.venv-camel/bin/python scripts/run_deerflow_cross.py || true
+    )
+    safe_rename "$RESULTS/deerflow_${TID}.md" "$RESULTS/deerflow-ds_${TID}.md"
+  fi
 
   # --- react-qwen35plus (GLM via Anthropic-compat @ ANTHROPIC_BASE_URL) ---
-  (
-    run_cmd "react_qwen_${tid}" 1800 -- ./.venv-camel/bin/python scripts/bench_v3.py react --no-judge --no-pairwise --tasks "$TID" --model qwen3.5-plus || true
-  )
-  newest=$(ls -t "$RESULTS"/react-qwen35plus_${TID}_*.answer.md 2>/dev/null | head -1 || true)
-  if [ -n "${newest:-}" ]; then
-    safe_rename "$newest" "$RESULTS/final_react-qwen35plus_${TID}.answer.md"
+  if have_target "$RESULTS/final_react-qwen35plus_${TID}.answer.md"; then
+    log "  = skip react_qwen_${tid} (target exists)"
   else
-    log "    react-qwen35plus: no timestamped output found"
+    (
+      run_cmd "react_qwen_${tid}" 1800 -- ./.venv/bin/python scripts/bench_v3.py react --no-judge --no-pairwise --tasks "$TID" --model qwen3.5-plus || true
+    )
+    newest=$(ls -t "$RESULTS"/react-qwen35plus_${TID}_*.answer.md 2>/dev/null | head -1 || true)
+    if [ -n "${newest:-}" ]; then
+      safe_rename "$newest" "$RESULTS/final_react-qwen35plus_${TID}.answer.md"
+    else
+      log "    react-qwen35plus: no timestamped output found"
+    fi
   fi
 
   # --- react-glm5 (GLM-5.1 via Anthropic-compat) ---
-  (
-    run_cmd "react_glm5_${tid}" 1800 -- ./.venv-camel/bin/python scripts/bench_v3.py react --no-judge --no-pairwise --tasks "$TID" --model glm-5.1 || true
-  )
-  newest=$(ls -t "$RESULTS"/react-glm5_${TID}_*.answer.md 2>/dev/null | head -1 || true)
-  if [ -n "${newest:-}" ]; then
-    safe_rename "$newest" "$RESULTS/final_react-glm5_${TID}.answer.md"
+  if have_target "$RESULTS/final_react-glm5_${TID}.answer.md"; then
+    log "  = skip react_glm5_${tid} (target exists)"
   else
-    log "    react-glm5: no timestamped output found"
+    (
+      run_cmd "react_glm5_${tid}" 1800 -- ./.venv/bin/python scripts/bench_v3.py react --no-judge --no-pairwise --tasks "$TID" --model glm-5.1 || true
+    )
+    newest=$(ls -t "$RESULTS"/react-glm5_${TID}_*.answer.md 2>/dev/null | head -1 || true)
+    if [ -n "${newest:-}" ]; then
+      safe_rename "$newest" "$RESULTS/final_react-glm5_${TID}.answer.md"
+    else
+      log "    react-glm5: no timestamped output found"
+    fi
   fi
 
 done

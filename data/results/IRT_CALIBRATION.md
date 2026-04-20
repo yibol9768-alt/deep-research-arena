@@ -1,6 +1,6 @@
 # IRT Calibration — 2-PL Item Analysis
 
-**n_agents** = 13    **n_tasks** = 4    **observations** = 52
+**n_agents** = 14    **n_tasks** = 8    **observations** = 80
 
 Note: with n_tasks this small, IRT estimates are directional only. Treat flags as hypotheses to investigate, not verdicts.
 
@@ -8,28 +8,33 @@ Note: with n_tasks this small, IRT estimates are directional only. Treat flags a
 
 | Agent | θ |
 |---|---:|
-| react-qwen35plus | +0.87 |
-| deerflow-glm46-shim | +0.79 |
-| react-glm5 | +0.74 |
-| deerflow-glm46-new | +0.58 |
-| gpt-researcher | +0.58 |
-| deerflow-glm46 | +0.37 |
-| camel-ai | +0.36 |
-| camel-ai-ds | +0.34 |
-| smolagents-ds | -0.18 |
-| odr-ds | -0.34 |
-| deerflow-ds | -1.60 |
-| smolagents | -2.17 |
-| gpt-researcher-ds | -3.10 |
+| deerflow-glm46-new | +2.03 |
+| deerflow-glm46-shim | +2.01 |
+| react-qwen35plus | +1.97 |
+| react-glm5 | +1.97 |
+| gpt-researcher | +0.23 |
+| camel-ai | +0.10 |
+| camel-ai-ds | +0.03 |
+| gpt5chat | +0.01 |
+| deerflow-glm46 | -0.01 |
+| deerflow-ds | -0.18 |
+| smolagents | -0.19 |
+| gpt-researcher-ds | -0.32 |
+| odr-ds | -0.95 |
+| smolagents-ds | -3.72 |
 
 ## Task calibration
 
 | Task | Discrimination (a) | Difficulty (b) | Flag |
 |---|---:|---:|:---:|
-| dr_cross_v3_0001 | +5.00 | -0.33 | **OK** |
-| dr_cross_v3_0005 | +5.00 | -0.35 | **OK** |
-| dr_cross_v3_0006 | +5.00 | -0.34 | **OK** |
-| dr_cross_v3_0007 | +5.00 | -0.35 | **OK** |
+| dr_cross_v3_0001 | +5.00 | -0.03 | **OK** |
+| dr_cross_v3_0005 | +5.00 | -0.03 | **OK** |
+| dr_cross_v3_0006 | +5.00 | -0.04 | **OK** |
+| dr_cross_v3_0007 | +5.00 | -0.03 | **OK** |
+| dr_cross_v3_0105 | +0.03 | -5.00 | **LOW_DISCRIM** |
+| dr_cross_v3_0088 | -0.04 | +5.00 | **LOW_DISCRIM** |
+| dr_cross_v3_0095 | -1.34 | +1.16 | **INVERTED** |
+| dr_cross_v3_0100 | -3.60 | +0.60 | **INVERTED** |
 
 ## Interpretation
 

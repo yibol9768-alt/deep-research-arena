@@ -148,17 +148,25 @@ def gen_irt() -> None:
     agents = irt["agents"]
     thetas = irt["params"]["theta"]
 
-    # Try to pair with BT-Elo values; if arena_elo_ED.json exists, use its
-    # `composite_elo_new` map; otherwise emit "--" for Elo.
-    elo_src = RESULTS / "arena_elo_ED.json"
-    elo_map = {}
-    if elo_src.exists():
+    # Try to pair with BT-Elo values.
+    # Prefer arena_final.json (new, from build_final_leaderboard.py) over
+    # arena_elo_ED.json (old legacy). Accept both key names.
+    elo_map: dict[str, float] = {}
+    for name in ("arena_final.json", "arena_elo_ED.json"):
+        p = RESULTS / name
+        if not p.exists():
+            continue
         try:
-            d = json.loads(elo_src.read_text())
-            elo_map = {k: v.get("elo") for k, v in
-                       d.get("composite_elo_new", {}).items()}
+            d = json.loads(p.read_text())
         except Exception:
-            pass
+            continue
+        m = d.get("composite_elo") or d.get("composite_elo_new") or {}
+        if m:
+            elo_map = {
+                k: (v.get("elo") if isinstance(v, dict) else v)
+                for k, v in m.items()
+            }
+            break
 
     paired = sorted(zip(agents, thetas), key=lambda x: -x[1])
     rows = []

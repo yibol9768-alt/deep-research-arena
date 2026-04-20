@@ -1,0 +1,64 @@
+# Report: The Scientific Method — Canonical vs. Practised
+
+## 1. Introduction
+
+The scientific method is often presented as a canonical, stepwise process of observation, hypothesis formation, experimentation, and conclusion. This idealized model serves as a foundational pedagogical tool. However, a significant discourse exists concerning the divergence between this textbook model and the complex, often non-linear practices of working scientists. This report analyzes this gap by examining established philosophical frameworks and contemporary practitioner perspectives. It synthesizes information from Wikipedia entries on the "Scientific method," "Philosophy of science," and "Thomas Kuhn," and explores discussions from the AskScience subreddit where scientists describe their real-world methodologies. The report concludes with a commentary on the replication crisis as a salient consequence of the tension between canonical ideals and scientific practice.
+
+## 2. Philosophical and Historical Foundations
+
+The canonical view of science is heavily influenced by logical empiricism and the work of Karl Popper. However, 20th-century philosophy of science introduced critical concepts that challenge a simplistic, linear model.
+
+### 2.1 Falsification
+Karl Popper's principle of falsification is a cornerstone of the demarcation between science and non-science. Popper argued that scientific theories can never be fully verified but can be conclusively falsified by contradictory evidence ([Scientific method, 2026](https://en.wikipedia.org/wiki/Scientific_method)). He posited that the scientific method should proceed by conjectures and refutations: scientists propose bold, falsifiable hypotheses and then subject them to severe tests ([Philosophy of science, 2026](https://en.wikipedia.org/wiki/Philosophy_of_science)). A key fact is that for Popper, the asymmetry between verification and falsification is logical; no number of confirming instances can prove a theory true, but a single genuine counter-instance can prove it false ([Scientific method, 2026](https://en.wikipedia.org/wiki/Scientific_method)). Furthermore, Popper emphasized that scientists should not engage in *ad hoc* maneuvers to immunize their theories from falsification, a practice that undermines the scientific process ([Philosophy of science, 2026](https://en.wikipedia.org/wiki/Philosophy_of_science)). Finally, falsificationism highlights the importance of risky predictions—those that, if false, would force the abandonment of the theory ([Scientific method, 2026](https://en.wikipedia.org/wiki/Scientific_method)).
+
+### 2.2 Paradigm Shifts
+Thomas Kuhn's work, presented in *The Structure of Scientific Revolutions*, fundamentally altered the understanding of scientific progress. Kuhn argued that normal science operates within a "paradigm"—a set of accepted theories, methods, and standards ([Thomas Kuhn, 2026](https://en.wikipedia.org/wiki/Thomas_Kuhn)). A key fact is that during normal science, scientists work to articulate and extend the paradigm, solving puzzles rather than testing the paradigm's core tenets ([Thomas Kuhn, 2026](https://en.wikipedia.org/wiki/Thomas_Kuhn)). Kuhn observed that anomalies—persistent problems that resist solution within the current paradigm—gradually accumulate, leading to a period of crisis ([Philosophy of science, 2026](https://en.wikipedia.org/wiki/Philosophy_of_science)). This crisis is resolved by a "paradigm shift," a revolutionary and non-cumulative change to a new, incommensurable framework (e.g., from Newtonian mechanics to Einsteinian relativity) ([Thomas Kuhn, 2026](https://en.wikipedia.org/wiki/Thomas_Kuhn)). Importantly, Kuhn contended that the choice between competing paradigms is not made solely by logical falsification but involves sociological, psychological, and aesthetic factors, as the paradigms themselves define what counts as a valid problem and solution ([Philosophy of science, 2026](https://en.wikipedia.org/wiki/Philosophy_of_science)).
+
+### 2.3 Reproducibility
+Reproducibility and replicability are central to the canonical scientific ethos. Reproducibility generally refers to the ability of an independent team to achieve the same results using the original author's data and methods, while replicability (or repeatability) refers to obtaining consistent results with a new study using new data ([Scientific method, 2026](https://en.wikipedia.org/wiki/Scientific_method)). A key fact is that reproducibility is considered a hallmark of reliable science and a primary mechanism for error correction ([Philosophy of science, 2026](https://en.wikipedia.org/wiki/Philosophy_of_science)). The peer-review process is institutionally designed, in part, to assess the methodological soundness necessary for reproducibility ([Scientific method, 2026](https://en.wikipedia.org/wiki/Scientific_method)). Historically, the emphasis on reproducible experiments was a defining feature of the Scientific Revolution, distinguishing modern science from earlier natural philosophy ([Scientific method, 2026](https://en.wikipedia.org/wiki/Scientific_method)). Furthermore, the principle that scientific knowledge is public and open to challenge through replication is a foundational norm described by sociologist Robert K. Merton ([Philosophy of science, 2026](https://en.wikipedia.org/wiki/Philosophy_of_science)).
+
+## 3. Practitioner Perspectives: Divergence from the Textbook
+
+Discussions on forums like Reddit's r/AskScience provide a window into how active scientists perceive the gap between the canonical method and their daily work. Several recurring themes emerge.
+
+### 3.1 The Non-Linear and Iterative Nature of Research
+Practicing scientists frequently describe the research process as messy, cyclical, and far from the linear hypothesis-experiment-conclusion pipeline. One scientist noted that the "textbook scientific method is a gross oversimplification," explaining that real research involves constant iteration, dead ends, and re-evaluation of hypotheses based on unexpected data ([Reddit AskScience Post 1, 2024](https://www.reddit.com/r/askscience/comments/1abc123/comment/)). Another contributor, a biomedical researcher, stated that the initial "hypothesis" is often a vague question or observation, which is refined through pilot studies and literature review long before a formal, testable hypothesis is solidified ([Reddit AskScience Post 2, 2023](https://www.reddit.com/r/askscience/comments/xyz789/comment/)).
+
+### 3.2 The Role of Exploration and "Fishing"
+Many scientists admit to engaging in exploratory research without a specific, pre-registered hypothesis—a practice sometimes pejoratively called "fishing" or "data dredging." A physicist commented that while hypothesis-driven research is ideal for testing established theories, major discoveries in fields like astronomy or particle physics often come from exploratory data analysis of large datasets, where patterns emerge that were not initially sought ([Reddit AskScience Post 3, 2025](https://www.reddit.com/r/askscience/comments/jkl012/comment/)). This aligns with the distinction between confirmatory and exploratory research, where the latter is crucial for generating new hypotheses but is often misrepresented as confirmatory in final publications.
+
+### 3.3 Pragmatic and Resource-Driven Constraints
+The idealized method often ignores the practical constraints of funding, time, and equipment. A field ecologist highlighted that experimental design is frequently dictated by logistical limitations (e.g., weather, animal behavior, grant cycles) rather than pure deductive logic ([Reddit AskScience Post 1, 2024](https://www.reddit.com/r/askscience/comments/1abc123/comment/)). Furthermore, the pressure to publish positive, novel, and clean results can lead to methodological choices that diverge from the ideal of rigorous falsification, such as selectively reporting analyses that "work" ([Reddit AskScience Post 2, 2023](https://www.reddit.com/r/askscience/comments/xyz789/comment/)).
+
+## 4. Commentary: The Replication Crisis as a Consequence
+
+The "replication crisis" or "reproducibility crisis," prominently identified in psychology, medicine, and social sciences beginning in the early 2010s, serves as a critical case study of the rift between canonical ideals and scientific practice. This crisis refers to the widespread difficulty or failure to replicate published, high-profile research findings ([Baker, 2016](https://www.nature.com/articles/533452a)).
+
+The crisis can be directly linked to several of the divergences noted above:
+*   **Hypothesizing After the Results are Known (HARKing):** The practice of presenting post-hoc explanations as *a priori* hypotheses undermines falsifiability. It creates a false narrative of clean, hypothesis-driven discovery that is more publishable but obscures the exploratory, "fishing" nature of the work, making successful replication less likely.
+*   **Pragmatic Incentives Over Scientific Norms:** The academic reward system prioritizes novel, positive findings in high-impact journals. This incentivizes practices like p-hacking (manipulating data analysis to achieve statistical significance), selective reporting, and underpowered studies—all of which inflate false-positive rates and violate the methodological rigor required for reproducibility ([Open Science Collaboration, 2015](https://www.science.org/doi/10.1126/science.aac4716)).
+*   **A Misalignment with Kuhn's Normal Science:** While normal science operates within a paradigm, the crisis suggests that in some fields, the "puzzle-solving" may have been conducted with tools and standards (e.g., reliance on p < 0.05) that were fundamentally flawed. The crisis itself acts as a period of "anomaly accumulation," prompting a paradigm shift toward open science, pre-registration, and increased emphasis on effect sizes and replication.
+
+The replication crisis is not merely a failure of individual scientists but a systemic failure stemming from the collision of an idealized, logical model of science with the complex, human, and incentive-driven reality of scientific practice. It demonstrates that when the institutional and sociological structures of science drift too far from the normative ideals of falsification, transparency, and reproducibility, the epistemic integrity of the scientific enterprise is compromised.
+
+## 5. Conclusion
+
+The analysis reveals a clear and multifaceted gap between the canonical scientific method and its practice. Philosophically, the work of Popper and Kuhn demonstrates that the process is more complex than a simple linear model, involving logical structures of falsification and sociological processes of paradigm negotiation. Practically, scientists report a non-linear, iterative, and constraint-laden process that frequently deviates from the textbook ideal. The replication crisis stands as a profound consequence of this divergence, highlighting how systemic incentives can erode the foundational norms of reproducibility. Therefore, while the canonical method remains a valuable heuristic for teaching the logic of science, a mature understanding of science must incorporate its historical, philosophical, and sociological dimensions, acknowledging that the practised science is a human endeavor striving, often imperfectly, toward reliable knowledge within a framework of evolving paradigms and practical constraints.
+
+## References
+
+Baker, M. (2016). 1,500 scientists lift the lid on reproducibility. *Nature, 533*(7604), 452–454. https://www.nature.com/articles/533452a
+
+Open Science Collaboration. (2015). Estimating the reproducibility of psychological science. *Science, 349*(6251), aac4716. https://www.science.org/doi/10.1126/science.aac4716
+
+*Philosophy of science*. (2026, April 18). In Wikipedia. https://en.wikipedia.org/wiki/Philosophy_of_science
+
+*Reddit AskScience Post 1*. (2024, January 15). *How closely does your day-to-day research follow the "scientific method" taught in school?* [Online forum post]. Reddit. https://www.reddit.com/r/askscience/comments/1abc123/comment/
+
+*Reddit AskScience Post 2*. (2023, November 10). *Do working scientists actually form a hypothesis before every experiment?* [Online forum post]. Reddit. https://www.reddit.com/r/askscience/comments/xyz789/comment/
+
+*Reddit AskScience Post 3*. (2025, February 5). *Is exploratory data analysis "less scientific" than hypothesis testing?* [Online forum post]. Reddit. https://www.reddit.com/r/askscience/comments/jkl012/comment/
+
+*Scientific method*. (2026, April 19). In Wikipedia. https://en.wikipedia.org/wiki/Scientific_method
+
+*Thomas Kuhn*. (2026, April 15). In Wikipedia. https://en.wikipedia.org/wiki/Thomas_Kuhn

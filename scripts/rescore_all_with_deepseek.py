@@ -32,7 +32,8 @@ TASKS = ["dr_cross_v3_0001", "dr_cross_v3_0005", "dr_cross_v3_0006", "dr_cross_v
 AGENTS: dict[str, list[str]] = {
     # GLM-4.7 agents × DeepSeek judge (first run, 2026-04-18)
     "camel-ai":                  ["camel-ai_{tid}.md"],
-    "gpt-researcher":            ["gpt-researcher_{tid}.md"],
+    "gpt-researcher":            ["gpt-researcher_{tid}.md",
+                                   "final_gpt-researcher_{tid}.answer.md"],
     "react-qwen35plus":          ["final_react-qwen35plus_{tid}.answer.md"],
     "react-glm5":                ["final_react-glm5_{tid}.answer.md"],
     "deerflow-glm46":            ["final_deerflow-glm46_{tid}.answer.md"],
