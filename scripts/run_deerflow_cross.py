@@ -22,6 +22,10 @@ TASKS = [
     "dr_cross_v3_0007",
 ]
 
+_only = os.environ.get("DEERFLOW_ONLY_TASK")
+if _only:
+    TASKS = [_only if _only.startswith("dr_cross") else f"dr_cross_v3_{_only}"]
+
 
 def _run_one_task(task_id: str):
     """Run DeerFlow for one task in a subprocess."""

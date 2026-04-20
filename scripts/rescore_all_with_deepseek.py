@@ -47,6 +47,8 @@ AGENTS: dict[str, list[str]] = {
     "dzhng-ds":                  ["dzhng-deep-research-ds_{tid}.md"],
     "odr-ds":                    ["open-deep-research-ds_{tid}.md"],
     "react-ds":                  ["react-ds_{tid}.md"],
+    # GPT-5-chat-latest agent (Phase 10b)
+    "gpt5chat":                  ["gpt5chat_{tid}.answer.md", "gpt5chat_{tid}.md"],
 }
 
 
@@ -58,19 +60,33 @@ def find_source(agent: str, task_id: str) -> Path | None:
     return None
 
 
+def _resolve_tasks() -> list[str]:
+    raw = os.environ.get("RESCORE_ONLY_TASKS")
+    if not raw:
+        return list(TASKS)
+    ids: list[str] = []
+    for tok in raw.split(","):
+        tok = tok.strip()
+        if not tok:
+            continue
+        ids.append(tok if tok.startswith("dr_cross") else f"dr_cross_v3_{tok}")
+    return ids or list(TASKS)
+
+
 def main() -> None:
     only_agent = os.environ.get("RESCORE_ONLY_AGENT")
     agents = [only_agent] if only_agent else list(AGENTS)
+    tasks = _resolve_tasks()
 
     print(f"Judge: {os.environ.get('JUDGE_PROVIDER')} / "
           f"{os.environ.get('JUDGE_MODEL')} @ {os.environ.get('JUDGE_BASE_URL')}")
     print(f"Agents: {agents}")
-    print(f"Tasks: {TASKS}")
+    print(f"Tasks: {tasks}")
     print()
 
     rows: list[dict] = []
     for agent in agents:
-        for tid in TASKS:
+        for tid in tasks:
             src = find_source(agent, tid)
             if src is None:
                 print(f"  [skip] {agent}/{tid}: no markdown found")
