@@ -1,0 +1,404 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{siunitx}
+\usepackage{natbib}
+
+% Clean academic defaults
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!50!black}
+\setlength{\parskip}{0.3em}
+\setlength{\parindent}{0pt}
+
+\newcommand{\arena}{DR-Arena}
+
+\title{Four Empirical Findings from \arena{}:\\
+A Deep-Research Agent Benchmark}
+
+\author{Deep Research Arena Team}
+\date{April 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We report four empirical findings from \arena{}, a sandboxed benchmark for
+deep-research agents over a frozen 200k-document corpus (Magento storefront
++ Postmill forum + 49\,GB English Wikipedia). Across 13 agents (mix of
+GLM-4.5/4.6/5.1, DeepSeek-chat, Qwen-3.5-plus, GPT-5-chat-latest)
+$\times$ 4 cross-site tasks (52 runs), we find (F1) our LLM judge does
+\emph{not} reward length --- Spearman $\rho = -0.30$ between judge score
+and answer word count --- refuting a common reviewer concern; (F2) URL
+hallucination is an architectural artefact concentrated in 4 specific
+agents (100\% halluc rate each) rather than a property of any LLM backend;
+(F3) Item Response Theory agent-ability rankings match Bradley--Terry Elo
+rankings with Spearman $\rho = 1.00$, evidencing internal consistency of
+our ranking methodology; (F4) agents sharing identical search-shim results
+produce citation distributions that differ by an order of magnitude in
+source diversity, depending on whether the agent uses tool-calling or
+RAG-compilation architecture.
+
+Together these findings support the argument that sandboxed, multi-pillar,
+cross-family-judge evaluation surfaces diagnostic signal unavailable to
+single-score live-web benchmarks.
+\end{abstract}
+
+%================================================================
+\section{Setup}
+%================================================================
+
+\arena{} contains three sandbox services on a single host:
+\texttt{localhost:7770} (Magento, 540k products),
+\texttt{localhost:9999} (Postmill, 25 subreddits),
+\texttt{localhost:8090} (Kiwix, English Wikipedia \emph{nopic} 49\,GB).
+All agents retrieve through a unified shim exposing a Tavily- and
+Firecrawl-compatible API, so any framework that can be pointed at
+\texttt{TAVILY\_API\_URL} or \texttt{FIRECRAWL\_BASE\_URL} works
+zero-code-change.
+
+\textbf{Agents (13).} \texttt{react-qwen35plus}, \texttt{gpt-researcher},
+\texttt{react-glm5}, \texttt{deerflow-glm46-shim}, \texttt{camel-ai},
+\texttt{deerflow-glm46-new}, \texttt{deerflow-glm46}, \texttt{camel-ai-ds},
+\texttt{smolagents} (GLM), \texttt{odr-ds}, \texttt{smolagents-ds},
+\texttt{deerflow-ds}, \texttt{gpt-researcher-ds}. An additional
+\texttt{gpt5chat} agent (GPT-5-chat-latest, OpenAI-Agents-SDK-style
+tool-calling loop) was integrated for the source-diversity experiment
+(F4); it is not included in F1--F3 unless noted.
+
+\textbf{Tasks (4 for F1--F3).}
+\texttt{dr\_cross\_v3\_0001} (headphones shopping+reddit),
+\texttt{0005} (\$500 home office, shop$\times$4 + reddit$\times$2),
+\texttt{0006} (PC gaming, shop$\times$3 + reddit$\times$2),
+\texttt{0007} (budget home cook, shop$\times$2 + reddit$\times$2).
+Scholarly subset (0088--0107, $n=20$) is introduced for F4.
+
+\textbf{Scoring.} Seven weighted pillars form the composite
+(\texttt{markdown\_structure} 0.05, \texttt{citation} 0.20,
+\texttt{fact\_kg} 0.15, \texttt{llm\_judge} 0.20, \texttt{checklist} 0.20,
+\texttt{evidence\_density} 0.15, \texttt{efficiency} 0.05).
+\texttt{llm\_judge} uses DeepResearch-Bench RACE's four dimensions
+\citep{dr-bench-2026} under a cross-family judge (GLM-4.5 evaluates only
+DeepSeek-backed or Qwen-backed agents, and vice versa) to suppress
+self-preference bias \citep{wataoka-2024}.
+
+%================================================================
+\section{F1: LLM judge does not reward length}
+\label{sec:length}
+%================================================================
+
+\paragraph{Premise.}
+The verbosity-bias hypothesis \citep{wataoka-2024,arena-hard-2024} states
+that LLM-as-judge rewards longer, more confident responses. Several
+benchmark papers accept this and either apply length-controlled
+normalisation or report only length-matched pairs.
+
+\paragraph{Method.}
+For each of our 52 runs we compute the word count of \texttt{answer.md}
+(after stripping inline code and URLs) and the Spearman rank correlation
+with each pillar score and with the final composite. Correlations are
+computed across all runs jointly. Word counts range 191--5384, mean
+1540, with clear per-agent style clustering (DeerFlow averages 3162
+words; smolagents 991).
+
+\paragraph{Result.}
+\begin{table}[h]
+  \centering
+  \small
+  \input{tables/length.tex}
+  \caption{Spearman $\rho$ between answer word count and each pillar
+    score. All $|\rho| < 0.4$; \texttt{llm\_judge} and \texttt{checklist}
+    are \emph{negatively} correlated with length. Regenerated from
+    \texttt{data/results/length\_ablation.json}.}
+  \label{tab:length}
+\end{table}
+
+\paragraph{Why.}
+Our RACE-style LLM judge explicitly considers
+\textit{instruction-following} and \textit{readability}: a long
+meandering report that restates the question multiple times and
+over-hedges is penalised on both dimensions. Similarly, our DRACO-style
+rubric contains binary items such as ``Does the report identify exactly
+$k$ distinct products?'' which a verbose report is more likely to
+miss or confuse.
+
+\paragraph{Takeaway.}
+Reviewers of deep-research benchmarks almost always ask whether the judge
+is length-biased. For \arena{}'s specific setup (GLM-4.5 judge, cross-family
+selection, RACE+DRACO dual-rubric), we can answer \textit{no}, with
+Table~\ref{tab:length} directly citable. We do not claim this generalises
+to all judge configurations --- we recommend every LLM-judge benchmark
+report its analogous Spearman table as a sanity check.
+
+%================================================================
+\section{F2: URL hallucination is architectural, not model-level}
+\label{sec:halluc}
+%================================================================
+
+\paragraph{Premise.}
+A common narrative treats URL hallucination as ``the LLM makes up links
+when uncertain.'' We test whether hallucination is
+(a) distributed across all runs proportionally (noise)
+or (b) concentrated in specific agents (architectural).
+
+\paragraph{Method.}
+Pure heuristic scan of 70 \texttt{answer.md} files
+(\texttt{scripts/error\_taxonomy.py}). Each run is placed in exactly one
+of four primary classes:
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \texttt{hallucination\_url}: cites $\geq 2$ URLs outside allowed
+    sandbox hosts, or contains one of five fake-signal regexes
+    (\texttt{(placeholder)}, \texttt{example.com}, live \texttt{wikipedia.org},
+    \texttt{*.tavily.*}, \texttt{onestopmarket.com}), or writes a
+    $\geq 200$-word report with zero inline citations.
+  \item \texttt{format\_error}: answer is JSON-wrapped under 400 words.
+  \item \texttt{timeout\_or\_empty}: under 50 words or contains the
+    string ``failed to finish''.
+  \item \texttt{ok}: none of the above.
+\end{itemize}
+No LLM calls; pattern matching only. This is deliberately strict: soft
+hallucination (right URL, wrong fact in text) is not caught. Hard
+hallucination (cited URL does not exist in sandbox) is caught.
+
+\paragraph{Result.}
+\begin{table}[h]
+  \centering
+  \small
+  \input{tables/halluc.tex}
+  \caption{Per-agent primary failure class distribution. Four agents (bold)
+    hallucinate URLs on all 4 runs; the other nine show 0 of 4 in the same
+    failure class. Regenerated from
+    \texttt{data/results/error\_taxonomy.json}.}
+  \label{tab:halluc}
+\end{table}
+
+\paragraph{Why.}
+Table~\ref{tab:halluc} rules out both ``the LLM hallucinates'' and
+``random noise'' narratives. Evidence:
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item Same LLM, different architectures diverge.
+    \texttt{camel-ai-ds} (DeepSeek backend) has 0/4 halluc;
+    \texttt{gpt-researcher-ds} (DeepSeek backend) has 4/4.
+  \item Same architecture family, different LLMs diverge.
+    \texttt{smolagents} (GLM-4.5) and \texttt{smolagents-ds}
+    (DeepSeek) both 4/4 --- the architecture's
+    pre-fix \texttt{</code>} / \texttt{<end\_code>} sentinel
+    mismatch (fixed after the reported runs) dominates over LLM choice.
+\end{itemize}
+Probable causes per agent:
+\begin{description}[leftmargin=*,itemsep=2pt]
+  \item[gpt-researcher-ds] RAG compiler fills the
+    \texttt{\{sources\}} slot with \texttt{(placeholder)} strings when
+    retrieval returns fewer sources than its minimum; the LLM then
+    writes them out as if they were real URLs.
+  \item[odr-ds] Summariser prompt treats source URLs as a soft
+    constraint; DeepSeek sometimes paraphrases the URL into a
+    plausible-looking but nonexistent one.
+  \item[smolagents (both backends)] Pre-fix sentinel mismatch ---
+    agent stops before any tool call, then writes a report entirely
+    from training-memory and invents URLs to look grounded.
+\end{description}
+
+\paragraph{Takeaway.}
+URL hallucination in deep-research agents is not a model-level property;
+it is an engineering property of the agent's retrieval-composition
+pipeline. This has practical implications: benchmark authors should
+publish per-agent error-class distributions, not just a single composite;
+and agent authors can fix hallucination by patching their pipeline
+without upgrading the LLM.
+
+%================================================================
+\section{F3: IRT and Elo agree --- internal consistency}
+\label{sec:irt}
+%================================================================
+
+\paragraph{Premise.}
+Reviewers routinely ask whether a ranking produced by pairwise Elo is an
+artefact of the Elo algorithm. We cross-check with a different
+statistical framework: 2-parameter logistic Item Response Theory
+\citep{lord-1980}.
+
+\paragraph{Method.}
+We dichotomise the $13 \times 4 = 52$ composite scores by per-task
+median: $Y_{ij} = 1$ iff agent $i$'s composite on task $j$ is at or
+above that task's median across the 13 agents. We fit
+\begin{equation}
+  P(Y_{ij} = 1 \mid \theta_i, a_j, b_j) =
+  \sigma\big( a_j (\theta_i - b_j) \big)
+  \label{eq:2pl}
+\end{equation}
+by joint MLE (L-BFGS-B) with a mean-zero, unit-variance soft penalty on
+$\boldsymbol\theta$ for identifiability. The likelihood is invariant to
+simultaneous sign flip of $\boldsymbol\theta$ and $\mathbf{a}$, so after
+optimisation we flip both if
+$\mathrm{corr}(\boldsymbol\theta, \bar Y_{i\cdot}) < 0$ to align with the
+natural ``higher = better'' direction. Independently, we compute
+Bradley--Terry Elo \citep{bradley-terry-1952} on all $\binom{13}{2}=78$
+pairwise within-task wins derived from the composites.
+
+\paragraph{Result.}
+\begin{table}[h]
+  \centering
+  \small
+  \input{tables/irt.tex}
+  \caption{Agent ability under Bradley--Terry Elo and IRT 2-PL,
+    regenerated from \texttt{data/results/arena\_elo\_ED.json} and
+    \texttt{data/results/irt\_calibration.json}.
+    Item parameters (not shown): all four tasks clip at the maximum
+    discrimination bound $a_j = 5$ and cluster at $b_j \approx -0.33$.}
+  \label{tab:irt}
+\end{table}
+
+\paragraph{Why.}
+The two methods share no code path: Elo is a sequential
+win-probability update from pairwise battles, while IRT is a global
+MLE over a latent-trait model. That they produce the same ordering
+is weak-but-independent evidence that the ranking signal in the data
+is strong enough to be recovered under different assumptions.
+
+The item parameters are revealing in a different way. All four tasks
+peg $a_j = 5$ (our clipping bound), meaning each task is nearly a
+perfect rank-recoverer for the 13 agents. All four also cluster at
+$b_j \approx -0.33$, meaning they are approximately equally difficult.
+This diagnoses a lack of \emph{task diversity}: our 4-task subset
+measures a single ability dimension well but cannot distinguish
+agents that specialise in, say, long-form synthesis from those that
+specialise in short factoid recall. The scholarly extension
+($n = 20$, distinct domains including medical, economic,
+philosophical) is designed to introduce that diversity.
+
+\paragraph{Takeaway.}
+The ranking is not an Elo artefact. The 4-task consumer subset is
+high-signal but low-diversity; longer subtests at different
+$b$-values are necessary before this IRT fit can support quantitative
+claims. We report IRT parameters as ``directional only'' until
+the $13\times24$-cell matrix including scholarly tasks is complete.
+
+%================================================================
+\section{F4: Agent architecture, not retrieval, determines source diversity}
+\label{sec:sources}
+%================================================================
+
+\paragraph{Premise.}
+A standard simplifying assumption is that given identical retrieval
+infrastructure, two agents see the same corpus and differ only in
+downstream reasoning. We test this on the same sandbox shim,
+fixing retrieval, and measuring which URLs surface in the final
+report.
+
+\paragraph{Method.}
+Four scholarly tasks (\texttt{dr\_cross\_v3\_0088} common cold,
+\texttt{0095} scientific method, \texttt{0100} inflation,
+\texttt{0105} induced demand), each requiring cross-reference
+between Wikipedia articles and forum discussions. The shim is patched
+to index Kiwix (\texttt{localhost:8090}) alongside Magento and
+Postmill; a representative \texttt{POST /search} query for ``common
+cold rhinovirus virology'' returns six results of which three are
+\texttt{localhost:8090} Wikipedia articles and three are shopping or
+forum.
+
+Two agents use the same shim URL and the same environment, differing
+only in their internal composition:
+\begin{description}[leftmargin=*,itemsep=2pt]
+  \item[\texttt{gpt5chat}] OpenAI Agents SDK tool-calling loop
+    (\texttt{scripts/run\_gpt5.py}): the LLM reads a single consolidated
+    search response, selects promising URLs, and calls
+    \texttt{scrape(url)} individually.
+  \item[\texttt{gpt-researcher}] Classical RAG-compilation: retrieved
+    results are scored and re-ranked by a sub-LLM, then fed as
+    compressed context into a writer LLM. The writer emits the final
+    report and cites the compressed sources.
+\end{description}
+
+\paragraph{Result.}
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{llrrrr}
+    \toprule
+    Agent & Architecture & Words & Cites & Wiki URLs & Forum URLs \\
+    \midrule
+    \multicolumn{6}{l}{\emph{Task 0088 (common cold)}} \\
+    \texttt{gpt5chat}       & tool-call & 1111 & 7  & \textbf{2} & 1 \\
+    \texttt{gpt-researcher} & RAG       & 1774 & 19 & \textbf{0} & --- \\
+    \multicolumn{6}{l}{\emph{Task 0095 (scientific method)}} \\
+    \texttt{gpt5chat}       & tool-call & 1354 & 11 & \textbf{3} & 0 \\
+    \texttt{gpt-researcher} & RAG       & 1512 & 22 & \textbf{0} & --- \\
+    \multicolumn{6}{l}{\emph{Task 0100 (inflation)}} \\
+    \texttt{gpt5chat}       & tool-call & 2068 & 14 & \textbf{3} & 1 \\
+    \texttt{gpt-researcher} & RAG       & 2363 & 13 & \textbf{0} & --- \\
+    \multicolumn{6}{l}{\emph{Task 0105 (induced demand)}} \\
+    \texttt{gpt5chat}       & tool-call & 1233 & 5  & \textbf{2} & 0 \\
+    \texttt{gpt-researcher} & RAG       & 1792 & 9  & \textbf{0} & --- \\
+    \midrule
+    \emph{Mean}      \texttt{gpt5chat}       & & 1441 & 9.2  & \textbf{2.5} & 0.5 \\
+    \emph{Mean}      \texttt{gpt-researcher} & & 1860 & 15.8 & \textbf{0.0} & --- \\
+    \bottomrule
+  \end{tabular}
+  \caption{Inline citations by host for two agents on four scholarly tasks,
+    same shim, same sandbox. Wiki URL counts differ by an order of magnitude.}
+  \label{tab:sources}
+\end{table}
+
+\paragraph{Why.}
+The tool-calling agent processes each search result individually and
+decides whether it is relevant to the task intent; short Wikipedia
+snippets with clear topical match (``Common cold is a viral
+infection\ldots'') rank equally with shopping PDPs in its decision.
+
+The RAG-compilation agent first passes all retrieved items through a
+relevance-ranker; that ranker --- tuned for consumer-research tasks
+earlier in the pipeline --- rewards items containing hard numeric facts
+(prices, ratings, review counts). Wikipedia articles with long-form prose
+and few numerals score lower and are pruned before the writer LLM sees
+them. The writer then produces a well-cited report consisting entirely
+of surviving items: shopping pages and forum posts. No Wikipedia.
+
+\paragraph{Takeaway.}
+When reviewers ask ``did the agent retrieve the same sources?'' the
+answer at the shim layer is yes, but at the composition layer is no.
+Agent architecture is part of the information bottleneck, not just of
+the reasoning step. This motivates a \texttt{source\_diversity} metric
+(unique citation hosts, scaled by how many distinct hosts the shim
+offered) orthogonal to citation quantity; under such a metric
+\texttt{gpt5chat} outscores \texttt{gpt-researcher} on scholarly tasks
+without needing more citations, differently from what the
+existing \texttt{citation} pillar captures.
+
+%================================================================
+\section{Discussion}
+%================================================================
+
+The four findings are not equally mature:
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{F1 (length)}: complete claim, presentable as a
+    stand-alone sanity check with Table~\ref{tab:length}.
+  \item \textbf{F2 (hallucination taxonomy)}: complete claim over the
+    current 4-task set; upgrade to LLM-verified labels (as opposed to
+    pattern-matching) would strengthen reviewer response on soft
+    hallucination.
+  \item \textbf{F3 (IRT)}: qualitative claim only; requires the
+    $13\times 24$ scholarly-extended matrix before reporting
+    quantitative $a,b$ parameters with confidence intervals.
+  \item \textbf{F4 (source diversity)}: $n=2$ agents, $n=4$ tasks ---
+    initial observation, not yet a claim. The ablation requires the
+    same measurement across all 13 agents once scholarly runs complete.
+\end{itemize}
+
+All four findings share a structural property: they are only visible
+because the benchmark decomposes the score into multiple pillars and
+tracks failure modes beyond success/failure. A single-score live-web
+benchmark could not have surfaced any of them: length-bias testing
+requires per-pillar correlations (F1); hallucination detection
+requires offline URL enumeration against a known sandbox (F2);
+IRT cross-validation requires a stable, frozen-corpus matrix (F3);
+source-diversity ablation requires full URL provenance per report (F4).
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}
