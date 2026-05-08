@@ -29,49 +29,30 @@ import json
 import re
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+from urllib.parse import urlparse  # used by _host_match below
 
 from .base import VerifierResult
 
 
-_MD_LINK_RE = re.compile(r"\[[^\]]*\]\((?P<url>https?://[^\s)]+)\)")
-_BARE_URL_RE = re.compile(r"(?<![(\[])(https?://[^\s<>\"']+)")
-
-
-def _canonical(url: str) -> str:
-    """Normalize for cited-vs-golden comparison. Tolerant to malformed URLs
-    (markdown writers occasionally close links with backtick or stray punct)."""
-    s = url.strip().rstrip("`'\"\\)>,;:.")
-    try:
-        p = urlparse(s)
-        host = (p.hostname or "").lower()
-        try:
-            port = p.port
-        except (ValueError, TypeError):
-            port = None
-        if port and port not in (80, 443):
-            host = f"{host}:{port}"
-        path = (p.path or "").rstrip("/") or "/"
-        qs = urlencode(sorted(parse_qsl(p.query, keep_blank_values=True)))
-        return urlunparse((p.scheme.lower() or "http", host, path, "", qs, ""))
-    except Exception:
-        return s.lower()
+# URL extraction + canonicalisation moved to citation_format.py — single
+# source of truth across all citation-aware verifiers. Re-export so existing
+# callers (`url_reachability_verifier` imports `_canonical` and
+# `_extract_cited_urls`) keep working.
+from .citation_format import (  # noqa: F401
+    MD_LINK_RE as _MD_LINK_RE,
+    BARE_URL_RE as _BARE_URL_RE,
+    canonicalize_url as _canonical,
+)
+from .citation_format import extract_cited_urls as _extract_cited_urls_full
 
 
 def _extract_cited_urls(markdown: str) -> tuple[set[str], dict[str, set[str]]]:
-    """Return (unique canonical URLs, raw-by-canonical map for debugging)."""
-    raw_hits: list[str] = []
-    for m in _MD_LINK_RE.finditer(markdown):
-        raw_hits.append(m.group("url"))
-    stripped = _MD_LINK_RE.sub("", markdown)
-    for m in _BARE_URL_RE.finditer(stripped):
-        raw_hits.append(m.group(1).rstrip(").,;:"))
-
-    canon_map: dict[str, set[str]] = {}
-    for r in raw_hits:
-        c = _canonical(r)
-        canon_map.setdefault(c, set()).add(r)
-    return set(canon_map.keys()), canon_map
+    """Return (unique canonical URLs, raw-by-canonical map). Thin wrapper
+    over `citation_format.extract_cited_urls` that picks up all 6 citation
+    styles, not just markdown + bare. Sandbox filtering happens later in
+    `verify()` via `_classify_domain`.
+    """
+    return _extract_cited_urls_full(markdown, sandbox_hosts=None, sandbox_only=False)
 
 
 def _url_matches_domain_alias(url: str, alias: str) -> bool:

@@ -29,14 +29,21 @@ framework already expects.
 | LangChain `open_deep_research` | Tavily | ✅ |
 | OpenHands (deep-research) | Tavily (MCP) | ✅ |
 | Skywork DeepResearchAgent | Tavily (when enabled) | ✅ |
-| CAMEL-AI SearchToolkit | DuckDuckGo or Tavily | ✅ (via Tavily) |
+| CAMEL-AI SearchToolkit | DuckDuckGo or Tavily | ✅ (via Tavily or DDG) |
 | dzhng/deep-research | Firecrawl | ✅ `FIRECRAWL_BASE_URL` |
 | Firecrawl-native `/deep-research` | Firecrawl | ✅ |
-| Perplexica | SearXNG | ⚠️ optional `/search?format=json` |
+| Perplexica | SearXNG | ✅ `/searxng/search?format=json` |
+| ii-researcher | SearXNG | ✅ |
+| qx-agents (`agents-deep-research`) | Serper | ✅ `/v1/serper` |
+| Tongyi DeepResearch | Serper | ✅ |
+| smolagents `DuckDuckGoSearchTool` | DuckDuckGo Instant | ✅ `/duckduckgo/search` |
+| Brave-API consumers | Brave Search | ✅ `/v1/brave/web/search` |
+| OpenAI-SDK frameworks | OpenAI chat | ✅ `/llm/v1/chat/completions` |
+| Anthropic-SDK frameworks | Anthropic messages | ✅ `/llm/v1/messages` |
 | AutoGen MultimodalWebSurfer | Playwright (no API) | ✅ natively (HTML sandbox) |
 | TheAgentCompany | Playwright (no API) | ✅ natively |
 
-→ **6/10 unlocked by Tavily alone; 9/10 with Tavily + Firecrawl.**
+→ **All 13 frameworks unlocked by the combined Tavily/Firecrawl/Serper/Brave/SearxNG/DDG shim.**
 
 ## Quick start
 
@@ -62,11 +69,19 @@ export TAVILY_API_URL=http://localhost:8081 # or our public sandbox host
 
 | Method | Path | Framework schema | Purpose |
 |---|---|---|---|
-| `POST` | `/search` | Tavily | Combined Magento + Postmill search |
-| `POST` | `/extract` | Tavily | Fetch full page body for given URLs |
-| `POST` | `/v2/search` | Firecrawl | Same search, Firecrawl schema |
-| `POST` | `/v2/scrape` | Firecrawl | Single-URL scrape |
-| `GET` | `/healthz` | — | liveness |
+| `POST` | `/search` | Tavily | ✅ Combined Magento + Postmill + Wiki search |
+| `POST` | `/extract` | Tavily | ✅ Fetch full page body for given URLs |
+| `POST` | `/v1/search` | Firecrawl v1 | ✅ Same search, dzhng/deep-research v1 envelope |
+| `POST` | `/v2/search` | Firecrawl v2 | ✅ Same search, Firecrawl v2 envelope |
+| `POST` | `/v1/scrape`, `/v2/scrape` | Firecrawl | ✅ Single-URL scrape |
+| `POST` | `/v1/serper` | Serper | ✅ qx-agents, Tongyi DeepResearch |
+| `GET`  | `/v1/brave/web/search` | Brave | ✅ Brave Search API consumers |
+| `GET`  | `/searxng/search` | SearxNG | ✅ Perplexica, ii-researcher |
+| `GET`  | `/duckduckgo/search` | DuckDuckGo Instant | ✅ smolagents default tool |
+| `POST` | `/llm/v1/chat/completions` | OpenAI chat | ✅ Passthrough → ds_proxy:8088 |
+| `POST` | `/llm/v1/messages` | Anthropic messages | ✅ Translated → ds_proxy:8088 |
+| `POST` | `/post_lookup`, `/product_lookup` | structured | ✅ HTTP-only DB lookup |
+| `GET`  | `/healthz` | — | liveness |
 
 ## How results are routed
 

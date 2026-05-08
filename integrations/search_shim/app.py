@@ -11,14 +11,23 @@ internet without adding a real token gate.
 
 from __future__ import annotations
 
+import os
 import time
 import uuid
-from typing import Literal
+from typing import Any, Literal, Optional, Union
 
-from fastapi import FastAPI, Header, HTTPException
+import httpx
+from fastapi import FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from .backend import SearchHit, extract, search
+
+
+# Upstream OpenAI-compat endpoint (ds_proxy with deepseek-v4-flash). Override
+# for tests via env var so a TestClient can point at a stubbed server.
+LLM_UPSTREAM = os.environ.get(
+    "SHIM_LLM_UPSTREAM", "http://localhost:8088/v1"
+).rstrip("/")
 
 
 app = FastAPI(
@@ -46,15 +55,15 @@ class TavilySearchRequest(BaseModel):
     search_depth: str = "basic"
     topic: str = "general"
     max_results: int = Field(default=5, ge=0, le=50)
-    include_answer: bool | str = False
-    include_raw_content: bool | str = False
+    include_answer: Union[bool, str] = False
+    include_raw_content: Union[bool, str] = False
     include_images: bool = False
-    include_domains: list[str] | None = None
-    exclude_domains: list[str] | None = None
-    time_range: str | None = None
-    start_date: str | None = None
-    end_date: str | None = None
-    country: str | None = None
+    include_domains: Optional[list[str]] = None
+    exclude_domains: Optional[list[str]] = None
+    time_range: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    country: Optional[str] = None
 
 
 class TavilySearchResultItem(BaseModel):
@@ -62,19 +71,19 @@ class TavilySearchResultItem(BaseModel):
     url: str
     content: str
     score: float
-    raw_content: str | None = None
+    raw_content: Optional[str] = None
 
 
 class TavilySearchResponse(BaseModel):
     query: str
-    answer: str | None = None
+    answer: Optional[str] = None
     images: list[dict] = []
     results: list[TavilySearchResultItem]
     response_time: float
     request_id: str
 
 
-def _hit_to_tavily(h: SearchHit, include_raw: bool | str) -> TavilySearchResultItem:
+def _hit_to_tavily(h: SearchHit, include_raw: Union[bool, str]) -> TavilySearchResultItem:
     raw = None
     if include_raw:
         # Defer heavy HTML fetches: extract endpoint is for that.
@@ -92,7 +101,7 @@ def _hit_to_tavily(h: SearchHit, include_raw: bool | str) -> TavilySearchResultI
 @app.post("/search", response_model=TavilySearchResponse)
 def tavily_search(
     req: TavilySearchRequest,
-    authorization: str | None = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
 ) -> TavilySearchResponse:
     # Accept any bearer token; reject only if obviously garbage.
     if authorization and not authorization.lower().startswith("bearer "):
@@ -136,7 +145,7 @@ class TavilyExtractResponse(BaseModel):
 @app.post("/extract", response_model=TavilyExtractResponse)
 def tavily_extract(
     req: TavilyExtractRequest,
-    authorization: str | None = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
 ) -> TavilyExtractResponse:
     t0 = time.time()
     rows = extract(req.urls)
@@ -162,7 +171,7 @@ def tavily_extract(
 # ============================================================================
 
 class FirecrawlScrapeOptions(BaseModel):
-    formats: list[dict] | list[str] = Field(default_factory=lambda: [{"type": "markdown"}])
+    formats: Union[list[dict], list[str]] = Field(default_factory=lambda: [{"type": "markdown"}])
 
 
 class FirecrawlSearchRequest(BaseModel):
@@ -174,21 +183,21 @@ class FirecrawlSearchRequest(BaseModel):
     query: str
     limit: int = 5
     sources: list[str] = Field(default_factory=lambda: ["web"])
-    scrapeOptions: FirecrawlScrapeOptions | None = None
-    lang: str | None = None
-    country: str | None = None
-    tbs: str | None = None
-    filter: str | None = None
-    location: str | None = None
-    origin: str | None = None
-    timeout: int | None = None
+    scrapeOptions: Optional[FirecrawlScrapeOptions] = None
+    lang: Optional[str] = None
+    country: Optional[str] = None
+    tbs: Optional[str] = None
+    filter: Optional[str] = None
+    location: Optional[str] = None
+    origin: Optional[str] = None
+    timeout: Optional[int] = None
 
 
 class FirecrawlSearchItem(BaseModel):
     title: str
     description: str
     url: str
-    markdown: str | None = None
+    markdown: Optional[str] = None
 
 
 class FirecrawlSearchResponse(BaseModel):
@@ -208,7 +217,7 @@ def _do_firecrawl_search(req: FirecrawlSearchRequest) -> FirecrawlSearchResponse
 @app.post("/v2/search", response_model=FirecrawlSearchResponse)
 def firecrawl_search_v2(
     req: FirecrawlSearchRequest,
-    authorization: str | None = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
 ) -> FirecrawlSearchResponse:
     return _do_firecrawl_search(req)
 
@@ -226,7 +235,7 @@ class FirecrawlV1SearchResponse(BaseModel):
 @app.post("/v1/search", response_model=FirecrawlV1SearchResponse)
 def firecrawl_search_v1(
     req: FirecrawlSearchRequest,
-    authorization: str | None = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
 ) -> FirecrawlV1SearchResponse:
     hits = search(req.query, max_results=req.limit or 5)
     items = [
@@ -248,7 +257,7 @@ class FirecrawlScrapeRequest(BaseModel):
 
 class FirecrawlScrapeData(BaseModel):
     markdown: str
-    html: str | None = None
+    html: Optional[str] = None
     metadata: dict
 
 
@@ -261,7 +270,7 @@ class FirecrawlScrapeResponse(BaseModel):
 @app.post("/v2/scrape", response_model=FirecrawlScrapeResponse)
 def firecrawl_scrape(
     req: FirecrawlScrapeRequest,
-    authorization: str | None = Header(default=None),
+    authorization: Optional[str] = Header(default=None),
 ) -> FirecrawlScrapeResponse:
     rows = extract([req.url])
     if not rows:
@@ -299,14 +308,14 @@ class PostLookupRequest(BaseModel):
 class PostLookupResponse(BaseModel):
     ok: bool
     url: str
-    title: str | None = None
-    author: str | None = None
-    forum: str | None = None
-    score: int | None = None
-    comment_count: int | None = None
-    body: str | None = None
+    title: Optional[str] = None
+    author: Optional[str] = None
+    forum: Optional[str] = None
+    score: Optional[int] = None
+    comment_count: Optional[int] = None
+    body: Optional[str] = None
     top_comments: list[dict] = Field(default_factory=list)
-    error: str | None = None
+    error: Optional[str] = None
 
 
 @app.post("/post_lookup", response_model=PostLookupResponse)
@@ -340,14 +349,14 @@ class ProductLookupRequest(BaseModel):
 class ProductLookupResponse(BaseModel):
     ok: bool
     url: str
-    name: str | None = None
-    price: float | None = None
-    rating: float | None = None
-    sku: str | None = None
-    description: str | None = None
-    review_count: int | None = None
-    in_stock: bool | None = None
-    error: str | None = None
+    name: Optional[str] = None
+    price: Optional[float] = None
+    rating: Optional[float] = None
+    sku: Optional[str] = None
+    description: Optional[str] = None
+    review_count: Optional[int] = None
+    in_stock: Optional[bool] = None
+    error: Optional[str] = None
 
 
 @app.post("/product_lookup", response_model=ProductLookupResponse)
@@ -392,6 +401,336 @@ def product_lookup(req: ProductLookupRequest) -> ProductLookupResponse:
         name=name, price=price, rating=rating, sku=sku,
         description=desc, review_count=review_count, in_stock=in_stock,
     )
+
+
+# ============================================================================
+# Serper-compat: POST /v1/serper
+# ============================================================================
+#
+# Serper is a Google-SERP-as-a-service API. Its `/search` endpoint takes
+# `{"q": "...", "num": N}` and returns `{"organic": [{title, link, snippet}],
+# "credits": N}`. Used by qx-agents (`agents-deep-research/serper_search.py`)
+# and Tongyi DeepResearch.
+
+class SerperRequest(BaseModel):
+    model_config = {"extra": "ignore"}
+
+    q: str
+    num: int = Field(default=10, ge=0, le=50)
+    gl: Optional[str] = None
+    hl: Optional[str] = None
+    page: Optional[int] = None
+    autocorrect: Optional[bool] = None
+
+
+class SerperOrganicItem(BaseModel):
+    title: str
+    link: str
+    snippet: str
+
+
+class SerperResponse(BaseModel):
+    organic: list[SerperOrganicItem]
+    credits: int = 1
+
+
+@app.post("/v1/serper", response_model=SerperResponse)
+def serper_search(
+    req: SerperRequest,
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
+) -> SerperResponse:
+    """Serper-compat (`google.serper.dev/search`). Used by qx-agents and
+    Tongyi DeepResearch. Body: `{"q": "...", "num": N}`. Returns
+    `{"organic": [{title, link, snippet}], "credits": 1}`."""
+    hits = search(req.q, max_results=req.num or 10)
+    organic = [
+        SerperOrganicItem(title=h.title, link=h.url, snippet=h.content)
+        for h in hits
+    ]
+    return SerperResponse(organic=organic, credits=1)
+
+
+# ============================================================================
+# Brave-compat: GET /v1/brave/web/search
+# ============================================================================
+#
+# Brave Search API responds to `GET /res/v1/web/search?q=...&count=N` with
+# `{"web": {"results": [{url, title, description, ...}]}}`. We mount it under
+# `/v1/brave/web/search` so frameworks that point `BRAVE_API_URL` at the shim
+# get drop-in compat.
+
+class BraveResultItem(BaseModel):
+    url: str
+    title: str
+    description: str
+
+
+class BraveWeb(BaseModel):
+    results: list[BraveResultItem]
+
+
+class BraveResponse(BaseModel):
+    web: BraveWeb
+
+
+@app.get("/v1/brave/web/search", response_model=BraveResponse)
+def brave_search(
+    q: str = Query(...),
+    count: int = Query(default=10, ge=0, le=50),
+    x_subscription_token: Optional[str] = Header(default=None),
+) -> BraveResponse:
+    """Brave Search API compat (`api.search.brave.com/res/v1/web/search`).
+    Returns Brave-style `{"web": {"results": [{url, title, description}]}}`."""
+    hits = search(q, max_results=count or 10)
+    items = [
+        BraveResultItem(url=h.url, title=h.title, description=h.content)
+        for h in hits
+    ]
+    return BraveResponse(web=BraveWeb(results=items))
+
+
+# ============================================================================
+# SearxNG-compat: GET /searxng/search
+# ============================================================================
+#
+# SearxNG meta-search exposes `GET /search?q=...&format=json&pageno=N` and
+# returns `{"results": [{url, title, content}], "query": "..."}`. Used by
+# Perplexica (front-end search wrapper) and ii-researcher.
+
+class SearxNGResultItem(BaseModel):
+    url: str
+    title: str
+    content: str
+
+
+class SearxNGResponse(BaseModel):
+    results: list[SearxNGResultItem]
+    query: str
+    number_of_results: int = 0
+
+
+@app.get("/searxng/search", response_model=SearxNGResponse)
+def searxng_search(
+    q: str = Query(...),
+    format: str = Query(default="json"),
+    pageno: int = Query(default=1, ge=1),
+    categories: Optional[str] = Query(default=None),
+    language: Optional[str] = Query(default=None),
+) -> SearxNGResponse:
+    """SearxNG meta-search compat (`/search?q=...&format=json&pageno=1`).
+    Used by Perplexica and ii-researcher. Returns `{"results": [{url, title,
+    content}], "query": "..."}`."""
+    hits = search(q, max_results=10)
+    items = [
+        SearxNGResultItem(url=h.url, title=h.title, content=h.content)
+        for h in hits
+    ]
+    return SearxNGResponse(
+        results=items, query=q, number_of_results=len(items),
+    )
+
+
+# ============================================================================
+# DuckDuckGo-compat: GET /duckduckgo/search
+# ============================================================================
+#
+# DuckDuckGo's Instant Answer API returns
+# `{"AbstractText": "...", "RelatedTopics": [{FirstURL, Text}]}`. The
+# smolagents default `DuckDuckGoSearchTool` hits `api.duckduckgo.com/?q=...`
+# expecting that shape. We mount it at `/duckduckgo/search` so any client
+# pointing `DDG_API_URL` (or rerouting the host) at the shim gets compat.
+
+class DDGRelatedTopic(BaseModel):
+    FirstURL: str
+    Text: str
+
+
+class DDGResponse(BaseModel):
+    AbstractText: str
+    AbstractURL: str = ""
+    Heading: str = ""
+    RelatedTopics: list[DDGRelatedTopic]
+
+
+@app.get("/duckduckgo/search", response_model=DDGResponse)
+def duckduckgo_search(
+    q: str = Query(...),
+    format: str = Query(default="json"),
+    no_html: int = Query(default=1),
+    skip_disambig: int = Query(default=1),
+) -> DDGResponse:
+    """DuckDuckGo Instant Answer compat (`api.duckduckgo.com/?q=...`). Used
+    by smolagents' default `DuckDuckGoSearchTool`. Returns
+    `{"AbstractText": "...", "RelatedTopics": [{FirstURL, Text}]}`."""
+    hits = search(q, max_results=10)
+    abstract = hits[0].content if hits else ""
+    abstract_url = hits[0].url if hits else ""
+    heading = hits[0].title if hits else q
+    related = [
+        DDGRelatedTopic(FirstURL=h.url, Text=f"{h.title} - {h.content}")
+        for h in hits
+    ]
+    return DDGResponse(
+        AbstractText=abstract,
+        AbstractURL=abstract_url,
+        Heading=heading,
+        RelatedTopics=related,
+    )
+
+
+# ============================================================================
+# OpenAI-compat LLM passthrough: POST /llm/v1/chat/completions
+# ============================================================================
+#
+# Frameworks that hard-code an `OPENAI_BASE_URL` (e.g. `gpt-researcher`,
+# `langchain` with a fixed base) sometimes prefer to share the shim's host
+# rather than juggle a second port. This endpoint simply proxies to the
+# ds_proxy on :8088 (which itself injects `thinking:disabled` for
+# `deepseek-v4-*`). Auth header is accepted but ignored — ds_proxy uses its
+# own server-side key.
+
+@app.post("/llm/v1/chat/completions")
+async def llm_chat_completions(
+    body: dict[str, Any],
+    authorization: Optional[str] = Header(default=None),
+) -> Any:
+    """OpenAI-compat passthrough → ds_proxy:8088 (deepseek-v4-flash). Body
+    fields are forwarded verbatim; upstream JSON is returned verbatim."""
+    headers = {"Content-Type": "application/json"}
+    if authorization:
+        headers["Authorization"] = authorization
+    timeout = httpx.Timeout(connect=15.0, read=120.0, write=30.0, pool=10.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        r = await client.post(
+            f"{LLM_UPSTREAM}/chat/completions", json=body, headers=headers,
+        )
+        if r.status_code >= 400:
+            raise HTTPException(
+                status_code=r.status_code,
+                detail=r.text,
+            )
+        return r.json()
+
+
+# ============================================================================
+# Anthropic-compat LLM passthrough: POST /llm/v1/messages
+# ============================================================================
+#
+# Frameworks that expect Claude (e.g. anything written against
+# `anthropic.Anthropic`) hit `/v1/messages` with
+# `{model, system, messages: [{role, content}], max_tokens}`. We translate to
+# OpenAI chat-completions, proxy to ds_proxy:8088, then translate the response
+# back so the framework sees a normal Anthropic envelope.
+
+class AnthropicMessage(BaseModel):
+    model_config = {"extra": "ignore"}
+
+    role: str
+    content: Any  # str OR list of {type, text} blocks
+
+
+class AnthropicMessagesRequest(BaseModel):
+    model_config = {"extra": "ignore"}
+
+    model: str
+    messages: list[AnthropicMessage]
+    system: Any = None  # str OR list of {type, text}
+    max_tokens: int = 1024
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
+    stop_sequences: Optional[list[str]] = None
+
+
+def _anthropic_content_to_text(content: Any) -> str:
+    """Anthropic content can be a plain string or a list of content blocks
+    `[{"type": "text", "text": "..."}]`. Flatten to plain text for OpenAI."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                parts.append(str(block.get("text", "")))
+            elif isinstance(block, str):
+                parts.append(block)
+        return "".join(parts)
+    return str(content) if content is not None else ""
+
+
+@app.post("/llm/v1/messages")
+async def llm_messages(
+    req: AnthropicMessagesRequest,
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None),
+) -> dict[str, Any]:
+    """Anthropic-compat passthrough → ds_proxy:8088. Translates Anthropic's
+    `{model, system, messages, max_tokens}` to OpenAI chat-completions and
+    translates the response back to Anthropic's `{id, type, role, content,
+    stop_reason, usage}` envelope. Used by frameworks expecting Claude."""
+    openai_messages: list[dict[str, str]] = []
+    sys_text = _anthropic_content_to_text(req.system)
+    if sys_text:
+        openai_messages.append({"role": "system", "content": sys_text})
+    for m in req.messages:
+        openai_messages.append({
+            "role": m.role,
+            "content": _anthropic_content_to_text(m.content),
+        })
+
+    openai_body: dict[str, Any] = {
+        "model": req.model,
+        "messages": openai_messages,
+        "max_tokens": req.max_tokens,
+    }
+    if req.temperature is not None:
+        openai_body["temperature"] = req.temperature
+    if req.top_p is not None:
+        openai_body["top_p"] = req.top_p
+    if req.stop_sequences:
+        openai_body["stop"] = req.stop_sequences
+
+    headers = {"Content-Type": "application/json"}
+    if authorization:
+        headers["Authorization"] = authorization
+    elif x_api_key:
+        headers["Authorization"] = f"Bearer {x_api_key}"
+
+    timeout = httpx.Timeout(connect=15.0, read=120.0, write=30.0, pool=10.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        r = await client.post(
+            f"{LLM_UPSTREAM}/chat/completions",
+            json=openai_body, headers=headers,
+        )
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        upstream = r.json()
+
+    # Translate OpenAI -> Anthropic.
+    choice = (upstream.get("choices") or [{}])[0]
+    msg = choice.get("message") or {}
+    text = msg.get("content") or ""
+    finish_reason = choice.get("finish_reason") or "end_turn"
+    stop_reason = {
+        "stop": "end_turn",
+        "length": "max_tokens",
+        "content_filter": "stop_sequence",
+        "tool_calls": "tool_use",
+    }.get(finish_reason, "end_turn")
+    usage_oai = upstream.get("usage") or {}
+    return {
+        "id": upstream.get("id") or f"msg_{uuid.uuid4().hex}",
+        "type": "message",
+        "role": "assistant",
+        "model": upstream.get("model") or req.model,
+        "content": [{"type": "text", "text": text}],
+        "stop_reason": stop_reason,
+        "stop_sequence": None,
+        "usage": {
+            "input_tokens": usage_oai.get("prompt_tokens", 0),
+            "output_tokens": usage_oai.get("completion_tokens", 0),
+        },
+    }
 
 
 # ============================================================================

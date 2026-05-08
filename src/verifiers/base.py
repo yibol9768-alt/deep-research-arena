@@ -21,99 +21,21 @@ class VerifierResult:
 
 
 _DEGENERATE_PREFIXES = ("(empty ", "(runner error", "(error", "(timeout", "(no output")
-_MD_LINK_RE_DEGEN = re.compile(r"\[[^\]]*\]\([^)]+\)")
 
-# Citation-extraction regexes shared across all citation-aware verifiers.
-# Matching only `[label](url)` was a bug: agents that emit bare URLs
-# (ldr's report style) got quote_match / claim_nli / citation_alignment /
-# analysis_depth scores of 0 despite citing real, reachable pages.
-CITED_MD_LINK_RE = re.compile(r"\[(?P<label>[^\]]*)\]\((?P<url>https?://[^)\s]+)\)")
-CITED_BARE_URL_RE = re.compile(r"(?<![(\[])(?<!\]\()https?://[^\s<>\"'`)\]]+")
-
-
-def _strip_url_trail(url: str) -> str:
-    """Strip trailing punctuation that Markdown / sentence breakers leave."""
-    return url.rstrip(").,;:`'\"\\!?>")
-
-
-def host_in_set(url: str, sandbox_hosts) -> bool:
-    """Strict host:port equality. Use this everywhere instead of
-    `any(h in url for h in sandbox_hosts)` — the substring form silently
-    matches localhost:77703 when sandbox is localhost:7770, or any URL
-    whose path embeds the literal sandbox host."""
-    try:
-        from urllib.parse import urlparse
-        p = urlparse(url)
-        host = (p.hostname or "").lower()
-        port = p.port
-    except Exception:
-        return False
-    if not host:
-        return False
-    hp = f"{host}:{port}" if port else host
-    for h in sandbox_hosts:
-        h = h.lower()
-        if ":" in h:
-            if hp == h:
-                return True
-        elif host == h:
-            return True
-    return False
-
-
-def extract_cited_pairs(
-    answer: str,
-    sandbox_hosts: set[str] | None = None,
-    *,
-    window: int = 200,
-    sandbox_only: bool = True,
-) -> list[tuple[str, str, int]]:
-    """Return ``(url, context, span_start)`` for every cited URL — both
-    markdown-link and bare. Optionally filter to sandbox hosts.
-
-    The context is `window` chars on each side of the URL with markdown
-    syntax stripped; this is what the verifiers feed to the LLM judge.
-    """
-    pairs: list[tuple[str, str, int]] = []
-    seen: set[tuple[int, str]] = set()
-    for rx in (CITED_MD_LINK_RE, CITED_BARE_URL_RE):
-        for m in rx.finditer(answer):
-            url = _strip_url_trail(m.group("url") if "url" in (m.groupdict() or {}) else m.group(0))
-            if not url:
-                continue
-            if sandbox_hosts is not None and sandbox_only:
-                if not host_in_set(url, sandbox_hosts):
-                    continue
-            key = (m.start(), url)
-            if key in seen:
-                continue
-            seen.add(key)
-            a = max(0, m.start() - window)
-            b = min(len(answer), m.start() + window)
-            ctx = answer[a:b]
-            ctx = CITED_MD_LINK_RE.sub(lambda mm: mm.group("label"), ctx)
-            ctx = re.sub(r"`[^`]*`", " ", ctx)
-            ctx = re.sub(r"\s+", " ", ctx).strip()
-            pairs.append((url, ctx, m.start()))
-    pairs.sort(key=lambda p: p[2])
-    return pairs
-
-
-def extract_cited_urls(answer: str, sandbox_hosts: set[str] | None = None) -> list[str]:
-    """Return the list of distinct sandbox-host URLs cited (markdown + bare)."""
-    seen: list[str] = []
-    seen_set: set[str] = set()
-    for rx in (CITED_MD_LINK_RE, CITED_BARE_URL_RE):
-        for m in rx.finditer(answer):
-            url = _strip_url_trail(m.group("url") if "url" in (m.groupdict() or {}) else m.group(0))
-            if not url or url in seen_set:
-                continue
-            if sandbox_hosts is not None:
-                if not host_in_set(url, sandbox_hosts):
-                    continue
-            seen_set.add(url)
-            seen.append(url)
-    return seen
+# Citation regexes / extractors / canonicaliser now live in citation_format.
+# This module re-exports them so existing callers (quote_match, claim_nli,
+# citation_alignment, analysis_depth) keep working unchanged. Prefer importing
+# directly from `citation_format` in new code.
+from .citation_format import (  # noqa: E402,F401
+    MD_LINK_RE as CITED_MD_LINK_RE,
+    BARE_URL_RE as CITED_BARE_URL_RE,
+    canonicalize_url,
+    extract_cited_pairs,
+    extract_cited_urls,
+    extract_citations,
+    host_in_set,
+    strip_url_trail as _strip_url_trail,
+)
 
 
 def is_degenerate_answer(answer: str, *, min_words: int = 50, require_citations: bool = True) -> tuple[bool, str]:
@@ -122,6 +44,10 @@ def is_degenerate_answer(answer: str, *, min_words: int = 50, require_citations:
     Returns (is_degenerate, reason). Centralised here so every verifier shares
     the same rule. DeepSeek-V4-flash has been observed to PASS-all on
     "(empty storm output)" — that's the failure mode this guards against.
+
+    The ``require_citations`` check uses the full 6-style extractor (not just
+    markdown links), so an answer with bare URLs / numbered refs / footnotes
+    is correctly recognised as having citations.
     """
     s = (answer or "").strip()
     if not s:
@@ -136,7 +62,7 @@ def is_degenerate_answer(answer: str, *, min_words: int = 50, require_citations:
     wc = len([w for w in text.split() if w])
     if wc < min_words:
         return True, f"word_count_too_low:{wc}"
-    if require_citations and not _MD_LINK_RE_DEGEN.search(s):
+    if require_citations and not extract_citations(s, sandbox_hosts=None, sandbox_only=False):
         return True, "zero_citations"
     return False, ""
 
