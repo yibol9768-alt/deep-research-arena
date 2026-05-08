@@ -105,8 +105,13 @@ def _call_openai(
     key = os.environ.get("JUDGE_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not key:
         return None, "judge key missing (set JUDGE_API_KEY or OPENAI_API_KEY)"
+    extra_body: dict = {}
+    if model.startswith("deepseek-v4"):
+        extra_body["thinking"] = {"type": "disabled"}
+
+    timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "30"))
     try:
-        client = OpenAI(base_url=base, api_key=key)
+        client = OpenAI(base_url=base, api_key=key, timeout=timeout_s, max_retries=1)
         resp = client.chat.completions.create(
             model=model,
             max_tokens=max_tokens,
@@ -115,17 +120,13 @@ def _call_openai(
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
+            extra_body=extra_body or None,
         )
         msg = resp.choices[0].message
         text = msg.content or ""
-        # GLM-4.6/4.7 are reasoning models: content may be empty if
-        # max_tokens got consumed by reasoning_content. Fall back to
-        # parsing reasoning_content (strip any leading thinking
-        # trace) OR re-invoke with larger budget.
         if not text.strip():
             reasoning = getattr(msg, "reasoning_content", "") or ""
             if reasoning and max_tokens < 8000:
-                # retry with bigger budget so the final answer fits
                 resp = client.chat.completions.create(
                     model=model,
                     max_tokens=8192,
@@ -134,6 +135,7 @@ def _call_openai(
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
+                    extra_body=extra_body or None,
                 )
                 msg = resp.choices[0].message
                 text = msg.content or ""
