@@ -1,0 +1,16 @@
+# ds_proxy: thin OpenAI-compat passthrough to DeepSeek-V4 with auto-injection
+# of the `thinking: {type: disabled}` flag.
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY integrations/ds_proxy/ /app/ds_proxy/
+
+RUN pip install --no-cache-dir fastapi uvicorn httpx pydantic
+
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8088
+
+CMD ["uvicorn", "ds_proxy.app:app", \
+     "--host", "0.0.0.0", "--port", "8088"]

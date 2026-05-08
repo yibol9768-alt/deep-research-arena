@@ -1,0 +1,128 @@
+# Sandbox-in-a-box for the DR Benchmark
+#
+# Brings up 4 containers on a single docker network so an external
+# contributor can run any agent against the same offline sandbox we use
+# in our paper:
+#
+#   * shopping  (Magento, port 7770)        — product corpus
+#   * reddit    (Postmill, port 9999)       — forum corpus
+#   * wiki      (Kiwix, port 8090)          — Wikipedia snapshot
+#   * gateway   (FastAPI search_shim, 8081) — Tavily / Firecrawl / Brave /
+#                Serper / SearxNG / DDG / OpenAI / Anthropic compat shims;
+#                proxies LLM calls to ds_proxy (8088)
+#
+# Usage:
+#   docker compose -f infra/sandbox.docker-compose.yml up -d
+#   curl http://localhost:8081/healthz                   # gateway
+#   curl http://localhost:7770/                          # Magento
+#   curl http://localhost:9999/                          # Postmill
+#   curl http://localhost:8090/                          # Kiwix
+#
+# Then point your agent at:
+#   TAVILY_API_URL=http://localhost:8081
+#   OPENAI_BASE_URL=http://localhost:8081/llm/v1
+#   (any auth token works — gateway accepts arbitrary Bearer)
+#
+# Image notes (registry: ghcr.io/<your-org>/dr-benchmark):
+#   - shopping_final_0712     ~ 4.2 GB   contains scraped product DB
+#   - postmill-populated      ~ 1.8 GB   contains scraped forum DB
+#   - kiwix-en-wiki-2025-09   ~ 28  GB   en.wikipedia snapshot
+#   - dr-bench-gateway        ~  90 MB   FastAPI shim
+#
+# If you can't pull these images, see infra/build-images.md for offline
+# scrape + image-build instructions (uses scripts/build_deep_golden.py to
+# regenerate the corpora).
+
+version: "3.8"
+
+services:
+  shopping:
+    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/shopping_final_0712:latest
+    container_name: dr_sandbox_shopping
+    restart: unless-stopped
+    ports:
+      - "7770:80"
+    environment:
+      MAGENTO_BASE_URL: "http://localhost:7770"
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s   # Magento takes ~60s to warm up
+
+  reddit:
+    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/postmill-populated:latest
+    container_name: dr_sandbox_reddit
+    restart: unless-stopped
+    ports:
+      - "9999:80"
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  wiki:
+    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/kiwix-en-wiki:latest
+    container_name: dr_sandbox_wiki
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      # If you have a local .zim file, mount it here instead of pulling
+      # the bundled image. Faster + smaller download.
+      - ${WIKI_ZIM_DIR:-./infra/wiki-zim}:/data:ro
+    command: ["--port", "80", "/data"]
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  ds_proxy:
+    # OpenAI-compat proxy to DeepSeek-V4 with thinking-disabled auto-injection.
+    # 3rd-party submitters bring their own DEEPSEEK_API_KEY; we don't ship
+    # one in the public image. If the env var is unset, ds_proxy returns
+    # 500 with a clear "set DEEPSEEK_API_KEY" error.
+    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/ds-proxy:latest
+    container_name: dr_sandbox_ds_proxy
+    restart: unless-stopped
+    environment:
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      DEEPSEEK_MODEL: "${DEEPSEEK_MODEL:-deepseek-v4-flash}"
+    networks: [sandbox]
+    expose: ["8088"]   # not published — accessed via gateway
+
+  gateway:
+    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/gateway:latest
+    container_name: dr_sandbox_gateway
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SHIM_LLM_UPSTREAM: "http://ds_proxy:8088/v1"
+      SANDBOX_SHOPPING: "http://shopping:80"
+      SANDBOX_REDDIT:   "http://reddit:80"
+      SANDBOX_WIKI:     "http://wiki:80"
+    depends_on:
+      shopping:  { condition: service_healthy }
+      reddit:    { condition: service_healthy }
+      wiki:      { condition: service_healthy }
+      ds_proxy:  { condition: service_started }
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+networks:
+  sandbox:
+    driver: bridge

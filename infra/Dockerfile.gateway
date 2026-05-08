@@ -1,0 +1,17 @@
+# Sandbox gateway: FastAPI search_shim + ds_proxy passthrough on port 8081.
+# Runs the integrations/search_shim app inside the sandbox docker network.
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy only what's needed (shim + verifier base for shared utils)
+COPY integrations/search_shim/ /app/integrations/search_shim/
+COPY integrations/search_shim/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8081
+
+CMD ["uvicorn", "integrations.search_shim.app:app", \
+     "--host", "0.0.0.0", "--port", "8081", "--workers", "2"]
