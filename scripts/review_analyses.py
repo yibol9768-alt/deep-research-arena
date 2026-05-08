@@ -72,7 +72,20 @@ def load_task_meta():
 
 
 def composite_v2(row, floor=0.1):
+    """Floored variant — applies `max(floor, reach)` instead of pure
+    `reach * quality`. **Not** the headline `composite_v2_truthful`
+    used in `LEADERBOARD_DEEP.md`; canonical formula lives in
+    `src/scoring/leaderboard_composites`. Reach=0 agents still get
+    `floor·quality` here; keep this for V3-aligned analyses only.
+    """
     return max(floor, row["reach"]) * (0.4 * row["url_cov"] + 0.4 * row["judge"] + 0.2 * row["spec"])
+
+
+def composite_v2_headline(row):
+    """Match `LEADERBOARD_DEEP.md` exactly: pure `reach * quality`. Use
+    this when computing per-intent / per-task means for paper tables
+    that must agree with the headline ranking."""
+    return row["reach"] * (0.4 * row["url_cov"] + 0.4 * row["judge"] + 0.2 * row["spec"])
 
 
 def composite_v1(row):  # no gate, additive

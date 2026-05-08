@@ -56,9 +56,13 @@ def load_all_scores() -> list[dict]:
 
 
 # ---------- V2 formula reconstruction ----------
-# v2: truth = reach * (0.5+0.5*quote) * (0.5+0.5*nli)
-#     quality = 0.4*url_cov + 0.4*judge + 0.2*spec
-#     composite = truth * quality
+# This script's `compute_v2` adds a multiplicative truthfulness factor
+# (quote_match × claim_nli) on top of the `reach × quality` headline
+# composite. This is **NOT** the same formula as `LEADERBOARD_DEEP.md`
+# uses — for cross-table consistency check the canonical formula in
+# `src/scoring/leaderboard_composites.composite_v2_truthful`. The variant
+# here is intentional for ablation purposes (study what the truth factor
+# adds beyond reach gating); rename below makes that explicit.
 
 V2_DIMS = ["url_cov", "judge", "spec", "reach", "quote", "nli"]
 
@@ -69,7 +73,11 @@ V2_WEIGHTS = {
 }
 
 
-def compute_v2(row: dict) -> float:
+def compute_v2_truthfulness_factored(row: dict) -> float:
+    """Truthfulness-factored v2 (this script's historical formula).
+
+    composite = reach · (0.5+0.5·quote) · (0.5+0.5·nli) · quality
+    """
     quality = (V2_WEIGHTS["url_cov"] * row["url_cov"]
                + V2_WEIGHTS["judge"] * row["judge"]
                + V2_WEIGHTS["spec"] * row["spec"])
@@ -77,6 +85,12 @@ def compute_v2(row: dict) -> float:
     nli = 0.5 + 0.5 * row["nli"]
     truth = row["reach"] * qm * nli
     return truth * quality
+
+
+# Alias preserved so the rest of this script keeps working — but every
+# call site should know it's calling the truthfulness-factored variant,
+# not the headline v2.
+compute_v2 = compute_v2_truthfulness_factored
 
 
 def compute_v2_drop(row: dict, drop_dim: str) -> float:

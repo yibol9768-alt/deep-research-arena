@@ -107,45 +107,15 @@ def load_scores(suffix: str = "matrix", *, drop_degenerate: bool = True) -> list
     return out
 
 
-def _spec_pass_fraction(spec: dict) -> float:
-    """Spec pass fraction from the 3 boolean flags `score_deep_answer.py`
-    writes — `markdown_spec` does not have a top-level `score` field, so
-    earlier code reading `.score` was silently getting 0 for everyone."""
-    if not isinstance(spec, dict):
-        return 0.0
-    flags = [bool(spec.get(k, False)) for k in ("words_ok", "citations_ok", "paragraphs_ok")]
-    return sum(flags) / 3.0
-
-
-def _checklist_pass_rate(ck: dict) -> float:
-    """Checklist score lives under `pass_rate`, not `.score`. Be defensive
-    against either spelling so old + new score files both work."""
-    if not isinstance(ck, dict):
-        return 0.0
-    val = ck.get("pass_rate")
-    if val is None:
-        val = ck.get("score")
-    return float(val or 0)
-
-
-def composite_v1(s: dict) -> float:
-    """Legacy additive composite (= score_deep_answer.py default 'composite')."""
-    if "composite" in s and isinstance(s["composite"], (int, float)):
-        return float(s["composite"])
-    url = (s.get("url_coverage") or {}).get("score") or 0
-    chk = _checklist_pass_rate(s.get("checklist") or {})
-    spc = _spec_pass_fraction(s.get("markdown_spec") or {})
-    return 0.40 * url + 0.40 * chk + 0.20 * spc
-
-
-def composite_v2_truthful(s: dict) -> float:
-    """Multiplicative composite gated by URL reachability."""
-    url = (s.get("url_coverage")     or {}).get("score") or 0
-    chk = _checklist_pass_rate(s.get("checklist") or {})
-    spc = _spec_pass_fraction(s.get("markdown_spec") or {})
-    reach = (s.get("url_reachability") or {}).get("score") or 0
-    quality = 0.40 * url + 0.40 * chk + 0.20 * spc
-    return float(reach) * float(quality)
+# Composite formulas live in src/scoring/leaderboard_composites.py so
+# every analysis script (this leaderboard, scoring_ablation, review_analyses)
+# scores against the same definition. Three different "v2"s used to coexist
+# and silently disagree by ~10-30% on the same agent/task.
+from src.scoring.leaderboard_composites import (
+    composite_v1, composite_v2_truthful,
+    spec_pass_fraction as _spec_pass_fraction,
+    checklist_pass_rate as _checklist_pass_rate,
+)
 
 
 def main() -> int:
