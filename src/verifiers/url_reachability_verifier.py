@@ -126,9 +126,15 @@ class URLReachabilityVerifier:
         hits_5xx = sum(1 for c in codes.values() if 500 <= c < 600)
         hits_net = sum(1 for c in codes.values() if c == 0)
         total = len(codes) or 1
-        rate = hits_200 / total
+        # 4xx is fabrication; 5xx and net failures are sandbox/network errors.
+        # Compute rate over the *resolvable* probes only so a sandbox restart
+        # doesn't get counted as the agent fabricating URLs.
+        resolvable = total - hits_5xx - hits_net
+        rate = hits_200 / resolvable if resolvable > 0 else 0.0
+        infra_failure = total > 0 and resolvable == 0
+        infra_warning = (hits_5xx + hits_net) >= 0.30 * total
 
-        passed = rate >= min_rate
+        passed = rate >= min_rate and not infra_failure
         return VerifierResult(
             score=round(rate, 4),
             passed=passed,
@@ -143,5 +149,10 @@ class URLReachabilityVerifier:
                 "net_fail": hits_net,
                 "reachability_rate": round(rate, 4),
                 "threshold": min_rate,
+                # Flags so the leaderboard / auditor can distinguish "agent
+                # fabricated URLs" (high 4xx) from "sandbox was down"
+                # (high 5xx / net_fail). Old behaviour folded both into rate.
+                "infra_failure": infra_failure,
+                "infra_warning": infra_warning,
             },
         )

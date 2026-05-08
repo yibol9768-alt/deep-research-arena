@@ -57,23 +57,33 @@ _DEGENERATE_PREFIXES = ("(empty ", "(runner error", "(error", "(timeout", "(no o
 
 
 def _looks_degenerate(d: dict) -> bool:
-    """Detect a score whose underlying answer was a runner error placeholder.
+    """Detect a score whose underlying answer/scoring was unusable.
 
-    qx_runner / storm_runner / ldr_runner all return a fixed-template
-    string when their subprocess fails, and the harness writes it to .md
-    verbatim. Including these in Bradley-Terry battles inflates "wins"
-    against agents that didn't fail — the agent didn't actually compete.
+    Three patterns excluded from leaderboard battles:
+      1. Runner-error placeholder text (qx_runner / storm_runner /
+         ldr_runner produce identical short strings on failure).
+      2. Sandbox infrastructure failure during scoring (every probe
+         returned 5xx or network error — agent didn't fabricate, our
+         sandbox was down).
+      3. Judge total-failure: checklist + analysis_depth + presentation
+         all errored (so the LLM-judged components have no signal).
+    Including any of these in Bradley-Terry battles distorts ratings.
     """
     if d.get("answer_chars", 1) == 0:
         return True
-    # If url_reachability + checklist + analysis_depth are ALL zero AND
-    # answer_chars is small, this is a placeholder, not a real failure.
     chars = d.get("answer_chars", 0)
     if chars and chars < 600:
         reach = (d.get("url_reachability") or {}).get("score") or 0
         ck = (d.get("checklist") or {}).get("pass_rate") or 0
         if reach == 0 and ck == 0:
             return True
+    if (d.get("url_reachability") or {}).get("details", {}).get("infra_failure"):
+        return True
+    ck_err = (d.get("checklist") or {}).get("judge_error")
+    ad_err = ((d.get("analysis_depth") or {}).get("details") or {}).get("judge_error")
+    pres_err = ((d.get("presentation") or {}).get("details") or {}).get("judge_error")
+    if ck_err and ad_err and pres_err:
+        return True
     return False
 
 
