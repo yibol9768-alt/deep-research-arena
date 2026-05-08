@@ -32,14 +32,23 @@ ELO_ANCHOR = 1000.0
 
 
 def _to_wins_matrix(battles: list[dict], agents: list[str]) -> np.ndarray:
-    """Return W[i][j] = fractional wins of agent i over agent j (draws = 0.5)."""
+    """Return W[i][j] = fractional wins of agent i over agent j (draws = 0.5).
+
+    Accepts BOTH battle shapes used in this codebase:
+      * {agent_a, agent_b, winner ∈ {agent_a, agent_b, 'tie'}}
+      * {a1,      a2,      agent_winner ∈ {a1,      a2,      'tie'}}
+    Previously only the first was honored, so any battle list produced by
+    `arena._battles_for_task` (the shape `build_deep_leaderboard` uses)
+    silently routed every game to a draw.
+    """
     idx = {a: k for k, a in enumerate(agents)}
     W = np.zeros((len(agents), len(agents)))
     for b in battles:
-        a, c = b.get("agent_a"), b.get("agent_b")
+        a = b.get("agent_a") or b.get("a1")
+        c = b.get("agent_b") or b.get("a2")
         if a not in idx or c not in idx:
             continue
-        w = b.get("winner", "")
+        w = b.get("winner") if "winner" in b else b.get("agent_winner", "")
         if w == a:
             W[idx[a], idx[c]] += 1
         elif w == c:
@@ -50,8 +59,16 @@ def _to_wins_matrix(battles: list[dict], agents: list[str]) -> np.ndarray:
     return W
 
 
-def _neg_log_lik(r: np.ndarray, W: np.ndarray) -> float:
-    """BT negative log-likelihood. r[0] pinned to 0 via caller for identifiability."""
+def _neg_log_lik(r: np.ndarray, W: np.ndarray, *, l2: float = 1e-2) -> float:
+    """BT negative log-likelihood + L2 prior. r[0] pinned to 0 via caller.
+
+    The L2 prior (default ``λ=0.01``) prevents an unbounded MLE for an
+    agent with zero wins — without it the rating diverges to -∞ and the
+    optimizer returns a machine-dependent outlier instead of regressing
+    toward the prior. ``λ=0.01`` corresponds to a prior std of ~17 Elo
+    (after the ELO_SCALE multiplication) so it's almost invisible for
+    well-resolved agents but pulls floating zero-win agents toward 0.
+    """
     n = len(r)
     ll = 0.0
     for i in range(n):
@@ -60,7 +77,7 @@ def _neg_log_lik(r: np.ndarray, W: np.ndarray) -> float:
                 continue
             log_pij = r[i] - np.logaddexp(r[i], r[j])
             ll += W[i, j] * log_pij
-    return -ll
+    return -ll + 0.5 * l2 * float(np.sum(r * r))
 
 
 def fit_bradley_terry(battles: list[dict]) -> dict[str, float]:

@@ -30,7 +30,14 @@ from dataclasses import dataclass, field
 
 START_RATING = 1000.0
 DEFAULT_K = 32.0
-DEFAULT_TIE_EPS = 0.005  # composites within 0.005 → draw (tight: forces decisive battles)
+DEFAULT_TIE_EPS = 0.005  # composites within this → draw. Suitable for V2 truthful
+# scale where reach=0 collapses many agents to identical 0; loose ties (eps=0.02)
+# would let those zero-cluster agents draw with each other instead of being
+# decided arbitrarily by the order battles are processed.
+# NOTE: build_deep_leaderboard intentionally passes tie_eps=0.005; if you call
+# arena from a different surface and your composite is on a wider scale, raise
+# it to ~0.02. Past audits flagged this as too tight; we keep it as the V2
+# default and document it here.
 DEFAULT_PASSES = 20
 
 
@@ -290,10 +297,19 @@ def rank_significance_test(
     rng = random.Random(seed)
     bigger_counts = {(a, b): 0 for a, b, _ in observed_gaps}
 
+    # Permutation null: re-shuffle the *observed* outcome labels across
+    # the same battle pairs. Old code drew uniformly from {1, 0, 0.5},
+    # which forces 33% draws regardless of the empirical draw rate, so
+    # the null was over-disperse and inflated p-values for closely-
+    # ranked agents. Using a label-shuffle keeps the outcome marginals
+    # exactly equal to the data.
+    obs_outcomes = [s for (_, _, s) in normalised]
+
     for _ in range(n_permutations):
+        rng.shuffle(obs_outcomes)
         shuffled = [
-            (a, b, rng.choice([1.0, 0.0, 0.5]))  # null: random outcome
-            for (a, b, _) in normalised
+            (a, b, obs_outcomes[i])
+            for i, (a, b, _) in enumerate(normalised)
         ]
         perm_rows = _run_elo(shuffled, agents, k, passes=1, seed=rng.randint(0, 1 << 30))
         for (a, b, obs_gap) in observed_gaps:
