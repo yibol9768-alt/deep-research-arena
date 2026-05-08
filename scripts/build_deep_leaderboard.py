@@ -53,9 +53,34 @@ from src.scoring.arena import (
 SCORE_RE = re.compile(r"^(.+?)__([a-z0-9_]+_\d+)_(\w+)\.score\.json$")
 
 
-def load_scores(suffix: str = "matrix") -> list[dict]:
+_DEGENERATE_PREFIXES = ("(empty ", "(runner error", "(error", "(timeout", "(no output", "(qx-agents produced no report")
+
+
+def _looks_degenerate(d: dict) -> bool:
+    """Detect a score whose underlying answer was a runner error placeholder.
+
+    qx_runner / storm_runner / ldr_runner all return a fixed-template
+    string when their subprocess fails, and the harness writes it to .md
+    verbatim. Including these in Bradley-Terry battles inflates "wins"
+    against agents that didn't fail — the agent didn't actually compete.
+    """
+    if d.get("answer_chars", 1) == 0:
+        return True
+    # If url_reachability + checklist + analysis_depth are ALL zero AND
+    # answer_chars is small, this is a placeholder, not a real failure.
+    chars = d.get("answer_chars", 0)
+    if chars and chars < 600:
+        reach = (d.get("url_reachability") or {}).get("score") or 0
+        ck = (d.get("checklist") or {}).get("pass_rate") or 0
+        if reach == 0 and ck == 0:
+            return True
+    return False
+
+
+def load_scores(suffix: str = "matrix", *, drop_degenerate: bool = True) -> list[dict]:
     """Load every <agent>__<task>_<suffix>.score.json."""
     out = []
+    n_dropped = 0
     for p in sorted(DEEP_RESULTS.glob(f"*_{suffix}.score.json")):
         m = SCORE_RE.match(p.name)
         if not m:
@@ -68,12 +93,17 @@ def load_scores(suffix: str = "matrix") -> list[dict]:
         except Exception as e:
             print(f"warn: skip {p.name}: {e}", file=sys.stderr)
             continue
+        if drop_degenerate and _looks_degenerate(d):
+            n_dropped += 1
+            continue
         out.append({
             "agent": agent,
             "task_id": task,
             "score": d,
             "score_path": str(p.relative_to(ROOT)),
         })
+    if n_dropped:
+        print(f"dropped {n_dropped} runner-placeholder rows (set drop_degenerate=False to include)", file=sys.stderr)
     return out
 
 
