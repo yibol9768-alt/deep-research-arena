@@ -65,7 +65,14 @@ def rescore(score_path: Path, *, skip_nli: bool = False) -> dict:
         answer_path = score_path.with_suffix("").with_suffix(".md")
         if not answer_path.exists():
             answer_path = score_path.parent / score_path.name.replace(".score.json", ".md")
-    answer = answer_path.read_text(errors="ignore") if answer_path.exists() else ""
+    if not answer_path.exists():
+        # Refuse to clobber a score file when we cannot read the answer
+        # locally — the original was scored on westd from the actual report,
+        # and rescoring with answer="" would silently zero out checklist /
+        # NLI / analysis_depth / presentation. Caller should pull the .md
+        # from westd first or skip this file.
+        return {"skipped": True, "reason": "answer_md_missing", "tried": str(answer_path)}
+    answer = answer_path.read_text(errors="ignore")
 
     task_id = sd.get("task")
     task_path = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep" / f"{task_id}.json"

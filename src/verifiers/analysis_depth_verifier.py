@@ -53,19 +53,31 @@ _COMPARATIVE_TERMS = re.compile(
 
 
 def _extract_domain(url: str) -> str:
-    """Extract the registrable domain (simplified: last two parts)."""
+    """Extract a normalised "source identity" from a URL.
+
+    For real internet URLs, returns the last two host parts ("amazon.com").
+    For sandbox URLs all three corpora live under host=localhost on
+    different ports (7770 = shopping, 9999 = reddit, 8090 = wiki), so
+    we use **host:port** when present — otherwise multi-domain checks
+    silently fail because all three sandbox URLs collapse to "localhost".
+    """
     try:
-        host = urlparse(url).hostname or ""
+        parsed = urlparse(url)
+        host = (parsed.hostname or "").lower()
+        port = parsed.port
     except Exception:
         return ""
-    parts = host.lower().split(".")
-    # Strip www prefix
+    if not host:
+        return ""
+    # Sandbox + any other host where the port disambiguates the corpus.
+    if host in ("localhost", "127.0.0.1") and port:
+        return f"{host}:{port}"
+    parts = host.split(".")
     if parts and parts[0] == "www":
         parts = parts[1:]
-    # Take last two parts (e.g., "example.com")
     if len(parts) >= 2:
         return ".".join(parts[-2:])
-    return host.lower()
+    return host
 
 
 def _paragraphs(text: str) -> list[str]:
