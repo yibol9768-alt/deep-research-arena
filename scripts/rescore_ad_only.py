@@ -28,10 +28,15 @@ def rescore(score_path: Path) -> dict:
     t0 = time.time()
     sd = json.loads(score_path.read_text())
 
-    answer_path = ROOT / sd.get("answer_path", "")
-    if not answer_path.exists():
-        answer_path = score_path.parent / score_path.name.replace(".score.json", ".md")
-    if not answer_path.exists():
+    candidates = []
+    if sd.get("answer_path"):
+        candidates.append(ROOT / sd["answer_path"])
+    candidates.append(score_path.parent / score_path.name.replace(".score.json", ".md"))
+    md_name = score_path.name.replace(".score.json", ".md")
+    for d in ("data/results/deep", "data/results/deep_v3", "data/results/deep_reports"):
+        candidates.append(ROOT / d / md_name)
+    answer_path = next((p for p in candidates if p.exists()), None)
+    if answer_path is None:
         return {"file": score_path.name, "skipped": "answer_md_missing", "old_ad": (sd.get("analysis_depth") or {}).get("score", 0.0), "new_ad": None, "dt": 0.0}
     answer = answer_path.read_text(errors="ignore")
 

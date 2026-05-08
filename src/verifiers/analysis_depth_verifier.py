@@ -245,9 +245,11 @@ def _parse_tier_b(text: str, n: int) -> list[dict[str, Any]]:
         else:
             out.append(None)
 
-    # Pass 2: fallback to unnumbered PASS/FAIL tokens
+    # Pass 2: unnumbered PASS/FAIL fallback. Triggered on ANY missing
+    # slot — old `> n // 2` threshold left mixed-format outputs with the
+    # unnumbered half permanently FAILing.
     missing = [i for i, v in enumerate(out) if v is None]
-    if len(missing) > n // 2:
+    if missing:
         tokens = re.findall(r"(?:^|\n)\s*(PASS|FAIL)\b", text, re.I)
         if len(tokens) >= n:
             for i in range(n):

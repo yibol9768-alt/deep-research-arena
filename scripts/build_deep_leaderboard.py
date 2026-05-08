@@ -27,7 +27,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-DEEP_RESULTS = ROOT / "data" / "results" / "deep"
+import os
+# Source dir override — defaults to deep_v3 (full 10-agent corpus the paper
+# cites). The legacy deep/ directory only had the 5-agent subset; switching
+# to deep_v3 picks up deerflow / ldr / ii-researcher / flowsearcher-ds /
+# qx-agents alongside the original five.
+DEEP_RESULTS = ROOT / os.environ.get(
+    "DEEP_RESULTS_DIR", "data/results/deep_v3"
+)
 OUT_MD = DEEP_RESULTS / "LEADERBOARD_DEEP.md"
 OUT_JSON = DEEP_RESULTS / "leaderboard_deep.json"
 
@@ -198,9 +205,9 @@ def main() -> int:
         raw_table_v1.append(f"| {a} | " + " | ".join(cells) + f" | **{mean:.3f}** |")
 
     md = [
-        "# Deep-Tier Leaderboard — V1 (12 task × 5 OSS DR agents)",
+        f"# Deep-Tier Leaderboard ({len(tasks)} tasks × {len(agents)} OSS DR agents)",
         "",
-        f"*Built from {len(rows)} run-score files in `data/results/deep/*_matrix.score.json`. Backbone = DeepSeek-V4-flash (thinking off via westd ds_proxy:8088). Sandbox = Magento + Postmill + Kiwix on westd. Score files produced by `score_deep_answer.py`.*",
+        f"*Built from {len(rows)} run-score files in `{DEEP_RESULTS.relative_to(ROOT)}/*_matrix.score.json`. Backbone = DeepSeek-V4-flash (thinking off via westd ds_proxy:8088). Sandbox = Magento + Postmill + Kiwix on westd. Score files produced by `score_deep_answer.py`.*",
         "",
         "## Composite_v2_truthful (multiplicative, primary)",
         "",

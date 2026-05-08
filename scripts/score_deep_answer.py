@@ -341,8 +341,13 @@ def main() -> int:
     checklist = []
     if checklist_path.exists():
         checklist = json.loads(checklist_path.read_text()).get(args.task, [])
-    print(f"\n[checklist] {len(checklist)} items, judge={judge_identity()}")
-    checklist_result = _judge_checklist(checklist, answer, args.task)
+    print(f"\n[checklist] {len(checklist)} items, judge={judge_identity()}, reach={reach_result.score:.3f}")
+    # Plumb reachability so the fab-URL cross-check fires (downgrades PASS
+    # to FAIL on grounding-keyword criteria when reach < 0.30). Without
+    # this kwarg the guard is dead in production scoring.
+    checklist_result = _judge_checklist(
+        checklist, answer, args.task, reachability=reach_result.score
+    )
     print(f"  pass={checklist_result.get('pass_count')}/{len(checklist)} "
           f"fail={checklist_result.get('fail_count')} unclear={checklist_result.get('unclear_count')} "
           f"rate={checklist_result.get('pass_rate')}")

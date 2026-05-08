@@ -212,10 +212,17 @@ _JUDGE_SYSTEM = (
 
 def _build_tier_b_prompt(answer: str) -> str:
     numbered = "\n".join(f"{i+1}. {c}" for i, c in enumerate(_TIER_B_CRITERIA))
-    truncated = (answer or "")[:6000]
+    # Two of the criteria — conclusion_synthesizes and consistent_formatting —
+    # depend on the END of the report. A pure head truncation systematically
+    # FAILed long reports on those criteria. Send head + tail.
+    a = (answer or "")
+    if len(a) <= 16000:
+        excerpt = a
+    else:
+        excerpt = a[:8000] + "\n\n[...trimmed...]\n\n" + a[-8000:]
     return (
         f"Presentation quality criteria (judge each independently):\n{numbered}\n\n"
-        f"Agent report (truncated to 6000 chars):\n---\n{truncated}\n---\n\n"
+        f"Agent report (head + tail; middle elided when long):\n---\n{excerpt}\n---\n\n"
         f"For each criterion, emit one line:\n"
         f"  1. PASS|FAIL  (reason <= 12 words)\n"
         f"  2. PASS|FAIL  (reason <= 12 words)\n"
@@ -244,9 +251,12 @@ def _parse_tier_b(text: str, n: int) -> list[dict[str, Any]]:
         else:
             out.append(None)
 
-    # Pass 2: fallback to unnumbered PASS/FAIL lines
+    # Pass 2: unnumbered PASS/FAIL fallback. Triggered whenever Pass 1
+    # missed even one slot — the previous `> n // 2` threshold left
+    # mixed-format outputs (e.g. 3 numbered + 3 unnumbered) with the
+    # unnumbered half permanently FAILing.
     missing = [i for i, v in enumerate(out) if v is None]
-    if len(missing) > n // 2:
+    if missing:
         tokens = re.findall(r"(?:^|\n)\s*(PASS|FAIL)\b", text, re.I)
         if len(tokens) >= n:
             for i in range(n):

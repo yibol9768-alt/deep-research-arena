@@ -73,8 +73,11 @@ def _call_anthropic(system: str, user: str, *, model: str, max_tokens: int) -> t
           or os.environ.get("ANTHROPIC_API_KEY")
     if not key:
         return None, "judge key missing (set JUDGE_API_KEY or ANTHROPIC_AUTH_TOKEN)"
+    timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "120"))
     try:
-        client = anthropic.Anthropic(base_url=base, auth_token=key)
+        # Anthropic SDK timeout was missing entirely; without it a stalled
+        # provider hangs the whole rescore loop indefinitely.
+        client = anthropic.Anthropic(base_url=base, auth_token=key, timeout=timeout_s)
         resp = client.messages.create(
             model=model,
             max_tokens=max_tokens,
@@ -106,10 +109,13 @@ def _call_openai(
     if not key:
         return None, "judge key missing (set JUDGE_API_KEY or OPENAI_API_KEY)"
     extra_body: dict = {}
-    if model.startswith("deepseek-v4"):
+    # Case-insensitive: `JUDGE_MODEL=DeepSeek-V4-flash` would otherwise miss
+    # the thinking-disabled flag and the model would hide the answer in
+    # `reasoning_content`, breaking JSON parsing downstream.
+    if model.lower().startswith("deepseek-v4"):
         extra_body["thinking"] = {"type": "disabled"}
 
-    timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "30"))
+    timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "120"))
     try:
         client = OpenAI(base_url=base, api_key=key, timeout=timeout_s, max_retries=1)
         resp = client.chat.completions.create(

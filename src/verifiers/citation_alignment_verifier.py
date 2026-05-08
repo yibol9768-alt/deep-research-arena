@@ -130,7 +130,7 @@ def _extract_pairs(markdown: str, sandbox_hosts: set[str]) -> list[dict]:
     """
     if not markdown:
         return []
-    from .base import CITED_BARE_URL_RE, _strip_url_trail
+    from .base import CITED_BARE_URL_RE, _strip_url_trail, host_in_set
 
     sentences = _SENT_SPLIT_RE.split(markdown)
     out: list[dict] = []
@@ -141,7 +141,7 @@ def _extract_pairs(markdown: str, sandbox_hosts: set[str]) -> list[dict]:
         urls_seen_in_sent: set[str] = set()
         for m in _MD_LINK_RE.finditer(sent):
             url = _strip_url_trail(m.group("url"))
-            if not any(h in url for h in sandbox_hosts):
+            if not host_in_set(url, sandbox_hosts):
                 continue
             urls_seen_in_sent.add(url)
             cleaned = _MD_LINK_RE.sub(r"\1", sent).strip()[:600]
@@ -159,7 +159,7 @@ def _extract_pairs(markdown: str, sandbox_hosts: set[str]) -> list[dict]:
         # via markdown wrapping).
         for m in CITED_BARE_URL_RE.finditer(sent):
             url = _strip_url_trail(m.group(0))
-            if not any(h in url for h in sandbox_hosts):
+            if not host_in_set(url, sandbox_hosts):
                 continue
             if url in urls_seen_in_sent:
                 continue

@@ -58,20 +58,24 @@ def rescore(score_path: Path, *, skip_nli: bool = False) -> dict:
     import time
     t0 = time.time()
     sd = json.loads(score_path.read_text())
+    # The .md may live in any of: the path stamped in answer_path, or one
+    # of the parallel result dirs. Try all of them before giving up.
     answer_path_str = sd.get("answer_path", "")
-    answer_path = ROOT / answer_path_str
-    if not answer_path.exists():
-        # Try as absolute or in same dir
-        answer_path = score_path.with_suffix("").with_suffix(".md")
-        if not answer_path.exists():
-            answer_path = score_path.parent / score_path.name.replace(".score.json", ".md")
-    if not answer_path.exists():
+    candidates = []
+    if answer_path_str:
+        candidates.append(ROOT / answer_path_str)
+    candidates.append(score_path.parent / score_path.name.replace(".score.json", ".md"))
+    md_name = score_path.name.replace(".score.json", ".md")
+    for d in ("data/results/deep", "data/results/deep_v3", "data/results/deep_reports"):
+        candidates.append(ROOT / d / md_name)
+    answer_path = next((p for p in candidates if p.exists()), None)
+    if answer_path is None:
         # Refuse to clobber a score file when we cannot read the answer
-        # locally — the original was scored on westd from the actual report,
+        # locally — original scoring was on westd from the actual report,
         # and rescoring with answer="" would silently zero out checklist /
         # NLI / analysis_depth / presentation. Caller should pull the .md
         # from westd first or skip this file.
-        return {"skipped": True, "reason": "answer_md_missing", "tried": str(answer_path)}
+        return {"skipped": True, "reason": "answer_md_missing", "tried": [str(c) for c in candidates[:5]]}
     answer = answer_path.read_text(errors="ignore")
 
     task_id = sd.get("task")

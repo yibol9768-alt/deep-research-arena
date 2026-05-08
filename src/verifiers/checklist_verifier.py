@@ -93,10 +93,11 @@ def _parse(text: str, n_items: int) -> list[dict[str, Any]]:
         else:
             out.append(None)  # placeholder, filled below
 
-    # Pass 2: if ≥ half of positions are missing, fall back to unnumbered
-    # one-verdict-per-line parse (DeepSeek's default output shape).
+    # Pass 2: unnumbered one-verdict-per-line fallback. Triggers on ANY
+    # missing slot — old `> n_items // 2` threshold meant a mixed-format
+    # output (some numbered, some not) left the unnumbered half FAILing.
     missing_idx = [i for i, v in enumerate(out) if v is None]
-    if len(missing_idx) > n_items // 2:
+    if missing_idx:
         # Strip NOTES tail
         body = re.split(r"\n\s*NOTES:", text, maxsplit=1, flags=re.I)[0]
         # Collect all standalone PASS/FAIL tokens in order

@@ -36,6 +36,31 @@ def _strip_url_trail(url: str) -> str:
     return url.rstrip(").,;:`'\"\\!?>")
 
 
+def host_in_set(url: str, sandbox_hosts) -> bool:
+    """Strict host:port equality. Use this everywhere instead of
+    `any(h in url for h in sandbox_hosts)` — the substring form silently
+    matches localhost:77703 when sandbox is localhost:7770, or any URL
+    whose path embeds the literal sandbox host."""
+    try:
+        from urllib.parse import urlparse
+        p = urlparse(url)
+        host = (p.hostname or "").lower()
+        port = p.port
+    except Exception:
+        return False
+    if not host:
+        return False
+    hp = f"{host}:{port}" if port else host
+    for h in sandbox_hosts:
+        h = h.lower()
+        if ":" in h:
+            if hp == h:
+                return True
+        elif host == h:
+            return True
+    return False
+
+
 def extract_cited_pairs(
     answer: str,
     sandbox_hosts: set[str] | None = None,
@@ -57,7 +82,7 @@ def extract_cited_pairs(
             if not url:
                 continue
             if sandbox_hosts is not None and sandbox_only:
-                if not any(h in url for h in sandbox_hosts):
+                if not host_in_set(url, sandbox_hosts):
                     continue
             key = (m.start(), url)
             if key in seen:
@@ -84,7 +109,7 @@ def extract_cited_urls(answer: str, sandbox_hosts: set[str] | None = None) -> li
             if not url or url in seen_set:
                 continue
             if sandbox_hosts is not None:
-                if not any(h in url for h in sandbox_hosts):
+                if not host_in_set(url, sandbox_hosts):
                     continue
             seen_set.add(url)
             seen.append(url)
