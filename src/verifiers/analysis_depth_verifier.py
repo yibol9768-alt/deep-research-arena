@@ -87,8 +87,20 @@ def _paragraphs(text: str) -> list[str]:
 
 
 def _urls_in_text(text: str) -> list[str]:
-    """Extract all markdown-link URLs from a chunk of text."""
-    return [m.group("url").rstrip(").,;:`'\"\\") for m in _MD_LINK_RE.finditer(text)]
+    """Extract every URL — markdown-linked OR bare. Catches the bare-URL
+    case (some agents emit raw https:// URLs without [..](..) wrapping)."""
+    from .base import CITED_BARE_URL_RE, _strip_url_trail
+    seen: set[str] = set()
+    out: list[str] = []
+    for m in _MD_LINK_RE.finditer(text):
+        u = _strip_url_trail(m.group("url"))
+        if u and u not in seen:
+            seen.add(u); out.append(u)
+    for m in CITED_BARE_URL_RE.finditer(text):
+        u = _strip_url_trail(m.group(0))
+        if u and u not in seen:
+            seen.add(u); out.append(u)
+    return out
 
 
 def _domains_in_text(text: str) -> set[str]:

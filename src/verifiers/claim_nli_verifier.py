@@ -122,14 +122,15 @@ class ClaimNLIVerifier:
         ]
         sandbox_set = {h.lower() for h in sandbox_hosts}
 
+        # Use the shared extractor (markdown + bare). Required for agents
+        # that cite via raw https:// URLs rather than [label](url).
+        from .base import extract_cited_pairs
+        all_pairs = extract_cited_pairs(answer, sandbox_set)
         claims: list[tuple[str, str]] = []
-        for m in _MD_LINK_RE.finditer(answer):
-            url = _normalize_url(m.group("url"))
-            if not any(h in url for h in sandbox_set):
-                continue
+        for url, ctx, _ in all_pairs:
+            url = _normalize_url(url)
             if url not in url_quotes:
                 continue
-            ctx = _claim_context(answer, m.start())
             claims.append((url, ctx))
 
         if not claims:
