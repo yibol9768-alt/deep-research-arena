@@ -87,10 +87,22 @@ def _looks_degenerate(d: dict) -> bool:
     return False
 
 
-def load_scores(suffix: str = "matrix", *, drop_degenerate: bool = True) -> list[dict]:
-    """Load every <agent>__<task>_<suffix>.score.json."""
-    out = []
+def load_scores(
+    suffix: str = "matrix",
+    *,
+    drop_degenerate: bool = True,
+    return_drop_stats: bool = False,
+):
+    """Load every <agent>__<task>_<suffix>.score.json.
+
+    Pass ``return_drop_stats=True`` to also receive per-agent drop counts so
+    callers can show *why* an agent has no Elo entry (silent exclusion is the
+    most common way Bradley-Terry rankings end up wrong — an agent with all
+    runs marked degenerate disappears from the leaderboard with no audit trail).
+    """
+    out: list[dict] = []
     n_dropped = 0
+    drop_stats: dict[str, dict[str, int]] = defaultdict(lambda: {"degenerate": 0, "load_error": 0, "kept": 0, "total": 0})
     for p in sorted(DEEP_RESULTS.glob(f"*_{suffix}.score.json")):
         m = SCORE_RE.match(p.name)
         if not m:
@@ -98,14 +110,26 @@ def load_scores(suffix: str = "matrix", *, drop_degenerate: bool = True) -> list
         agent, task, sfx = m.groups()
         if sfx != suffix:
             continue
+        drop_stats[agent]["total"] += 1
         try:
-            d = json.loads(p.read_text())
+            # encoding='utf-8' is REQUIRED — Path.read_text() defaults to the OS
+            # locale (cp1252 on en-US Windows, cp936 on zh-CN Windows). Several
+            # score JSONs contain non-ASCII characters (Chinese task intents,
+            # quoted spans) and would silently fail under the OS default,
+            # dropping perfectly valid rows from the Elo computation. This bug
+            # would make the leaderboard read agent X but not agent Y on
+            # Windows but agree with Linux runs — exactly the kind of "Elo wrong
+            # because of our fault" failure we want to prevent.
+            d = json.loads(p.read_text(encoding="utf-8"))
         except Exception as e:
             print(f"warn: skip {p.name}: {e}", file=sys.stderr)
+            drop_stats[agent]["load_error"] += 1
             continue
         if drop_degenerate and _looks_degenerate(d):
             n_dropped += 1
+            drop_stats[agent]["degenerate"] += 1
             continue
+        drop_stats[agent]["kept"] += 1
         out.append({
             "agent": agent,
             "task_id": task,
@@ -114,6 +138,8 @@ def load_scores(suffix: str = "matrix", *, drop_degenerate: bool = True) -> list
         })
     if n_dropped:
         print(f"dropped {n_dropped} runner-placeholder rows (set drop_degenerate=False to include)", file=sys.stderr)
+    if return_drop_stats:
+        return out, dict(drop_stats)
     return out
 
 
@@ -129,12 +155,21 @@ from src.scoring.leaderboard_composites import (
 
 
 def main() -> int:
-    rows = load_scores(suffix="matrix")
+    rows, drop_stats = load_scores(suffix="matrix", return_drop_stats=True)
     if not rows:
         print(f"no *_matrix.score.json under {DEEP_RESULTS}", file=sys.stderr)
         return 1
 
     print(f"loaded {len(rows)} (agent, task) score files")
+
+    # Surface agents that produced score files but ended up with zero kept rows
+    # — these are silently excluded from Elo today. Common cause: a runner that
+    # always emits a short "(<agent> produced no report)" placeholder, scored,
+    # then dropped by `_looks_degenerate`. Without this report you see "9 OSS
+    # DR agents" in the leaderboard with no clue that a 10th had every run
+    # filtered out.
+    excluded = {a: s for a, s in drop_stats.items() if s["kept"] == 0 and s["total"] > 0}
+    partial = {a: s for a, s in drop_stats.items() if 0 < s["kept"] < s["total"]}
 
     records_v2 = []
     records_v1 = []
@@ -233,6 +268,23 @@ def main() -> int:
     for pair in sig_v2.get("adjacent_pairs", []):
         md.append(f"| {pair['higher']} | {pair['lower']} | {pair['gap']} | {pair['p_value']} | {'✅' if pair['significant'] else '❌'} |")
 
+    if excluded or partial:
+        md += [
+            "",
+            "## Excluded / partially-dropped agents (audit trail)",
+            "",
+            "*Agents whose score files were filtered by `_looks_degenerate` (short placeholders, infra failures, etc.). Excluded agents do **not** appear in the Elo table above; without this section they would vanish silently and a reader would assume the framework was never benchmarked.*",
+            "",
+            "| Agent | Files on disk | Kept | Dropped (degenerate) | Load errors | Status |",
+            "|---|---:|---:|---:|---:|---|",
+        ]
+        for a in sorted(excluded.keys()):
+            s = excluded[a]
+            md.append(f"| {a} | {s['total']} | {s['kept']} | {s['degenerate']} | {s['load_error']} | ❌ excluded — every run filtered out |")
+        for a in sorted(partial.keys()):
+            s = partial[a]
+            md.append(f"| {a} | {s['total']} | {s['kept']} | {s['degenerate']} | {s['load_error']} | ⚠️ partial — some runs dropped |")
+
     md += [
         "",
         "## Composite_v1 (additive, legacy) — for F6 reversal comparison",
@@ -267,7 +319,7 @@ def main() -> int:
         "3. Tasks 0001/0002/0005 are Recommendation anchors; tasks 0003/0004/0006-0012 are V1 (Comparison/Debunking/Causal/Timeline/Enumeration) — task type may interact with agent-architecture suitability, see paper §5.",
     ]
 
-    OUT_MD.write_text("\n".join(md) + "\n")
+    OUT_MD.write_text("\n".join(md) + "\n", encoding="utf-8")
     OUT_JSON.write_text(json.dumps({
         "elo_v2_ci": elo_v2_ci,
         "elo_v1_ci": elo_v1_ci,
@@ -276,7 +328,9 @@ def main() -> int:
         "n_runs": len(rows),
         "agents": agents,
         "tasks": tasks,
-    }, indent=2))
+        "drop_stats": drop_stats,
+        "excluded_agents": sorted(excluded.keys()),
+    }, indent=2), encoding="utf-8")
     print(f"WROTE {OUT_MD.relative_to(ROOT)}")
     print(f"WROTE {OUT_JSON.relative_to(ROOT)}")
     return 0
