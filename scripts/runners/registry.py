@@ -60,6 +60,13 @@ def discover() -> tuple[dict[str, Callable[..., Awaitable[str]]], dict[str, str]
 
     for path in sorted(RUNNERS_DIR.glob("*_runner.py")):
         stem = path.stem
+        # Skip macOS AppleDouble metadata files (._something_runner.py) and
+        # any other dotfile-prefixed Python files that show up after a copy
+        # over an SMB / WSL mount. They aren't valid Python identifiers and
+        # surface as a wall of bogus "ModuleNotFoundError: scripts.runners."
+        # entries that drown out the real runner-import failures.
+        if stem.startswith(".") or stem.startswith("_"):
+            continue
         mod_name = _module_name_from_file(path)
         try:
             mod = importlib.import_module(mod_name)
