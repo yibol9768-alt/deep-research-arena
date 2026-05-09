@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" class="bg-slate-50 text-slate-900">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DR-Arena{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+    .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .row-hover:hover { background-color: rgb(248 250 252); }
+    .rank-1 { background: linear-gradient(135deg, #facc15, #f59e0b); color: #422006; }
+    .rank-2 { background: linear-gradient(135deg, #cbd5e1, #94a3b8); color: #0f172a; }
+    .rank-3 { background: linear-gradient(135deg, #fb923c, #f97316); color: #431407; }
+    .pill { display:inline-flex; align-items:center; padding:2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+    .pill-ok { background: #dcfce7; color: #166534; }
+    .pill-warn { background: #fef3c7; color: #92400e; }
+    .pill-bad { background: #fee2e2; color: #991b1b; }
+    .pill-muted { background: #e2e8f0; color: #475569; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2 font-semibold text-slate-900 hover:text-slate-700">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900 text-white text-xs font-bold">DR</span>
+        <span class="text-lg tracking-tight">Deep-Research Arena</span>
+      </a>
+      <nav class="flex items-center gap-1 ml-4 text-sm">
+        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/">Leaderboard</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/playground">Playground</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/smoke">Smoke test</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/add">Add a DR</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-3">
+        <div id="lm-pill" class="pill pill-muted" title="Click to refresh LM Studio status">
+          <span class="w-2 h-2 rounded-full bg-slate-400 mr-1.5"></span>
+          <span id="lm-pill-text">checking…</span>
+        </div>
+        <a href="https://github.com/yibol9768-alt/deep-research-arena" class="text-sm text-slate-600 hover:text-slate-900" target="_blank" rel="noopener">GitHub →</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white py-6 mt-12">
+    <div class="max-w-7xl mx-auto px-6 text-xs text-slate-500 flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>Backbone: <code>{{ lm_studio_model or 'qwen3.5-35b-a3b' }}</code> on local LM Studio</span>
+      <span class="text-slate-300">·</span>
+      <span>Sandbox: Magento + Postmill + Kiwix on westd</span>
+      <span class="text-slate-300">·</span>
+      <span>Composite_v2 = reach × (0.40·url + 0.40·judge + 0.20·spec)</span>
+    </div>
+  </footer>
+
+  <script>
+    async function refreshLmPill() {
+      const pill = document.getElementById('lm-pill');
+      const txt = document.getElementById('lm-pill-text');
+      pill.className = 'pill pill-muted';
+      txt.textContent = 'checking…';
+      try {
+        const r = await fetch('/api/health');
+        const d = await r.json();
+        if (d.ok) {
+          pill.className = 'pill pill-ok';
+          txt.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>LM Studio · ' + (d.active_model || '?');
+        } else {
+          pill.className = 'pill pill-bad';
+          txt.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5 inline-block"></span>LM Studio offline';
+        }
+      } catch (e) {
+        pill.className = 'pill pill-bad';
+        txt.textContent = 'health check failed';
+      }
+    }
+    document.getElementById('lm-pill').addEventListener('click', refreshLmPill);
+    refreshLmPill();
+    setInterval(refreshLmPill, 30000);
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

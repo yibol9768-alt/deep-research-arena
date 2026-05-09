@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Smoke test · DR-Arena{% endblock %}
+
+{% block content %}
+<section class="mb-8 max-w-3xl">
+  <h1 class="text-3xl font-bold tracking-tight">Smoke test</h1>
+  <p class="mt-2 text-slate-600">
+    Three tiers per registered runner: <strong>(1)</strong> import + contract,
+    <strong>(2)</strong> LM Studio <code>/chat/completions</code> ping,
+    <strong>(3)</strong> end-to-end <code>run()</code> against a local mock shim and the LM Studio backbone.
+    Catches the kinds of regressions that would otherwise show up only after a full run logs hours of
+    bad reports.
+  </p>
+</section>
+
+<section class="flex flex-wrap gap-3 mb-6">
+  <button id="run-btn" class="bg-slate-900 text-white text-sm font-medium px-5 py-2.5 rounded-md hover:bg-slate-700">
+    Run smoke test
+  </button>
+  <button id="refresh-btn" class="bg-white border border-slate-300 text-slate-800 text-sm font-medium px-4 py-2.5 rounded-md hover:bg-slate-50">
+    Refresh latest report
+  </button>
+  <div id="run-status" class="ml-2 self-center text-sm text-slate-500"></div>
+</section>
+
+<section class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+  <div class="px-4 py-3 border-b border-slate-200 flex items-baseline gap-3">
+    <div class="text-sm font-semibold">Latest report</div>
+    {% if latest_json %}
+      <code class="text-xs text-slate-500">{{ latest_json.timestamp }}</code>
+    {% else %}
+      <span class="text-xs text-slate-500">no report on disk yet</span>
+    {% endif %}
+  </div>
+  {% if latest_json %}
+  <div class="px-4 py-3 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+    <div>
+      <div class="text-xs text-slate-500">LM Studio</div>
+      <div>{% if latest_json.ping.ok %}<span class="pill pill-ok">{{ '%.2f'|format(latest_json.ping.latency_s) }}s</span>{% else %}<span class="pill pill-bad">offline</span>{% endif %}</div>
+    </div>
+    <div>
+      <div class="text-xs text-slate-500">Model</div>
+      <code class="text-xs">{{ latest_json.lm_studio_model }}</code>
+    </div>
+    <div>
+      <div class="text-xs text-slate-500">End-to-end</div>
+      <div>{% if latest_json.end_to_end %}yes{% else %}skipped{% endif %}</div>
+    </div>
+    <div>
+      <div class="text-xs text-slate-500">Pass rate</div>
+      {% set ok = latest_json.results | selectattr('tier3_run', 'equalto', 'ok') | list | length %}
+      <div class="num-mono">{{ ok }} / {{ latest_json.results|length }}</div>
+    </div>
+  </div>
+  <table class="w-full text-sm">
+    <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+      <tr>
+        <th class="px-4 py-3 text-left font-semibold">Agent</th>
+        <th class="px-4 py-3 text-left font-semibold">Tier 1: import</th>
+        <th class="px-4 py-3 text-left font-semibold">Tier 3: end-to-end</th>
+        <th class="px-4 py-3 text-right font-semibold">Elapsed</th>
+        <th class="px-4 py-3 text-right font-semibold">Chars</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for r in latest_json.results | sort(attribute='agent') %}
+      <tr class="row-hover">
+        <td class="px-4 py-3 font-medium">{{ r.agent }}</td>
+        <td class="px-4 py-3">
+          {% if r.tier1_import == 'ok' %}
+            <span class="pill pill-ok">ok</span>
+          {% else %}
+            <span class="pill pill-bad" title="{{ r.tier1_import }}">import error</span>
+            <code class="ml-2 text-xs text-slate-500">{{ r.tier1_import|truncate(60, true, '…') }}</code>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3">
+          {% if r.tier3_run == 'ok' %}
+            <span class="pill pill-ok">passed</span>
+          {% elif r.tier3_run.startswith('skipped') %}
+            <span class="pill pill-muted">{{ r.tier3_run }}</span>
+          {% else %}
+            <span class="pill pill-warn" title="{{ r.tier3_run }}">{{ r.tier3_run|truncate(60, true, '…') }}</span>
+          {% endif %}
+        </td>
+        <td class="px-4 py-3 text-right num-mono text-slate-500">{{ r.elapsed_s }}s</td>
+        <td class="px-4 py-3 text-right num-mono text-slate-500">{{ r.report_chars }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="p-8 text-center text-slate-500 text-sm">
+    Click <strong>Run smoke test</strong> above to generate the first report.
+  </div>
+  {% endif %}
+</section>
+
+<section class="mt-8">
+  <details class="bg-white rounded-xl border border-slate-200">
+    <summary class="px-4 py-3 cursor-pointer text-sm font-semibold">Run log</summary>
+    <pre id="run-log" class="px-4 pb-4 text-xs whitespace-pre-wrap text-slate-600 font-mono overflow-x-auto">(no run yet — click "Run smoke test")</pre>
+  </details>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const btn = document.getElementById('run-btn');
+const statusEl = document.getElementById('run-status');
+const logEl = document.getElementById('run-log');
+const refreshBtn = document.getElementById('refresh-btn');
+
+btn.addEventListener('click', async () => {
+  btn.disabled = true;
+  btn.textContent = 'Running… (60-180s)';
+  statusEl.textContent = 'spawning subprocess…';
+  logEl.textContent = '';
+  const t0 = performance.now();
+  try {
+    const r = await fetch('/api/smoke', { method: 'POST' });
+    const d = await r.json();
+    const dt = ((performance.now() - t0) / 1000).toFixed(1);
+    statusEl.innerHTML = d.ok
+      ? `<span class="text-emerald-700">smoke succeeded in ${dt}s</span>`
+      : `<span class="text-rose-700">smoke returned ${d.returncode}</span>`;
+    logEl.textContent = d.log_tail || '(no log)';
+    setTimeout(() => location.reload(), 800);
+  } catch (e) {
+    statusEl.innerHTML = `<span class="text-rose-700">request failed: ${e}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run smoke test';
+  }
+});
+
+refreshBtn.addEventListener('click', () => location.reload());
+</script>
+{% endblock %}

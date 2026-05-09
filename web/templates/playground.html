@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Playground · DR-Arena{% endblock %}
+
+{% block content %}
+<section class="mb-6 max-w-3xl">
+  <h1 class="text-3xl font-bold tracking-tight">Playground</h1>
+  <p class="mt-2 text-slate-600">
+    A direct chat with the LM Studio backbone (<code>{{ lm_studio_model }}</code>) — useful as a sanity
+    check before assuming a runner's output is stylistic vs broken. No shim, no agent loop, no scoring.
+    Just <code>POST /v1/chat/completions</code> proxied through this server so the API key stays local.
+  </p>
+</section>
+
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2">
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div id="messages" class="p-4 min-h-[280px] max-h-[60vh] overflow-y-auto space-y-3 text-sm">
+        <div class="text-slate-400 text-sm italic">Send a prompt below to start. Streaming is disabled — replies arrive as one block.</div>
+      </div>
+      <div class="border-t border-slate-200 p-3">
+        <textarea id="prompt" rows="3" class="w-full text-sm px-3 py-2 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400" placeholder="Ask the model anything — e.g. 'Compare two products on the sandbox shop, cite URLs.'"></textarea>
+        <div class="mt-2 flex items-center gap-2">
+          <button id="send-btn" class="bg-slate-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-slate-700">Send</button>
+          <button id="clear-btn" class="text-slate-500 text-sm hover:text-slate-900">Clear</button>
+          <div class="ml-auto flex items-center gap-3 text-xs text-slate-500">
+            <label>max_tokens
+              <input id="max-tokens" type="number" value="512" min="32" max="4096" step="32" class="w-20 ml-1 px-1 py-0.5 border border-slate-300 rounded num-mono">
+            </label>
+            <label>temp
+              <input id="temperature" type="number" value="0.3" min="0" max="2" step="0.1" class="w-16 ml-1 px-1 py-0.5 border border-slate-300 rounded num-mono">
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="lg:col-span-1">
+    <div class="bg-white rounded-xl border border-slate-200 p-5">
+      <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">Backend</div>
+      <dl class="mt-3 text-sm space-y-2">
+        <div class="flex justify-between"><dt class="text-slate-500">URL</dt><dd><code class="text-xs">{{ lm_studio_url }}</code></dd></div>
+        <div class="flex justify-between"><dt class="text-slate-500">Model</dt><dd><code class="text-xs">{{ lm_studio_model }}</code></dd></div>
+      </dl>
+      <div class="mt-4 text-xs text-slate-500">
+        Override at server start with <code>LM_STUDIO_URL</code> and <code>LM_STUDIO_MODEL</code> env vars.
+        The proxy strips streaming and forwards a plain completion to keep the server stateless.
+      </div>
+    </div>
+    <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900">
+      Heads-up: <code>{{ lm_studio_model }}</code> emits a chain-of-thought prefix ("Thinking Process: …")
+      before the answer. That's fine for a smoke test but the leaderboard scoring strips it during
+      <code>composite_v2</code> evaluation.
+    </div>
+  </aside>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const messagesEl = document.getElementById('messages');
+const sendBtn = document.getElementById('send-btn');
+const clearBtn = document.getElementById('clear-btn');
+const promptEl = document.getElementById('prompt');
+const maxTokens = document.getElementById('max-tokens');
+const temperature = document.getElementById('temperature');
+const history = [];
+
+function bubble(role, text, opts = {}) {
+  const wrap = document.createElement('div');
+  wrap.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+  const inner = document.createElement('div');
+  inner.className = (role === 'user'
+    ? 'bg-slate-900 text-white'
+    : 'bg-slate-100 text-slate-900') + ' max-w-[80%] px-3 py-2 rounded-lg whitespace-pre-wrap text-sm';
+  if (opts.muted) inner.className += ' opacity-60 italic';
+  inner.textContent = text;
+  wrap.appendChild(inner);
+  messagesEl.appendChild(wrap);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return inner;
+}
+
+clearBtn.addEventListener('click', () => {
+  history.length = 0;
+  messagesEl.innerHTML = '<div class="text-slate-400 text-sm italic">Cleared.</div>';
+});
+
+async function send() {
+  const prompt = promptEl.value.trim();
+  if (!prompt) return;
+  history.push({ role: 'user', content: prompt });
+  bubble('user', prompt);
+  promptEl.value = '';
+  const placeholder = bubble('assistant', '… thinking …', { muted: true });
+  sendBtn.disabled = true;
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: history,
+        max_tokens: parseInt(maxTokens.value, 10),
+        temperature: parseFloat(temperature.value),
+      }),
+    });
+    if (!r.ok) {
+      const err = await r.text();
+      placeholder.textContent = '✗ ' + err;
+      placeholder.classList.add('bg-rose-100', 'text-rose-800');
+      return;
+    }
+    const d = await r.json();
+    const content = d?.choices?.[0]?.message?.content || '(no content)';
+    history.push({ role: 'assistant', content });
+    placeholder.classList.remove('opacity-60', 'italic');
+    placeholder.textContent = content;
+  } catch (e) {
+    placeholder.textContent = '✗ ' + e;
+    placeholder.classList.add('bg-rose-100', 'text-rose-800');
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+sendBtn.addEventListener('click', send);
+promptEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); }
+});
+</script>
+{% endblock %}
