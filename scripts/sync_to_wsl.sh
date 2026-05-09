@@ -6,6 +6,7 @@ SRC=/mnt/d/lyb/deep_reserch
 DST=/opt/deep_reserch
 
 FILES=(
+    scripts/audit_dr_scores.py
     scripts/build_deep_leaderboard.py
     scripts/run_deep_task.py
     scripts/smoke_test_drs.py
@@ -28,6 +29,7 @@ FILES=(
     web/templates/add.html
     web/templates/smoke.html
     web/templates/playground.html
+    web/templates/audit.html
 )
 for f in "${FILES[@]}"; do
     mkdir -p "$(dirname "$DST/$f")"
