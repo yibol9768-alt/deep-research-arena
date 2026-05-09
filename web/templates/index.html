@@ -2,199 +2,263 @@
 {% block title %}Leaderboard · DR-Arena{% endblock %}
 
 {% block content %}
-<section class="mb-8">
-  <h1 class="text-3xl font-bold tracking-tight">Deep-Research Leaderboard</h1>
-  <p class="mt-2 text-slate-600 max-w-3xl">
-    Bradley-Terry Elo over <span class="font-semibold">{{ n_runs }}</span> agent-task runs across
-    <span class="font-semibold">{{ n_agents }}</span> open-source DR frameworks and
-    <span class="font-semibold">{{ n_tasks }}</span> cross-site tasks.
-    Each run cites ≥120 URLs against a sandboxed Magento + Postmill + Kiwix; the
-    multiplicative reachability gate kills any agent that fabricates URLs
-    regardless of how fluent the prose reads.
-  </p>
+<!-- ─────────────────────── Hero ─────────────────────── -->
+<section class="surface hero-card rounded-2xl p-7 mb-8">
+  <div class="relative">
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      <span class="pill pill-accent"><span class="pill-dot" style="background:#4338ca;"></span>Bradley-Terry Elo</span>
+      <span class="pill pill-muted num-mono">{{ n_runs }} runs</span>
+      <span class="pill pill-muted num-mono">{{ n_agents }} agents</span>
+      <span class="pill pill-muted num-mono">{{ n_tasks }} tasks</span>
+    </div>
+    <h1 class="text-[34px] font-bold tracking-tight leading-none">Deep-Research Leaderboard</h1>
+    <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
+      Pairwise scoring of <strong>{{ n_agents }}</strong> open-source DR frameworks across
+      <strong>{{ n_tasks }}</strong> cross-site research tasks. Each run cites ≥120 URLs against a
+      sandboxed Magento + Postmill + Kiwix stack. The multiplicative reachability gate filters out
+      any agent that fabricates URLs, no matter how fluent the prose reads.
+    </p>
+  </div>
 </section>
 
-<!-- Featured cards -->
-<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+<!-- ─────────────────────── Featured cards ─────────────────────── -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
   {% for c in featured.cards %}
-  <a href="/agent/{{ c.agent }}" class="block bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-400 hover:shadow-sm transition">
-    <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold">{{ c.label }}</div>
-    <div class="mt-2 flex items-baseline gap-2">
-      <span class="text-3xl font-bold text-slate-900 num-mono">{{ c.value }}</span>
-      {% if c.subtitle %}<span class="text-xs text-slate-500">{{ c.subtitle }}</span>{% endif %}
+  <a href="/agent/{{ c.agent }}"
+     class="surface surface-hover rounded-xl p-5 transition relative block overflow-hidden">
+    {% if loop.index == 1 %}
+      <span aria-hidden="true" class="absolute inset-x-0 top-0 h-1" style="background: linear-gradient(90deg, #fde68a, #f59e0b);"></span>
+    {% endif %}
+    <div class="flex items-center justify-between">
+      <div class="label-eyebrow">{{ c.label }}</div>
+      {% if loop.index == 1 %}
+        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style="background: linear-gradient(135deg, #fde68a, #f59e0b); color: #422006;">Best</span>
+      {% endif %}
     </div>
-    <div class="mt-2 text-sm text-slate-700 truncate">{{ c.agent }}</div>
+    <div class="mt-3 stat-value">{{ c.value }}</div>
+    {% if c.subtitle %}<div class="mt-1 text-[11px] ink-mute uppercase tracking-wider font-medium">{{ c.subtitle }}</div>{% endif %}
+    <div class="mt-3 flex items-center gap-2 text-[13px] ink-soft">
+      <span class="agent-avatar" aria-hidden="true">{{ c.agent[:2]|upper if c.agent and c.agent != '—' else '—' }}</span>
+      <span class="font-medium truncate">{{ c.agent }}</span>
+    </div>
   </a>
   {% endfor %}
 </section>
 
-<!-- Tabs -->
-<section class="mb-3 flex items-end gap-1 border-b border-slate-200">
-  <button class="tab tab-active" data-tab="v2">Composite_v2 (truthful)</button>
-  <button class="tab" data-tab="pillars">Per-pillar Elo</button>
-  <button class="tab" data-tab="v1">Composite_v1 (legacy)</button>
-  <button class="tab" data-tab="audit">Audit trail</button>
-  <div class="ml-auto pb-2 text-xs text-slate-500">Click an agent name for the per-task breakdown</div>
+<!-- ─────────────────────── Tabs ─────────────────────── -->
+<section class="mb-4 flex flex-wrap items-center gap-3">
+  <div class="seg" role="tablist">
+    <button class="seg-btn is-active" data-tab="v2">Composite_v2 <span class="ink-mute">(truthful)</span></button>
+    <button class="seg-btn"           data-tab="pillars">Per-pillar Elo</button>
+    <button class="seg-btn"           data-tab="v1">Composite_v1 <span class="ink-mute">(legacy)</span></button>
+    <button class="seg-btn"           data-tab="audit">Audit trail</button>
+  </div>
+  <div class="ml-auto text-[12px] ink-mute hidden sm:block">Click an agent name for the per-task breakdown</div>
 </section>
-<style>
-  .tab { padding: 8px 14px; font-size: 14px; font-weight: 500; color: #475569; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-  .tab:hover { color: #0f172a; }
-  .tab-active { color: #0f172a; border-color: #0f172a; }
-</style>
 
-<!-- Composite_v2 table -->
-<section data-pane="v2" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+<!-- ─────────────────────── Composite_v2 table ─────────────────────── -->
+<section data-pane="v2" class="surface rounded-2xl overflow-hidden">
   <table class="w-full text-sm">
-    <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-      <tr>
-        <th class="px-4 py-3 text-left font-semibold w-16">#</th>
-        <th class="px-4 py-3 text-left font-semibold">Agent</th>
-        <th class="px-4 py-3 text-right font-semibold">Elo</th>
-        <th class="px-4 py-3 text-left font-semibold w-72">95% CI</th>
-        <th class="px-4 py-3 text-right font-semibold">W</th>
-        <th class="px-4 py-3 text-right font-semibold">L</th>
-        <th class="px-4 py-3 text-right font-semibold">D</th>
-        <th class="px-4 py-3 text-right font-semibold">Battles</th>
+    <thead style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-5 py-3 font-bold w-12">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right w-20">Elo</th>
+        <th class="px-3 py-3 font-bold w-[44%]">95% confidence interval</th>
+        <th class="px-3 py-3 font-bold text-right w-20">Win rate</th>
+        <th class="px-3 py-3 font-bold text-right w-12">W</th>
+        <th class="px-3 py-3 font-bold text-right w-12">L</th>
+        <th class="px-5 py-3 font-bold text-right w-12">D</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-100">
+    <tbody style="border-top: 1px solid var(--line);">
       {% for agent, s in ranked_v2 %}
-      {% set width = ((s.elo - elo_min) / elo_span * 100) if elo_span else 0 %}
-      <tr class="row-hover">
-        <td class="px-4 py-3">
+      {% set marker_pct = ((s.elo - elo_min) / elo_span * 100) if elo_span else 0 %}
+      {% set lo_pct     = ((s.elo_lo - elo_min) / elo_span * 100) if elo_span else 0 %}
+      {% set hi_pct     = ((s.elo_hi - elo_min) / elo_span * 100) if elo_span else 0 %}
+      {% set decided    = (s.wins + s.losses) %}
+      {% set wr_pct     = (s.wins / decided * 100) if decided else 0 %}
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-5 py-3.5 align-middle">
           {% if loop.index <= 3 %}
-            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold rank-{{ loop.index }}">{{ loop.index }}</span>
+            <span class="rank-chip rank-{{ loop.index }}">{{ loop.index }}</span>
           {% else %}
-            <span class="text-slate-400 font-medium">{{ loop.index }}</span>
+            <span class="rank-other">{{ loop.index }}</span>
           {% endif %}
         </td>
-        <td class="px-4 py-3">
-          <a href="/agent/{{ agent }}" class="font-medium text-slate-900 hover:text-blue-600">{{ agent }}</a>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap">
+          <a href="/agent/{{ agent }}" class="inline-flex items-center gap-2.5 group">
+            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="font-semibold group-hover:text-indigo-700 transition">{{ agent }}</span>
+          </a>
         </td>
-        <td class="px-4 py-3 text-right font-semibold num-mono">{{ '%.1f'|format(s.elo) }}</td>
-        <td class="px-4 py-3 align-middle">
-          <div class="flex items-center gap-2">
-            <div class="relative w-44 h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div class="absolute top-0 bottom-0 bg-blue-500/60" style="left:{{ ((s.elo_lo - elo_min) / elo_span * 100) if elo_span else 0 }}%; width:{{ ((s.elo_hi - s.elo_lo) / elo_span * 100) if elo_span else 0 }}%;"></div>
-              <div class="absolute top-0 bottom-0 w-0.5 bg-blue-700" style="left:{{ width }}%;"></div>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15px]">{{ '%.0f'|format(s.elo) }}</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div>
+            <div class="ci-track">
+              <div class="ci-range"  style="left:{{ lo_pct }}%; width:{{ hi_pct - lo_pct }}%;"></div>
+              <div class="ci-marker" style="left:{{ marker_pct }}%;"></div>
             </div>
-            <span class="text-xs text-slate-500 num-mono">[{{ '%.0f'|format(s.elo_lo) }}, {{ '%.0f'|format(s.elo_hi) }}]</span>
+            <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+              [{{ '%.0f'|format(s.elo_lo) }}, {{ '%.0f'|format(s.elo_hi) }}]
+              <span class="text-stone-300 mx-1">·</span>
+              ±{{ '%.0f'|format(s.elo_half_width) }}
+            </div>
           </div>
         </td>
-        <td class="px-4 py-3 text-right num-mono text-emerald-700">{{ s.wins }}</td>
-        <td class="px-4 py-3 text-right num-mono text-rose-700">{{ s.losses }}</td>
-        <td class="px-4 py-3 text-right num-mono text-slate-500">{{ s.draws }}</td>
-        <td class="px-4 py-3 text-right num-mono text-slate-700">{{ s.n_battles }}</td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          {% set wr_class = 'wr-good' if wr_pct >= 60 else ('wr-mid' if wr_pct >= 30 else 'wr-poor') %}
+          <span class="wr-pill {{ wr_class }}" title="{{ s.wins }}W / {{ s.losses }}L / {{ s.draws }}D · {{ s.n_battles }} battles">
+            <span class="wr-dot"></span>{{ '%.0f'|format(wr_pct) }}%
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">{{ s.wins }}</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">{{ s.losses }}</td>
+        <td class="px-5 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">{{ s.draws }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
   {% if sig %}
-  <div class="border-t border-slate-200 bg-slate-50 px-4 py-3">
-    <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2">Adjacent-rank significance (permutation, N=1000)</div>
-    <div class="flex flex-wrap gap-2">
+  <div style="border-top: 1px solid var(--line); background: var(--line-soft);" class="px-5 py-4">
+    <div class="flex items-baseline justify-between mb-3">
+      <div class="label-eyebrow">Adjacent-rank significance · permutation N=1000</div>
+      <div class="text-[11px] ink-mute flex items-center gap-3">
+        <span class="flex items-center gap-1.5"><span class="pill-dot" style="background:#4338ca;"></span>significant</span>
+        <span class="flex items-center gap-1.5"><span class="pill-dot" style="background:#a8a29e;"></span>not significant</span>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {% for p in sig %}
-      <span class="text-xs px-2 py-1 rounded-md {{ 'bg-emerald-100 text-emerald-800' if p.significant else 'bg-slate-200 text-slate-600' }}">
-        {{ p.higher }} → {{ p.lower }} · Δ{{ '%.0f'|format(p.gap) }} · p={{ p.p_value }}
-      </span>
+      <div class="sig-cell {{ 'is-sig' if p.significant else '' }}">
+        <span class="font-medium truncate flex-1">{{ p.higher }}</span>
+        <span class="sig-arrow">›</span>
+        <span class="font-medium truncate flex-1">{{ p.lower }}</span>
+        <span class="num-mono ink-mute">Δ{{ '%.0f'|format(p.gap) }}</span>
+        <span class="num-mono {{ 'font-semibold' if p.significant else 'ink-mute' }}" style="{{ 'color: var(--accent-ink);' if p.significant else '' }}">p={{ p.p_value }}</span>
+      </div>
       {% endfor %}
     </div>
   </div>
   {% endif %}
 </section>
 
-<!-- Per-pillar Elo (hidden by default) -->
-<section data-pane="pillars" class="hidden bg-white rounded-xl border border-slate-200 overflow-x-auto">
+<!-- ─────────────────────── Per-pillar Elo ─────────────────────── -->
+<section data-pane="pillars" class="hidden surface rounded-2xl overflow-x-auto">
   <table class="w-full text-sm">
-    <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-      <tr>
-        <th class="px-4 py-3 text-left font-semibold">Agent</th>
-        <th class="px-4 py-3 text-right font-semibold">URL coverage</th>
-        <th class="px-4 py-3 text-right font-semibold">Reachability</th>
-        <th class="px-4 py-3 text-right font-semibold">Checklist (judge)</th>
-        <th class="px-4 py-3 text-right font-semibold">Spec</th>
-        <th class="px-4 py-3 text-right font-semibold">Quote match</th>
+    <thead style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-5 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">URL coverage</th>
+        <th class="px-3 py-3 font-bold text-right">Reachability</th>
+        <th class="px-3 py-3 font-bold text-right">Checklist (judge)</th>
+        <th class="px-3 py-3 font-bold text-right">Spec</th>
+        <th class="px-5 py-3 font-bold text-right">Quote match</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-100">
+    <tbody>
       {% for agent, p in pillars_by_agent.items()|sort(attribute='1.url_coverage', reverse=True) %}
-      <tr class="row-hover">
-        <td class="px-4 py-3"><a href="/agent/{{ agent }}" class="font-medium hover:text-blue-600">{{ agent }}</a></td>
-        <td class="px-4 py-3 text-right num-mono">{{ '%.0f'|format(p.url_coverage or 0) }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ '%.0f'|format(p.reachability or 0) }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ '%.0f'|format(p.checklist or 0) }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ '%.0f'|format(p.spec or 0) }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ '%.0f'|format(p.quote_match or 0) }}</td>
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-5 py-3 align-middle whitespace-nowrap">
+          <a href="/agent/{{ agent }}" class="inline-flex items-center gap-2.5 group">
+            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="font-semibold group-hover:text-indigo-700 transition">{{ agent }}</span>
+          </a>
+        </td>
+        <td class="px-3 py-3 text-right num-mono">{{ '%.0f'|format(p.url_coverage or 0) }}</td>
+        <td class="px-3 py-3 text-right num-mono">{{ '%.0f'|format(p.reachability or 0) }}</td>
+        <td class="px-3 py-3 text-right num-mono">{{ '%.0f'|format(p.checklist or 0) }}</td>
+        <td class="px-3 py-3 text-right num-mono">{{ '%.0f'|format(p.spec or 0) }}</td>
+        <td class="px-5 py-3 text-right num-mono">{{ '%.0f'|format(p.quote_match or 0) }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </section>
 
-<!-- Composite_v1 (legacy) -->
-<section data-pane="v1" class="hidden bg-white rounded-xl border border-slate-200 overflow-hidden">
-  <div class="px-4 py-3 bg-amber-50 border-b border-amber-200 text-xs text-amber-800">
-    Same quality formula <em>without</em> the reachability gate. Demonstrates F6: the ranking <strong>inverts</strong>
-    once truthfulness is enforced — agents with lots of fluent prose drop, agents that cite real URLs climb.
+<!-- ─────────────────────── Composite_v1 (legacy) ─────────────────────── -->
+<section data-pane="v1" class="hidden surface rounded-2xl overflow-hidden">
+  <div class="px-5 py-3 text-[12.5px]" style="background: var(--warn-soft); color: var(--warn); border-bottom: 1px solid #fde68a;">
+    Same quality formula <em>without</em> the reachability gate. Demonstrates F6: the ranking
+    <strong>inverts</strong> once truthfulness is enforced. Agents with lots of fluent prose drop;
+    agents that cite real URLs climb.
   </div>
   <table class="w-full text-sm">
-    <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-      <tr>
-        <th class="px-4 py-3 text-left font-semibold w-16">#</th>
-        <th class="px-4 py-3 text-left font-semibold">Agent</th>
-        <th class="px-4 py-3 text-right font-semibold">Elo</th>
-        <th class="px-4 py-3 text-left font-semibold">95% CI</th>
-        <th class="px-4 py-3 text-right font-semibold">W</th>
-        <th class="px-4 py-3 text-right font-semibold">L</th>
+    <thead style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-5 py-3 font-bold w-14">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">Elo</th>
+        <th class="px-3 py-3 font-bold">95% CI</th>
+        <th class="px-3 py-3 font-bold text-right">W</th>
+        <th class="px-5 py-3 font-bold text-right">L</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-100">
+    <tbody>
       {% for agent, s in ranked_v1 %}
-      <tr class="row-hover">
-        <td class="px-4 py-3 text-slate-400 font-medium">{{ loop.index }}</td>
-        <td class="px-4 py-3"><a href="/agent/{{ agent }}" class="font-medium hover:text-blue-600">{{ agent }}</a></td>
-        <td class="px-4 py-3 text-right font-semibold num-mono">{{ '%.1f'|format(s.elo) }}</td>
-        <td class="px-4 py-3 text-xs num-mono text-slate-500">[{{ '%.0f'|format(s.elo_lo) }}, {{ '%.0f'|format(s.elo_hi) }}] ±{{ '%.0f'|format(s.elo_half_width) }}</td>
-        <td class="px-4 py-3 text-right num-mono text-emerald-700">{{ s.wins }}</td>
-        <td class="px-4 py-3 text-right num-mono text-rose-700">{{ s.losses }}</td>
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-5 py-3 align-middle">
+          {% if loop.index <= 3 %}
+            <span class="rank-chip rank-{{ loop.index }}">{{ loop.index }}</span>
+          {% else %}
+            <span class="rank-other">{{ loop.index }}</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <a href="/agent/{{ agent }}" class="inline-flex items-center gap-2.5 group">
+            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="font-semibold group-hover:text-indigo-700 transition">{{ agent }}</span>
+          </a>
+        </td>
+        <td class="px-3 py-3 text-right num-mono font-semibold">{{ '%.0f'|format(s.elo) }}</td>
+        <td class="px-3 py-3 text-[12px] num-mono ink-mute">[{{ '%.0f'|format(s.elo_lo) }}, {{ '%.0f'|format(s.elo_hi) }}] · ±{{ '%.0f'|format(s.elo_half_width) }}</td>
+        <td class="px-3 py-3 text-right num-mono" style="color: var(--good);">{{ s.wins }}</td>
+        <td class="px-5 py-3 text-right num-mono" style="color: var(--bad);">{{ s.losses }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </section>
 
-<!-- Audit trail -->
-<section data-pane="audit" class="hidden bg-white rounded-xl border border-slate-200 overflow-hidden">
-  <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 text-xs text-slate-600">
+<!-- ─────────────────────── Audit trail ─────────────────────── -->
+<section data-pane="audit" class="hidden surface rounded-2xl overflow-hidden">
+  <div class="px-5 py-3 text-[12.5px] ink-soft" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     Agents whose score files were filtered by <code>_looks_degenerate</code> (short placeholders, infra failures, judge-error storms).
     Excluded agents <em>do not appear</em> in the Elo tables above. Without this audit they would vanish silently.
   </div>
   {% if audit %}
   <table class="w-full text-sm">
-    <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-      <tr>
-        <th class="px-4 py-3 text-left font-semibold">Agent</th>
-        <th class="px-4 py-3 text-right font-semibold">Files</th>
-        <th class="px-4 py-3 text-right font-semibold">Kept</th>
-        <th class="px-4 py-3 text-right font-semibold">Dropped</th>
-        <th class="px-4 py-3 text-right font-semibold">Load errors</th>
-        <th class="px-4 py-3 text-left font-semibold">Status</th>
+    <thead style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-5 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">Files</th>
+        <th class="px-3 py-3 font-bold text-right">Kept</th>
+        <th class="px-3 py-3 font-bold text-right">Dropped</th>
+        <th class="px-3 py-3 font-bold text-right">Load errors</th>
+        <th class="px-5 py-3 font-bold">Status</th>
       </tr>
     </thead>
-    <tbody class="divide-y divide-slate-100">
+    <tbody>
       {% for r in audit %}
-      <tr class="row-hover">
-        <td class="px-4 py-3 font-medium">{{ r.agent }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ r.total }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ r.kept }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ r.degenerate }}</td>
-        <td class="px-4 py-3 text-right num-mono">{{ r.load_error }}</td>
-        <td class="px-4 py-3">
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-5 py-3 font-medium">
+          <span class="flex items-center gap-2.5">
+            <span class="agent-avatar">{{ r.agent[:2]|upper }}</span>
+            <span>{{ r.agent }}</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 text-right num-mono">{{ r.total }}</td>
+        <td class="px-3 py-3 text-right num-mono">{{ r.kept }}</td>
+        <td class="px-3 py-3 text-right num-mono">{{ r.degenerate }}</td>
+        <td class="px-3 py-3 text-right num-mono">{{ r.load_error }}</td>
+        <td class="px-5 py-3">
           {% if r.status == 'excluded' %}
-            <span class="pill pill-bad">excluded — every run filtered</span>
+            <span class="pill pill-bad">excluded · every run filtered</span>
           {% else %}
-            <span class="pill pill-warn">partial — some runs dropped</span>
+            <span class="pill pill-warn">partial · some runs dropped</span>
           {% endif %}
         </td>
       </tr>
@@ -202,18 +266,18 @@
     </tbody>
   </table>
   {% else %}
-  <div class="px-4 py-8 text-center text-slate-500 text-sm">No agents excluded — every framework that produced score files contributed to Elo.</div>
+  <div class="px-5 py-12 text-center ink-mute text-sm">No agents excluded. Every framework that produced score files contributed to Elo.</div>
   {% endif %}
 </section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  const tabs = document.querySelectorAll('.tab');
+  const tabs  = document.querySelectorAll('.seg-btn');
   const panes = document.querySelectorAll('section[data-pane]');
   tabs.forEach(t => t.addEventListener('click', () => {
-    tabs.forEach(x => x.classList.remove('tab-active'));
-    t.classList.add('tab-active');
+    tabs.forEach(x => x.classList.remove('is-active'));
+    t.classList.add('is-active');
     const which = t.dataset.tab;
     panes.forEach(p => p.classList.toggle('hidden', p.dataset.pane !== which));
   }));

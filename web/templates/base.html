@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="bg-slate-50 text-slate-900">
+<html lang="en" class="bg-canvas text-ink">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,41 +7,124 @@
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    :root {
+      --canvas: #fafaf9;
+      --surface: #ffffff;
+      --ink: #0c0a09;
+      --ink-soft: #44403c;
+      --ink-mute: #78716c;
+      --line: #e7e5e4;
+      --line-soft: #f5f5f4;
+      --accent: #4338ca;
+      --accent-soft: #eef2ff;
+      --accent-ink: #312e81;
+      --good: #15803d;
+      --good-soft: #dcfce7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #a16207;
+      --warn-soft: #fef9c3;
+    }
+    html, body { background: var(--canvas); color: var(--ink); }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
     code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
     .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
-    .row-hover:hover { background-color: rgb(248 250 252); }
-    .rank-1 { background: linear-gradient(135deg, #facc15, #f59e0b); color: #422006; }
-    .rank-2 { background: linear-gradient(135deg, #cbd5e1, #94a3b8); color: #0f172a; }
-    .rank-3 { background: linear-gradient(135deg, #fb923c, #f97316); color: #431407; }
-    .pill { display:inline-flex; align-items:center; padding:2px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
-    .pill-ok { background: #dcfce7; color: #166534; }
-    .pill-warn { background: #fef3c7; color: #92400e; }
-    .pill-bad { background: #fee2e2; color: #991b1b; }
-    .pill-muted { background: #e2e8f0; color: #475569; }
+    .ink-soft { color: var(--ink-soft); }
+    .ink-mute { color: var(--ink-mute); }
+
+    .surface { background: var(--surface); border: 1px solid var(--line); }
+    .surface-hover:hover { border-color: #d6d3d1; box-shadow: 0 4px 14px -8px rgba(12, 10, 9, 0.12); }
+    .row-hover:hover { background-color: var(--line-soft); }
+
+    .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
+
+    /* Rank chips */
+    .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
+    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
+    .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
+    .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* Pills */
+    .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+    .pill-ok    { background: var(--good-soft); color: var(--good); }
+    .pill-warn  { background: var(--warn-soft); color: var(--warn); }
+    .pill-bad   { background: var(--bad-soft);  color: var(--bad); }
+    .pill-muted { background: var(--line); color: var(--ink-soft); }
+    .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
+
+    /* Tabs (segmented control) */
+    .seg { display: inline-flex; padding: 4px; background: #f5f5f4; border: 1px solid var(--line); border-radius: 10px; }
+    .seg-btn { padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--ink-soft); border-radius: 7px; cursor: pointer; transition: background 80ms ease, color 80ms ease; background: transparent; border: 0; }
+    .seg-btn:hover { color: var(--ink); }
+    .seg-btn.is-active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(12,10,9,0.06), 0 0 0 1px var(--line); font-weight: 600; }
+
+    /* Elo CI bar */
+    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
+    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
+    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
+
+    /* Avatar */
+    .agent-avatar {
+      width: 26px; height: 26px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--surface);
+      background: linear-gradient(135deg, #475569, #1e293b);
+    }
+
+    /* Win-rate inline pill */
+    .wr-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .wr-pill .wr-dot { width: 6px; height: 6px; border-radius: 999px; }
+    .wr-good   { background: var(--good-soft); color: var(--good); }
+    .wr-good   .wr-dot { background: var(--good); }
+    .wr-mid    { background: #fef3c7; color: #92400e; }
+    .wr-mid    .wr-dot { background: #f59e0b; }
+    .wr-poor   { background: var(--line); color: var(--ink-soft); }
+    .wr-poor   .wr-dot { background: #a8a29e; }
+
+    /* Subtle decorative gradient on hero */
+    .hero-card { position: relative; overflow: hidden; }
+    .hero-card::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(800px 200px at -10% -40%, rgba(67,56,202,0.07), transparent 60%),
+        radial-gradient(600px 200px at 110% 0%, rgba(245,158,11,0.06), transparent 60%);
+    }
+
+    /* Compact value display in featured cards */
+    .stat-value { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
+
+    /* Significance grid item */
+    .sig-cell { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
+    .sig-cell.is-sig { border-color: #c7d2fe; background: var(--accent-soft); }
+    .sig-arrow { color: var(--ink-mute); font-weight: 600; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
-  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
+  <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
     <div class="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
-      <a href="/" class="flex items-center gap-2 font-semibold text-slate-900 hover:text-slate-700">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900 text-white text-xs font-bold">DR</span>
-        <span class="text-lg tracking-tight">Deep-Research Arena</span>
+      <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
+              style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
+        <span class="text-[15px] tracking-tight">Deep-Research Arena</span>
       </a>
-      <nav class="flex items-center gap-1 ml-4 text-sm">
-        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/">Leaderboard</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/playground">Playground</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/smoke">Smoke test</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-slate-100 text-slate-700" href="/add">Add a DR</a>
+      <nav class="flex items-center gap-0.5 ml-2 text-sm">
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/playground">Playground</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/smoke">Smoke test</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/add">Add a DR</a>
       </nav>
       <div class="ml-auto flex items-center gap-3">
-        <div id="lm-pill" class="pill pill-muted" title="Click to refresh LM Studio status">
-          <span class="w-2 h-2 rounded-full bg-slate-400 mr-1.5"></span>
+        <div id="lm-pill" class="pill pill-muted cursor-pointer" title="Click to refresh LM Studio status">
+          <span class="pill-dot" style="background: #a8a29e;"></span>
           <span id="lm-pill-text">checking…</span>
         </div>
-        <a href="https://github.com/yibol9768-alt/deep-research-arena" class="text-sm text-slate-600 hover:text-slate-900" target="_blank" rel="noopener">GitHub →</a>
+        <a href="https://github.com/yibol9768-alt/deep-research-arena" class="text-sm ink-soft hover:text-black" target="_blank" rel="noopener">GitHub →</a>
       </div>
     </div>
   </header>
@@ -50,13 +133,13 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="border-t border-slate-200 bg-white py-6 mt-12">
-    <div class="max-w-7xl mx-auto px-6 text-xs text-slate-500 flex flex-wrap items-center gap-x-4 gap-y-2">
+  <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
+    <div class="max-w-7xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
       <span>Backbone: <code>{{ lm_studio_model or 'qwen3.5-35b-a3b' }}</code> on local LM Studio</span>
-      <span class="text-slate-300">·</span>
+      <span class="text-stone-300">·</span>
       <span>Sandbox: Magento + Postmill + Kiwix on westd</span>
-      <span class="text-slate-300">·</span>
-      <span>Composite_v2 = reach × (0.40·url + 0.40·judge + 0.20·spec)</span>
+      <span class="text-stone-300">·</span>
+      <span class="num-mono">composite_v2 = reach × (0.40·url + 0.40·judge + 0.20·spec)</span>
     </div>
   </footer>
 
@@ -64,21 +147,21 @@
     async function refreshLmPill() {
       const pill = document.getElementById('lm-pill');
       const txt = document.getElementById('lm-pill-text');
-      pill.className = 'pill pill-muted';
-      txt.textContent = 'checking…';
+      pill.className = 'pill pill-muted cursor-pointer';
+      txt.innerHTML = '<span class="pill-dot" style="background:#a8a29e;"></span>checking…';
       try {
         const r = await fetch('/api/health');
         const d = await r.json();
         if (d.ok) {
-          pill.className = 'pill pill-ok';
-          txt.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>LM Studio · ' + (d.active_model || '?');
+          pill.className = 'pill pill-ok cursor-pointer';
+          txt.innerHTML = '<span class="pill-dot" style="background:#16a34a;"></span>LM Studio · ' + (d.active_model || '?');
         } else {
-          pill.className = 'pill pill-bad';
-          txt.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5 inline-block"></span>LM Studio offline';
+          pill.className = 'pill pill-bad cursor-pointer';
+          txt.innerHTML = '<span class="pill-dot" style="background:#dc2626;"></span>LM Studio offline';
         }
       } catch (e) {
-        pill.className = 'pill pill-bad';
-        txt.textContent = 'health check failed';
+        pill.className = 'pill pill-bad cursor-pointer';
+        txt.innerHTML = '<span class="pill-dot" style="background:#dc2626;"></span>health check failed';
       }
     }
     document.getElementById('lm-pill').addEventListener('click', refreshLmPill);

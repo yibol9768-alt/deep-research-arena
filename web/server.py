@@ -37,6 +37,7 @@ sys.path.insert(0, str(ROOT))
 DEEP_DIR = ROOT / "data" / "results" / Path(os.environ.get("DEEP_RESULTS_DIR", "deep_v3"))
 SMOKE_DIR = ROOT / "data" / "results" / "smoke"
 SMOKE_DIR.mkdir(parents=True, exist_ok=True)
+AUDIT_DIR = ROOT / "data" / "results" / "audit"
 
 LM_STUDIO_URL = os.environ.get("LM_STUDIO_URL", "http://127.0.0.1:1234/v1")
 LM_STUDIO_MODEL = os.environ.get("LM_STUDIO_MODEL", "qwen3.5-35b-a3b")
@@ -251,6 +252,41 @@ async def smoke_page(request: Request):
 async def playground(request: Request):
     return templates.TemplateResponse("playground.html", {
         "request": request,
+        "lm_studio_url": LM_STUDIO_URL,
+        "lm_studio_model": LM_STUDIO_MODEL,
+    })
+
+
+@app.get("/audit", response_class=HTMLResponse)
+async def audit_page(request: Request):
+    """Latest aggregate score-file audit. Read the most recent
+    ``DR_SCORE_AUDIT_*.md`` from ``data/results/audit/`` (mtime sort) and
+    render it inside a monospace pre block — the audit doc is structured
+    markdown (tables, lists), and a fixed-width pre keeps tables aligned
+    without needing a markdown-to-HTML dep."""
+    md_text: str | None = None
+    mtime_str: str | None = None
+    filename: str | None = None
+    placeholder = "Run `python scripts/audit_dr_scores.py` first to generate the audit report."
+
+    if AUDIT_DIR.exists():
+        candidates = sorted(
+            AUDIT_DIR.glob("DR_SCORE_AUDIT_*.md"),
+            key=lambda p: p.stat().st_mtime,
+        )
+        if candidates:
+            latest = candidates[-1]
+            md_text = latest.read_text(encoding="utf-8")
+            mtime = datetime.fromtimestamp(latest.stat().st_mtime)
+            mtime_str = mtime.strftime("%Y-%m-%d %H:%M:%S")
+            filename = latest.name
+
+    return templates.TemplateResponse("audit.html", {
+        "request": request,
+        "md_text": md_text,
+        "mtime_str": mtime_str,
+        "filename": filename,
+        "placeholder": placeholder,
         "lm_studio_url": LM_STUDIO_URL,
         "lm_studio_model": LM_STUDIO_MODEL,
     })
