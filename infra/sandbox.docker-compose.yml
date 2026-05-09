@@ -33,15 +33,17 @@
 # scrape + image-build instructions (uses scripts/build_deep_golden.py to
 # regenerate the corpora).
 
-version: "3.8"
+# Note: top-level `version` was dropped as it's now ignored by docker compose v2+.
 
 services:
   shopping:
-    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/shopping_final_0712:latest
+    # Local dev: image built from envs/shopping/ scrape (~141 GB on disk).
+    # Public release will be retagged to ${SANDBOX_REGISTRY}/shopping_final_0712.
+    image: ${SANDBOX_SHOPPING_IMAGE:-shopping_final_0712:latest}
     container_name: dr_sandbox_shopping
     restart: unless-stopped
     ports:
-      - "7770:80"
+      - "${SHOPPING_PORT:-7770}:80"
     environment:
       MAGENTO_BASE_URL: "http://localhost:7770"
     networks: [sandbox]
@@ -53,11 +55,13 @@ services:
       start_period: 90s   # Magento takes ~60s to warm up
 
   reddit:
-    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/postmill-populated:latest
+    # Local dev: image built from envs/reddit/ scrape (~107 GB on disk).
+    # Public release will be retagged to ${SANDBOX_REGISTRY}/postmill-populated.
+    image: ${SANDBOX_REDDIT_IMAGE:-postmill-populated-exposed-withimg:latest}
     container_name: dr_sandbox_reddit
     restart: unless-stopped
     ports:
-      - "9999:80"
+      - "${REDDIT_PORT:-9999}:80"
     networks: [sandbox]
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
@@ -67,19 +71,25 @@ services:
       start_period: 30s
 
   wiki:
-    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/kiwix-en-wiki:latest
+    # Public Kiwix server image; Wikipedia content comes from a host-mounted
+    # .zim file (28 GB en-wiki snapshot). On westd the snapshot lives at
+    # /opt/corpus/wiki/. Outside contributors can download a .zim from
+    # https://download.kiwix.org/zim/wikipedia/ and set WIKI_ZIM_DIR.
+    image: ${SANDBOX_WIKI_IMAGE:-ghcr.io/kiwix/kiwix-serve:latest}
     container_name: dr_sandbox_wiki
     restart: unless-stopped
     ports:
-      - "8090:80"
+      - "${WIKI_PORT:-8090}:8080"
     volumes:
-      # If you have a local .zim file, mount it here instead of pulling
-      # the bundled image. Faster + smaller download.
       - ${WIKI_ZIM_DIR:-./infra/wiki-zim}:/data:ro
-    command: ["--port", "80", "/data"]
+    # The kiwix-serve image's ENTRYPOINT already runs `kiwix-serve --port=8080`,
+    # so `command:` should only list ZIM file paths. westd uses
+    # wikipedia_en_simple_all_maxi.zim; set WIKI_ZIM_FILE to override.
+    command: ["/data/${WIKI_ZIM_FILE:-wikipedia_en_simple_all_maxi.zim}"]
     networks: [sandbox]
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      # kiwix-serve listens on 8080 (per --port arg above).
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ >/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
@@ -90,26 +100,31 @@ services:
     # 3rd-party submitters bring their own DEEPSEEK_API_KEY; we don't ship
     # one in the public image. If the env var is unset, ds_proxy returns
     # 500 with a clear "set DEEPSEEK_API_KEY" error.
-    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/ds-proxy:latest
+    image: ${SANDBOX_DS_PROXY_IMAGE:-dr-bench-ds-proxy:latest}
     container_name: dr_sandbox_ds_proxy
     restart: unless-stopped
     environment:
-      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
-      DEEPSEEK_MODEL: "${DEEPSEEK_MODEL:-deepseek-v4-flash}"
+      # ds_proxy reads OPENAI_PROXY_KEY and OPENAI_PROXY_UPSTREAM directly.
+      # 3rd-party submitters bring their own DeepSeek key; we don't ship one.
+      OPENAI_PROXY_UPSTREAM: "${DEEPSEEK_API_BASE:-https://api.deepseek.com}"
+      OPENAI_PROXY_KEY:      "${DEEPSEEK_API_KEY:-}"
+      OPENAI_PROXY_EMB_KEY:  "${DASHSCOPE_API_KEY:-}"
     networks: [sandbox]
     expose: ["8088"]   # not published — accessed via gateway
 
   gateway:
-    image: ${SANDBOX_REGISTRY:-ghcr.io/dr-benchmark}/gateway:latest
+    image: ${SANDBOX_GATEWAY_IMAGE:-dr-bench-gateway:latest}
     container_name: dr_sandbox_gateway
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - "${GATEWAY_PORT:-8081}:8081"
     environment:
       SHIM_LLM_UPSTREAM: "http://ds_proxy:8088/v1"
-      SANDBOX_SHOPPING: "http://shopping:80"
-      SANDBOX_REDDIT:   "http://reddit:80"
-      SANDBOX_WIKI:     "http://wiki:80"
+      # search_shim/backend.py reads these names directly:
+      SHOPPING: "http://shopping:80"
+      REDDIT:   "http://reddit:80"
+      KIWIX:    "http://wiki:8080"
+      KIWIX_BOOK: "${WIKI_KIWIX_BOOK:-wikipedia_en_simple_all_maxi}"
     depends_on:
       shopping:  { condition: service_healthy }
       reddit:    { condition: service_healthy }

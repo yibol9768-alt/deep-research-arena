@@ -75,6 +75,11 @@ def _parse_task_range(s: str) -> list[str]:
 
 async def _run_one(agent, task_id: str, services) -> dict:
     """Run the agent, score the result, return a row dict."""
+    # Some baselines (random, golden_dump) need the task id in env to load
+    # the per-task golden pool. The harness sets this; we mirror it here so
+    # standalone `python -m integrations.submit` also works.
+    os.environ["_FLOWSEARCHER_TASK_ID"] = task_id
+
     t0 = time.time()
     result = await agent.run(intent=_load_intent(task_id), services=services)
     elapsed = time.time() - t0
@@ -82,7 +87,6 @@ async def _run_one(agent, task_id: str, services) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
     md_path = out_dir / f"{agent.name}__{task_id}_matrix.md"
     if result.error:
-        # Mark as runner-error; never written to the .md path.
         err_path = md_path.with_suffix(".md.error")
         err_path.write_text(result.error)
         return {
@@ -92,8 +96,10 @@ async def _run_one(agent, task_id: str, services) -> dict:
         }
     md_path.write_text(result.markdown)
     score_path = md_path.with_suffix(".score.json")
+    # Use the same Python interpreter that's running this CLI so judge_client
+    # finds the same openai/anthropic SDKs the agent venv installed.
     rc = os.system(
-        f"python3 {ROOT}/scripts/score_deep_answer.py "
+        f"{sys.executable} {ROOT}/scripts/score_deep_answer.py "
         f"--task {task_id} --answer {md_path} --out {score_path}"
     )
     score = json.loads(score_path.read_text()) if score_path.exists() else {}

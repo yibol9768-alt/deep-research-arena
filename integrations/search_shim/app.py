@@ -12,6 +12,7 @@ internet without adding a real token gate.
 from __future__ import annotations
 
 import os
+import re
 import time
 import uuid
 from typing import Any, Literal, Optional, Union
@@ -23,11 +24,18 @@ from pydantic import BaseModel, Field
 from .backend import SearchHit, extract, search
 
 
-# Upstream OpenAI-compat endpoint (ds_proxy with deepseek-v4-flash). Override
-# for tests via env var so a TestClient can point at a stubbed server.
+# Upstream OpenAI-compat endpoint. Defaults to ds_proxy with deepseek-v4-flash.
+# Override via SHIM_LLM_UPSTREAM (e.g. http://localhost:1234/v1 for an LM Studio
+# Qwen3 server, or a tunneled port).
 LLM_UPSTREAM = os.environ.get(
     "SHIM_LLM_UPSTREAM", "http://localhost:8088/v1"
 ).rstrip("/")
+
+# Optional model-name rewrite. If set, every incoming `model` field is
+# replaced with this value before the upstream call. Lets you point a fleet
+# of agents that hardcode "deepseek-v4-flash" at an LM Studio server whose
+# loaded model is "qwen3.5-35b-a3b" — without touching agent code.
+LLM_REWRITE_MODEL = os.environ.get("SHIM_LLM_REWRITE_MODEL", "").strip() or None
 
 
 app = FastAPI(
@@ -54,7 +62,7 @@ class TavilySearchRequest(BaseModel):
     query: str
     search_depth: str = "basic"
     topic: str = "general"
-    max_results: int = Field(default=5, ge=0, le=50)
+    max_results: int = Field(default=5, ge=0, le=100)
     include_answer: Union[bool, str] = False
     include_raw_content: Union[bool, str] = False
     include_images: bool = False
@@ -590,16 +598,35 @@ def duckduckgo_search(
 # `deepseek-v4-*`). Auth header is accepted but ignored — ds_proxy uses its
 # own server-side key.
 
+_THINK_TAG_RE = re.compile(r"<think>.*?</think>\s*", flags=re.DOTALL | re.IGNORECASE)
+
+
+def _strip_thinking(content: str) -> str:
+    """Remove ``<think>...</think>`` blocks emitted by Qwen3 / DeepSeek-R1 /
+    other reasoning models. Frameworks calling the shim expect a flat
+    assistant message, not a reasoning trace."""
+    if not content:
+        return content
+    return _THINK_TAG_RE.sub("", content).lstrip("\n")
+
+
 @app.post("/llm/v1/chat/completions")
 async def llm_chat_completions(
     body: dict[str, Any],
     authorization: Optional[str] = Header(default=None),
 ) -> Any:
-    """OpenAI-compat passthrough → ds_proxy:8088 (deepseek-v4-flash). Body
-    fields are forwarded verbatim; upstream JSON is returned verbatim."""
+    """OpenAI-compat passthrough → ds_proxy:8088 (or any OpenAI-compat
+    upstream set via SHIM_LLM_UPSTREAM env, e.g. an LM Studio Qwen3 server).
+
+    Post-processes each choice's ``message.content`` to strip
+    ``<think>...</think>`` blocks so reasoning-model output looks normal
+    to client frameworks.
+    """
     headers = {"Content-Type": "application/json"}
     if authorization:
         headers["Authorization"] = authorization
+    if LLM_REWRITE_MODEL and isinstance(body, dict):
+        body = {**body, "model": LLM_REWRITE_MODEL}
     timeout = httpx.Timeout(connect=15.0, read=120.0, write=30.0, pool=10.0)
     async with httpx.AsyncClient(timeout=timeout) as client:
         r = await client.post(
@@ -610,7 +637,12 @@ async def llm_chat_completions(
                 status_code=r.status_code,
                 detail=r.text,
             )
-        return r.json()
+        data = r.json()
+        for choice in data.get("choices", []) or []:
+            msg = choice.get("message") or {}
+            if "content" in msg and isinstance(msg["content"], str):
+                msg["content"] = _strip_thinking(msg["content"])
+        return data
 
 
 # ============================================================================

@@ -1,0 +1,47 @@
+# Verification overlay for sandbox.docker-compose.yml.
+#
+# Purpose: bring up a parallel copy of the sandbox stack on a clean port range
+# (17770 / 19999 / 18090 / 18081) so we can validate the V2 compose file
+# without disrupting the production sandbox already running on the canonical
+# ports (7770 / 9999 / 8090 / 8081 / 8088).
+#
+# Usage on westd:
+#   docker compose \
+#     -f infra/sandbox.docker-compose.yml \
+#     -f infra/sandbox.verify.docker-compose.yml \
+#     -p drv2verify up -d
+#
+# Then verify on 17770 / 19999 / 18090 / 18081, and tear down with
+#   docker compose ... -p drv2verify down
+#
+# Notes:
+#   - Container names are renamed to *_verify so they don't clash with the
+#     production webarena_shopping / webarena_reddit / kiwix containers.
+#   - The wiki .zim mount points at /opt/corpus/wiki on westd. Set
+#     WIKI_ZIM_DIR for other hosts.
+
+services:
+  shopping:
+    container_name: dr_sandbox_shopping_verify
+    ports: !override
+      - "17770:80"
+
+  reddit:
+    container_name: dr_sandbox_reddit_verify
+    ports: !override
+      - "19999:80"
+
+  wiki:
+    container_name: dr_sandbox_wiki_verify
+    ports: !override
+      - "18090:8080"
+    volumes: !override
+      - /opt/corpus/wiki:/data:ro
+
+  ds_proxy:
+    container_name: dr_sandbox_ds_proxy_verify
+
+  gateway:
+    container_name: dr_sandbox_gateway_verify
+    ports: !override
+      - "18081:8081"

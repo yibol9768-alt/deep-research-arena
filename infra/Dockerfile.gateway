@@ -5,6 +5,17 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# curl is needed for the healthcheck declared in sandbox.docker-compose.yml.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Marker file so the search_shim package is importable from /app even without
+# integrations/__init__.py on disk (Python 3.11 namespace packages cover us
+# but an explicit __init__.py is safer for older docker compose engines).
+RUN mkdir -p /app/integrations \
+    && touch /app/integrations/__init__.py
+
 # Copy only what's needed (shim + verifier base for shared utils)
 COPY integrations/search_shim/ /app/integrations/search_shim/
 COPY integrations/search_shim/requirements.txt /app/requirements.txt
