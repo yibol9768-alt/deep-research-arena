@@ -4,63 +4,144 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>dr_cross_deep_0087 · Deep-Research Arena</title>
+  <meta name="description" content="An independent leaderboard of open-source deep-research agents, scored on a sealed sandbox of Magento, Postmill, and Wikipedia.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='50%25' y='54%25' fill='white' font-family='Inter,Arial' font-size='14' font-weight='800' text-anchor='middle' dominant-baseline='middle'%3EDR%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Inter+Tight:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --canvas: #fafaf9;
+      /* Surfaces — cool neutral (slate-based) for the data-pro look */
+      --canvas: #f8fafc;
+      --canvas-deep: #f1f5f9;
       --surface: #ffffff;
-      --ink: #0c0a09;
-      --ink-soft: #44403c;
-      --ink-mute: #78716c;
-      --line: #e7e5e4;
-      --line-soft: #f5f5f4;
-      --accent: #4338ca;
-      --accent-soft: #eef2ff;
-      --accent-ink: #312e81;
-      --good: #15803d;
-      --good-soft: #dcfce7;
+      --surface-sunken: #f8fafc;
+      --line: #e2e8f0;
+      --line-soft: #f1f5f9;
+      --line-hard: #cbd5e1;
+
+      /* Text */
+      --ink: #0f172a;
+      --ink-soft: #334155;
+      --ink-mute: #64748b;
+      --ink-faint: #94a3b8;
+
+      /* Accent — confident blue (AA-style) */
+      --accent: #2563eb;
+      --accent-deep: #1d4ed8;
+      --accent-ink: #1e3a8a;
+      --accent-soft: #dbeafe;
+      --accent-faint: #eff6ff;
+
+      /* Semantic */
+      --good: #047857;
+      --good-soft: #d1fae5;
       --bad: #b91c1c;
       --bad-soft: #fee2e2;
-      --warn: #a16207;
-      --warn-soft: #fef9c3;
+      --warn: #b45309;
+      --warn-soft: #fef3c7;
+
+      /* Agent palette — used by scatter chart + row accent dots */
+      --p1:  #2563eb;
+      --p2:  #db2777;
+      --p3:  #0891b2;
+      --p4:  #ea580c;
+      --p5:  #7c3aed;
+      --p6:  #0d9488;
+      --p7:  #c026d3;
+      --p8:  #ca8a04;
+      --p9:  #4f46e5;
+      --p10: #059669;
+      --p11: #e11d48;
+      --p12: #2563eb;
+
+      /* Elevation */
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-md: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.05);
+      --shadow-lg: 0 4px 24px rgba(15, 23, 42, 0.08);
     }
+
     html, body { background: var(--canvas); color: var(--ink); }
-    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
     code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
     .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .font-display { font-family: 'Inter Tight', 'Inter', system-ui, sans-serif; letter-spacing: -0.02em; }
+
     .ink-soft { color: var(--ink-soft); }
     .ink-mute { color: var(--ink-mute); }
+    .ink-faint { color: var(--ink-faint); }
 
+    /* ───── Surfaces ───── */
     .surface { background: var(--surface); border: 1px solid var(--line); }
-    .row-hover:hover { background-color: var(--line-soft); }
-    .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
-
-    .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
-    .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
-    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
-    .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
-    .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
-
-    /* LLM backbone picker chips (current = active, others = "queued") */
-    .llm-chip {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 5px 10px 5px 9px;
-      border-radius: 8px;
-      font-size: 12.5px; font-weight: 600;
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--ink-soft);
-      cursor: default;
+    .surface-elev { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+    .surface-card {
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 14px; box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
     }
-    .llm-chip.is-active { background: var(--accent-soft); color: var(--accent-ink); border-color: rgba(67,56,202,0.35); }
-    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--line-soft); border-color: var(--line); }
-    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
-    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+    .surface-card.is-hover:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--line-hard);
+    }
+    .row-hover:hover { background-color: var(--surface-sunken); }
+    .divider-line { border-top: 1px solid var(--line); }
 
-    .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+    /* ───── Typography helpers ───── */
+    .eyebrow {
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-size: 10.5px; font-weight: 700; color: var(--ink-mute);
+    }
+    .label-eyebrow { /* legacy alias for older templates */
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-size: 10.5px; font-weight: 700; color: var(--ink-mute);
+    }
+    .display-1 {
+      font-family: 'Inter Tight', 'Inter', sans-serif;
+      font-weight: 800; letter-spacing: -0.035em;
+      font-size: 44px; line-height: 1.05;
+    }
+    .display-2 {
+      font-family: 'Inter Tight', 'Inter', sans-serif;
+      font-weight: 800; letter-spacing: -0.03em;
+      font-size: 32px; line-height: 1.1;
+    }
+    .display-3 {
+      font-family: 'Inter Tight', 'Inter', sans-serif;
+      font-weight: 700; letter-spacing: -0.02em;
+      font-size: 22px; line-height: 1.2;
+    }
+
+    /* ───── Buttons / chips ───── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 10px;
+      font-size: 13px; font-weight: 600;
+      border: 1px solid transparent; cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-primary { background: var(--ink); color: white; }
+    .btn-primary:hover { background: #1e293b; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover { background: var(--accent-deep); }
+    .btn-ghost {
+      background: var(--surface); color: var(--ink-soft);
+      border-color: var(--line);
+    }
+    .btn-ghost:hover { background: var(--surface-sunken); border-color: var(--line-hard); color: var(--ink); }
+    .btn-sm { padding: 6px 10px; font-size: 12.5px; border-radius: 8px; }
+
+    /* ───── Pills ───── */
+    .pill {
+      display: inline-flex; align-items: center; padding: 3px 10px;
+      border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5;
+      letter-spacing: 0.01em;
+    }
     .pill-ok    { background: var(--good-soft); color: var(--good); }
     .pill-warn  { background: var(--warn-soft); color: var(--warn); }
     .pill-bad   { background: var(--bad-soft);  color: var(--bad); }
@@ -68,61 +149,150 @@
     .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
     .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
 
-    /* Old CI track — kept for any callers; new layout uses .ci-bar below. */
-    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
-    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
-    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
+    /* ───── LLM backbone chips ───── */
+    .llm-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 11px;
+      border-radius: 10px;
+      font-size: 12.5px; font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-soft);
+    }
+    .llm-chip.is-active { background: var(--surface); color: var(--ink); border-color: var(--ink); box-shadow: var(--shadow-sm); }
+    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--surface-sunken); border-style: dashed; }
+    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
+    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
 
-    /* New unified CI bar: every row has the same outer width (set by the
-       parent <td>); the bar has 8px horizontal padding so the marker dot
-       can never visually overflow into the next column. */
+    /* ───── Rank chips ───── */
+    .rank-chip {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 12px; font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .rank-1 { background: linear-gradient(140deg, #fef3c7, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.4); }
+    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #94a3b8); color: #0f172a; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.45); }
+    .rank-3 { background: linear-gradient(140deg, #fed7aa, #f97316); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.45); }
+    .rank-other { color: var(--ink-mute); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* Tied rank — desaturate to communicate "indistinguishable" */
+    .rank-tied { filter: saturate(0.45) brightness(0.97); box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.5) !important; }
+    .rank-tied-other { color: var(--ink-faint); }
+
+    /* ───── CI bar ───── */
     .ci-bar { padding: 0 8px; }
     .ci-bar-inner { position: relative; height: 14px; }
     .ci-bar-track  { position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); background: var(--line); border-radius: 999px; }
-    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(67,56,202,0.28); border-radius: 999px; pointer-events: none; }
-    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.4); pointer-events: none; }
+    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(37, 99, 235, 0.28); border-radius: 999px; pointer-events: none; }
+    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(37, 99, 235, 0.45); pointer-events: none; }
+    /* legacy aliases for any older callers */
+    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
+    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(37, 99, 235, 0.22); border-radius: 999px; }
+    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(37, 99, 235, 0.32); }
 
+    /* ───── Agent avatars (colored per-agent) ───── */
     .agent-avatar {
-      width: 26px; height: 26px; border-radius: 8px;
+      width: 28px; height: 28px; border-radius: 8px;
       display: inline-flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+      font-size: 11.5px; font-weight: 800; letter-spacing: -0.03em;
       color: var(--surface);
-      background: linear-gradient(135deg, #475569, #1e293b);
+      background: linear-gradient(135deg, var(--avatar-from, #475569), var(--avatar-to, #0f172a));
+      flex-shrink: 0;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+    }
+    .agent-dot {
+      width: 10px; height: 10px; border-radius: 999px;
+      display: inline-block; flex-shrink: 0;
+      background: var(--avatar-from, #475569);
+      box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 2.5px var(--avatar-from, #475569);
     }
 
-    .codeblock { background: #0c0a09; color: #f5f5f4; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
-    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; }
+    /* ───── Code & markdown ───── */
+    .codeblock {
+      background: #0b1220; color: #e2e8f0; padding: 14px 16px;
+      border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto;
+      border: 1px solid #1e293b;
+    }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent-ink);
+      font-weight: 800; font-size: 12px;
+    }
 
-    /* Markdown body when rendered via python-markdown */
-    .md-body { font-size: 13.5px; line-height: 1.55; }
-    .md-body h1, .md-body h2, .md-body h3 { font-weight: 700; margin: 1em 0 0.4em; }
-    .md-body h1 { font-size: 22px; }
-    .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
-    .md-body h3 { font-size: 14px; }
-    .md-body p { margin: 0.5em 0; }
-    .md-body code { background: var(--line-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
-    .md-body pre { background: #0c0a09; color: #f5f5f4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    /* Markdown body */
+    .md-body { font-size: 13.5px; line-height: 1.6; color: var(--ink-soft); }
+    .md-body h1, .md-body h2, .md-body h3 {
+      font-weight: 700; margin: 1em 0 0.4em;
+      font-family: 'Inter Tight', 'Inter', sans-serif;
+      letter-spacing: -0.02em; color: var(--ink);
+    }
+    .md-body h1 { font-size: 24px; }
+    .md-body h2 { font-size: 18px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+    .md-body h3 { font-size: 15px; }
+    .md-body p { margin: 0.55em 0; }
+    .md-body code { background: var(--line-soft); padding: 1.5px 6px; border-radius: 5px; font-size: 12px; color: var(--ink); }
+    .md-body pre { background: #0b1220; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; }
     .md-body pre code { background: transparent; padding: 0; color: inherit; }
     .md-body table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
     .md-body th, .md-body td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
-    .md-body th { background: var(--line-soft); font-weight: 600; }
+    .md-body th { background: var(--surface-sunken); font-weight: 600; }
     .md-body ul, .md-body ol { margin: 0.4em 0; padding-left: 1.4em; }
     .md-body li { margin: 0.2em 0; }
-    .md-body a { color: var(--accent); text-decoration: underline; }
+    .md-body a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    .md-body a:hover { color: var(--accent-deep); }
 
-    /* ---------- Mobile-responsive overrides ---------- */
+    /* ───── Header / nav ───── */
+    .site-header {
+      position: sticky; top: 0; z-index: 30;
+      backdrop-filter: saturate(180%) blur(8px);
+      -webkit-backdrop-filter: saturate(180%) blur(8px);
+      background: rgba(255, 255, 255, 0.78);
+      border-bottom: 1px solid var(--line);
+    }
+    .site-header.scrolled { box-shadow: var(--shadow-sm); }
+    .brand-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: white; font-size: 11px; font-weight: 800;
+      letter-spacing: -0.04em;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .nav-link {
+      padding: 7px 11px; border-radius: 8px;
+      font-size: 13.5px; font-weight: 500;
+      color: var(--ink-soft);
+      transition: background 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+    .nav-link:hover { background: var(--surface-sunken); color: var(--ink); }
+    .nav-link.is-active {
+      background: var(--ink); color: var(--surface);
+    }
+    .nav-link.is-active:hover { background: #1e293b; }
+    .nav-link-badge {
+      display: inline-block; margin-left: 4px;
+      font-size: 9px; font-weight: 700; line-height: 1;
+      background: var(--accent-soft); color: var(--accent-ink);
+      padding: 2px 5px; border-radius: 5px;
+      vertical-align: middle;
+    }
+
+    /* ───── Mobile ───── */
     .mobile-only { display: none; }
     @media (max-width: 1023px) {
       .desktop-only { display: none !important; }
       .mobile-only  { display: inline-flex; }
     }
-    /* Hamburger toggle (CSS-only via :target) */
     .hamburger {
       display: none; align-items: center; justify-content: center;
       width: 36px; height: 36px; border-radius: 8px;
       border: 1px solid var(--line); background: var(--surface);
       color: var(--ink-soft);
     }
+    .hamburger:hover { background: var(--surface-sunken); color: var(--ink); }
     @media (max-width: 1023px) { .hamburger { display: inline-flex; } }
     #mobile-nav {
       display: none;
@@ -131,54 +301,65 @@
     }
     #mobile-nav.open { display: block; }
     #mobile-nav a {
-      display: block; padding: 11px 16px; font-size: 14px;
+      display: block; padding: 12px 18px; font-size: 14px; font-weight: 500;
       color: var(--ink-soft);
       border-bottom: 1px solid var(--line-soft);
     }
-    #mobile-nav a:active, #mobile-nav a:hover { background: var(--line-soft); }
+    #mobile-nav a:active, #mobile-nav a:hover { background: var(--surface-sunken); color: var(--ink); }
+    #mobile-nav a.is-active { background: var(--canvas-deep); color: var(--ink); font-weight: 600; }
 
     @media (max-width: 640px) {
-      h1 { font-size: 24px !important; line-height: 1.15 !important; }
-      .surface.rounded-2xl { border-radius: 14px; }
+      .display-1 { font-size: 30px !important; }
+      .display-2 { font-size: 24px !important; }
+      .display-3 { font-size: 18px !important; }
+      h1.text-\[34px\] { font-size: 26px !important; line-height: 1.12 !important; }
+      .surface.rounded-2xl, .surface-card { border-radius: 14px; }
       .surface.rounded-2xl.p-7 { padding: 18px !important; }
       .surface.rounded-2xl.p-6 { padding: 16px !important; }
       main { padding-left: 14px !important; padding-right: 14px !important; padding-top: 16px !important; }
-      /* Tables: hide W/L/D/CI on phones, keep #/Agent/Elo/Coverage */
       .lb-hide-mobile { display: none !important; }
       table#lb-table { table-layout: auto !important; }
       table#lb-table th, table#lb-table td { padding-left: 10px !important; padding-right: 10px !important; font-size: 12.5px; }
       .ci-bar { padding: 0 4px; }
-      /* KPI text */
-      .label-eyebrow { font-size: 9.5px; }
+      .eyebrow, .label-eyebrow { font-size: 9.5px; }
     }
-    /* Wrap any wide content (other tables on other pages) so they scroll instead of overflow */
     .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ───── Misc ───── */
+    a.subtle-link { color: var(--ink-soft); text-decoration: none; border-bottom: 1px dashed var(--line-hard); transition: color 0.15s, border-color 0.15s; }
+    a.subtle-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+    a.accent-link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+    a.accent-link:hover { color: var(--accent-deep); }
+
+    /* Sparkline / chart helpers */
+    .chart-gridline { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 3; }
+    .chart-axis-tick { fill: var(--ink-mute); font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+    .chart-axis-label { fill: var(--ink-soft); font-size: 11px; font-weight: 600; font-family: 'Inter', sans-serif; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
-  <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3 sm:gap-6">
+  <header class="site-header" id="site-header">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3 sm:gap-5">
       <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition flex-shrink-0">
-        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
-              style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
-        <span class="text-[15px] tracking-tight">Deep-Research Arena</span>
+        <span class="brand-mark">DR</span>
+        <span class="text-[14.5px] tracking-tight font-display">Deep-Research Arena</span>
       </a>
-      <nav class="desktop-only items-center gap-0.5 ml-2 text-sm" style="display: flex;">
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:2px;">new</span></a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/compare">Compare LLMs</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/how-it-works">How it works</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/about">About</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/contribute">Contribute</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
+      <nav class="desktop-only items-center gap-0.5 ml-3" style="display: flex;">
+        <a class="nav-link is-active" href="/">Leaderboard</a>
+        <a class="nav-link " href="/v4">v4 <span class="nav-link-badge">NEW</span></a>
+        <a class="nav-link " href="/compare">Compare LLMs</a>
+        <a class="nav-link " href="/how-it-works">How it works</a>
+        <a class="nav-link " href="/about">About</a>
+        <a class="nav-link " href="/contribute">Contribute</a>
+        <a class="nav-link " href="/audit">Audit</a>
       </nav>
-      <div class="ml-auto flex items-center gap-3">
+      <div class="ml-auto flex items-center gap-2">
         <a href="https://github.com/yibol9768-alt/deep-research-arena"
            target="_blank" rel="noopener"
-           class="desktop-only items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft border border-stone-200"
-           style="display: inline-flex;">
+           class="btn btn-ghost btn-sm desktop-only" style="display: inline-flex;">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
           GitHub
+          <span class="ink-faint" style="font-weight:500;">↗</span>
         </a>
         <button type="button" class="hamburger" aria-label="Open menu" onclick="document.getElementById('mobile-nav').classList.toggle('open');this.setAttribute('aria-expanded', document.getElementById('mobile-nav').classList.contains('open'))">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -186,25 +367,27 @@
       </div>
     </div>
     <div id="mobile-nav">
-      <a href="/">Leaderboard</a>
-      <a href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:4px;">new</span></a>
-      <a href="/compare">Compare LLMs</a>
-      <a href="/how-it-works">How it works</a>
-      <a href="/about">About</a>
-      <a href="/contribute">Contribute</a>
-      <a href="/audit">Audit</a>
-      <a href="https://github.com/yibol9768-alt/deep-research-arena" target="_blank" rel="noopener">GitHub →</a>
+      <a class="is-active" href="/">Leaderboard</a>
+      <a class="" href="/v4">v4 <span class="nav-link-badge">NEW</span></a>
+      <a class="" href="/compare">Compare LLMs</a>
+      <a class="" href="/how-it-works">How it works</a>
+      <a class="" href="/about">About</a>
+      <a class="" href="/contribute">Contribute</a>
+      <a class="" href="/audit">Audit</a>
+      <a href="https://github.com/yibol9768-alt/deep-research-arena" target="_blank" rel="noopener">GitHub ↗</a>
     </div>
   </header>
 
-  <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8">
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
     
 <section class="mb-6">
-  <div class="text-[12px] ink-mute mb-2">
-    <a class="underline" href="/">Leaderboard</a> &nbsp;›&nbsp; <span class="num-mono">dr_cross_deep_0087</span>
+  <div class="text-[12.5px] ink-mute mb-2 flex items-center gap-1.5">
+    <a class="subtle-link" href="/">Leaderboard</a>
+    <span class="ink-faint">›</span>
+    <span class="num-mono">dr_cross_deep_0087</span>
   </div>
-  <h1 class="text-[28px] font-bold tracking-tight">
-    Task <span class="num-mono">dr_cross_deep_0087</span>
+  <h1 class="display-2">
+    Task <span class="num-mono" style="font-size: 0.7em; vertical-align: middle; background: var(--surface-sunken); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); font-weight: 600;">dr_cross_deep_0087</span>
   </h1>
   <div class="mt-2 flex flex-wrap items-center gap-2 text-[12.5px]">
     
@@ -217,7 +400,7 @@
 </section>
 
 <!-- Task prompt -->
-<section class="surface rounded-2xl p-6 mb-6">
+<section class="surface-card p-6 mb-6">
   <div class="flex items-baseline justify-between mb-3">
     <div class="label-eyebrow">Task prompt</div>
     <div class="text-[11px] ink-mute">
@@ -257,7 +440,7 @@ Format: markdown links. Begin with the catalog table. No chain-of-thought.
 </section>
 
 
-<section class="surface rounded-2xl p-6 mb-6">
+<section class="surface-card p-6 mb-6">
   <div class="label-eyebrow mb-3">Hard constraints</div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-[12.5px]">
     
@@ -321,7 +504,7 @@ Format: markdown links. Begin with the catalog table. No chain-of-thought.
 
 
 <!-- Per-task agent leaderboard -->
-<section class="surface rounded-2xl overflow-hidden mb-6">
+<section class="surface-card overflow-hidden mb-6">
   <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     <div class="label-eyebrow">Agent ranking on this task</div>
     <div class="text-[11px] ink-mute">composite_v2 · multiplicative reachability gate</div>
@@ -332,13 +515,13 @@ Format: markdown links. Begin with the catalog table. No chain-of-thought.
 </section>
 
 <section class="text-[12px] ink-mute flex flex-wrap items-center gap-3">
-  <a class="underline" href="/">← All agents</a>
+  <a class="accent-link" href="/">← All agents</a>
   
   
-    <a class="underline" href="/task/dr_cross_deep_0086">← dr_cross_deep_0086</a>
+    <a class="accent-link" href="/task/dr_cross_deep_0086">← dr_cross_deep_0086</a>
   
   
-    <a class="underline" href="/task/dr_cross_deep_0088">dr_cross_deep_0088 →</a>
+    <a class="accent-link" href="/task/dr_cross_deep_0088">dr_cross_deep_0088 →</a>
   
   <span class="ml-auto">Raw config: <code class="num-mono">data/tasks/deep_research/cross_site_deep/dr_cross_deep_0087.json</code></span>
 </section>
@@ -349,17 +532,109 @@ Format: markdown links. Begin with the catalog table. No chain-of-thought.
 
   </main>
 
-  <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-xs ink-mute flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span>Bradley-Terry Elo over <code class="num-mono">composite_v2</code> battles</span>
-      <span class="text-stone-300 desktop-only" style="display:inline;">|</span>
-      <span class="num-mono hidden sm:inline">composite_v2 = reachability x (0.40 url + 0.40 judge + 0.20 spec)</span>
-      <span class="text-stone-300 desktop-only" style="display:inline;">|</span>
+  <footer class="mt-20 pt-10 pb-8" style="border-top: 1px solid var(--line); background: var(--surface);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-[13px]">
+      <div class="col-span-2 md:col-span-1">
+        <div class="flex items-center gap-2">
+          <span class="brand-mark">DR</span>
+          <span class="font-display font-semibold text-[15px]">Deep-Research Arena</span>
+        </div>
+        <p class="ink-mute mt-3 text-[12.5px] leading-relaxed">
+          Independent leaderboard for open-source deep-research agents. Same tasks, same scoring, public method.
+        </p>
+      </div>
+      <div>
+        <div class="eyebrow mb-3">Browse</div>
+        <ul class="space-y-1.5 ink-soft">
+          <li><a class="hover:text-black" href="/">Leaderboard</a></li>
+          <li><a class="hover:text-black" href="/v4">v4 (multi-pillar)</a></li>
+          <li><a class="hover:text-black" href="/compare">Compare LLMs</a></li>
+          <li><a class="hover:text-black" href="/audit">Audit</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="eyebrow mb-3">Method</div>
+        <ul class="space-y-1.5 ink-soft">
+          <li><a class="hover:text-black" href="/how-it-works">How it works</a></li>
+          <li><a class="hover:text-black" href="/about">About</a></li>
+          <li><a class="hover:text-black" href="/contribute">Reproduce / contribute</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="eyebrow mb-3">Source</div>
+        <ul class="space-y-1.5 ink-soft">
+          <li><a class="hover:text-black break-all" href="https://github.com/yibol9768-alt/deep-research-arena" target="_blank" rel="noopener">GitHub repository ↗</a></li>
+          <li><a class="hover:text-black" href="/api/leaderboard.json">leaderboard.json</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-8 pt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11.5px] ink-mute" style="border-top: 1px solid var(--line-soft);">
+      <span class="num-mono">composite_v2 = reachability · qm · nli · (0.4 url + 0.4 judge + 0.2 spec)</span>
+      <span class="ink-faint">·</span>
       <span>Sandbox: Magento + Postmill + Kiwix</span>
-      <span class="text-stone-300 desktop-only" style="display:inline;">|</span>
-      <a href="https://github.com/yibol9768-alt/deep-research-arena" class="hover:text-black break-all" target="_blank" rel="noopener">github.com/yibol9768-alt/deep-research-arena</a>
+      <span class="ink-faint">·</span>
+      <span>Bradley-Terry Elo · bootstrap N=1000</span>
     </div>
   </footer>
+
+  <script>
+    // Header shadow on scroll
+    (function () {
+      const h = document.getElementById('site-header');
+      if (!h) return;
+      let t = false;
+      window.addEventListener('scroll', () => {
+        if (!t) {
+          requestAnimationFrame(() => {
+            h.classList.toggle('scrolled', window.scrollY > 4);
+            t = false;
+          });
+          t = true;
+        }
+      }, { passive: true });
+    })();
+
+    // Deterministic agent color (hash → 12-color palette).
+    // Exposed globally so scatter plot + drill-down use the same color per agent.
+    window.AGENT_PALETTE = [
+      '#2563eb', '#db2777', '#0891b2', '#ea580c',
+      '#7c3aed', '#0d9488', '#c026d3', '#ca8a04',
+      '#4f46e5', '#059669', '#e11d48', '#0284c7'
+    ];
+    window.agentColor = function (name) {
+      if (!name) return window.AGENT_PALETTE[0];
+      let h = 0;
+      for (let i = 0; i < name.length; i++) {
+        h = (h * 31 + name.charCodeAt(i)) & 0xffffffff;
+      }
+      return window.AGENT_PALETTE[Math.abs(h) % window.AGENT_PALETTE.length];
+    };
+    function _shade(hex, pct) {
+      const n = parseInt(hex.slice(1), 16);
+      let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      r = Math.round(r + (255 - r) * pct);
+      g = Math.round(g + (255 - g) * pct);
+      b = Math.round(b + (255 - b) * pct);
+      return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    }
+    function _darken(hex, pct) {
+      const n = parseInt(hex.slice(1), 16);
+      let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+      r = Math.round(r * (1 - pct));
+      g = Math.round(g * (1 - pct));
+      b = Math.round(b * (1 - pct));
+      return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+    }
+    // Apply --avatar-from / --avatar-to to every [data-agent] element on load.
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('[data-agent], [data-agent-color]').forEach(el => {
+        const name = el.getAttribute('data-agent') || el.getAttribute('data-agent-color');
+        const c = window.agentColor(name);
+        el.style.setProperty('--avatar-from', c);
+        el.style.setProperty('--avatar-to', _darken(c, 0.35));
+      });
+    });
+  </script>
 
   
 </body>

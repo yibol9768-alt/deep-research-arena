@@ -1,10 +1,14 @@
 {% extends "base.html" %}
+{% set active_page = "compare" %}
 {% block title %}Compare across LLMs · Deep-Research Arena{% endblock %}
 
 {% block content %}
 <section class="mb-8">
-  <h1 class="text-[30px] font-bold tracking-tight">Compare DR frameworks across LLMs</h1>
-  <p class="mt-2 ink-soft text-[14.5px] max-w-3xl leading-relaxed">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <span class="pill pill-accent"><span class="pill-dot" style="background: var(--accent);"></span>Multi-backbone matrix · in progress</span>
+  </div>
+  <h1 class="display-2">Compare DR frameworks across LLMs</h1>
+  <p class="mt-3 ink-soft text-[15px] max-w-3xl leading-relaxed">
     The Elo on the home page is for one backbone (DeepSeek V4-flash). This
     page will surface the agent × LLM matrix once the other backbones are
     benchmarked. Same tasks, same scoring, just swap the backbone — and see
@@ -13,7 +17,7 @@
 </section>
 
 <!-- ───────── Status table ───────── -->
-<section class="surface rounded-2xl overflow-hidden mb-8">
+<section class="surface-card overflow-hidden mb-8">
   <div class="px-5 py-3 label-eyebrow" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     Backbones tracked
   </div>
@@ -68,8 +72,8 @@
 </section>
 
 <!-- ───────── How comparison will work ───────── -->
-<section class="surface rounded-2xl p-6 mb-6">
-  <h2 class="text-[20px] font-semibold">How the comparison works</h2>
+<section class="surface-card p-6 mb-6">
+  <h2 class="display-3">How the comparison works</h2>
   <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
     Same 57 cross-site research tasks, same deterministic scorer, same
     Bradley-Terry Elo. The only thing that varies is the LLM backbone the
@@ -88,6 +92,6 @@
 
 <section class="text-[13px] ink-mute">
   Want a specific LLM added? Open an issue on
-  <a class="underline" href="{{ github_url }}/issues" target="_blank" rel="noopener">GitHub</a>.
+  <a class="accent-link" href="{{ github_url }}/issues" target="_blank" rel="noopener">GitHub</a>.
 </section>
 {% endblock %}

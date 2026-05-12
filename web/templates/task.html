@@ -1,13 +1,16 @@
 {% extends "base.html" %}
+{% set active_page = "leaderboard" %}
 {% block title %}{{ task_id }} · Deep-Research Arena{% endblock %}
 
 {% block content %}
 <section class="mb-6">
-  <div class="text-[12px] ink-mute mb-2">
-    <a class="underline" href="/">Leaderboard</a> &nbsp;›&nbsp; <span class="num-mono">{{ task_id }}</span>
+  <div class="text-[12.5px] ink-mute mb-2 flex items-center gap-1.5">
+    <a class="subtle-link" href="/">Leaderboard</a>
+    <span class="ink-faint">›</span>
+    <span class="num-mono">{{ task_id }}</span>
   </div>
-  <h1 class="text-[28px] font-bold tracking-tight">
-    Task <span class="num-mono">{{ task_id }}</span>
+  <h1 class="display-2">
+    Task <span class="num-mono" style="font-size: 0.7em; vertical-align: middle; background: var(--surface-sunken); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); font-weight: 600;">{{ task_id }}</span>
   </h1>
   <div class="mt-2 flex flex-wrap items-center gap-2 text-[12.5px]">
     {% if cfg.intent_type %}<span class="pill pill-accent">{{ cfg.intent_type }}</span>{% endif %}
@@ -20,7 +23,7 @@
 </section>
 
 <!-- Task prompt -->
-<section class="surface rounded-2xl p-6 mb-6">
+<section class="surface-card p-6 mb-6">
   <div class="flex items-baseline justify-between mb-3">
     <div class="label-eyebrow">Task prompt</div>
     <div class="text-[11px] ink-mute">
@@ -35,7 +38,7 @@
 </section>
 
 {% if cfg.markdown_spec or cfg.synthesis_requirements or cfg.citation_policy %}
-<section class="surface rounded-2xl p-6 mb-6">
+<section class="surface-card p-6 mb-6">
   <div class="label-eyebrow mb-3">Hard constraints</div>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-[12.5px]">
     {% if cfg.markdown_spec %}
@@ -79,7 +82,7 @@
 {% endif %}
 
 <!-- Per-task agent leaderboard -->
-<section class="surface rounded-2xl overflow-hidden mb-6">
+<section class="surface-card overflow-hidden mb-6">
   <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     <div class="label-eyebrow">Agent ranking on this task</div>
     <div class="text-[11px] ink-mute">composite_v2 · multiplicative reachability gate</div>
@@ -118,7 +121,7 @@
         </td>
         <td class="px-3 py-3 align-middle whitespace-nowrap">
           <span class="inline-flex items-center gap-2.5">
-            <span class="agent-avatar">{{ r.agent[:2]|upper }}</span>
+            <span class="agent-avatar" data-agent="{{ r.agent }}">{{ r.agent[:2]|upper }}</span>
             <span class="font-semibold">{{ r.agent }}</span>
           </span>
         </td>
@@ -128,7 +131,7 @@
         <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">{{ '%.0f%%'|format(r.checklist * 100) if r.checklist is not none else '-' }}</td>
         <td class="px-3 py-3 align-middle text-right text-[12px]">
           {% if r.answer_path %}
-            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/{{ r.answer_path }}">view&nbsp;md ↗</a>
+            <a class="accent-link" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/{{ r.answer_path }}">view&nbsp;md ↗</a>
           {% else %}-{% endif %}
         </td>
       </tr>
@@ -141,13 +144,13 @@
 </section>
 
 <section class="text-[12px] ink-mute flex flex-wrap items-center gap-3">
-  <a class="underline" href="/">← All agents</a>
+  <a class="accent-link" href="/">← All agents</a>
   {% set idx = all_tasks.index(task_id) if task_id in all_tasks else -1 %}
   {% if idx > 0 %}
-    <a class="underline" href="/task/{{ all_tasks[idx-1] }}">← {{ all_tasks[idx-1] }}</a>
+    <a class="accent-link" href="/task/{{ all_tasks[idx-1] }}">← {{ all_tasks[idx-1] }}</a>
   {% endif %}
   {% if idx >= 0 and idx < all_tasks|length - 1 %}
-    <a class="underline" href="/task/{{ all_tasks[idx+1] }}">{{ all_tasks[idx+1] }} →</a>
+    <a class="accent-link" href="/task/{{ all_tasks[idx+1] }}">{{ all_tasks[idx+1] }} →</a>
   {% endif %}
   <span class="ml-auto">Raw config: <code class="num-mono">data/tasks/deep_research/cross_site_deep/{{ task_id }}.json</code></span>
 </section>

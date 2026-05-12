@@ -1,100 +1,111 @@
 {% extends "base.html" %}
+{% set active_page = "leaderboard" %}
 {% block title %}Leaderboard · Deep-Research Arena{% endblock %}
 
 {% block content %}
-<section class="surface rounded-2xl p-7 mb-6">
-  <div class="flex flex-wrap items-center gap-2 mb-3">
-    <span class="pill pill-accent"><span class="pill-dot" style="background:#4338ca;"></span>Bradley-Terry Elo</span>
-    <span class="pill pill-muted num-mono">{{ n_agents }} agents</span>
-    <span class="pill pill-muted num-mono">{{ n_tasks }} tasks</span>
-    <span class="pill pill-muted num-mono">{{ n_runs }} runs</span>
-    {% if leaderboard_mtime %}<span class="pill pill-muted">updated {{ leaderboard_mtime }}</span>{% endif %}
+{# ──────────────── Hero ──────────────── #}
+<section class="mb-8 sm:mb-10">
+  <div class="flex flex-wrap items-center gap-2 mb-4">
+    <span class="pill pill-accent">
+      <span class="pill-dot" style="background: var(--accent);"></span>
+      Bradley-Terry Elo · live
+    </span>
+    {% if leaderboard_mtime %}
+      <span class="pill pill-muted">Updated {{ leaderboard_mtime }}</span>
+    {% endif %}
+    <a href="/api/leaderboard.json" class="pill pill-muted hover:underline">API</a>
   </div>
-  <h1 class="text-[34px] font-bold tracking-tight leading-none">Deep-Research Leaderboard</h1>
-  <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
-    A live ranking of open-source <em>deep research</em> agents on a sandboxed
-    Magento + Postmill + Kiwix corpus. Each agent runs against the same task set
-    and produces a markdown report. Scores are derived from URL grounding, judge
-    pass rate, and report quality. The reachability gate kills any agent that
-    fabricates URLs, no matter how fluent the prose.
+
+  <h1 class="display-1">The Deep-Research Arena</h1>
+  <p class="mt-4 ink-soft max-w-3xl text-[15px] leading-relaxed">
+    An independent leaderboard for open-source <em>deep-research</em> agents.
+    Every framework answers the same questions on a sealed sandbox
+    (Magento + Postmill + Wikipedia), the reports are scored on URL grounding,
+    judge pass rate, and presentation, and pairwise battles become a single
+    Elo. The reachability gate kills any agent that fabricates URLs — no matter
+    how fluent the prose.
   </p>
-  <div class="mt-4 flex flex-wrap gap-2 text-[13px]">
-    <a href="/how-it-works" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">How is the ranking produced? →</a>
-    <a href="/contribute" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">Add your DR / reproduce the run →</a>
-    <a href="/compare" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">Compare across LLMs →</a>
-    <a href="{{ github_url }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">GitHub →</a>
+
+  <div class="mt-5 flex flex-wrap gap-2">
+    <a href="/how-it-works" class="btn btn-primary btn-sm">
+      How the ranking works
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+    </a>
+    <a href="/contribute" class="btn btn-ghost btn-sm">Reproduce / add your agent</a>
+    <a href="/v4" class="btn btn-ghost btn-sm">v4 multi-pillar <span class="nav-link-badge">NEW</span></a>
+    <a href="{{ github_url }}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">GitHub ↗</a>
   </div>
 </section>
 
-{# --------- KPI strip: rigor of the benchmark, in 4 numbers --------- #}
+{# ──────────────── KPI strip ──────────────── #}
 {% if kpis and kpis.total_pairs %}
-<section class="mb-6">
+<section class="mb-8">
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-    <div class="surface rounded-xl px-4 py-3">
-      <div class="label-eyebrow">Pairs scored</div>
-      <div class="num-mono text-[22px] font-bold mt-1">{{ kpis.total_pairs }}</div>
-      <div class="ink-mute text-[11.5px] mt-0.5">across {{ n_agents }} agents x {{ n_tasks }} tasks</div>
+    <div class="surface-card is-hover p-4">
+      <div class="eyebrow">Agents ranked</div>
+      <div class="font-display font-bold mt-1.5" style="font-size: 28px; letter-spacing: -0.03em;">{{ n_agents }}</div>
+      <div class="ink-mute text-[11.5px] mt-0.5">open-source frameworks · {{ n_runs }} runs</div>
     </div>
-    <div class="surface rounded-xl px-4 py-3">
-      <div class="label-eyebrow">Unique URLs cited</div>
-      <div class="num-mono text-[22px] font-bold mt-1">{{ '{:,}'.format(kpis.unique_urls) }}</div>
+    <div class="surface-card is-hover p-4">
+      <div class="eyebrow">Pairwise battles</div>
+      <div class="font-display font-bold mt-1.5 num-mono" style="font-size: 28px; letter-spacing: -0.03em;">{{ '{:,}'.format(kpis.total_pairs) }}</div>
+      <div class="ink-mute text-[11.5px] mt-0.5">scored across {{ n_tasks }} cross-site tasks</div>
+    </div>
+    <div class="surface-card is-hover p-4">
+      <div class="eyebrow">Unique URLs cited</div>
+      <div class="font-display font-bold mt-1.5 num-mono" style="font-size: 28px; letter-spacing: -0.03em;">{{ '{:,}'.format(kpis.unique_urls) }}</div>
       <div class="ink-mute text-[11.5px] mt-0.5">distinct sandbox pages across all reports</div>
     </div>
-    <div class="surface rounded-xl px-4 py-3">
-      <div class="label-eyebrow">LLM tokens (est)</div>
-      <div class="num-mono text-[22px] font-bold mt-1">
+    <div class="surface-card is-hover p-4">
+      <div class="eyebrow">Tokens consumed</div>
+      <div class="font-display font-bold mt-1.5 num-mono" style="font-size: 28px; letter-spacing: -0.03em;">
         {% if kpis.est_tokens >= 1000000 %}{{ '%.1fM'|format(kpis.est_tokens / 1000000) }}{% elif kpis.est_tokens >= 1000 %}{{ '%.0fk'|format(kpis.est_tokens / 1000) }}{% else %}{{ kpis.est_tokens }}{% endif %}
       </div>
-      <div class="ink-mute text-[11.5px] mt-0.5">{{ '{:,}'.format(kpis.judge_calls) }} judge calls + report generation</div>
-    </div>
-    <div class="surface rounded-xl px-4 py-3">
-      <div class="label-eyebrow">Filtered as degenerate</div>
-      <div class="num-mono text-[22px] font-bold mt-1" style="color: var(--warn);">{{ kpis.degenerate_filtered }}</div>
-      <div class="ink-mute text-[11.5px] mt-0.5">runner placeholders / crash stubs dropped from Elo</div>
+      <div class="ink-mute text-[11.5px] mt-0.5">{{ '{:,}'.format(kpis.judge_calls) }} judge calls + agent generation</div>
     </div>
   </div>
 </section>
 {% endif %}
 
-<!-- LLM picker (current = DeepSeek V4-flash; others queued) -->
+{# ──────────────── LLM backbone picker ──────────────── #}
 <section class="mb-8">
   <div class="flex flex-wrap items-center gap-2">
-    <span class="label-eyebrow mr-2" style="line-height: 28px;">Backbone LLM</span>
+    <span class="eyebrow mr-2 self-center" style="line-height: 28px;">Backbone LLM</span>
     <span class="llm-chip is-active">
-      <span class="llm-chip-dot" style="background:#15803d;"></span>
+      <span class="llm-chip-dot" style="background: var(--good);"></span>
       DeepSeek V4-flash
       <span class="llm-chip-meta">{{ n_runs }} runs</span>
     </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
-      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
+      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
       DeepSeek V4-pro
       <span class="llm-chip-meta">queued</span>
     </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
-      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
+      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
       GPT-4o-mini
       <span class="llm-chip-meta">queued</span>
     </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
-      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
+      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
       Claude Sonnet 4.6
       <span class="llm-chip-meta">queued</span>
     </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
-      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
+      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
       Gemini 2.5 Pro
       <span class="llm-chip-meta">queued</span>
     </span>
   </div>
-  <p class="mt-2 text-[12px] ink-mute">
-    Each agent's <code>composite_v2</code> is backbone-dependent. The leaderboard below is built on
-    DeepSeek V4-flash. Once the other backbones land, the picker activates and the agent x LLM matrix
-    appears on <a class="underline" href="/compare">/compare</a>.
+  <p class="mt-3 text-[12px] ink-mute">
+    Composite scores are backbone-dependent. The ranking below is built on DeepSeek V4-flash.
+    Once the other backbones land, the picker activates and the agent × LLM matrix appears on
+    <a class="accent-link" href="/compare">/compare</a>.
   </p>
 </section>
 
 {% if not loaded %}
-<section class="surface rounded-2xl p-6 mb-8">
+<section class="surface-card p-6 mb-8">
   <div class="text-sm" style="color: var(--bad);">Could not load leaderboard JSON: {{ error }}</div>
   <div class="mt-2 text-[12.5px] ink-mute">
     Once the bulk run has scored at least one (agent, task) pair, run
@@ -104,24 +115,68 @@
 </section>
 {% else %}
 
-<section class="surface rounded-2xl overflow-hidden">
-  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
-    <div class="label-eyebrow">Composite_v2 ranking · multiplicative reachability gate</div>
-    <div class="text-[11px] ink-mute hidden sm:block">95% confidence intervals from 1000 bootstrap iterations · click row for drill-down</div>
+{# ──────────────── Scatter chart: Elo × Coverage ──────────────── #}
+{% if ranked and ranked|length >= 2 %}
+<section class="surface-card overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between gap-4 flex-wrap" style="background: var(--surface-sunken); border-bottom: 1px solid var(--line);">
+    <div>
+      <div class="eyebrow">Score landscape</div>
+      <div class="text-[13.5px] mt-0.5"><strong>Elo vs task coverage</strong> · each dot is one agent</div>
+    </div>
+    <div class="text-[11.5px] ink-mute hidden sm:flex items-center gap-3">
+      <span class="inline-flex items-center gap-1.5">
+        <span class="agent-dot" style="--avatar-from: var(--accent);"></span> agent
+      </span>
+      <span>top-right is better · higher Elo + higher coverage</span>
+    </div>
+  </div>
+  <div id="scatter-mount" class="px-3 sm:px-5 py-5" style="overflow: hidden;">
+    {# JS renders an SVG scatter here, using the inline data block below #}
+    <div class="ink-mute text-[12px]">Loading chart…</div>
+  </div>
+  <script type="application/json" id="scatter-data">
+    {
+      "agents": [
+        {% for agent, s in ranked %}
+          {
+            "name": {{ agent|tojson }},
+            "elo": {{ s.elo|float }},
+            "elo_lo": {{ s.elo_lo|float }},
+            "elo_hi": {{ s.elo_hi|float }},
+            "wins": {{ s.wins }},
+            "losses": {{ s.losses }},
+            "coverage": {{ pair_counts.get(agent, 0) }},
+            "n_tasks_target": {{ n_tasks_target }}
+          }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }
+  </script>
+</section>
+{% endif %}
+
+{# ──────────────── Main leaderboard table ──────────────── #}
+<section class="surface-card overflow-hidden">
+  <div class="px-5 py-3 flex items-baseline justify-between gap-3 flex-wrap" style="background: var(--surface-sunken); border-bottom: 1px solid var(--line);">
+    <div>
+      <div class="eyebrow">Ranking</div>
+      <div class="text-[13.5px] mt-0.5"><strong>composite_v2</strong> · multiplicative reachability gate</div>
+    </div>
+    <div class="text-[11px] ink-mute hidden sm:block">95% CI from 1000 bootstrap iterations · click a row for drill-down</div>
   </div>
   <table class="w-full text-sm" id="lb-table" style="table-layout: fixed;">
     <colgroup>
       <col style="width: 56px;">
       <col>
-      <col style="width: 80px;">
-      <col class="lb-hide-mobile" style="width: 260px;">
       <col style="width: 90px;">
+      <col class="lb-hide-mobile" style="width: 280px;">
+      <col style="width: 100px;">
       <col class="lb-hide-mobile" style="width: 50px;">
       <col class="lb-hide-mobile" style="width: 50px;">
       <col class="lb-hide-mobile" style="width: 50px;">
     </colgroup>
     <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
-      <tr class="label-eyebrow text-left whitespace-nowrap">
+      <tr class="eyebrow text-left whitespace-nowrap">
         <th class="px-5 py-3 font-bold">#</th>
         <th class="px-3 py-3 font-bold">Agent</th>
         <th class="px-3 py-3 font-bold text-right">Elo</th>
@@ -132,12 +187,11 @@
         <th class="px-3 py-3 font-bold text-right lb-hide-mobile">D</th>
       </tr>
     </thead>
-    <tbody style="border-top: 1px solid var(--line);">
+    <tbody>
       {% for agent, s in ranked %}
       {% set marker_pct = ((s.elo - elo_min) / elo_span * 100) if elo_span else 50 %}
       {% set lo_pct     = ((s.elo_lo - elo_min) / elo_span * 100) if elo_span else 50 %}
       {% set hi_pct     = ((s.elo_hi - elo_min) / elo_span * 100) if elo_span else 50 %}
-      {# Tied with the row above? significance lookup is keyed by (higher, lower). #}
       {% set tied_above = false %}
       {% if loop.index > 1 %}
         {% set prev_agent = ranked[loop.index0 - 1][0] %}
@@ -149,18 +203,18 @@
           {% if loop.index <= 3 %}
             <span class="rank-chip rank-{{ loop.index }} {% if tied_above %}rank-tied{% endif %}" title="{% if tied_above %}Tied with rank above (gap not statistically significant){% else %}Rank {{ loop.index }}{% endif %}">{{ loop.index }}</span>
           {% else %}
-            <span class="rank-other {% if tied_above %}rank-tied-other{% endif %}" title="{% if tied_above %}Tied with rank above (gap not statistically significant){% endif %}">{{ loop.index }}{% if tied_above %}<span style="margin-left:3px; font-size:9px; color: var(--ink-mute);">~</span>{% endif %}</span>
+            <span class="rank-other {% if tied_above %}rank-tied-other{% endif %}" title="{% if tied_above %}Tied with rank above (gap not statistically significant){% endif %}">{{ loop.index }}{% if tied_above %}<span style="margin-left:3px; font-size:9px; color: var(--ink-faint);">~</span>{% endif %}</span>
           {% endif %}
         </td>
         <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
           <span class="inline-flex items-center gap-2.5">
-            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
-            <span class="font-semibold truncate">{{ agent }}</span>
-            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="agent-avatar" data-agent="{{ agent }}">{{ agent[:2]|upper }}</span>
+            <span class="font-semibold truncate text-[13.5px]">{{ agent }}</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-faint); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
         </td>
         <td class="px-3 py-3.5 align-middle text-right">
-          <span class="num-mono font-semibold text-[15.5px]">{{ '%.0f'|format(s.elo) }}</span>
+          <span class="num-mono font-bold text-[16px]">{{ '%.0f'|format(s.elo) }}</span>
         </td>
         <td class="px-3 py-3.5 align-middle lb-hide-mobile">
           <div class="ci-bar">
@@ -172,26 +226,25 @@
           </div>
           <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
             [{{ '%.0f'|format(s.elo_lo) }}, {{ '%.0f'|format(s.elo_hi) }}]
-            <span class="text-stone-300 mx-1">·</span>
+            <span class="ink-faint mx-1">·</span>
             ±{{ '%.0f'|format(s.elo_half_width) }}
           </div>
         </td>
         {% set cov_n = pair_counts.get(agent, 0) %}
-        {% set cov_pct = (cov_n / n_tasks_target * 100) if n_tasks_target else 0 %}
         {% set cov_partial = cov_n < 30 %}
         <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
           <span class="num-mono text-[13px] {{ 'font-semibold' if cov_partial else '' }}" style="{{ 'color: var(--warn);' if cov_partial else 'color: var(--ink-soft);' }}">
-            {{ cov_n }}/{{ n_tasks_target }}
+            {{ cov_n }}<span class="ink-faint">/</span>{{ n_tasks_target }}
           </span>
           {% if cov_partial %}<span class="pill pill-warn ml-1" style="font-size: 9.5px; padding: 1px 6px;">partial</span>{% endif %}
         </td>
-        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] lb-hide-mobile" style="color: var(--good);">{{ s.wins }}</td>
-        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] lb-hide-mobile" style="color: var(--bad);">{{ s.losses }}</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] lb-hide-mobile" style="color: var(--good); font-weight: 600;">{{ s.wins }}</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] lb-hide-mobile" style="color: var(--bad); font-weight: 600;">{{ s.losses }}</td>
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">{{ s.draws }}</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="{{ agent }}" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
-          <div class="lb-drill-body" style="padding: 18px 22px;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+          <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
         </td>
@@ -200,24 +253,24 @@
     </tbody>
   </table>
 
-  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--surface-sunken); border-top: 1px solid var(--line);">
     <strong>Coverage</strong> is how many of the {{ n_tasks_target }} tasks this agent has a valid score for.
     Agents with fewer than 30 pairs are marked
     <span class="pill pill-warn" style="font-size: 10px; padding: 1px 6px;">partial</span>
-    - their Elo will tighten as more pairs land. The full bulk is still in flight for newly-added agents.
+    — their Elo will tighten as more pairs land. The full bulk is still in flight for newly-added agents.
     A small "<span class="num-mono">~</span>" marker on the rank means the gap to the row above is not statistically significant.
   </div>
 
-  <div class="px-5 py-3 text-[11px] ink-mute flex items-center gap-4" style="background: var(--surface); border-top: 1px solid var(--line-soft);">
+  <div class="px-5 py-3 text-[11px] ink-mute flex items-center gap-4 flex-wrap" style="background: var(--surface); border-top: 1px solid var(--line-soft);">
     <span class="num-mono">{{ '%.0f'|format(elo_min) }}</span>
-    <div class="flex-1 flex items-center gap-3">
+    <div class="flex-1 flex items-center gap-3 flex-wrap">
       <span>Bar spans the global Elo range:</span>
       <span class="inline-flex items-center gap-1.5">
-        <span style="display:inline-block; width:36px; height:6px; background: rgba(67,56,202,0.22); border-radius: 999px;"></span>
+        <span style="display:inline-block; width:36px; height:6px; background: rgba(37,99,235,0.28); border-radius: 999px;"></span>
         <span>95% CI</span>
       </span>
       <span class="inline-flex items-center gap-1.5">
-        <span style="display:inline-block; width:10px; height:10px; background: var(--accent); border-radius: 999px; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.3);"></span>
+        <span style="display:inline-block; width:10px; height:10px; background: var(--accent); border-radius: 999px; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(37,99,235,0.4);"></span>
         <span>point estimate</span>
       </span>
     </div>
@@ -225,8 +278,8 @@
   </div>
 
   {% if sig %}
-  <div style="border-top: 1px solid var(--line); background: var(--line-soft);" class="px-5 py-4">
-    <div class="label-eyebrow mb-3">Adjacent-rank significance · permutation N=1000</div>
+  <div style="border-top: 1px solid var(--line); background: var(--canvas-deep);" class="px-5 py-4">
+    <div class="eyebrow mb-3">Adjacent-rank significance · permutation N=1000</div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[12px]">
       {% for p in sig %}
       <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
@@ -242,25 +295,22 @@
   {% endif %}
 </section>
 
-<section class="mt-6 ink-soft text-[13px] leading-relaxed">
+<section class="mt-6 ink-soft text-[13px] leading-relaxed max-w-3xl">
   <p>
     <strong>What you're seeing.</strong> Each row is one open-source DR framework.
     Higher Elo means it more often wrote a more correct, better-grounded report
-    than its peers across the {{ n_tasks }} tasks. <a class="underline" href="/how-it-works">Read the full method →</a>
+    than its peers across the {{ n_tasks }} tasks.
+    <a class="accent-link" href="/how-it-works">Read the full method →</a>
     Click any agent row to see per-pillar bars, best/worst tasks, and the upstream project link.
   </p>
 </section>
 {% endif %}
 
 <style>
-  /* Tied rank styling: same warm-grey neutral, signaling "indistinguishable" */
-  .rank-tied { filter: saturate(0.55) brightness(0.97); box-shadow: inset 0 0 0 1px rgba(120, 113, 108, 0.5) !important; }
-  .rank-tied-other { color: var(--ink-mute); }
-
   .lb-row.is-open .lb-caret { transform: rotate(180deg); }
 
   .pillar-bar { position: relative; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
-  .pillar-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #818cf8, #4338ca); border-radius: 999px; }
+  .pillar-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #60a5fa, #2563eb); border-radius: 999px; }
   .pillar-row { display: grid; grid-template-columns: 130px 1fr 60px 60px; align-items: center; gap: 10px; padding: 4px 0; font-size: 12px; }
   .pillar-row .pillar-name { color: var(--ink-soft); font-weight: 500; }
   .pillar-row .pillar-pct  { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-soft); font-size: 11.5px; }
@@ -270,11 +320,31 @@
   .task-row a { color: var(--accent-ink); text-decoration: none; }
   .task-row a:hover { text-decoration: underline; }
   .task-score { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+
+  /* Scatter chart */
+  #scatter-mount svg { display: block; width: 100%; height: auto; max-height: 380px; }
+  .scatter-dot { cursor: pointer; transition: r 0.15s, filter 0.15s; }
+  .scatter-dot:hover { filter: brightness(0.85); }
+  .scatter-label { font-size: 10.5px; font-family: 'Inter', sans-serif; font-weight: 600; fill: var(--ink); pointer-events: none; }
+  .scatter-label-bg { fill: rgba(255,255,255,0.85); }
+  #scatter-tooltip {
+    position: absolute; pointer-events: none; z-index: 10;
+    background: var(--ink); color: white;
+    padding: 8px 11px; border-radius: 8px; font-size: 11.5px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    transition: opacity 0.12s ease;
+    opacity: 0; min-width: 140px;
+    transform: translate(-50%, -100%);
+    margin-top: -8px;
+  }
+  #scatter-tooltip strong { display: block; font-size: 12.5px; margin-bottom: 3px; }
+  #scatter-tooltip .row { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+  #scatter-tooltip .row span:first-child { opacity: 0.75; }
 </style>
 
 <script>
 (function () {
-  // Drill-down: click a row -> fetch /api/agent/<name> -> render under it
+  // ─────────────── Drill-down ───────────────
   const cache = {};
   function pct(x) { return (typeof x === 'number') ? Math.round(x * 100) : null; }
   function fmt(x, d) { return (typeof x === 'number') ? x.toFixed(d ?? 2) : '-'; }
@@ -289,6 +359,7 @@
       ['analysis_depth', 'Analysis depth'],
       ['presentation', 'Presentation'],
     ];
+    const c = window.agentColor(agent);
     let pillarRows = pillars.map(([k, label]) => {
       const v = data.pillar_means && data.pillar_means[k];
       const elo = data.pillar_elo && data.pillar_elo[k];
@@ -298,55 +369,58 @@
       const p = pct(v);
       return `<div class="pillar-row">
         <span class="pillar-name">${label}</span>
-        <div class="pillar-bar"><div class="pillar-bar-fill" style="width:${p == null ? 0 : Math.max(2, Math.min(100, p))}%"></div></div>
+        <div class="pillar-bar"><div class="pillar-bar-fill" style="width:${p == null ? 0 : Math.max(2, Math.min(100, p))}%; background: linear-gradient(90deg, ${c}88, ${c});"></div></div>
         <span class="pillar-pct">${p == null ? '-' : p + '%'}</span>
         <span class="pillar-elo">${typeof eloShown === 'number' ? Math.round(eloShown) : ''}</span>
       </div>`;
     }).join('');
 
-    function taskList(rows, labelClass) {
+    function taskList(rows) {
       if (!rows || !rows.length) return '<div class="text-[12px] ink-mute">No scored tasks yet.</div>';
       return rows.map(r => `<div class="task-row">
         <a href="/task/${r.task_id}">${r.task_id}</a>
         <span class="ink-mute" style="font-size:11px;">composite_v2</span>
-        <span class="task-score ${labelClass}">${fmt(r.composite_v2, 3)}</span>
+        <span class="task-score">${fmt(r.composite_v2, 3)}</span>
         <span class="ink-mute" style="font-size:11px; margin-left:auto;">cov ${pct(r.url_coverage)}% / reach ${pct(r.reachability)}%</span>
       </div>`).join('');
     }
 
     const eloLine = data.elo_v2 && typeof data.elo_v2.elo === 'number'
-      ? `<span class="num-mono">Elo ${Math.round(data.elo_v2.elo)} [${Math.round(data.elo_v2.elo_lo)}, ${Math.round(data.elo_v2.elo_hi)}]</span> · <span>${data.n_pairs} scored pairs</span>`
+      ? `<span class="num-mono font-semibold">Elo ${Math.round(data.elo_v2.elo)}</span> <span class="ink-mute num-mono">[${Math.round(data.elo_v2.elo_lo)}, ${Math.round(data.elo_v2.elo_hi)}]</span> · <span>${data.n_pairs} scored pairs</span>`
       : `<span>${data.n_pairs || 0} scored pairs</span>`;
 
     const links = [];
-    if (data.github_url) links.push(`<a class="underline" href="${data.github_url}" target="_blank" rel="noopener">GitHub ↗</a>`);
-    if (data.paper_url) links.push(`<a class="underline" href="${data.paper_url}" target="_blank" rel="noopener">Paper ↗</a>`);
+    if (data.github_url) links.push(`<a class="accent-link" href="${data.github_url}" target="_blank" rel="noopener">GitHub ↗</a>`);
+    if (data.paper_url) links.push(`<a class="accent-link" href="${data.paper_url}" target="_blank" rel="noopener">Paper ↗</a>`);
 
     return `<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="md:col-span-1">
-        <div class="label-eyebrow mb-2">${agent}</div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="agent-avatar" style="--avatar-from: ${c}; --avatar-to: ${c};">${agent.slice(0,2).toUpperCase()}</span>
+          <div class="eyebrow">${agent}</div>
+        </div>
         <div class="text-[12.5px] ink-soft mb-2">${eloLine}</div>
         <div class="text-[12px] mt-1">${links.join(' &nbsp;·&nbsp; ')}</div>
       </div>
       <div class="md:col-span-2">
-        <div class="label-eyebrow mb-2">Per-pillar mean (across scored tasks)</div>
+        <div class="eyebrow mb-2">Per-pillar mean (across scored tasks)</div>
         ${pillarRows}
         <div class="text-[10.5px] ink-mute mt-1">% = mean per-task pillar score · right-most number = pillar Elo (where available)</div>
       </div>
       <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
         <div>
-          <div class="label-eyebrow mb-2" style="color: var(--good);">Best 3 tasks</div>
+          <div class="eyebrow mb-2" style="color: var(--good);">Best 3 tasks</div>
           ${taskList(data.best_tasks)}
         </div>
         <div>
-          <div class="label-eyebrow mb-2" style="color: var(--bad);">Worst 3 tasks</div>
+          <div class="eyebrow mb-2" style="color: var(--bad);">Worst 3 tasks</div>
           ${taskList(data.worst_tasks)}
         </div>
       </div>
     </div>`;
   }
 
-  function toggle(row) {
+  function toggleRow(row) {
     const agent = row.dataset.agent;
     const drill = document.querySelector('tr.lb-drill[data-agent-drill="' + agent + '"]');
     if (!drill) return;
@@ -372,10 +446,148 @@
 
   document.querySelectorAll('tr.lb-row').forEach(r => {
     r.addEventListener('click', (ev) => {
-      // Don't expand if user clicked an internal link.
       if (ev.target.closest('a')) return;
-      toggle(r);
+      toggleRow(r);
     });
+  });
+
+  // ─────────────── Scatter chart ───────────────
+  function renderScatter() {
+    const mount = document.getElementById('scatter-mount');
+    const dataNode = document.getElementById('scatter-data');
+    if (!mount || !dataNode) return;
+    let dataset;
+    try { dataset = JSON.parse(dataNode.textContent); }
+    catch (e) { mount.innerHTML = '<div class="ink-mute text-[12px]">Chart data unavailable.</div>'; return; }
+    const agents = dataset.agents || [];
+    if (agents.length < 2) { mount.innerHTML = '<div class="ink-mute text-[12px]">Need 2+ agents to render.</div>'; return; }
+
+    const W = mount.clientWidth || 800;
+    const H = Math.max(280, Math.min(380, W * 0.42));
+    const M = { l: 56, r: 28, t: 18, b: 42 };
+    const innerW = W - M.l - M.r;
+    const innerH = H - M.t - M.b;
+
+    const eloMin = Math.min(...agents.map(a => a.elo_lo));
+    const eloMax = Math.max(...agents.map(a => a.elo_hi));
+    const eloPad = (eloMax - eloMin) * 0.06 || 20;
+    const xMin = eloMin - eloPad, xMax = eloMax + eloPad;
+    const targetN = agents[0].n_tasks_target || 30;
+    const yMax = Math.max(targetN, ...agents.map(a => a.coverage));
+    const yMin = 0;
+
+    function sx(v) { return M.l + (v - xMin) / (xMax - xMin) * innerW; }
+    function sy(v) { return M.t + innerH - (v - yMin) / (yMax - yMin) * innerH; }
+
+    // Gridlines (5 horizontal, 5 vertical)
+    const xTicks = 5, yTicks = 5;
+    let grid = '';
+    for (let i = 0; i <= yTicks; i++) {
+      const v = yMin + (yMax - yMin) * i / yTicks;
+      const y = sy(v);
+      grid += `<line class="chart-gridline" x1="${M.l}" x2="${M.l + innerW}" y1="${y}" y2="${y}"></line>`;
+      grid += `<text class="chart-axis-tick" x="${M.l - 8}" y="${y + 3}" text-anchor="end">${Math.round(v)}</text>`;
+    }
+    for (let i = 0; i <= xTicks; i++) {
+      const v = xMin + (xMax - xMin) * i / xTicks;
+      const x = sx(v);
+      grid += `<line class="chart-gridline" x1="${x}" x2="${x}" y1="${M.t}" y2="${M.t + innerH}"></line>`;
+      grid += `<text class="chart-axis-tick" x="${x}" y="${M.t + innerH + 16}" text-anchor="middle">${Math.round(v)}</text>`;
+    }
+    // Axis labels
+    grid += `<text class="chart-axis-label" x="${M.l + innerW / 2}" y="${H - 6}" text-anchor="middle">Elo (Bradley-Terry)</text>`;
+    grid += `<text class="chart-axis-label" x="${-M.t - innerH / 2}" y="14" text-anchor="middle" transform="rotate(-90)">Tasks covered (/${targetN})</text>`;
+
+    // Target coverage line (yLine = targetN)
+    if (targetN <= yMax) {
+      const yLine = sy(targetN);
+      grid += `<line x1="${M.l}" x2="${M.l + innerW}" y1="${yLine}" y2="${yLine}" stroke="${'#0f172a'}" stroke-width="1" stroke-dasharray="5 4" opacity="0.45"></line>`;
+      grid += `<text class="chart-axis-tick" x="${M.l + innerW - 4}" y="${yLine - 5}" text-anchor="end" style="fill: var(--ink-soft); font-weight: 600;">full coverage</text>`;
+    }
+
+    // Dots
+    let dots = '';
+    let labels = '';
+    agents.forEach((a, i) => {
+      const c = window.agentColor(a.name);
+      const x = sx(a.elo), y = sy(a.coverage);
+      const r = 7;
+      dots += `<circle class="scatter-dot" cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="var(--surface)" stroke-width="2" data-name="${a.name}" data-elo="${Math.round(a.elo)}" data-cov="${a.coverage}" data-target="${targetN}" data-wins="${a.wins}" data-losses="${a.losses}"></circle>`;
+      // Label only top-3 by elo and bottom-1 to avoid clutter
+    });
+    // Decide which to label: top 3 elo + lowest elo agent
+    const sorted = [...agents].sort((a, b) => b.elo - a.elo);
+    const toLabel = new Set();
+    sorted.slice(0, 3).forEach(a => toLabel.add(a.name));
+    if (sorted.length > 0) toLabel.add(sorted[sorted.length - 1].name);
+
+    agents.forEach((a) => {
+      if (!toLabel.has(a.name)) return;
+      const x = sx(a.elo), y = sy(a.coverage);
+      // Place label above the dot
+      const lx = x, ly = y - 13;
+      const text = a.name.length > 14 ? a.name.slice(0, 13) + '…' : a.name;
+      // text bg via filter? Simpler: two text elements (stroke + fill).
+      labels += `<text class="scatter-label" x="${lx}" y="${ly}" text-anchor="middle" stroke="white" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${text}</text>`;
+      labels += `<text class="scatter-label" x="${lx}" y="${ly}" text-anchor="middle">${text}</text>`;
+    });
+
+    const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <rect x="${M.l}" y="${M.t}" width="${innerW}" height="${innerH}" fill="var(--surface-sunken)" rx="6"/>
+      ${grid}
+      ${dots}
+      ${labels}
+    </svg>`;
+
+    mount.style.position = 'relative';
+    mount.innerHTML = svg + '<div id="scatter-tooltip"></div>';
+    const tt = document.getElementById('scatter-tooltip');
+    mount.querySelectorAll('.scatter-dot').forEach(node => {
+      node.addEventListener('mouseenter', (ev) => {
+        const n = ev.target;
+        const name = n.getAttribute('data-name');
+        const elo = n.getAttribute('data-elo');
+        const cov = n.getAttribute('data-cov');
+        const tgt = n.getAttribute('data-target');
+        const w = n.getAttribute('data-wins');
+        const l = n.getAttribute('data-losses');
+        const rect = mount.getBoundingClientRect();
+        const cx = parseFloat(n.getAttribute('cx'));
+        const cy = parseFloat(n.getAttribute('cy'));
+        // Convert SVG coords to mount-local pixel coords
+        const scale = (mount.querySelector('svg').clientWidth) / W;
+        tt.style.left = (cx * scale) + 'px';
+        tt.style.top = (cy * scale) + 'px';
+        tt.innerHTML = `<strong>${name}</strong>
+          <div class="row"><span>Elo</span><span>${elo}</span></div>
+          <div class="row"><span>Coverage</span><span>${cov} / ${tgt}</span></div>
+          <div class="row"><span>W · L</span><span>${w} · ${l}</span></div>`;
+        tt.style.opacity = '1';
+      });
+      node.addEventListener('mouseleave', () => { tt.style.opacity = '0'; });
+      node.addEventListener('click', () => {
+        const name = node.getAttribute('data-name');
+        const row = document.querySelector(`tr.lb-row[data-agent="${CSS.escape(name)}"]`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          toggleRow(row);
+        }
+      });
+    });
+  }
+
+  function readyScatter() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderScatter);
+    } else {
+      renderScatter();
+    }
+  }
+  readyScatter();
+  let rTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(rTimer);
+    rTimer = setTimeout(renderScatter, 120);
   });
 })();
 </script>

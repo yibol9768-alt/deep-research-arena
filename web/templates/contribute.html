@@ -1,23 +1,27 @@
 {% extends "base.html" %}
+{% set active_page = "contribute" %}
 {% block title %}Contribute · Deep-Research Arena{% endblock %}
 
 {% block content %}
-<section class="mb-8">
-  <h1 class="text-[30px] font-bold tracking-tight">Add a DR framework, or reproduce the leaderboard</h1>
-  <p class="mt-2 ink-soft text-[14.5px] max-w-3xl leading-relaxed">
+<section class="mb-10">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <span class="pill pill-accent"><span class="pill-dot" style="background: var(--accent);"></span>Three recipes · pick one</span>
+  </div>
+  <h1 class="display-2">Add a DR framework, or reproduce the leaderboard</h1>
+  <p class="mt-3 ink-soft text-[15px] max-w-3xl leading-relaxed">
     Three things you can do here. Each is a separate, self-contained recipe.
   </p>
-  <div class="mt-3 flex flex-wrap gap-2 text-[13px]">
-    <a href="#one-pair" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">1. Run one pair → submit a score</a>
-    <a href="#new-dr" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">2. Add a new DR framework</a>
-    <a href="#reproduce" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">3. Reproduce the whole leaderboard</a>
+  <div class="mt-4 flex flex-wrap gap-2">
+    <a href="#one-pair" class="btn btn-ghost btn-sm">1. Run one pair → submit a score</a>
+    <a href="#new-dr" class="btn btn-ghost btn-sm">2. Add a new DR framework</a>
+    <a href="#reproduce" class="btn btn-ghost btn-sm">3. Reproduce the whole leaderboard</a>
   </div>
 </section>
 
 <!-- ───────── 1. RUN ONE PAIR ───────── -->
-<section id="one-pair" class="surface rounded-2xl p-6 mb-6">
+<section id="one-pair" class="surface-card p-6 mb-6">
   <div class="label-eyebrow mb-2">Recipe 1</div>
-  <h2 class="text-[22px] font-semibold">Run one (agent, task) pair and submit the score</h2>
+  <h2 class="display-3">Run one (agent, task) pair and submit the score</h2>
   <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
     The fastest way to engage with the benchmark. Pick an existing agent, run
     it on one task, score the output, open a PR with the resulting JSON. No
@@ -99,9 +103,9 @@ JUDGE_PROVIDER=openai \
 </section>
 
 <!-- ───────── 2. NEW DR ───────── -->
-<section id="new-dr" class="surface rounded-2xl p-6 mb-6">
+<section id="new-dr" class="surface-card p-6 mb-6">
   <div class="label-eyebrow mb-2">Recipe 2</div>
-  <h2 class="text-[22px] font-semibold">Add a new DR framework</h2>
+  <h2 class="display-3">Add a new DR framework</h2>
   <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
     A runner is a single Python module that exposes
     <code class="num-mono">async def run(intent, model, shim_url, proxy_url) -&gt; str</code>.
@@ -184,9 +188,9 @@ async def run(intent: str, model: str, shim_url: str, proxy_url: str) -&gt; str:
 </section>
 
 <!-- ───────── 3. REPRODUCE ───────── -->
-<section id="reproduce" class="surface rounded-2xl p-6 mb-10">
+<section id="reproduce" class="surface-card p-6 mb-10">
   <div class="label-eyebrow mb-2">Recipe 3</div>
-  <h2 class="text-[22px] font-semibold">Reproduce the whole leaderboard</h2>
+  <h2 class="display-3">Reproduce the whole leaderboard</h2>
   <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
     Six parallel workers, deepseek-v4-flash backbone, ~3 hours wall-clock for
     a fresh ~456-pair run. Each worker gets a shuffled chunk of the queue;
@@ -258,6 +262,6 @@ OPENAI_PROXY_KEY=$DEEPSEEK_API_KEY \
 </section>
 
 <section class="mb-10 ink-soft text-[13px]">
-  <p>Stuck? Open an issue on <a class="underline" href="{{ github_url }}/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+  <p>Stuck? Open an issue on <a class="accent-link" href="{{ github_url }}/issues" target="_blank" rel="noopener">GitHub</a>.</p>
 </section>
 {% endblock %}

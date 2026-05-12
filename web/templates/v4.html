@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% set active_page = "v4" %}
 {% block title %}v4 leaderboard · Deep-Research Arena{% endblock %}
 
 {% block content %}
 
-<section class="surface rounded-2xl p-7 mb-6">
-  <div class="flex flex-wrap items-center gap-2 mb-3">
-    <span class="pill pill-accent"><span class="pill-dot" style="background:#4338ca;"></span>composite_v4 · 11 dimensions</span>
+<section class="mb-8">
+  <div class="flex flex-wrap items-center gap-2 mb-4">
+    <span class="pill pill-accent"><span class="pill-dot" style="background: var(--accent);"></span>composite_v4 · 11 dimensions</span>
     <span class="pill pill-warn">experimental</span>
     {% if loaded %}
       <span class="pill pill-muted num-mono">{{ ranked|length }} agents</span>
@@ -14,28 +15,30 @@
       {% if mtime_str %}<span class="pill pill-muted">updated {{ mtime_str }}</span>{% endif %}
     {% endif %}
   </div>
-  <h1 class="text-[34px] font-bold tracking-tight leading-none">v4 Leaderboard</h1>
-  <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
-    Adds <strong>four new pillars</strong> on top of the v2 verifiers ── atomic
+  <h1 class="display-1">v4 Leaderboard</h1>
+  <p class="mt-4 ink-soft max-w-3xl text-[15px] leading-relaxed">
+    Adds <strong>four new pillars</strong> on top of the v2 verifiers — atomic
     factuality, intra-document consistency, perspective balance, and source
-    diversity ── and replaces the v2 quality term with an 11-way weighted mix.
+    diversity — and replaces the v2 quality term with an 11-way weighted mix.
     The reachability multiplicative gate is preserved, so URL fabrication still
     zeroes the score. v4 is the answer to the critique that v2 was
     over-focused on URL grounding alone.
   </p>
-  <div class="mt-3 text-[12.5px] ink-mute">
+  <div class="mt-4 text-[12.5px] ink-mute">
     <strong>Formula:</strong>
     <code class="num-mono">composite_v4 = reach · (0.10·url_cov + 0.05·spec + 0.10·checklist + 0.10·cit_align + 0.05·qm + 0.13·factual_exactness + 0.13·internal_consistency + 0.08·perspective_balance + 0.06·source_diversity + 0.10·analysis_depth + 0.10·presentation)</code>
   </div>
-  <div class="mt-4 flex flex-wrap gap-2 text-[13px]">
-    <a href="/" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">v2 leaderboard →</a>
-    <a href="/how-it-works" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">How v2 works →</a>
-    <a href="/api/v4.json" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">JSON →</a>
+  <div class="mt-5 flex flex-wrap gap-2">
+    <a href="/" class="btn btn-primary btn-sm">v2 leaderboard
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+    </a>
+    <a href="/how-it-works" class="btn btn-ghost btn-sm">How v2 works</a>
+    <a href="/api/v4.json" class="btn btn-ghost btn-sm">JSON ↗</a>
   </div>
 </section>
 
 {% if not loaded %}
-<section class="surface rounded-2xl p-6 mb-8">
+<section class="surface-card p-6 mb-8">
   <div class="text-sm" style="color: var(--bad);">No v4 leaderboard JSON found yet.</div>
   <div class="mt-2 text-[12.5px] ink-mute">
     Run <code>python scripts/run_v4_experiment.py</code> to score reports against the four new v4 pillars,
@@ -44,7 +47,7 @@
 </section>
 {% else %}
 
-<section class="surface rounded-2xl overflow-hidden mb-6">
+<section class="surface-card overflow-hidden mb-6">
   <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     <div class="label-eyebrow">composite_v4 ranking · 11 dimensions · reach × Q(11)</div>
     <div class="text-[11px] ink-mute hidden sm:block">small-sample experiment (9 agents × 3 tasks); 95% CIs from 1000-resample bootstrap</div>
@@ -78,7 +81,7 @@
         </td>
         <td class="px-3 py-3 align-middle whitespace-nowrap">
           <span class="inline-flex items-center gap-2">
-            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="agent-avatar" data-agent="{{ agent }}">{{ agent[:2]|upper }}</span>
             <span class="font-semibold">{{ agent }}</span>
           </span>
         </td>
@@ -111,7 +114,7 @@
 </section>
 
 {% if v4c_loaded and ranked_v4c %}
-<section class="surface rounded-2xl overflow-hidden mb-6">
+<section class="surface-card overflow-hidden mb-6">
   <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     <div class="label-eyebrow">composite_v4c · variance-budgeted via z-score normalisation (no new LLM calls)</div>
     <div class="text-[11px] ink-mute hidden sm:block">automatic variance reallocation — saturated pillars stop contributing, high-variance pillars take over</div>
@@ -172,7 +175,7 @@
         </td>
         <td class="px-3 py-3 align-middle whitespace-nowrap">
           <span class="inline-flex items-center gap-2">
-            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="agent-avatar" data-agent="{{ agent }}">{{ agent[:2]|upper }}</span>
             <span class="font-semibold">{{ agent }}</span>
           </span>
         </td>
@@ -262,7 +265,7 @@
 {% endif %}
 
 {% if v4b_loaded and ranked_v4b %}
-<section class="surface rounded-2xl overflow-hidden mb-6">
+<section class="surface-card overflow-hidden mb-6">
   <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     <div class="label-eyebrow">composite_v4b · sharpened + rebalanced (no new LLM calls)</div>
     <div class="text-[11px] ink-mute hidden sm:block">addresses v4's tied-middle problem; IC sharpened, SD upweighted, weights still sum to 1.00</div>
@@ -322,7 +325,7 @@
         </td>
         <td class="px-3 py-3 align-middle whitespace-nowrap">
           <span class="inline-flex items-center gap-2">
-            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="agent-avatar" data-agent="{{ agent }}">{{ agent[:2]|upper }}</span>
             <span class="font-semibold">{{ agent }}</span>
           </span>
         </td>
@@ -345,7 +348,7 @@
 {% endif %}
 
 {% if sig %}
-<section class="surface rounded-2xl overflow-hidden mb-6">
+<section class="surface-card overflow-hidden mb-6">
   <div class="px-5 py-3 label-eyebrow" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     Adjacent-rank significance · permutation N=1000
   </div>
@@ -367,7 +370,7 @@
 {% endif %}
 
 {% if top_diff %}
-<section class="surface rounded-2xl overflow-hidden mb-8">
+<section class="surface-card overflow-hidden mb-8">
   <div class="px-5 py-3 label-eyebrow" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
     Top |v4 − v2| reports · where new pillars rewrote the verdict
   </div>
