@@ -1,0 +1,518 @@
+{
+  "task": "dr_cross_deep_0016",
+  "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0016_matrix.md",
+  "answer_chars": 32396,
+  "url_coverage": {
+    "score": 0.15,
+    "passed": false,
+    "details": {
+      "cited_unique": 60,
+      "must_cite_total": 137,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "pool_total": 593,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 15,
+        "__REDDIT__": 15,
+        "__WIKIPEDIA__": 30
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      },
+      "domain_balance": 0.5,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.4167,
+    "passed": true,
+    "details": {
+      "cited_total": 60,
+      "cited_sandbox": 60,
+      "cited_off_sandbox": 0,
+      "probed": 60,
+      "http_200": 25,
+      "http_4xx": 35,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.4167,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.403,
+    "passed": true,
+    "details": {
+      "claims_total": 134,
+      "claims_supported": 54,
+      "claims_unreachable": 80,
+      "match_rate": 0.403,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Landlord%E2%80%93tenant_law",
+          "supported": true,
+          "overlap": 0.538
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Eviction_in_the_United_Stat",
+          "supported": true,
+          "overlap": 0.68
+        },
+        {
+          "url": "http://localhost:9999/threads/la_eviction_notice",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/california-tenant-law-guide-book.html",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Landlord%E2%80%93tenant_law",
+          "supported": true,
+          "overlap": 0.654
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Rent_control_in_the_United_",
+          "supported": true,
+          "overlap": 0.583
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 0.306,
+    "passed": false,
+    "details": {
+      "citation_precision": 0.306,
+      "citation_recall": 0.3106,
+      "total_pairs": 134,
+      "supported_pairs": 41,
+      "fetch_failures": 80,
+      "sentences_with_cite": 132,
+      "sentences_with_supported_cite": 41,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "deepseek-v4-flash",
+        "base_url": "http://localhost:8088/v1"
+      },
+      "samples": [
+        {
+          "claim": "For nonpayment of rent, tenants receive a **3-day notice to pay or quit** (Landlord–tenant law).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Landlord%E2%80%93tenant_law",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "For no-fault evictions (e.g., owner move-in, substantial remodel), tenants are entitled to **60 days' notice** if they have resided in the unit for one year or more, or **30 days** if less than one ye",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Eviction_in_the_United_States",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Community discussions on Reddit's `/f/LosAngeles` highlight that many tenants are unaware of these protections, with one thread noting that \"landlords often bluff with shorter notices\" (Reddit thread ",
+          "url": "http://localhost:9999/threads/la_eviction_notice",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "The California Department of Consumer Affairs publishes a comprehensive guide, available as a book on the shopping platform (California Tenant Law Guide, $24.99, rated 4.3/5).",
+          "url": "http://localhost:7770/california-tenant-law-guide-book.html",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Statewide, for nonpayment of rent, landlords must provide a **14-day rent demand notice** before commencing eviction proceedings (Landlord–tenant law).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Landlord%E2%80%93tenant_law",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "In New York City, the **Housing Stability and Tenant Protection Act of 2019** significantly expanded protections, requiring **30 days' notice** for month-to-month tenants and **90 days' notice** for n",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Rent_control_in_the_United_States",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Reddit discussions on `/f/NewYorkCity` reveal frustration with the complexity: \"The notice rules are so specific that one wrong date can restart the whole process\" (Reddit thread - NYC eviction).",
+          "url": "http://localhost:9999/threads/nyc_eviction_notice",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "A book on New York landlord-tenant law is available for reference (New York Landlord Tenant Law Book, $34.99, rated 4.7/5).",
+          "url": "http://localhost:7770/new-york-landlord-tenant-law-book.html",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "For nonpayment of rent, landlords must give **3 days' notice to vacate** (Texas Property Code).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Texas_Property_Code",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Texas law does not require notice for no-fault evictions if the lease has expired—the landlord can simply refuse to renew (Eviction in the United States).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Eviction_in_the_United_States",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Three days is nothing when you're trying to find a new place\" (Reddit thread - Austin eviction).",
+          "url": "http://localhost:9999/threads/austin_eviction",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "The Texas Tenant Advisor book provides guidance (Texas Tenant Rights Book, $19.99, rated 5.0/5).",
+          "url": "http://localhost:7770/texas-tenant-rights-book.html",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "The 3-day notice in Texas is among the shortest in the nation, while New York's 90-day notice for no-fault evictions is among the longest (Rent regulation).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Rent_regulation",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "### California\nCalifornia law strictly limits security deposits to **two months' rent** for unfurnished units and **three months' rent** for furnished units (Landlord–tenant law).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Landlord%E2%80%93tenant_law",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "A product listing for a \"Security Deposit Interest Calculator\" book is available (Security Deposit Calculator Guide, $14.99, rated 4.0/5).",
+          "url": "http://localhost:7770/security-deposit-calculator-guide.html",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Reddit discussions on `/f/Tenant` confirm that \"California's interest requirement is rarely enforced but legally mandatory\" (Reddit thread - deposit interest).",
+          "url": "http://localhost:9999/threads/ca_deposit_interest",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "The **Housing Stability and Tenant Protection Act of 2019** capped security deposits at **one month's rent** for most residential leases (Rent control in New York).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Rent_control_in_New_York",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "A book on New York deposit laws is available (New York Security Deposit Law Book, $29.99, rated 4.5/5).",
+          "url": "http://localhost:7770/ny-security-deposit-law-book.html",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Community sentiment on `/f/NewYorkCity` indicates that \"the 14-day return window is often violated, but tenants can sue for triple damages\" (Reddit thread - NYC deposit).",
+          "url": "http://localhost:9999/threads/nyc_deposit_return",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "### Texas\nTexas has **no statutory limit** on security deposits, meaning landlords can charge any amount they choose (Texas Property Code).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Texas_Property_Code",
+          "supported": false,
+          "reason": "fetch_failed"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.3083,
+    "passed": false,
+    "details": {
+      "tier_a_passed": 1,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.25,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=8"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": false,
+          "detail": "density=0.108, total_paragraphs=65"
+        }
+      ],
+      "tier_b_passed": 2,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.333,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies gradient of protections across states, not just listing facts."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains philosophical differences driving notice period divergence."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "Only compares states, not different source types like forums vs. docs."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": false,
+          "reason": "Insights like \"landlord's paradise\" are generic, not novel synthesis."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "No mention of limitations, caveats, or counterarguments to main claims."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": false,
+          "reason": "No actionable recommendations; ends with cross-state synthesis only."
+        }
+      ],
+      "judge_model": "deepseek-v4-flash",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies gradient of protections across states, not just listing facts.\n2. PASS - Explains philosophical differences driving notice period divergence.\n3. FAIL - Only compares states, not different source types like forums vs. docs.\n4. FAIL - Insights like \"landlord's paradise\" are generic, not novel synthesis.\n5. FAIL - No mention of limitations, caveats, or counterarguments to main claims.\n6. FAIL - No actionable recommendations; ends with cross-state synthesis only."
+    }
+  },
+  "presentation": {
+    "score": 0.7,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 6,
+      "tier_a_total": 6,
+      "tier_a_rate": 1.0,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=12"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.503, word_counts=[10, 76, 188, 437, 372, 364, 400, 383]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=34.0"
+        }
+      ],
+      "tier_b_passed": 3,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.5,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Sections follow intro, background, analysis, conclusion structure."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "Missing bridging sentences between some sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": false,
+          "reason": "Contains \"This comprehensive report analyzes...\" meta-commentary."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Citation style and formatting are consistent throughout."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "Conclusion section is truncated, no synthesis present."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Language is professional, no AI filler phrases detected."
+        }
+      ],
+      "judge_model": "deepseek-v4-flash",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Sections follow intro, background, analysis, conclusion structure.\n2. FAIL - Missing bridging sentences between some sections.\n3. FAIL - Contains \"This comprehensive report analyzes...\" meta-commentary.\n4. PASS - Citation style and formatting are consistent throughout.\n5. FAIL - Conclusion section is truncated, no synthesis present.\n6. PASS - Language is professional, no AI filler phrases detected."
+    }
+  },
+  "markdown_spec": {
+    "word_count": 3400,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 134,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 64,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are exactly 3 states defined (CA / NY / TX)?",
+        "PASS"
+      ],
+      [
+        "Are exactly 5 dimensions enumerated (eviction notice / deposit / repair-deduct / rent-control / lease-break)?",
+        "PASS"
+      ],
+      [
+        "Is a 3 x 5 comparison matrix presented with all 15 cells populated?",
+        "PASS"
+      ],
+      [
+        "Does each cell cite a state-specific statute or a wiki URL?",
+        "PASS"
+      ],
+      [
+        "Does each cell cite >= 1 reddit thread with a real tenant-renter case?",
+        "PASS"
+      ],
+      [
+        "Does each cell cite >= 1 shopping product (book) URL?",
+        "PASS"
+      ],
+      [
+        "Are >= 10 shopping product pages enumerated with price + rating?",
+        "PASS"
+      ],
+      [
+        "Are >= 30 reddit threads cited from at least 4 legal/state sub-forums?",
+        "PASS"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "PASS"
+      ],
+      [
+        "Are all 10 mandatory wiki articles (Landlord-tenant law, Eviction, Security deposit, Rent control, RC-CA, RC-NY, TX Property Code, Lease, Implied warranty of habitability, SoL) cited?",
+        "PASS"
+      ],
+      [
+        "Are exactly 3 legal-aid resources listed per state (9 total)?",
+        "PASS"
+      ],
+      [
+        "Does each legal-aid resource cite a wiki or reddit URL?",
+        "PASS"
+      ],
+      [
+        "Does the matrix explicitly cite state statute names (e.g. CA CIV § 1950.5)?",
+        "PASS"
+      ],
+      [
+        "Are at least 3 cross-state divergences highlighted (e.g. CA 60-day notice vs TX 3-day)?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "UNCLEAR"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "PASS"
+      ],
+      [
+        "Is per-domain minimum met: >= 10 shopping, >= 30 reddit, >= 25 wiki?",
+        "PASS"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid generic Top-N format?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start with the matrix?",
+        "PASS"
+      ],
+      [
+        "Does the report explicitly disclaim 'not legal advice; consult attorney'?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 20,
+    "fail_count": 0,
+    "unclear_count": 1,
+    "pass_rate": 0.9524,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.5743,
+    "truth_factor": 0.1462,
+    "qm_factor": 0.7015,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.4167,
+    "raw_score_v3": 0.4795,
+    "citation_alignment": 0.306,
+    "analysis_depth": 0.3083,
+    "presentation": 0.7,
+    "composite_v3": 0.1998,
+    "composite_score": 0.0839,
+    "composite_v2": 0.0839,
+    "composite_v1": 0.2393,
+    "legacy_composite": 0.5083
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  }
+}

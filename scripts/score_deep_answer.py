@@ -354,15 +354,44 @@ def main() -> int:
     if checklist_result.get('judge_error'):
         print(f"  ! judge error: {checklist_result['judge_error']}")
 
-    # --- v3 new verifiers (graceful fallback) ---
+    # --- v3 + v4 new verifiers (graceful fallback) ---
+    # SKIP_V4=1 keeps the run cheap (skips the four v4 pillars but still
+    # runs v3 ones). SKIP_V3=1 skips both, dropping back to pure v2 baseline.
+    skip_v3 = os.environ.get("SKIP_V3", "0") == "1"
+    skip_v4 = os.environ.get("SKIP_V4", "0") == "1" or skip_v3
+
     v3_scores = {}
     v3_details = {}
 
-    for verifier_name, verifier_module, verifier_class in [
+    v3_verifiers = [
         ("citation_alignment", "src.verifiers.citation_alignment_verifier", "CitationAlignmentVerifier"),
         ("analysis_depth",     "src.verifiers.analysis_depth_verifier",     "AnalysisDepthVerifier"),
         ("presentation",       "src.verifiers.presentation_verifier",       "PresentationVerifier"),
-    ]:
+    ]
+    v4_verifiers = [
+        # source_diversity goes first because it's zero-LLM and we want
+        # the cheap deterministic pillar to land even if heavy verifiers
+        # crash or time out. perspective_balance second (light LLM).
+        # factual_exactness and internal_consistency are the heavy V4 Pro
+        # consumers — they go last so a budget-exhausted run still has
+        # the cheap pillars.
+        ("source_diversity",     "src.verifiers.source_diversity_verifier",     "SourceDiversityVerifier"),
+        ("perspective_balance",  "src.verifiers.perspective_balance_verifier",  "PerspectiveBalanceVerifier"),
+        ("factual_exactness",    "src.verifiers.factual_exactness_verifier",    "FactualExactnessVerifier"),
+        ("internal_consistency", "src.verifiers.internal_consistency_verifier", "InternalConsistencyVerifier"),
+    ]
+
+    all_extras = list(v3_verifiers)
+    if not skip_v3:
+        # v3 verifiers always run by default — they predate this scorer
+        # and the leaderboard composites depend on them.
+        pass
+    else:
+        all_extras = []
+    if not skip_v4:
+        all_extras.extend(v4_verifiers)
+
+    for verifier_name, verifier_module, verifier_class in all_extras:
         try:
             import importlib
             mod = importlib.import_module(verifier_module)
@@ -401,6 +430,34 @@ def main() -> int:
         analysis_depth=v3_scores.get("analysis_depth", 0.0),
         presentation=v3_scores.get("presentation", 0.0),
     )
+
+    # composite_v4 — computed via the canonical formula in
+    # src.scoring.leaderboard_composites. We materialise a partial
+    # "score-shaped" dict so the canonical function reads it the same
+    # way it reads on-disk score JSONs.
+    from src.scoring.leaderboard_composites import composite_v4, composite_v4_weights
+    v4_input = {
+        "url_reachability":     {"score": reach_result.score},
+        "url_coverage":         {"score": url_result.score},
+        "quote_match":          {"score": qm_result.score},
+        "citation_alignment":   v3_details.get("citation_alignment", {}),
+        "analysis_depth":       v3_details.get("analysis_depth", {}),
+        "presentation":         v3_details.get("presentation", {}),
+        "source_diversity":     v3_details.get("source_diversity", {}),
+        "perspective_balance":  v3_details.get("perspective_balance", {}),
+        "factual_exactness":    v3_details.get("factual_exactness", {}),
+        "internal_consistency": v3_details.get("internal_consistency", {}),
+        "markdown_spec":        spec_check,
+        "checklist":            checklist_result,
+    }
+    composite["composite_v4"] = round(float(composite_v4(v4_input)), 4)
+    composite["composite_v4_weights"] = composite_v4_weights()
+    # Stamp the v4-only pillar scores so audit pages can show the
+    # breakdown without reading individual verifier blobs.
+    composite["source_diversity"]     = round(float(v3_scores.get("source_diversity", 0.0)), 4)
+    composite["perspective_balance"]  = round(float(v3_scores.get("perspective_balance", 0.0)), 4)
+    composite["factual_exactness"]    = round(float(v3_scores.get("factual_exactness", 0.0)), 4)
+    composite["internal_consistency"] = round(float(v3_scores.get("internal_consistency", 0.0)), 4)
     print(f"\n[composite] {json.dumps(composite, ensure_ascii=False)}")
 
     out = {
@@ -415,9 +472,14 @@ def main() -> int:
                              "details": qm_result.details},
         "claim_nli":        {"score": nli_result.score,   "passed": nli_result.passed,
                              "details": nli_result.details},
-        "citation_alignment": v3_details.get("citation_alignment", {}),
-        "analysis_depth":     v3_details.get("analysis_depth", {}),
-        "presentation":       v3_details.get("presentation", {}),
+        "citation_alignment":   v3_details.get("citation_alignment", {}),
+        "analysis_depth":       v3_details.get("analysis_depth", {}),
+        "presentation":         v3_details.get("presentation", {}),
+        # v4 NEW pillars — each falls back to {} when SKIP_V4=1 was used.
+        "source_diversity":     v3_details.get("source_diversity", {}),
+        "perspective_balance":  v3_details.get("perspective_balance", {}),
+        "factual_exactness":    v3_details.get("factual_exactness", {}),
+        "internal_consistency": v3_details.get("internal_consistency", {}),
         "markdown_spec": spec_check,
         "checklist": checklist_result,
         "composite": composite,

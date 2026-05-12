@@ -1,0 +1,104 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0028",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce a Debunking / fact-check report auditing 5 popular CRISPR / gene-editing claims: (CL1) 'CRISPR-Cas9 is precise enough today for safe germline editing in humans', (CL2) 'He Jiankui's 2018 twin experiment was scientifically defensible', (CL3) 'CRISPR-edited crops are functionally identical to GMO regulation-wise', (CL4) 'Off-target effects have been solved by base editing / prime editing', (CL5) 'CRISPR could plausibly cure all single-gene diseases by 2030'. Each gets a verdict in {SUPPORTED, PARTIALLY_SUPPORTED, DEBUNKED, UNDETERMINED}. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 books on biology / CRISPR / bioethics + price + rating. (B) `__REDDIT__` >= 30 threads from /f/AskScience, /f/biology, /f/bioinformatics, /f/ScienceBasedMedicine, /f/genetics, /f/skeptic. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: CRISPR, CRISPR gene editing, He Jiankui, Cas9, Base editing, Prime editing, Genome editing, Off-target effects, Bioethics, Germline editing. Output a 5-claim verdict table + 'consensus snapshot' section listing 5 named professional bodies' positions (NIH / WHO / NAS / Royal Society / Nuffield). Format: markdown links only. Begin with verdict table.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=CRISPR+book",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 10,
+      "__REDDIT__": 30,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0028.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0028.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "debunking",
+    "claim_count": 5,
+    "claim_ids": [
+      "germline_safety",
+      "he_jiankui_defense",
+      "crispr_crop_regulation",
+      "off_target_solved",
+      "single_gene_cure_2030"
+    ],
+    "verdict_levels": [
+      "SUPPORTED",
+      "PARTIALLY_SUPPORTED",
+      "DEBUNKED",
+      "UNDETERMINED"
+    ],
+    "min_evidence_per_claim": {
+      "shopping_with_verbatim_quote": 1,
+      "reddit": 1,
+      "wikipedia": 1,
+      "reasoning_paragraphs": 1
+    },
+    "consensus_bodies": 5
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "Science",
+  "intent_type": "Debunking"
+}

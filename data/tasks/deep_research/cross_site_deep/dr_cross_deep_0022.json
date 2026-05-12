@@ -1,0 +1,105 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0022",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce a Comparison report on 4 paths to a software-engineering job from scratch in 12-18 months: (P1) 12-week intensive coding bootcamp ($15-20k), (P2) 4-year CS bachelor's degree ($40-200k), (P3) self-taught via free / cheap MOOCs (Coursera, freeCodeCamp), (P4) Apprenticeship / earn-as-you-learn programs (Multiverse, Microverse, etc.), across 5 dimensions: (D1) total cost, (D2) median time-to-first-job, (D3) reported placement rate (CIRR-audited if possible), (D4) median first-year salary, (D5) hireability at FAANG vs startups vs non-tech-co. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 books on programming / interview prep / career change + price. (B) `__REDDIT__` >= 30 threads from /f/cscareerquestions, /f/learnprogramming, /f/codingbootcamp, /f/csMajors, /f/ITCareerQuestions. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Coding bootcamp, Computer science, Software engineering, Massive open online course, Apprenticeship, Self-taught, Income share agreement, Cost of attendance, Computer programming, FAANG. Output a 4 x 5 matrix + 'who should pick which path' (4 user persona paragraphs). NO TOP-N. Format: markdown links only. Begin with comparison matrix.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=programming+book",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 10,
+      "__REDDIT__": 30,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0022.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0022.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "comparison",
+    "comparison_paths": [
+      "bootcamp",
+      "cs_degree",
+      "self_taught",
+      "apprenticeship"
+    ],
+    "use_cases": [
+      "total_cost",
+      "time_to_job",
+      "placement_rate",
+      "first_year_salary",
+      "hireability_band"
+    ],
+    "matrix_cells_required": 20,
+    "min_evidence_per_cell": {
+      "shopping": 1,
+      "reddit": 1,
+      "wikipedia": 1
+    },
+    "persona_paragraphs": 4,
+    "min_reddit_per_persona": 5,
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "Education",
+  "intent_type": "Comparison"
+}

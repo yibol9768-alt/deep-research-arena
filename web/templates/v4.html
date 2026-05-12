@@ -1,0 +1,442 @@
+{% extends "base.html" %}
+{% block title %}v4 leaderboard · Deep-Research Arena{% endblock %}
+
+{% block content %}
+
+<section class="surface rounded-2xl p-7 mb-6">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <span class="pill pill-accent"><span class="pill-dot" style="background:#4338ca;"></span>composite_v4 · 11 dimensions</span>
+    <span class="pill pill-warn">experimental</span>
+    {% if loaded %}
+      <span class="pill pill-muted num-mono">{{ ranked|length }} agents</span>
+      <span class="pill pill-muted num-mono">{{ n_rows_real }} real / {{ n_rows_total }} total runs</span>
+      <span class="pill pill-muted num-mono">{{ n_battles }} battles</span>
+      {% if mtime_str %}<span class="pill pill-muted">updated {{ mtime_str }}</span>{% endif %}
+    {% endif %}
+  </div>
+  <h1 class="text-[34px] font-bold tracking-tight leading-none">v4 Leaderboard</h1>
+  <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
+    Adds <strong>four new pillars</strong> on top of the v2 verifiers ── atomic
+    factuality, intra-document consistency, perspective balance, and source
+    diversity ── and replaces the v2 quality term with an 11-way weighted mix.
+    The reachability multiplicative gate is preserved, so URL fabrication still
+    zeroes the score. v4 is the answer to the critique that v2 was
+    over-focused on URL grounding alone.
+  </p>
+  <div class="mt-3 text-[12.5px] ink-mute">
+    <strong>Formula:</strong>
+    <code class="num-mono">composite_v4 = reach · (0.10·url_cov + 0.05·spec + 0.10·checklist + 0.10·cit_align + 0.05·qm + 0.13·factual_exactness + 0.13·internal_consistency + 0.08·perspective_balance + 0.06·source_diversity + 0.10·analysis_depth + 0.10·presentation)</code>
+  </div>
+  <div class="mt-4 flex flex-wrap gap-2 text-[13px]">
+    <a href="/" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">v2 leaderboard →</a>
+    <a href="/how-it-works" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">How v2 works →</a>
+    <a href="/api/v4.json" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">JSON →</a>
+  </div>
+</section>
+
+{% if not loaded %}
+<section class="surface rounded-2xl p-6 mb-8">
+  <div class="text-sm" style="color: var(--bad);">No v4 leaderboard JSON found yet.</div>
+  <div class="mt-2 text-[12.5px] ink-mute">
+    Run <code>python scripts/run_v4_experiment.py</code> to score reports against the four new v4 pillars,
+    then <code>python scripts/build_v4_leaderboard.py</code> to compute Bradley-Terry Elo over composite_v4.
+  </div>
+</section>
+{% else %}
+
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">composite_v4 ranking · 11 dimensions · reach × Q(11)</div>
+    <div class="text-[11px] ink-mute hidden sm:block">small-sample experiment (9 agents × 3 tasks); 95% CIs from 1000-resample bootstrap</div>
+  </div>
+  <table class="w-full text-[13px]" style="table-layout: auto;">
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-4 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">Elo</th>
+        <th class="px-3 py-3 font-bold">95% CI</th>
+        <th class="px-3 py-3 font-bold text-right">n</th>
+        <th class="px-3 py-3 font-bold text-right" title="source_diversity (zero LLM)">SD</th>
+        <th class="px-3 py-3 font-bold text-right" title="perspective_balance">PB</th>
+        <th class="px-3 py-3 font-bold text-right" title="factual_exactness (V4 Pro)">FE</th>
+        <th class="px-3 py-3 font-bold text-right" title="internal_consistency (V4 Pro)">IC</th>
+        <th class="px-3 py-3 font-bold text-right" title="composite_v2_truthful mean">v2</th>
+        <th class="px-3 py-3 font-bold text-right" title="composite_v4 mean">v4</th>
+        <th class="px-3 py-3 font-bold text-right" title="Δ = v4 mean - v2 mean">Δ</th>
+      </tr>
+    </thead>
+    <tbody style="border-top: 1px solid var(--line);">
+      {% for agent, e, s in ranked %}
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          {% if loop.index <= 3 %}
+            <span class="rank-chip rank-{{ loop.index }}">{{ loop.index }}</span>
+          {% else %}
+            <span class="rank-other">{{ loop.index }}</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="font-semibold">{{ agent }}</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">{{ '%.0f'|format(e.elo) }}</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[{{ '%.0f'|format(e.elo_lo) }}, {{ '%.0f'|format(e.elo_hi) }}]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{{ s.n_runs or '—' }}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{% if s.source_diversity is not none %}{{ '%.2f'|format(s.source_diversity) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{% if s.perspective_balance is not none %}{{ '%.2f'|format(s.perspective_balance) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{% if s.factual_exactness is not none %}{{ '%.2f'|format(s.factual_exactness) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{% if s.internal_consistency is not none %}{{ '%.2f'|format(s.internal_consistency) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">{% if s.v2_mean is not none %}{{ '%.2f'|format(s.v2_mean) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">{% if s.v4_mean is not none %}{{ '%.2f'|format(s.v4_mean) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono {% if s.delta_v4_v2 is not none and s.delta_v4_v2 > 0 %}font-semibold{% endif %}" style="color: {% if s.delta_v4_v2 is not none and s.delta_v4_v2 > 0.02 %}var(--good){% elif s.delta_v4_v2 is not none and s.delta_v4_v2 < -0.02 %}var(--bad){% else %}var(--ink-mute){% endif %};">
+          {% if s.delta_v4_v2 is not none %}{{ '%+.2f'|format(s.delta_v4_v2) }}{% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    <strong>Column legend.</strong>
+    SD = source_diversity (zero LLM, deterministic);
+    PB = perspective_balance (sentiment lexicon + LLM judge);
+    FE = factual_exactness (atomic-fact extraction + V4 Pro NLI);
+    IC = internal_consistency (entity clustering + V4 Pro pairwise NLI);
+    v2 = composite_v2_truthful mean across this agent's runs;
+    v4 = composite_v4 mean;
+    Δ = v4 − v2 (green if v4 rates higher than v2, red if lower).
+  </div>
+</section>
+
+{% if v4c_loaded and ranked_v4c %}
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">composite_v4c · variance-budgeted via z-score normalisation (no new LLM calls)</div>
+    <div class="text-[11px] ink-mute hidden sm:block">automatic variance reallocation — saturated pillars stop contributing, high-variance pillars take over</div>
+  </div>
+  {% if three_way_gaps %}
+  <div class="grid grid-cols-3 gap-2 px-5 py-3" style="background: var(--surface); border-bottom: 1px solid var(--line-soft);">
+    <div>
+      <div class="label-eyebrow">Min adjacent gap (v4 → v4b → v4c)</div>
+      <div class="num-mono text-[18px]">
+        <span class="ink-mute">{{ '%.1f'|format(three_way_gaps.v4.min) }}</span>
+        <span class="ink-mute">→</span>
+        <span class="ink-mute">{{ '%.1f'|format(three_way_gaps.v4b.min) }}</span>
+        <span class="ink-mute">→</span>
+        <span class="font-semibold" style="color: var(--good);">{{ '%.1f'|format(three_way_gaps.v4c.min) }}</span>
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Elo. v4c doubles the worst-case separation again.</div>
+    </div>
+    <div>
+      <div class="label-eyebrow">Mean adjacent gap</div>
+      <div class="num-mono text-[18px]">
+        {{ '%.1f'|format(three_way_gaps.v4.mean) }} → {{ '%.1f'|format(three_way_gaps.v4b.mean) }} → <span class="font-semibold" style="color: var(--good);">{{ '%.1f'|format(three_way_gaps.v4c.mean) }}</span>
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Elo. v4c also widens the average gap.</div>
+    </div>
+    <div>
+      <div class="label-eyebrow">How v4c works</div>
+      <div class="text-[12.5px]" style="line-height:1.4;">
+        z-score per pillar across full sample<br>
+        then sigmoid back to [0,1], same v4b weights
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Each pillar contributes in proportion to its actual variance, not its raw range.</div>
+    </div>
+  </div>
+  {% endif %}
+  <table class="w-full text-[13px]" style="table-layout: auto;">
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-4 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">v4c Elo</th>
+        <th class="px-3 py-3 font-bold">95% CI</th>
+        <th class="px-3 py-3 font-bold text-right">battles</th>
+        <th class="px-3 py-3 font-bold text-right" title="Mean v4c score across this agent's runs">mean</th>
+        <th class="px-3 py-3 font-bold text-right" title="Median v4c score">median</th>
+        <th class="px-3 py-3 font-bold text-right" title="25th percentile — rewards consistency">P25</th>
+        <th class="px-3 py-3 font-bold text-right" title="Worst run — strict reliability view">min</th>
+      </tr>
+    </thead>
+    <tbody style="border-top: 1px solid var(--line);">
+      {% for agent, e, s in ranked_v4c %}
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          {% if loop.index <= 3 %}
+            <span class="rank-chip rank-{{ loop.index }}">{{ loop.index }}</span>
+          {% else %}
+            <span class="rank-other">{{ loop.index }}</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="font-semibold">{{ agent }}</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">{{ '%.0f'|format(e.elo) }}</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[{{ '%.0f'|format(e.elo_lo) }}, {{ '%.0f'|format(e.elo_hi) }}]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{{ e.n_battles or '—' }}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">{% if s.mean is not none %}{{ '%.3f'|format(s.mean) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{% if s.median is not none %}{{ '%.3f'|format(s.median) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">{% if s.p25 is not none %}{{ '%.3f'|format(s.p25) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">{% if s.min is not none %}{{ '%.3f'|format(s.min) }}{% else %}—{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if v4c_pillar_stats %}
+  <div class="px-5 py-3" style="background: var(--surface); border-top: 1px solid var(--line);">
+    <div class="label-eyebrow mb-2">Pillar variance budget — what v4c rewards</div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-[12px]" style="table-layout: auto;">
+        <thead style="border-bottom: 1px solid var(--line-soft);">
+          <tr class="label-eyebrow text-left whitespace-nowrap">
+            <th class="py-2 pr-3">Pillar</th>
+            <th class="py-2 pr-3 text-right">μ</th>
+            <th class="py-2 pr-3 text-right">σ</th>
+            <th class="py-2 pr-3 text-right">range</th>
+            <th class="py-2 pr-3 text-right">weight</th>
+            <th class="py-2 pr-3">effective info</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for k, stat in v4c_pillar_stats.items() %}
+          <tr style="border-top: 1px solid var(--line-soft);">
+            <td class="py-1.5 pr-3 num-mono">{{ k }}</td>
+            <td class="py-1.5 pr-3 text-right num-mono">{{ '%.2f'|format(stat.mu) }}</td>
+            <td class="py-1.5 pr-3 text-right num-mono {% if stat.sd < 0.15 %}ink-mute{% endif %}">{{ '%.2f'|format(stat.sd) }}</td>
+            <td class="py-1.5 pr-3 text-right num-mono ink-mute">{{ '%.2f'|format(stat.min) }}–{{ '%.2f'|format(stat.max) }}</td>
+            <td class="py-1.5 pr-3 text-right num-mono">—</td>
+            <td class="py-1.5 pr-3">
+              {% set info = ((stat.sd or 0) / 0.5) * 100 %}
+              <span class="num-mono">{{ '%.0f'|format(info) }}%</span>
+              <span class="ink-mute text-[10.5px]">{% if stat.sd >= 0.3 %}high-variance, drives ranking{% elif stat.sd >= 0.2 %}moderate variance{% else %}saturated, contributes ~constantly{% endif %}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="text-[11px] ink-mute mt-2">
+      <strong>How to read.</strong> "effective info" = σ / 0.5 = how much of v4c's [0, 1] discriminating range this pillar actually uses across the sample. Pillars with σ &lt; 0.15 act ≈ as constants and contribute almost nothing to ranking, even when their weight is high. v4c's z-score step makes this automatic — no manual `_rescale_ic`-style fix required if a future pillar also saturates.
+    </div>
+  </div>
+  {% endif %}
+
+  {% if sig_v4c_pairs %}
+  <div class="px-5 py-3" style="background: var(--surface); border-top: 1px solid var(--line);">
+    <div class="label-eyebrow mb-2">Adjacent-rank significance (v4c · permutation N=1000)</div>
+    <table class="w-full text-[12px]" style="table-layout: auto;">
+      <thead style="border-bottom: 1px solid var(--line-soft);">
+        <tr class="label-eyebrow text-left whitespace-nowrap">
+          <th class="py-2 pr-3">Higher rank</th>
+          <th class="py-2 pr-3">Lower rank</th>
+          <th class="py-2 pr-3 text-right">Gap (Elo)</th>
+          <th class="py-2 pr-3 text-right">p-value</th>
+          <th class="py-2 pr-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in sig_v4c_pairs %}
+        <tr style="border-top: 1px solid var(--line-soft);">
+          <td class="py-1.5 pr-3 font-semibold">{{ p.higher }}</td>
+          <td class="py-1.5 pr-3">{{ p.lower }}</td>
+          <td class="py-1.5 pr-3 text-right num-mono">{{ '%.1f'|format(p.gap) }}</td>
+          <td class="py-1.5 pr-3 text-right num-mono {% if p.significant %}font-semibold{% endif %}" style="{% if p.significant %}color: var(--good);{% endif %}">{{ '%.3f'|format(p.p_value) }}</td>
+          <td class="py-1.5 pr-3 text-[11px]">{% if p.significant %}<span style="color: var(--good); font-weight: 600;">* significant at α=0.05</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    <strong>What v4c does.</strong> Same 11 pillars as v4b, same weight vector, same multiplicative reach gate. The change is in <em>how each pillar value enters the composite</em>: instead of raw <code>p_i ∈ [0, 1]</code>, each measurement is standardised to <code>z_i = (p_i − μ_i) / σ_i</code> (population mean/std across the whole sample) and squashed back into [0, 1] via a mild sigmoid. <strong>Saturated pillars (low σ across agents) collapse toward 0.5 for everyone — they stop contributing.</strong> Wide-spread pillars (source_diversity, factual_exactness, checklist) automatically take the discriminating load. This is the same principle behind financial composite indices and multi-criteria scoring: budget each input's contribution by its actual information content, not its nominal weight.
+  </div>
+</section>
+{% endif %}
+
+{% if v4b_loaded and ranked_v4b %}
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">composite_v4b · sharpened + rebalanced (no new LLM calls)</div>
+    <div class="text-[11px] ink-mute hidden sm:block">addresses v4's tied-middle problem; IC sharpened, SD upweighted, weights still sum to 1.00</div>
+  </div>
+  {% if gap_cmp %}
+  <div class="grid grid-cols-3 gap-2 px-5 py-3" style="background: var(--surface); border-bottom: 1px solid var(--line-soft);">
+    <div>
+      <div class="label-eyebrow">Min adjacent gap</div>
+      <div class="num-mono text-[18px]">
+        <span class="ink-mute">{{ '%.1f'|format(gap_cmp.v4_min_gap) }}</span>
+        <span class="ink-mute">→</span>
+        <span class="font-semibold" style="color: var(--good);">{{ '%.1f'|format(gap_cmp.v4b_min_gap) }}</span>
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Elo (v4 → v4b). Bigger = better discrimination.</div>
+    </div>
+    <div>
+      <div class="label-eyebrow">Mean adjacent gap</div>
+      <div class="num-mono text-[18px]">
+        {{ '%.1f'|format(gap_cmp.v4_mean_gap) }} → {{ '%.1f'|format(gap_cmp.v4b_mean_gap) }}
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Elo. Roughly unchanged (intentional ── v4b reallocates not amplifies).</div>
+    </div>
+    <div>
+      <div class="label-eyebrow">Weight rebalance</div>
+      <div class="text-[12.5px]" style="line-height:1.4;">
+        IC <span class="num-mono">0.13 → 0.07</span><br>
+        SD <span class="num-mono">0.06 → 0.12</span>
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Shifts weight from saturated pillar to high-variance pillar.</div>
+    </div>
+  </div>
+  {% endif %}
+  <table class="w-full text-[13px]" style="table-layout: auto;">
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-4 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">v4b Elo</th>
+        <th class="px-3 py-3 font-bold">95% CI</th>
+        <th class="px-3 py-3 font-bold text-right">n</th>
+        <th class="px-3 py-3 font-bold text-right" title="IC raw">IC raw</th>
+        <th class="px-3 py-3 font-bold text-right" title="IC after sharpening rescale">IC sharp</th>
+        <th class="px-3 py-3 font-bold text-right">SD</th>
+        <th class="px-3 py-3 font-bold text-right">v4 mean</th>
+        <th class="px-3 py-3 font-bold text-right">v4b mean</th>
+      </tr>
+    </thead>
+    <tbody style="border-top: 1px solid var(--line);">
+      {% for agent, e, s in ranked_v4b %}
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          {% if loop.index <= 3 %}
+            <span class="rank-chip rank-{{ loop.index }}">{{ loop.index }}</span>
+          {% else %}
+            <span class="rank-other">{{ loop.index }}</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">{{ agent[:2]|upper }}</span>
+            <span class="font-semibold">{{ agent }}</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">{{ '%.0f'|format(e.elo) }}</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[{{ '%.0f'|format(e.elo_lo) }}, {{ '%.0f'|format(e.elo_hi) }}]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{{ s.n_runs or '—' }}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">{% if s.internal_consistency_raw is not none %}{{ '%.2f'|format(s.internal_consistency_raw) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">{% if s.internal_consistency_sharpened is not none %}{{ '%.2f'|format(s.internal_consistency_sharpened) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">{% if s.source_diversity is not none %}{{ '%.2f'|format(s.source_diversity) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">{% if s.v4_mean is not none %}{{ '%.2f'|format(s.v4_mean) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">{% if s.v4b_mean is not none %}{{ '%.2f'|format(s.v4b_mean) }}{% else %}—{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    <strong>What v4b does.</strong> v4 found that <code>internal_consistency</code> saturates ── almost every agent scores 0.95-1.00, so its 13% weight is effectively a constant additive shift. v4b (a) rescales IC so the [0.85, 0.95] band uses the full [0, 1] range (column "IC sharp"), and (b) reallocates weight: IC drops 0.13 → 0.07, source_diversity (the highest-variance pillar) rises 0.06 → 0.12. Same verifiers, same multiplicative reach gate, just better numerics. <strong>The "IC sharp" column reveals true differences hidden in the raw IC saturation.</strong>
+  </div>
+</section>
+{% endif %}
+
+{% if sig %}
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 label-eyebrow" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    Adjacent-rank significance · permutation N=1000
+  </div>
+  <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-[12.5px]">
+    {% for p in sig %}
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">{{ p.higher }}</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">{{ p.lower }}</span>
+      <span class="num-mono ink-mute ml-auto">Δ{{ '%.0f'|format(p.gap) }}</span>
+      <span class="num-mono {{ 'font-semibold' if p.significant else 'ink-mute' }}" style="{{ 'color: var(--accent-ink);' if p.significant else '' }}">p={{ '%.3f'|format(p.p_value) }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    Small sample (25 runs / 46 battles): no adjacent gap is statistically significant at α=0.05. Scaling the experiment to the full 397-run set will tighten CIs and reveal whether the v2→v4 rank reshuffles (storm +4, deerflow +2, gpt-researcher -2) hold up.
+  </div>
+</section>
+{% endif %}
+
+{% if top_diff %}
+<section class="surface rounded-2xl overflow-hidden mb-8">
+  <div class="px-5 py-3 label-eyebrow" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    Top |v4 − v2| reports · where new pillars rewrote the verdict
+  </div>
+  <table class="w-full text-[13px]">
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-3 py-3 font-bold">Agent × Task</th>
+        <th class="px-3 py-3 font-bold text-right">v2</th>
+        <th class="px-3 py-3 font-bold text-right">v4</th>
+        <th class="px-3 py-3 font-bold text-right">Δ</th>
+        <th class="px-3 py-3 font-bold text-right">SD</th>
+        <th class="px-3 py-3 font-bold text-right">PB</th>
+        <th class="px-3 py-3 font-bold text-right">FE</th>
+        <th class="px-3 py-3 font-bold text-right">IC</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in top_diff %}
+      {% set sd = (r.source_diversity     or {}).score %}
+      {% set pb = (r.perspective_balance  or {}).score %}
+      {% set fe = (r.factual_exactness    or {}).score %}
+      {% set ic = (r.internal_consistency or {}).score %}
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">{{ r.agent }} × {{ r.task }}</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">{{ '%.2f'|format(r.v2_composite) }}</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">{{ '%.2f'|format(r.v4_composite) }}</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: {% if r.v4_minus_v2 > 0.02 %}var(--good){% elif r.v4_minus_v2 < -0.02 %}var(--bad){% else %}var(--ink-mute){% endif %};">{{ '%+.2f'|format(r.v4_minus_v2) }}</td>
+        <td class="px-3 py-2.5 text-right num-mono">{% if sd is not none %}{{ '%.2f'|format(sd) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-2.5 text-right num-mono">{% if pb is not none %}{{ '%.2f'|format(pb) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-2.5 text-right num-mono">{% if fe is not none %}{{ '%.2f'|format(fe) }}{% else %}—{% endif %}</td>
+        <td class="px-3 py-2.5 text-right num-mono">{% if ic is not none %}{{ '%.2f'|format(ic) }}{% else %}—{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    Positive Δ = v4 rates higher than v2 (likely good multi-perspective / diverse sourcing despite middling URL coverage). Negative Δ = v4 rates lower than v2 (likely URL-true but factually wrong / one-sided / self-contradicting).
+  </div>
+</section>
+{% endif %}
+
+<section class="mt-6 ink-soft text-[13px] leading-relaxed">
+  <h2 class="text-[18px] font-bold mb-3" style="color: var(--ink);">Reading the v4 verdict</h2>
+  <p>
+    The headline question this view answers is whether v4 actually rewrites the verdict on existing reports.
+    Three takeaways from the 25-run sample:
+  </p>
+  <ol class="ml-6 mt-2 list-decimal space-y-1">
+    <li><strong>Head and tail are the same in v4 and v2.</strong> camel-ai is #1 in both;
+      langchain-odr and gpt-researcher hold the tail in both. v4 is not in opposition to v2 ── it
+      builds on it.</li>
+    <li><strong>The middle of the table reshuffles.</strong> deerflow jumps +2 ranks (v2 #6 → v4 #4)
+      and storm jumps an effective +4 (deep v2 tail when ranked there; v4 #5). The shared cause is
+      that v4 rewards high <code>factual_exactness</code> and perfect <code>internal_consistency</code>
+      even when v2's <code>url_coverage</code> alone underweighted them.</li>
+    <li><strong>v4 confirms the fabricated-URL critique.</strong> gpt-researcher and langchain-odr
+      both score <code>factual_exactness = 0.00</code> on every sampled report ── their URLs may be
+      reachable in places, but the atomic facts cited from those URLs are not corroborated by the
+      pages. This is the "fluent fabrication" mode v2 catches via reach, and v4 catches via a
+      second, independent signal.</li>
+  </ol>
+  <p class="mt-3">
+    The headline ranking still uses v2 in production because the truth-gate inversion finding
+    (<a href="/how-it-works">/how-it-works</a>) is the primary methodological contribution and is
+    cleanest at the v2 4-input scale. v4 is the next layer of the same idea ── more dimensions,
+    same multiplicative gate, more robust verdict on the agents that v2 marks as borderline.
+  </p>
+</section>
+
+{% endif %}
+
+{% endblock %}

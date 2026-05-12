@@ -1,0 +1,208 @@
+{
+  "task_id": "dr_cross_deep_0030",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0030",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Causal explanation report answering 'How does an mRNA vaccine work and why was COVID mRNA so much faster than traditional vaccines?'. Build a 4-layer causal chain: (L1) molecular mechanism: mRNA → ribosome → spike protein → immune response, (L2) lipid-nanoparticle delivery: why LNPs solved the in-vivo mRNA delivery problem, (L3) platform speed: why mRNA design takes weeks vs years for inactivated vaccines, (L4) regulatory + manufacturing: Operation Warp Speed + parallel Phase 3 + at-risk manufacturing. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 books on immunology / vaccinology / pandemic + price + rating. (B) `__REDDIT__` >= 30 threads from /f/AskScience, /f/AskScienceFiction, /f/medicine, /f/Coronavirus, /f/COVID19, /f/biology, /f/Virology. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: MRNA vaccine, Lipid nanoparticle, BNT162b2, MRNA-1273, Operation Warp Speed, Spike protein, Drew Weissman, Katalin Kariko, Phase III clinical trial, Vaccine. Output a 4-layer causal hierarchy + 'mRNA vs traditional vaccine timeline' table comparing dev-time per modality. Format: markdown links only. Begin with L1.",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=immunology+book",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0030.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0030.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "causal",
+      "causal_layers": [
+        "L1_molecular_mechanism",
+        "L2_lnp_delivery",
+        "L3_platform_speed",
+        "L4_regulatory_manufacturing"
+      ],
+      "min_wiki_per_layer": {
+        "L1_molecular_mechanism": 3,
+        "L2_lnp_delivery": 3
+      },
+      "min_reddit_per_layer": {
+        "L3_platform_speed": 5,
+        "L4_regulatory_manufacturing": 5
+      },
+      "comparison_table_modalities": [
+        "mRNA",
+        "inactivated",
+        "viral_vector",
+        "subunit"
+      ]
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+    "domain": "Science",
+    "intent_type": "Causal"
+  },
+  "rows": [
+    {
+      "agent": "camel-ai",
+      "composite_v2": 0.1674,
+      "composite_v3": 0.5866,
+      "url_coverage": 0.1267,
+      "reachability": 1.0,
+      "checklist": 0.381,
+      "answer_chars": 30278,
+      "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "smolagents",
+      "composite_v2": 0.1464,
+      "composite_v3": 0.5568,
+      "url_coverage": 0.0003,
+      "reachability": 1.0,
+      "checklist": 0.5714,
+      "answer_chars": 20142,
+      "answer_path": "data/results/deep/smolagents__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "flowsearcher-ds",
+      "composite_v2": 0.0753,
+      "composite_v3": 0.1985,
+      "url_coverage": 0.3067,
+      "reachability": 0.4459,
+      "checklist": 0.381,
+      "answer_chars": 34974,
+      "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "ldr",
+      "composite_v2": 0.0058,
+      "composite_v3": 0.029,
+      "url_coverage": 0.01,
+      "reachability": 1.0,
+      "checklist": 0.0476,
+      "answer_chars": 1340,
+      "answer_path": "data/results/deep/ldr__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "deerflow",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0093,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0476,
+      "answer_chars": 20701,
+      "answer_path": "data/results/deep/deerflow__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "gpt-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0278,
+      "url_coverage": 0.3,
+      "reachability": 0.0,
+      "checklist": 0.381,
+      "answer_chars": 27827,
+      "answer_path": "data/results/deep/gpt-researcher__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "ii-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0086,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.381,
+      "answer_chars": 74,
+      "answer_path": "data/results/deep/ii-researcher__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "langchain-odr",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0253,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.5714,
+      "answer_chars": 34516,
+      "answer_path": "data/results/deep/langchain-odr__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "qx-agents",
+      "composite_v2": 0.0,
+      "composite_v3": 0.001,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 367,
+      "answer_path": "data/results/deep/qx-agents__dr_cross_deep_0030_matrix.md"
+    },
+    {
+      "agent": "storm",
+      "composite_v2": 0.0,
+      "composite_v3": 0.021,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 1.0,
+      "answer_chars": 409,
+      "answer_path": "data/results/deep/storm__dr_cross_deep_0030_matrix.md"
+    }
+  ]
+}

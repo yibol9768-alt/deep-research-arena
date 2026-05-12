@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en" class="bg-canvas text-ink">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contribute · Deep-Research Arena</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas: #fafaf9;
+      --surface: #ffffff;
+      --ink: #0c0a09;
+      --ink-soft: #44403c;
+      --ink-mute: #78716c;
+      --line: #e7e5e4;
+      --line-soft: #f5f5f4;
+      --accent: #4338ca;
+      --accent-soft: #eef2ff;
+      --accent-ink: #312e81;
+      --good: #15803d;
+      --good-soft: #dcfce7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #a16207;
+      --warn-soft: #fef9c3;
+    }
+    html, body { background: var(--canvas); color: var(--ink); }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+    .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .ink-soft { color: var(--ink-soft); }
+    .ink-mute { color: var(--ink-mute); }
+
+    .surface { background: var(--surface); border: 1px solid var(--line); }
+    .row-hover:hover { background-color: var(--line-soft); }
+    .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
+
+    .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
+    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
+    .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
+    .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* LLM backbone picker chips (current = active, others = "queued") */
+    .llm-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px 5px 9px;
+      border-radius: 8px;
+      font-size: 12.5px; font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-soft);
+      cursor: default;
+    }
+    .llm-chip.is-active { background: var(--accent-soft); color: var(--accent-ink); border-color: rgba(67,56,202,0.35); }
+    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--line-soft); border-color: var(--line); }
+    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
+    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+    .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+    .pill-ok    { background: var(--good-soft); color: var(--good); }
+    .pill-warn  { background: var(--warn-soft); color: var(--warn); }
+    .pill-bad   { background: var(--bad-soft);  color: var(--bad); }
+    .pill-muted { background: var(--line); color: var(--ink-soft); }
+    .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
+
+    /* Old CI track — kept for any callers; new layout uses .ci-bar below. */
+    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
+    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
+    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
+
+    /* New unified CI bar: every row has the same outer width (set by the
+       parent <td>); the bar has 8px horizontal padding so the marker dot
+       can never visually overflow into the next column. */
+    .ci-bar { padding: 0 8px; }
+    .ci-bar-inner { position: relative; height: 14px; }
+    .ci-bar-track  { position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); background: var(--line); border-radius: 999px; }
+    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(67,56,202,0.28); border-radius: 999px; pointer-events: none; }
+    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.4); pointer-events: none; }
+
+    .agent-avatar {
+      width: 26px; height: 26px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--surface);
+      background: linear-gradient(135deg, #475569, #1e293b);
+    }
+
+    .codeblock { background: #0c0a09; color: #f5f5f4; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; }
+
+    /* Markdown body when rendered via python-markdown */
+    .md-body { font-size: 13.5px; line-height: 1.55; }
+    .md-body h1, .md-body h2, .md-body h3 { font-weight: 700; margin: 1em 0 0.4em; }
+    .md-body h1 { font-size: 22px; }
+    .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+    .md-body h3 { font-size: 14px; }
+    .md-body p { margin: 0.5em 0; }
+    .md-body code { background: var(--line-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .md-body pre { background: #0c0a09; color: #f5f5f4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .md-body pre code { background: transparent; padding: 0; color: inherit; }
+    .md-body table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .md-body th, .md-body td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+    .md-body th { background: var(--line-soft); font-weight: 600; }
+    .md-body ul, .md-body ol { margin: 0.4em 0; padding-left: 1.4em; }
+    .md-body li { margin: 0.2em 0; }
+    .md-body a { color: var(--accent); text-decoration: underline; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
+              style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
+        <span class="text-[15px] tracking-tight">Deep-Research Arena</span>
+      </a>
+      <nav class="flex items-center gap-0.5 ml-2 text-sm">
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:2px;">new</span></a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/compare">Compare LLMs</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/how-it-works">How it works</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/about">About</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/contribute">Contribute</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-3">
+        <a href="https://github.com/yibol9768-alt/deep-research-arena"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft border border-stone-200">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+    
+<section class="mb-8">
+  <h1 class="text-[30px] font-bold tracking-tight">Add a DR framework, or reproduce the leaderboard</h1>
+  <p class="mt-2 ink-soft text-[14.5px] max-w-3xl leading-relaxed">
+    Three things you can do here. Each is a separate, self-contained recipe.
+  </p>
+  <div class="mt-3 flex flex-wrap gap-2 text-[13px]">
+    <a href="#one-pair" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">1. Run one pair → submit a score</a>
+    <a href="#new-dr" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">2. Add a new DR framework</a>
+    <a href="#reproduce" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">3. Reproduce the whole leaderboard</a>
+  </div>
+</section>
+
+<!-- ───────── 1. RUN ONE PAIR ───────── -->
+<section id="one-pair" class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Recipe 1</div>
+  <h2 class="text-[22px] font-semibold">Run one (agent, task) pair and submit the score</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    The fastest way to engage with the benchmark. Pick an existing agent, run
+    it on one task, score the output, open a PR with the resulting JSON. No
+    new code required.
+  </p>
+
+  <div class="mt-5 space-y-5">
+    <div class="flex gap-4">
+      <span class="step-num">1</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Clone the repo and bring up the sandbox</div>
+        <pre class="codeblock mt-2">git clone https://github.com/yibol9768-alt/deep-research-arena.git
+cd deep-research-arena
+docker compose -f sandbox/docker-compose.yml up -d
+# starts magento (7770), postmill (9999), kiwix (8090), search shim (8081)</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">2</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Set up the main venv (used by the scorer + most in-process agents)</div>
+        <pre class="codeblock mt-2">python -m venv .venv-camel
+source .venv-camel/bin/activate
+pip install -r requirements.txt</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">3</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Pick an agent + task. Easiest: smolagents on task 0001.</div>
+        <pre class="codeblock mt-2">DS_PROXY_URL=http://localhost:8088/v1 \
+SHIM_URL=http://localhost:8081 \
+.venv-camel/bin/python scripts/run_deep_task.py \
+    --agent smolagents \
+    --task dr_cross_deep_0001 \
+    --backbone deepseek-v4-flash \
+    --out-suffix matrix
+# writes data/results/deep/smolagents__dr_cross_deep_0001_matrix.md</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">4</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Score the report</div>
+        <pre class="codeblock mt-2">JUDGE_BASE_URL=http://localhost:8088/v1 \
+JUDGE_MODEL=deepseek-v4-flash \
+JUDGE_PROVIDER=openai \
+.venv-camel/bin/python scripts/score_deep_answer.py \
+    --task dr_cross_deep_0001 \
+    --answer data/results/deep/smolagents__dr_cross_deep_0001_matrix.md \
+    --out   data/results/deep_v3/smolagents__dr_cross_deep_0001_matrix.score.json</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">5</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Rebuild the leaderboard locally to confirm</div>
+        <pre class="codeblock mt-2">.venv-camel/bin/python scripts/build_deep_leaderboard.py
+# regenerates data/results/deep_v3/LEADERBOARD_DEEP.md and leaderboard_deep.json</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">6</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Open a PR with both files</div>
+        <ul class="mt-2 text-[13.5px] ink-soft space-y-1">
+          <li>· <code class="num-mono">data/results/deep/&lt;agent&gt;__&lt;task&gt;_matrix.md</code></li>
+          <li>· <code class="num-mono">data/results/deep_v3/&lt;agent&gt;__&lt;task&gt;_matrix.score.json</code></li>
+        </ul>
+        <p class="mt-2 text-[13px] ink-mute">CI re-scores your <code class="num-mono">.md</code> from scratch and checks the JSON matches. If the numbers reproduce, the PR merges and the agent's Elo updates.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 2. NEW DR ───────── -->
+<section id="new-dr" class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Recipe 2</div>
+  <h2 class="text-[22px] font-semibold">Add a new DR framework</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    A runner is a single Python module that exposes
+    <code class="num-mono">async def run(intent, model, shim_url, proxy_url) -&gt; str</code>.
+    The string it returns is the markdown report — that's all.
+  </p>
+
+  <div class="mt-5 space-y-5">
+    <div class="flex gap-4">
+      <span class="step-num">1</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Decide: in-process or subprocess?</div>
+        <p class="mt-1 text-[13.5px] ink-soft max-w-2xl">
+          If your framework can run in <code class="num-mono">.venv-camel</code> alongside everything
+          else, write an in-process runner (fastest). If it needs its own venv (conflicting deps),
+          write a subprocess runner that shells out to its own Python.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">2</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Drop the runner module at <code class="num-mono">scripts/runners/&lt;your_agent&gt;_runner.py</code></div>
+        <pre class="codeblock mt-2">"""scripts/runners/myagent_runner.py"""
+AGENT_NAME = "myagent"
+
+async def run(intent: str, model: str, shim_url: str, proxy_url: str) -&gt; str:
+    # Configure your framework so it:
+    #   - sends LLM calls to proxy_url (an OpenAI-compatible endpoint)
+    #   - sends search calls to shim_url (a Tavily-compatible endpoint)
+    # Then run the agent and return the markdown report.
+    from myagent import Researcher
+    r = Researcher(llm_url=proxy_url, search_url=f"{shim_url}/search")
+    return await r.research(intent)</pre>
+        <p class="mt-2 text-[13px] ink-mute">
+          The auto-discovery in <code class="num-mono">scripts/runners/registry.py</code> picks up
+          any <code class="num-mono">*_runner.py</code> with an <code class="num-mono">AGENT_NAME</code>
+          constant — no manual registration.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">3</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">For subprocess agents, add a dedicated venv</div>
+        <pre class="codeblock mt-2">python -m venv .venv-myagent
+.venv-myagent/bin/pip install your-framework
+# Reference it from the runner:
+#   subprocess.run(['.venv-myagent/bin/python', driver_script], ...)</pre>
+        <p class="mt-2 text-[13px] ink-mute">
+          See <code class="num-mono">scripts/runners/deerflow_runner.py</code> for a reference
+          subprocess runner. It uses <code class="num-mono">scripts/runners/_runner_lock.py</code>
+          to serialize parallel workers around its shared driver-script path.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">4</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Smoke-test it on one task</div>
+        <pre class="codeblock mt-2">.venv-camel/bin/python scripts/run_deep_task.py \
+    --agent myagent --task dr_cross_deep_0001 \
+    --backbone deepseek-v4-flash --out-suffix matrix</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">5</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Open a PR with the runner + a few sample score JSONs</div>
+        <p class="mt-1 text-[13.5px] ink-soft max-w-2xl">
+          CI verifies the runner module is importable and that scoring reproduces. Once merged, your
+          agent gets included in the next full bulk run.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── 3. REPRODUCE ───────── -->
+<section id="reproduce" class="surface rounded-2xl p-6 mb-10">
+  <div class="label-eyebrow mb-2">Recipe 3</div>
+  <h2 class="text-[22px] font-semibold">Reproduce the whole leaderboard</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    Six parallel workers, deepseek-v4-flash backbone, ~3 hours wall-clock for
+    a fresh ~456-pair run. Each worker gets a shuffled chunk of the queue;
+    per-agent runner locks keep subprocess agents from racing on shared
+    driver-script paths.
+  </p>
+
+  <div class="mt-5 space-y-5">
+    <div class="flex gap-4">
+      <span class="step-num">1</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Bring up the proxy + shim</div>
+        <pre class="codeblock mt-2"># OpenAI-compat proxy → DeepSeek (auto-injects thinking:disabled)
+OPENAI_PROXY_UPSTREAM=https://api.deepseek.com \
+OPENAI_PROXY_KEY=$DEEPSEEK_API_KEY \
+.venv-camel/bin/uvicorn integrations.ds_proxy.app:app --host 0.0.0.0 --port 8088 &
+
+# Tavily-compatible search shim that proxies into the sandbox
+.venv-camel/bin/uvicorn integrations.search_shim.app:app --host 0.0.0.0 --port 8081 &</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">2</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Generate the queue (every agent × every task)</div>
+        <pre class="codeblock mt-2">.venv-camel/bin/python scripts/plan_full_leaderboard.py \
+    --agents deerflow flowsearcher-ds gpt-researcher ii-researcher \
+             langchain-odr ldr qx-agents smolagents storm \
+    --task-range 1-57 \
+    --out data/results/deep_v3/run_queue.tsv</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">3</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Launch six parallel workers</div>
+        <pre class="codeblock mt-2">bash scripts/parallel_bulk_launch.sh 6
+# the launcher splits the queue round-robin (after shuffling) into 6 chunks
+# and starts 6 setsid'd workers, each writing its own queue_wN.{log,progress,errors}</pre>
+        <p class="mt-2 text-[13px] ink-mute">
+          Resumable: pairs whose score JSON already exists are skipped. Watch progress with
+          <code class="num-mono">ls data/results/deep_v3/*_matrix.score.json | wc -l</code>.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">4</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">After the run finishes, rebuild the leaderboard</div>
+        <pre class="codeblock mt-2">.venv-camel/bin/python scripts/build_deep_leaderboard.py
+# writes data/results/deep_v3/LEADERBOARD_DEEP.md
+#        data/results/deep_v3/leaderboard_deep.json</pre>
+      </div>
+    </div>
+
+    <div class="flex gap-4">
+      <span class="step-num">5</span>
+      <div class="flex-1">
+        <div class="font-semibold text-[14px]">Optional cleanup pass for transient judge errors</div>
+        <pre class="codeblock mt-2">.venv-camel/bin/python scripts/rerun_failed_judges.py --apply
+# finds any score JSON with judge_error in checklist / analysis_depth / presentation
+# and re-runs only those judges, then recomputes the composites.</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-10 ink-soft text-[13px]">
+  <p>Stuck? Open an issue on <a class="underline" href="https://github.com/yibol9768-alt/deep-research-arena/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+</section>
+
+  </main>
+
+  <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
+    <div class="max-w-6xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>Bradley-Terry Elo over <code class="num-mono">composite_v2</code> battles</span>
+      <span class="text-stone-300">|</span>
+      <span class="num-mono">composite_v2 = reachability x (0.40 url + 0.40 judge + 0.20 spec)</span>
+      <span class="text-stone-300">|</span>
+      <span>Sandbox: Magento + Postmill + Kiwix</span>
+      <span class="text-stone-300">|</span>
+      <a href="https://github.com/yibol9768-alt/deep-research-arena" class="hover:text-black" target="_blank" rel="noopener">github.com/yibol9768-alt/deep-research-arena</a>
+    </div>
+  </footer>
+
+  
+</body>
+</html>

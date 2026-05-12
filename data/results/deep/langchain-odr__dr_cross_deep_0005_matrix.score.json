@@ -1,0 +1,393 @@
+{
+  "task": "dr_cross_deep_0005",
+  "answer_path": "data/results/deep/langchain-odr__dr_cross_deep_0005_matrix.md",
+  "answer_chars": 28881,
+  "url_coverage": {
+    "score": 0.3,
+    "passed": false,
+    "details": {
+      "cited_unique": 89,
+      "must_cite_total": 123,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "pool_total": 797,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 33,
+        "__REDDIT__": 33,
+        "__WIKIPEDIA__": 23
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 1.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.0337,
+    "passed": false,
+    "details": {
+      "cited_total": 89,
+      "cited_sandbox": 89,
+      "cited_off_sandbox": 0,
+      "probed": 89,
+      "http_200": 3,
+      "http_4xx": 86,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.0337,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "claims_total": 94,
+      "claims_supported": 0,
+      "claims_unreachable": 94,
+      "match_rate": 0.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:7770/products/basic-plastic-planter-6",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/mini-watering-can-05l",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/seed-starter-tray-12-cell",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/pruning-shears-basic",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/potting-soil-2l-bag",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/fertilizer-all-purpose-500ml",
+          "supported": false,
+          "reason": "unreachable"
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 3642,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": true,
+    "citation_count": 94,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 76,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Does the report enumerate at least 40 distinct product pages on the shopping site with exact URL + price + rating + review_count?",
+        "FAIL"
+      ],
+      [
+        "Are at least 6 distinct brands represented among the enumerated products?",
+        "FAIL"
+      ],
+      [
+        "Are at least 3 price tiers represented?",
+        "PASS"
+      ],
+      [
+        "Does each product entry extract at least one marketing feature-claim?",
+        "PASS"
+      ],
+      [
+        "Does the report harvest at least 30 distinct Postmill threads with thread_url + forum + score + comment_count?",
+        "FAIL"
+      ],
+      [
+        "Are threads drawn from at least 4 distinct sub-forums?",
+        "FAIL"
+      ],
+      [
+        "Is every thread classified as one of {praise, complaint, technical_question, comparison, purchase_advice}?",
+        "FAIL"
+      ],
+      [
+        "Does the report locate at least 25 distinct Wikipedia articles with article_url + defining statement?",
+        "FAIL"
+      ],
+      [
+        "Are the mandatory Wikipedia articles for this topic all present?",
+        "FAIL"
+      ],
+      [
+        "Does the report surface at least 5 product-claim vs Wikipedia contradiction findings with triple evidence (product URL + wiki URL + explicit contradiction)?",
+        "FAIL"
+      ],
+      [
+        "Does the report include a brand-sentiment ranking with at least 2 reddit threads cited per ranked brand?",
+        "FAIL"
+      ],
+      [
+        "Does the report surface at least 3 rating-vs-sentiment divergences?",
+        "FAIL"
+      ],
+      [
+        "Does the final TOP-10 list have exactly 10 items?",
+        "UNCLEAR"
+      ],
+      [
+        "Does each TOP-10 item have (≥1 shopping URL + ≥2 reddit URL + ≥1 wiki URL) as evidence chain?",
+        "UNCLEAR"
+      ],
+      [
+        "Are all cited URLs markdown-linked `[label](url)` form and resolvable on the sandbox?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report cite at least 60 distinct URLs in total?",
+        "FAIL"
+      ],
+      [
+        "Is at least 30 of the 60+ cited URLs from shopping domain?",
+        "FAIL"
+      ],
+      [
+        "Is at least 20 of the 60+ cited URLs from reddit domain?",
+        "FAIL"
+      ],
+      [
+        "Is at least 15 of the 60+ cited URLs from wikipedia domain?",
+        "FAIL"
+      ],
+      [
+        "Is the report between 3500 and 8000 words?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start directly with the market-intelligence content?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 3,
+    "fail_count": 14,
+    "unclear_count": 4,
+    "pass_rate": 0.1429,
+    "judge_error": null,
+    "sanity_floor": null,
+    "grounding_downgrades": 6,
+    "reachability_used": 0.0337
+  },
+  "composite": {
+    "spec_pass_fraction": 1.0,
+    "quality_score": 0.3772,
+    "truth_factor": 0.0084,
+    "qm_factor": 0.5,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.1,
+    "raw_score_v3": 0.2202,
+    "citation_alignment": 0.0,
+    "analysis_depth": 0.0,
+    "presentation": 0.6333,
+    "composite_v3": 0.022,
+    "composite_score": 0.0032,
+    "composite_v2": 0.0032,
+    "composite_v1": 0.0127,
+    "legacy_composite": 0.35
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  },
+  "analysis_depth": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "tier_a_passed": 0,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.0,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": false,
+          "detail": "contradiction_paragraphs=1"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": false,
+          "detail": "density=0.062, total_paragraphs=81"
+        }
+      ],
+      "tier_b_passed": 0,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.0,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": false,
+          "reason": "Tables enumerate products without thematic interpretation."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": false,
+          "reason": "No causal explanations for observed divergences."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "Mentions multiple sources but no explicit cross-comparison shown."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": false,
+          "reason": "No synthesized insight beyond source summaries."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "No discussion of limitations or conflicting viewpoints."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": false,
+          "reason": "No specific, evidence-based recommendations presented."
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. FAIL - Tables enumerate products without thematic interpretation.  \n2. FAIL - No causal explanations for observed divergences.  \n3. FAIL - Mentions multiple sources but no explicit cross-comparison shown.  \n4. FAIL - No synthesized insight beyond source summaries.  \n5. FAIL - No discussion of limitations or conflicting viewpoints.  \n6. FAIL - No specific, evidence-based recommendations presented."
+    }
+  },
+  "presentation": {
+    "score": 0.6333,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 5,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.833,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3, 4]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=5"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.892, word_counts=[26, 108, 1067, 1778, 655]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": false,
+          "detail": "flesch_reading_ease=26.3"
+        }
+      ],
+      "tier_b_passed": 3,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.5,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": false,
+          "reason": "Sections truncated; lacks full analysis and conclusion flow"
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "No visible transitions between major sections"
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No meta-commentary or empty filler found"
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Formatting and terminology consistent throughout excerpt"
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "Conclusion missing; no synthesis evident"
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone; no AI filler phrases detected"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. FAIL - Sections truncated; lacks full analysis and conclusion flow  \n2. FAIL - No visible transitions between major sections  \n3. PASS - No meta-commentary or empty filler found  \n4. PASS - Formatting and terminology consistent throughout excerpt  \n5. FAIL - Conclusion missing; no synthesis evident  \n6. PASS - Professional tone; no AI filler phrases detected"
+    }
+  },
+  "rescore_meta": {
+    "fix": "v2_full_rescore_with_ad_pres_and_fab_guard",
+    "old_checklist_pass_rate": 0.7143,
+    "old_claim_nli_score": 0.0,
+    "old_composite_v3": null,
+    "old_composite_v2": 0.0051,
+    "new_checklist_pass_rate": 0.1429,
+    "new_claim_nli_score": 0.0,
+    "new_analysis_depth": 0.7,
+    "new_presentation": 0.6333,
+    "new_composite_v3": 0.029,
+    "new_composite_v2": 0.0032
+  }
+}

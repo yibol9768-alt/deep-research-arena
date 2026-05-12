@@ -1,0 +1,393 @@
+{
+  "task": "dr_cross_deep_0002",
+  "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0002_matrix.md",
+  "answer_chars": 26942,
+  "url_coverage": {
+    "score": 0.2429,
+    "passed": false,
+    "details": {
+      "cited_unique": 92,
+      "must_cite_total": 120,
+      "must_cite_hit": 5,
+      "must_cite_recall": 0.0556,
+      "pool_total": 521,
+      "pool_hit": 8,
+      "pool_coverage": 0.0154,
+      "per_domain_cited": {
+        "__SHOPPING__": 48,
+        "__REDDIT__": 14,
+        "__WIKIPEDIA__": 30
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.7,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.6739,
+    "passed": true,
+    "details": {
+      "cited_total": 92,
+      "cited_sandbox": 92,
+      "cited_off_sandbox": 0,
+      "probed": 92,
+      "http_200": 62,
+      "http_4xx": 30,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.6739,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.5905,
+    "passed": true,
+    "details": {
+      "claims_total": 105,
+      "claims_supported": 62,
+      "claims_unreachable": 30,
+      "match_rate": 0.5905,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:7770/puerto-rican-artists-edition-espresso-maker-aluminum-stove",
+          "supported": true,
+          "overlap": 0.571
+        },
+        {
+          "url": "http://localhost:7770/keurig-coffee-lovers-collection-sampler-pack-single-serve-",
+          "supported": true,
+          "overlap": 0.559
+        },
+        {
+          "url": "http://localhost:7770/keurig-bold-roast-coffee-collection-variety-pack-single-se",
+          "supported": true,
+          "overlap": 0.762
+        },
+        {
+          "url": "http://localhost:7770/latitude-attitude-for-k-cup-keurig-2-0-brewers-margaritavi",
+          "supported": true,
+          "overlap": 0.565
+        },
+        {
+          "url": "http://localhost:7770/green-mountain-coffee-roasters-brew-over-ice-hazelnut-crea",
+          "supported": true,
+          "overlap": 0.71
+        },
+        {
+          "url": "http://localhost:7770/colonial-coffee-packets-pre-ground-coffee-packs-signature-",
+          "supported": true,
+          "overlap": 0.595
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 2825,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 105,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 37,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Does the report enumerate at least 40 distinct product pages on the shopping site with exact URL + price + rating + review_count?",
+        "PASS"
+      ],
+      [
+        "Are at least 6 distinct brands represented among the enumerated products?",
+        "PASS"
+      ],
+      [
+        "Are at least 3 price tiers represented?",
+        "PASS"
+      ],
+      [
+        "Does each product entry extract at least one marketing feature-claim?",
+        "PASS"
+      ],
+      [
+        "Does the report harvest at least 30 distinct Postmill threads with thread_url + forum + score + comment_count?",
+        "FAIL"
+      ],
+      [
+        "Are threads drawn from at least 4 distinct sub-forums?",
+        "FAIL"
+      ],
+      [
+        "Is every thread classified as one of {praise, complaint, technical_question, comparison, purchase_advice}?",
+        "PASS"
+      ],
+      [
+        "Does the report locate at least 25 distinct Wikipedia articles with article_url + defining statement?",
+        "PASS"
+      ],
+      [
+        "Are the mandatory Wikipedia articles for this topic all present?",
+        "PASS"
+      ],
+      [
+        "Does the report surface at least 5 product-claim vs Wikipedia contradiction findings with triple evidence (product URL + wiki URL + explicit contradiction)?",
+        "FAIL"
+      ],
+      [
+        "Does the report include a brand-sentiment ranking with at least 2 reddit threads cited per ranked brand?",
+        "FAIL"
+      ],
+      [
+        "Does the report surface at least 3 rating-vs-sentiment divergences?",
+        "FAIL"
+      ],
+      [
+        "Does the final TOP-10 list have exactly 10 items?",
+        "UNCLEAR"
+      ],
+      [
+        "Does each TOP-10 item have (≥1 shopping URL + ≥2 reddit URL + ≥1 wiki URL) as evidence chain?",
+        "FAIL"
+      ],
+      [
+        "Are all cited URLs markdown-linked `[label](url)` form and resolvable on the sandbox?",
+        "PASS"
+      ],
+      [
+        "Does the report cite at least 60 distinct URLs in total?",
+        "PASS"
+      ],
+      [
+        "Is at least 30 of the 60+ cited URLs from shopping domain?",
+        "PASS"
+      ],
+      [
+        "Is at least 20 of the 60+ cited URLs from reddit domain?",
+        "FAIL"
+      ],
+      [
+        "Is at least 15 of the 60+ cited URLs from wikipedia domain?",
+        "PASS"
+      ],
+      [
+        "Is the report between 3500 and 8000 words?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start directly with the market-intelligence content?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 13,
+    "fail_count": 7,
+    "unclear_count": 1,
+    "pass_rate": 0.619,
+    "judge_error": null,
+    "sanity_floor": null,
+    "grounding_downgrades": 0,
+    "reachability_used": 0.6739
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.4781,
+    "truth_factor": 0.268,
+    "qm_factor": 0.7953,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.6739,
+    "raw_score_v3": 0.3871,
+    "citation_alignment": 0.0,
+    "analysis_depth": 0.0,
+    "presentation": 0.6,
+    "composite_v3": 0.2609,
+    "composite_score": 0.1281,
+    "composite_v2": 0.1281,
+    "composite_v1": 0.3222,
+    "legacy_composite": 0.4381
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  },
+  "analysis_depth": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "tier_a_passed": 0,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.0,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": false,
+          "detail": "contradiction_paragraphs=0"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": false,
+          "detail": "density=0.024, total_paragraphs=42"
+        }
+      ],
+      "tier_b_passed": 0,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.0,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": false,
+          "reason": "judge error: InternalServerError: Error code: 502"
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": false,
+          "reason": "judge error: InternalServerError: Error code: 502"
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "judge error: InternalServerError: Error code: 502"
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": false,
+          "reason": "judge error: InternalServerError: Error code: 502"
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "judge error: InternalServerError: Error code: 502"
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": false,
+          "reason": "judge error: InternalServerError: Error code: 502"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": "InternalServerError: Error code: 502",
+      "raw_judge_output": ""
+    }
+  },
+  "presentation": {
+    "score": 0.6,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 6,
+      "tier_a_total": 6,
+      "tier_a_rate": 1.0,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=5"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=1.016, word_counts=[23, 57, 1604, 545, 584]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=46.9"
+        }
+      ],
+      "tier_b_passed": 2,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.333,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": false,
+          "reason": "lacks clear intro, background, analysis, conclusion sequence"
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "abrupt section shifts without bridging sentences"
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": false,
+          "reason": "includes meta-commentary like “Let me compile the report”"
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "formatting and terminology appear consistent"
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "conclusion section missing or incomplete"
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "maintains professional tone without AI filler phrases"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. FAIL - lacks clear intro, background, analysis, conclusion sequence  \n2. FAIL - abrupt section shifts without bridging sentences  \n3. FAIL - includes meta-commentary like “Let me compile the report”  \n4. PASS - formatting and terminology appear consistent  \n5. FAIL - conclusion section missing or incomplete  \n6. PASS - maintains professional tone without AI filler phrases"
+    }
+  },
+  "rescore_meta": {
+    "fix": "v2_full_rescore_with_ad_pres_and_fab_guard",
+    "old_checklist_pass_rate": 0.5238,
+    "old_claim_nli_score": 0.0,
+    "old_composite_v3": null,
+    "old_composite_v2": 0.1179,
+    "new_checklist_pass_rate": 0.619,
+    "new_claim_nli_score": 0.0,
+    "new_analysis_depth": 0.1167,
+    "new_presentation": 0.6,
+    "new_composite_v3": 0.2688,
+    "new_composite_v2": 0.1281
+  }
+}

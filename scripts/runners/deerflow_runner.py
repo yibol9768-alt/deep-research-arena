@@ -26,11 +26,17 @@ import textwrap
 import time
 from pathlib import Path
 
+from scripts.runners._runner_lock import runner_exclusive_lock
+
 logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parents[2]
 DEERFLOW_ROOT = ROOT / "third_party" / "deer-flow-v1"
 DEERFLOW_PYTHON = str(DEERFLOW_ROOT / ".venv" / "bin" / "python")
+
+# Concurrency: DeerFlow's library reads ``conf.yaml`` from CWD and the runner
+# writes a single ``_benchmark_driver.py`` script file. Parallel workers must
+# serialize on these shared paths — see scripts/runners/_runner_lock.py.
 
 # ---------------------------------------------------------------------------
 # Timeout (seconds) for one DeerFlow run.  The LLM can be slow under rate
@@ -267,6 +273,12 @@ async def run(
     if not Path(DEERFLOW_PYTHON).exists():
         return f"(error: DeerFlow venv not found at {DEERFLOW_PYTHON})"
 
+    # Acquire exclusive lock — multiple parallel workers cannot share the
+    # ``conf.yaml`` and ``_benchmark_driver.py`` paths without trampling each
+    # other. See _runner_lock.py for rationale.
+    _lock_cm = runner_exclusive_lock("deerflow")
+    _lock_cm.__enter__()
+
     # Write a temporary conf.yaml in DeerFlow's root
     conf_yaml_path = DEERFLOW_ROOT / "conf.yaml"
     conf_yaml_backup = None
@@ -373,6 +385,11 @@ async def run(
         driver_path = DEERFLOW_ROOT / "_benchmark_driver.py"
         if driver_path.exists():
             driver_path.unlink(missing_ok=True)
+        # Release the cross-process lock now that conf/driver files are restored.
+        try:
+            _lock_cm.__exit__(None, None, None)
+        except Exception:
+            logger.exception("deerflow lock release failed")
 
 
 def _extract_report(stdout: str) -> str:

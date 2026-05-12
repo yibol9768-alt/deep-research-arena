@@ -1,0 +1,23 @@
+# Human URL Audit — agent=langchain-odr task=dr_cross_deep_0006
+
+For each row: tick `[x]` if the URL is reachable on the sandbox AND its content reasonably supports the surrounding claim. Tick `[?]` if uncertain (need to look longer). Leave blank if FAIL.
+
+Sandbox URLs: shopping=`localhost:7770`, reddit=`localhost:9999`, wiki=`localhost:8090`.
+
+| # | domain | URL | snippet | reachable | supports_claim | notes |
+|---:|---|---|---|:---:|:---:|---|
+| 1 | wikipedia | `http://localhost:8090/article/1` | g. The bird died 2 hours later. Vet confirmed polymer fume fever. 'PFOA-free' doesn't mean the PTFE won't decompose." \| [PTFE Decomposition](http://localhost:8090/article/1): "PTFE begins thermal deco… | `404` | [ ] | |
+| 2 | wikipedia | `http://localhost:8090/article/15` | pacity (3.55 J/cm³·K) maintains temperature during food addition. [Maillard Reaction](http://localhost:8090/article/7), [Heat Capacity](http://localhost:8090/article/15)  8. **For nickel-allergic indi… | `404` | [ ] | |
+| 3 | reddit | `http://localhost:9999/f/Cookware/thread/7843` | surface is permanently bonded to the aluminum core. It will NEVER leach aluminum into your food—guaranteed for life." \| [Reddit Thread](http://localhost:9999/f/Cookware/thread/7843): "I used hard anod… | `404` | [ ] | |
+| 4 | shopping | `http://localhost:7770/classic-iron-skillet` | repeated thermal cycles. \| \| **CL3: Cast iron skillets contribute meaningful dietary iron** \| **PARTIALLY SUPPORTED** \| [Product Page](http://localhost:7770/classic-iron-skillet): "Cook with cast iron… | `404` | [ ] | |
+| 5 | shopping | `http://localhost:7770/nonstick-pro-5000` | ------------------------------\|-----------\| \| **CL1: PFOA-free non-stick is safe at all temperatures** \| **DEBUNKED** \| [Product Page](http://localhost:7770/nonstick-pro-5000): "Our PFOA-free non-stic… | `404` | [ ] | |
+| 6 | reddit | `http://localhost:9999/f/AskCulinary/thread/3421` | ely non-reactive with ALL foods—cook tomato sauce, citrus, and wine without any metallic taste or chemical leaching." \| [Reddit Thread](http://localhost:9999/f/AskCulinary/thread/3421): "I made bologn… | `404` | [ ] | |
+| 7 | wikipedia | `http://localhost:8090/article/11` | enameled Dutch oven—no metallic taste. Stainless steel absolutely reacts with tomatoes. Don't believe the marketing." \| [Metal Release Study](http://localhost:8090/article/11): "When cooking acidic fo… | `404` | [ ] | |
+| 8 | wikipedia | `http://localhost:8090/article/6` | cking like cement. My $25 Teflon pan from Ikea is still going strong after 2 years. Ceramic is a scam for longevity." \| [Ceramic Wear Mechanisms](http://localhost:8090/article/6): "Ceramic coatings fa… | `404` | [ ] | |
+| 9 | wikipedia | `http://localhost:8090/article/8` | iron for 3 years. My last blood test showed low ferritin. The seasoning blocks the iron transfer almost completely." \| [Iron Absorption Study](http://localhost:8090/article/8): "Cooking acidic foods i… | `404` | [ ] | |
+| 10 | shopping | `http://localhost:7770/anodized-diamond-pro` | only improves heat distribution. \| \| **CL5: Hard-anodized aluminum cannot leach into food** \| **PARTIALLY SUPPORTED** \| [Product Page](http://localhost:7770/anodized-diamond-pro): "Our hard-anodized s… | `404` | [ ] | |
+| 11 | reddit | `http://localhost:9999/f/Cooking/thread/8921` | r PFOA-free non-stick coating is 100% safe even at the highest cooking temperatures—no toxic fumes, no health risks." \| [Reddit Thread](http://localhost:9999/f/Cooking/thread/8921): "I preheated my PF… | `404` | [ ] | |
+| 12 | reddit | `http://localhost:9999/f/castiron/thread/2451` | cast iron and get a healthy dose of dietary iron in every meal—naturally boost your iron levels without supplements." \| [Reddit Thread](http://localhost:9999/f/castiron/thread/2451): "People always sa… | `404` | [ ] | |
+| 13 | shopping | `http://localhost:7770/ceramic-pro-chef` | 400°C continuous without toxic off-gassing. \| \| **CL2: Ceramic-coated pans last as long as PTFE pans** \| **DEBUNKED** \| [Product Page](http://localhost:7770/ceramic-pro-chef): "Our sol-gel ceramic coa… | `404` | [ ] | |
+| 14 | shopping | `http://localhost:7770/pro-chef-trip-ply` | ute quantities are small for most cooking. \| \| **CL4: Stainless steel is non-reactive with all foods** \| **DEBUNKED** \| [Product Page](http://localhost:7770/pro-chef-trip-ply): "Premium 18/10 stainles… | `404` | [ ] | |
+| 15 | reddit | `http://localhost:9999/f/Cookware/thread/12543` | c coating lasts just as long as traditional non-stick—guaranteed 5 years of effortless cooking without PFOA or PTFE." \| [Reddit Thread](http://localhost:9999/f/Cookware/thread/12543): "My $60 ceramic … | `404` | [ ] | |

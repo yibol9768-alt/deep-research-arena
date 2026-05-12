@@ -32,6 +32,7 @@ Usage (on westd, with shim+sandbox+ds_proxy running):
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import os
 import sys
@@ -295,6 +296,21 @@ async def run(
         candidates.sort(key=lambda p: p.stat().st_size, reverse=True)
         result = candidates[0].read_text()
         logger.info(f"STORM output: {candidates[0]} ({len(result)} chars)")
+        # Append a References section so the URL extractor can recover the
+        # bibliography STORM tracks separately in url_to_info.json.
+        try:
+            url_info_paths = list(candidates[0].parent.glob("url_to_info.json"))
+            if not url_info_paths:
+                url_info_paths = list(scratch_path.rglob("url_to_info.json"))
+            if url_info_paths:
+                url_to_idx = json.loads(url_info_paths[0].read_text()).get("url_to_unified_index", {})
+                refs = sorted(url_to_idx.items(), key=lambda kv: kv[1])
+                if refs:
+                    bibliography = "\n\n## References\n\n" + "\n".join(f"[{idx}] {url}" for url, idx in refs)
+                    result = result + bibliography
+                    logger.info(f"Appended {len(refs)} references from {url_info_paths[0]}")
+        except Exception as e:
+            logger.warning(f"Failed to append references: {e}")
         return result
 
     # Debug: list what STORM actually wrote.

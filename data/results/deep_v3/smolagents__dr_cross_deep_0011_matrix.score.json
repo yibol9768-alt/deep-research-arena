@@ -1,0 +1,534 @@
+{
+  "task": "dr_cross_deep_0011",
+  "answer_path": "data/results/deep/smolagents__dr_cross_deep_0011_matrix.md",
+  "answer_chars": 11491,
+  "url_coverage": {
+    "score": 0.06,
+    "passed": false,
+    "details": {
+      "cited_unique": 20,
+      "must_cite_total": 129,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "pool_total": 896,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 6,
+        "__REDDIT__": 6,
+        "__WIKIPEDIA__": 8
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.2,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.3,
+    "passed": true,
+    "details": {
+      "cited_total": 20,
+      "cited_sandbox": 20,
+      "cited_off_sandbox": 0,
+      "probed": 20,
+      "http_200": 6,
+      "http_4xx": 14,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.3,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.5152,
+    "passed": true,
+    "details": {
+      "claims_total": 33,
+      "claims_supported": 17,
+      "claims_unreachable": 15,
+      "match_rate": 0.5152,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Melatonin",
+          "supported": true,
+          "overlap": 0.375
+        },
+        {
+          "url": "http://localhost:9999/threads/sleep/clinical-trials-melatonin-dose-response",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/melatonin/0.3mg-bottle",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/melatonin/10mg-rapid-dissolve",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Polysomnography",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Actigraphy",
+          "supported": false,
+          "reason": "unreachable"
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 0.0606,
+    "passed": false,
+    "details": {
+      "citation_precision": 0.0606,
+      "citation_recall": 0.0667,
+      "total_pairs": 33,
+      "supported_pairs": 2,
+      "fetch_failures": 15,
+      "sentences_with_cite": 30,
+      "sentences_with_supported_cite": 2,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "deepseek-v4-flash",
+        "base_url": "http://localhost:8088/v1"
+      },
+      "samples": [
+        {
+          "claim": "| Claim | Verdict | Key Evidence |\n|-------|---------|--------------|\n| **CL1**: 10 mg melatonin is more effective than 0.3 mg for sleep onset | **PARTIALLY_SUPPORTED** | Melatonin wiki — Melatonin is",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Melatonin",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Reddit clinical trial discussion confirms 0.3 mg shows maximal phase-shift response, higher doses do not proportionally improve sleep onset.",
+          "url": "http://localhost:9999/threads/sleep/clinical-trials-melatonin-dose-response",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Product listing — \"Low-dose melatonin for circadian rhythm\" at $9.99, 4.8★ vs 10mg product — \"Maximum strength for stubborn insomnia\" at $19.99, 3.9★.",
+          "url": "http://localhost:7770/melatonin/0.3mg-bottle",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Product listing — \"Low-dose melatonin for circadian rhythm\" at $9.99, 4.8★ vs 10mg product — \"Maximum strength for stubborn insomnia\" at $19.99, 3.9★.",
+          "url": "http://localhost:7770/melatonin/10mg-rapid-dissolve",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "|\n| **CL2**: Wrist-worn sleep trackers (Fitbit/Garmin/Apple Watch) measure sleep stages accurately | **DEBUNKED** | Polysomnography wiki — Gold standard sleep measurement requires EEG, EOG, and EMG.",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Polysomnography",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Actigraphy — Wrist actigraphy estimates sleep/wake patterns but cannot accurately score sleep stages.",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Actigraphy",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Reddit AskScience — Multiple validation studies show consumer trackers misclassify NREM/REM stages with <60% accuracy.",
+          "url": "http://localhost:9999/threads/askscience/sleep-tracker-accuracy",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Fitbit product at $159.95 claims \"Clinical-grade sleep staging\".",
+          "url": "http://localhost:7770/trackers/fitbit-charge-6",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "|\n| **CL3**: Blue-light blocking glasses meaningfully improve sleep latency | **PARTIALLY_SUPPORTED** | Circadian rhythm wiki — Circadian clocks regulate sleep timing; light is the primary zeitgeber.",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Circadian_rhythm",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Melatonin wiki — Melatonin production is suppressed by blue light.",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Melatonin",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Reddit Biohackers — User reports show ~5-10 min improvement in sleep latency with amber glasses.",
+          "url": "http://localhost:9999/threads/biohackers/blue-light-glasses",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Product — \"Block 99% sleep-disrupting blue light\" $34.95, 4.6★.",
+          "url": "http://localhost:7770/bluelight/uvex-amber-lens",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "|\n| **CL4**: Magnesium glycinate supplements consistently reduce insomnia | **PARTIALLY_SUPPORTED** | Magnesium wiki — Magnesium is an essential mineral involved in over 300 enzymatic reactions, inclu",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Magnesium",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Insomnia wiki — Insomnia is a symptom with multiple causes; magnesium deficiency is one factor.",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Insomnia",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "Reddit Supplements — User reports are positive but mixed; efficacy depends on baseline magnesium status.",
+          "url": "http://localhost:9999/threads/supplements/magnesium-glycinate-insomnia",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Product at $11.99, 4.5★.",
+          "url": "http://localhost:7770/magnesium/doctors-best-glycinate-100mg",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "|\n| **CL5**: Weighted blankets reduce anxiety and improve sleep | **SUPPORTED** | Placebo wiki — Placebo effects are real and measurable.",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Placebo",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Sleep wiki — Sleep is essential for health.",
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Sleep",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "Reddit sleep — Systematic reviews and user reports consistently show reduced anxiety and improved sleep quality with weighted blankets, with effect sizes larger than placebo.",
+          "url": "http://localhost:9999/threads/sleep/weighted-blankets",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "Product — \"Proven anxiety and sleep solution\" $149.00, 4.5★.",
+          "url": "http://localhost:7770/blankets/gravity-blanket-15lb",
+          "supported": false,
+          "reason": "fetch_failed"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.7333,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 2,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.5,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=3"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": false,
+          "detail": "contradiction_paragraphs=0"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=1"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.25, total_paragraphs=16"
+        }
+      ],
+      "tier_b_passed": 5,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.833,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "– Identifies recurring dose-response and accuracy patterns beyond listing data."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "– Explains physiological and non‑receptor mechanisms causing observed effects."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": true,
+          "reason": "– Explicitly cross‑references wiki, Reddit, and product sources."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "– Synthesizes sources to reveal biphasic melatonin insight."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "– No clear mention of counterarguments or study limitations."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "– Provides specific, evidence‑based recommendations on doses and product choices."
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS – Identifies recurring dose-response and accuracy patterns beyond listing data.  \n2. PASS – Explains physiological and non‑receptor mechanisms causing observed effects.  \n3. PASS – Explicitly cross‑references wiki, Reddit, and product sources.  \n4. PASS – Synthesizes sources to reveal biphasic melatonin insight.  \n5. FAIL – No clear mention of counterarguments or study limitations.  \n6. PASS – Provides specific, evidence‑based recommendations on doses and product choices."
+    }
+  },
+  "presentation": {
+    "score": 0.8,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 6,
+      "tier_a_total": 6,
+      "tier_a_rate": 1.0,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=5"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.63, word_counts=[4, 412, 237, 176, 436]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=31.8"
+        }
+      ],
+      "tier_b_passed": 4,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.667,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Clear intro, analysis tables, and conclusion sequence"
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "Section transitions abrupt, lacks bridging summaries"
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No visible meta-commentary sentences"
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Formatting, terminology, citation style consistent"
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "No conclusion synthesizing findings evident"
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional, neutral tone without AI filler phrases"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Clear intro, analysis tables, and conclusion sequence  \n2. FAIL - Section transitions abrupt, lacks bridging summaries  \n3. PASS - No visible meta-commentary sentences  \n4. PASS - Formatting, terminology, citation style consistent  \n5. FAIL - No conclusion synthesizing findings evident  \n6. PASS - Professional, neutral tone without AI filler phrases"
+    }
+  },
+  "markdown_spec": {
+    "word_count": 1287,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 33,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 13,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are exactly 5 sleep-aid claims defined upfront (melatonin dose / tracker accuracy / blue-light glasses / magnesium / weighted blanket)?",
+        "PASS"
+      ],
+      [
+        "Does each claim receive a verdict in {SUPPORTED, PARTIALLY_SUPPORTED, DEBUNKED, UNDETERMINED}?",
+        "PASS"
+      ],
+      [
+        "Is the verbatim marketing claim quoted from a shopping URL for each claim?",
+        "PASS"
+      ],
+      [
+        "Is >= 1 reddit thread cited per claim?",
+        "PASS"
+      ],
+      [
+        "Is >= 1 wiki article cited per claim?",
+        "PASS"
+      ],
+      [
+        "Does each claim include a 1-paragraph reasoning?",
+        "PASS"
+      ],
+      [
+        "Are >= 36 shopping product pages enumerated across the 5 product categories?",
+        "PASS"
+      ],
+      [
+        "Are >= 30 reddit threads from >= 4 sleep / supplement / biohacker sub-forums cited?",
+        "PASS"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "PASS"
+      ],
+      [
+        "Are all 10 mandatory wiki articles (Melatonin, Sleep, Polysomnography, Actigraphy, Circadian rhythm, Blue light, Magnesium deficiency, Weighted blanket, Insomnia, Placebo) cited?",
+        "PASS"
+      ],
+      [
+        "Are 2 dose-response analyses presented (melatonin and magnesium)?",
+        "PASS"
+      ],
+      [
+        "Does the dose-response section cite both wiki definitions AND reddit user-trial discussions?",
+        "PASS"
+      ],
+      [
+        "Is the sleep-hygiene cheat-sheet 6-8 bullets long?",
+        "PASS"
+      ],
+      [
+        "Does each cheat-sheet bullet describe a NON-product practice (the report doesn't push more shopping)?",
+        "PASS"
+      ],
+      [
+        "Does each cheat-sheet bullet cite >= 1 wiki URL?",
+        "PASS"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "PASS"
+      ],
+      [
+        "Is per-domain minimum met: >= 30 shopping, >= 20 reddit, >= 15 wiki?",
+        "PASS"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "PASS"
+      ],
+      [
+        "Are at least 2 of the 5 verdicts DEBUNKED, PARTIALLY_SUPPORTED, or UNDETERMINED?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start with the verdict table?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 21,
+    "fail_count": 0,
+    "unclear_count": 0,
+    "pass_rate": 1.0,
+    "judge_error": null,
+    "sanity_floor": null,
+    "grounding_downgrades": 0,
+    "reachability_used": 0.3
+  },
+  "composite": {
+    "spec_pass_fraction": 0.0,
+    "quality_score": 0.424,
+    "truth_factor": 0.1136,
+    "qm_factor": 0.7576,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.3,
+    "raw_score_v3": 0.4375,
+    "citation_alignment": 0.0606,
+    "analysis_depth": 0.7333,
+    "presentation": 0.8,
+    "composite_v3": 0.1312,
+    "composite_score": 0.0482,
+    "composite_v2": 0.0482,
+    "composite_v1": 0.1272,
+    "legacy_composite": 0.38
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  },
+  "rescore_meta": {
+    "fix": "v2_full_rescore_with_ad_pres_and_fab_guard",
+    "old_checklist_pass_rate": 0.9524,
+    "old_claim_nli_score": 0.0,
+    "old_composite_v3": 0.1141,
+    "old_composite_v2": 0.046,
+    "new_checklist_pass_rate": 1.0,
+    "new_claim_nli_score": 0.0,
+    "new_analysis_depth": 0.7333,
+    "new_presentation": 0.8,
+    "new_composite_v3": 0.1312,
+    "new_composite_v2": 0.0482
+  }
+}

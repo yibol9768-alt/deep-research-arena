@@ -1,0 +1,220 @@
+{
+  "task": "dr_cross_deep_0012",
+  "answer_path": "data/results/deep/smolagents__dr_cross_deep_0012_matrix.md",
+  "answer_chars": 6519,
+  "url_coverage": {
+    "score": 0.0872,
+    "passed": false,
+    "details": {
+      "cited_unique": 19,
+      "must_cite_total": 128,
+      "must_cite_hit": 9,
+      "must_cite_recall": 0.0999,
+      "pool_total": 779,
+      "pool_hit": 12,
+      "pool_coverage": 0.0154,
+      "per_domain_cited": {
+        "__SHOPPING__": 3,
+        "__REDDIT__": 4,
+        "__WIKIPEDIA__": 12
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.1,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.7368,
+    "passed": true,
+    "details": {
+      "cited_total": 19,
+      "cited_sandbox": 19,
+      "cited_off_sandbox": 0,
+      "probed": 19,
+      "http_200": 14,
+      "http_4xx": 5,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.7368,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.5429,
+    "passed": true,
+    "details": {
+      "claims_total": 35,
+      "claims_supported": 19,
+      "claims_unreachable": 11,
+      "match_rate": 0.5429,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Wi-Fi_Protected_Access",
+          "supported": true,
+          "overlap": 0.474
+        },
+        {
+          "url": "http://localhost:7770/electronics/security-surveillance.html?price=4000-5000",
+          "supported": false,
+          "overlap": 0.0
+        },
+        {
+          "url": "http://localhost:9999/f/smarthome",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Z-Wave",
+          "supported": true,
+          "overlap": 0.423
+        },
+        {
+          "url": "http://localhost:7770/electronics/security-surveillance.html",
+          "supported": false,
+          "overlap": 0.0
+        },
+        {
+          "url": "http://localhost:9999/f/homeautomation",
+          "supported": false,
+          "reason": "unreachable"
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 505,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 35,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 9,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are >= 8 distinct wireless protocols catalogued (Wi-Fi, Z-Wave, Zigbee, Thread, Matter, BLE, Z-Wave Plus, Insteon, Lutron, etc.)?",
+        "PASS"
+      ],
+      [
+        "Does the catalog table have >= 7 columns (name / band / mesh / pairing / encryption / vulnerabilities / cost / sentiment)?",
+        "PASS"
+      ],
+      [
+        "Does each catalog row cite >= 1 wiki URL for the protocol's vulnerability discussion?",
+        "PASS"
+      ],
+      [
+        "Does each row cite >= 1 shopping URL showing a product implementing it with price?",
+        "PASS"
+      ],
+      [
+        "Does each row cite >= 1 reddit URL for community reliability sentiment?",
+        "PASS"
+      ],
+      [
+        "Is a threat-model decision tree presented with >= 3 levels of decision (cloud / local / hybrid -> protocols)?",
+        "PASS"
+      ],
+      [
+        "Does each decision-tree node cite at least 1 source?",
+        "PASS"
+      ],
+      [
+        "Are exactly 5 'protocols / products to AVOID' enumerated?",
+        "PASS"
+      ],
+      [
+        "Does each AVOID entry cite >= 1 shopping URL (the bad product), >= 1 reddit URL (community report), >= 1 wiki URL (the underlying vulnerability)?",
+        "PASS"
+      ],
+      [
+        "Are >= 40 shopping product pages cited spanning 5 device categories (locks / cameras / hubs / plugs / sensors)?",
+        "FAIL"
+      ],
+      [
+        "Are >= 30 reddit threads from >= 4 home-automation sub-forums cited?",
+        "FAIL"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "FAIL"
+      ],
+      [
+        "Are all 10 mandatory wiki articles (WPA, Z-Wave, Zigbee, Thread, Matter, BLE, Mesh networking, Public-key cryptography, IoT, Pre-shared key) cited?",
+        "FAIL"
+      ],
+      [
+        "Does the catalog distinguish mesh-vs-star topology for each protocol?",
+        "PASS"
+      ],
+      [
+        "Does the catalog name specific encryption (AES-128, ChaCha20, none, etc.) where applicable?",
+        "PASS"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "FAIL"
+      ],
+      [
+        "Is per-domain minimum met: >= 30 shopping, >= 20 reddit, >= 15 wiki?",
+        "FAIL"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "FAIL"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid TOP-10 product ranking (this is Enumeration, not Recommendation)?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start with the catalog table?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 14,
+    "fail_count": 7,
+    "unclear_count": 0,
+    "pass_rate": 0.6667,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.0,
+    "quality_score": 0.3016,
+    "truth_factor": 0.2842,
+    "qm_factor": 0.7714,
+    "nli_factor": 0.5,
+    "composite_score": 0.0857,
+    "composite_v1": 0.2222,
+    "legacy_composite": 0.2769
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  }
+}

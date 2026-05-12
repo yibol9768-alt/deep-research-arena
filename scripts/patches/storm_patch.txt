@@ -1,0 +1,263 @@
+### STORM HuggingFace model download fix
+###
+### Problem: STORM uses sentence-transformers/paraphrase-MiniLM-L6-v2 internally
+### (via WebPageHelper or ArticleTextProcessing). After proxy env vars are stripped
+### to prevent real-web searches, the model download from huggingface.co fails:
+###   HTTPSConnectionPool(host='huggingface.co', port=443): Max retries exceeded
+###
+### Fix: Temporarily restore HTTP_PROXY for the model download phase by setting
+### HF_HOME / TRANSFORMERS_CACHE env vars and pre-downloading the model with
+### proxy restored BEFORE importing STORM. Then strip the proxy again.
+###
+### Apply: Replace the entire `_run_storm()` function body in
+###   scripts/run_deep_task.py
+### with the code below (keep the function signature unchanged).
+
+async def _run_storm(intent: str, model: str) -> str:
+    proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
+    shim = os.environ.get("SHIM_URL", "http://localhost:8081")
+    kiwix = os.environ.get("WIKIPEDIA_KIWIX_URL", "http://localhost:8090")
+
+    # =====================================================================
+    # FIX #12: Pre-download sentence-transformers model WITH proxy enabled.
+    # STORM's ArticleTextProcessing / WebPageHelper loads
+    # sentence-transformers/paraphrase-MiniLM-L6-v2 on first use. After we
+    # strip the proxy env vars, huggingface.co is unreachable. So we trigger
+    # the download now (while proxy may still be set), then proceed.
+    #
+    # Strategy:
+    #   1. Try loading the model (works if already cached).
+    #   2. If it fails with a connection error, temporarily restore the
+    #      HTTP proxy, download, then remove proxy again.
+    #   3. Set HF_HUB_OFFLINE=1 after successful download so STORM never
+    #      attempts another network call to HF during the run.
+    # =====================================================================
+    _hf_model_name = "sentence-transformers/paraphrase-MiniLM-L6-v2"
+
+    def _ensure_hf_model_cached():
+        """Ensure the HF model is in local cache. Returns True if available."""
+        try:
+            from sentence_transformers import SentenceTransformer
+            # This will load from cache if available, or download if not
+            SentenceTransformer(_hf_model_name)
+            print(f"[storm] HF model '{_hf_model_name}' loaded from cache.")
+            return True
+        except Exception as e:
+            if "Max retries exceeded" in str(e) or "ConnectionError" in str(e) or "NewConnectionError" in str(e):
+                return False
+            # Other errors (e.g. import error) -- model might still be cached
+            # at the file level even if sentence_transformers isn't importable
+            # in this venv. Check huggingface_hub directly.
+            try:
+                from huggingface_hub import snapshot_download
+                snapshot_download(_hf_model_name, local_files_only=True)
+                print(f"[storm] HF model '{_hf_model_name}' found in hub cache.")
+                return True
+            except Exception:
+                return False
+
+    # First try without any proxy changes
+    if not _ensure_hf_model_cached():
+        # Model not cached -- temporarily restore proxy for download
+        _http_proxy = os.environ.get("_SAVED_HTTP_PROXY", "") or os.environ.get("HTTP_PROXY", "")
+        _https_proxy = os.environ.get("_SAVED_HTTPS_PROXY", "") or os.environ.get("HTTPS_PROXY", "")
+        # Fallback: use Mihomo proxy on WSL default gateway
+        if not _http_proxy:
+            try:
+                import subprocess
+                gw = subprocess.check_output(
+                    ["ip", "route"], text=True, timeout=5
+                )
+                for line in gw.splitlines():
+                    if line.startswith("default"):
+                        gw_ip = line.split()[2]
+                        _http_proxy = f"http://{gw_ip}:7890"
+                        _https_proxy = _http_proxy
+                        break
+            except Exception:
+                pass
+        if _http_proxy:
+            print(f"[storm] Model not cached. Downloading with proxy={_http_proxy}...")
+            os.environ["HTTP_PROXY"] = _http_proxy
+            os.environ["HTTPS_PROXY"] = _https_proxy or _http_proxy
+            os.environ["http_proxy"] = _http_proxy
+            os.environ["https_proxy"] = _https_proxy or _http_proxy
+            try:
+                _ensure_hf_model_cached()
+            finally:
+                # Strip proxy again immediately after download
+                for _pv in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy"):
+                    os.environ.pop(_pv, None)
+        else:
+            print(f"[storm] WARNING: Model not cached and no proxy available. STORM may fail.")
+
+    # Tell HF libraries to work offline from now on
+    os.environ["HF_HUB_OFFLINE"] = "1"
+    os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
+    # FIX #10: Monkey-patch requests.Session.send BEFORE importing STORM.
+    # STORM's WebPageHelper fetches URLs from search results (e.g.
+    # https://en.wikipedia.org/wiki/Headphones) using requests.  Without a
+    # proxy these fail with "Network is unreachable".  We intercept at the
+    # transport layer and rewrite:
+    #   - en.wikipedia.org/wiki/X  ->  localhost:8090/content/wikipedia_en_all_nopic/A/X
+    #   - api.tavily.com           ->  localhost:8081 (the shim)
+    #   - localhost:7770/9999/8090  ->  untouched
+    import requests as _rq
+    _storm_orig_send = _rq.Session.send
+
+    def _storm_patched_send(self, request, **kw):
+        url = request.url
+        if 'en.wikipedia.org/wiki/' in url:
+            title = url.split('/wiki/')[-1].split('?')[0].split('#')[0]
+            request.url = f'{kiwix}/content/wikipedia_en_all_nopic/A/{title}'
+            kw['verify'] = False
+            # Strip proxy settings so localhost isn't routed through a dead proxy
+            kw.pop('proxies', None)
+            if 'Host' in request.headers:
+                from urllib.parse import urlparse as _up
+                request.headers['Host'] = _up(request.url).netloc
+            print(f'[storm-intercept] WIKI: {url[:100]} -> {request.url[:100]}')
+        elif 'en.wikipedia.org' in url:
+            # Non-wiki paths (e.g. /w/api.php) - redirect to Kiwix search
+            from urllib.parse import urlparse as _up, urlunparse as _uu
+            p = _up(url)
+            request.url = _uu(p._replace(
+                scheme='http',
+                netloc=_up(kiwix).netloc,
+                path='/search',
+            ))
+            kw['verify'] = False
+            kw.pop('proxies', None)
+            print(f'[storm-intercept] WIKI-API: {url[:100]} -> {request.url[:100]}')
+        elif 'api.tavily.com' in url:
+            from urllib.parse import urlparse as _up, urlunparse as _uu
+            p = _up(url)
+            sp = _up(shim)
+            request.url = _uu(p._replace(scheme=sp.scheme, netloc=sp.netloc))
+            kw['verify'] = False
+            kw.pop('proxies', None)
+            print(f'[storm-intercept] TAVILY: {url[:100]} -> {request.url[:100]}')
+        elif 'huggingface.co' in url or 'hf.co' in url:
+            # Block any unexpected HF downloads -- model should already be cached
+            print(f'[storm-intercept] BLOCKED HF download: {url[:120]}')
+            from requests.models import Response
+            resp = Response()
+            resp.status_code = 503
+            resp._content = b'HF downloads blocked in sandbox mode'
+            return resp
+        return _storm_orig_send(self, request, **kw)
+
+    _rq.Session.send = _storm_patched_send
+
+    # Also strip proxy env vars so requests doesn't try to route localhost
+    # through a dead HTTP_PROXY (which causes "Network is unreachable").
+    _saved_proxy_env = {}
+    for _pv in ('HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy'):
+        if _pv in os.environ:
+            _saved_proxy_env[_pv] = os.environ.pop(_pv)
+    os.environ['NO_PROXY'] = os.environ.get('NO_PROXY', '') + ',en.wikipedia.org,api.tavily.com'
+
+    # FIX #7: Patch tavily.TavilyClient AND tavily.AsyncTavilyClient so STORM's
+    # TavilySearchRM (which does `from tavily import TavilyClient; self.tavily_client
+    # = TavilyClient(...)`) hits the sandbox shim, not api.tavily.com.
+    import tavily
+    _orig = tavily.TavilyClient.__init__
+    def _patched(self, api_key=None, *a, **kw):
+        kw.pop("api_base_url", None)
+        _orig(self, api_key, *a, **kw)
+        self.base_url = shim
+    tavily.TavilyClient.__init__ = _patched
+
+    # Also patch AsyncTavilyClient if present
+    if hasattr(tavily, "AsyncTavilyClient"):
+        _orig_async = tavily.AsyncTavilyClient.__init__
+        def _patched_async(self, *a, **kw):
+            kw.pop("api_base_url", None)
+            kw["api_base_url"] = shim
+            _orig_async(self, *a, **kw)
+            self._api_base_url = shim
+        tavily.AsyncTavilyClient.__init__ = _patched_async
+
+    try:
+        from knowledge_storm.storm_wiki.engine import (
+            STORMWikiRunner, STORMWikiRunnerArguments, STORMWikiLMConfigs,
+        )
+        from knowledge_storm.lm import LitellmModel
+        from knowledge_storm.rm import TavilySearchRM
+
+        llm_kw = dict(
+            model=f"openai/{model}",
+            api_key=os.environ.get("OPENAI_API_KEY", "anything"),
+            api_base=proxy,
+            max_tokens=2000,
+            temperature=0.7,
+        )
+        lm_config = STORMWikiLMConfigs()
+        for setter in (
+            lm_config.set_conv_simulator_lm,
+            lm_config.set_question_asker_lm,
+            lm_config.set_outline_gen_lm,
+            lm_config.set_article_gen_lm,
+            lm_config.set_article_polish_lm,
+        ):
+            setter(LitellmModel(**llm_kw))
+
+        # Use a unique scratch dir per run to avoid collisions
+        import hashlib
+        scratch_name = hashlib.md5(intent[:300].encode()).hexdigest()[:12]
+        scratch_dir = str(OUT_DIR / f"_storm_scratch_{scratch_name}")
+
+        args = STORMWikiRunnerArguments(
+            output_dir=scratch_dir,
+            max_conv_turn=3,
+            max_perspective=3,
+            search_top_k=5,
+            max_thread_num=2,
+        )
+        rm = TavilySearchRM(
+            tavily_search_api_key=os.environ.get("TAVILY_API_KEY", "tvly-shim-fake"),
+            k=5,
+            include_raw_content=True,
+        )
+        runner = STORMWikiRunner(args, lm_config, rm)
+        runner.run(
+            topic=intent[:300],
+            do_research=True,
+            do_generate_outline=True,
+            do_generate_article=True,
+            do_polish_article=True,
+        )
+        runner.post_run()
+
+        # FIX #7 (cont): STORM creates the article dir using a sanitized topic name.
+        # The exact sanitization varies by version, so search all subdirs for output files.
+        # Prefer polished articles, then generated articles, then any markdown/text.
+        scratch_path = Path(scratch_dir)
+        candidates = list(scratch_path.rglob("storm_gen_article_polished.txt"))
+        if not candidates:
+            candidates = list(scratch_path.rglob("storm_gen_article*.txt"))
+        if not candidates:
+            candidates = list(scratch_path.rglob("*.md"))
+        if not candidates:
+            candidates = list(scratch_path.rglob("*.txt"))
+        if candidates:
+            # Pick the largest file (most likely the polished article)
+            candidates.sort(key=lambda p: p.stat().st_size, reverse=True)
+            result = candidates[0].read_text()
+            print(f"[storm] output file: {candidates[0]} ({len(result)} chars)")
+            return result
+        # List what's actually in scratch_dir for debugging
+        all_files = list(scratch_path.rglob("*"))
+        print(f"[storm] no article found in {scratch_dir}. Files: {[str(f) for f in all_files[:20]]}")
+        return "(empty storm output)"
+
+    finally:
+        # Restore proxy env vars so other runners aren't affected
+        for _pv, _val in _saved_proxy_env.items():
+            os.environ[_pv] = _val
+        # Restore original requests.Session.send
+        _rq.Session.send = _storm_orig_send
+        # Remove offline flags so other runners can use HF if needed
+        os.environ.pop("HF_HUB_OFFLINE", None)
+        os.environ.pop("TRANSFORMERS_OFFLINE", None)

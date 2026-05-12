@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}DR-Arena{% endblock %}</title>
+  <title>{% block title %}Deep-Research Arena{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,19 +35,31 @@
     .ink-mute { color: var(--ink-mute); }
 
     .surface { background: var(--surface); border: 1px solid var(--line); }
-    .surface-hover:hover { border-color: #d6d3d1; box-shadow: 0 4px 14px -8px rgba(12, 10, 9, 0.12); }
     .row-hover:hover { background-color: var(--line-soft); }
-
     .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
 
-    /* Rank chips */
     .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
     .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
     .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
     .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
     .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-    /* Pills */
+    /* LLM backbone picker chips (current = active, others = "queued") */
+    .llm-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px 5px 9px;
+      border-radius: 8px;
+      font-size: 12.5px; font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-soft);
+      cursor: default;
+    }
+    .llm-chip.is-active { background: var(--accent-soft); color: var(--accent-ink); border-color: rgba(67,56,202,0.35); }
+    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--line-soft); border-color: var(--line); }
+    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
+    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
     .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
     .pill-ok    { background: var(--good-soft); color: var(--good); }
     .pill-warn  { background: var(--warn-soft); color: var(--warn); }
@@ -56,18 +68,20 @@
     .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
     .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
 
-    /* Tabs (segmented control) */
-    .seg { display: inline-flex; padding: 4px; background: #f5f5f4; border: 1px solid var(--line); border-radius: 10px; }
-    .seg-btn { padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--ink-soft); border-radius: 7px; cursor: pointer; transition: background 80ms ease, color 80ms ease; background: transparent; border: 0; }
-    .seg-btn:hover { color: var(--ink); }
-    .seg-btn.is-active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(12,10,9,0.06), 0 0 0 1px var(--line); font-weight: 600; }
-
-    /* Elo CI bar */
+    /* Old CI track — kept for any callers; new layout uses .ci-bar below. */
     .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
     .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
     .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
 
-    /* Avatar */
+    /* New unified CI bar: every row has the same outer width (set by the
+       parent <td>); the bar has 8px horizontal padding so the marker dot
+       can never visually overflow into the next column. */
+    .ci-bar { padding: 0 8px; }
+    .ci-bar-inner { position: relative; height: 14px; }
+    .ci-bar-track  { position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); background: var(--line); border-radius: 999px; }
+    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(67,56,202,0.28); border-radius: 999px; pointer-events: none; }
+    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.4); pointer-events: none; }
+
     .agent-avatar {
       width: 26px; height: 26px; border-radius: 8px;
       display: inline-flex; align-items: center; justify-content: center;
@@ -76,37 +90,30 @@
       background: linear-gradient(135deg, #475569, #1e293b);
     }
 
-    /* Win-rate inline pill */
-    .wr-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-variant-numeric: tabular-nums; font-weight: 600; }
-    .wr-pill .wr-dot { width: 6px; height: 6px; border-radius: 999px; }
-    .wr-good   { background: var(--good-soft); color: var(--good); }
-    .wr-good   .wr-dot { background: var(--good); }
-    .wr-mid    { background: #fef3c7; color: #92400e; }
-    .wr-mid    .wr-dot { background: #f59e0b; }
-    .wr-poor   { background: var(--line); color: var(--ink-soft); }
-    .wr-poor   .wr-dot { background: #a8a29e; }
+    .codeblock { background: #0c0a09; color: #f5f5f4; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; }
 
-    /* Subtle decorative gradient on hero */
-    .hero-card { position: relative; overflow: hidden; }
-    .hero-card::after {
-      content: ""; position: absolute; inset: 0; pointer-events: none;
-      background:
-        radial-gradient(800px 200px at -10% -40%, rgba(67,56,202,0.07), transparent 60%),
-        radial-gradient(600px 200px at 110% 0%, rgba(245,158,11,0.06), transparent 60%);
-    }
-
-    /* Compact value display in featured cards */
-    .stat-value { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
-
-    /* Significance grid item */
-    .sig-cell { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
-    .sig-cell.is-sig { border-color: #c7d2fe; background: var(--accent-soft); }
-    .sig-arrow { color: var(--ink-mute); font-weight: 600; }
+    /* Markdown body when rendered via python-markdown */
+    .md-body { font-size: 13.5px; line-height: 1.55; }
+    .md-body h1, .md-body h2, .md-body h3 { font-weight: 700; margin: 1em 0 0.4em; }
+    .md-body h1 { font-size: 22px; }
+    .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+    .md-body h3 { font-size: 14px; }
+    .md-body p { margin: 0.5em 0; }
+    .md-body code { background: var(--line-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .md-body pre { background: #0c0a09; color: #f5f5f4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .md-body pre code { background: transparent; padding: 0; color: inherit; }
+    .md-body table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .md-body th, .md-body td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+    .md-body th { background: var(--line-soft); font-weight: 600; }
+    .md-body ul, .md-body ol { margin: 0.4em 0; padding-left: 1.4em; }
+    .md-body li { margin: 0.2em 0; }
+    .md-body a { color: var(--accent); text-decoration: underline; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
   <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
-    <div class="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
       <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition">
         <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
               style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
@@ -114,60 +121,40 @@
       </a>
       <nav class="flex items-center gap-0.5 ml-2 text-sm">
         <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/playground">Playground</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/smoke">Smoke test</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:2px;">new</span></a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/compare">Compare LLMs</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/how-it-works">How it works</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/about">About</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/contribute">Contribute</a>
         <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
-        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/add">Add a DR</a>
       </nav>
       <div class="ml-auto flex items-center gap-3">
-        <div id="lm-pill" class="pill pill-muted cursor-pointer" title="Click to refresh LM Studio status">
-          <span class="pill-dot" style="background: #a8a29e;"></span>
-          <span id="lm-pill-text">checking…</span>
-        </div>
-        <a href="https://github.com/yibol9768-alt/deep-research-arena" class="text-sm ink-soft hover:text-black" target="_blank" rel="noopener">GitHub →</a>
+        <a href="{{ github_url or 'https://github.com/yibol9768-alt/deep-research-arena' }}"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft border border-stone-200">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+  <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
     {% block content %}{% endblock %}
   </main>
 
   <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
-    <div class="max-w-7xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
-      <span>Backbone: <code>{{ lm_studio_model or 'qwen3.5-35b-a3b' }}</code> on local LM Studio</span>
-      <span class="text-stone-300">·</span>
-      <span>Sandbox: Magento + Postmill + Kiwix on westd</span>
-      <span class="text-stone-300">·</span>
-      <span class="num-mono">composite_v2 = reach × (0.40·url + 0.40·judge + 0.20·spec)</span>
+    <div class="max-w-6xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>Bradley-Terry Elo over <code class="num-mono">composite_v2</code> battles</span>
+      <span class="text-stone-300">|</span>
+      <span class="num-mono">composite_v2 = reachability x (0.40 url + 0.40 judge + 0.20 spec)</span>
+      <span class="text-stone-300">|</span>
+      <span>Sandbox: Magento + Postmill + Kiwix</span>
+      <span class="text-stone-300">|</span>
+      <a href="{{ github_url or 'https://github.com/yibol9768-alt/deep-research-arena' }}" class="hover:text-black" target="_blank" rel="noopener">github.com/yibol9768-alt/deep-research-arena</a>
     </div>
   </footer>
 
-  <script>
-    async function refreshLmPill() {
-      const pill = document.getElementById('lm-pill');
-      const txt = document.getElementById('lm-pill-text');
-      pill.className = 'pill pill-muted cursor-pointer';
-      txt.innerHTML = '<span class="pill-dot" style="background:#a8a29e;"></span>checking…';
-      try {
-        const r = await fetch('/api/health');
-        const d = await r.json();
-        if (d.ok) {
-          pill.className = 'pill pill-ok cursor-pointer';
-          txt.innerHTML = '<span class="pill-dot" style="background:#16a34a;"></span>LM Studio · ' + (d.active_model || '?');
-        } else {
-          pill.className = 'pill pill-bad cursor-pointer';
-          txt.innerHTML = '<span class="pill-dot" style="background:#dc2626;"></span>LM Studio offline';
-        }
-      } catch (e) {
-        pill.className = 'pill pill-bad cursor-pointer';
-        txt.innerHTML = '<span class="pill-dot" style="background:#dc2626;"></span>health check failed';
-      }
-    }
-    document.getElementById('lm-pill').addEventListener('click', refreshLmPill);
-    refreshLmPill();
-    setInterval(refreshLmPill, 30000);
-  </script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

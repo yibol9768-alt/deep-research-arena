@@ -1,0 +1,134 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0078",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": {
+    "prompt": "Produce a Causal Explanation report answering: 'Why does Gerrymandering persist despite court rulings, and what institutional, political, and legal factors contribute to its endurance?' The report is NOT an opinion piece; it must build a causal chain from historical context to current outcomes. \n\nGenerate a multi-layer causal diagram in markdown (indented bullet hierarchy, NOT graphviz) tracing 4 causal layers:\n- L1 Institutional: historical Supreme Court decisions on redistricting, state redistricting commissions, gerrymandering cases (cite wiki).\n- L2 Political: electoral competitiveness, incumbent protection, partisanship, campaign finance (cite shopping for voting equipment).\n- L3 Legal: voter rights litigation outcomes, enforcement mechanisms, legislative intent (cite reddit).\n- L4 Outcomes: empirical evidence of persistent gerrymandering, case study analysis (cite >= 8 reddit threads with explicit examples).\n\nAdd a 'legal remedies ranked by effectiveness' table — each citation cited with one shopping URL (product implementing it) + one reddit URL (user discussing effectiveness).\nEnd with a 'states most susceptible to gerrymandering' section ranking >= 3 states by aggregated reddit sentiment, citing >= 3 reddit threads / state.\n\nFormat: markdown links only. Begin with the L1 layer. No chain-of-thought.\n\nThe report must contain >= 120 sandbox URLs (>= 60 cited) from the following sources:\n\n(A) __SHOPPING__ >= 30 products related to voting equipment, election law, and GIS mapping tools with marketing claims + price.\n(B) __REDDIT__ >= 30 threads from politics, worldnews, AskReddit, personalfinance, Fitness, technology, science, LifeProTips, specifically focusing on gerrymandering and redistricting.\n(C) __WIKIPEDIA__ >= 25 articles, mandatory: Gerrymandering, Redistricting, Voting rights in the United States, United States House of Representatives, United States Senate, United States Supreme Court, American Civil Liberties Union, Voting Rights Act of 1965, Federal Election Commission, Campaign finance reform, plus >= 15 more.\n\nThe report must be based on factual evidence and should not contain opinions or speculation. All information must be verifiable and cited, adhering to sandbox-local and no fabrication rules.",
+    "fields": {
+      "task_type": "causal",
+      "causal_layers": [
+        "L1_institutional",
+        "L2_political",
+        "L3_legal",
+        "L4_outcomes"
+      ],
+      "min_wiki_per_layer": {
+        "L1_institutional": 3,
+        "L2_political": 3,
+        "L3_legal": 3
+      },
+      "min_reddit_per_layer": {
+        "L3_legal": 5,
+        "L4_outcomes": 8
+      },
+      "l4_must_have_explicit_percent": false,
+      "mitigation_strategies_min": 5,
+      "min_evidence_per_strategy": {
+        "shopping": 1,
+        "reddit": 1
+      },
+      "model_ranking_min": 3,
+      "min_reddit_per_model": 3,
+      "explicitly_forbid_top10": true
+    }
+  },
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=political+books",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0078.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0078.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "causal",
+    "causal_layers": [
+      "L1_institutional",
+      "L2_political",
+      "L3_legal",
+      "L4_outcomes"
+    ],
+    "min_wiki_per_layer": {
+      "L1_institutional": 3,
+      "L2_political": 3,
+      "L3_legal": 3
+    },
+    "min_reddit_per_layer": {
+      "L3_legal": 5,
+      "L4_outcomes": 8
+    },
+    "l4_must_have_explicit_percent": false,
+    "mitigation_strategies_min": 5,
+    "min_evidence_per_strategy": {
+      "shopping": 1,
+      "reddit": 1
+    },
+    "model_ranking_min": 3,
+    "min_reddit_per_model": 3,
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/gerrymandering_causal.yaml. Golden: must=145, pool=792."
+}

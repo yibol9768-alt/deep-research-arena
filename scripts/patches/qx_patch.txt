@@ -1,0 +1,51 @@
+QX-Agents MaxTurnsExceeded Fix (FIX #12)
+=========================================
+
+Root Cause
+----------
+The openai-agents SDK (v0.14.2) sets DEFAULT_MAX_TURNS=10, limiting each
+Runner.run() call to 10 LLM turns (tool-call + response cycles).
+
+qx-agents' DeepResearcher flow hits this because:
+
+1. PlannerAgent creates tools via Agent.as_tool() (WebSearchAgent,
+   CrawlAgent). Each tool call = 1 turn of the PlannerAgent. DeepSeek V4
+   flash ignores the "DO NOT do more than 2 tool calls" instruction and
+   keeps calling tools until it exhausts 10 turns -> MaxTurnsExceeded.
+
+2. The max_iterations=5 in DeepResearcher controls the OUTER research
+   loop (how many knowledge-gap iterations), NOT the per-agent max_turns.
+   These are orthogonal parameters.
+
+3. ShimSerperClient._filter_results() calls ResearchRunner.run() with
+   another LLM agent to filter search results. This consumes extra LLM
+   calls and can itself hit turn limits with non-OpenAI models that don't
+   support structured output (model_supports_structured_output returns
+   False for "local" provider).
+
+Evidence: All 30 matrix runs failed with search_provider=tavily (wrong
+provider name). The smoke_final and smoke_v3 runs used correct provider
+"serper" but hit MaxTurnsExceeded after ~425 seconds, producing only
+60 bytes of output.
+
+Fix Applied (in _qx_driver.py template string)
+-----------------------------------------------
+A. Monkey-patch agents.run_config.DEFAULT_MAX_TURNS and
+   agents.run.DEFAULT_MAX_TURNS from 10 to 30.  This raises the limit
+   for ALL Runner.run() calls including nested agent-as-tool invocations.
+
+B. Skip _filter_results entirely in ShimSerperClient.search().  The
+   sandbox Tavily shim already returns curated/relevant results; the
+   LLM-based relevance-filtering step wastes turns and tokens, and the
+   filter agent's structured-output parsing fails with non-OpenAI models.
+   Return raw results capped at max_results instead.
+
+C. Catch MaxTurnsExceeded at the top-level asyncio.run() and attempt a
+   salvage run with max_iterations=1 and max_turns=50.  If the salvage
+   succeeds, its output is used.  If not, the error is reported.
+
+Files Modified
+--------------
+scripts/run_deep_task.py  lines 1074-1180
+  - _run_qx_agents() driver template string rewritten with fixes A/B/C
+  - No changes to env setup or subprocess invocation

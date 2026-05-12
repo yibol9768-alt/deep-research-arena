@@ -41,6 +41,8 @@ import textwrap
 import time
 from pathlib import Path
 
+from ._runner_lock import runner_exclusive_lock
+
 logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -505,6 +507,10 @@ async def run(
     driver_code = _build_driver_script(intent, model, shim_url, proxy_url)
     driver_path = ROOT / "scripts" / "_deepagents_benchmark_driver.py"
 
+    # Per-agent lock so parallel workers don't trample the shared driver path.
+    _lock_cm = runner_exclusive_lock("deepagents")
+    _lock_cm.__enter__()
+
     try:
         driver_path.write_text(driver_code)
 
@@ -584,6 +590,10 @@ async def run(
     finally:
         if driver_path.exists():
             driver_path.unlink(missing_ok=True)
+        try:
+            _lock_cm.__exit__(None, None, None)
+        except Exception:
+            logger.exception("deepagents lock release failed")
 
 
 def _extract_report(stdout: str) -> str:

@@ -1,0 +1,23 @@
+# Human URL Audit — agent=langchain-odr task=dr_cross_deep_0002
+
+For each row: tick `[x]` if the URL is reachable on the sandbox AND its content reasonably supports the surrounding claim. Tick `[?]` if uncertain (need to look longer). Leave blank if FAIL.
+
+Sandbox URLs: shopping=`localhost:7770`, reddit=`localhost:9999`, wiki=`localhost:8090`.
+
+| # | domain | URL | snippet | reachable | supports_claim | notes |
+|---:|---|---|---|:---:|:---:|---|
+| 1 | reddit | `http://localhost:9999/t/nespresso-vertuo-quality` | Start with 15:1 water ratio and adjust grind size first, then temperature"    - **Sentiment:** Technical_Question  9. **[Thread: Nespresso Vertuo - is the coffee actually good?](http://localhost:9999/… | `404` | [ ] | |
+| 2 | reddit | `http://localhost:9999` | Sentiment Analysis  ### 2.1 Research Scope and Methodology  Community sentiment was gathered from the Postmill forum at [http://localhost:9999](http://localhost:9999) across **6 sub-forums** discussin… | `200` | [ ] | |
+| 3 | reddit | `http://localhost:9999/t/water-temp-pour-over` | za Encore is the gold standard for drip grinding, Breville is better for espresso"    - **Sentiment:** Comparison  5. **[Thread: What water temp do you use for pour-over?](http://localhost:9999/t/wate… | `404` | [ ] | |
+| 4 | shopping | `http://localhost:7770/products/hamilton-beach-flexbrew-trio` | o pause", "Dual water window", "Pause 'n Serve"    - **Technical Claims:** "Brews a full pot in under 10 minutes"  4. **[Hamilton Beach FlexBrew Trio 12-Cup](http://localhost:7770/products/hamilton-be… | `404` | [ ] | |
+| 5 | shopping | `http://localhost:7770/products/fellow-stagg-ekg` | - **Technical Claims:** "Maximum capacity 8 oz for froth, 16 oz for heating"  **Specialty & Other Equipment:**  45. **[Fellow Stagg EKG Gooseneck Kettle](http://localhost:7770/products/fellow-stagg-ek… | `404` | [ ] | |
+| 6 | reddit | `http://localhost:9999/t/dial-in-v60` | akes better espresso than most sub-$1000 machines but requires patience and technique"    - **Sentiment:** Praise  8. **[Thread: How to dial in beans with Hario V60?](http://localhost:9999/t/dial-in-v… | `404` | [ ] | |
+| 7 | shopping | `http://localhost:7770/products/secura-auto-off-milk-frother` | tainless steel finish", "Detachable milk jug"     - **Technical Claims:** "Froths milk for cappuccino and latte"  44. **[Secura Auto-Off Milk Frother](http://localhost:7770/products/secura-auto-off-mi… | `404` | [ ] | |
+| 8 | shopping | `http://localhost:7770` | 1.1 Research Scope and Methodology  The product landscape analysis examined the One Stop Market e-commerce platform at [http://localhost:7770](http://localhost:7770) to catalog home coffee brewing equ… | `200` | [ ] | |
+| 9 | shopping | `http://localhost:7770/products/onyx-pour-over-kit` | cups", "BPA-free plastic", "Dishwasher safe"     - **Technical Claims:** "Designed to work with Melitta filters"  36. **[Onyx Coffee Lab Pour Over Kit](http://localhost:7770/products/onyx-pour-over-ki… | `404` | [ ] | |
+| 10 | shopping | `http://localhost:7770/products/baratza-encore` | ims:** "15-bar high-pressure pump", "Makes espresso, cappuccino, latte at touch of button"  **Coffee Grinders:**  21. **[Baratza Encore](http://localhost:7770/products/baratza-encore)**     - **Price:… | `404` | [ ] | |
+| 11 | reddit | `http://localhost:9999/t/aeropress-overhyped` | over Mr. Coffee because the water temperature control makes real difference"    - **Sentiment:** Purchase_Advice  2. **[Thread: Anyone else find AeroPress overhyped?](http://localhost:9999/t/aeropress… | `404` | [ ] | |
+| 12 | shopping | `http://localhost:7770/products/delonghi-magnifica-esam3300` | Italian pump pressure", "Digital PID temperature control within ±2°F", "Dose control grinding from 18-22 grams"  12. **[De'Longhi Magnifica ESAM3300](http://localhost:7770/products/delonghi-magnifica-… | `404` | [ ] | |
+| 13 | reddit | `http://localhost:9999/t/baratza-vs-breville-grinder` | h bonded filters gives the cleanest cup, V60 with non-rinsed paper is second best"    - **Sentiment:** Comparison  4. **[Thread: Baratza Encore vs Breville Smart Grinder for drip?](http://localhost:99… | `404` | [ ] | |
+| 14 | shopping | `http://localhost:7770/products/frieling-french-press` | **Technical Claims:** "Double-filter removes 99% of sediment", "Vacuum insulated keeps coffee hot for 2+ hours"  31. **[Frieling 8-Cup Stainless Steel French Press](http://localhost:7770/products/frie… | `404` | [ ] | |
+| 15 | shopping | `http://localhost:7770/products/breville-bambino-plus` | es"     - **Technical Claims:** "Motor rotates capsule at 7,000 RPM for blending coffee", "19-bar pressure pump"  16. **[Breville Bambino Plus](http://localhost:7770/products/breville-bambino-plus)** … | `404` | [ ] | |

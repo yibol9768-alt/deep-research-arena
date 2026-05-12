@@ -1,0 +1,163 @@
+# Executive Summary
+## Purpose of the Report
+## Scope: Commercial Smart Locks, Cameras, and Hubs
+## Exclusion Criteria (Not a Buying Guide)
+## Methodology for Security Profiling
+# Overview of Security Models
+## Centralized vs. Decentralized Security Models
+### Trust Center (Hub) Architecture
+### Distributed Compliance Ledger (Matter)
+## Cloud-Dependent vs. Local-Only Architectures
+### Cloud API Attack Surface
+### Local Network Segmentation
+## Open vs. Proprietary Protocol Stacks
+### Certification Mandates vs. Optional Features
+### Third-Party Test Laboratory Roles
+# Threat Surface Classification
+## Eavesdropping and Traffic Interception
+### Passive Sniffing on Unencrypted Links
+### WPA2/WPA3 Handshake Capture
+## Replay Attacks and Man-in-the-Middle
+### KRACK Attack Variants (Wi-Fi)
+### Touchlink Commissioning Exploits (Zigbee)
+### Just Works Pairing Weakness (BLE)
+## Jamming and Denial of Service
+### Sub-GHz Band Jamming (Z-Wave)
+### 2.4 GHz Coexistence Interference
+## Physical Layer Attacks
+### Side-Channel Attacks (Power Analysis, EM Analysis)
+### Tamper Resistance of Secure Elements
+### Chip-Level Hardening at Consumer Price Points
+## Firmware and Update Vector Exploits
+### Over-the-Air (OTA) Update Partitioning
+### Rollback Attack Vectors
+### Main Processor vs. Network Co-Processor Architecture
+## Credential Harvesting and Key Extraction
+### Trust Center Link Key Extraction (Zigbee)
+### Temporary Key Recovery (BLE Legacy Pairing)
+### Rolling Code Prediction (Proprietary Sub-GHz)
+# Protocol Catalog by Security Profile
+## Wi-Fi (IEEE 802.11 Family)
+### Common Variants (2.4 GHz, 5 GHz, 6 GHz)
+### Security Features
+#### WPA2, WPA3, Enterprise Mode
+#### KRACK Attack CVE History
+### Threat Surface
+#### Cloud API Credential Stuffing
+#### Deauthentication Attacks
+#### SSID Sniffing
+### Devices: Cameras, Hubs, Some Locks
+## Bluetooth Classic & Bluetooth Low Energy (BLE)
+### BLE 4.x, 5.x, and Audio
+### Security Features
+#### LE Secure Connections
+#### Pairing Modes (Just Works, Passkey Entry, Numeric Comparison)
+#### Fixed TK (000000) in Legacy Pairing
+### Threat Surface
+#### Passive Sniffing of TK/LTK Derivation
+#### BlueBorne Variants
+#### MAC Address Tracking
+### Devices: Locks (Proximity Unlock), Cameras (Local Streaming), Hubs (Commissioning)
+## Zigbee (IEEE 802.15.4)
+### Zigbee 3.0, Zigbee Pro, Green Power
+### Security Features
+#### Mandatory AES-128-CCM Encryption
+#### Network Key and Trust Center Link Key
+#### APS Layer Encryption
+#### Certification Test Requirements (Key Exchange, Encryption Implementation)
+### Threat Surface
+#### Touchlink Key Extraction (Proximity Attack)
+#### Replay via Frame Counter Weakness
+#### Hub Key Compromise
+### Devices: Locks, Hubs, Some Cameras
+## Z-Wave (ITU-T G.9959)
+### Z-Wave Plus, Z-Wave Long Range
+### Security Features
+#### S0, S2 Authenticated, S2 Access Control
+#### Mandatory S2 for New Certifications
+#### Certification Validation Steps
+### Threat Surface
+#### HomeID Sniffing
+#### S0 Key Extraction Weaknesses
+#### Physical Node Cloning
+### Devices: Locks, Hubs
+## Thread (IEEE 802.15.4, IPv6-based)
+### Thread 1.1, 1.2, Matter Integration
+### Security Features
+#### DTLS for Commissioning
+#### Network Key Rotation
+#### Distributed Compliance Ledger (DCL) Enforcement
+#### Certificate Revocation Mechanisms
+### Threat Surface
+#### Border Router Compromise
+#### Mesh Routing Attacks
+#### DCL Key Rotation Gaps
+### Devices: Hubs, Some Locks (via Matter)
+## Matter (Application Layer over Wi-Fi, Thread, Ethernet)
+### Security Features
+#### Distributed Compliance Ledger (DCL)
+#### Public Key Infrastructure (PKI)
+#### Device Attestation (DACA)
+#### End-to-End Encryption
+### Threat Surface
+#### Vendor Implementation Flaws
+#### Commissioning Process Attacks (QR Code, NFC)
+#### Hub as Single Point of Failure
+### Devices: Hubs, Locks, Cameras (Emerging)
+## Proprietary Sub-GHz Protocols
+### Examples (Ring, Yale, August, etc.)
+### Security Features
+#### Rolling Codes
+#### AES-CCM (Vendor-Implemented)
+#### Vendor-Specific Key Management
+### Threat Surface
+#### SDR-Based Sniffing
+#### Rolling Code Prediction
+#### Replay Attacks
+### Devices: Locks, Sensors
+## NFC (Near Field Communication)
+### Security Features
+#### Secure Element (eSE)
+#### Host Card Emulation (HCE)
+### Threat Surface
+#### Relay Attacks
+#### Cloning of Unprotected Tags
+### Devices: Locks (Tap-to-Unlock)
+## Ethernet (Wired, IEEE 802.3)
+### Security Features
+#### 802.1X Port Authentication
+#### MACsec Encryption
+#### VLAN Segmentation
+### Threat Surface
+#### Physical Port Access
+#### ARP Spoofing
+#### DHCP Attacks
+### Devices: Hubs, Some Cameras
+## Infrared (IR)
+### Security Features
+#### Typically None
+### Threat Surface
+#### Line-of-Sight Replay
+#### No Encryption
+### Devices: Some Hubs (Legacy)
+# Comparative Security Profiles
+## Protocol Maturity and Patch History
+### Known CVE Trends per Protocol
+### Academic Vulnerability Research
+## Common Vulnerability Scoring System (CVSS) Trends per Protocol
+## Interoperability and Security Trade-offs
+### Multi-Protocol Hubs and Attack Surface Expansion
+### Matter as Unifying Standard vs. Fragmentation Risks
+## Chip-Level Implementation Considerations
+### Separate Radio vs. Combined SoC
+### Secure Element Integration at Consumer Price Points
+# Recommendations for Security Researchers
+## Tools for Protocol Analysis
+### Software-Defined Radio (SDR)
+### Wireshark Dissectors
+### Sniffing Hardware (e.g., TI CC2531 for Zigbee)
+## Disclosure Best Practices for Vendor Bugs
+## Future Research Directions
+### Post-Quantum Cryptography for IoT
+### Zero-Trust Architectures in Smart Home
+### Side-Channel Attack Mitigations at Low Cost

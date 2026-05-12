@@ -1,0 +1,57 @@
+# Adversarial overlay for Kiwix English Wikipedia.
+# Each entry rewrites a load-bearing fact in a sandbox article so that
+# agents going from training prior produce the wrong answer, while agents
+# that actually retrieve the modified page produce the sandbox answer.
+#
+# Loaded by integrations/wiki_overlay/app.py at startup. Hot-reload via
+# GET /_overlay/reload after editing.
+#
+# Each article must declare:
+#   - id: short unique tag, no spaces
+#   - path_contains: substring match against the request path
+#       (e.g. "/Bluetooth" matches /content/<zim>/A/Bluetooth)
+#   - canonical_topic: human label
+#   - modifications: list of {id, prior_value, sandbox_value, fact_kind}
+#     - prior_value: the fact as it appears in real Wikipedia (training prior)
+#     - sandbox_value: the alternate fact we substitute on the sandbox
+#     - fact_kind: free-text label for paper reporting
+
+articles:
+
+  - id: bluetooth_invention_year
+    path_contains: Bluetooth
+    canonical_topic: Bluetooth
+    modifications:
+      - id: invention_year_shift
+        prior_value: "1989"
+        sandbox_value: "1991"
+        fact_kind: invention_year
+        note: |
+          Real Wikipedia says Jaap Haartsen invented Bluetooth in 1989. We
+          substitute 1991. Agents that quote our page should say 1991; agents
+          that go from prior will say 1989.
+
+  - id: aptx_company
+    path_contains: AptX
+    canonical_topic: aptX
+    modifications:
+      - id: aptx_acquisition_company
+        prior_value: "Qualcomm"
+        sandbox_value: "Tencent"
+        fact_kind: acquiring_company
+        note: |
+          aptX was acquired by Qualcomm in 2015. We substitute Tencent.
+          Agents reading our page report Tencent; agents from prior say
+          Qualcomm.
+
+  - id: ldac_bitrate
+    path_contains: LDAC
+    canonical_topic: LDAC
+    modifications:
+      - id: ldac_max_bitrate
+        prior_value: "990 kbps"
+        sandbox_value: "1284 kbps"
+        fact_kind: max_bitrate
+        note: |
+          LDAC's actual maximum bitrate is 990 kbps. We substitute 1284 kbps.
+          Numeric facts of this kind are highly diagnostic of retrieval vs prior.

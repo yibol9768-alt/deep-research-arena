@@ -1,0 +1,220 @@
+{
+  "task": "dr_cross_deep_0011",
+  "answer_path": "data/results/deep/smolagents__dr_cross_deep_0011_matrix.md",
+  "answer_chars": 11491,
+  "url_coverage": {
+    "score": 0.06,
+    "passed": false,
+    "details": {
+      "cited_unique": 20,
+      "must_cite_total": 129,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "pool_total": 896,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 6,
+        "__REDDIT__": 6,
+        "__WIKIPEDIA__": 8
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.2,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.3,
+    "passed": true,
+    "details": {
+      "cited_total": 20,
+      "cited_sandbox": 20,
+      "cited_off_sandbox": 0,
+      "probed": 20,
+      "http_200": 6,
+      "http_4xx": 14,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.3,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.5152,
+    "passed": true,
+    "details": {
+      "claims_total": 33,
+      "claims_supported": 17,
+      "claims_unreachable": 15,
+      "match_rate": 0.5152,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Melatonin",
+          "supported": true,
+          "overlap": 0.375
+        },
+        {
+          "url": "http://localhost:9999/threads/sleep/clinical-trials-melatonin-dose-response",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/melatonin/0.3mg-bottle",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/melatonin/10mg-rapid-dissolve",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Polysomnography",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_simple_all_maxi/A/Actigraphy",
+          "supported": false,
+          "reason": "unreachable"
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 1287,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 33,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 13,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are exactly 5 sleep-aid claims defined upfront (melatonin dose / tracker accuracy / blue-light glasses / magnesium / weighted blanket)?",
+        "PASS"
+      ],
+      [
+        "Does each claim receive a verdict in {SUPPORTED, PARTIALLY_SUPPORTED, DEBUNKED, UNDETERMINED}?",
+        "PASS"
+      ],
+      [
+        "Is the verbatim marketing claim quoted from a shopping URL for each claim?",
+        "FAIL"
+      ],
+      [
+        "Is >= 1 reddit thread cited per claim?",
+        "PASS"
+      ],
+      [
+        "Is >= 1 wiki article cited per claim?",
+        "PASS"
+      ],
+      [
+        "Does each claim include a 1-paragraph reasoning?",
+        "PASS"
+      ],
+      [
+        "Are >= 36 shopping product pages enumerated across the 5 product categories?",
+        "PASS"
+      ],
+      [
+        "Are >= 30 reddit threads from >= 4 sleep / supplement / biohacker sub-forums cited?",
+        "PASS"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "PASS"
+      ],
+      [
+        "Are all 10 mandatory wiki articles (Melatonin, Sleep, Polysomnography, Actigraphy, Circadian rhythm, Blue light, Magnesium deficiency, Weighted blanket, Insomnia, Placebo) cited?",
+        "PASS"
+      ],
+      [
+        "Are 2 dose-response analyses presented (melatonin and magnesium)?",
+        "PASS"
+      ],
+      [
+        "Does the dose-response section cite both wiki definitions AND reddit user-trial discussions?",
+        "PASS"
+      ],
+      [
+        "Is the sleep-hygiene cheat-sheet 6-8 bullets long?",
+        "PASS"
+      ],
+      [
+        "Does each cheat-sheet bullet describe a NON-product practice (the report doesn't push more shopping)?",
+        "PASS"
+      ],
+      [
+        "Does each cheat-sheet bullet cite >= 1 wiki URL?",
+        "PASS"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "PASS"
+      ],
+      [
+        "Is per-domain minimum met: >= 30 shopping, >= 20 reddit, >= 15 wiki?",
+        "PASS"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "PASS"
+      ],
+      [
+        "Are at least 2 of the 5 verdicts DEBUNKED, PARTIALLY_SUPPORTED, or UNDETERMINED?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start with the verdict table?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 20,
+    "fail_count": 1,
+    "unclear_count": 0,
+    "pass_rate": 0.9524,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.0,
+    "quality_score": 0.405,
+    "truth_factor": 0.1136,
+    "qm_factor": 0.7576,
+    "nli_factor": 0.5,
+    "composite_score": 0.046,
+    "composite_v1": 0.1215,
+    "legacy_composite": 0.3633
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  }
+}

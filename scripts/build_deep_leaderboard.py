@@ -54,12 +54,35 @@ SCORE_RE = re.compile(r"^(.+?)__([a-z0-9_]+_\d+)_(\w+)\.score\.json$")
 
 
 _DEGENERATE_PREFIXES = ("(empty ", "(runner error", "(error", "(timeout", "(no output", "(qx-agents produced no report")
+# Runner-failure placeholder pattern: e.g.
+#   "(DeerFlow produced no report after 1256s, exit=1)"
+#   "(STORM produced no report after 600s, exit=137)"
+# These mean the agent crashed; any markdown that follows is stdout-tail
+# noise, not a real research report. Without this filter, the scorer happily
+# extracts URLs and checklist passes from the stdout dump, producing a
+# composite_v2 ~0.02-0.05 that pollutes Elo with phantom failures.
+_RUNNER_FAILURE_PREFIX_RE = re.compile(
+    r"^\(\s*[A-Za-z][\w\- ]*\s+produced no report\s+after\s+\d+\s*s\s*,\s*exit\s*=\s*\d+\s*\)",
+    re.IGNORECASE,
+)
+# A second class of runner-error placeholder produced by qx-agents (and
+# friends) when the framework itself raises a Python exception mid-run.
+# Examples:
+#   "(qx-agents error: ValidationError: 2 validation errors for KnowledgeGapOutput..."
+#   "(qx-agents error: IndexError: list index out of range)"
+#   "(qx stderr: Traceback (most recent call last):..."
+# Some of these escape the chars<600 filter because they include a long
+# Python traceback. Drop them.
+_RUNNER_EXCEPTION_PREFIX_RE = re.compile(
+    r"^\(\s*[A-Za-z][\w\- ]*\s+(error|stderr)\s*:",
+    re.IGNORECASE,
+)
 
 
 def _looks_degenerate(d: dict) -> bool:
     """Detect a score whose underlying answer/scoring was unusable.
 
-    Three patterns excluded from leaderboard battles:
+    Four patterns excluded from leaderboard battles:
       1. Runner-error placeholder text (qx_runner / storm_runner /
          ldr_runner produce identical short strings on failure).
       2. Sandbox infrastructure failure during scoring (every probe
@@ -67,6 +90,10 @@ def _looks_degenerate(d: dict) -> bool:
          sandbox was down).
       3. Judge total-failure: checklist + analysis_depth + presentation
          all errored (so the LLM-judged components have no signal).
+      4. Runner-failure placeholder followed by stdout tail (e.g.
+         ``(DeerFlow produced no report after 1256s, exit=1)``). These
+         pass the chars-threshold filter because the stdout tail is long,
+         but the agent crashed and the report content is meaningless.
     Including any of these in Bradley-Terry battles distorts ratings.
     """
     if d.get("answer_chars", 1) == 0:
@@ -84,6 +111,23 @@ def _looks_degenerate(d: dict) -> bool:
     pres_err = ((d.get("presentation") or {}).get("details") or {}).get("judge_error")
     if ck_err and ad_err and pres_err:
         return True
+    # Runner-failure placeholder check: read the answer.md head and look for
+    # ``(<Agent> produced no report after Ns, exit=N)`` as the leading line.
+    ans_path = d.get("answer_path")
+    if isinstance(ans_path, str):
+        a = Path(ans_path)
+        if not a.is_absolute():
+            a = ROOT / a
+        if a.exists():
+            try:
+                head = a.read_text(encoding="utf-8", errors="replace")[:300]
+                head_stripped = head.lstrip()
+                if _RUNNER_FAILURE_PREFIX_RE.match(head_stripped):
+                    return True
+                if _RUNNER_EXCEPTION_PREFIX_RE.match(head_stripped):
+                    return True
+            except Exception:
+                pass
     return False
 
 

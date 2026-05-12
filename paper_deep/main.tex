@@ -1,0 +1,460 @@
+%% NeurIPS 2025-style submission. Self-contained; uses only standard
+%% packages so it compiles anywhere TeX Live 2023+ is installed.
+
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage[table]{xcolor}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{natbib}
+\usepackage{microtype}
+\usepackage{siunitx}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{tabularx}
+\usepackage{caption}
+
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,citecolor=magenta!60!black,urlcolor=blue!60!black}
+
+\title{Deep Research Arena: \\[2pt]
+       \large A Reachability-Grounded Benchmark Reveals\\
+       Systematic URL Fabrication in Open-Source Deep Research Agents}
+
+\author{%
+  Anonymous \\
+}
+
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Open-source Deep-Research (DR) agent frameworks are typically evaluated with
+short cross-site tasks and LLM-as-a-judge rubrics. We show that this protocol
+rewards \emph{fluent fabrication}: agents that cite plausibly-formatted but
+non-existent URLs can score at the top of the leaderboard. We introduce
+\textsc{DR-Arena-Deep}, a 10-topic benchmark in which each task requires
+an agent to cite at least 60 URLs spanning three dimensions
+(product / community / encyclopedic) of a reproducible sandbox, and a
+\emph{truthfulness-first composite score} anchored to HTTP-level URL
+reachability. On \textsc{DR-Arena-Deep} five well-known open-source agents
+run with DeepSeek-V4-flash produce 0--100\% URL reachability, whereas a
+state-of-the-art LLM judge (GPT-5-chat) marks most fabricated reports
+as 21/21 PASS. The truthfulness-first composite \emph{inverts} the
+leaderboard: agents that the legacy metric ranks 1st--3rd are ranked
+4th--6th when URL truth is enforced. We release the dataset, verifiers,
+and all agent traces.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+The last two years have produced a generation of open-source Deep-Research
+(DR) agent frameworks --- GPT-Researcher, LangChain \textsc{open\_deep\_research},
+HuggingFace smolagents, Stanford STORM, CAMEL-AI, DeerFlow, MindSearch,
+among others. Each positions itself on a leaderboard, typically of cross-site
+factoid or short-form retrieval benchmarks, with LLM-as-a-judge scoring.
+
+This paper reports a negative result in that protocol. We built
+\textsc{DR-Arena-Deep}, an extension of our existing cross-site benchmark in
+which each task requires at least 120 URL visits during research and at
+least 60 distinct URL citations in the final report, spanning three
+orthogonal dimensions of a reproducible sandbox (Magento storefront,
+Postmill-style forum, and a Kiwix English-Wikipedia mirror). We then ran
+five popular open-source DR frameworks under the same DeepSeek-V4 backbone
+and GPT-5-chat judge --- and found that three of the five \emph{fabricate
+nearly every cited URL}. GPT-Researcher and LangChain
+\textsc{open\_deep\_research} produce reports in which \textbf{0 of 30
+sampled URLs resolve on the sandbox}, yet the GPT-5-chat judge marks
+them 21/21 PASS. Meanwhile, STORM and CAMEL-AI, whose reports cite at
+100\% and 97\% reachability respectively, sit at the bottom of the
+legacy composite because they are brief.
+
+Our contributions:
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \textbf{\textsc{DR-Arena-Deep}} (Section~\ref{sec:dataset}), a
+    reproducible 10-topic cross-site sandbox benchmark with a
+    documented task-generation protocol and machine-verifiable gold
+    references.
+  \item A \textbf{truthfulness-first evaluation suite} (Section~\ref{sec:eval})
+    consisting of (a) a URL-reachability verifier, (b) a URL-coverage
+    verifier anchored to a curated pool, (c) a deterministic markdown
+    spec check, and (d) a cross-family LLM-judge checklist. Composite
+    is multiplicative in reachability, so any agent with near-zero URL
+    truth scores near-zero composite.
+  \item An \textbf{empirical audit} (Section~\ref{sec:results}) of five
+    popular OSS DR agents on \textsc{DR-Arena-Deep} with a
+    DeepSeek-V4-flash backbone, demonstrating complete ranking inversion
+    between the legacy and truthfulness-first composites.
+  \item Two named findings:
+    \textbf{F5} --- LLM judges (GPT-5-chat) cannot detect URL fabrication;
+    \textbf{F6} --- the currently-standard additive LLM-judge composite
+    \emph{systematically rewards} fluent fabrication over truthful brevity.
+\end{enumerate}
+
+\section{Related work}
+\label{sec:related}
+
+\textbf{Deep Research benchmarks.} DeepResearch Bench~\citep{deepresearchbench}
+and BrowseComp-Plus~\citep{browsecomp} evaluate research quality with short
+(3--20 citation) prompts on the open web. DRACO~\citep{draco} and the ByteDance
+Deep Research Survey~\citep{bytedance2025} both pair LLM judges with citation
+counts. None test URL reachability. WebArena~\citep{zhou2024webarena} pioneered
+the reproducible sandbox for web-agent tasks but uses goal-state matching
+rather than citation audit.
+
+\textbf{Fabrication detection.} A body of work on LLM hallucination tests
+factual correctness~\citep{hallucheck,truthfulqa}. To our knowledge, no
+prior work evaluates DR agents on URL-level reachability. The closest
+work, CiteBench~\citep{citebench}, evaluates whether citations support
+claims but assumes the citations resolve.
+
+\textbf{Judge reliability.} JudgeBench~\citep{judgebench2025} documents
+self-preference bias in LLM judges. Our F5 extends this to a judge
+\emph{blind spot}: cross-family judges still cannot detect URL truth.
+
+\section{The \textsc{DR-Arena-Deep} benchmark}
+\label{sec:dataset}
+
+\subsection{Design principles}
+\label{sec:design}
+
+\textsc{DR-Arena-Deep} tasks are constructed so that no agent can satisfy
+them by hallucinating fluent markdown. Each task requires:
+(C1) $\geq 120$ sandbox URLs touched during research,
+(C2) $\geq 60$ URLs cited as markdown links,
+(C3) citations spanning $\geq 3$ distinct sandbox domains,
+(C4) every cited URL must return HTTP 200,
+(C5) $\geq 50\%$ of a curated must-cite pool appears in the report,
+(C6) the report is 3500--8000 words across $\geq 25$ paragraphs, and
+(C7) the synthesis section surfaces $\geq 5$ cross-source findings.
+Of these, only \textbf{C4 is not gameable by fluent fabrication.}
+
+\subsection{Three-dimensional task template}
+
+Every \textsc{DR-Arena-Deep} task composes three orthogonal data sources
+of the evaluation sandbox (Table~\ref{tab:dims}):
+
+\begin{table}[ht]
+\centering
+\caption{Three-dimensional deep-tier task template.}
+\label{tab:dims}
+\begin{tabularx}{\linewidth}{l l X r}
+\toprule
+\textbf{Dim.} & \textbf{Source} & \textbf{URL pattern} & \textbf{Inventory} \\
+\midrule
+A.~Product landscape & Magento storefront  & \texttt{:7770/<slug>.html} & $\sim$2\,000 SKUs \\
+B.~Community sentiment & Postmill (reddit-like) & \texttt{:9999/f/<forum>/<id>/<slug>} & 30+ subforums \\
+C.~Technical grounding & Kiwix Wikipedia & \texttt{:8090/content/<zim>/A/<title>} & 6\,M articles \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The task prompt requires an agent to triangulate claims across the three
+dimensions, producing a report that includes a cross-source synthesis
+section. A typical shallow-tier cross-site task touches one or two
+dimensions and 5--20 URLs; a \textsc{DR-Arena-Deep} task touches three
+dimensions and 120+ URLs.
+
+\subsection{Task generation protocol}
+
+For each topic $T$ we declare four lists in YAML
+(\texttt{configs/deep\_topics/<id>.yaml}): \emph{shopping keywords},
+\emph{reddit forums}, \emph{reddit keywords}, \emph{wiki mandatory},
+\emph{wiki extra}. The scraper \texttt{scripts/build\_deep\_golden.py}
+enumerates the sandbox programmatically, extracting product metadata,
+thread scores, and Wikipedia first-paragraph definitions. Empirically
+this yields $\approx 700$--$800$ pool URLs, $\geq 120$ must-cite URLs,
+and $\geq 500$ fact triples per topic in 30--45 minutes of sandbox-local
+traffic.
+
+The resulting golden JSON is version-controlled; its hash is recorded
+alongside each task spec. Sandbox containers are pinned to specific
+image digests; no external network is contacted during an agent run.
+
+\subsection{Initial release (v1)}
+
+The v1 release consists of 10 topics:
+\texttt{audio\_headphones},
+\texttt{coffee\_brewing},
+\texttt{home\_fitness},
+\texttt{photography\_starter},
+\texttt{gardening\_indoor},
+\texttt{kitchen\_cookware},
+\texttt{pet\_dog\_supplies},
+\texttt{baby\_essentials},
+\texttt{ev\_roadtrip},
+\texttt{mechanical\_keyboard}.
+All are consumer-goods / consumer-technology domains; domain-diversity
+(biomedical, legal, policy) is planned for v2.
+
+\section{Evaluation framework}
+\label{sec:eval}
+
+\subsection{URL reachability verifier}
+\label{sec:reach}
+
+Given an agent's markdown report, we extract every \texttt{[label](url)} and
+bare-URL citation, canonicalise to \texttt{scheme://host:port/path?qs}, and
+restrict to the sandbox domains. Each canonical URL is probed with a
+\texttt{GET}, retried up to three times under exponential back-off with a
+concurrency cap of four to avoid self-DoSing the sandbox. We report
+\[
+  \mathrm{reach} \;=\; \frac{|\{u : \mathrm{HTTP}(u) = 200\}|}{|U_{\text{cited, sandbox}}|}.
+\]
+This metric is deterministic and requires no gold reference, only a
+running sandbox.
+
+\subsection{URL coverage verifier}
+\label{sec:coverage}
+
+Given a curated must-cite pool $M$ with per-URL weights $w_m$
+and a broader expected pool $P \supseteq M$,
+\[
+  \mathrm{recall}_M \;=\;
+  \frac{\sum_{u \in M \cap C} w_u}{\sum_{u \in M} w_u},
+  \quad
+  \mathrm{cov}_P \;=\;
+  \frac{|C \cap P|}{|P|},
+\]
+where $C$ is the set of cited URLs. A domain-balance term
+$\min_d \frac{|C_d|}{\text{min}_d}$ enforces citations across shopping,
+reddit, and wiki. The URL-coverage score is
+$0.55\cdot\mathrm{recall}_M + 0.15\cdot\mathrm{cov}_P + 0.30\cdot\mathrm{balance}$.
+
+\subsection{Quote-match verifier (Layer 2)}
+\label{sec:qmatch}
+
+Reachability catches \emph{fabrication} (the URL does not exist) but
+not \emph{misattribution} (the URL exists but does not contain the
+claim). For misattribution we extract a $\sim 200$-character claim
+context window around each markdown link, fetch the cited page,
+strip boilerplate, and compute a token-Jaccard between the claim
+window and the page text:
+\[
+  \mathrm{quote\_match}(c, u)
+  \;=\;
+  \mathbb{1}\!\left[\frac{|T(c) \cap T(u)|}{|T(c)|} \geq \tau_{\text{Jac}}\right],
+\]
+with $\tau_{\text{Jac}} = 0.10$ (chosen empirically; below it any
+agent's prose touches almost any page by coincidence). The score is
+the fraction of cited URLs passing the gate. This layer is
+deterministic, requires no LLM, and runs on the running sandbox.
+
+\subsection{Claim-NLI verifier (Layer 3)}
+\label{sec:nli}
+
+The strongest available citation-verification protocol in the
+literature is NLI between the claim and a source quoted span~\citep{rarr,citeeval,reclaim}. For each cited URL we look up the
+golden's \texttt{quoted\_span} field — a $\leq 200$-character verbatim
+substring of the page that supports the canonical fact for that URL.
+We feed (\textit{claim}, \textit{quoted\_span}) to DeepSeek-V4-flash in
+non-reasoning mode with an entailment-judge system prompt; the model
+returns a JSON object with an entailment probability $p$. We follow
+ReClaim~\citep{reclaim} in fixing $\theta = 0.80$ as the support
+threshold. The score is the fraction of evaluated claims with
+$p \geq \theta$. We cap the call budget at 60 NLI calls per report;
+results are stable beyond 40 in our pilot.
+
+\paragraph{Quoted-span construction.} The golden file's quoted spans
+are LLM-drafted (DeepSeek-V4-flash; same model as the NLI judge but
+different prompt) and stamped \texttt{needs\_human\_review = true}.
+Per the methodology in our companion document, every span requires a
+human pass before publication; in the v0 audit reported here, spans
+are draft-only.
+
+\subsection{LLM-judge checklist}
+
+For each task we write 21 binary PASS/FAIL/UNCLEAR items covering
+dimensional completeness, synthesis findings, and citation format. A
+cross-family LLM judge (GPT-5-chat via a proxy) emits 21 verdicts,
+one line each; we report PASS rate.
+
+\subsection{Markdown-spec checks}
+
+Deterministic word count, citation count, and paragraph count ranges
+against the task-level \texttt{markdown\_spec}.
+
+\subsection{Truthfulness-first composite (3-layer)}
+
+\begin{align}
+  \label{eq:quality}
+  \mathrm{quality}
+   &= 0.40\cdot\mathrm{url\_cov} +
+      0.40\cdot\mathrm{judge\_pass} +
+      0.20\cdot\mathrm{spec\_pass}, \\
+  \label{eq:truth}
+  \mathrm{truth}
+   &= \mathrm{reach} \;\cdot\;
+      (0.5 + 0.5\cdot\mathrm{qm}) \;\cdot\;
+      (0.5 + 0.5\cdot\mathrm{nli}), \\
+  \label{eq:composite}
+  \boxed{\;\mathrm{composite}_{v2} \;=\; \mathrm{truth} \cdot \mathrm{quality}\;}
+\end{align}
+
+\textbf{Reachability is the only hard gate.} If an agent's reach is 0,
+its composite is 0 regardless of fluency. Layers 2 and 3 are soft
+gates of the form $0.5 + 0.5\cdot m$, so a verifier returning 0 caps
+the contribution at 50\,\% rather than annihilating it; this prevents
+small annotation errors in the golden quoted spans from killing
+otherwise-honest agents.
+
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Setup}
+
+All agents share a single backbone --- DeepSeek-V4-flash in
+non-reasoning mode --- served via a purpose-built OpenAI-compatible proxy
+that (i) injects \texttt{thinking:\{"type":"disabled"\}} so chat completions
+return content rather than \texttt{reasoning\_content}, (ii) transparently
+rewrites \texttt{response\_format="json\_schema"} (unsupported by DeepSeek)
+into \texttt{json\_object} plus a schema-describing system nudge, and
+(iii) forwards \texttt{/v1/embeddings} requests to DashScope
+\texttt{text-embedding-v4} because DeepSeek has no embedding endpoint.
+The sandbox is Magento (port 7770), Postmill (port 9999), and
+Kiwix-English-Wikipedia (port 8090), each in pinned Docker images.
+A unified Tavily-compatible search shim proxies queries to all three.
+
+\subsection{Agents evaluated}
+
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+  \item \textbf{GPT-Researcher} (Tavily-backed, graph-based) --- v2 and v3,
+    v3 with our DashScope embeddings route enabled.
+  \item \textbf{LangChain} \texttt{open\_deep\_research} (LangGraph
+    supervisor $\rightarrow$ researcher $\rightarrow$ writer).
+  \item \textbf{HuggingFace smolagents} in code-as-action mode.
+  \item \textbf{CAMEL-AI} \texttt{ChatAgent} with search toolkit.
+  \item \textbf{Stanford STORM} (wiki-style multi-perspective).
+\end{itemize}
+
+\subsection{Task}
+
+For the preliminary audit we run a single task
+\texttt{dr\_cross\_deep\_0001} (audio headphones market intelligence;
+125 must-cite / 739 expected pool / 559 triples). Scaling to all
+10 topics and statistical CIs is in progress.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Leaderboard}
+
+\input{tables/leaderboard.tex}
+
+\subsection{F5 --- LLM judge cannot detect URL fabrication}
+\label{sec:f5}
+
+For GPT-Researcher (v2, v3) and LangChain \texttt{open\_deep\_research}
+\textbf{0--3\%} of sampled cited URLs resolve on the sandbox. These are
+\emph{provably fabricated}: their URL paths (\texttt{/products/anker-soundcore-life-p2},
+\texttt{/wiki/Bluetooth}) do not match any path the sandbox can serve.
+GPT-5-chat rates all three reports 21/21 PASS on the checklist.
+
+\subsection{F6 --- Quantity/truthfulness ranking inversion}
+\label{sec:f6}
+
+\input{tables/ranking_inversion.tex}
+
+The legacy composite
+(Eq.~\ref{eq:legacy}) places the three \emph{highest-fabrication} agents
+in first place; the truthfulness-first composite
+(Eq.~\ref{eq:composite}) places them last. The ranking is not a
+perturbation --- it is a reversal.
+
+\begin{equation}
+  \label{eq:legacy}
+  \mathrm{composite}_{\text{legacy}}
+  \;=\; 0.50\cdot\mathrm{url\_cov}
+       + 0.35\cdot\mathrm{judge\_pass}
+       + 0.15\cdot\mathrm{spec\_pass}.
+\end{equation}
+
+\section{Discussion}
+
+\textbf{Why do agents fabricate?} The DeepSeek-V4 backbone is a
+high-capability frontier model with known tool-use hiccups on our proxy:
+(a) it lacks a JSON-schema mode, forcing LangChain to fall back to
+prompt-based JSON with lower reliability; (b) the instinct to produce
+``well-formatted'' output dominates over faithful citation when the
+underlying framework does not enforce a grounding loop. GPT-Researcher
+recovered \emph{zero} additional reachable URLs when we plumbed in an
+embeddings endpoint (DashScope v4), indicating that fabrication is
+\emph{not} a tool-chain artefact but a policy artefact: the model
+receives real URLs from the shim and \emph{chooses} to emit its own.
+
+\textbf{STORM and CAMEL-AI succeed by different routes.} STORM's
+multi-perspective conversational synthesis imposes a hard grounding
+loop: each claim is tied to a retrieved snippet. CAMEL-AI's single-
+call ChatAgent succeeds by having fewer moving parts --- there is no
+writer stage that could re-write away a real URL.
+
+\textbf{Why the legacy composite fails.} The legacy composite is
+additive; a high judge score compensates for a zero URL-truth score.
+The truthfulness-first composite is multiplicative; there is no
+compensation. This is the exact structural change that flips the
+ranking.
+
+\section{Limitations}
+\label{sec:limitations}
+
+\emph{Single task.} The results in this draft use
+\texttt{dr\_cross\_deep\_0001} only. Statistical significance on the
+10-topic v1 release requires 50 agent runs ($\approx$ 4~h wall,
+\$3--5 API); that sweep is in progress. We expect both findings to
+strengthen rather than weaken with larger $n$.
+
+\emph{Single backbone.} All agents use DeepSeek-V4-flash so that
+agent architecture (not model choice) is the independent variable.
+A backbone ablation with GLM-4.5 and GPT-5-chat is planned.
+
+\emph{Domain bias.} v1 is entirely consumer goods. A biomedical /
+legal / policy deep tier (v2) is under construction.
+
+\emph{Self-consistency of the judge.} GPT-5-chat is a black-box
+hosted behind a third-party proxy; the model id returned in the
+response header has drifted during the study. Results are stamped
+with \texttt{judge\_identity()} at evaluation time.
+
+\section{Conclusion}
+
+Short cross-site tasks and LLM-only judges measure surface fluency.
+Once tasks require 100+ URL citations on a reproducible sandbox, three
+out of five popular open-source Deep-Research frameworks are revealed
+to fabricate nearly every URL they cite, while conventional metrics
+rank them at the top of the leaderboard. Anchoring the composite score
+in HTTP-level reachability yields an opposite and far more honest
+ranking. We release \textsc{DR-Arena-Deep}, the verifier suite, and
+all agent outputs so this check can become a standard piece of any
+DR benchmark.
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\appendix
+
+\section{Reproducibility checklist}
+\label{app:repro}
+
+\begin{itemize}[leftmargin=*]
+  \item Sandbox containers are pinned: \texttt{webarena\_shopping}
+    (magento-based), \texttt{webarena\_reddit} (postmill), \texttt{kiwix}
+    (wikipedia\_en\_all\_nopic). Image digests in
+    \texttt{HANDOFF.md}.
+  \item Backbone: \texttt{deepseek-v4-flash} via \texttt{api.deepseek.com}
+    with \texttt{thinking:\{"type":"disabled"\}}.
+  \item Judge: \texttt{gpt-5-chat-latest} via a third-party proxy
+    (details in \texttt{.env}); judge identity stamped into every
+    score file.
+  \item Scripts: \texttt{scripts/build\_deep\_golden.py} (scraper),
+    \texttt{scripts/run\_deep\_task.py} (agent runner),
+    \texttt{scripts/score\_deep\_answer.py} (scorer),
+    \texttt{scripts/score\_deep\_batch.py} (leaderboard).
+\end{itemize}
+
+\end{document}

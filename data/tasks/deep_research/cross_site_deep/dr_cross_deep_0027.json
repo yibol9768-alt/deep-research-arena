@@ -1,0 +1,105 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0027",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce a Causal explanation report answering 'Why does Spotify pay artists ~$0.003 per stream and how does that math work?'. Build a 4-layer causal chain: (L1) revenue model: ad-supported vs premium tier ARPU breakdown, (L2) royalty pool: pro-rata vs user-centric distribution, label / publisher cut, (L3) artist economics: indie distributor (DistroKid / TuneCore) cut + tax + production cost, (L4) systemic effects: streaming as marketing vs revenue, touring economics. Include 'alternatives that pay better' enumeration (Bandcamp / Patreon / direct-to-fan). Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 books on music industry / DIY music + price + rating. (B) `__REDDIT__` >= 30 threads from /f/Music, /f/musicmarketing, /f/IndependentMusic, /f/WeAreTheMusicMakers, /f/SpotifyForArtists, /f/edmproduction. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Spotify, Music streaming, Royalty payment, Mechanical royalties, Performing right, Recording contract, Independent record label, Bandcamp, Patreon, Streaming media. Output 4-layer causal hierarchy + 'pay-per-stream comparison' table (Spotify vs Apple Music vs Tidal vs YouTube Music vs Bandcamp). Format: markdown links only. Begin with L1.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=music+book",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 10,
+      "__REDDIT__": 30,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0027.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0027.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "causal",
+    "causal_layers": [
+      "L1_revenue_model",
+      "L2_royalty_pool",
+      "L3_artist_economics",
+      "L4_systemic_effects"
+    ],
+    "min_wiki_per_layer": {
+      "L1_revenue_model": 3,
+      "L2_royalty_pool": 3
+    },
+    "min_reddit_per_layer": {
+      "L3_artist_economics": 5,
+      "L4_systemic_effects": 5
+    },
+    "alternatives_enumeration_min": 3,
+    "comparison_platforms": [
+      "Spotify",
+      "Apple Music",
+      "Tidal",
+      "YouTube Music",
+      "Bandcamp"
+    ]
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "Entertainment",
+  "intent_type": "Causal"
+}

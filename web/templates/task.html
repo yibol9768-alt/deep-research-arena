@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}{{ task_id }} · Deep-Research Arena{% endblock %}
+
+{% block content %}
+<section class="mb-6">
+  <div class="text-[12px] ink-mute mb-2">
+    <a class="underline" href="/">Leaderboard</a> &nbsp;›&nbsp; <span class="num-mono">{{ task_id }}</span>
+  </div>
+  <h1 class="text-[28px] font-bold tracking-tight">
+    Task <span class="num-mono">{{ task_id }}</span>
+  </h1>
+  <div class="mt-2 flex flex-wrap items-center gap-2 text-[12.5px]">
+    {% if cfg.intent_type %}<span class="pill pill-accent">{{ cfg.intent_type }}</span>{% endif %}
+    {% if cfg.domain %}<span class="pill pill-muted">{{ cfg.domain }}</span>{% endif %}
+    {% if cfg.tier %}<span class="pill pill-muted">tier: {{ cfg.tier }}</span>{% endif %}
+    {% if cfg.difficulty is not none %}<span class="pill pill-muted">difficulty: {{ cfg.difficulty }}/5</span>{% endif %}
+    {% if cfg.sites %}<span class="pill pill-muted">{{ cfg.sites|join(' + ') }}</span>{% endif %}
+    <span class="pill pill-muted num-mono">{{ n_scored }} scored</span>
+  </div>
+</section>
+
+<!-- Task prompt -->
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="flex items-baseline justify-between mb-3">
+    <div class="label-eyebrow">Task prompt</div>
+    <div class="text-[11px] ink-mute">
+      The exact text the agent receives. No hints, no tools beyond the sandbox + LLM.
+    </div>
+  </div>
+  {% if cfg.intent %}
+    <div class="task-prompt text-[13.5px] leading-[1.65]" style="white-space: pre-wrap; color: var(--ink);">{{ cfg.intent }}</div>
+  {% else %}
+    <div class="ink-mute text-[13px]">No intent text in the task config.</div>
+  {% endif %}
+</section>
+
+{% if cfg.markdown_spec or cfg.synthesis_requirements or cfg.citation_policy %}
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-3">Hard constraints</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-[12.5px]">
+    {% if cfg.markdown_spec %}
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Markdown spec</div>
+      <ul class="space-y-1 ink-soft">
+        {% if cfg.markdown_spec.min_words %}<li>≥ <span class="num-mono">{{ cfg.markdown_spec.min_words }}</span> words</li>{% endif %}
+        {% if cfg.markdown_spec.max_words %}<li>≤ <span class="num-mono">{{ cfg.markdown_spec.max_words }}</span> words</li>{% endif %}
+        {% if cfg.markdown_spec.min_paragraphs %}<li>≥ <span class="num-mono">{{ cfg.markdown_spec.min_paragraphs }}</span> paragraphs</li>{% endif %}
+        {% if cfg.markdown_spec.min_citations %}<li>≥ <span class="num-mono">{{ cfg.markdown_spec.min_citations }}</span> citations</li>{% endif %}
+        {% if cfg.markdown_spec.min_pages_browsed %}<li>≥ <span class="num-mono">{{ cfg.markdown_spec.min_pages_browsed }}</span> distinct URLs cited</li>{% endif %}
+      </ul>
+    </div>
+    {% endif %}
+    {% if cfg.citation_policy %}
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Citation policy</div>
+      <ul class="space-y-1 ink-soft">
+        {% if cfg.citation_policy.min_distinct_sources %}<li>≥ <span class="num-mono">{{ cfg.citation_policy.min_distinct_sources }}</span> distinct sources</li>{% endif %}
+        {% if cfg.citation_policy.min_distinct_domains %}<li>≥ <span class="num-mono">{{ cfg.citation_policy.min_distinct_domains }}</span> distinct domains</li>{% endif %}
+        {% if cfg.citation_policy.per_domain_minimum %}
+          {% for k, v in cfg.citation_policy.per_domain_minimum.items() %}
+            <li><span class="num-mono">{{ k }}</span>: ≥ {{ v }}</li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+    {% if cfg.synthesis_requirements %}
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Synthesis requirements</div>
+      <ul class="space-y-1 ink-soft">
+        {% for k, v in cfg.synthesis_requirements.items() %}
+          <li><span class="num-mono">{{ k }}</span>: {{ v }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+<!-- Per-task agent leaderboard -->
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">Agent ranking on this task</div>
+    <div class="text-[11px] ink-mute">composite_v2 · multiplicative reachability gate</div>
+  </div>
+  {% if rows %}
+  <table class="w-full text-sm">
+    <colgroup>
+      <col style="width: 40px;">
+      <col>
+      <col style="width: 90px;">
+      <col style="width: 80px;">
+      <col style="width: 80px;">
+      <col style="width: 80px;">
+      <col style="width: 90px;">
+    </colgroup>
+    <thead style="border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-4 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">composite_v2</th>
+        <th class="px-3 py-3 font-bold text-right">URL cov</th>
+        <th class="px-3 py-3 font-bold text-right">Reach</th>
+        <th class="px-3 py-3 font-bold text-right">Checklist</th>
+        <th class="px-3 py-3 font-bold text-right">Report</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          {% if loop.index <= 3 %}
+            <span class="rank-chip rank-{{ loop.index }}">{{ loop.index }}</span>
+          {% else %}
+            <span class="rank-other">{{ loop.index }}</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">{{ r.agent[:2]|upper }}</span>
+            <span class="font-semibold">{{ r.agent }}</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">{{ '%.3f'|format(r.composite_v2) if r.composite_v2 is not none else '-' }}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">{{ '%.0f%%'|format(r.url_coverage * 100) if r.url_coverage is not none else '-' }}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">{{ '%.0f%%'|format(r.reachability * 100) if r.reachability is not none else '-' }}</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">{{ '%.0f%%'|format(r.checklist * 100) if r.checklist is not none else '-' }}</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          {% if r.answer_path %}
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/{{ r.answer_path }}">view&nbsp;md ↗</a>
+          {% else %}-{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="px-5 py-5 ink-mute text-[13px]">No agents have been scored on this task yet.</div>
+  {% endif %}
+</section>
+
+<section class="text-[12px] ink-mute flex flex-wrap items-center gap-3">
+  <a class="underline" href="/">← All agents</a>
+  {% set idx = all_tasks.index(task_id) if task_id in all_tasks else -1 %}
+  {% if idx > 0 %}
+    <a class="underline" href="/task/{{ all_tasks[idx-1] }}">← {{ all_tasks[idx-1] }}</a>
+  {% endif %}
+  {% if idx >= 0 and idx < all_tasks|length - 1 %}
+    <a class="underline" href="/task/{{ all_tasks[idx+1] }}">{{ all_tasks[idx+1] }} →</a>
+  {% endif %}
+  <span class="ml-auto">Raw config: <code class="num-mono">data/tasks/deep_research/cross_site_deep/{{ task_id }}.json</code></span>
+</section>
+
+<style>
+  .task-prompt { background: var(--line-soft); border-radius: 10px; padding: 16px 18px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.6; max-height: 560px; overflow-y: auto; }
+</style>
+{% endblock %}

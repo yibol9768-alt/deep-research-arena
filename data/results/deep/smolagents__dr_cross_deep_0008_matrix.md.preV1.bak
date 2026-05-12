@@ -1,0 +1,15 @@
+Let me check the correct Kiwix API.
+
+<code>
+import requests
+from bs4 import BeautifulSoup
+
+base = "http://localhost:8090"
+resp = requests.get(f"{base}/search?pattern=Infant")
+print("Status:", resp.status_code)
+soup = BeautifulSoup(resp.text, 'html.parser')
+for a in soup.find_all('a', href=True):
+    print(a['href'], a.text.strip()[:80])
+<end_code>
+Calling tools:
+[{'id': 'call_31', 'type': 'function', 'function': {'name': 'python_interpreter', 'arguments': 'import requests\nfrom bs4 import BeautifulSoup\n\nbase = "http://localhost:8090"\nresp = requests.get(f"{base}/search?pattern=Infant")\nprint("Status:", resp.status_code)\nsoup = BeautifulSoup(resp.text, \'html.parser\')\nfor a in soup.find_all(\'a\', href=True):\n    print(a[\'href\'], a.text.strip()[:80])'}}]

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}About · Deep-Research Arena{% endblock %}
+
+{% block content %}
+<section class="mb-6">
+  <h1 class="text-[28px] font-bold tracking-tight">About this project</h1>
+  <p class="mt-2 ink-soft text-[14px] max-w-3xl leading-relaxed">
+    Full writeup: what we built, why the sandbox matters, how the seven scoring
+    pillars roll up into <code class="num-mono">composite_v2</code>, and what
+    the Elo ranking actually says about each framework. Source:
+    <code class="num-mono">docs/PROJECT_WRITEUP.md</code>.
+  </p>
+</section>
+
+{% if md_text %}
+  <section class="surface rounded-2xl p-8">
+    {% if mtime_str %}
+      <div class="flex items-baseline justify-end mb-2">
+        <div class="text-[12px] ink-mute">updated {{ mtime_str }}</div>
+      </div>
+    {% endif %}
+    {% if md_html %}
+      <article class="md-body prose-base max-w-none">{{ md_html|safe }}</article>
+    {% else %}
+      <pre class="text-[12.5px] whitespace-pre-wrap" style="background: var(--line-soft); padding: 14px; border-radius: 8px;">{{ md_text }}</pre>
+    {% endif %}
+  </section>
+{% else %}
+  <section class="surface rounded-2xl p-6 text-[14px] ink-soft">
+    {{ placeholder }}
+  </section>
+{% endif %}
+{% endblock %}

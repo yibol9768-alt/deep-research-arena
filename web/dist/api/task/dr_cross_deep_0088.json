@@ -1,0 +1,93 @@
+{
+  "task_id": "dr_cross_deep_0088",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0088",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a comprehensive market-intelligence report on Best Online Learning Platforms for Career Changers, spanning FOUR dimensions. Search the One Stop Market (`__SHOPPING__`) for relevant products, harvest community discussions from the Postmill forum (`__REDDIT__`), and ground claims using the Wikipedia corpus (`__WIKIPEDIA__`). The report must be grounded in AT LEAST 120 distinct source URLs drawn from the sandbox (shopping / reddit / wikipedia), and MUST cite at least 60 of them as markdown links.\n\n(A) PRODUCT LANDSCAPE — Enumerate Best Online Learning Platforms for Career Changers across every relevant search facet: keywords at minimum {online education courses, career development books, coding bootcamp, business skill training, technical courses, professional certification, self-paced learning, study planner, online course book}. Target: ≥ 40 distinct platform profiles spanning ≥ 6 providers and ≥ 3 pricing models. For EACH platform record: exact platform_url, pricing model, average rating, review_count, and every feature-claim that appears on the page.\n\n(B) COMMUNITY SENTIMENT — Harvest ≥ 30 distinct Postmill threads (`__REDDIT__`) discussing Best Online Learning Platforms for Career Changers across AT LEAST four sub-forums (e.g. r/Education, r/GetEducated, AskReddit, r/career, r/PersonalFinance, r/Entrepreneur, r/startups, r/learnprogramming — any four that yield on-topic posts). For each thread record: thread_url, forum, score, comment_count, and a one-sentence summary of the top-voted take. Classify each thread into one of {praise, complaint, technical_question, comparison, purchase_advice}.\n\n(C) TECHNICAL GROUNDING — Using the English Wikipedia corpus served by Kiwix (`__WIKIPEDIA__`), locate ≥ 25 distinct Wikipedia articles that define OR explain the feature claims extracted from (A). Mandatory coverage for: {Online learning, Massive open online course, E-learning, Continuing education, Professional development, Online degree programs, Adult education, Distance education, Lifelong learning, MOOC} plus ≥ 15 more articles covering the specific feature claims found in (A). For each article record: article_url and a one-sentence extraction of the defining statement.\n\n(D) CROSS-SOURCE SYNTHESIS — The final report must include sections that:\n  1. List ≥ 5 feature claims from (A) that either LACK Wikipedia backing or CONTRADICT it — each with the platform URL, the wiki URL, and the specific contradiction.\n  2. Rank the providers found in (A) by aggregated Reddit sentiment, citing ≥ 2 reddit threads per provider as evidence.\n  3. Surface ≥ 3 divergences where a platform's average rating is high (≥ 4.0) but Reddit sentiment is negative, OR vice versa — each divergence cited with platform URL + ≥ 1 reddit URL.\n  4. Output a final TOP-10 list where each pick has (platform URL + ≥ 2 reddit URL + ≥ 1 wiki URL) traceable evidence chain.\n\nFormatting rules: every factual claim is a markdown link `[label](url)`. Source URLs MUST be sandbox-local. Do not fabricate URLs — the URL must resolve on the sandbox. The final report should adhere to the following synthesis requirements:\n\n(contradiction_findings_min: 5, brand_sentiment_rankings_min: 4, rating_sentiment_divergences_min: 3, final_buy_list_size: 10, final_buy_list_sources_per_item: {shopping: 1, reddit: 2, wikipedia: 1})",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=online+education+courses",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0088.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0088.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "contradiction_findings_min": 5,
+      "brand_sentiment_rankings_min": 4,
+      "rating_sentiment_divergences_min": 3,
+      "final_buy_list_size": 10,
+      "final_buy_list_sources_per_item": {
+        "shopping": 1,
+        "reddit": 2,
+        "wikipedia": 1
+      }
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/online_learning_recommendation.yaml. Golden: must=138, pool=527."
+  },
+  "rows": []
+}

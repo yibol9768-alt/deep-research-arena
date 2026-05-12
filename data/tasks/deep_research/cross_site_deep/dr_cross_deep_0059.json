@@ -1,0 +1,106 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0059",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce a Causal Explanation report answering: 'Why are coral reefs bleaching at accelerating rates, and what physical, chemical, and environmental factors contribute to this phenomenon?' The report is NOT a conservation guide; it must build a causal chain from first principles to observed trends. Generate a multi-layer causal diagram in markdown (indented bullet hierarchy, NOT graphviz) tracing 4 causal layers:\n\n- L1 physical: ocean temperature increases, ultraviolet radiation exposure, ocean acidification (cite wiki).\n- L2 biological: coral stress response, symbiotic algae loss, coral mortality rate (cite wiki).\n- L3 environmental: climate change, pollution, overfishing (cite shopping for conservation gear).\n- L4 observed trends: global bleaching events, reef health decline (cite >= 8 cited).\n\nAdd a 'mitigation strategies ranked by % reduction in bleaching rate' table — each strategy cited with one shopping URL (product for marine conservation) + one reddit URL (user reporting the effect). End with a 'reef resilience ranking' section ranking >= 3 coral species by aggregated reef health metrics, citing >= 3 wiki articles / species.\n\nFormat: markdown links only. Begin with the L1 layer. No chain-of-thought.\n\nYou must gather evidence from the following sources:\n\n- A) __SHOPPING__ >= 30 marine conservation products (coral reef monitoring equipment, water quality sensors, marine ecosystem restoration kits) with marketing claims + price.\n- B) __REDDIT__ >= 30 threads from /r/coralreefs, /r/conservation, /r/earthscience, /r/environment, /r/marinebio, /r/underwater — bleaching reports, restoration projects, climate change discussions.\n- C) __WIKIPEDIA__ >= 25 articles, mandatory: Coral bleaching, Ocean warming, Ocean acidification, Climate change, Marine biodiversity, Ecosystem services, Coral reef, Coastal protection, Pollution, Overfishing — plus >= 15 more.\n\nYou must adhere to the following synthesis requirements:\n\n- task_type: causal\n- causal_layers: ['L1_physical', 'L2_biological', 'L3_environmental', 'L4_observed_trends']\n- min_wiki_per_layer: {'L1_physical': 3, 'L2_biological': 3, 'L3_environmental': 3, 'L4_observed_trends': 8}\n- min_reddit_per_layer: {'L3_environmental': 5, 'L4_observed_trends': 8}\n- l4_must_have_explicit_percent: true\n- mitigation_strategies_min: 5\n- min_evidence_per_strategy: {'shopping': 1, 'reddit': 1}\n- model_ranking_min: 3\n- min_reddit_per_model: 3\n- explicitly_forbid_top10: true\n\nYou must ensure the following checklist items are met:\n\n- Item 1: PASS\n- Item 2: PASS\n- Item 3: PASS\n- Item 4: PASS\n- Item 5: PASS\n- Item 6: PASS\n- Item 7: PASS\n- Item 8: PASS\n- Item 9: PASS\n- Item 10: PASS\n- Item 11: PASS\n- Item 12: PASS\n- Item 13: PASS\n- Item 14: PASS\n- Item 15: PASS\n- Item 16: PASS\n- Item 17: PASS\n- Item 18: PASS\n- Item 19: PASS\n- Item 20: PASS\n- Item 21: PASS\n\nProvide >= 120 sandbox URLs (>= 60 cited) for the evidence you find.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=coral+reefs+ecosystem",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0059.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0059.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "causal",
+    "causal_layers": [
+      "L1_physical",
+      "L2_biological",
+      "L3_environmental",
+      "L4_observed_trends"
+    ],
+    "min_wiki_per_layer": {
+      "L1_physical": 3,
+      "L2_biological": 3,
+      "L3_environmental": 3,
+      "L4_observed_trends": 8
+    },
+    "min_reddit_per_layer": {
+      "L3_environmental": 5,
+      "L4_observed_trends": 8
+    },
+    "l4_must_have_explicit_percent": true,
+    "mitigation_strategies_min": 5,
+    "min_evidence_per_strategy": {
+      "shopping": 1,
+      "reddit": 1
+    },
+    "model_ranking_min": 3,
+    "min_reddit_per_model": 3,
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/coral_bleaching_causal.yaml. Golden: must=135, pool=689."
+}

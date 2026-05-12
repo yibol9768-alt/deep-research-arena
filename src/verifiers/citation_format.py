@@ -56,6 +56,44 @@ URL_TRAIL_PUNCT = ").,;:`'\"\\!?>]}"
 # Canonicalisation
 # ---------------------------------------------------------------------------
 
+_KIWIX_HOSTS = {"localhost:8090"}
+
+
+def _kiwix_normalize_path(path: str) -> str:
+    """Collapse Kiwix article-URL aliases to one canonical path.
+
+    Kiwix on localhost:8090 serves the same Wikipedia article under many URL
+    forms, depending on the book name, the no-JS variant, and historical
+    redirects:
+
+        /content/wikipedia_en_all_nopic/A/Microplastics   <- canonical
+        /A/Microplastics
+        /wiki/Microplastics
+        /wikipedia_en_all_maxi_2022-05/A/Microplastics
+        /nojs/wikipedia_en_all/A/Microplastics
+        /nojs/A/Microplastics
+        /nojs/eng%20wikipedia/A/Microplastics
+        /kiwix/content/wikipedia_en_all_maxi/A/Microplastics
+
+    Article id is lowercased so case typos (calisthenics vs Calisthenics)
+    don't cost the agent a match. Wikipedia article slugs are conventionally
+    case-sensitive, but agents often emit them lowercased, and our sandbox
+    is small enough that real same-name-different-case collisions don't
+    occur. Without normalisation, an agent that fetched the same article
+    via a different prefix records 0 must_cite hits even though it cited
+    the right page — a real fairness bug observed on 13 historical pairs.
+    """
+    # /A/<id>  (Kiwix article namespace)
+    idx = path.rfind("/A/")
+    if idx != -1:
+        return f"/content/wikipedia_en_all_nopic/A/{path[idx + 3:].lower()}"
+    # /wiki/<id>  (legacy Wikipedia path used by some Kiwix configs)
+    idx = path.rfind("/wiki/")
+    if idx != -1:
+        return f"/content/wikipedia_en_all_nopic/A/{path[idx + 6:].lower()}"
+    return path
+
+
 def canonicalize_url(url: str) -> str:
     """Return a stable form of ``url`` for set membership / goldset match.
 
@@ -63,6 +101,7 @@ def canonicalize_url(url: str) -> str:
     * Strip trailing punctuation that markdown / sentences leave.
     * Lowercase scheme and host.
     * Strip default ports (80, 443) but keep custom (7770/9999/8090).
+    * Collapse Kiwix article-URL aliases (see ``_kiwix_normalize_path``).
     * Strip trailing slash on non-root paths; keep root as ``/``.
     * Sort query params.
     * Drop fragment (``#section``).
@@ -82,6 +121,8 @@ def canonicalize_url(url: str) -> str:
         else:
             netloc = host
         path = p.path or "/"
+        if netloc in _KIWIX_HOSTS:
+            path = _kiwix_normalize_path(path)
         if path != "/":
             path = path.rstrip("/")
         qs = urlencode(sorted(parse_qsl(p.query, keep_blank_values=True)))

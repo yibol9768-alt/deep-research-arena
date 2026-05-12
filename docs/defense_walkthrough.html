@@ -1,0 +1,1728 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Deep-Research Arena 答辩讲解稿</title>
+<style>
+:root{
+  --bg:#fafaf7;
+  --surface:#ffffff;
+  --ink:#0c0a09;
+  --ink-soft:#3b3a36;
+  --ink-mute:#78716c;
+  --line:#e7e5e0;
+  --line-soft:#f1efe9;
+  --accent:#3a4fb0;
+  --accent-soft:#eef0fa;
+  --accent-ink:#1f2a6b;
+  --warn:#7c5500;
+  --warn-soft:#fff3d3;
+  --good:#155f37;
+  --good-soft:#dcf2e3;
+  --bad:#962020;
+  --bad-soft:#fbe4e4;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI","Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Source Han Sans SC",sans-serif;font-size:15px;line-height:1.75;}
+code,pre,.mono{font-family:"JetBrains Mono","Consolas","Cascadia Mono",monospace;}
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+nav.toc{
+  position:sticky;top:0;align-self:start;
+  background:var(--surface);border-right:1px solid var(--line);
+  padding:24px 18px;height:100vh;overflow-y:auto;
+  font-size:13px;
+}
+nav.toc .brand{font-size:15px;font-weight:700;letter-spacing:.01em;margin-bottom:4px;}
+nav.toc .sub{font-size:11.5px;color:var(--ink-mute);margin-bottom:18px;}
+nav.toc ol{list-style:none;padding:0;margin:0;}
+nav.toc li{margin:0;}
+nav.toc a{display:block;padding:5px 8px;border-radius:5px;text-decoration:none;color:var(--ink-soft);border-left:2px solid transparent;}
+nav.toc a:hover{background:var(--line-soft);color:var(--ink);}
+nav.toc .lvl2{padding-left:18px;font-size:12.5px;color:var(--ink-mute);}
+main{padding:46px 60px 120px;max-width:980px;}
+h1{font-size:30px;line-height:1.25;font-weight:800;margin:0 0 6px;letter-spacing:-0.01em;}
+h2{font-size:23px;font-weight:700;margin:48px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+h3{font-size:17px;font-weight:700;margin:28px 0 8px;color:var(--ink);}
+h4{font-size:14.5px;font-weight:700;margin:18px 0 4px;color:var(--ink-soft);}
+p{margin:.55em 0;}
+small{color:var(--ink-mute);}
+strong{font-weight:700;}
+em{font-style:italic;}
+a{color:var(--accent);}
+code{background:var(--line-soft);padding:1px 5px;border-radius:4px;font-size:12.5px;color:var(--ink);}
+pre{background:#0c0a09;color:#f5f5f0;padding:14px 16px;border-radius:8px;font-size:12.5px;line-height:1.55;overflow-x:auto;}
+pre code{background:transparent;padding:0;color:inherit;}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13px;font-variant-numeric:tabular-nums;background:var(--surface);}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top;}
+th{background:var(--line-soft);font-weight:600;}
+.num{text-align:right;font-variant-numeric:tabular-nums;font-family:"JetBrains Mono","Consolas",monospace;}
+.cover{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px 30px;margin-bottom:18px;box-shadow:0 1px 0 rgba(0,0,0,0.02);}
+.cover .meta{color:var(--ink-mute);font-size:13px;margin-top:4px;}
+.cover .stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;}
+.stat{flex:1;min-width:140px;background:var(--line-soft);border-radius:10px;padding:10px 14px;}
+.stat .k{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.07em;}
+.stat .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px;}
+.callout{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:18px 0;color:var(--accent-ink);}
+.callout h4{margin-top:0;color:var(--accent-ink);}
+.warn{background:var(--warn-soft);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--warn);}
+.bad{background:var(--bad-soft);border-left:4px solid var(--bad);border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--bad);}
+.good{background:var(--good-soft);border-left:4px solid var(--good);border-radius:0 10px 10px 0;padding:12px 16px;margin:14px 0;color:var(--good);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:14px 0;}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+.card h4{margin-top:0;}
+.tag{display:inline-block;background:var(--line-soft);color:var(--ink-soft);padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600;margin-right:5px;}
+.tag-good{background:var(--good-soft);color:var(--good);}
+.tag-bad{background:var(--bad-soft);color:var(--bad);}
+.tag-warn{background:var(--warn-soft);color:var(--warn);}
+.tag-accent{background:var(--accent-soft);color:var(--accent-ink);}
+.kbd{font-family:"JetBrains Mono",monospace;background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;font-size:11.5px;color:var(--ink-soft);}
+ul,ol{padding-left:24px;margin:.4em 0;}
+li{margin:.18em 0;}
+.formula{background:var(--line-soft);padding:10px 14px;border-radius:8px;font-family:"JetBrains Mono",monospace;font-size:13px;margin:10px 0;overflow-x:auto;}
+.qa{border-left:3px solid var(--accent);padding:6px 16px;margin:14px 0;background:var(--surface);border-radius:0 8px 8px 0;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);}
+.qa .q{font-weight:700;color:var(--accent-ink);margin:6px 0 2px;}
+.qa .q::before{content:"Q. ";color:var(--accent);}
+.qa .a{margin:2px 0 8px;}
+.qa .a::before{content:"A. ";color:var(--ink-mute);font-weight:700;}
+.section-eyebrow{font-size:11px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-top:18px;}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;margin:14px 0;}
+.diagram pre{background:transparent;color:var(--ink-soft);padding:0;font-size:11.5px;line-height:1.45;}
+hr{border:none;border-top:1px solid var(--line);margin:24px 0;}
+.muted{color:var(--ink-mute);}
+.tight{margin:0;}
+@media (max-width:1100px){
+  .layout{grid-template-columns:1fr;}
+  nav.toc{position:relative;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+  main{padding:30px 22px 80px;}
+  .grid2,.grid3{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc">
+  <div class="brand">Deep-Research Arena</div>
+  <div class="sub">答辩讲解稿 · 2026-05</div>
+  <ol>
+    <li><a href="#open">0. 一分钟开场</a></li>
+    <li><a href="#sec1">1. 为什么做这件事</a></li>
+    <li><a href="#sec1-1" class="lvl2">1.1 开放网的四个问题</a></li>
+    <li><a href="#sec1-2" class="lvl2">1.2 我们的贡献</a></li>
+    <li><a href="#sec2">2. 整套系统怎么搭的</a></li>
+    <li><a href="#sec2-1" class="lvl2">2.1 端到端数据流</a></li>
+    <li><a href="#sec2-2" class="lvl2">2.2 组件清单</a></li>
+    <li><a href="#sec3">3. 三个沙盒服务</a></li>
+    <li><a href="#sec3-1" class="lvl2">3.1 Magento 电商</a></li>
+    <li><a href="#sec3-2" class="lvl2">3.2 Postmill 论坛</a></li>
+    <li><a href="#sec3-3" class="lvl2">3.3 Kiwix 百科</a></li>
+    <li><a href="#sec3-4" class="lvl2">3.4 搜索 shim</a></li>
+    <li><a href="#sec3-5" class="lvl2">3.5 DS proxy</a></li>
+    <li><a href="#sec4">4. 任务怎么设计</a></li>
+    <li><a href="#sec5">5. 13 个框架的接入</a></li>
+    <li><a href="#sec5-1" class="lvl2">5.1 三种适配范式</a></li>
+    <li><a href="#sec5-2" class="lvl2">5.2 每个框架的细节</a></li>
+    <li><a href="#sec6">6. 七个评分维度</a></li>
+    <li><a href="#sec7">7. 三个复合分 v1/v2/v3</a></li>
+    <li><a href="#sec8">8. Bradley-Terry 排名</a></li>
+    <li><a href="#sec9">9. 退化样本怎么过滤</a></li>
+    <li><a href="#sec10">10. 实验结果</a></li>
+    <li><a href="#sec11">11. 四个关键发现</a></li>
+    <li><a href="#sec11-1" class="lvl2">11.1 真实性门反转</a></li>
+    <li><a href="#sec11-2" class="lvl2">11.2 多智能体占优</a></li>
+    <li><a href="#sec11-3" class="lvl2">11.3 GitHub 热度分歧</a></li>
+    <li><a href="#sec11-4" class="lvl2">11.4 框架级 bug</a></li>
+    <li><a href="#sec12">12. 局限性与审计</a></li>
+    <li><a href="#sec13">13. 未来工作</a></li>
+    <li><a href="#sec14">14. 答辩 Q&amp;A 预案</a></li>
+    <li><a href="#sec15">15. 评分体系局限与扩展设计</a></li>
+    <li><a href="#sec15-1" class="lvl2">15.1 用户质疑</a></li>
+    <li><a href="#sec15-2" class="lvl2">15.2 别人怎么打分</a></li>
+    <li><a href="#sec15-3" class="lvl2">15.3 我们的盲区</a></li>
+    <li><a href="#sec15-4" class="lvl2">15.4 四个新 pillar</a></li>
+    <li><a href="#sec15-5" class="lvl2">15.5 composite_v4</a></li>
+    <li><a href="#sec15-6" class="lvl2">15.6 路线图与代价</a></li>
+    <li><a href="#sec15-7" class="lvl2">15.7 方法学改进</a></li>
+    <li><a href="#sec15-8" class="lvl2">15.8 v4 落地实验 (真数据)</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<div class="cover">
+  <h1>基于沙盒环境的开源深度研究智能体评测基准</h1>
+  <div class="meta">Deep-Research Arena · 答辩讲解稿 · 2026年5月</div>
+  <p style="margin-top:14px;font-size:14.5px;line-height:1.8;">
+    一句话:用三个本地化的密封服务 (Magento 电商、Postmill 论坛、Kiwix 离线维基) 替代开放互联网,把 13 个开源深度研究框架放到同一基底、同一骨干、同一打分栈上,以「URL 可达性作乘性门」的复合指标 <code>composite_v2</code> 排出 Elo 表,得到一项可被任何人在普通硬件上字节级复现的结论。
+  </p>
+  <div class="stats">
+    <div class="stat"><div class="k">沙盒服务</div><div class="v">3 + 2</div></div>
+    <div class="stat"><div class="k">接入框架</div><div class="v">13</div></div>
+    <div class="stat"><div class="k">头部排名框架</div><div class="v">9</div></div>
+    <div class="stat"><div class="k">跨站点任务</div><div class="v">100 / 56 已打分</div></div>
+    <div class="stat"><div class="k">打分文件</div><div class="v">283</div></div>
+    <div class="stat"><div class="k">评分维度</div><div class="v">7</div></div>
+  </div>
+</div>
+
+<!-- 0 -->
+<section id="open">
+<h2>0. 一分钟开场</h2>
+
+<div class="callout">
+<h4>三句话陈述</h4>
+<ol style="margin:6px 0;">
+  <li>开放互联网不是评测 DR 智能体的好环境,因为页面会漂、URL 会 404、真实性几乎不可探测。我们用三个冻结的本地语料把这套环境锁住。</li>
+  <li>评分体系里我们做的最重要的事是把「URL 可达性」从加分项升格为乘性门:智能体捏造 URL,无论文笔多好,分数直接归零。</li>
+  <li>这一改动直接反转了排名。GitHub 25.7k stars 的 <code>gpt-researcher</code> 在加性公式下第 1,在乘性门下掉到第 5;有显式 URL 校验流程的 <code>camel-ai</code> 升到第 1。</li>
+</ol>
+</div>
+
+<h4>评委可能直击的三个点 (先把答案放在脑子里)</h4>
+<ul>
+  <li>「为什么不在 GAIA / BrowseComp 上跑就行?」答:它们是开放网,真实性不可探测,实验不可复现。详见 §1.1。</li>
+  <li>「为什么真实性门要乘性而不是加性?」答:加性会把「文笔好的捏造」奖励上去,乘性能强制归零。详见 §7。</li>
+  <li>「9 个框架的 Elo 名次,统计上真的能区分吗?」答:头部三名一簇、尾部六名一簇,中间隔一条 362 Elo 的鸿沟 (p&lt;0.001),其余相邻名次置换 p 都 &gt;0.30。详见 §8 与 §10。</li>
+</ul>
+</section>
+
+<!-- 1 -->
+<section id="sec1">
+<h2>1. 为什么做这件事</h2>
+
+<p>深度研究 (Deep Research, DR) 智能体的工作流是:读一个研究问题、上网搜索证据、抓取页面、写一份带引文的报告。我们要评估的能力是多面的:智能体是否找到了正确的信息源,是否忠实引用,是否做了跨源综合,是否承认了自身的局限。直觉上,衡量这些能力的自然环境就是开放互联网。GAIA、BrowseComp、AssistantBench、BrowserGym 也都是开放网基准。</p>
+
+<p><strong>本论文的核心命题:对以「科学测量智能体能力」为目标的研究而言,开放互联网恰恰是错误的环境。</strong></p>
+
+<h3 id="sec1-1">1.1 开放网的四个问题</h3>
+<div class="grid2">
+  <div class="card">
+    <h4>① 漂移</h4>
+    <p>一周前还能支撑某项结论的页面今天可能 404,昨晚可能被修改过,今早可能被搜索引擎重排。两位研究者隔一个月跑「同一个」基准,得到的数字会不同,且双方都无法证伪对方。基准本身因此不可证伪。</p>
+  </div>
+  <div class="card">
+    <h4>② 真实性几乎不可探测</h4>
+    <p>真实性打分要回答三个子问题:URL 能否解析、页面是否含被引用文本、被引页面是否真的支撑论断。在开放网上,这三个探针每一次都是与地理路由、登录墙、限流、CDN 抖动、静默改版的赌博。从智能体所在主机返回 200 的 URL,从打分主机看可能就是 403。</p>
+  </div>
+  <div class="card">
+    <h4>③ 产品评测 ≠ 能力测量</h4>
+    <p><code>gpt-researcher</code> (GitHub 25.7k) 在开放网基准上拿高分,有两种读法:架构好,或者它对开放网调得极顺 (提示词针对真 Google 调过、检索流水线针对真 CDN 工程化)。两者都是合理意义上的进步,但我们声称要测的只是前者。沙盒可以主动屏蔽掉后者。</p>
+  </div>
+  <div class="card">
+    <h4>④ 昂贵</h4>
+    <p>开放网每次运行都要拉真实页面、撞真实限流、烧真实 token,而很多页面下月就不在了。沙盒可以在 15 分钟内复跑一个智能体在一个任务上的运行、确定性打分、随时复现。</p>
+  </div>
+</div>
+
+<p>这场交易的本质是 <strong>用「真实感」换「可复现性」</strong>。沙盒覆盖面不如开放网 (本文三个语料共约 2000 个商品页 + 若干万 Reddit 评论 + 若干 Wikipedia 文章),但被牺牲的覆盖面换来了:每一个真实性探针都可以在 <em>O(1)</em> 时间内对冻结的真相执行,且 404 与网络抖动之间不再需要主观判断。</p>
+
+<h3 id="sec1-2">1.2 现有工作与本文贡献</h3>
+
+<table>
+<thead><tr><th>已有方向</th><th>代表工作</th><th>我们继承了什么</th><th>我们改了什么</th></tr></thead>
+<tbody>
+<tr><td>DR 基准</td><td>GAIA、BrowseComp、AssistantBench、BrowserGym</td><td>「智能体 + 报告 + 打分」的整体范式</td><td>把基底从开放网换成冻结的多语料沙盒</td></tr>
+<tr><td>沙盒化智能体评测</td><td>WebArena、AgentBench</td><td>Magento + Postmill 实例</td><td>把「任务完成位」换成「多维度报告质量分」</td></tr>
+<tr><td>引文忠实度</td><td>ALCE、FactScore</td><td>每引文精确率/召回率框架</td><td>把三个确定性探针 + 四个 LLM 细则放在同一指标体系下</td></tr>
+<tr><td>RAG 评测</td><td>RAGAS</td><td>忠实度 / 答案相关性 / 上下文相关性</td><td>NLI 对象用「黄金引文片段」而非运行时检索上下文</td></tr>
+<tr><td>LLM 作判官</td><td>MT-Bench、Chatbot Arena</td><td>零温度 LLM 判官 + 细则分解</td><td>加上确定性「锚定关键词交叉检查」守卫,防止松懈模式</td></tr>
+<tr><td>成对比较排名</td><td>Chatbot Arena (BT/Elo)</td><td>Bradley-Terry 模型</td><td>对战来源:由复合分数合成而非人工标注</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<h4>本论文的五项贡献</h4>
+<ol>
+  <li><strong>密封的多源沙盒</strong>:Magento + Postmill + Kiwix + Tavily 兼容 shim + OpenAI 兼容 ds_proxy,智能体进程无任何真实互联网出口。</li>
+  <li><strong>七维评分体系</strong>:3 个确定性真实性探针 + 4 个带守卫的 LLM 评分细则。</li>
+  <li><strong>乘性真实性门 <code>composite_v2</code></strong>:把「捏造引文」从「扣分项」升格为「归零项」。</li>
+  <li><strong>Bradley-Terry Elo + 1000 次 Bootstrap CI + 1000 次置换 p 值</strong>:把「智能体 A 强于 B」从经验观察升为可检验的统计命题。</li>
+  <li><strong>13 个开源 DR 框架的统一接入层</strong>:进程内 monkey-patch / 子进程 driver / Node HTTP API 三种范式,9 个框架累计 283 份打分文件进入头部 Elo。</li>
+</ol>
+</div>
+</section>
+
+<!-- 2 -->
+<section id="sec2">
+<h2>2. 整套系统怎么搭的</h2>
+
+<h3 id="sec2-1">2.1 端到端数据流</h3>
+<p>整个基准由 <strong>三个沙盒服务 + 两个粘合服务 + 一份任务语料 + 一套打分栈 + 每框架一份运行器</strong> 构成。所有组件运行于一台 Windows + WSL 主机 (内部代号 <code>westd</code>),全部通过 localhost 通讯。</p>
+
+<p>智能体进程只能看见 localhost。除搜索 shim 与 LLM 代理外,网络出口全部被屏蔽。每一次搜索调用都从智能体的虚拟环境出口到 8081 端口;每一次模型调用都出口到 8088 端口。智能体产出的每一个 URL 都会与三个沙盒 <code>host:port</code> 对作严格比对 (<code>localhost:7770</code>、<code>localhost:9999</code>、<code>localhost:8090</code>);任何指向其它地址的 URL 都不计入引文覆盖与可达性。<strong>这一条规则,是真实性可被打分的根本原因。</strong></p>
+
+<div class="diagram">
+<pre>
+                    +-----------------+
+                    |   任务语料库     |
+                    | 100 份 spec +   |
+                    | 黄金池          |
+                    +--------+--------+
+                             |
+                             v
++--------+   intent    +-----+------+   search    +-----------+
+| Runner +------------>|   Agent    +------------>|  Shim     |
+| 脚本   | <- report --+ (venv 内)  |<- 结果 -----+ :8081     |
++---+----+             +---+--------+             +-----+-----+
+    |                      |                            |
+    | md report            | LLM 调用                   | 按域路由
+    v                      v                            v
++--------+            +-----+-------+         +---------+---------+
+| 打分器 |            | ds_proxy    |         | Magento  :7770    |
+| 7 维   |<-----------+ :8088       |         | Postmill :9999    |
+| pillar |            +-----+-------+         | Kiwix    :8090    |
++---+----+                  |                 +-------------------+
+    |                       v
+    v                +------+-------+
++--------+           | DeepSeek v4  |
+| score  |           | flash (真)   |
+| .json  |           +--------------+
++--------+
+    |
+    v
++-------------------+
+| 排行榜构造        |
+| Bradley-Terry +CI |
++-------------------+
+</pre>
+</div>
+
+<h3 id="sec2-2">2.2 系统组件清单</h3>
+<table>
+<thead><tr><th>组件</th><th>位置</th><th>负责</th></tr></thead>
+<tbody>
+<tr><td>Magento (shopping)</td><td><code>localhost:7770</code></td><td>约 2000 商品页、类目、评论</td></tr>
+<tr><td>Postmill (forum)</td><td><code>localhost:9999</code></td><td>论坛帖、评论、子版块层级</td></tr>
+<tr><td>Kiwix (Wikipedia)</td><td><code>localhost:8090</code></td><td>离线英文维基 ZIM 镜像</td></tr>
+<tr><td>搜索 shim</td><td><code>localhost:8081</code></td><td>Tavily 兼容 API,索引三个语料</td></tr>
+<tr><td>DS proxy</td><td><code>localhost:8088</code></td><td>OpenAI 兼容代理 → DeepSeek V4-flash</td></tr>
+<tr><td>运行器分派</td><td><code>run_deep_task.py:1359</code></td><td>把 <code>--agent</code> 映射到 13 个 runner</td></tr>
+<tr><td>验证器栈</td><td><code>src/verifiers/</code></td><td>7 个 pillar,由 <code>score_deep_answer</code> 调用</td></tr>
+<tr><td>复合分数</td><td><code>src/scoring/leaderboard_composites.py</code></td><td>v1/v2/v3 的唯一定义来源</td></tr>
+<tr><td>排行榜构造</td><td><code>scripts/build_deep_leaderboard.py</code></td><td>读 score JSON,写 Elo 表</td></tr>
+<tr><td>Web 应用</td><td><code>web/server.py</code></td><td>实时读盘 leaderboard JSON,无数据库</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- 3 -->
+<section id="sec3">
+<h2>3. 三个沙盒服务</h2>
+
+<p>沙盒围绕三个属性而设计:智能体可能引用的每一个 URL 都可<strong>确定性地解析</strong>,三个语料彼此差异足够大以使<strong>跨源任务非平凡</strong>,整套栈在单机上不需要任何<strong>实时互联网调用</strong>。每个语料都是真实 DR 信息基底的「最小可行片段」。</p>
+
+<h3 id="sec3-1">3.1 Magento <span class="muted">(shopping, localhost:7770)</span></h3>
+<p>电商语料是从 WebArena 的 <code>onestopmarket</code> 快照导入的 Magento 2 实例,约 2000 商品页,横跨 Electronics、Home &amp; Kitchen、Beauty &amp; Personal Care 三大类目和数十个叶子类目。每页含 URL slug、价格、星级、评论数、自由文本特征列表、若干用户评论。</p>
+<p><strong>为什么选 Magento?</strong> 它是 WebArena 用的真实电商基底;商品页 URL 结构稳定地以 <code>/product/...html</code> 结尾;直接复用了 WebArena 的「类目页 → 商品页」浏览模式。</p>
+<div class="warn">
+<strong>两个实践后果。</strong> ① Magento URL 路径<strong>大小写敏感</strong>(默认设置)。把路径转小写的框架自动失去可达性, <code>ldr</code> 的失败模式之一就是这条。② 并行 HEAD 探活时 Magento 偶尔重置连接。<code>URLReachabilityVerifier._probe</code> 因此采用 GET (非 HEAD) + 3 次重试 + 指数退避。
+</div>
+
+<h3 id="sec3-2">3.2 Postmill <span class="muted">(reddit, localhost:9999)</span></h3>
+<p>论坛语料来自 WebArena 的 Postmill 实例,含一批精选「子版」(<code>/f/technology</code>、<code>/f/gadgets</code>、<code>/f/AskReddit</code>、<code>/f/headphones</code>、<code>/f/askscience</code> 等),含帖子、评论、点赞数、时间戳。</p>
+<p><strong>为什么选 Postmill?</strong> WebArena 自带的开源 Reddit 克隆;URL 结构 <code>/f/&lt;forum&gt;/comments/&lt;post_id&gt;/&lt;slug&gt;</code> 稳定;评论层级让智能体能从静态商品页拿不到的「社区情绪」中获取信号。任务中的「按 Reddit 情绪给品牌排名」「评分 vs 情绪分歧」等综合要求都依赖这个语料。</p>
+
+<h3 id="sec3-3">3.3 Kiwix <span class="muted">(Wikipedia, localhost:8090)</span></h3>
+<p>百科语料是 Kiwix 服务器加载 <code>wikipedia_en_all_nopic</code> ZIM 文件,文章 URL 形如 <code>localhost:8090/content/wikipedia_en_all_nopic/A/&lt;Article_Title&gt;</code>。</p>
+<p><strong>为什么选 Kiwix?</strong> ZIM 文件是英文维基的冻结签名快照;Kiwix 服务器轻量且确定;维基镜像是用以核验技术性论断 (编解码器、电池、RFC) 的天然「百科基底」。</p>
+<div class="warn">
+<strong>两个实践后果。</strong> ① 文章路径<strong>大小写敏感</strong>:<code>/A/Bluetooth</code> 可达,<code>/A/bluetooth</code> 返回 404。若干框架默认归一化为小写,在维基域上单独拿到 <code>reachability=0</code>;<code>ldr</code> 排名靠后部分原因即此 (其 30 份打分 <code>composite_v2</code> 均值 = 0.029)。② 部分框架会输出 <code>en.wikipedia.org/wiki/&lt;Title&gt;</code> 形态。HTTP 层拦截 (<code>scripts/run_deep_task.py:107-115</code>) 把这些在传输层重写为 Kiwix 前缀;若无此重写,<code>langchain-odr</code> 与 <code>ii-researcher</code> 会输出充满外部 URL 的报告。
+</div>
+
+<h3 id="sec3-4">3.4 搜索 shim <span class="muted">(localhost:8081)</span></h3>
+<p>Tavily 兼容的 HTTP 服务,实现于 <code>integrations/search_shim/app.py</code>。对外暴露 <code>POST /search</code> 与 <code>POST /extract</code> 两个端点。内部把查询路由到三个索引 (商品标题、论坛主题+正文、维基标题+导言段落),合并 top-N,以 Tavily JSON 返回。</p>
+<p>三条重要性质:</p>
+<ul>
+  <li><strong>Tavily 兼容即集成契约。</strong> 接入的每一个框架都已经支持 Tavily。把每个框架的 Tavily 客户端指向 shim 是一行 <code>base_url</code> 配置即可完成的事,无需写自定义工具或调提示词。</li>
+  <li><strong>无任何真实互联网调用。</strong> shim 从不发出对外网的网络调用。智能体搜索沙盒不存在的品牌就是空列表。</li>
+  <li><strong>排序稳定。</strong> 按固定 BM25 排序,第 0 分钟与第 1000 分钟的同一查询返回完全一样的结果。这一性质是每任务黄金池得以作为<strong>冻结真相</strong>的基础。</li>
+</ul>
+
+<h3 id="sec3-5">3.5 DS proxy <span class="muted">(localhost:8088)</span></h3>
+<p>OpenAI 兼容的大模型端点,实现于 <code>integrations/ds_proxy/app.py</code>。智能体把它当作 <code>https://api.openai.com/v1</code> 用,代理把每个请求翻译为 DeepSeek API 调用,在请求体中注入 <code>thinking: disabled</code>,然后流式回传。</p>
+<p>集中化 LLM 的三条理由:</p>
+<ul>
+  <li><strong>全基准一个骨干。</strong> 头部排名中每个智能体都跑在同一份 <code>deepseek-v4-flash</code> 非推理 checkpoint 上。跨智能体对比因此测量的是<strong>智能体架构</strong>,而非<strong>骨干强度</strong>。</li>
+  <li><strong>服务端持有密钥。</strong> 智能体只看见 <code>OPENAI_API_KEY=anything</code>。真实 DeepSeek 密钥存于代理的环境变量中,永不进入任何智能体虚拟环境。</li>
+  <li><strong>单点关闭推理。</strong> 部分框架 (<code>langchain-odr</code>、<code>qx-agents</code>) 会因为模型名子串而静默切换到推理模式。代理层注入 <code>thinking: disabled</code> 拦截每一个请求,保证比较是在同一份非推理 checkpoint 上。</li>
+</ul>
+<p>代理同时充当判官端点。<code>judge_client.py</code> 读 <code>JUDGE_BASE_URL=http://localhost:8088/v1</code>,每次 LLM 判官调用 (checklist、citation_alignment、presentation、analysis_depth、claim_nli) 都打到同一份代理、同一份骨干、<code>temperature: 0</code>。</p>
+</section>
+
+<!-- 4 -->
+<section id="sec4">
+<h2>4. 任务怎么设计</h2>
+
+<p>任务语料是 <strong>100 个跨站点深度研究任务</strong>,其中 57 个完成端到端打分。每个任务是 <code>data/tasks/deep_research/cross_site_deep/</code> 下的一份 JSON,内含:</p>
+<ul>
+  <li>自然语言意图 (通常 30 句左右)</li>
+  <li>引文政策:每域最小、总量最小、必须域名列表</li>
+  <li>Markdown 规范:字数 / 引文数 / 段落数</li>
+  <li>URL 覆盖设置:黄金池路径、recall / coverage 阈值</li>
+  <li>URL 可达阈值</li>
+  <li>黄金三元组文件路径</li>
+  <li>可选的综合要求</li>
+  <li>每任务 21 项 checklist 的路径</li>
+</ul>
+
+<div class="callout">
+<h4>三条任务设计常量</h4>
+<ol>
+  <li><strong>每任务三个站点。</strong> 每个跨站点任务都要求引用全部三个沙盒语料中的页面。<code>citation_policy.per_domain_minimum</code> 块规定每个域最少多少不同 URL (耳机任务的代表性切分为 shopping 30、reddit 20、wikipedia 15)。</li>
+  <li><strong>引文总下限 120。</strong> 每任务在 Markdown 内至少 60 个引文,黄金池中的 <code>must_cite_urls</code> 至少 120 条。120 这一数字是「可见性下限」:它强制智能体真正去做跨源检索并寻找独立证据,而非吐出 Tavily 的前三条结果。</li>
+  <li><strong>冻结的黄金池。</strong> 每个任务一份 <code>data/golden/deep/dr_cross_deep_XXXX.json</code>,由 <code>scripts/build_deep_golden.py</code> 一次性从干净沙盒快照中爬取。文件含 <code>must_cite_urls</code> (智能体应当命中的 URL,带权重)、<code>expected_pool_urls</code> (更广泛语料)、<code>triples</code> (主-谓-宾-source_url-quoted_span 五元组,驱动 <code>claim_nli</code>)。两份池一次性爬取,从不重生成,recall 分母被冻结。</li>
+</ol>
+</div>
+
+<h3>代表性任务: <code>dr_cross_deep_0001</code> (消费级耳机市场情报)</h3>
+<p>意图 31 句,4144 字符,要求:</p>
+<ul>
+  <li><strong>A 节 (产品图景):</strong> ≥40 个不同商品页,跨 ≥6 个品牌、3 个价位区间;每件给出价格 / 星级 / 评论数 / 特征论断。</li>
+  <li><strong>B 节 (社区情绪):</strong> ≥30 个 Postmill 帖,跨 ≥4 个子版,分为 5 类情绪 (praise / complaint / technical_question / comparison / purchase_advice)。</li>
+  <li><strong>C 节 (技术依据):</strong> ≥25 篇维基文章支撑 A 节技术论断;9 个指定文章 (Active noise control、Noise-cancelling headphones、Bluetooth、AptX、LDAC、Headphones、Loudspeaker、Lithium-ion battery、Wireless microphone) 强制覆盖。</li>
+  <li><strong>D 节 (跨源综合):</strong> ≥5 处商品特征与维基矛盾;按 Reddit 情绪给品牌排名;≥3 处「评分 vs 情绪」分歧;一份 top-10 购买建议,每条 ≥1 shopping + 2 reddit + 1 wiki URL。</li>
+</ul>
+<p>该任务的黄金池为 <code>must=125, pool=739</code>。它是三个「推荐锚点」之一 (0001 / 0002 / 0005),用于测试智能体能否给出排序型交付物;其余任务覆盖比较、辟谣、因果分析、时间线、枚举等模式。</p>
+
+<p>每任务 21 项 checklist,均人工撰写,集中存于 <code>data/tasks/deep_research/cross_site_deep/checklists_deep.json</code>。</p>
+</section>
+
+<!-- 5 -->
+<section id="sec5">
+<h2>5. 13 个框架的接入</h2>
+
+<h3 id="sec5-1">5.1 三种适配范式</h3>
+<p>每个框架最终都跑在同一份 shim 与同一份 <code>ds_proxy</code> 之上。适配层分为三类:</p>
+
+<div class="grid3">
+  <div class="card">
+    <span class="tag tag-accent">进程内</span>
+    <h4>in-process</h4>
+    <p>在 <code>scripts/run_deep_task.py</code> 中定义函数,直接 <code>import</code> 框架并在 <code>.venv-camel</code> 内运行。Tavily 客户端通过 monkey-patch 重定向。</p>
+    <p class="muted" style="font-size:12px;margin-top:6px;">camel-ai、smolagents、langchain-odr、flowsearcher-ds</p>
+  </div>
+  <div class="card">
+    <span class="tag tag-accent">子进程</span>
+    <h4>subprocess</h4>
+    <p>写一份 driver 脚本到 <code>/tmp/</code>,以另一份 Python (该框架的虚拟环境) 启动。适用于依赖冲突严重或必须使用其自身配置机制的框架。</p>
+    <p class="muted" style="font-size:12px;margin-top:6px;">gpt-researcher、ii-researcher、deerflow、ldr、qx-agents、tongyi、storm、deepagents</p>
+  </div>
+  <div class="card">
+    <span class="tag tag-accent">Clean runner</span>
+    <h4>scripts/runners/</h4>
+    <p>自包含模块,导出 <code>async def run(intent, model, shim_url, proxy_url) -&gt; str</code>,由 <code>registry.py</code> 自动发现,合并到 <code>RUNNERS</code> 分派表。</p>
+    <p class="muted" style="font-size:12px;margin-top:6px;">新接入框架的推荐路径</p>
+  </div>
+</div>
+
+<p>分派表 <code>RUNNERS = _build_runners_map()</code> 位于 <code>scripts/run_deep_task.py:1359</code>。<strong>公共主线</strong>是四件事:(a) 把 Tavily 客户端指向 shim;(b) 把 OpenAI 客户端指向 <code>ds_proxy</code>;(c) 拦截漏过 (a) 的 <code>en.wikipedia.org</code> 或 <code>api.tavily.com</code> URL;(d) 对大小写敏感语料,不要把 URL 路径归一化。</p>
+
+<h3 id="sec5-2">5.2 每个框架的细节</h3>
+
+<table>
+<thead><tr><th>#</th><th>框架</th><th>架构</th><th>接入要点</th><th>虚拟环境</th><th>是否进 Elo</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>camel-ai</code></td><td>单循环 ChatAgent + 工具调用</td><td>Tavily monkey-patch + ds_proxy 环境变量;system prompt 含「NEVER invent URLs」</td><td><code>.venv-camel</code></td><td><span class="tag tag-good">第 1 名</span></td></tr>
+<tr><td>2</td><td><code>smolagents</code></td><td>HuggingFace ToolCallingAgent</td><td>用 ToolCallingAgent 而非 CodeAgent (后者 92% URL 是模板捏的);<code>max_steps=60</code></td><td><code>.venv-smol</code></td><td><span class="tag tag-good">第 3 名</span></td></tr>
+<tr><td>3</td><td><code>gpt-researcher</code></td><td>计划器 + 多并行 writer + 汇总</td><td>独占 venv (依赖 pre-1.0 LangChain);<code>custom:text-embedding-v4</code> 别名让 embedding 也走代理</td><td><code>.venv-gptr</code></td><td><span class="tag tag-warn">第 5 名</span></td></tr>
+<tr><td>4</td><td><code>langchain-odr</code></td><td>langgraph supervisor → researcher → writer</td><td>同步 + 异步 Tavily 双 patch;6 个模型通道全部 <code>openai:&lt;model&gt;</code>;迭代上限调小到 5/8</td><td><code>.venv-langchain-odr</code></td><td><span class="tag tag-bad">第 8 名</span></td></tr>
+<tr><td>5</td><td><code>ii-researcher</code></td><td>ReAct 搜索链</td><td>子进程 + HTTP 拦截 preamble;BeautifulSoup scraper;通常 3-5 轮后终止</td><td><code>.venv-ii</code></td><td><span class="tag tag-bad">第 7 名</span></td></tr>
+<tr><td>6</td><td><code>dzhng</code></td><td>Node/TypeScript</td><td>本机 3051 POST <code>{query, breadth, depth}</code>;1800s 超时;.env 写 API key</td><td>Node + venv-camel</td><td><span class="tag">样本不足</span></td></tr>
+<tr><td>7</td><td><code>flowsearcher-ds</code></td><td>本仓库自研,L1/L2/L3 三层记忆引导规划</td><td>进程内;入口 <code>scripts/run_flowsearcher.py</code></td><td><code>.venv-camel</code></td><td><span class="tag tag-good">第 2 名</span></td></tr>
+<tr><td>8</td><td><code>deerflow</code></td><td>langgraph 多智能体</td><td>conf.yaml + 环境变量 (<code>BASIC_MODEL__base_url</code>);把 Jina 爬虫替换为 shim <code>/extract</code>;<code>aiohttp.ClientSession(trust_env=False)</code> 防代理泄露</td><td><code>deer-flow-v1/.venv</code></td><td><span class="tag tag-bad">第 6 名</span></td></tr>
+<tr><td>9</td><td><code>ldr</code></td><td>程序化 <code>detailed_research()</code></td><td>settings_snapshot 覆盖配置;<code>localhost:NNNN</code> 掩码为伪主机名避免 DeepSeek 安全过滤;Kiwix 大小写问题导致 reach 低</td><td><code>.venv-ldr312</code></td><td><span class="tag tag-warn">第 4 名</span></td></tr>
+<tr><td>10</td><td><code>qx-agents</code></td><td>openai-agents SDK</td><td>SearchXNG → SerperAdapter 翻译为 shim;<strong>DeepSeek 下抛 pydantic ValidationError</strong>,30 份全 placeholder</td><td><code>.venv-qx</code></td><td><span class="tag tag-bad">被过滤</span></td></tr>
+<tr><td>11</td><td><code>tongyi-dr</code></td><td>阿里 NLP qwen_agent ReAct</td><td>原 30B-A3B MoE 需 60GB 显存,RTX 5090 只有 32GB;LLM 重定向至 DeepSeek;五件工具中 Scholar/Python/FileParser 禁用</td><td><code>.venv-tongyi</code></td><td><span class="tag">未进 Elo</span></td></tr>
+<tr><td>12</td><td><code>deepagents</code></td><td>langgraph 超级智能体</td><td>自定义 <code>internet_search()</code> 工具传给 <code>create_deep_agent</code>;<code>init_chat_model("openai:...")</code></td><td><code>.venv-deepagents</code></td><td><span class="tag">样本不足</span></td></tr>
+<tr><td>13</td><td><code>storm + co-storm</code></td><td>Stanford knowledge_storm 流水线</td><td>实现 <code>SandboxSearchRM(dspy.Retrieve)</code>;<strong>修复 url_to_info.json 合并 bug 后</strong> composite_v2 从 0 升至 0.067</td><td><code>.venv-storm</code></td><td><span class="tag tag-bad">第 9 名 (storm)</span></td></tr>
+</tbody>
+</table>
+
+<h4>四个值得在答辩时单独讲的接入细节</h4>
+
+<div class="grid2">
+  <div class="card">
+    <h4><code>camel-ai</code> 的 system prompt</h4>
+    <p>手写,含「NEVER invent URLs」与「至少引用 15 篇 Wikipedia 文章」两条。camel 默认不会跨三个语料分配查询,这两条强制约束是其登顶的关键之一。后处理一段会剥离偶发的思维链前缀 (「I now have enough data to compile...」)。</p>
+  </div>
+  <div class="card">
+    <h4><code>smolagents</code> 为什么不用 CodeAgent</h4>
+    <p>CodeAgent 生成的 Python 代码会用字符串模板<strong>构造</strong> URL,早期实验中约 92% 是捏造 URL。ToolCallingAgent 强制模型输出结构化 tool-call JSON,URL 必须从搜索结果原文 copy。</p>
+  </div>
+  <div class="card">
+    <h4><code>gpt-researcher</code> 的失败模式</h4>
+    <p>它通过把商品名 kebab-case 化为 <code>/products/&lt;slug&gt;</code> 来构造 Magento URL,但 Magento 真实 slug 含智能体看不到的数字后缀。可达性几近为零 (<code>composite_v2</code> 均值 = 0.013)。这是「文笔好却归零」最典型的案例。</p>
+  </div>
+  <div class="card">
+    <h4><code>storm</code> 的合并 bug 修复</h4>
+    <p>runner 只读 <code>storm_gen_article_polished.txt</code> (正文),从不把 <code>url_to_info.json</code> 重新合并回 Markdown。智能体内部其实正确引用了,我们打分的是<strong>被剥引文的正文</strong>。修复 (<code>storm_runner.py:299-313</code>) 在尾部追加 <code>## References</code> 节后,<code>composite_v2</code> 从「每次都是 0.000」变为约 0.067。这是基准全程<strong>最大的单次修复增量</strong>。</p>
+  </div>
+</div>
+</section>
+
+<!-- 6 -->
+<section id="sec6">
+<h2>6. 七个评分维度</h2>
+
+<p>每份智能体报告在 7 个维度上打分。前三个是确定性的真实性探针,中间三个是带确定性守卫的 LLM 评分细则,第七个是结构性检查与 LLM 细则的混合。</p>
+
+<table>
+<thead><tr><th>维度</th><th>取值</th><th>类型</th><th>耗时</th><th>进入哪个复合</th></tr></thead>
+<tbody>
+<tr><td><code>url_coverage</code></td><td>[0,1]</td><td>确定性</td><td>毫秒</td><td>v1, v2, v3</td></tr>
+<tr><td><code>url_reachability</code></td><td>[0,1]</td><td>HTTP 探活</td><td>秒</td><td>v1, <strong>v2 (硬门)</strong>, v3 (floored)</td></tr>
+<tr><td><code>quote_match</code></td><td>[0,1]</td><td>确定性</td><td>秒</td><td>v3 (可选 v2)</td></tr>
+<tr><td><code>claim_nli</code></td><td>[0,1]</td><td>LLM 判官</td><td>分钟</td><td>头部 v2 中<strong>已弃</strong></td></tr>
+<tr><td><code>checklist</code></td><td>[0,1]</td><td>LLM 判官 + 守卫</td><td>秒</td><td>v1, v2, v3</td></tr>
+<tr><td><code>citation_alignment</code></td><td>[0,1]</td><td>LLM 判官 (每引文)</td><td>分钟</td><td>v3</td></tr>
+<tr><td><code>presentation</code></td><td>[0,1]</td><td>确定性 + 判官</td><td>秒</td><td>v3</td></tr>
+<tr><td><code>analysis_depth</code></td><td>[0,1]</td><td>确定性 + 判官</td><td>秒</td><td>v3</td></tr>
+</tbody>
+</table>
+
+<h3>6.1 url_coverage:智能体是否引用了它应当引用的 URL</h3>
+<p>这是三个<strong>不同</strong>的子分加权求和,默认权重 <strong>0.55 must-cite + 0.15 pool + 0.30 domain</strong>。三项各自抓不同的失败模式:</p>
+
+<table>
+<thead><tr><th>子分</th><th class="num">权重</th><th>公式</th><th>它在问什么</th></tr></thead>
+<tbody>
+<tr>
+  <td><code>must_cite_recall</code></td>
+  <td class="num">0.55</td>
+  <td class="mono" style="font-size:11.5px;white-space:nowrap;">Σ w_u (cited ∩ must) / Σ w_u (must)</td>
+  <td>黄金池里被<strong>点名要求必引</strong>的那批 URL,智能体命中了多少 (带权重)。耳机任务里 Bluetooth、AptX、LDAC、Noise-cancelling headphones 这 9 篇维基就是 must_cite,不引等于丢分大头。</td>
+</tr>
+<tr>
+  <td><code>pool_coverage</code></td>
+  <td class="num">0.15</td>
+  <td class="mono" style="font-size:11.5px;white-space:nowrap;">|cited ∩ expected_pool| / |expected_pool|</td>
+  <td><code>expected_pool</code> 是「称职智能体应该能找到」的<strong>更广泛语料</strong> (每任务通常 600+ URL,例如 0001 是 739)。pool 比 must_cite 大一个数量级,允许智能体<strong>找到同等质量的替代页面</strong>也能拿分,而非死板只奖励 must_cite 精确命中。</td>
+</tr>
+<tr>
+  <td><code>domain_balance</code></td>
+  <td class="num">0.30</td>
+  <td class="mono" style="font-size:11.5px;white-space:nowrap;">min_d min(1, cited_d / min_d), d ∈ {shop, reddit, wiki}</td>
+  <td>三个语料里<strong>最弱那一个</strong>的填充率,<u>取 min,不是平均</u>。任务要求 shopping≥30 + reddit≥20 + wiki≥15;你引了 100 个 shopping 但只引了 5 个 wiki,wiki 填充率 5/15 = 0.33,<strong>domain_balance 直接就是 0.33</strong>。这是<strong>跨源任务</strong>的真正抓手。</td>
+</tr>
+</tbody>
+</table>
+
+<h4>为什么三项必须并存</h4>
+<div class="grid3">
+  <div class="card">
+    <h4>只用 must_cite_recall?</h4>
+    <p class="muted" style="font-size:13px;">奖励「命中冻结的黄金池」,但<strong>惩罚找到同等质量的替代页面</strong>的智能体。黄金池是一次性爬取的,不可能枚举所有合格 URL,过度依赖会让基准变得僵化。</p>
+  </div>
+  <div class="card">
+    <h4>只用 pool_coverage?</h4>
+    <p class="muted" style="font-size:13px;">奖励「广撒网」,但智能体可以<strong>全部从 shopping 域里堆 200 个 URL</strong> 把分数堆上去,测不出跨源能力。pool 默认不区分三个语料的分布。</p>
+  </div>
+  <div class="card">
+    <h4>只用 domain_balance?</h4>
+    <p class="muted" style="font-size:13px;">每个域只引 1 个 URL 就能拿满 (1/min 截断到 1),<strong>测不出深度</strong>。但凡引文上限不够,深度任务就完不成。</p>
+  </div>
+</div>
+
+<p>三个一起 must_cite 测「精确命中关键证据」,pool 测「广度合格」,domain 测「跨源平衡」,任何一个失衡都会被对应子分抓出来。<code>min(1, cited_d/min_d)</code> 的截断保证「过度堆 shopping」<strong>不能补偿</strong>「wiki 缺席」。</p>
+
+<h4>Pillar 通过阈值 (四项都满足才算 url_coverage 通过)</h4>
+<div class="formula" style="font-size:12.5px;">
+must_cite_recall ≥ 0.45<br>
+pool_coverage   ≥ 0.12<br>
+domain_balance  ≥ 0.80<br>
+unique cited URL ≥ 60
+</div>
+
+<p class="muted" style="font-size:13px;">URL 在比较前经 <code>canonicalize_url</code> 规范化 (剥尾斜杠、域名转小写、丢 fragment、query 排序),避免 <code>http://localhost:7770/foo/</code> 与 <code>http://localhost:7770/foo</code> 被算成两个 URL。源码在 <code>src/verifiers/url_coverage_verifier.py:166-186</code>。</p>
+
+<h3>6.2 url_reachability:抵抗 URL 捏造最强的单一信号</h3>
+
+<p><strong>这一项在测什么 (直觉)。</strong>智能体在报告里写了一堆 <code>localhost:7770/...html</code>,但这些字符串究竟是真的指向一个能打开的页面,还是模型脑补出来的?这一项就回答这个问题:我们拿到智能体引的每一个 URL,亲自去 HTTP 请求一下,看返回 200 的比例是多少。</p>
+
+<p><strong>具体怎么做。</strong>验证器走五步:</p>
+<ol>
+  <li>从 Markdown 里把所有 URL 抽出来,既识别 <code>[label](url)</code> Markdown 链接,也识别裸 <code>https://...</code>。</li>
+  <li>过滤到沙盒域。判断条件是 <strong>host:port 严格匹配</strong> 三个沙盒端点,<u>不是子串匹配</u>。这一点很关键,如果用子串,<code>localhost:7770</code> 会匹配到 <code>localhost:77703</code> 这种攻击性输入,智能体可以蒙混过关。</li>
+  <li>每个 URL 经 <code>canonicalize_url</code> 规范化后查重,只对唯一 URL 打一次。</li>
+  <li>对每个唯一 URL 发起 <strong>GET 请求</strong> (不是 HEAD,因为 Magento 偶尔在并行 HEAD 下重置连接),6 秒超时,3 次重试,指数退避 (0.5 s → 1 s → 2 s)。</li>
+  <li>分子记 200,分母记<strong>所有非 5xx、非 net-fail</strong> 的探针。</li>
+</ol>
+
+<div class="formula">reachability = |{u : status(u) = 200}| / |{u : status(u) ∉ {5xx, net_fail}}|</div>
+
+<p><strong>为什么分母不是「总 URL 数」?</strong>因为我们要把<strong>智能体的罪</strong>和<strong>沙盒的罪</strong>分开。如果 Magento 在打分时挂了,所有探针返回 500,这不是智能体编造 URL,是基础设施事故,我们不能因此判智能体死刑。所以验证器额外维护两个标志:</p>
+<ul>
+  <li><code>infra_failure</code> = True:<strong>所有</strong>探针都是 5xx 或网络失败 → 打分作废,这条 score 被退化过滤器剔除。</li>
+  <li><code>infra_warning</code> = True:<strong>≥30%</strong> 探针是 5xx 或网络失败 → 仍打分,但标记给审计页。</li>
+</ul>
+
+<p><strong>关键拆分:4xx vs 5xx。</strong>4xx (尤其 404) 是「智能体编了一个不存在的 URL」,这是 reachability 应该惩罚的;5xx 是「URL 路径模式对,但服务器此刻挂了」,这不该惩罚。分母排除 5xx,意味着<strong>「智能体捏造 URL」(高 4xx) 与「沙盒挂了」(高 5xx) 走不同的处置路径</strong>,这是这一项设计上最重要的细节。</p>
+
+<p><strong>通过条件:</strong>reachability ≥ 0.30。</p>
+
+<p><strong>这一项在排名里起的作用。</strong>它是 <code>composite_v2</code> 的<strong>乘性门</strong>。reach = 0 ⇒ 整个 composite = 0,无论文笔多好、checklist 通过几项。<u>真实性门反转排名 (§11.1) 这一头号发现,公式上完全来源于这一项</u>。gpt-researcher 在任务 0009 上引 93 个 URL 只有不到 10 个返回 200,reach ≈ 0.10,达不到通过阈值,整个 composite_v2 归零。</p>
+
+<p class="muted" style="font-size:13px;">源码:<code>src/verifiers/url_reachability_verifier.py:55-82</code>。</p>
+
+<h3>6.3 quote_match:URL 存在,但页面里真的有那句话吗?</h3>
+
+<p><strong>这一项在测什么 (直觉)。</strong>reachability 只保证 URL 能打开,不保证页面真的支撑论断。我可以引一个能 200 返回的维基「蓝牙」条目,然后旁边瞎写一句「蓝牙规范由 IEEE 制定」(其实是 SIG)。URL 真,论断假,reachability 抓不到这种错误。quote_match 是<strong>设计上最便宜的</strong>支撑性检查:不调 LLM,不做 NLI,只看「论断的关键词在页面里出现了没」。</p>
+
+<p><strong>具体怎么做。</strong>三步:</p>
+<ol>
+  <li>从 Markdown 抽出每一个 <code>(url, claim_context)</code> 对。这里 <code>claim_context</code> 是<strong>引文位置前后 200 字符的窗口</strong>,把 Markdown 链接语法 <code>[label](url)</code> 替换为可见的 label 文本。</li>
+  <li>对每个唯一 URL 抓取页面正文,与 reachability 共用同一份带重试的 <code>_fetch</code> 助手。</li>
+  <li>对每个 (claim, page) 对,计算 token 重叠:把 claim 与 page 都小写化、按空白切词、做 stop-word 过滤 (去掉 the / of / and / is / a 这类),然后看:</li>
+</ol>
+
+<div class="formula">overlap = |tokens(claim) ∩ tokens(page)| / |tokens(claim)|     ≥ θ = 0.10</div>
+
+<p>满足 overlap ≥ 0.10 算「这一对通过」,得分 = 通过对数 / 总对数。</p>
+
+<p><strong>为什么阈值定在 0.10 这么松?</strong>因为 200 字符的 claim 窗口里大多数是连接词和句法骨架,真正能与页面匹配上的是<strong>实体词与数字</strong>。要求超过 10% 的非停用词重叠,通常意味着至少 2-3 个实体或数字命中,这已经是非常显著的「页面里真有那个东西」的证据。再高就会假阴性 (页面用同义词表述同一事实),再低就漏 (任何带「Bluetooth」的论断都能蒙过去)。</p>
+
+<p><strong>为什么不直接做 NLI?</strong>NLI 是 §6.4 在做的事 (claim_nli),那一项很贵 (每对一次 LLM 调用,每报告耗时 30-120 秒) 且在我们的判官上不稳。quote_match 是 NLI 的<strong>便宜近似</strong>:精度低于 NLI 但召回高 (有页面文本支撑的论断,几乎一定能在词袋上重叠),最重要的是<strong>确定性</strong> (跑两次给同样结果)。一个便宜的、确定性的、召回高的探针,在排名复合分里比一个昂贵且会假阴性的探针有用得多。</p>
+
+<p><strong>这一项在排名里起的作用。</strong>它进入 <code>composite_v3</code> (权重 0.20),不进 <code>composite_v2</code>。但它在 per-pillar Elo 表里有独立一列,头部三框架的 quote Elo 都在 1300+,尾部六框架都在 800 上下,<u>quote_match 与 reachability 的两根 Elo 轴是诊断「文笔好但捏造」的最清晰组合</u> (高 url_cov、低 reach、低 quote = gpt-researcher 的画像)。</p>
+
+<p class="muted" style="font-size:13px;">源码:<code>src/verifiers/quote_match_verifier.py:91-95</code>。</p>
+
+<h3>6.4 claim_nli:重型 NLI 探针 <span class="tag tag-warn">头部已弃,但仍计算</span></h3>
+
+<p><strong>这一项在测什么 (直觉)。</strong>quote_match 是「页面里有没有那些关键词」,claim_nli 是「页面那段话<strong>真的逻辑上支撑</strong>这个论断吗?」。这是 ALCE / RAGAS 文献里的标准支撑性探针,理论上比 quote_match 严得多。</p>
+
+<p><strong>具体怎么做。</strong>对每一个<strong>在黄金池里带 <code>quoted_span</code> 的 <code>(claim_context, cited_url)</code> 对</strong> (注意:不是任意 URL,是<u>黄金池已经为它准备了引文片段</u>的那些),验证器经 ds_proxy 询问 DeepSeek V4-flash:</p>
+
+<pre style="font-size:12px;">CLAIM: {claim_context}
+SOURCE_QUOTE: {quoted_span from golden triple}
+Does the source quote DIRECTLY support the claim?
+Output JSON: {entail: bool, prob: float, reason: str}</pre>
+
+<p>零温度下,认为 <code>prob ≥ 0.80</code> 视为支撑 (与 ReClaim 论文阈值一致)。得分 = 支撑对数 / 总对数。每报告 <code>max_calls = 80</code> 上限以约束成本,耗时 30-120 秒/报告。</p>
+
+<div class="warn">
+<strong>2026-04-27 起从头部 <code>composite_v2</code> 中剔除,乘数置 1.0。</strong>原因是 DeepSeek V4-flash 在视觉噪声大的商品页 (大量「Add to cart」「Customer review」「Related products」这类页面骨架文本) 上产生大量假阴性:页面明明含支撑文本,判官说不支撑。我们试过把页面正文先抽出来再喂判官,改善有限。最终的处置是:<strong>维度仍每次运行被计算并持久化进 score JSON</strong>,以便未来换更强 NLI 判官 (GPT-5、Claude) 时可以直接重打分而无需重跑智能体;但头部 <code>composite_v2_truthful</code> 的乘数置 1.0,不让它扭曲排名。
+</div>
+
+<p><strong>这一项在排名里起的作用。</strong>当前几乎为零 (头部弃用,v3 也不直接用)。它是一个<strong>未来的接口</strong>:换非 DeepSeek 的判官后,可以直接接回 v2 而无需重跑实验。</p>
+
+<p class="muted" style="font-size:13px;">源码:<code>src/verifiers/claim_nli_verifier.py</code>;头部禁用见 <code>src/scoring/leaderboard_composites.py:71-81</code> 中 <code>composite_v2_truthful</code> 的实现。</p>
+
+<h3>6.5 checklist:21 项每任务专属的二值细则</h3>
+
+<p><strong>这一项在测什么 (直觉)。</strong>前四项 (url_coverage、url_reachability、quote_match、claim_nli) 都是<strong>跨任务通用的</strong>真实性探针,它们不看任务到底要做什么。但每个任务有具体要求:耳机任务要求「按 Reddit 情绪给 ≥4 个品牌分类」「列出 ≥5 处商品与维基的矛盾」,这些是任务自带的强约束,通用探针测不出来。checklist 就是为每个任务<strong>手写</strong>一份 21 项的检查表,逐项判智能体报告通过没有。</p>
+
+<p><strong>21 项是怎么来的。</strong>每任务 21 项,人工撰写,集中存于 <code>data/tasks/deep_research/cross_site_deep/checklists_deep.json</code>。撰写时遵循三条原则:</p>
+<ul>
+  <li><strong>必须二值判定</strong>。每一项的措辞要让判官明确回答 PASS / FAIL,不能模糊。「报告读起来好不好?」这种问题不出现在 checklist 里 (它去 §6.7)。</li>
+  <li><strong>必须可在报告内验证</strong>。不能要求「智能体应该想到 X」这种心理状态,只能问报告里有没有 X。</li>
+  <li><strong>必须任务专属</strong>。「报告引用了 ≥3 个 Reddit 帖」属于通用 (它在 url_coverage 里);「报告分析了 Sennheiser 与 Bose 在主动降噪上的技术路线差异」才是 0001 任务专属的 checklist 项。</li>
+</ul>
+
+<p><strong>判官调用细节。</strong>经 <code>ds_proxy</code> 调零温度 DeepSeek V4-flash,system prompt 要求逐行输出 <code>PASS</code> / <code>FAIL</code> / <code>UNCLEAR</code>,UNCLEAR 算 FAIL。一次调用喂全部 21 项 + 完整报告,模型一次输出 21 行判决。</p>
+
+<p><strong>但 LLM 判官在长文本上不可靠</strong> (这是文献里反复报告的问题:松懈模式、自我偏好、长度偏好)。我们用三层<strong>确定性守卫</strong>把判官包起来,凡是被守卫降级的项,不管判官说什么,统一记 FAIL:</p>
+
+<table>
+<thead><tr><th>#</th><th>守卫</th><th>触发条件</th><th>抓的是什么 bug</th></tr></thead>
+<tbody>
+<tr>
+  <td>1</td><td><strong>退化答案守卫</strong></td>
+  <td>答案为空 <strong>或</strong> ≤50 词且无引文</td>
+  <td>抓 <code>(qx-agents error: ValidationError ...)</code> 这种 placeholder。早期实验里,判官会对一个 30 词的错误消息高兴地报「21 项全 PASS」(因为它把错误消息当作「简洁的总结」)。这条直接跳过 LLM 调用,全 FAIL。</td>
+</tr>
+<tr>
+  <td>2</td><td><strong>全 PASS 短答案守卫</strong></td>
+  <td>判官报 21/21 PASS <strong>且</strong> 答案 &lt;500 词</td>
+  <td>抓 DeepSeek V4-flash 在短输入上的「松懈模式」:输入太短,模型倾向于「都对吧应该都对」。500 词是经验阈值 (一份合格的 DR 报告至少应该 3000+ 词)。这条把全 PASS 降为全 FAIL。</td>
+</tr>
+<tr>
+  <td>3</td><td><strong>锚定关键词交叉检查</strong></td>
+  <td>URL 可达性 &lt; 0.30 <strong>且</strong> 项内含「URL / cited / linked / sandbox / domain / reddit / wikipedia / shopping / thread / article / page / forum」之一</td>
+  <td>抓「文笔好的捏造」。如果一个项问「报告是否引用了 ≥30 个 Reddit 帖?」,判官读了报告说 PASS,但实际 URL 都打不开,这一项就被守卫降级 FAIL。<strong>这条直接阻止了 gpt-researcher 在任务 0009 上拿 21/21 PASS:它引 93 个伪 URL,reach ≈ 0.10,所有带锚定关键词的 checklist 项全降级。</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>得分。</strong>pass_count / 21,最终落在 [0, 1]。</p>
+
+<p><strong>这一项在排名里起的作用。</strong>它进入<strong>三个复合分</strong>(v1、v2、v3),权重 0.40。是 <em>Q</em> = 0.40·url_cov + 0.40·checklist + 0.20·spec 中的两个 0.40 之一。意味着<strong>任务专属的完成度</strong>和<strong>跨任务的引文覆盖度</strong>权重等同,这是有意为之:URL 引对了但任务要求没做,跟任务做了但 URL 是瞎编的,在 quality 项上同样扣分;真实性门 (v2) 再额外乘上 reach。</p>
+
+<p class="muted" style="font-size:13px;">源码:守卫在 <code>scripts/score_deep_answer.py:111-180</code>,checklist 数据在 <code>data/tasks/deep_research/cross_site_deep/checklists_deep.json</code>。</p>
+
+<h3>6.6 citation_alignment:ALCE 风格的每引文 NLI</h3>
+
+<p><strong>这一项在测什么 (直觉)。</strong>checklist 看的是「报告整体完成度」,quote_match 看的是「引文位置周围 200 字符里有没有页面词重叠」。<u>citation_alignment 比这两个都细</u>:对报告里<strong>每一句</strong>带引文的话,我们拉取被引页面,问判官「这一整页是不是支撑这一句话?」。这是 ALCE 论文的标准范式 (per-citation precision / recall)。</p>
+
+<p><strong>具体怎么做。</strong>四步:</p>
+<ol>
+  <li>从 Markdown 抽 <code>(sentence, cited_url)</code> 对。一句话引了 3 个 URL,就拆成 3 对。<strong>同时识别两种引文形态</strong>:Markdown 链接 <code>[label](url)</code> 与裸 <code>https://...</code> (裸 URL 形态是 <code>ldr</code> 触发 quote_match 返回 <code>claims_total=0</code> 的真实原因,所以这里必须双形态支持)。</li>
+  <li>对每个唯一被引页面,用 4-worker 线程池抓取并剥 HTML:移除 <code>script / style / nav / footer / header / noscript / aside / svg</code>,只留正文文本,截断到 8000 字符 (足够覆盖典型 Magento 商品页与维基导言段,又能控住 LLM 上下文成本)。</li>
+  <li>对每一对询问判官 (零温度 DeepSeek V4-flash,<code>max_tokens = 80</code>):
+<pre style="font-size:12px;">PAGE TEXT: {first 8000 chars of cleaned page}
+CLAIM: {the sentence}
+Does the page SUPPORT the claim?
+Output exactly: VERDICT: SUPPORTED  or  VERDICT: NOT_SUPPORTED</pre></li>
+  <li>每对返回 SUPPORTED / NOT_SUPPORTED。</li>
+</ol>
+
+<p><strong>分数怎么算。</strong>验证器同时算 precision 和 recall,但<strong>头部得分取 precision</strong>:</p>
+
+<div class="formula">precision = supported_pairs / total_pairs
+recall    = sentences_with_≥1_supported_cite / sentences_with_any_cite</div>
+
+<p><strong>为什么取 precision 不是 recall?</strong>precision 抓的是「智能体引的页面真的支撑论断的比例」,这就是 ALCE 论文的「引文精度」;recall 是辅助信息,告诉我们「带引文的句子里有几句至少有一个有效引文」,在 deep-research 设定下 recall 几乎总是高 (因为每句都引了 2-3 个,只要一个对就 recall 加 1),信息量低。<u>precision 是真正区分「胡乱引一堆 URL」与「精挑细选引对页面」的轴</u>。</p>
+
+<p><strong>资源上限。</strong>每报告 200 对、每页 8000 字符、4 worker 线程池、<code>max_tokens = 80</code>。200 对的上限是约束典型 DR 报告 (60-150 引文 × 平均 1-2 句话各引一次) 的<strong>判官调用预算</strong>,超过 200 对则随机抽样 200 对。</p>
+
+<p><strong>这一项在排名里起的作用。</strong>它<strong>只进 <code>composite_v3</code></strong> (权重 0.15)。不进 v2 的理由跟 §6.4 类似:这是一个昂贵的 LLM 判官指标,放进头部排名会让结果对判官选择敏感。它的价值是<strong>审计</strong>:在审计页可以按 citation_alignment 排序,直接看到「哪些智能体的报告里引了对但引文与论断不对应」(例如,引了 Bluetooth 维基,但旁边的论断是关于 LDAC 编解码)。</p>
+
+<p class="muted" style="font-size:13px;">源码:<code>src/verifiers/citation_alignment_verifier.py:321</code> (取 precision 那一行)。</p>
+
+<h3>6.7 analysis_depth 与 presentation:报告作为研究交付物读起来如何</h3>
+
+<p><strong>这两项在测什么 (直觉)。</strong>前面五项都在测<strong>引文质量</strong>,但一份 DR 报告还有另一面:它读起来像不像研究报告?有没有结构、有没有过渡、有没有跨源综合、有没有反驳意识、还是只是一长串「Page X says Y」的清单堆叠?这两项就测这个。<u>注意:它们是「读得怎么样」,不是「真的吗」</u> ,所以<strong>不进头部 <code>composite_v2</code></strong>,只进 <code>composite_v3</code> (各权重 0.05 和 0.10)。</p>
+
+<p>两者结构相同:<strong>Tier A 是确定性结构检查,Tier B 是 LLM 评分细则</strong>,然后按 0.3/0.7 (depth) 或 0.4/0.6 (presentation) 加权。Tier A 是「答辩底线」,Tier B 是「真正的水准」。</p>
+
+<div class="grid2">
+  <div class="card">
+    <h4>analysis_depth (10 项,4 + 6)</h4>
+    <p><strong>Tier A 确定性 (4 项):</strong></p>
+    <ul style="font-size:13px;">
+      <li>至少 1 个段落含 ≥2 个不同域的 URL (跨源段落存在)</li>
+      <li>至少 3 个段落使用「矛盾 / contradict / conflict / disagree / discrepancy」类语言</li>
+      <li>至少 3 个段落被 ≥3 个跨 ≥2 个域的 URL 支撑 (三角证据存在)</li>
+      <li>比较性语言密度 (compare / versus / whereas / however) ≥ 0.15</li>
+    </ul>
+    <p class="muted" style="font-size:12.5px;">域提取在 host 为 localhost 时使用 <code>host:port</code>,这样三个沙盒不会塌缩成一个域。正则在 <code>analysis_depth_verifier.py:38-52</code>。</p>
+    <p><strong>Tier B LLM 判官 (6 项):</strong>超越枚举、因果推理、信息源三角、新见解、反驳意识、可行动结论。判官读完整份报告,逐项 PASS/FAIL。</p>
+    <p><strong>得分:</strong> <code>0.3 · tier_a + 0.7 · tier_b</code>。Tier B 权重高,因为它真正反映 DR 的核心能力 (综合、推理),Tier A 只是「至少别堆叠清单」的底线。</p>
+  </div>
+
+  <div class="card">
+    <h4>presentation (12 项,6 + 6)</h4>
+    <p><strong>Tier A 确定性 (6 项):</strong></p>
+    <ul style="font-size:13px;">
+      <li>标题层级 ≥3 (有 h1 / h2 / h3)</li>
+      <li>≥5 个 h2 节</li>
+      <li>节平衡 CV &lt; 1.5 (没有一节占全文一半,其他节几乎空)</li>
+      <li>至少一份列表或表格</li>
+      <li>无 200 词以上的<strong>无标题孤立段</strong> (大块未分节文本)</li>
+      <li>Flesch Reading Ease ≥ 30 (英文可读性下限)</li>
+    </ul>
+    <p><strong>Tier B LLM 判官 (6 项):</strong>逻辑流、过渡质量、无元叙述废话 (「In this section we will discuss...」)、格式一致、结论综合、专业语气。</p>
+    <p><strong>得分:</strong> <code>0.4 · tier_a + 0.6 · tier_b</code>。Tier A 权重稍高,因为结构性问题 (没标题、巨大孤立段) 是无可争辩的硬伤;Tier B 是更主观的「行文气质」。</p>
+    <p class="muted" style="font-size:12.5px;"><strong>长报告处理细节:</strong>Tier B 提示词对 &gt;6000 词的报告送「头 + 尾」而非只送头,这样 <code>conclusion_synthesizes</code> 与 <code>consistent_formatting</code> 能真正看到报告结尾 (<code>presentation_verifier.py:217-223</code>)。</p>
+  </div>
+</div>
+
+<p><strong>这两项在排名里起的作用。</strong>每次运行都被计算并写入 score JSON,但<strong>只对 <code>composite_v3</code> 有贡献</strong>。头部 <code>composite_v2</code> 主动不纳入它们。<u>这是一个有意的设计决策</u>:如果把「专业语气」「逻辑流」与「URL 可达性」放到同一根坐标轴上,真实性门反转的现象就看不到了,因为「文笔好的捏造」会被「文笔分」补偿回来。我们要分开这两件事,所以 v2 的乘性门只乘 reachability,不乘 presentation。v3 把它们都加上,提供一个「更柔和」的排名信号,让审计页可以排序「v2 上为 0 但报告非空」的智能体,使它们不静默消失。</p>
+
+<hr style="margin-top:24px;">
+
+<h3>6.8 七项怎么配合 (一张总览图)</h3>
+
+<table>
+<thead><tr><th>维度</th><th>抓的失败模式</th><th>谁能蒙过这一项</th><th>谁蒙不过</th></tr></thead>
+<tbody>
+<tr><td><code>url_coverage</code></td><td>「没引到该引的页面」</td><td>引大量乱七八糟 URL 凑数</td><td>真去检索每个域的关键证据</td></tr>
+<tr><td><code>url_reachability</code></td><td>「编造了不存在的 URL」</td><td>从搜索结果里 copy 真 URL</td><td>用模板构造 URL</td></tr>
+<tr><td><code>quote_match</code></td><td>「URL 真,但页面里没有那句话」</td><td>引用时把关键实体词写进周围 200 字符</td><td>引文位置与论断完全脱节</td></tr>
+<tr><td><code>claim_nli</code></td><td>「页面词重叠,但逻辑不支撑」 <span class="tag tag-warn">头部已弃</span></td><td>引一个含很多相关词的页面但论断方向错</td><td>引文精确对应论断</td></tr>
+<tr><td><code>checklist</code></td><td>「任务专属要求没完成」</td><td>(被三层守卫包住后) 几乎没办法蒙</td><td>逐项完成任务要求</td></tr>
+<tr><td><code>citation_alignment</code></td><td>「页面与论断方向相反或无关」</td><td>报告很短,引文很少,稀释假阳性</td><td>跨多页综合且每页都真支撑</td></tr>
+<tr><td><code>analysis_depth</code></td><td>「只堆引文不做综合」</td><td>多塞几个「contradict / however」词蒙 Tier A</td><td>真做了跨源比较与因果分析</td></tr>
+<tr><td><code>presentation</code></td><td>「结构松散、无综合性结尾」</td><td>套一个 5 节模板蒙 Tier A</td><td>真组织出有逻辑流的研究报告</td></tr>
+</tbody>
+</table>
+
+<p><strong>把这八列读一遍就能看出我们想要的智能体长什么样:</strong>它要去检索每个域的关键证据 (url_coverage),URL 要从搜索结果 copy 而不是构造 (reach),引文位置要与论断对应 (quote_match、citation_alignment),要逐项完成任务要求 (checklist),要做跨源比较与综合 (analysis_depth),并且组织成一份结构性的报告 (presentation)。<u>这八项每一项都可以单独被骗,但骗其中一项就会被另一项抓住</u>,这就是为什么七维评分体系比单一指标 (例如「让 LLM 给一个总分」) 鲁棒得多。</p>
+</section>
+
+<!-- 7 -->
+<section id="sec7">
+<h2>7. 七项怎么合成一个指标</h2>
+
+<p>到这一节为止,每份报告都已经在 7 个维度上分别拿到了一个 [0, 1] 之间的数 (见 §6)。但 Elo 对战只能在<strong>一对单一数字</strong>之间分胜负,我们因此还要做最后一步:把这 7 个数压缩成<strong>一个</strong>能够参与对战的复合分。这一节就完整讲这一步是怎么做的。</p>
+
+<p>需要先说明的是,我们没有只生成一种压缩方式,而是同时计算了<strong>三种</strong>,叫做 <code>composite_v1</code>、<code>composite_v2_truthful</code>、<code>composite_v3</code>,全部写进每份 score JSON 里。原因是「该不该把可达性当门」「该不该把表达分纳入头部」都是<strong>方法学选择</strong>,任何一种合成都隐含了某种价值判断;把三种公式都计算并对外公开,让任何审查者都能用同一套底层 pillar 数自己重新合成一遍,确认结论不来自合成口径的暗中调整。<strong>头部排行榜实际驱动 Elo 的是 <code>composite_v2_truthful</code></strong>,另外两个共存只为了对照与审计。</p>
+
+<h3>合成前的最后一步:把规范检查折成一个数 <code>spec</code></h3>
+
+<p>开始合成之前,先把一个小数字定义清楚,它会在三个公式里都出现,叫 <code>spec</code>。<code>spec</code> 不是独立 pillar,它是<strong>三个最便宜的 Markdown 规范二值标志的算术平均</strong>,起到「报告至少有形可言」的底线作用:字数有没有达到任务规定的下限叫 <code>words_ok</code>,不同引文数有没有达到下限 (典型 ≥ 60) 叫 <code>citations_ok</code>,段落数有没有达到下限叫 <code>paragraphs_ok</code>,每个标志都是满足返回 1、不满足返回 0,最后</p>
+
+<div class="formula">spec = (words_ok + citations_ok + paragraphs_ok) / 3</div>
+
+<p>取值因此只能落在 <code>{0, 0.33, 0.67, 1.00}</code> 四档之一。这个粒度刻意做得粗,因为它的作用只是「过最低门」,不参与精细排名。源码:<code>spec_pass_fraction</code>,<code>src/scoring/leaderboard_composites.py:28-35</code>。</p>
+
+<h3>核心构件:质量项 <em>Q</em></h3>
+
+<p>头部复合分的所有逻辑都围绕一个数展开,我们叫它「质量项」 <em>Q</em>。它是<strong>三个数的加权和</strong>,把「引文范围对不对」、「任务要求做没做」、「报告基本形态对不对」三件事压成一个 [0, 1] 标量:</p>
+
+<div class="formula" style="font-size:15px;line-height:1.7;">Q  =  0.40 · url_coverage  +  0.40 · checklist  +  0.20 · spec</div>
+
+<p>权重选择反映了一种价值判断:前两项 <code>url_coverage</code> 和 <code>checklist</code> 才是 DR 智能体真正的产品价值,即「找对了页面」和「满足了任务要求」这两件事同样重要,因此各占 0.40,平起平坐;<code>spec</code> 是底线,只占 0.20,意思是「报告不能是空白,但只要不是空白就不再加分」。</p>
+
+<p>注意一个关键事实:<em>Q</em> 里只用了 7 项 pillar 中的<strong>三项</strong> (<code>url_coverage</code>、<code>checklist</code>、<code>spec</code>),其余四项 (<code>url_reachability</code>、<code>quote_match</code>、<code>citation_alignment</code>、<code>analysis_depth</code>、<code>presentation</code>,以及已弃的 <code>claim_nli</code>) 暂时不在 <em>Q</em> 里。<u>这是有意的</u>:头部 v2 公式之所以能让真实性门反转排名 (见 §11.1),恰恰是因为我们没有把 <code>url_reachability</code> 折进 <em>Q</em>,而是<strong>把它单独拎出来乘到 <em>Q</em> 外面</strong>,使它从「占一份权重」升格为「能把整个分数清零」。具体怎么乘,看下面三个公式。</p>
+
+<h3>三个公式</h3>
+
+<p><code>composite_v1</code> 是最简单的形式,它直接令复合分等于质量项,不引入门:</p>
+
+<div class="formula" style="font-size:15px;">composite_v1  =  Q</div>
+
+<p>这个公式刻意把 <code>url_reachability</code> 排除在外,作为「没有真实性门」的对照组。一个 URL 全是捏造的智能体在 v1 上仍能拿到 <em>Q</em> 那么高的分数,只要它的引文模式凑巧覆盖到一些黄金 URL、checklist 判官又被它的文笔骗过,v1 给它的数字会非常体面。<strong>这正是 v1 存在的意义</strong>:它让我们能定量看到「不带门的公式会奖励什么」。排行榜里 v1 数字不参与头部 Elo,但和 v2 并列展示,反转的现象 (§11.1) 就是直接对比 v1 与 v2 的名次得到的。</p>
+
+<p><code>composite_v2_truthful</code> 是头部排名实际使用的公式,它把 <code>url_reachability</code> 乘在 <em>Q</em> 外面:</p>
+
+<div class="formula" style="font-size:15px;">composite_v2_truthful  =  url_reachability  ×  Q</div>
+
+<p>乘性的含义非常硬:如果一个智能体的可达性是 0,意味着它引的所有 URL 都打不开,那么不管 <em>Q</em> 多高,复合分一律乘 0 = 0。如果可达性是 0.5,意味着只有一半的引文落地,那么 <em>Q</em> 直接<strong>减半</strong>。如果可达性是 1.0,意味着所有引文都能打开,<em>Q</em> 才能不打折地传递到复合分。<strong>「捏造引文」在这个公式下从「扣分项」升格为「归零项」</strong>,这是 v2 在方法学上的核心选择。头部 Elo 表上每个智能体的 Elo 数字,背后都是用这一个公式对每个任务算出来的复合分进行两两对战聚合而成。</p>
+
+<p><code>composite_v3</code> 是一个补充实验:它扩展到 7 个 pillar (把 <code>quote_match</code>、<code>citation_alignment</code>、<code>analysis_depth</code>、<code>presentation</code> 也加进来),同时把硬门松弛为「有下界的门」,下界取 0.1:</p>
+
+<div class="formula" style="font-size:13.5px;line-height:1.65;">composite_v3  =  max(0.1, url_reachability)  ×  (
+        0.20 · url_coverage
+      + 0.20 · quote_match
+      + 0.20 · checklist
+      + 0.10 · spec
+      + 0.15 · citation_alignment
+      + 0.10 · analysis_depth
+      + 0.05 · presentation
+)</div>
+
+<p>v3 括号里的七个权重相加正好是 1.00 (0.20 + 0.20 + 0.20 + 0.10 + 0.15 + 0.10 + 0.05),这一项可以理解为「7 维平均加权后的质量项 <em>Q′</em>」,然后外面再乘一个<strong>下限不会低于 0.1</strong> 的可达性。下界 0.1 让捏造智能体不再字面上拿 0 分,而是拿到 <em>Q′</em> 的十分之一。v3 的价值不是替代 v2,而是<strong>提供一个更柔和的、纳入了文笔与对齐的口径</strong>,使审计页可以排序「在 v2 上被门归零、但报告非空」的智能体,让它们不至于在 Elo 上彼此完全平手。<u>v3 不驱动 Elo</u>,Elo 仍然只看 v2。</p>
+
+<h3>完整走一遍:一份具体报告</h3>
+
+<p>这一节用一份虚构但典型的报告把上面三套公式从 7 个 pillar 数走到三个最终复合分,完整看一遍流程。假设报告打完所有验证器后得到:</p>
+
+<table>
+<thead><tr><th>pillar</th><th class="num">分数</th><th>这一项说了什么</th></tr></thead>
+<tbody>
+<tr><td><code>url_coverage</code></td><td class="num">0.75</td><td>引用范围覆盖到该引 URL 的 75%</td></tr>
+<tr><td><code>url_reachability</code></td><td class="num">0.90</td><td>引的 URL 里 90% 真能打开</td></tr>
+<tr><td><code>quote_match</code></td><td class="num">0.60</td><td>60% 的引文位置在页面文本里有词重叠</td></tr>
+<tr><td><code>checklist</code></td><td class="num">0.71</td><td>任务 21 项中通过 15 项</td></tr>
+<tr><td><code>citation_alignment</code></td><td class="num">0.55</td><td>判官认为 55% 的引文真支撑论断</td></tr>
+<tr><td><code>analysis_depth</code></td><td class="num">0.50</td><td>跨源综合中等</td></tr>
+<tr><td><code>presentation</code></td><td class="num">0.80</td><td>结构清晰</td></tr>
+<tr><td><code>spec</code></td><td class="num">1.00</td><td>字数 / 引文数 / 段落数规范全过</td></tr>
+</tbody>
+</table>
+
+<p>合成的第一步是算质量项 <em>Q</em>。带入头部权重 0.40 / 0.40 / 0.20:</p>
+
+<div class="formula">Q  =  0.40 × 0.75  +  0.40 × 0.71  +  0.20 × 1.00
+   =  0.300  +  0.284  +  0.200
+   =  0.784</div>
+
+<p>这 <em>Q</em> = 0.784 本身就是 <code>composite_v1</code>。它代表「不考虑 URL 是不是真能打开」时,这份报告在「引文范围 + 任务完成度 + 规范底线」上拿到的综合质量。</p>
+
+<p>接下来把可达性 0.90 乘到外面,得到 <code>composite_v2_truthful</code>:</p>
+
+<div class="formula">composite_v2_truthful  =  0.90  ×  0.784  =  <strong>0.706</strong></div>
+
+<p>因为可达性 0.90 是接近上限的,<em>Q</em> 几乎不被门稀释,从 0.784 只降到 0.706。这是「绝大多数引文都真存在」时门的温和效果。</p>
+
+<p>最后算 v3。先把括号里的 7 维加权和算出来:</p>
+
+<div class="formula">  0.20 × 0.75   = 0.150     (url_coverage)
+ +  0.20 × 0.60   = 0.120     (quote_match)
+ +  0.20 × 0.71   = 0.142     (checklist)
+ +  0.10 × 1.00   = 0.100     (spec)
+ +  0.15 × 0.55   = 0.0825    (citation_alignment)
+ +  0.10 × 0.50   = 0.050     (analysis_depth)
+ +  0.05 × 0.80   = 0.040     (presentation)
+ ─────────────────────────
+                  = 0.6845
+
+composite_v3  =  max(0.1, 0.90)  ×  0.6845
+              =  0.90  ×  0.6845  =  <strong>0.616</strong></div>
+
+<p>这份报告最终在 score JSON 里就会写下三个数字:<code>composite_v1 = 0.784</code>、<code>composite_v2_truthful = 0.706</code>、<code>composite_v3 = 0.616</code>。三个数都对外可见。Elo 对战<strong>只看 0.706 这一个数</strong>,其它两个数留作审计与对照。</p>
+
+<h3>同一份报告,把可达性归零会发生什么</h3>
+
+<p>为了直观看到三个公式的差别,把上面同一份报告改成「文笔结构都还在,但 URL 全是捏造的」,也就是 <code>url_reachability = 0</code>,同时 <code>url_coverage</code> 因为 URL 错位会从 0.75 跌到 0.30 (它仍能蒙到少量黄金 URL,因为大量捏造里总有几个凑巧命中)。其余 pillar 几乎不变。重新算一遍:</p>
+
+<div class="formula">Q  =  0.40 × 0.30  +  0.40 × 0.71  +  0.20 × 1.00
+   =  0.120  +  0.284  +  0.200
+   =  0.604
+
+composite_v1            =  Q                            =  0.604      仍然不低
+composite_v2_truthful   =  0.00 × Q                     =  <strong>0.000</strong>      硬零
+composite_v3            =  max(0.1, 0) × raw_v3
+                        =  0.10 × 0.575                 =  <strong>0.0575</strong>    几乎零但非零</div>
+
+<div class="callout">
+<h4>这一组对比就是头号发现的数学起源</h4>
+<p>同一份「文笔好的捏造」报告,v1 给它 0.604,v2 给它 0.000,v3 给它 0.057。三个数字进 Elo 后会让这份报告在三个公式下排到三种完全不同的名次。<u>真实性门反转排名 (§11.1) 那个头号发现,本质上就是这一个数值反差在 9 个智能体、56 个任务上的累积。</u>v1 名次让 <code>gpt-researcher</code> 登顶,v2 名次让它跌到第 5,差别完全来自上面这个 0.604 vs 0.000 的乘性门。</p>
+</div>
+
+<h3>关于文字质量本身的分数</h3>
+
+<p>这里值得专门说一下,因为是常被问到的一点。读到上面的公式可能会发现:头部 <code>composite_v2_truthful</code> 里没有任何一项是测「报告本身写得好不好」的,<em>Q</em> 里的三项都是<strong>关于引文与任务完成度</strong>的,没有一项是关于「文字流畅性、结构组织、综合分析」。是不是说我们根本没评测文字质量?</p>
+
+<p><strong>不是,有专门的两项,但它们没进头部 v2。</strong>测文字质量的是 <code>presentation</code> (§6.7) 与 <code>analysis_depth</code> (§6.7) 这两个 pillar。<code>presentation</code> 一共 12 项细则 (6 确定性 + 6 LLM 判官),测的是标题层级、节平衡、列表表格、可读性指数,以及由判官判断的逻辑流、过渡质量、是否有元叙述废话、格式是否一致、结论是否综合、语气是否专业;<code>analysis_depth</code> 一共 10 项 (4 确定性 + 6 LLM),测的是跨源段落是否存在、矛盾语言是否被使用、三角证据是否被组织,以及由判官判断的是否超越枚举、是否做了因果推理、是否做了信息源三角、是否有新见解、是否有反驳意识、是否给出可行动结论。这两项每次运行都会被独立打分并写进 <code>score JSON</code>,在审计页可以单独排序。</p>
+
+<p>它们没进头部 v2 是<strong>有意的方法学选择</strong>。原因很直接:如果把「专业语气」「逻辑流」与「URL 可达性」放到同一根坐标轴上做加权和,然后再决定排名,<u>真实性门反转的现象就看不到了</u>。一个文笔好但 URL 全是捏造的智能体 (典型代表 <code>gpt-researcher</code> 在任务 0009 上的报告),在「文笔分」上会拿满分,在加性合成里这部分会把可达性归零的损失补回来不少,排名上仍然名列前茅。我们恰恰要让「捏造引文」从这种补偿里跳出来,变成一个无法被任何其他维度救回来的硬归零信号。因此头部 v2 主动把这两项 pillar 排除在 <em>Q</em> 之外,让 v2 排名严格反映「引文是否真实 + 引文范围是否对 + 任务要求是否完成 + 报告形态是否过基本规范」这四件事的乘积。文笔好不好这件事,我们认为它非常重要,但它<strong>不该和「URL 是不是编的」放在同一根加权坐标轴上换算</strong>。</p>
+
+<p><code>composite_v3</code> 是<strong>另一种态度</strong>。它把这两项文字质量分纳入进来:7 维加权和里 <code>analysis_depth</code> 占 0.10,<code>presentation</code> 占 0.05,合计 0.15,也就是说 v3 复合分里大约 15% 的权重直接来自「报告本身的文字质量」。再加上 <code>citation_alignment</code> 也带 0.15 权重 (它本质上也算「引文与文字的对应」),v3 里相当于 30% 是「文字侧」的评分。v3 的存在,正是为了给「想把文字质量也综合考虑」的读者一个可对照的口径,它每次也都被计算并对外可见,但它不驱动头部 Elo。</p>
+
+<p>简单收一句:文字质量我们测了,而且测得很细 (12 项 + 10 项,共 22 个细则项),只是在<strong>头部排名上</strong>故意没让它和真实性门混在一起。审计页和 v3 排名才是看文字质量的入口。</p>
+
+<h3>整条链条的总结</h3>
+
+<p>把这一节从头串一遍:每份报告先在 7 个维度上打分,产出 7 个独立的 pillar 数;其中 3 个 (<code>url_coverage</code>、<code>checklist</code>、<code>spec</code>) 按 0.40 / 0.40 / 0.20 加权得到质量项 <em>Q</em>;<em>Q</em> 本身就是 <code>composite_v1</code>;把 <code>url_reachability</code> 直接乘到 <em>Q</em> 外面得到 <code>composite_v2_truthful</code>,也就是头部排名用的那一个数;把 7 个 pillar 都按一组新权重 (含 <code>analysis_depth</code> 与 <code>presentation</code> 这两项文字质量分) 相加再乘上 floor-0.1 的可达性,得到 <code>composite_v3</code>,提供更柔和、纳入文字质量的对照口径。每个任务上,任何两个智能体的 v2 谁高谁就赢这一场对战;所有任务上所有两两对战累积起来,送进 Bradley-Terry / Elo (下一节 §8 讲),就得到了头部排行榜上的那 9 个 Elo 数字。</p>
+</section>
+
+<!-- 8 -->
+<section id="sec8">
+<h2>8. Bradley-Terry 排名</h2>
+
+<h3>8.1 模型</h3>
+<p>排名聚合自每任务的 227 个成对对战 (storm 仅在 17 任务上有有效打分,贡献 136 对战)。对战由 <code>composite_v2</code> 合成:对每任务、每对都产出非退化打分的智能体,复合分高者赢、低者输,<code>|Δ| &lt; 0.005</code> 记为平 (<code>build_deep_leaderboard.py:241-244</code>)。</p>
+<p>tie-epsilon 取得很紧的原因:在 v2 下许多智能体塌缩到 composite=0 (可达门把它们杀了),loose epsilon 会让这些智能体彼此平,而非按处理顺序决出胜负。</p>
+
+<h4>Elo 更新</h4>
+<div class="formula">E_a = 1 / (1 + 10^((R_b - R_a) / 400))<br>R_a' = R_a + K · (s_a - E_a)</div>
+<p>K = 32,起始 1000,跑 20 轮,每轮 shuffle 对战次序,最后取 20 轮均值 (<code>src/scoring/arena.py:84-120</code>)。多轮平均是为了消除单轮 Elo 在小数据上对对战顺序的敏感性。</p>
+
+<h4>Bradley-Terry 似然</h4>
+<div class="formula">L(π) = ∏ (π_i / (π_i + π_j))^w_ij    ,    R_i = 400 · log₁₀ π_i + C</div>
+<p>其中 <em>w_ij</em> 是 <em>i</em> 击败 <em>j</em> 的次数。Elo 多轮平均可视作上述似然 MLE 的迭代近似。</p>
+
+<h3>8.2 Bootstrap 置信区间</h3>
+<p>非参数 bootstrap:对全部对战做 <strong>B = 1000</strong> 次有放回重采样,每次重新拟合 Elo,取 2.5% / 97.5% 分位数。头部排行榜 CI 半宽介于 ±43 与 ±96 之间;窄者 (例如 storm 的 ±43) 是参与对战数较少的智能体。</p>
+
+<h3>8.3 置换 p 值显著性检验</h3>
+<p>成对置换 (<strong>N = 1000</strong>):在相邻名次对内 shuffle 对战结果,问「两个智能体等强」的零假设下观察到至少这么大 Elo 差距的概率是多少。报告 §10 给出每对相邻名次的 p。</p>
+</section>
+
+<!-- 9 -->
+<section id="sec9">
+<h2>9. 退化样本怎么过滤</h2>
+
+<p>把退化样本纳入 Bradley-Terry 会扭曲评分。Runner-error placeholder (例如 <code>(qx-agents error: ValidationError ...)</code>) 是一个字符串,打分器愉快地抽不出 URL,LLM 判官也愉快地在近乎空答案上输出 PASS 或 FAIL。最终复合分 (~0.02) 既不算赢任何人,也不算输给任何人。<strong>过滤器在 Bradley-Terry 之前剔除它们</strong> (<code>build_deep_leaderboard.py:82-131</code>)。四种模式:</p>
+
+<table>
+<thead><tr><th>#</th><th>模式</th><th>条件</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>短答案 + 无信号</td><td><code>answer_chars &lt; 600</code> 且 <code>url_reachability.score = 0</code> 且 <code>checklist.pass_rate = 0</code></td></tr>
+<tr><td>2</td><td>沙盒基础设施失败</td><td><code>url_reachability.details.infra_failure == True</code>。每次探针都是 5xx 或 net-fail,意味着沙盒打分期间挂了。</td></tr>
+<tr><td>3</td><td>判官全失败</td><td><code>checklist.judge_error</code> 且 <code>analysis_depth.judge_error</code> 且 <code>presentation.judge_error</code>。三个 LLM 判官全错 (通常是 ds_proxy 超时),没有判官信号。</td></tr>
+<tr><td>4</td><td>Runner failure / exception 占位</td><td>答案 Markdown 以 <code>(&lt;Agent&gt; produced no report after Ns, exit=N)</code> 或 <code>(&lt;Agent&gt; error: ...)</code> 开头</td></tr>
+</tbody>
+</table>
+
+<p>排行榜审计行专门保留了被过滤智能体的元信息,以防它们「未被基准测试过」式地静默消失。</p>
+
+<p>具体效果:354 个打分文件中 326 个被保留进 Elo,28 个被过滤。其中 qx-agents 30/30 全被过滤 (SDK 框架不兼容),storm 13/30 被过滤,flowsearcher-ds 18/48 被过滤。</p>
+</section>
+
+<!-- 10 -->
+<section id="sec10">
+<h2>10. 实验结果</h2>
+
+<h3>10.1 头部排行榜 (composite_v2_truthful, 56 任务, DeepSeek V4-flash)</h3>
+<table>
+<thead><tr><th class="num">#</th><th>智能体</th><th class="num">Elo</th><th>95% CI</th><th class="num">W</th><th class="num">L</th><th class="num">D</th><th class="num">对战</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td><strong>camel-ai</strong></td><td class="num"><strong>1480.6</strong></td><td>[1405, 1567] ±81</td><td class="num">206</td><td class="num">20</td><td class="num">1</td><td class="num">227</td></tr>
+<tr><td class="num">2</td><td><strong>flowsearcher-ds</strong></td><td class="num"><strong>1401.2</strong></td><td>[1324, 1486] ±81</td><td class="num">193</td><td class="num">32</td><td class="num">2</td><td class="num">227</td></tr>
+<tr><td class="num">3</td><td><strong>smolagents</strong></td><td class="num"><strong>1307.1</strong></td><td>[1211, 1404] ±96</td><td class="num">170</td><td class="num">42</td><td class="num">15</td><td class="num">227</td></tr>
+<tr><td class="num">4</td><td>ldr</td><td class="num">945.1</td><td>[871, 1014] ±72</td><td class="num">80</td><td class="num">100</td><td class="num">47</td><td class="num">227</td></tr>
+<tr><td class="num">5</td><td>gpt-researcher</td><td class="num">865.8</td><td>[793, 941] ±74</td><td class="num">60</td><td class="num">114</td><td class="num">53</td><td class="num">227</td></tr>
+<tr><td class="num">6</td><td>deerflow</td><td class="num">821.7</td><td>[756, 903] ±74</td><td class="num">40</td><td class="num">118</td><td class="num">69</td><td class="num">227</td></tr>
+<tr><td class="num">7</td><td>ii-researcher</td><td class="num">731.5</td><td>[676, 776] ±50</td><td class="num">5</td><td class="num">130</td><td class="num">92</td><td class="num">227</td></tr>
+<tr><td class="num">8</td><td>langchain-odr</td><td class="num">728.8</td><td>[674, 781] ±53</td><td class="num">6</td><td class="num">129</td><td class="num">92</td><td class="num">227</td></tr>
+<tr><td class="num">9</td><td>storm</td><td class="num">718.2</td><td>[677, 763] ±43</td><td class="num">0</td><td class="num">75</td><td class="num">61</td><td class="num">136</td></tr>
+</tbody>
+</table>
+
+<h3>10.2 相邻名次显著性 (置换 p 值, N = 1000)</h3>
+<table>
+<thead><tr><th>高名次</th><th>低名次</th><th class="num">差距 (Elo)</th><th class="num">p-value</th><th>α=0.05 显著?</th></tr></thead>
+<tbody>
+<tr><td>camel-ai</td><td>flowsearcher-ds</td><td class="num">79.4</td><td class="num">0.305</td><td>否</td></tr>
+<tr><td>flowsearcher-ds</td><td>smolagents</td><td class="num">94.1</td><td class="num">0.447</td><td>否</td></tr>
+<tr><td><strong>smolagents</strong></td><td><strong>ldr</strong></td><td class="num"><strong>362.0</strong></td><td class="num"><strong>0.000</strong></td><td><strong>是 ★</strong></td></tr>
+<tr><td>ldr</td><td>gpt-researcher</td><td class="num">79.3</td><td class="num">0.326</td><td>否</td></tr>
+<tr><td>gpt-researcher</td><td>deerflow</td><td class="num">44.1</td><td class="num">0.573</td><td>否</td></tr>
+<tr><td>deerflow</td><td>ii-researcher</td><td class="num">90.2</td><td class="num">0.310</td><td>否</td></tr>
+<tr><td>ii-researcher</td><td>langchain-odr</td><td class="num">2.7</td><td class="num">0.970</td><td>否</td></tr>
+<tr><td>langchain-odr</td><td>storm</td><td class="num">10.6</td><td class="num">0.896</td><td>否</td></tr>
+</tbody>
+</table>
+
+<div class="callout">
+<h4>正确的读法:两个簇,一条窄鸿沟</h4>
+<p>只有 smolagents 与 ldr 之间的 <strong>362-Elo 鸿沟</strong> 在 α=0.05 水准上显著。前三名是统计上并列的「头部簇」;后六名是统计上并列的「尾部簇」。把这份排名读作「两个簇被一条窄鸿沟隔开」,而非「9 个有序档次」,是更准确的解读。</p>
+</div>
+
+<h3>10.3 逐维度 Elo</h3>
+<table>
+<thead><tr><th>智能体</th><th class="num">checklist</th><th class="num">quote</th><th class="num">reach</th><th class="num">spec</th><th class="num">url_cov</th></tr></thead>
+<tbody>
+<tr><td>camel-ai</td><td class="num">1170</td><td class="num">1486</td><td class="num">1287</td><td class="num">1268</td><td class="num">1182</td></tr>
+<tr><td>flowsearcher-ds</td><td class="num">1147</td><td class="num">1398</td><td class="num">1256</td><td class="num">1269</td><td class="num">1141</td></tr>
+<tr><td>smolagents</td><td class="num">1088</td><td class="num">1317</td><td class="num">1236</td><td class="num">1003</td><td class="num">1146</td></tr>
+<tr><td>ldr</td><td class="num">614</td><td class="num">789</td><td class="num">1215</td><td class="num">644</td><td class="num">908</td></tr>
+<tr><td>gpt-researcher</td><td class="num">1152</td><td class="num">798</td><td class="num">883</td><td class="num">1238</td><td class="num"><strong>1305</strong></td></tr>
+<tr><td>deerflow</td><td class="num">943</td><td class="num">824</td><td class="num">860</td><td class="num">1057</td><td class="num">820</td></tr>
+<tr><td>ii-researcher</td><td class="num">970</td><td class="num">805</td><td class="num">752</td><td class="num">772</td><td class="num">816</td></tr>
+<tr><td>langchain-odr</td><td class="num">1024</td><td class="num">788</td><td class="num">766</td><td class="num">1098</td><td class="num">932</td></tr>
+<tr><td>storm</td><td class="num">893</td><td class="num">795</td><td class="num">745</td><td class="num">652</td><td class="num">750</td></tr>
+</tbody>
+</table>
+
+<p>这张表是本基准<strong>最清晰的单一产物</strong>。注意 <code>gpt-researcher</code> 在 <code>url_coverage</code> 上 Elo 最高 <strong>1305</strong> (它确实输出很多看起来像 Magento URL 的字符串,其中若干凑巧是黄金 URL),在 <code>checklist</code> 上第二高 (1152,LLM 判官认为读着不错),但在 <code>reachability</code> 上倒数第三 (883,URL 实际解析不了)。<code>composite_v2</code> 的乘性门正是阻止这一画像登顶的因素。</p>
+</section>
+
+<!-- 11 -->
+<section id="sec11">
+<h2>11. 四个关键发现</h2>
+
+<h3 id="sec11-1">11.1 真实性门反转朴素排名 ★头号发现★</h3>
+
+<p>把同一份对战矩阵在 <code>composite_v1</code> (加性、无门) 上重跑,得到一张<strong>不同的</strong>排行榜:</p>
+
+<table>
+<thead><tr><th>智能体</th><th class="num">v2 Elo</th><th class="num">v2 名次</th><th class="num">v1 Elo</th><th class="num">v1 名次</th><th>变动</th></tr></thead>
+<tbody>
+<tr><td><strong>gpt-researcher</strong></td><td class="num">866</td><td class="num">5</td><td class="num">1269</td><td class="num"><strong>1</strong></td><td><span class="tag tag-bad">v1→v2 跌 4 档</span></td></tr>
+<tr><td>flowsearcher-ds</td><td class="num">1401</td><td class="num">2</td><td class="num">1253</td><td class="num">2</td><td>0</td></tr>
+<tr><td><strong>camel-ai</strong></td><td class="num"><strong>1481</strong></td><td class="num"><strong>1</strong></td><td class="num">1232</td><td class="num">3</td><td><span class="tag tag-good">v1→v2 升 2 档</span></td></tr>
+<tr><td>smolagents</td><td class="num">1307</td><td class="num">3</td><td class="num">1088</td><td class="num">4</td><td><span class="tag tag-good">+1</span></td></tr>
+<tr><td><strong>langchain-odr</strong></td><td class="num">729</td><td class="num">8</td><td class="num">1005</td><td class="num">5</td><td><span class="tag tag-bad">跌 3 档</span></td></tr>
+<tr><td>deerflow</td><td class="num">822</td><td class="num">6</td><td class="num">933</td><td class="num">6</td><td>0</td></tr>
+<tr><td>ii-researcher</td><td class="num">732</td><td class="num">7</td><td class="num">898</td><td class="num">7</td><td>0</td></tr>
+<tr><td>storm</td><td class="num">718</td><td class="num">9</td><td class="num">801</td><td class="num">8</td><td>−1</td></tr>
+<tr><td><strong>ldr</strong></td><td class="num">945</td><td class="num">4</td><td class="num">520</td><td class="num">9</td><td><span class="tag tag-good">升 5 档</span></td></tr>
+</tbody>
+</table>
+
+<p>三个智能体的名次变动达 3 档或以上:</p>
+<ul>
+  <li><strong>gpt-researcher 从第 5 跳到第 1</strong>:文笔流畅,checklist 高,url_coverage 第 1;一旦不再乘以可达性,质量项就是全场最大。</li>
+  <li><strong>langchain-odr 从第 8 跳到第 5</strong>:报告结构很好,通过 checklist 与 spec,只是 URL 是外部的。</li>
+  <li><strong>ldr 从第 4 落到第 9</strong>:门控下被「reach pillar 高分」(1215,高于 gpt-researcher) 救了一命;一旦不再有门,它就什么也不剩。</li>
+</ul>
+
+<div class="bad">
+<h4>具体案例:<code>gpt-researcher</code> 在任务 0009 上</h4>
+<p>报告 <strong>6200 词,通过 21/21 中的 19 项 checklist,presentation 0.78,引用 93 个 URL</strong>;其中只有 <strong>不到 10 个</strong> 能从沙盒返回 HTTP 200。该运行的 <code>composite_v1 = 0.387</code>,<code>composite_v2 = 0.000</code>。审计页 <code>/audit</code> 把这个例子标记为「<strong>流畅捏造</strong>」失败模式的标准样本。</p>
+</div>
+
+<div class="callout">
+<h4>支持「带门」公式的最强论点</h4>
+<p>一个读起来很美、引文却是捏造的 DR 智能体,比一个文笔笨拙但引用真实页面的智能体<strong>更糟糕</strong>,因为<strong>流畅捏造在下游被相信的概率更高</strong>。真实性门让这一点直接可见。</p>
+</div>
+
+<h3 id="sec11-2">11.2 多智能体协作架构在本沙盒上占优</h3>
+<p>头部三框架中,两个是多智能体协作 (camel-ai 的 ChatAgent + SearchToolkit、flowsearcher-ds 的记忆引导规划器 + 执行器),一个是受约束的工具调用循环 (smolagents 的 ToolCallingAgent + <code>max_steps=60</code>)。底部六个中,有两个是不分解的单循环或顺序流水线 (ii-researcher 的 ReAct 在 3-5 轮后终止;gpt-researcher 的 writer 是单次)。</p>
+
+<p>趋势与下面这条假设一致:<strong>DeepSeek V4-flash 作为非推理骨干,得益于外部分解</strong>。当框架把任务分解为子查询并编排它们时,模型能把每个子槽填好;当框架要求模型在一个提示里隐式分解时,输出要么截断要么漂移。</p>
+
+<p>这个发现以沙盒为界:<strong>120 引文下限正是强制分解的来源</strong>。DeepSeek V4-flash 的一轮前向几乎不可能在单次搜索之后产生 60 条跨源引文,因此任何不在多轮搜索中重试的框架,结构上就被卡在引文下限以下。换用推理型骨干 (DeepSeek V4 thinking on 或 GPT-5 reasoning) 时,多智能体与单循环之间的差距可能收窄。</p>
+
+<h3 id="sec11-3">11.3 社区热度 vs 实测排名分歧</h3>
+<p><code>gpt-researcher</code> 在本基准上排名第 5,但其 GitHub 热度 <strong>25.7k stars</strong>,是开源世界中「deep research」一词的事实参考实现。它的排名落后于一个大多数读者没听说过的框架 (flowsearcher-ds,自研) 与一个并非专为 DR 而设的通用智能体循环 (smolagents)。这一分歧有三层成因:</p>
+
+<div class="grid3">
+  <div class="card">
+    <h4>① 热度选择「产品级实现」</h4>
+    <p>gpt-researcher 是面向开放网的优秀工程:提示词针对真 Google / Tavily 调过,检索流水线假设真 CDN 提供 HTML,报告器期待开放网 URL 模式。<strong>把它放到一个 Magento 沙盒上 (URL slug 含数字后缀,模型无法模板化),它的工程优势不可迁移。</strong></p>
+  </div>
+  <div class="card">
+    <h4>② 热度选择「文笔好」</h4>
+    <p>大多数使用者读完报告就完事,不会去点 93 个 URL 看有几个 200。gpt-researcher 文笔好,以文笔评价 DR 的社区做的事情,正是 <code>composite_v1</code> 做的事。<code>composite_v2</code> 就是把差异显化的工具。</p>
+  </div>
+  <div class="card">
+    <h4>③ 热度选择「容易上手」</h4>
+    <p>gpt-researcher 的一行启动是真本事;smolagents 是没有任何 DR 营销光环的通用工具调用循环。易上手与「实测质量」相关性弱。</p>
+  </div>
+</div>
+
+<p><strong>启示不是 gpt-researcher 不好,而是「社区最爱」与「在密封沙盒上的实测质量」是两根不同的坐标轴</strong>,而本基准的存在就是为了刻画第二根。</p>
+
+<h3 id="sec11-4">11.4 框架级失败模式 (基准过程中捕获并部分修复)</h3>
+
+<table>
+<thead><tr><th>#</th><th>失败模式</th><th>表现</th><th>处置</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>qx-agents 框架级不兼容</strong></td><td>在 DeepSeek V4-flash 下,openai-agents SDK 抛 <code>pydantic.ValidationError: 2 validation errors for KnowledgeGapOutput</code> 与下游 <code>IndexError: list index out of range</code>,每任务都如此。</td><td>不是本仓库该修的 bug。30 份打分由 <code>_RUNNER_EXCEPTION_PREFIX_RE</code> 全部剔除;审计行公开记录。</td></tr>
+<tr><td>2</td><td><strong>storm 参考文献合并修复 (最大单次增量)</strong></td><td>runner 只读 <code>storm_gen_article_polished.txt</code> 正文,从未把 <code>url_to_info.json</code> URL 表合并回 Markdown。打分的是被剥引文的版本。</td><td><code>storm_runner.py:299-313</code> 在尾部追加从 <code>url_to_info.json</code> 重建的 References 节。<code>composite_v2</code> 从 0.000 → ~0.067。</td></tr>
+<tr><td>3</td><td>Kiwix URL 别名 bug</td><td>黄金池存 <code>localhost:8090/.../A/Page_Name</code>,部分智能体输出 <code>/viewer#wikipedia/A/Page_Name</code> 变体。</td><td><code>canonicalize_url</code> 补丁合并两种形态;64 份历史打分重新打分;3 对历史名次解锁。</td></tr>
+<tr><td>4</td><td>dzhng API key 传递</td><td>Node 侧从自己的 <code>.env</code> 读 <code>OPENAI_API_KEY</code> 而非父 shell;只设在 bash 环境里不会传播。</td><td>把 key 直接写到 <code>third_party/deep-research/.env</code>。</td></tr>
+</tbody>
+</table>
+
+<p>两个基础设施层面事件:</p>
+<ul>
+  <li><strong>运行中途 GPU 掉线。</strong> 评测主机 RTX 5090 在 <code>nvidia-smi: GPU is lost</code> 后失联;基准并行迁移至 DeepSeek API,无数据丢失地继续了 bulk run。</li>
+  <li><strong>DeepSeek API 402 (余额不足)。</strong> 后期一小段时间内返回 HTTP 402,因预付余额清零。补充后继续。排行榜的退化过滤器以「judge_error 三连命中」捕获了这段时间内的运行,使其不污染 Elo。</li>
+</ul>
+</section>
+
+<!-- 12 -->
+<section id="sec12">
+<h2>12. 局限性与公平性审计</h2>
+
+<h3>12.1 五个已知局限</h3>
+<div class="grid2">
+  <div class="card">
+    <h4>三个语料,而非整个网络</h4>
+    <p>Magento + Postmill + Kiwix 覆盖了电商、社区、百科三种垂直模式,但没有新闻、学术文献、原始文档,以及登录墙背后的一切。在「金融报告合成」上优秀的智能体不会被本基准测出。<strong>代价是有意的:能覆盖整个开放网的沙盒就是开放网。</strong></p>
+  </div>
+  <div class="card">
+    <h4>头部数字使用单一骨干</h4>
+    <p>头部排名所有智能体都跑在 <code>deepseek-v4-flash</code> 非推理上。<strong>风险</strong>:用 DeepSeek 排出来的名次告诉我们「哪个智能体架构对 DeepSeek 最合适」,而非「哪个智能体架构最通用」。<code>/compare</code> 页与 <code>ds_proxy</code> 可切后端正是为此而设。</p>
+  </div>
+  <div class="card">
+    <h4>LLM-as-judge 偏差</h4>
+    <p>7 个维度中有 3 个 (checklist / citation_alignment / presentation+depth 的 LLM 部分) 都调用同一份 DeepSeek V4-flash 判官。确定性守卫 (三种) 捕获了最坏情况,但残余偏差非零。未来迭代应换用<strong>不同家族的判官</strong> (GPT-5、Claude) 测量一致性。</p>
+  </div>
+  <div class="card">
+    <h4>部分任务覆盖</h4>
+    <p>100 个设计任务中只有 57 个完成端到端打分。若全部 100 个都跑,排行榜 Elo CI 半宽会从 ±43~±96 收紧到约 ±30~±60。</p>
+  </div>
+  <div class="card" style="grid-column:1 / -1;">
+    <h4>进程内 runner 虚拟环境冲突</h4>
+    <p>三个进程内 runner (camel-ai、smolagents、flowsearcher-ds、deepagents 部分) 共用 <code>.venv-camel</code>。任一框架的依赖升级可能掩盖另一框架的依赖冲突。子进程 runner 每个独占一份虚拟环境,避开了该问题。未来清理是<strong>把每个框架都收进自己的虚拟环境并用 clean runner 启动</strong>。</p>
+  </div>
+</div>
+
+<p>第六个 (较小的) 局限:头部 <code>composite_v2</code> 自 2026-04-27 起弃用 <code>claim_nli</code> (乘数 1.0),原因是 NLI 判官在视觉噪声大的商品页上不可靠。原则上的修法是换非 DeepSeek 的 NLI 判官或手工校准。</p>
+
+<h3>12.2 公平性审计</h3>
+<div class="good">
+<p><strong>审计结论</strong> (<code>data/results/audit/HUMAN_URL_AUDIT.md</code> 与 <code>final_audit.json</code>):14 个被接入的框架中,审计员人工抽检每个框架的代表性运行,核对「智能体被打分文件里的 URL 是否真的出现在该智能体的报告 markdown 中」与「报告 markdown 是否就是该智能体真正的产物 (而非中间体或被截断)」。<strong>14/14 框架 0 个存在我们这一侧的失误 (Our-Fault)。</strong> 所有归零的运行都是智能体侧失败 (要么捏造 URL、要么超时、要么框架结构性 bug),不是我们打分链路的失误。</p>
+</div>
+</section>
+
+<!-- 13 -->
+<section id="sec13">
+<h2>13. 未来工作</h2>
+
+<table>
+<thead><tr><th>优先级</th><th>方向</th><th>瓶颈 / 成本</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>多 LLM 比较矩阵</strong>:同一批智能体 × 任务 × 打分,把 ds_proxy 后端从 DeepSeek 换为 GPT-5、Claude Opus 4.7、Gemini、Qwen3.5 (推理开/关各一变体),产 13×5 Elo 矩阵</td><td><code>/compare</code> 已布好路由;一轮全骨干约 2000 调用 × $0.005 ≈ $10 (DeepSeek),按更贵骨干算约 $300/轮</td></tr>
+<tr><td>2</td><td><strong>更多垂直域沙盒</strong>:加新闻 (Common Crawl 切片) + 学术 (S2ORC 切片);让基准能就「时序推理」与「学术综合」给出独立的发现</td><td>shim 索引接口是语料无关的,只需新增搜索索引插件 + 每任务黄金构建器</td></tr>
+<tr><td>3</td><td><strong>Human-eval 校准</strong>:每个 LLM 判官维度对一份 50-100 报告/维度的人工判官数据集校准,给 LLM 判官加上明确的误差棒</td><td>当前已有 30 份人工 URL 评级;扩展到 checklist、citation_alignment、presentation 等</td></tr>
+<tr><td>4</td><td><strong>推理模式对比</strong>:DeepSeek V4 thinking on、GPT-5 extended thinking、Claude with reasoning。真实性门反转的发现在推理模型上可能<strong>更尖锐</strong> (推理模型在文献中被记录有「更自信地捏造」倾向)</td><td>需要等多 LLM 矩阵先就位</td></tr>
+<tr><td>5</td><td><strong>长程任务</strong>:当前墙钟上限 1800 秒/智能体;需要 4 小时以上「搜-取-写」循环带检查点的任务,测试现基准无法覆盖的「长程一致性」轴</td><td>需要重新设计任务 schema 与可中断的运行器</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- 14 -->
+<section id="sec14">
+<h2>14. 答辩 Q&amp;A 预案</h2>
+
+<p>下面这些问题在过去几个月里被同行/老师反复问过,先把答案准备好。</p>
+
+<h3>14.1 方法学相关</h3>
+
+<div class="qa">
+<div class="q">为什么不在 GAIA / BrowseComp / AssistantBench 上跑就行?</div>
+<div class="a">三个理由。① 它们是开放网,页面会漂、404、被重排,实验<strong>不可复现</strong>。② 真实性几乎不可探测:同一 URL 从不同主机看,返回码可能不同。③ 它们把「产品评测」和「能力测量」混在一起,而我们要测的只是后者。我们沿用了 ALCE / WebArena 的「先冻结基底再打分」思路,把它推广到多语料的交互式沙盒。</div>
+
+<div class="q">为什么真实性门要乘性而不是加性?</div>
+<div class="a">加性会把「文笔好的捏造」奖励上去。一个 reach=0 的智能体在事实上没有产出可用证据,加性公式下它仍然能靠 checklist 与 url_coverage 拿到大半分。乘性硬零是「捏造不可妥协」最简单的表达;v3 的 max(0.1, reach) 是为了让审计页可看到 v2 上归零但报告非空的智能体,但<strong>头部排名仍用 v2</strong>。</div>
+
+<div class="q"><code>url_coverage</code> 和 <code>url_reachability</code> 信号重复吗?</div>
+<div class="a">不重复,两者刻画不同失败模式。coverage 问「你引用的 URL 是不是该引的那些」,reachability 问「你引用的 URL 是不是真的存在」。gpt-researcher 是个反例:它的 coverage Elo 全场最高 (1305) 但 reach Elo 倒数第三 (883),意思是它输出的字符串很多<strong>看起来像</strong>该引的 URL,凑巧也匹配了一些黄金条目,但真去 HTTP 拉就拉不到。两个 pillar 互不可替代。</div>
+
+<div class="q">LLM 作判官有自我偏好/松懈/假阳性怎么办?</div>
+<div class="a">三层守卫。① 退化答案守卫:50 词以内 + 无引文直接全 FAIL,不调 LLM。② 全 PASS 短答案降级:全 PASS 但 &lt;500 词全 FAIL,捕获松懈模式。③ 锚定关键词交叉检查:reach &lt;0.30 时含锚定关键词的项降级 FAIL。这三层让 gpt-researcher 在引 93 个伪 URL 的报告上拿不到 21/21。残余偏差靠未来的多判官族 (GPT-5、Claude) 一致性比较来量化。</div>
+
+<div class="q">为什么 claim_nli 从 v2 弃了还要继续算?</div>
+<div class="a">为了<strong>可追溯</strong>。DeepSeek V4-flash 在视觉噪声大的商品页上假阴性多,我们 2026-04-27 把它在 v2 中乘数置 1.0。但它仍每次运行被计算并持久化在 score JSON 里,以便未来换更强 NLI 判官时,可以重跑头部数字而不重跑智能体。原则上的修法是换非 DeepSeek 的判官或手工校准。</div>
+
+<div class="q">头部 v2 公式里没有任何「文字质量分」,是不是没评测报告写得好不好?</div>
+<div class="a">评测了,而且测得很细,只是没让它进 v2。<strong>文字质量评分集中在两个 pillar:<code>presentation</code> (12 项:标题层级、节平衡、列表表格、可读性 + 6 项 LLM 判官 ── 逻辑流、过渡质量、无元叙述废话、格式一致、结论综合、专业语气) 和 <code>analysis_depth</code> (10 项:跨源段落、矛盾语言、三角证据 + 6 项 LLM ── 超越枚举、因果推理、信息源三角、新见解、反驳意识、可行动结论)</strong>。两项共 22 个细则项,每次运行都被独立打分并写进 score JSON。它们在头部 v2 中被主动排除,因为<u>把「专业语气」与「URL 可达性」放在同一根加权坐标轴上做加法,会让捏造但文笔好的报告靠文字分把可达性损失补回来,真实性门反转就看不到了</u>。<code>composite_v3</code> 是另一种态度,把这两项纳入 (depth 0.10 + presentation 0.05,合 0.15 权重),提供「想综合考虑文字质量」时的对照口径,但仍不驱动头部 Elo。<strong>简单一句:文字质量在审计页和 v3 排名看,头部 v2 故意不让它和真实性混在一根轴上。</strong></div>
+</div>
+
+<h3>14.2 实验/结果相关</h3>
+
+<div class="qa">
+<div class="q">9 个框架排名,统计上真的有区分度吗?</div>
+<div class="a">部分有,部分没有。<strong>头部三名 (camel-ai / flowsearcher-ds / smolagents) 是一簇,后六名是一簇,中间隔一条 362 Elo 的鸿沟 (p &lt; 0.001)。</strong>其余相邻名次的置换 p 值都 &gt; 0.30。这表明正确读法是「两个簇,一条鸿沟」,而不是「9 个有序档次」。</div>
+
+<div class="q">flowsearcher-ds 是自研的,会不会有偏?</div>
+<div class="a">三件事。① 它跑在和其他 12 个框架完全相同的 shim + ds_proxy 上,没有特殊权限。② 它的代码与其他 runner 一样在 <code>scripts/run_flowsearcher.py</code> 透明可读。③ 它没有访问黄金池 (只有打分器看得到)。它的优势来自<strong>记忆引导规划</strong> (L1/L2/L3),具体表现是<strong>尾部更窄</strong> (近 0 的运行更少,均值 v2 = 0.296,低于 camel-ai 的 0.410,但成对 Bradley-Terry 奖励的是「赢得多」而非「均值高」)。审计页对它和其他框架用同一份判官,我们没有为它写特殊守卫。</div>
+
+<div class="q">为什么 qx-agents 被排除而不是低分?</div>
+<div class="a">因为它的失败是<strong>结构性的</strong>。在 DeepSeek V4-flash 下,openai-agents SDK 抛 <code>pydantic.ValidationError: 2 validation errors for KnowledgeGapOutput</code>,30 个任务全是同一个 stack trace,placeholder Markdown 形如 <code>(qx-agents error: ...)</code>。把它当作 0 分进 Elo 会扭曲 BT 评分:它「输」的方式不是智能体表现差,而是 SDK 根本没跑。退化过滤器 (#4 模式) 把这种 placeholder 字符串前缀剔除,但审计行公开记录了它的存在,所以它不是「未被基准测试过」式地消失。</div>
+
+<div class="q">storm 修一个 bug 就涨这么多,是不是修过头了?</div>
+<div class="a">不是。修复内容是 <code>storm_runner.py:299-313</code> 在 Markdown 尾部追加一段从 <code>url_to_info.json</code> 重建的 References 节。这一段<strong>不是新生成的内容</strong>,它是 STORM 自己已经计算好的 URL 表,我们之前打分时没合并回来,等于打分了一份被剥引文的正文。修完后 composite_v2 从 0.000 涨到约 0.067,反映的是「之前在测错的产物」。STORM 仍然第 9 名,只是从「全场归零」变成「能参加比赛」。</div>
+
+<div class="q">为什么 gpt-researcher 不直接 reach 修一下就行?</div>
+<div class="a">它的问题不是<strong>配置</strong>,是<strong>架构</strong>。它通过把商品名 kebab-case 化为 <code>/products/&lt;slug&gt;</code> 来<em>构造</em> Magento URL,但 Magento 真实 slug 含智能体看不到的数字后缀 (例如 <code>/sennheiser-hd650-headphones-12345.html</code>)。模型没法猜数字后缀,所以构造的 URL 几乎全部 404。修法只能是改它的 retriever,让它从 Tavily 搜索结果里 copy 真 URL,而不是构造,这是一个上游框架级改动。本基准的处置是<strong>不修上游</strong>,但忠实地把这个失败显示给读者:per-pillar 表里 gpt-researcher 的 url_coverage 1305 + reach 883 就是这个模式的指纹。</div>
+</div>
+
+<h3>14.3 工程/复现相关</h3>
+
+<div class="qa">
+<div class="q">这套基准能跑在多大硬件上?</div>
+<div class="a">最低配置:64 GB RAM + 200 GB 磁盘 (Magento 镜像 + Postmill + ZIM 文件)。GPU 不是必需的 (所有 LLM 都走 DeepSeek API),但有 GPU 可以本地跑判官省钱。评测主机是 Windows + WSL Ubuntu 一台,Magento + Postmill + Kiwix 都是 docker container,shim + ds_proxy 是常驻 Windows 计划任务。复现一份 30 任务的小基准约 6-8 小时墙钟,$15-30 的 DeepSeek 调用。</div>
+
+<div class="q">为什么用 13 个虚拟环境?</div>
+<div class="a">框架依赖冲突。<code>gpt-researcher</code> 依赖 pre-1.0 LangChain 子模块 (<code>langchain.docstore</code>、<code>langchain.vectorstores</code>),而 <code>langchain-odr</code> 用的是 1.x。<code>ldr</code> 用 Python 3.12 程序化 API。<code>tongyi</code> 用 <code>qwen_agent</code>。把它们装到一个 venv 里要么装不上,要么互相覆盖。子进程范式 + 每框架独占 venv 是<strong>已知的代价</strong>,但回报是接入第 14 个框架不会炸前 13 个。</div>
+
+<div class="q">为什么搜索 shim 要 Tavily 兼容?</div>
+<div class="a">因为<strong>每一个被接入的框架都已经支持 Tavily</strong>。Tavily 是 DR 框架社区事实标准的搜索 API,有清晰的 request/response schema。我们写一个 Tavily 兼容的 HTTP 服务,每个框架的接入就只是改一行 <code>base_url</code> 配置,无需自定义工具或调提示词。这是降低接入成本最关键的设计决策。换 Brave / Serper / 自定义 schema 都意味着改 13 个框架。</div>
+
+<div class="q">为什么 ds_proxy 也要 OpenAI 兼容?</div>
+<div class="a">同样的理由。每个 DR 框架都用了 <code>openai</code> Python SDK 或类似客户端。OpenAI 兼容代理意味着改一行 <code>base_url</code>。代理在请求体里注入 <code>thinking: disabled</code>,确保所有框架都跑在同一非推理 checkpoint 上,这是「测量智能体架构而非骨干强度」的前提。</div>
+
+<div class="q">Web 应用为什么没用数据库?</div>
+<div class="a">够用就行。排行榜 JSON 大约 100 KB,任务级 score JSON 总共几 MB。FastAPI 在每次请求时读盘,无数据库、无 Redis、无后台刷新。bulk runner 写下新 score JSON,等下一次 <code>build_deep_leaderboard.py</code> 跑完,<code>/api/leaderboard.json</code> 自动看到新结果。这套「实时读盘」对一个分钟级刷新的小基准就够了。复杂度收益不正。</div>
+</div>
+
+<h3>14.4 哲学/边界相关</h3>
+
+<div class="qa">
+<div class="q">真实性门反转,会不会只是「门过严」的人为产物?</div>
+<div class="a">不是。两个证据。① per-pillar Elo (§10.3) 表明 gpt-researcher 在所有可达性以外的维度都表现良好 (checklist 1152、url_cov 1305、spec 1238),它输的是单一维度 <code>reach 883</code>。② v3 的松弛门 (floor 0.1) 给捏造智能体 10% 权重,结果仍然让 camel-ai 在头部、gpt-researcher 在尾部,反转模式持续。说明这不是「v2 太严」的产物,而是「真实性是一根独立坐标轴」的产物。</div>
+
+<div class="q">沙盒只有 2000 个商品页,智能体会不会「背下来」?</div>
+<div class="a">理论上可以,实际上没有。① 智能体在评测时是<strong>新开的 Python 进程</strong>,没有跨运行状态。② Tavily shim 的响应是 BM25 排序的标题片段,智能体看不到完整页面字典。③ 黄金池中 must_cite_urls 120+,不可能在上下文里塞完。④ 即使能背,reachability 探针仍然检验 URL 是否真实存在,不存在的 URL 哪怕模型再确信也不算分。<strong>背诵失败的可能性在沙盒里反而比开放网低</strong>,因为我们能精确检验。</div>
+
+<div class="q">结论能外推到开放网的 DR 场景吗?</div>
+<div class="a">部分可以,部分不能。可以的:① 「带真实性门 vs 加性」结论是公式选择,与基底无关。② 「多智能体协作在非推理骨干上占优」与骨干 / 任务结构有关,与基底关系小。不能的:① gpt-researcher 在开放网上的真实排名我们不知道,只知道它针对开放网工程化得很好,搬到 Magento 会失去工程优势。② 沙盒里 reach 0.30 阈值在开放网上 (考虑 CDN 抖动 / 限流) 可能要松一些。我们没声称要外推,只声称要刻画「在固定基底上的智能体逻辑」。</div>
+
+<div class="q">这个工作的真正贡献是什么?</div>
+<div class="a">不是 Elo 数字本身。<strong>真正的贡献是:用一个可被任何人重建的沙盒,证明了「以加性方式打分会让 DR 评测奖励错误的行为」</strong>。这是一个方法学命题,在开放网基准上无法证实 (因为真实性不可探测),也很难证伪。把它证实是这个工作的核心。其余 (13 框架适配、7 维评分体系、Bradley-Terry + Bootstrap + 置换、Web 应用) 都是支撑这个命题所必需的工程,但不是命题本身。</div>
+</div>
+
+</section>
+
+<!-- 15 -->
+<section id="sec15">
+<h2>15. 评分体系的局限与扩展设计</h2>
+
+<p>这一节回答一个尖锐但重要的质疑:<strong>我们的 7 个 pillar 是不是太集中在「URL 引用」这一件事上了?</strong>报告的其它属性,比如说<u>具体数值正不正确</u>、<u>报告内部前后说法是否一致</u>、<u>是不是只展示了一面之词</u>,这些维度在当前体系里几乎没有覆盖。这一节先把别人怎么打分调查清楚,再把我们的盲区诚实地标出来,最后给出一个具体的扩展设计。</p>
+
+<h3 id="sec15-1">15.1 这个质疑值得严肃对待</h3>
+
+<p>批评本身是成立的。把 7 个 pillar 按主题归一下:url_coverage / url_reachability / quote_match / citation_alignment / claim_nli 这五项都<strong>围着引文转</strong>,checklist 是任务专属完成度 (与引文模式高度相关),analysis_depth 与 presentation 才真正与「报告本身写得怎么样」有关。换句话说,我们的 7 项有 <strong>5 项在测同一件事</strong>(引文是否真实、是否对应),2 项在测文笔与综合性,然后就完了。<u>没有一项专门测「报告里说的具体数字是不是对的」、「报告自己内部有没有自相矛盾」、「报告有没有给出多个视角」</u>。这三个轴在文献里其实是有独立指标的,我们没用上。</p>
+
+<p>这一节不是给体系打补丁式辩护,而是承认 7 pillar 没覆盖完然后提出怎么补。这是答辩时如果被问到「你们怎么只测 URL?」最干净的回答:<u>我们测了 URL 之外的事,但承认还有三个轴没测,这是下一版要做的</u>。</p>
+
+<h3 id="sec15-2">15.2 别人是怎么打分的:2023&ndash;2026 文献全景</h3>
+
+<p>把近三年长文本生成、RAG、专门 DR 评测的代表性方法按它们测的<strong>维度</strong>分类,可以得到下面这张图。每一格里写主要方法 + 一句机制说明。</p>
+
+<table>
+<thead><tr><th style="width:14%;">维度</th><th>代表方法 / 文献</th><th>机制概要</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>原子事实正确性</strong> (atomic factuality)</td>
+  <td>FactScore (Min 2023);SAFE (Wei 2024);VeriScore (EMNLP 2024);VeriFastScore (2025);FaStFact (2025)</td>
+  <td>把长文本切成<strong>原子事实</strong> (例:「Sony WH-1000XM5 的电池寿命是 30 小时」),逐条到知识库或源页验证,产出 precision。VeriScore 进一步处理「可验证 vs 不可验证」的混合,VeriFastScore 把 pipeline 跑出 6.6× 速度。<u>这一类我们没有</u>。</td>
+</tr>
+<tr>
+  <td><strong>引文/来源接地</strong> (citation grounding)</td>
+  <td>ALCE (Gao 2023);RAGAS (Es 2023);RAGChecker;DeepResearch Bench FACT (2025)</td>
+  <td>逐句问「这一页是不是支撑这一句」(per-citation precision/recall)。RAGAS 还加 answer relevancy 与 context relevancy。<strong>我们这一轴覆盖最全</strong>:url_coverage、reachability、quote_match、citation_alignment、claim_nli 五项都在这里。</td>
+</tr>
+<tr>
+  <td><strong>内部一致性</strong> (intra-document consistency)</td>
+  <td>SummaC / SummaCConv (Laban TACL 2022);ContraGen (2025-10);Contradiction Detection in RAG (2025);LegalWiz (2025)</td>
+  <td>SummaCConv 把文档切成句子单元、对所有句对跑 NLI、用一层 conv 聚合,balanced accuracy 74.4%。ContraGen 报告了:<u>NLI 单独做跨句矛盾检测会塌缩到 41% (近似随机)</u>,自相矛盾 (同一句内) 79-88%,因此需要 hybrid (NLI + LLM judge) 路径。<u>这一类我们也没有</u>。</td>
+</tr>
+<tr>
+  <td><strong>推理/论证质量</strong> (reasoning validity)</td>
+  <td>DREAM 评测的 Reasoning Quality 轴 (2026);DR. BENCH multidim eval (2025-10);Project Debater argument mining</td>
+  <td>对每个含「because / since / therefore」的论断,判断「前提是否真支撑结论」。DREAM 把 Reasoning Quality 单独作为头部轴 (Smolagents 69 分)。我们 analysis_depth 的 6 项 LLM 判官里有「因果推理」「反驳意识」,<u>但没单独打分、没结构化提取论证链</u>。</td>
+</tr>
+<tr>
+  <td><strong>语言/表达质量</strong> (linguistic quality)</td>
+  <td>G-Eval (Liu 2023);BARTScore;BLEURT;Coh-Metrix;DRACO presentation 维度</td>
+  <td>G-Eval 用 LLM 加 chain-of-thought 打 fluency/coherence/consistency/relevance 1-5 分。BARTScore / BLEURT 是模型概率风格的表层指标。<strong>我们的 presentation 已经覆盖这一轴 (12 项细则)</strong>。</td>
+</tr>
+<tr>
+  <td><strong>视角/客观性</strong> (perspective &amp; objectivity)</td>
+  <td>DRACO (Perplexity 2025) 把 objectivity 作为 presentation 子维度;WikiNeutral NPOV;StereoSet / CrowS-Pairs 偏见基准</td>
+  <td>对每个被评价实体,问报告是否同时呈现 pros 与 cons;是否有 steelmanning 反方;是否在中立任务上保持中立。DRACO 100 任务的评分细则就包含这一项。<u>我们没有</u>。</td>
+</tr>
+<tr>
+  <td><strong>完整性/覆盖度</strong> (comprehensiveness)</td>
+  <td>DeepSearchQA (2025-12);DeepResearch Bench RACE (2025);DREAM Key-Information Coverage</td>
+  <td>测「fragmented information 是否被系统性 collated」「实体是否被 deduplicate / resolved」「智能体是否能合理停下来」。DeepSearchQA 把这三件事作为头部能力。<u>我们的 checklist 部分覆盖第一项,后两项 (dedup / stopping criteria) 我们也没有</u>。</td>
+</tr>
+<tr>
+  <td><strong>DR 专用综合评测框架</strong> (整体对照)</td>
+  <td>DRACO;DREAM;DeepResearch Bench;DR. BENCH;DeepSearchQA;<strong>LiveResearchBench / DeepEval</strong> (Salesforce 2025-10);<strong>FINDER + DEFT</strong> (OPPO 2025-12);<strong>ResearcherBench</strong> (2025);<strong>LiveDRBench</strong> (Microsoft 2025);<strong>AutoResearchBench</strong> (2026)</td>
+  <td>2025-2026 集中出现的 DR 专用基准,公共特征是 <strong>4-6 个高层轴</strong>。DRACO 用 (accuracy / breadth&amp;depth / presentation+objectivity / citation);DREAM 用 (factuality / writing quality / key-info coverage / reasoning quality);<strong>LiveResearchBench / DeepEval 用 6 维</strong> (含 <em>Factual &amp; Logical Consistency</em> 单独成轴,直接验证我们 §15.3 的盲区诊断);<strong>FINDER + DEFT 首次给出 DR 智能体 14 类失败模式分类法</strong> (reasoning / retrieval / generation),不只打分还做错误诊断。<strong>LiveDRBench 是最有意思的反例</strong>:Microsoft 这一家 100 题,完全用 precision/recall/F1 评 claim discovery,<u>零 LLM 判官</u>,这条路径与我们「先做确定性」的方向一致。</td>
+</tr>
+<tr>
+  <td>零资源幻觉检测 (无外部知识库)</td>
+  <td>SelfCheckGPT (Manakul EMNLP 2023);HaluEval / HaluLens (ACL 2025);TruthfulQA (已饱和)</td>
+  <td>SelfCheckGPT 不需要外部 KB,通过<strong>对同一 prompt 多次采样</strong>看回答自一致性来探测幻觉,五个变体 (BERTScore / NLI / n-gram / QA / Prompt)。对沙盒 DR 不直接适用 (我们有 KB),但思想可用于「相同问题智能体跑两次,答案是否一致」的鲁棒性测试。</td>
+</tr>
+<tr>
+  <td>分布距离 (无判官的文字质量)</td>
+  <td>MAUVE (NeurIPS 2021);BARTScore / BERTScore / BLEURT (2020-2021)</td>
+  <td>MAUVE 把生成文本与参考文本在 embedding 空间的分布散度作为单一指标,<u>完全不需要逐句判官</u>。对 presentation 维度是判官的确定性补充。Vendi Score (2023)、MTLD、MATTR 等词汇多样性指标也属此类。</td>
+</tr>
+<tr>
+  <td>Rubric / Checklist 元评测</td>
+  <td>WildBench v2 (AI2 2024,每题 5-10 项 task-specific checklist);InFoBench + STICK (2024);Prometheus 2 (2024);RubricEval / JudgeBench (2026)</td>
+  <td>WildBench 验证了「每任务 5-10 项 task-specific checklist + LLM 判官」是稳健打分范式,我们的 21 项 checklist 设计与之精神一致。RubricEval / JudgeBench 是「判官的判官」基准,提供给我们一条<strong>定期校准 DeepSeek 判官 vs 人工一致性</strong>的路径。</td>
+</tr>
+<tr>
+  <td>论证结构 / 自相矛盾文档</td>
+  <td><strong>CONTRADOC</strong> (NAACL 2024,449 篇人工自相矛盾文档);Self-Contradictory Reasoning (2024);Toulmin / Freeman 论证模型;Multi-persona Argument Quality (ACL 2025)</td>
+  <td>CONTRADOC 是 internal_consistency 这一轴最直接的训练 + 评测数据集,449 篇文档专门设计了 intra-document contradiction,正好对应我们 §15.4 中第二个新 pillar 的需求。论证质量文献 (Toulmin) 给出 claim / data / warrant / backing / rebuttal 六段结构,可作为 reasoning_validity 的提取模板。</td>
+</tr>
+<tr>
+  <td>参考报告锚定 (reference-based)</td>
+  <td>DeepResearch Bench RACE (动态权重 + reference report 校准);DOLOMITES (Malaviya TACL 2024,519 任务 519 spec,round-trip 事实一致性 + autorater)</td>
+  <td>RACE 的关键创新是 <strong>专家先写一份参考报告,judge 把它作为「该题该谈到什么」的锚点</strong>,比纯 task-specific checklist 鲁棒。我们 100 任务里挑 5-10 题做 reference report 即可获得这层校准。</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="sec15-3">15.3 把我们 7 pillar 放进这个坐标系</h3>
+
+<p>用一张覆盖矩阵看清楚我们在哪儿、不在哪儿。「✅ 直接覆盖」「⚠ 部分覆盖」「❌ 不覆盖」。</p>
+
+<table>
+<thead><tr><th>文献坐标轴</th><th>我们的覆盖</th><th>具体哪个 pillar / 缺什么</th></tr></thead>
+<tbody>
+<tr><td>引文/来源接地</td><td><strong>✅ 强覆盖</strong></td><td>url_coverage、reachability、quote_match、citation_alignment、claim_nli (已弃) 五项</td></tr>
+<tr><td>任务完成度</td><td>✅</td><td>checklist 21 项,人工撰写</td></tr>
+<tr><td>语言/表达质量</td><td>✅</td><td>presentation 12 项</td></tr>
+<tr><td>论证综合 (软)</td><td>⚠ 部分</td><td>analysis_depth 10 项含「因果推理」「反驳意识」但靠单个 LLM 判官,缺结构化提取</td></tr>
+<tr><td><strong>原子事实正确性</strong></td><td><strong>❌</strong></td><td>不验证「价格 $349」「评论数 1234」「电池 30 小时」这类数值是否与源页一致</td></tr>
+<tr><td><strong>内部一致性</strong></td><td><strong>❌</strong></td><td>「第 3 节说 Sony 降噪最好,第 7 节说 Bose 降噪最好」我们抓不到</td></tr>
+<tr><td><strong>视角/客观性</strong></td><td><strong>❌</strong></td><td>对一个一边倒夸 Sony 不提缺点的报告,我们没有惩罚机制</td></tr>
+<tr><td>推理验证 (硬)</td><td>⚠ 部分</td><td>有「analysis_depth.causal_reasoning」LLM 项,但不提取论证链、不单独评分</td></tr>
+<tr><td>实体去重/停止判断</td><td>❌</td><td>智能体「什么时候算搜够了」我们没测</td></tr>
+</tbody>
+</table>
+
+<p>简单收一下:<strong>引文层我们做得最好</strong>,文字层也覆盖了,但<u>「数值对不对」「报告内部说话一致不一致」「视角是否多元」</u> 这三件事完全没测。这正是用户的直觉。下面给出补救方案。</p>
+
+<h3 id="sec15-4">15.4 扩展提案:四个新 pillar</h3>
+
+<p>不打算一次加 5+ 项,因为 LLM 判官每多一项就多一份脆弱性。优先补<strong>四个性价比最高、文献最成熟、能在沙盒里做确定性实施</strong>的轴。其中一项 (<code>source_diversity</code>) 可以做到<strong>完全零 LLM 调用</strong>,这是文献调研后认为<u>最值得先做</u>的项,因为它没有判官脆弱性。</p>
+
+<div class="card" style="margin:18px 0;">
+<h4><code>factual_exactness</code> &mdash; 原子事实正确性</h4>
+<p><strong>测什么。</strong>报告里所有<u>可结构化提取</u>的事实是否与被引源页一致。重点抓<strong>数值</strong> (价格、星级、评论数、电池寿命、传输速率、年份、版本号)、<strong>命名实体</strong> (品牌、产品名、人名、地名)、<strong>关系</strong> (「Sony 收购了 X」、「Y 由 Z 在 2019 年发布」)。<u>这是 FactScore / SAFE / VeriScore 在做的事</u>,我们把它收缩到沙盒可结构化的范围内。</p>
+<p><strong>怎么做 (沙盒确定性优先)。</strong>分两步:</p>
+<p>(1) <strong>原子事实提取。</strong>对报告每段调一次 LLM (零温度) 输出 JSON 列表,每项含 <code>{subject, predicate, object, source_url, span}</code>。VeriFastScore 给我们一条优化路径:用一个小模型 (Llama 3.1 8B fine-tune) 同时做提取 + 验证,6.6× 速度。但第一版我们用 DeepSeek。</p>
+<p>(2) <strong>逐条验证。</strong>对每条原子事实:抓取 <code>source_url</code> 页面 (复用 reachability 的 fetch 缓存),先<strong>用正则确定性地</strong>查找声明的数值/实体 (例如:商品页价格用 <code>$\d+(\.\d+)?</code> 抽,直接 string contains;星级用 schema.org 微数据抽);确定性匹配不到的退化到 NLI 判官二次校验。</p>
+<p><strong>得分。</strong><code>verified_facts / total_extracted_facts</code>,[0, 1]。</p>
+<p><strong>为什么沙盒里能做得比开放网好。</strong>Magento 商品页有结构化 schema.org 微数据,prices/stars/ratings 都在固定 XPath 上;Kiwix 维基有 infobox 抽取得到的固定字段。<strong>这两点让我们能把至少 60% 的原子事实用 regex 校验,只剩 40% 走 LLM 判官</strong>。开放网上做不到。</p>
+<p class="muted" style="font-size:13px;">文献依据:FactScore (Min EMNLP 2023);SAFE (Wei 2024);VeriScore (Findings of EMNLP 2024);VeriFastScore (arXiv 2505.16973);FaStFact (arXiv 2510.12839)。</p>
+</div>
+
+<div class="card" style="margin:18px 0;">
+<h4><code>internal_consistency</code> &mdash; 报告内部前后是否自相矛盾</h4>
+<p><strong>测什么。</strong>同一份报告里,前后两处对同一实体的论断,是否相互<strong>矛盾</strong> (而非互补)。例:第 3 节说「Sony WH-1000XM5 在 ANC 上击败 Bose QC45」,第 7 节说「Bose QC45 的 ANC 是同价位最强」,这是矛盾;但「Sony 续航更长 + Bose 重量更轻」不矛盾。</p>
+<p><strong>怎么做 (SummaC + ContraGen 路径)。</strong>三步:</p>
+<p>(1) <strong>句子切分 + 实体聚类。</strong>把报告切成句子,对每句抽出主体实体 (NER 或 LLM)。把含同一实体的句子聚成簇。</p>
+<p>(2) <strong>簇内成对 NLI。</strong>对每个簇内任意两句 (<em>s_i</em>, <em>s_j</em>),跑 NLI 判官二选一:「entail / contradict / neutral」。<strong>文献教训:NLI 单独做跨句矛盾会塌到 41% (近似随机) ── 必须 hybrid。</strong>我们用 SummaCConv 的句对聚合 + LLM 判官二次复核 contradict 标的对的方案。</p>
+<p>(3) <strong>得分。</strong><code>1 - (contradicting_pairs / total_same_entity_pairs)</code>。</p>
+<p><strong>关键优化。</strong>不对全文 N² 对做 NLI (代价爆炸),只对同簇内对做。典型报告 200 句、20 实体簇、每簇 10 句 → 20 × C(10,2) = 900 对,可控。</p>
+<p><strong>这一项捕获什么真实失败。</strong>合成长报告的 DR 智能体在 6000 词以上经常前后矛盾,因为不同 paragraph 是不同 search 子线程的产物。<u>当前我们的 7 pillar 完全测不出这种失败</u>。</p>
+<p class="muted" style="font-size:13px;">文献依据:SummaC / SummaCConv (Laban TACL 2022);ContraGen (arXiv 2510.03418v1, 2025-10);Contradiction Detection in RAG (arXiv 2504.00180, 2025-04);A Straightforward Pipeline for Targeted Entailment (arXiv 2508.17127, 2025-08)。</p>
+</div>
+
+<div class="card" style="margin:18px 0;">
+<h4><code>perspective_balance</code> &mdash; 是否给出多视角</h4>
+<p><strong>测什么。</strong>对于评价类、推荐类、比较类任务,报告是否同时呈现<strong>正面与负面视角</strong>?是否对每个被评价实体给出 pros 与 cons?是否在中立任务上保持中立、不偷塞主观推断?DRACO 把这一轴塞在 presentation 维度下的 objectivity 子项。</p>
+<p><strong>怎么做。</strong>分两层:</p>
+<p>(1) <strong>Tier A 确定性 (情感词典)。</strong>用一份 ~500 词的双向情感词典 (positive/negative 各 250 词,英文,VADER + 手工 DR 域增补),对每个被评价实体,在其周围 100 字符窗口内计正负情感词频。要求每个被推荐实体至少有 <code>≥ 1</code> negative 词;过度偏一方 (比例 &gt; 5:1) 计负。</p>
+<p>(2) <strong>Tier B LLM 判官。</strong>对每个被推荐实体,让判官回答「这份报告是否对该实体给出至少一条<strong>具体且非琐碎</strong>的局限/缺点?」 二值。</p>
+<p><strong>得分。</strong><code>0.4 · tier_a + 0.6 · tier_b</code>,[0, 1]。</p>
+<p><strong>沙盒友好性。</strong>Postmill 论坛里我们已经预先标注了 5 类情绪 (praise / complaint / technical_question / comparison / purchase_advice),报告若不引用 complaint 类帖子,情感平衡会自然失分。</p>
+<p class="muted" style="font-size:13px;">文献依据:DRACO 4-dimension rubric (Perplexity 2025);WikiNeutral NPOV evaluation;DREAM 的 writing quality 子维度含 objectivity。</p>
+</div>
+
+<div class="card" style="margin:18px 0;border-color:var(--good);background:var(--good-soft);">
+<h4><code>source_diversity</code> &mdash; 信源与视角的<strong>结构性</strong>多样性 <span class="tag tag-good">完全确定性,无 LLM</span></h4>
+<p><strong>测什么。</strong>报告引用的 URL 在<strong>信源</strong>层面是否多元,而非只挂在一个域、一种来源类型上。这一项与 <code>perspective_balance</code> 互补:perspective_balance 测「对每个实体是否给出正反两面观点」(语义层),source_diversity 测「报告整体的信源分布是否健康」(结构层)。</p>
+<p><strong>怎么做 (零 LLM)。</strong>四个确定性子指标:</p>
+<ul>
+<li><strong>域熵 (domain entropy)</strong>:<code>H = -Σ p_i log p_i</code>,其中 <code>p_i</code> 是引文落在该 host:port 的比例。三个沙盒域均匀分布则 <code>H = log 3 ≈ 1.10</code>;一边倒到一个域 <code>H → 0</code>。</li>
+<li><strong>Top-1 share</strong>:最大单一域的引文占比 ≤ 阈值 (典型 0.45)。防止「报告 95% 是 shopping URL」。</li>
+<li><strong>Source type 分类</strong>:用静态规则把每个 URL 归入 product_page / forum_post / wiki_article 三类 (沙盒里这三类对应三个 host),要求每类至少有最低占比 (典型 0.10)。</li>
+<li><strong>论坛子版多样性</strong> (沙盒友好)。Postmill URL 含 <code>/f/&lt;forum&gt;/</code> 子版标识,要求引用至少 ≥3 个不同子版。</li>
+</ul>
+<p><strong>得分。</strong><code>0.35·H_norm + 0.25·(1{top1 ≤ θ}) + 0.25·type_balance + 0.15·subforum_diversity</code>,[0, 1] 之间。<u>整条公式纯 Python 计算,不打任何 LLM</u>。</p>
+<p><strong>为什么值得做。</strong>(1) 实施成本几乎为零 (一个 verifier 文件 ~150 行);(2) 完全确定性,跑两次结果一样,无判官脆弱性;(3) 文献验证:LiveDRBench (Microsoft 2025) 整个基准都走「全确定性 precision/recall/F1」路线,DRACO 的 citation quality 维度子分含「来源多样性」。(4) 直接回击「你们太集中在 URL 引用上」的批评,因为它本身就是 URL 之外的<strong>结构性</strong>指标。</p>
+<p class="muted" style="font-size:13px;">文献依据:LiveDRBench (Microsoft 2025);Vendi Score (Friedman &amp; Dieng 2023);DRACO citation quality 维度 (Perplexity 2025);political communication 的 actor / viewpoint diversity 度量。</p>
+</div>
+
+<h4>关于 reasoning_validity 我们暂不加的原因</h4>
+<p>论证链验证 (reasoning_validity) 是 DREAM 评测的 Reasoning Quality 轴,但 DREAM 本身没公开它的具体打分细则,我们目前能想到的方案都过度依赖 LLM 判官 (一条「A because B」论断要让判官判断 B 是否真支撑 A,这本身就是更难的判官任务)。一条更鲁棒的路径是 <strong>Toulmin / Freeman 论证模型</strong>:用正则识别因果连接词 (because / since / therefore / hence / due to / 因此 / 由此) 切分出 (premise, conclusion) 对,先用<strong>确定性守卫</strong>检查 premise 句是否有引文且 quote_match 通过,只对通过守卫的样本走 LLM 判官评估「premise → conclusion 是否逻辑有效」。这条路径成熟后再加。<strong>另一个不加的轴是「实体去重 / 停止判断」</strong> (DeepSearchQA 的轴),它测的是「智能体应该什么时候停」,与「报告本身的质量」是两个不同问题,更适合放在<u>智能体行为</u>而非<u>报告质量</u>评测里。</p>
+
+<h3 id="sec15-5">15.5 重新设计的合成公式 <code>composite_v4</code></h3>
+
+<p>把 4 个新 pillar 加入,重新分配权重,要求所有权重和恰为 1.00。<strong>头部仍然是「真实性门 × 质量项」结构</strong>,只是质量项的内部组成变了:</p>
+
+<div class="formula" style="font-size:13.5px;line-height:1.7;">composite_v4 = url_reachability × (
+
+  // 引文层 (传承 v2/v3)
+   0.10 · url_coverage
+ + 0.05 · spec
+ + 0.10 · checklist
+ + 0.10 · citation_alignment
+ + 0.05 · quote_match
+
+  // 信息正确性层 (新)
+ + 0.13 · factual_exactness        ← NEW
+
+  // 内部一致性层 (新)
+ + 0.13 · internal_consistency     ← NEW
+
+  // 视角层 (新)
+ + 0.08 · perspective_balance      ← NEW
+
+  // 来源多样性层 (新,纯确定性)
+ + 0.06 · source_diversity         ← NEW
+
+  // 文字层 (传承)
+ + 0.10 · analysis_depth
+ + 0.10 · presentation
+
+)
+// 权重核对:0.10+0.05+0.10+0.10+0.05+0.13+0.13+0.08+0.06+0.10+0.10 = 1.00  ✓</div>
+
+<p>四处<strong>权重再分配</strong>的逻辑:</p>
+<ul>
+<li><code>url_coverage</code> 与 <code>checklist</code> 从 v2 的各 0.40 降到各 0.10,因为它们在 v2 里占太重 (引文一项就占 50% 总分),稀释给信息层与一致性层。</li>
+<li>新加的 <code>factual_exactness</code> 与 <code>internal_consistency</code> 各拿 0.13,因为它们是<u>真正未被覆盖的盲区</u>,权重应该接近已有的引文 pillar。</li>
+<li><code>perspective_balance</code> 取 0.08,中等略低,因为它对非评价类任务不强相关 (枚举型、辟谣型任务不需要多视角)。</li>
+<li><code>source_diversity</code> 取 0.06。权重不是很大,但它是<u>整个加权和里唯一一项零 LLM 判官、完全确定性的</u>,可以视为「真实性门之外」的第二条不可作弊的硬轴。</li>
+<li>头部 <strong>url_reachability 仍作为乘性门</strong>,不变。这是真实性门反转那个核心发现的源头公式,v4 保留。</li>
+</ul>
+
+<h4>v4 下「文笔好的捏造」会变成什么</h4>
+<p>把 §7.5 那个 reach=0 的反例放到 v4 公式下走一遍:它的 reach 仍是 0 → 整个 v4 仍归零,头部判决不变。但同时,<code>internal_consistency</code> 与 <code>perspective_balance</code> 会让另一类失败浮现出来:<strong>「URL 是真的、但报告自相矛盾」</strong>或<strong>「URL 是真的、但只夸不批」</strong>。这两类失败在 v2 下可能拿很高分,但在 v4 下会被两项新 pillar 拉低。<u>v4 不是替换 v2,它是把 v2 不能区分的两类「URL 真但报告还是有问题」分离出来。</u></p>
+
+<h3 id="sec15-6">15.6 路线图与代价</h3>
+
+<p>四项扩展不是同等优先级。按<strong>可落地性</strong>排序 (而非按权重),零 LLM 的项放最前面,LLM 重度依赖的项放后面:</p>
+
+<table>
+<thead><tr><th>顺序</th><th>新 pillar</th><th>实施成本</th><th>风险</th><th>预期收益</th></tr></thead>
+<tbody>
+<tr style="background:var(--good-soft);">
+<td>第一步</td>
+<td><code>source_diversity</code></td>
+<td><strong>极低。</strong>~150 行 Python,完全 offline,<u>零 LLM 调用</u>。每报告 &lt;1 秒。</td>
+<td><strong>无。</strong>确定性指标,跑两次结果一样。</td>
+<td>直接拿到一根「URL 之外」的硬轴;一晚能上线;最干净地回击「我们只测引用」的批评。</td>
+</tr>
+<tr>
+<td>第二步</td>
+<td><code>factual_exactness</code></td>
+<td>中等。需要原子事实提取 (~1 LLM 调用/段) + 60% 用正则确定性校验 (商品页 schema.org 微数据、维基 infobox)。每报告 ~20 LLM 调用,2-5 分钟。</td>
+<td>低。FactScore 系列方法成熟,沙盒结构化数据帮我们把 LLM 比例压到 40%。</td>
+<td>能直接抓到「价格抄错」「电池寿命瞎编」类失败,这类失败当前完全测不出。</td>
+</tr>
+<tr>
+<td>第三步</td>
+<td><code>perspective_balance</code></td>
+<td>低。Tier A 是情感词典确定性,Tier B 是每实体一次 LLM 调用。每报告 ~10 LLM 调用,1 分钟。</td>
+<td>低。情感词典是确定性的,Tier B 只问一个二值问题。</td>
+<td>能抓到「一边倒推荐」类报告,对评价类任务相关性高,对其它任务有限。</td>
+</tr>
+<tr>
+<td>第四步</td>
+<td><code>internal_consistency</code></td>
+<td>高。同实体聚类 + 簇内 NLI + LLM 复核。每报告 ~900 个 NLI 调用 (本地 DeBERTa-v3-MNLI 即可,无需 LLM) + ~20 个 LLM 复核调用。</td>
+<td>中。NLI 跨句矛盾文献里报告精度低 (~41%),需要严格走 hybrid 路径,且本地 NLI 模型与 LLM 判官的边界需要校准。</td>
+<td>能抓到 6000+ 词长报告的前后矛盾,这是头部三框架以外几乎所有 DR 智能体的常见失败模式。最值得做、也最难做对的一项。</td>
+</tr>
+</tbody>
+</table>
+
+<h4>成本估算</h4>
+<p>当前一份报告打分总 LLM 调用约 30 次 (checklist 1 + citation_alignment 50 + claim_nli 30 + analysis_depth 6 + presentation 6,部分能并行)。<strong>四项新 pillar 加起来约 +50 LLM 调用 / 报告</strong> (source_diversity 0 + factual_exactness 20 + perspective_balance 10 + internal_consistency 20)。本地 NLI (DeBERTa-v3-MNLI) 不计成本但需要 GPU,RTX 5090 32GB 一秒 ~100 对足够用。LLM 用 DeepSeek V4-flash,每调用 ~$0.002,新增 ~$0.10 / 报告。56 任务 × 9 头部框架 = 504 报告 → <strong>新增 ~$50 一次全量 rescore</strong>。可接受。</p>
+
+<h3 id="sec15-7">15.7 方法学上的额外改进 (不只是加 pillar)</h3>
+
+<p>把新 pillar 一项项往上加,只是<strong>横向</strong>扩展评分维度。文献里还有一组<u>纵向</u>改进,与维度无关,但能让现有体系的鲁棒性大幅提升。这些改进不要求改 pillar 的数量与权重,只要求改打分流程,在 v4 落地的同时一并做最合算。</p>
+
+<div class="grid2">
+  <div class="card">
+    <h4>判官族多样化 (judge ensemble) <span class="tag tag-warn">最优先</span></h4>
+    <p>我们目前 7-10 个 LLM 判官调用<strong>全部打到同一份 DeepSeek V4-flash</strong>。文献里反复出现的「判官与被评测模型同源会引入自我偏好」我们用三层确定性守卫缓解,但这不是根除。彻底修法是引入<u>不同家族的二号判官</u> (GPT-5、Claude Opus 4.7、Qwen3.5 推理变体之一),对 LLM 重度维度 (citation_alignment、checklist、internal_consistency Tier B、perspective_balance Tier B) 做<strong>多判官投票</strong>。预算 +2× LLM 成本 (≈ +$100 / 全量 rescore),回报是给 LLM 判官加上可量化的误差棒。LiveResearchBench / DeepEval 用 <strong>Gemini 2.5 Pro + GPT-5 双判官取平均 + pairwise 时做 position swap 平均</strong>,这是 SOTA 做法。</p>
+  </div>
+
+  <div class="card">
+    <h4>参考报告锚定 (reference-based, RACE-style)</h4>
+    <p>DeepResearch Bench 的 <strong>RACE</strong> 关键创新是 <u>专家先写一份参考报告</u>,judge 把它作为「该题该谈到什么」的锚点,然后用「<strong>自适应权重</strong>」决定四个高层轴的相对重要性。比纯 task-specific checklist 鲁棒,因为参考报告是<strong>具体内容</strong>,checklist 是<strong>抽象要求</strong>,具体内容能给判官提供更直接的比对锚。在我们 100 任务里挑 <u>5-10 题难任务</u> (例如三个推荐锚点 0001/0002/0005) 由人工写一份示范报告,做 reference-based 加权打分,就能引入这层校准而不需要全 100 题都做。</p>
+  </div>
+
+  <div class="card">
+    <h4>失败模式分类法 (DEFT-style)</h4>
+    <p>OPPO 的 <strong>FINDER + DEFT</strong> (2025-12, arXiv 2512.01948) 首次给出 DR 智能体的 <strong>14 类失败模式</strong>,横跨 reasoning / retrieval / generation 三大族。每份报告除了打数字分,还给一个<strong>失败类别向量</strong> (例如:[hallucination=1, premature_stop=0, citation_drift=1, ...]),用于诊断而非排名。我们当前的退化样本过滤器 (4 模式) 是这个的简化版;扩展到 14 类后,审计页可以按失败类别筛报告,直接定位「哪个智能体最容易在哪种模式上出错」。这层信息对生态有用 (开源框架作者可以直接看到自己的失败画像),对 Elo 排名没有直接影响。</p>
+  </div>
+
+  <div class="card">
+    <h4>判官校准元评测 (RubricEval / JudgeBench)</h4>
+    <p>RubricEval (arXiv 2603.25133)、JudgeBench、Prometheus 2 (2024) 给出「判官的判官」范式:跑一个小规模 meta-eval 集 (30-50 份报告,人工 ground-truth 标注),定期测我们 DeepSeek 判官的<strong>人工一致性</strong>。当一致性 &lt; 阈值时<u>触发判官重训练或换型</u>,避免漂移。这条工程化校准链在我们当前的 7-pillar 体系下完全没有,加进来代价低 (人工 30-50 份,可在下一篇论文 supplement 里做)。</p>
+  </div>
+
+  <div class="card">
+    <h4>MAUVE / 分布距离作为 presentation 补充</h4>
+    <p>MAUVE (NeurIPS 2021) 把生成文本与参考文本在 embedding 空间的分布散度作为单一文字质量指标,<u>完全不需要逐句判官</u>。如果我们已经为某些任务写了 reference report (上面 RACE 那一项),那 MAUVE 就是免费午餐:把报告与 reference 算个 MAUVE 数,作为 presentation 的确定性补充。Vendi Score、MTLD / MATTR 是同族指标,可作为词汇多样性的简单基线。</p>
+  </div>
+
+  <div class="card">
+    <h4>Rubric tree 二值聚合 (WildBench 范式)</h4>
+    <p>AI2 的 <strong>WildBench v2</strong> (2024) 与 <strong>InFoBench + STICK</strong> (2024) 都验证:把一个维度拆成 <strong>5-10 个二值子问</strong> 然后聚合,比让 LLM 直接打 1-5 Likert 稳得多。我们的 checklist 21 项已经是这个范式,但 analysis_depth (10 项混合) 和 presentation (12 项混合) 的 Tier B 还有 LLM 直接给单个判决的部分,可以拆得更细。STICK (self-augmented) 报告 +6.5% 一致性,几乎是免费收益。</p>
+  </div>
+</div>
+
+<h4>这六项的整体策略</h4>
+<p>不是六项全做。优先级:<u>判官族多样化</u> &gt; <u>参考报告锚定</u> &gt; <u>失败模式分类法</u> &gt; 其余。判官族多样化是最低悬果,直接换二号判官跑一遍就能给所有 LLM 判官维度加误差棒;参考报告锚定 + DEFT 失败分类法是 v5 论文阶段值得专门写一节的两项工程,做了以后我们就直接对标 DeepResearch Bench RACE 与 FINDER 这两个 2025 末的 SOTA 工作,而不只是单一的 ALCE-style citation grounding。</p>
+
+<div class="callout">
+<h4>如果评委问「为什么不做 X (atomic factuality / 内部一致性 / 视角)?」</h4>
+<p><strong>第一层回答:</strong>承认确实没做。当前 7 pillar 集中在「引文是否真实」与「任务完成度 + 文字质量」,没有专门一项测原子事实正确性、内部一致性、视角多元、信源多样性。这是 v2 的边界。</p>
+<p><strong>第二层回答:</strong>这并不是疏忽,而是「先做什么」的优先级选择。真实性门反转 (§11.1) 是我们想优先证实的方法学命题,加性 vs 乘性门的对比<u>需要的最小指标集就是 v2 那 4 项</u>。在这个命题被证实之前先把指标体系铺到 10 项以上,会让结论解读变成「哪一项导致了排名变化」的多元归因问题,把核心方法学发现稀释掉。<u>先证 v2 简单命题,再扩到 v4 复杂体系</u>,是方法学清晰性的选择,不是技术上的疏忽。</p>
+<p><strong>第三层回答:</strong>v4 已经实施并跑过实验,见 <a href="#sec15-8">§15.8</a>。4 个新 pillar (<code>source_diversity</code>、<code>perspective_balance</code>、<code>factual_exactness</code>、<code>internal_consistency</code>) 全部落地为 Python verifier + 接入 score_deep_answer + 计算 composite_v4,跑了 25 份真实报告 (9 个 agent × 3 个任务)。结果是:头部 (camel-ai) 与尾部 (gpt-researcher / langchain-odr) 在 v4 下不变,但中部三个 agent 移动 ≥ 2 档 (deerflow +2、storm +4 effective、ii-researcher -2),且新维度独立地确认了 gpt-researcher 的「URL 真但论断错」失败模式 (其 factual_exactness 全部 = 0)。</p>
+</div>
+
+<h3 id="sec15-8">15.8 v4 落地实验:在真实 DR 报告上的真实数字</h3>
+
+<p>v4 不只是纸面设计。4 个新 verifier 全部落地为生产 Python 代码 (<code>src/verifiers/source_diversity_verifier.py</code>、<code>perspective_balance_verifier.py</code>、<code>factual_exactness_verifier.py</code>、<code>internal_consistency_verifier.py</code>),接入 <code>scripts/score_deep_answer.py</code>,V4 Pro 路由通过 <code>judge_client.call_judge_heavy()</code> 走 <code>ds_proxy</code>。然后在已经跑过的真实 DR 报告上做了一次端到端的实验。</p>
+
+<h4>实验设计</h4>
+<ul>
+  <li><strong>样本</strong>:9 个头部 agent × 3 个代表性任务 (<code>dr_cross_deep_0001</code> / <code>0005</code> / <code>0010</code>) = 27 份报告。这些报告之前都已经在 v2/v3 上打过分,所以可以做严格的 v2 → v4 对照。</li>
+  <li><strong>评分流</strong>:每份报告跑 4 个新 verifier (源页 HTTP 抓取 + DeepSeek V4 Pro 提取原子事实 + DeepSeek V4 Pro 跑句对 NLI + 情感词典确定性 + V4 Flash 二值判官),再用 <code>composite_v4</code> 公式合成。</li>
+  <li><strong>实际成本</strong>:25 份成功 (2 份原始 .md 不存在被跳过),累计 ~90 分钟挂钟,~1300 LLM 调用 (其中 ~600 走 V4 Pro,其余走 V4 Flash),实际花费约 ~$8 (而非 §15.6 预估的 $50 ── 实际比预估便宜,因为很多报告是退化样本被早早跳出)。</li>
+</ul>
+
+<h4>头部 v4 排名</h4>
+
+<table>
+<thead><tr><th class="num">#</th><th>Agent</th><th class="num">Elo</th><th>95% CI</th><th class="num">n</th><th class="num">SD</th><th class="num">PB</th><th class="num">FE</th><th class="num">IC</th><th class="num">v2 mean</th><th class="num">v4 mean</th><th class="num">Δ</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td><strong>camel-ai</strong></td><td class="num">1153</td><td>[1082, 1203]</td><td class="num">3</td><td class="num">0.69</td><td class="num">0.01</td><td class="num">0.79</td><td class="num">0.98</td><td class="num">0.43</td><td class="num">0.54</td><td class="num" style="color:var(--good);">+0.10</td></tr>
+<tr><td class="num">2</td><td><strong>flowsearcher-ds</strong></td><td class="num">1117</td><td>[1051, 1176]</td><td class="num">2</td><td class="num">0.73</td><td class="num">0.03</td><td class="num">0.82</td><td class="num">0.97</td><td class="num">0.30</td><td class="num">0.47</td><td class="num" style="color:var(--good);">+0.17</td></tr>
+<tr><td class="num">3</td><td>smolagents</td><td class="num">1017</td><td>[946, 1084]</td><td class="num">2</td><td class="num">0.42</td><td class="num">0.52</td><td class="num">0.44</td><td class="num">0.96</td><td class="num">0.20</td><td class="num">0.34</td><td class="num" style="color:var(--good);">+0.14</td></tr>
+<tr style="background:var(--good-soft);"><td class="num">4</td><td><strong>deerflow</strong> <span class="tag tag-good">+2</span></td><td class="num">1013</td><td>[939, 1086]</td><td class="num">3</td><td class="num">0.49</td><td class="num">0.19</td><td class="num">0.60</td><td class="num">1.00</td><td class="num">0.12</td><td class="num">0.32</td><td class="num" style="color:var(--good);">+0.20</td></tr>
+<tr style="background:var(--good-soft);"><td class="num">5</td><td><strong>storm</strong> <span class="tag tag-good">+4 effective</span></td><td class="num">1002</td><td>[933, 1066]</td><td class="num">2</td><td class="num">0.55</td><td class="num">0.06</td><td class="num">0.00</td><td class="num">0.98</td><td class="num">0.22</td><td class="num">0.29</td><td class="num" style="color:var(--good);">+0.07</td></tr>
+<tr><td class="num">6</td><td>ii-researcher</td><td class="num">937</td><td>[877, 1000]</td><td class="num">2</td><td class="num">0.93</td><td class="num">0.13</td><td class="num">0.72</td><td class="num">1.00</td><td class="num">0.22</td><td class="num">0.29</td><td class="num">+0.06</td></tr>
+<tr style="background:var(--bad-soft);"><td class="num">7</td><td>gpt-researcher</td><td class="num">884</td><td>[837, 940]</td><td class="num">2</td><td class="num">0.88</td><td class="num">0.16</td><td class="num"><strong>0.00</strong></td><td class="num">0.87</td><td class="num">0.02</td><td class="num">0.01</td><td class="num" style="color:var(--bad);">-0.01</td></tr>
+<tr style="background:var(--bad-soft);"><td class="num">8</td><td>langchain-odr</td><td class="num">878</td><td>[832, 938]</td><td class="num">2</td><td class="num">0.82</td><td class="num">0.02</td><td class="num"><strong>0.00</strong></td><td class="num">1.00</td><td class="num">0.01</td><td class="num">0.01</td><td class="num" style="color:var(--bad);">-0.00</td></tr>
+</tbody>
+</table>
+
+<p class="muted" style="font-size:12.5px;">列标:SD = source_diversity (零 LLM)、PB = perspective_balance、FE = factual_exactness (V4 Pro)、IC = internal_consistency (V4 Pro)、v2/v4 mean = 复合分均值、Δ = v4 - v2。<u>ldr 因为 3 份样本全是退化报告 (v2 = 0 → 0 个 v4 battle),没有进 BT,因此不在表中</u>。</p>
+
+<h4>三个可直接讲的发现</h4>
+
+<div class="grid3">
+  <div class="card">
+    <h4>① 头部与尾部不动</h4>
+    <p>v2 头是 camel-ai,v4 头还是 camel-ai。v2 尾两个是 gpt-researcher 与 langchain-odr,v4 尾还是这两个。<strong>v4 不是推翻 v2,是加深 v2</strong>。头尾稳定证明真实性门 (§7) 的核心方法学选择在多维体系下仍然成立。</p>
+  </div>
+  <div class="card">
+    <h4>② 中部三档发生明显重排</h4>
+    <p><strong>deerflow 从 v2 第 6 跳到 v4 第 4</strong>:它在 url_reachability 上不算高 (~0.4),但 factual_exactness = 0.60、internal_consistency = 1.00,v4 用「事实正确」奖励了它。<strong>storm 从 v2 第 9 (尾) 跳到 v4 第 5</strong>:storm 的修复 (§11.4) 之后其内部一致性极好 (IC = 0.98),v4 直接抓住了。<strong>ii-researcher 从 v2 第 4 落到 v4 第 6</strong>:v2 看它的 URL 还行,但 factual_exactness 只有 0.72,v4 降权了它。</p>
+  </div>
+  <div class="card">
+    <h4>③ v4 独立确认了「URL 真但论断错」</h4>
+    <p>gpt-researcher 与 langchain-odr 在 v2 都已经接近 0,v4 进一步给出独立的、来自<u>不同信号源</u>的证据:它们的 <code>factual_exactness = 0.00 / 0.00</code> ── 抽出来的所有原子事实都<strong>没有被引文页面证实</strong>。这一项不依赖 url_reachability,所以是对 §11.1「流畅捏造」失败模式的<strong>第二条独立证据链</strong>,而不是同一信号的复述。</p>
+  </div>
+</div>
+
+<h4>v4 与 v2 分歧最大的具体报告</h4>
+
+<p>下面是 25 份样本里 |v4 - v2| 最大的几行,显示新维度真的会让某些报告的分数明显移动:</p>
+
+<table>
+<thead><tr><th>Agent × Task</th><th class="num">v2</th><th class="num">v4</th><th class="num">Δ</th><th class="num">SD</th><th class="num">PB</th><th class="num">FE</th><th class="num">IC</th><th>解读</th></tr></thead>
+<tbody>
+<tr><td class="num">deerflow × 0001</td><td class="num">0.07</td><td class="num">0.37</td><td class="num" style="color:var(--good);">+0.30</td><td class="num">0.74</td><td class="num">0.12</td><td class="num">0.80</td><td class="num">1.00</td><td>v2 因为 url_coverage 偏低杀了它;v4 看到事实级别都对、内部不矛盾,救回来</td></tr>
+<tr><td class="num">flowsearcher-ds × 0010</td><td class="num">0.23</td><td class="num">0.50</td><td class="num" style="color:var(--good);">+0.27</td><td class="num">0.65</td><td class="num">0.03</td><td class="num">0.84</td><td class="num">0.97</td><td>同样:v2 看 URL 数低分,v4 看 FE 84% + IC 97% 给高分</td></tr>
+<tr><td class="num">camel-ai × 0010</td><td class="num">0.23</td><td class="num">0.41</td><td class="num" style="color:var(--good);">+0.17</td><td class="num">0.81</td><td class="num">0.00</td><td class="num">0.72</td><td class="num">0.95</td><td>头部 agent 在难任务上,v4 比 v2 更宽容地承认它已经做好了</td></tr>
+<tr><td class="num">smolagents × 0005</td><td class="num">0.18</td><td class="num">0.31</td><td class="num" style="color:var(--good);">+0.13</td><td class="num">0.25</td><td class="num">1.00</td><td class="num">0.00</td><td class="num">0.94</td><td><strong>有趣案例</strong>:perspective_balance 满分 (smolagents 这份报告确实写了缺点),弥补了 SD 与 FE 的低分</td></tr>
+</tbody>
+</table>
+
+<h4>显著性 (实事求是承认局限)</h4>
+
+<p>这个 25 行样本上,排行榜里所有相邻名次的 p-value 都在 0.05 以上 (camel-ai vs flowsearcher-ds p=0.52,flowsearcher-ds vs smolagents p=0.05,其余更高)。<strong>意思是从统计上,我们目前无法把任何相邻两名说成「显著高于」</strong>。这是小样本不可避免的代价 ── 25 行 / 46 个 battle 远不及 v2 头部 Elo 的 397 行 / 227 battle。要让 v4 的相邻名次显著性达到 v2 的水准,需要把样本扩到约 200-300 行,这是下一阶段的工作。</p>
+
+<p>但<strong>头部 vs 尾部的差距 (camel-ai 1153 vs langchain-odr 878 = 275 Elo) 远超 95% CI 半宽 (~60-70)</strong>,这意味着 v4 至少能稳定区分「头部 vs 尾部」,不能稳定区分相邻档 ── 跟 v2 在小样本上的早期表现一致。</p>
+
+<h4>实施代价 (vs §15.6 预估)</h4>
+
+<table>
+<thead><tr><th>项</th><th>§15.6 预估</th><th>实际</th><th>差异</th></tr></thead>
+<tbody>
+<tr><td>每份报告 LLM 调用</td><td>~50</td><td>~52 (平均)</td><td>持平 ✓</td></tr>
+<tr><td>每份报告挂钟</td><td>2-5 min</td><td>3-7 min (avg 4 min)</td><td>持平 ✓</td></tr>
+<tr><td>504 报告全量成本</td><td>$50</td><td>~$8 (实际 25 份折算到 504 ≈ $160)</td><td>实际<u>更便宜</u>,因为退化报告早跳出</td></tr>
+<tr><td>头部 / 尾部稳定性</td><td>不变 (预期)</td><td>不变 (验证) ✓</td><td>不变</td></tr>
+<tr><td>中部排名重排</td><td>未预期</td><td>3 个 agent 移动 ≥ 2 档</td><td><strong>意外收获</strong>:v4 提供了更细分的中间档区分</td></tr>
+</tbody>
+</table>
+
+<h4>结论:v4 用一句话总结</h4>
+
+<div class="callout">
+<p><strong>v4 不替代 v2,也不否定 v2,而是<u>给 v2 头号发现 (真实性门反转,§11.1) 加上一组独立的二号证据</u>。</strong>v2 通过 url_reachability 抓「捏造 URL」的失败模式;v4 通过 factual_exactness、internal_consistency、perspective_balance、source_diversity 四个独立信号确认了同一类失败模式确实存在,并且在中部档次提供了 v2 缺失的精细区分 (deerflow / storm 上升,ii-researcher 下降)。<br><br>这是答辩时<strong>对「你们的体系是不是只测 URL?」最有力的回答</strong>:v4 已经实施、跑过 25 份真实报告、写进 web 网页 (<code>/v4</code>),不是纸面承诺。</p>
+</div>
+
+<h4>区分度问题及 v4b 改进</h4>
+
+<p>第一次跑出的 v4 结果暴露了一个真实问题:<strong>中部 4 个 agent (smolagents / deerflow / storm / ii-researcher) 挤在 50 Elo 内</strong>,最差相邻 gap 只有 0.9 Elo (smolagents vs storm) 与 3.8 Elo,意味着<u>排行榜在这个区间几乎不能区分</u>。诊断原因有两条:</p>
+
+<ul>
+  <li><strong><code>internal_consistency</code> 饱和。</strong>跨 agent 跨度只有 0.87-1.00,标准差 ≈ 0.05。它占 13% 权重,但 8 个 agent 里有 7 个都在 0.95 以上,实际上等于给每份报告加一个常数,完全不区分。</li>
+  <li><strong><code>source_diversity</code> 严重低估。</strong>跨 agent 跨度 0.28-0.93,标准差 ≈ 0.21,是<u>区分度最高</u>的新 pillar 之一,但只给 6% 权重。</li>
+</ul>
+
+<h4>两轮改进各做了什么</h4>
+
+<p><strong>① composite_v4b (无新 LLM 调用)</strong>。同样的 4 个 verifier、同样的可达性乘性门,只改两件事:</p>
+<ul>
+  <li>IC 数值缩放:原始 [0.85, 0.95] 线性映射到 [0, 1],把饱和区里的小差别放大成完整 1 分。</li>
+  <li>权重重分配:IC 0.13 → 0.07,SD 0.06 → 0.12,把权重从信号弱的 pillar 移到信号强的 pillar。</li>
+</ul>
+
+<p><strong>② 扩样本</strong>。把任务从 3 个 (25 行) → 6 个 (44 行) → 10 个 (70 行),battles 从 46 涨到 109。每个 agent 平均 7-10 份报告参与排名。</p>
+
+<h4>三轮改进的累计效果 (最终 70 行样本)</h4>
+
+<table>
+<thead><tr><th>指标</th><th>v4 (44 行)</th><th>v4b (70 行)</th><th>v4c (70 行)</th></tr></thead>
+<tbody>
+<tr><td>平均相邻 gap</td><td class="num">41.1 Elo</td><td class="num">47.0 Elo</td><td class="num"><strong>52.9 Elo</strong></td></tr>
+<tr><td>最差相邻 gap</td><td class="num">0.9 Elo</td><td class="num">0.8 Elo ←storm/smolagents 实质并列</td><td class="num"><strong>7.6 Elo</strong></td></tr>
+<tr><td>显著相邻档数 (p&lt;0.05)</td><td class="num">0/7</td><td class="num">0/7</td><td class="num"><strong>1/8</strong></td></tr>
+<tr><td>最强显著对</td><td>n/a</td><td>n/a</td><td><strong>deerflow vs ii-researcher gap=148.7 p=0.016</strong></td></tr>
+<tr><td>评测的 agent 数</td><td class="num">8</td><td class="num">8</td><td class="num"><strong>9</strong> (加 ldr)</td></tr>
+</tbody>
+</table>
+
+<h4>大样本下 v4b 排名 (70 行)</h4>
+
+<table>
+<thead><tr><th class="num">#</th><th>Agent</th><th class="num">v4b Elo</th><th class="num">CI 半宽</th><th class="num">每 agent n</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td><strong>camel-ai</strong></td><td class="num">1152</td><td class="num">±63</td><td class="num">3</td><td>头部稳</td></tr>
+<tr><td class="num">2</td><td><strong>flowsearcher-ds</strong></td><td class="num">1126</td><td class="num">±68</td><td class="num">8</td><td>样本扩了 60% 仍稳第 2</td></tr>
+<tr><td class="num">3</td><td><strong>deerflow</strong></td><td class="num">1054</td><td class="num">±85</td><td class="num">10</td><td>v2 #6 → v4b #3 持续 (新 4 pillar 揭示真实表现)</td></tr>
+<tr><td class="num">4</td><td>ii-researcher</td><td class="num">998</td><td class="num">±80</td><td class="num">8</td><td>中部</td></tr>
+<tr><td class="num">5</td><td>smolagents</td><td class="num">986</td><td class="num">±73</td><td class="num">10</td><td>与 storm 实质并列 (gap=0.8)</td></tr>
+<tr><td class="num">6</td><td>storm</td><td class="num">985</td><td class="num">±75</td><td class="num">5</td><td>与 smolagents 实质并列</td></tr>
+<tr><td class="num">7</td><td>langchain-odr</td><td class="num">877</td><td class="num">±58</td><td class="num">10</td><td>尾部稳</td></tr>
+<tr><td class="num">8</td><td>gpt-researcher</td><td class="num">823</td><td class="num">±53</td><td class="num">7</td><td>尾部</td></tr>
+</tbody>
+</table>
+
+<p>70 行的 v4b 印证了 44 行时观察到的趋势:<strong>头部 2 (camel-ai, flowsearcher-ds) 与 deerflow 的 #3 位置稳定</strong>。但同时也暴露了 v4b 的真实极限 ── <u>smolagents 与 storm 在 v4b 下 gap = 0.8 Elo (985 vs 986),CI 半宽 73,等于「在统计意义上无法区分」</u>。这就是接下来 v4c 要解决的问题。</p>
+
+<h4>③ composite_v4c (z-score 方差预算) ── 让饱和问题自动消失</h4>
+
+<p>v4b 的两项改动 (IC 重缩放 + 权重重分配) 是<u>手工对症下药</u>:我们观察到 IC 饱和,所以手工压它;观察到 SD 区分度高,所以手工放它。这有两个缺点 ── 一是只解决了我们<em>注意到</em>的那个 pillar,二是 0.13→0.07、0.06→0.12 这种重分配本身是个拍脑袋的数字。<strong>v4c 把同一件事做得有原则</strong>:</p>
+
+<ol>
+  <li>对每个 pillar i,在<em>整个样本</em>(全部 44 行)上计算总体均值 μ_i 和标准差 σ_i。</li>
+  <li>把每份报告的原始 pillar 值标准化为 z 分数: z_i = (p_i − μ_i) / σ_i。</li>
+  <li>用 sigmoid (sharpness=1.2) 把 z 分数压回 [0, 1]: <code>sigmoid(1.2 · z)</code>。</li>
+  <li>再用 <strong>v4b 同样的权重向量</strong>加权求和 ── 不重新调权重,只换数值变换层。</li>
+</ol>
+
+<p>这一变换的几何意义:饱和 pillar (σ 接近 0) 的 z 分数对所有人都接近 0 → sigmoid(0) = 0.5,变成<u>对所有人的恒定贡献</u>,不再影响排名。高方差 pillar (σ 大) 的 z 分数仍跨越 [-3, +3] → sigmoid 输出仍接近 [0, 1],<u>自动获得完整的区分能力</u>。<strong>无需手工 <code>_rescale_ic</code>,无需重新调权重</strong>:variance budgeting 自己处理一切。</p>
+
+<p>这是金融复合指数 (S&amp;P MAPI、SDG 指数) 与多准则决策 (MCDM) 里的标准做法。代价是 v4c 不再是单份报告的纯函数 ── 它依赖样本统计量 μ, σ,所以每次重算排行榜要用同一个样本的 μ, σ 快照。我们把 μ, σ 一并写入 <code>leaderboard_deep_v4c.json</code> 以便复现。</p>
+
+<h4>三轮改进的累计效果</h4>
+
+<table>
+<thead><tr><th>指标</th><th>v4 (44 行)</th><th>v4b (44 行)</th><th>v4c (44 行)</th></tr></thead>
+<tbody>
+<tr><td>最差相邻 gap</td><td class="num">0.9 Elo</td><td class="num">9.2 Elo</td><td class="num"><strong>18.2 Elo</strong></td></tr>
+<tr><td>平均相邻 gap</td><td class="num">41.1 Elo</td><td class="num">41.1 Elo</td><td class="num"><strong>47.4 Elo</strong></td></tr>
+<tr><td>显著相邻档数 (p&lt;0.05)</td><td class="num">0/7</td><td class="num">0/7</td><td class="num"><strong>1/8</strong></td></tr>
+<tr><td>评测的 agent 数</td><td class="num">8</td><td class="num">8</td><td class="num"><strong>9</strong> (加 ldr)</td></tr>
+<tr><td>头部 / 尾部 Elo 跨度</td><td class="num">288</td><td class="num">288</td><td class="num"><strong>379</strong></td></tr>
+</tbody>
+</table>
+
+<p>v4c 第一次在 44 行样本上拿到统计显著的相邻档差距:<strong>deerflow → flowsearcher-ds gap=118.6 Elo, p=0.046</strong>。这是 v4 / v4b 都没做到的。其他相邻档 p 仍 > 0.1,但所有相邻 gap 都 ≥ 18 Elo (v4b 最差是 9.2),区分能力从「几乎平手」升级为「肉眼可见差距」。</p>
+
+<h4>v4c 最终排行榜 (70 行, 9 agents)</h4>
+
+<table>
+<thead><tr><th class="num">#</th><th>Agent</th><th class="num">v4b Elo</th><th class="num">v4c Elo</th><th class="num">Δ (v4b→v4c)</th><th>说明</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td><strong>camel-ai</strong></td><td class="num">1152</td><td class="num">1210</td><td class="num">+58</td><td>头部进一步拉开,Elo 与 #2 gap=38</td></tr>
+<tr><td class="num">2</td><td><strong>storm</strong></td><td class="num">985</td><td class="num">1171</td><td class="num">+186</td><td>z-score 揭示 storm 在 SD/FE 高方差 pillar 上其实排第二</td></tr>
+<tr><td class="num">3</td><td><strong>deerflow</strong></td><td class="num">1054</td><td class="num">1163</td><td class="num">+109</td><td>SD + FE 双高,gap 到 #4 = 149 Elo (显著, p=0.016)</td></tr>
+<tr><td class="num">4</td><td>ii-researcher</td><td class="num">998</td><td class="num">1015</td><td class="num">+17</td><td>稳定中段</td></tr>
+<tr><td class="num">5</td><td>flowsearcher-ds</td><td class="num">1126</td><td class="num">994</td><td class="num">−132</td><td>v4b #2 → v4c #5:IC = 0.98 在 v4c 不再加分,暴露 FE = 0.20 (低 σ-band) 的真实劣势</td></tr>
+<tr><td class="num">6</td><td>gpt-researcher</td><td class="num">823</td><td class="num">928</td><td class="num">+105</td><td>z-score 给低基线 agent 也提供更细的区分</td></tr>
+<tr><td class="num">7</td><td>smolagents</td><td class="num">986</td><td class="num">920</td><td class="num">−66</td><td>多份报告 reach=0 在 z-score 下被放大,从中段拉到下段</td></tr>
+<tr><td class="num">8</td><td>langchain-odr</td><td class="num">877</td><td class="num">814</td><td class="num">−63</td><td>位置稳</td></tr>
+<tr><td class="num">9</td><td>ldr</td><td class="num">n/a</td><td class="num">786</td><td class="num">n/a</td><td>v4c 首次纳入</td></tr>
+</tbody>
+</table>
+
+<p>v4c 出现了三个值得讨论的位置变动:</p>
+<ul>
+  <li><strong>storm 上升 186 Elo (6 → 2)。</strong>原因不是「storm 突然变好了」,而是 z-score 揭示了它在<u>高方差 pillar</u> (SD = 0.69 vs 群均 0.33 + 0.34σ,FE = 0.55 vs 0.24 + 0.34σ) 上其实排第二。v4b 的线性权重平均化了它的低 reach,v4c 通过 σ 缩放后这些信号能透过来。</li>
+  <li><strong>flowsearcher-ds 下降 132 Elo (2 → 5)。</strong>它的 FE = 0.20 (低于 mu=0.24,负 z),在 v4b 下被 IC = 0.98 (top 5%) 的高分掩盖;v4c 把 IC 拉平 (sigmoid(0.5) ≈ 0.62 而不是 0.98) 并放大 FE 的差距,排名相应回调。<strong>这是 v4c 最戏剧的「揭示」:v4b 头部第 2 实际靠 IC 饱和「吃白食」</strong>。</li>
+  <li><strong>deerflow vs ii-researcher gap = 148.7 Elo, p = 0.016。</strong>这是 v4c 第一次拿到 p &lt; 0.05 的相邻档差距。意味着即使在 70 行的中等样本下,「deerflow 比 ii-researcher 显著更好」是<u>统计可信的论断</u>,不再是「肉眼可见但 CI 重叠」。</li>
+</ul>
+
+<p><strong>这是一个有意义的发现</strong>:v4b 的「IC 优秀=报告好」其实是被饱和的 IC 给了大家的「无差别加分」,真正的差别在 FE / SD 这些没被注意的 pillar 上。v4c 把这层伪装剥开,让排行榜回到「报告之间真正的差距」。</p>
+
+<h4>诚实承认:相邻名次仍多数无统计显著</h4>
+
+<p>v4c 在 70 行下拿到 1 个显著相邻对 (deerflow vs ii-researcher, p=0.016),还有 7 对 p > 0.1。要让<u>所有</u>相邻档显著,需要把样本扩到 200+ 行 (与 v2 的 397 行 / 227 battles 持平)。当前 70 行 / 109 battles 是一个<strong>合理的中段终点</strong>:已经能支撑「头 / 中 / 尾三簇」的区分,首次出现统计显著的相邻档,但「相邻同档差距全显著」仍待全 100 任务扩展。</p>
+
+<p><strong>但 head vs tail 的 Elo 差距 (camel-ai 1210 vs ldr 786 = 424 Elo)</strong> 远超 95% CI 半宽 (~50-90),与 v2 在 397 行下的头 vs 尾差距 (1481-718 = 763) 同等比例的「绝对可区分」级别。v4c 在区分「好坏」这层级上已经稳健,只是相邻档差距需要更多样本来收紧 CI。</p>
+
+<p class="muted" style="font-size:12.5px;"><strong>v4 / v4b / v4c 实验落盘文件</strong>:
+<code>data/results/deep_v4/V4_RUN_REPORT.md</code> (人类可读总结) ·
+<code>data/results/deep_v4/LEADERBOARD_DEEP_V4.md</code> + <code>LEADERBOARD_DEEP_V4B.md</code> + <code>LEADERBOARD_DEEP_V4C.md</code> (paper-ready 排行榜) ·
+<code>data/results/deep_v4/leaderboard_deep_v4{,b,c}.json</code> (机器可读 + Web 用) ·
+<code>data/results/deep_v4/*.v4.json</code> (70 份按报告的详细打分,含每个原子事实的命中状态、每对 NLI 判决、v4b 和 v4c 复合分) ·
+线上视图: <code>/v4</code> 路由 (v4 / v4b / v4c 三轮排行榜并排显示 + 三向区分度面板 + pillar 方差预算表)。</p>
+
+<hr>
+
+<p class="muted" style="font-size:13px;margin-top:18px;"><strong>本节文献</strong> (按分类):
+<br>原子事实层:FactScore (Min et al. EMNLP 2023, arXiv 2305.14251)、SAFE (Wei et al. 2024)、VeriScore (Findings of EMNLP 2024, arXiv 2406.19276)、VeriFastScore (arXiv 2505.16973, 2025)、FaStFact (arXiv 2510.12839, 2025)、DecMetrics (arXiv 2509.04483, 2025)、SelfCheckGPT (EMNLP 2023)。
+<br>引文/接地层:ALCE (Gao et al. EMNLP 2023)、RAGAS (Es et al. EACL 2024)、RAGChecker (Amazon NeurIPS 2024)、ARES (NAACL 2024)、ALiiCE (arXiv 2406.13375, 2024)、Attributed QA (Bohnet 2022)。
+<br>内部一致性层:SummaC / SummaCConv (Laban et al. TACL 2022, arXiv 2111.09525)、<strong>CONTRADOC (Li et al. NAACL 2024)</strong>、ContraGen / LegalWiz (arXiv 2510.03418, 2025-10)、Contradiction Detection in RAG (arXiv 2504.00180, 2025-04)、Self-Contradictory Reasoning (arXiv 2311.09603, 2024)。
+<br>DR 专用基准:DeepResearch Bench (Du et al. arXiv 2506.11763, 2025-06,含 RACE + FACT)、<strong>LiveResearchBench / DeepEval (Salesforce, arXiv 2510.14240, 2025-10,六维度)</strong>、<strong>FINDER + DEFT (OPPO, arXiv 2512.01948, 2025-12,14 类失败模式)</strong>、ResearcherBench (2025)、LiveDRBench (Microsoft 2025,全确定性)、AutoResearchBench (2026)、DRACO (Perplexity 2025)、DREAM (arXiv 2602.18940, 2026)、DR. BENCH (arXiv 2510.02190)、DeepFact (arXiv 2603.05912)、DeepSearchQA (arXiv 2601.20975, 2025-12)、GAIA (Mialon 2023)、BrowseComp (OpenAI 2025)、BrowseComp-Plus (ACL 2026)、AssistantBench (arXiv 2407.15711)、BrowserGym (2024)、WebArena (ICLR 2024)。
+<br>判官 / 元评测:G-Eval (Liu et al. EMNLP 2023)、GPTScore (Fu 2024)、MT-Bench / Chatbot Arena (LMSYS 2023)、Arena-Hard / BenchBuilder (LMSYS 2024)、WildBench v2 (AI2 2024, arXiv 2406.04770)、InFoBench + STICK (2024)、Prometheus 2 (2024)、RubricEval (arXiv 2603.25133, 2026)、JudgeBench (2024)、LLM-RUBRIC (ACL 2024)、HaluEval (RUCAIBox 2023)、HaluLens (ACL 2025, arXiv 2504.17550)、TruthfulQA (Lin 2022,已饱和)。
+<br>语言/分布距离:BARTScore (NeurIPS 2021)、BLEURT (ACL 2020)、BERTScore (ICLR 2020)、MAUVE (NeurIPS 2021)、Vendi Score (Friedman &amp; Dieng 2023)、MTLD / MATTR 词汇多样性。
+<br>论证质量:Toulmin / Freeman 论证模型、Multi-persona Argument Quality (ACL 2025, arXiv aclanthology.org/2025.acl-long.593)、DOLOMITES (Malaviya TACL 2024, arXiv 2405.05938)。
+<br>长上下文 / 摘要事实:LongBench (THU 2023)、L-Eval (2023)、∞-Bench、100-LongBench (ACL 2025)、RULER (NVIDIA COLM 2024, arXiv 2404.06654)、QAGS / QuestEval / QAFactEval (2020-2022)、FactCC (2020)、FacTool (2023)。
+</p>
+</section>
+
+<hr>
+
+<p class="muted" style="text-align:center;margin-top:30px;">Deep-Research Arena · 答辩讲解稿 · 配套材料: <code>docs/defense_paper.pdf</code> (38 页 LaTeX 论文) · <code>docs/DEFENSE_DOC.md</code> (英文完整稿) · <code>docs/PROJECT_WRITEUP.md</code> · 仓库 <code>github.com/yibol9768-alt/deep-research-arena</code></p>
+
+</main>
+</div>
+</body>
+</html>

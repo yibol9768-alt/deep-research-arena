@@ -1,0 +1,108 @@
+{
+  "task_id": "dr_cross_deep_0095",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0095",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Timeline / Evolution report tracing the evolution of payment systems from cash to BNPL (Buy Now, Pay Later) from the late 19th century to the present. The report is NOT a buying guide; it is a chronological narrative + current-day taxonomy. Include >= 120 sandbox URLs (>= 60 cited).\n\nIntent type: Timeline\n\nTopic configuration:\n- Shopping keywords: card reader, receipt printer, cash register, money counter, POS system, credit card holder, wallet, coin sorter, safe box\n- Reddit forums: technology, AskReddit, LifeProTips, personalfinance, politics, economics, business, worldnews\n- Wiki mandatory articles: Cash, Credit card, Debit card, Electronic money, Bank account, Mobile money, Payment service provider, Electronic payment system, Buy now, pay later (BNPL), Fintech\n\nGround in >= 120 sandbox URLs (>= 60 cited).\n\n(A) `__SHOPPING__` >= 30 payment products / services over time, including examples of point-of-sale systems, e-commerce payment processors, and BNPL platforms with features, usage, and year introduced.\n\n(B) `__REDDIT__` >= 30 threads from the relevant forums that discuss payment system evolution, new technologies, or customer experiences.\n\n(C) `__WIKIPEDIA__` >= 25 articles on payment system history and technologies, mandatory: Cash, Credit card, Debit card, Electronic money, Bank account, Mobile money, Payment service provider, Electronic payment system, Buy now, pay later (BNPL), Fintech.\n\nOutput a chronological timeline divided into major evolutionary stages of payment systems, for example: Pre-Electric Payments, Cash and Cheques Era, Electronic Payment Dawn, and BNPL Expansion. For each stage: >= 3 wiki articles defining key concepts or technologies, >= 3 shopping examples embodying these, >= 3 reddit threads showing discussion.\n\nAdd a modern taxonomy of payment types organized by transaction type (in-person vs. digital, cash vs. card vs. BNPL) — a markdown nested list with each leaf citing a shopping example + a wiki article.\n\nEnd with '5 misconceptions about payment system evolution that are now considered inaccurate' — each misconception cited with a wiki + reddit pair.\n\nFormat: markdown links only. Begin with Pre-Electric Payments. No chain-of-thought.",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=card+reader",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0095.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0095.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "timeline",
+      "eras": [
+        "Pre-Electric-Payments",
+        "Cash-and-Cheques-Era",
+        "Electronic-Payment-Dawn",
+        "BNPL-Expansion"
+      ],
+      "min_per_era": {
+        "wiki": 3,
+        "shopping": 3,
+        "reddit": 3
+      },
+      "taxonomy_branches": [
+        "In-person-Payments",
+        "Digital-Payments",
+        "BNPL"
+      ],
+      "min_taxonomy_leaves_with_evidence": 9,
+      "debunked_myths_count": 5,
+      "min_per_myth": {
+        "wiki": 1,
+        "reddit": 1
+      },
+      "explicitly_forbid_top10": true
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/payment_systems_timeline.yaml. Golden: must=149, pool=634."
+  },
+  "rows": []
+}

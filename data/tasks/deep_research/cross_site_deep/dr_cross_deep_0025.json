@@ -1,0 +1,103 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0025",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce a Comparison report on 4 major streaming services in 2026 — Netflix, Disney+, HBO Max, Apple TV+ — across 5 dimensions: (D1) monthly cost (basic / standard / 4K tier), (D2) catalog size (titles + originals), (D3) account-sharing crackdown status, (D4) live-sports / live-TV availability, (D5) cancel-anytime + retention offers. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 streaming-related products (Roku/Fire TV/Apple TV/Chromecast/HDMI cables/sound bars) + price + rating. (B) `__REDDIT__` >= 30 threads from /f/cordcutters, /f/television, /f/movies, /f/NetflixBestOf, /f/AppleTV, /f/DisneyPlus, /f/HBOMAX. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Streaming media, Netflix, The Walt Disney Company, HBO Max, Apple TV+, Cord cutting, Subscription video on demand, Streaming wars, Roku, Chromecast. Output a 4 x 5 matrix + 'best service for use case X' for 4 use cases (movies / TV originals / kids / sports). Format: markdown links only. Begin with matrix.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=streaming+device",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 10,
+      "__REDDIT__": 30,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0025.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0025.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "comparison",
+    "comparison_paths": [
+      "netflix",
+      "disney_plus",
+      "hbo_max",
+      "apple_tv_plus"
+    ],
+    "use_cases": [
+      "monthly_cost",
+      "catalog_size",
+      "sharing_crackdown",
+      "live_sports",
+      "cancel_retention"
+    ],
+    "matrix_cells_required": 20,
+    "min_evidence_per_cell": {
+      "shopping": 1,
+      "reddit": 1,
+      "wikipedia": 1
+    },
+    "use_case_picks": 4
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "Entertainment",
+  "intent_type": "Comparison"
+}

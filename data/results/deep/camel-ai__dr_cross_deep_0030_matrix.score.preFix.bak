@@ -1,0 +1,220 @@
+{
+  "task": "dr_cross_deep_0030",
+  "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0030_matrix.md",
+  "answer_chars": 32567,
+  "url_coverage": {
+    "score": 0.1668,
+    "passed": false,
+    "details": {
+      "cited_unique": 90,
+      "must_cite_total": 129,
+      "must_cite_hit": 4,
+      "must_cite_recall": 0.0242,
+      "pool_total": 563,
+      "pool_hit": 13,
+      "pool_coverage": 0.0231,
+      "per_domain_cited": {
+        "__SHOPPING__": 44,
+        "__REDDIT__": 15,
+        "__WIKIPEDIA__": 31
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      },
+      "domain_balance": 0.5,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.9778,
+    "passed": true,
+    "details": {
+      "cited_total": 90,
+      "cited_sandbox": 90,
+      "cited_off_sandbox": 0,
+      "probed": 90,
+      "http_200": 88,
+      "http_4xx": 2,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.9778,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.9741,
+    "passed": true,
+    "details": {
+      "claims_total": 116,
+      "claims_supported": 113,
+      "claims_unreachable": 3,
+      "match_rate": 0.9741,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/MRNA_vaccine",
+          "supported": true,
+          "overlap": 0.741
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/RNA",
+          "supported": true,
+          "overlap": 0.857
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Ribosome",
+          "supported": true,
+          "overlap": 0.8
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Translation_biology",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/SARS-related_coronavirus",
+          "supported": true,
+          "overlap": 0.6
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/SARS-related_coronavirus",
+          "supported": true,
+          "overlap": 0.654
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 3146,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 116,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 62,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Does the report explicitly answer 'how does mRNA vaccine work' AND 'why faster than traditional'?",
+        "PASS"
+      ],
+      [
+        "Are exactly 4 causal layers defined (mechanism / LNP delivery / platform speed / regulatory)?",
+        "PASS"
+      ],
+      [
+        "Does L1 cite >= 3 wiki articles on mRNA -> ribosome -> spike protein?",
+        "PASS"
+      ],
+      [
+        "Does L2 cite >= 3 wiki articles on lipid nanoparticles?",
+        "PASS"
+      ],
+      [
+        "Does L3 cite >= 5 reddit threads on dev-time discussions?",
+        "FAIL"
+      ],
+      [
+        "Does L4 cite >= 5 reddit threads on Operation Warp Speed / regulatory parallels?",
+        "FAIL"
+      ],
+      [
+        "Is a multi-layer causal hierarchy presented in markdown (indented bullets)?",
+        "PASS"
+      ],
+      [
+        "Is an 'mRNA vs traditional' timeline table presented covering >= 4 modalities (mRNA/inactivated/viral-vector/subunit)?",
+        "PASS"
+      ],
+      [
+        "Are typical dev times cited per modality (e.g. mRNA ~weeks design vs 5-15 years inactivated)?",
+        "PASS"
+      ],
+      [
+        "Does the report cite Drew Weissman & Katalin Kariko's pseudouridine breakthrough?",
+        "PASS"
+      ],
+      [
+        "Are >= 10 shopping books on immunology / vaccinology cited with price + rating?",
+        "FAIL"
+      ],
+      [
+        "Are >= 30 reddit threads from at least 4 science / medicine sub-forums cited?",
+        "FAIL"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "FAIL"
+      ],
+      [
+        "Are all 10 mandatory wiki articles cited (mRNA vaccine, LNP, BNT162b2, mRNA-1273, OWS, spike, Weissman, Kariko, Phase III, Vaccine)?",
+        "FAIL"
+      ],
+      [
+        "Does the report cite at least one historical comparison (e.g. polio vaccine 5+ year dev)?",
+        "FAIL"
+      ],
+      [
+        "Are at least 3 cross-source contradictions surfaced (public anxiety vs scientific data)?",
+        "FAIL"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "UNCLEAR"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "FAIL"
+      ],
+      [
+        "Is per-domain minimum met: >= 10 shopping, >= 30 reddit, >= 25 wiki?",
+        "FAIL"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs and starts with L1?",
+        "FAIL"
+      ],
+      [
+        "Does the report distinguish mRNA pharmacology from genetic-modification myth?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 9,
+    "fail_count": 11,
+    "unclear_count": 1,
+    "pass_rate": 0.4286,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.3715,
+    "truth_factor": 0.4826,
+    "qm_factor": 0.987,
+    "nli_factor": 0.5,
+    "composite_score": 0.1793,
+    "composite_v1": 0.3632,
+    "legacy_composite": 0.3334
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  }
+}

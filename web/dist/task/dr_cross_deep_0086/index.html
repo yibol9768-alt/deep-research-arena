@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en" class="bg-canvas text-ink">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dr_cross_deep_0086 · Deep-Research Arena</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas: #fafaf9;
+      --surface: #ffffff;
+      --ink: #0c0a09;
+      --ink-soft: #44403c;
+      --ink-mute: #78716c;
+      --line: #e7e5e4;
+      --line-soft: #f5f5f4;
+      --accent: #4338ca;
+      --accent-soft: #eef2ff;
+      --accent-ink: #312e81;
+      --good: #15803d;
+      --good-soft: #dcfce7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #a16207;
+      --warn-soft: #fef9c3;
+    }
+    html, body { background: var(--canvas); color: var(--ink); }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+    .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .ink-soft { color: var(--ink-soft); }
+    .ink-mute { color: var(--ink-mute); }
+
+    .surface { background: var(--surface); border: 1px solid var(--line); }
+    .row-hover:hover { background-color: var(--line-soft); }
+    .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
+
+    .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
+    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
+    .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
+    .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* LLM backbone picker chips (current = active, others = "queued") */
+    .llm-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px 5px 9px;
+      border-radius: 8px;
+      font-size: 12.5px; font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-soft);
+      cursor: default;
+    }
+    .llm-chip.is-active { background: var(--accent-soft); color: var(--accent-ink); border-color: rgba(67,56,202,0.35); }
+    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--line-soft); border-color: var(--line); }
+    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
+    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+    .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+    .pill-ok    { background: var(--good-soft); color: var(--good); }
+    .pill-warn  { background: var(--warn-soft); color: var(--warn); }
+    .pill-bad   { background: var(--bad-soft);  color: var(--bad); }
+    .pill-muted { background: var(--line); color: var(--ink-soft); }
+    .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
+
+    /* Old CI track — kept for any callers; new layout uses .ci-bar below. */
+    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
+    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
+    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
+
+    /* New unified CI bar: every row has the same outer width (set by the
+       parent <td>); the bar has 8px horizontal padding so the marker dot
+       can never visually overflow into the next column. */
+    .ci-bar { padding: 0 8px; }
+    .ci-bar-inner { position: relative; height: 14px; }
+    .ci-bar-track  { position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); background: var(--line); border-radius: 999px; }
+    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(67,56,202,0.28); border-radius: 999px; pointer-events: none; }
+    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.4); pointer-events: none; }
+
+    .agent-avatar {
+      width: 26px; height: 26px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--surface);
+      background: linear-gradient(135deg, #475569, #1e293b);
+    }
+
+    .codeblock { background: #0c0a09; color: #f5f5f4; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; }
+
+    /* Markdown body when rendered via python-markdown */
+    .md-body { font-size: 13.5px; line-height: 1.55; }
+    .md-body h1, .md-body h2, .md-body h3 { font-weight: 700; margin: 1em 0 0.4em; }
+    .md-body h1 { font-size: 22px; }
+    .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+    .md-body h3 { font-size: 14px; }
+    .md-body p { margin: 0.5em 0; }
+    .md-body code { background: var(--line-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .md-body pre { background: #0c0a09; color: #f5f5f4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .md-body pre code { background: transparent; padding: 0; color: inherit; }
+    .md-body table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .md-body th, .md-body td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+    .md-body th { background: var(--line-soft); font-weight: 600; }
+    .md-body ul, .md-body ol { margin: 0.4em 0; padding-left: 1.4em; }
+    .md-body li { margin: 0.2em 0; }
+    .md-body a { color: var(--accent); text-decoration: underline; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
+              style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
+        <span class="text-[15px] tracking-tight">Deep-Research Arena</span>
+      </a>
+      <nav class="flex items-center gap-0.5 ml-2 text-sm">
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:2px;">new</span></a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/compare">Compare LLMs</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/how-it-works">How it works</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/about">About</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/contribute">Contribute</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-3">
+        <a href="https://github.com/yibol9768-alt/deep-research-arena"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft border border-stone-200">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+    
+<section class="mb-6">
+  <div class="text-[12px] ink-mute mb-2">
+    <a class="underline" href="/">Leaderboard</a> &nbsp;›&nbsp; <span class="num-mono">dr_cross_deep_0086</span>
+  </div>
+  <h1 class="text-[28px] font-bold tracking-tight">
+    Task <span class="num-mono">dr_cross_deep_0086</span>
+  </h1>
+  <div class="mt-2 flex flex-wrap items-center gap-2 text-[12.5px]">
+    
+    
+    <span class="pill pill-muted">tier: deep</span>
+    <span class="pill pill-muted">difficulty: 5/5</span>
+    <span class="pill pill-muted">shopping + reddit + wikipedia</span>
+    <span class="pill pill-muted num-mono">0 scored</span>
+  </div>
+</section>
+
+<!-- Task prompt -->
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="flex items-baseline justify-between mb-3">
+    <div class="label-eyebrow">Task prompt</div>
+    <div class="text-[11px] ink-mute">
+      The exact text the agent receives. No hints, no tools beyond the sandbox + LLM.
+    </div>
+  </div>
+  
+    <div class="task-prompt text-[13.5px] leading-[1.65]" style="white-space: pre-wrap; color: var(--ink);">Produce a Timeline / Evolution report tracing the evolution of airline loyalty programs from the early 1980s to the present day. The report is NOT a buying guide; it is a chronological narrative + current-day taxonomy.
+
+- Must-cite URLs: 131
+- Expected pool URLs: 297
+
+- Shopping keywords: travel book, luggage, passport holder, travel pillow, packing cubes, carry on bag, luggage tag, travel adapter, noise cancelling earbuds
+- Reddit forums: Travel, AskReddit, personalfinance, MilePoint (Air Travel Forum), LoungeBuddy (Travel &amp; Airline Lounge Discussions), Aviation (General Aviation Discussions), Skyfare (Flight Discounts and Loyalty Points)
+- Wiki mandatory articles: Frequent-flyer program, Airline alliances, Frequent-flyer miles, Frequent-flyer program, Credit card, Airline alliance, Loyalty program, Hotel loyalty program, Co-branded credit cards, Airline ticket
+
+The report must be structured as follows:
+
+- Output a chronological timeline divided into 4 eras (Era 1: Early 1980s -&gt; Era 2: 1990s -&gt; Era 3: 2000s -&gt; Era 4: 2010s to present day).
+- For each era: &gt;= 3 wiki articles defining the technology, &gt;= 3 shopping products embodying it, &gt;= 3 reddit threads showing community adoption.
+- Add a modern taxonomy of loyalty program types organized by reward structure (cashback, miles, status, partnerships) — a markdown nested list with each leaf citing a shopping product + a wiki article.
+- End with &#39;7 myths the community now considers debunked&#39; — each myth cited with a wiki + reddit pair.
+
+Format: markdown links only. Begin with Era 1. No chain-of-thought.
+
+- &gt;= 120 sandbox URLs (&gt;= 60 cited)
+- 3 sources: __SHOPPING__, __REDDIT__, __WIKIPEDIA__
+- &gt;= 30 shopping products, &gt;= 30 threads, &gt;= 25 articles
+- Mandatory wiki articles: Frequent-flyer program, Airline alliances, Frequent-flyer miles, Frequent-flyer program, Credit card, Airline alliance, Loyalty program, Hotel loyalty program, Co-branded credit cards, Airline ticket
+- Markdown links, sandbox-local, no fabrication
+
+Synthesis requirements:
+- task_type: timeline
+- eras: [&#39;Early 1980s&#39;, &#39;1990s&#39;, &#39;2000s&#39;, &#39;2010s to present day&#39;]
+- min_per_era: {&#39;wiki&#39;: 3, &#39;shopping&#39;: 3, &#39;reddit&#39;: 3}
+- taxonomy_branches: [&#39;cashback&#39;, &#39;miles&#39;, &#39;status&#39;, &#39;partnerships&#39;]
+- min_taxonomy_leaves_with_evidence: 6
+- debunked_myths_count: 7
+- min_per_myth: {&#39;wiki&#39;: 1, &#39;reddit&#39;: 1}
+- explicitly_forbid_top10: true</div>
+  
+</section>
+
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-3">Hard constraints</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-[12.5px]">
+    
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Markdown spec</div>
+      <ul class="space-y-1 ink-soft">
+        <li>≥ <span class="num-mono">3500</span> words</li>
+        <li>≤ <span class="num-mono">8000</span> words</li>
+        <li>≥ <span class="num-mono">25</span> paragraphs</li>
+        <li>≥ <span class="num-mono">60</span> citations</li>
+        <li>≥ <span class="num-mono">120</span> distinct URLs cited</li>
+      </ul>
+    </div>
+    
+    
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Citation policy</div>
+      <ul class="space-y-1 ink-soft">
+        <li>≥ <span class="num-mono">60</span> distinct sources</li>
+        <li>≥ <span class="num-mono">3</span> distinct domains</li>
+        
+          
+            <li><span class="num-mono">__SHOPPING__</span>: ≥ 30</li>
+          
+            <li><span class="num-mono">__REDDIT__</span>: ≥ 20</li>
+          
+            <li><span class="num-mono">__WIKIPEDIA__</span>: ≥ 15</li>
+          
+        
+      </ul>
+    </div>
+    
+    
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Synthesis requirements</div>
+      <ul class="space-y-1 ink-soft">
+        
+          <li><span class="num-mono">task_type</span>: timeline</li>
+        
+          <li><span class="num-mono">eras</span>: [&#39;Early 1980s&#39;, &#39;1990s&#39;, &#39;2000s&#39;, &#39;2010s to present day&#39;]</li>
+        
+          <li><span class="num-mono">min_per_era</span>: {&#39;wiki&#39;: 3, &#39;shopping&#39;: 3, &#39;reddit&#39;: 3}</li>
+        
+          <li><span class="num-mono">taxonomy_branches</span>: [&#39;cashback&#39;, &#39;miles&#39;, &#39;status&#39;, &#39;partnerships&#39;]</li>
+        
+          <li><span class="num-mono">min_taxonomy_leaves_with_evidence</span>: 6</li>
+        
+          <li><span class="num-mono">debunked_myths_count</span>: 7</li>
+        
+          <li><span class="num-mono">min_per_myth</span>: {&#39;wiki&#39;: 1, &#39;reddit&#39;: 1}</li>
+        
+          <li><span class="num-mono">explicitly_forbid_top10</span>: True</li>
+        
+      </ul>
+    </div>
+    
+  </div>
+</section>
+
+
+<!-- Per-task agent leaderboard -->
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">Agent ranking on this task</div>
+    <div class="text-[11px] ink-mute">composite_v2 · multiplicative reachability gate</div>
+  </div>
+  
+  <div class="px-5 py-5 ink-mute text-[13px]">No agents have been scored on this task yet.</div>
+  
+</section>
+
+<section class="text-[12px] ink-mute flex flex-wrap items-center gap-3">
+  <a class="underline" href="/">← All agents</a>
+  
+  
+    <a class="underline" href="/task/dr_cross_deep_0085">← dr_cross_deep_0085</a>
+  
+  
+    <a class="underline" href="/task/dr_cross_deep_0087">dr_cross_deep_0087 →</a>
+  
+  <span class="ml-auto">Raw config: <code class="num-mono">data/tasks/deep_research/cross_site_deep/dr_cross_deep_0086.json</code></span>
+</section>
+
+<style>
+  .task-prompt { background: var(--line-soft); border-radius: 10px; padding: 16px 18px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.6; max-height: 560px; overflow-y: auto; }
+</style>
+
+  </main>
+
+  <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
+    <div class="max-w-6xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>Bradley-Terry Elo over <code class="num-mono">composite_v2</code> battles</span>
+      <span class="text-stone-300">|</span>
+      <span class="num-mono">composite_v2 = reachability x (0.40 url + 0.40 judge + 0.20 spec)</span>
+      <span class="text-stone-300">|</span>
+      <span>Sandbox: Magento + Postmill + Kiwix</span>
+      <span class="text-stone-300">|</span>
+      <a href="https://github.com/yibol9768-alt/deep-research-arena" class="hover:text-black" target="_blank" rel="noopener">github.com/yibol9768-alt/deep-research-arena</a>
+    </div>
+  </footer>
+
+  
+</body>
+</html>

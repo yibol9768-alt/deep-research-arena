@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="en" class="bg-canvas text-ink">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard · Deep-Research Arena</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas: #fafaf9;
+      --surface: #ffffff;
+      --ink: #0c0a09;
+      --ink-soft: #44403c;
+      --ink-mute: #78716c;
+      --line: #e7e5e4;
+      --line-soft: #f5f5f4;
+      --accent: #4338ca;
+      --accent-soft: #eef2ff;
+      --accent-ink: #312e81;
+      --good: #15803d;
+      --good-soft: #dcfce7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #a16207;
+      --warn-soft: #fef9c3;
+    }
+    html, body { background: var(--canvas); color: var(--ink); }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+    .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .ink-soft { color: var(--ink-soft); }
+    .ink-mute { color: var(--ink-mute); }
+
+    .surface { background: var(--surface); border: 1px solid var(--line); }
+    .row-hover:hover { background-color: var(--line-soft); }
+    .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
+
+    .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
+    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
+    .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
+    .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* LLM backbone picker chips (current = active, others = "queued") */
+    .llm-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px 5px 9px;
+      border-radius: 8px;
+      font-size: 12.5px; font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-soft);
+      cursor: default;
+    }
+    .llm-chip.is-active { background: var(--accent-soft); color: var(--accent-ink); border-color: rgba(67,56,202,0.35); }
+    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--line-soft); border-color: var(--line); }
+    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
+    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+    .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+    .pill-ok    { background: var(--good-soft); color: var(--good); }
+    .pill-warn  { background: var(--warn-soft); color: var(--warn); }
+    .pill-bad   { background: var(--bad-soft);  color: var(--bad); }
+    .pill-muted { background: var(--line); color: var(--ink-soft); }
+    .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
+
+    /* Old CI track — kept for any callers; new layout uses .ci-bar below. */
+    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
+    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
+    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
+
+    /* New unified CI bar: every row has the same outer width (set by the
+       parent <td>); the bar has 8px horizontal padding so the marker dot
+       can never visually overflow into the next column. */
+    .ci-bar { padding: 0 8px; }
+    .ci-bar-inner { position: relative; height: 14px; }
+    .ci-bar-track  { position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); background: var(--line); border-radius: 999px; }
+    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(67,56,202,0.28); border-radius: 999px; pointer-events: none; }
+    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.4); pointer-events: none; }
+
+    .agent-avatar {
+      width: 26px; height: 26px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--surface);
+      background: linear-gradient(135deg, #475569, #1e293b);
+    }
+
+    .codeblock { background: #0c0a09; color: #f5f5f4; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; }
+
+    /* Markdown body when rendered via python-markdown */
+    .md-body { font-size: 13.5px; line-height: 1.55; }
+    .md-body h1, .md-body h2, .md-body h3 { font-weight: 700; margin: 1em 0 0.4em; }
+    .md-body h1 { font-size: 22px; }
+    .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+    .md-body h3 { font-size: 14px; }
+    .md-body p { margin: 0.5em 0; }
+    .md-body code { background: var(--line-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .md-body pre { background: #0c0a09; color: #f5f5f4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .md-body pre code { background: transparent; padding: 0; color: inherit; }
+    .md-body table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .md-body th, .md-body td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+    .md-body th { background: var(--line-soft); font-weight: 600; }
+    .md-body ul, .md-body ol { margin: 0.4em 0; padding-left: 1.4em; }
+    .md-body li { margin: 0.2em 0; }
+    .md-body a { color: var(--accent); text-decoration: underline; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
+              style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
+        <span class="text-[15px] tracking-tight">Deep-Research Arena</span>
+      </a>
+      <nav class="flex items-center gap-0.5 ml-2 text-sm">
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:2px;">new</span></a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/compare">Compare LLMs</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/how-it-works">How it works</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/about">About</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/contribute">Contribute</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-3">
+        <a href="https://github.com/yibol9768-alt/deep-research-arena"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft border border-stone-200">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+    
+<section class="surface rounded-2xl p-7 mb-6">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <span class="pill pill-accent"><span class="pill-dot" style="background:#4338ca;"></span>Bradley-Terry Elo</span>
+    <span class="pill pill-muted num-mono">9 agents</span>
+    <span class="pill pill-muted num-mono">56 tasks</span>
+    <span class="pill pill-muted num-mono">283 runs</span>
+    <span class="pill pill-muted">updated 2026-05-09 15:07:01</span>
+  </div>
+  <h1 class="text-[34px] font-bold tracking-tight leading-none">Deep-Research Leaderboard</h1>
+  <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
+    A live ranking of open-source <em>deep research</em> agents on a sandboxed
+    Magento + Postmill + Kiwix corpus. Each agent runs against the same task set
+    and produces a markdown report. Scores are derived from URL grounding, judge
+    pass rate, and report quality. The reachability gate kills any agent that
+    fabricates URLs, no matter how fluent the prose.
+  </p>
+  <div class="mt-4 flex flex-wrap gap-2 text-[13px]">
+    <a href="/how-it-works" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">How is the ranking produced? →</a>
+    <a href="/contribute" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">Add your DR / reproduce the run →</a>
+    <a href="/compare" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">Compare across LLMs →</a>
+    <a href="https://github.com/yibol9768-alt/deep-research-arena" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">GitHub →</a>
+  </div>
+</section>
+
+
+
+<section class="mb-6">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="surface rounded-xl px-4 py-3">
+      <div class="label-eyebrow">Pairs scored</div>
+      <div class="num-mono text-[22px] font-bold mt-1">344</div>
+      <div class="ink-mute text-[11.5px] mt-0.5">across 9 agents x 56 tasks</div>
+    </div>
+    <div class="surface rounded-xl px-4 py-3">
+      <div class="label-eyebrow">Unique URLs cited</div>
+      <div class="num-mono text-[22px] font-bold mt-1">2,568</div>
+      <div class="ink-mute text-[11.5px] mt-0.5">distinct sandbox pages across all reports</div>
+    </div>
+    <div class="surface rounded-xl px-4 py-3">
+      <div class="label-eyebrow">LLM tokens (est)</div>
+      <div class="num-mono text-[22px] font-bold mt-1">
+        1.4M
+      </div>
+      <div class="ink-mute text-[11.5px] mt-0.5">15,580 judge calls + report generation</div>
+    </div>
+    <div class="surface rounded-xl px-4 py-3">
+      <div class="label-eyebrow">Filtered as degenerate</div>
+      <div class="num-mono text-[22px] font-bold mt-1" style="color: var(--warn);">61</div>
+      <div class="ink-mute text-[11.5px] mt-0.5">runner placeholders / crash stubs dropped from Elo</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- LLM picker (current = DeepSeek V4-flash; others queued) -->
+<section class="mb-8">
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="label-eyebrow mr-2" style="line-height: 28px;">Backbone LLM</span>
+    <span class="llm-chip is-active">
+      <span class="llm-chip-dot" style="background:#15803d;"></span>
+      DeepSeek V4-flash
+      <span class="llm-chip-meta">283 runs</span>
+    </span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
+      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+      DeepSeek V4-pro
+      <span class="llm-chip-meta">queued</span>
+    </span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
+      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+      GPT-4o-mini
+      <span class="llm-chip-meta">queued</span>
+    </span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
+      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+      Claude Sonnet 4.6
+      <span class="llm-chip-meta">queued</span>
+    </span>
+    <span class="llm-chip is-soon" title="Same evaluation, different backbone - coming soon.">
+      <span class="llm-chip-dot" style="background:#a8a29e;"></span>
+      Gemini 2.5 Pro
+      <span class="llm-chip-meta">queued</span>
+    </span>
+  </div>
+  <p class="mt-2 text-[12px] ink-mute">
+    Each agent's <code>composite_v2</code> is backbone-dependent. The leaderboard below is built on
+    DeepSeek V4-flash. Once the other backbones land, the picker activates and the agent x LLM matrix
+    appears on <a class="underline" href="/compare">/compare</a>.
+  </p>
+</section>
+
+
+
+<section class="surface rounded-2xl overflow-hidden">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">Composite_v2 ranking · multiplicative reachability gate</div>
+    <div class="text-[11px] ink-mute hidden sm:block">95% confidence intervals from 1000 bootstrap iterations · click row for drill-down</div>
+  </div>
+  <table class="w-full text-sm" id="lb-table" style="table-layout: fixed;">
+    <colgroup>
+      <col style="width: 56px;">
+      <col>
+      <col style="width: 80px;">
+      <col style="width: 260px;">
+      <col style="width: 90px;">
+      <col style="width: 50px;">
+      <col style="width: 50px;">
+      <col style="width: 50px;">
+    </colgroup>
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-5 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">Elo</th>
+        <th class="px-3 py-3 font-bold">95% confidence interval</th>
+        <th class="px-3 py-3 font-bold text-right">Coverage</th>
+        <th class="px-3 py-3 font-bold text-right">W</th>
+        <th class="px-3 py-3 font-bold text-right">L</th>
+        <th class="px-3 py-3 font-bold text-right">D</th>
+      </tr>
+    </thead>
+    <tbody style="border-top: 1px solid var(--line);">
+      
+      
+      
+      
+      
+      
+      
+      <tr class="row-hover lb-row" data-agent="camel-ai" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-chip rank-1 " title="Rank 1">1</span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">CA</span>
+            <span class="font-semibold truncate">camel-ai</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">1481</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:81.86708506107811%; width:18.132914938921886%;"></div>
+              <div class="ci-bar-marker" style="left:90.35077888602487%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [1405, 1567]
+            <span class="text-stone-300 mx-1">·</span>
+            ±81
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            56/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">206</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">20</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">1</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="camel-ai" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="flowsearcher-ds" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-chip rank-2 rank-tied" title="Tied with rank above (gap not statistically significant)">2</span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">FL</span>
+            <span class="font-semibold truncate">flowsearcher-ds</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">1401</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:72.7782136052897%; width:18.121707945758146%;"></div>
+              <div class="ci-bar-marker" style="left:81.45242631401996%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [1324, 1486]
+            <span class="text-stone-300 mx-1">·</span>
+            ±81
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            48/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">193</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">32</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">2</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="flowsearcher-ds" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="smolagents" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-chip rank-3 rank-tied" title="Tied with rank above (gap not statistically significant)">3</span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">SM</span>
+            <span class="font-semibold truncate">smolagents</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">1307</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:60.1815532892525%; width:21.584668833352005%;"></div>
+              <div class="ci-bar-marker" style="left:70.90664574694608%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [1211, 1404]
+            <span class="text-stone-300 mx-1">·</span>
+            ±96
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            30/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">170</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">42</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">15</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="smolagents" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="ldr" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-other " title="">4</span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">LD</span>
+            <span class="font-semibold truncate">ldr</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">945</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:22.044155553065117%; width:16.04841421046732%;"></div>
+              <div class="ci-bar-marker" style="left:30.337330494228404%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [871, 1014]
+            <span class="text-stone-300 mx-1">·</span>
+            ±72
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            30/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">80</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">100</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">47</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="ldr" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="gpt-researcher" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">5<span style="margin-left:3px; font-size:9px; color: var(--ink-mute);">~</span></span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">GP</span>
+            <span class="font-semibold truncate">gpt-researcher</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">866</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:13.302700885352465%; width:16.552728902835362%;"></div>
+              <div class="ci-bar-marker" style="left:21.450184915387197%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [793, 941]
+            <span class="text-stone-300 mx-1">·</span>
+            ±74
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            30/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">60</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">114</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">53</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="gpt-researcher" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="deerflow" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">6<span style="margin-left:3px; font-size:9px; color: var(--ink-mute);">~</span></span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">DE</span>
+            <span class="font-semibold truncate">deerflow</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">822</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:9.144906421607086%; width:16.485486943852965%;"></div>
+              <div class="ci-bar-marker" style="left:16.507900930180437%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [756, 903]
+            <span class="text-stone-300 mx-1">·</span>
+            ±74
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            30/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">40</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">118</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">69</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="deerflow" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="ii-researcher" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">7<span style="margin-left:3px; font-size:9px; color: var(--ink-mute);">~</span></span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">II</span>
+            <span class="font-semibold truncate">ii-researcher</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">732</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:0.17931189061974925%; width:11.173372184242972%;"></div>
+              <div class="ci-bar-marker" style="left:6.399193096492213%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [676, 776]
+            <span class="text-stone-300 mx-1">·</span>
+            ±50
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            30/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">5</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">130</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">92</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="ii-researcher" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="langchain-odr" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">8<span style="margin-left:3px; font-size:9px; color: var(--ink-mute);">~</span></span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">LA</span>
+            <span class="font-semibold truncate">langchain-odr</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">729</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:0.0%; width:11.93544771937689%;"></div>
+              <div class="ci-bar-marker" style="left:6.096604281071386%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [674, 781]
+            <span class="text-stone-300 mx-1">·</span>
+            ±53
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            30/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">6</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">129</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">92</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="langchain-odr" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+        
+        
+        
+      
+      <tr class="row-hover lb-row" data-agent="storm" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+        <td class="px-5 py-3.5 align-middle">
+          
+            <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">9<span style="margin-left:3px; font-size:9px; color: var(--ink-mute);">~</span></span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle whitespace-nowrap overflow-hidden">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">ST</span>
+            <span class="font-semibold truncate">storm</span>
+            <svg class="lb-caret" width="11" height="11" viewBox="0 0 12 12" aria-hidden="true" style="color: var(--ink-mute); transition: transform 0.18s;"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right">
+          <span class="num-mono font-semibold text-[15.5px]">718</span>
+        </td>
+        <td class="px-3 py-3.5 align-middle">
+          <div class="ci-bar">
+            <div class="ci-bar-inner">
+              <div class="ci-bar-track"></div>
+              <div class="ci-bar-range"  style="left:0.31379580858456435%; width:9.59318614815644%;"></div>
+              <div class="ci-bar-marker" style="left:4.908663005715574%;"></div>
+            </div>
+          </div>
+          <div class="mt-1.5 num-mono text-[10.5px] ink-mute whitespace-nowrap">
+            [677, 763]
+            <span class="text-stone-300 mx-1">·</span>
+            ±43
+          </div>
+        </td>
+        
+        
+        
+        <td class="px-3 py-3.5 align-middle text-right whitespace-nowrap">
+          <span class="num-mono text-[13px] " style="color: var(--ink-soft);">
+            30/57
+          </span>
+          
+        </td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--good);">0</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px]" style="color: var(--bad);">75</td>
+        <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute">61</td>
+      </tr>
+      <tr class="lb-drill" data-agent-drill="storm" style="display: none;">
+        <td colspan="8" class="px-0 py-0" style="background: var(--line-soft); border-top: 1px solid var(--line-soft);">
+          <div class="lb-drill-body" style="padding: 18px 22px;">
+            <div class="text-[12px] ink-mute">Loading drill-down…</div>
+          </div>
+        </td>
+      </tr>
+      
+    </tbody>
+  </table>
+
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    <strong>Coverage</strong> is how many of the 57 tasks this agent has a valid score for.
+    Agents with fewer than 30 pairs are marked
+    <span class="pill pill-warn" style="font-size: 10px; padding: 1px 6px;">partial</span>
+    - their Elo will tighten as more pairs land. The full bulk is still in flight for newly-added agents.
+    A small "<span class="num-mono">~</span>" marker on the rank means the gap to the row above is not statistically significant.
+  </div>
+
+  <div class="px-5 py-3 text-[11px] ink-mute flex items-center gap-4" style="background: var(--surface); border-top: 1px solid var(--line-soft);">
+    <span class="num-mono">674</span>
+    <div class="flex-1 flex items-center gap-3">
+      <span>Bar spans the global Elo range:</span>
+      <span class="inline-flex items-center gap-1.5">
+        <span style="display:inline-block; width:36px; height:6px; background: rgba(67,56,202,0.22); border-radius: 999px;"></span>
+        <span>95% CI</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5">
+        <span style="display:inline-block; width:10px; height:10px; background: var(--accent); border-radius: 999px; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.3);"></span>
+        <span>point estimate</span>
+      </span>
+    </div>
+    <span class="num-mono">1567</span>
+  </div>
+
+  
+  <div style="border-top: 1px solid var(--line); background: var(--line-soft);" class="px-5 py-4">
+    <div class="label-eyebrow mb-3">Adjacent-rank significance · permutation N=1000</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[12px]">
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">camel-ai</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">flowsearcher-ds</span>
+        <span class="num-mono ink-mute ml-auto">Δ79</span>
+        <span class="num-mono ink-mute" style="">p=0.305</span>
+      </div>
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">flowsearcher-ds</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">smolagents</span>
+        <span class="num-mono ink-mute ml-auto">Δ94</span>
+        <span class="num-mono ink-mute" style="">p=0.447</span>
+      </div>
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">smolagents</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">ldr</span>
+        <span class="num-mono ink-mute ml-auto">Δ362</span>
+        <span class="num-mono font-semibold" style="color: var(--accent-ink);">p=0.0</span>
+      </div>
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">ldr</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">gpt-researcher</span>
+        <span class="num-mono ink-mute ml-auto">Δ79</span>
+        <span class="num-mono ink-mute" style="">p=0.326</span>
+      </div>
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">gpt-researcher</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">deerflow</span>
+        <span class="num-mono ink-mute ml-auto">Δ44</span>
+        <span class="num-mono ink-mute" style="">p=0.573</span>
+      </div>
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">deerflow</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">ii-researcher</span>
+        <span class="num-mono ink-mute ml-auto">Δ90</span>
+        <span class="num-mono ink-mute" style="">p=0.31</span>
+      </div>
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">ii-researcher</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">langchain-odr</span>
+        <span class="num-mono ink-mute ml-auto">Δ3</span>
+        <span class="num-mono ink-mute" style="">p=0.97</span>
+      </div>
+      
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+        <span class="font-medium">langchain-odr</span>
+        <span class="ink-mute">›</span>
+        <span class="font-medium">storm</span>
+        <span class="num-mono ink-mute ml-auto">Δ11</span>
+        <span class="num-mono ink-mute" style="">p=0.896</span>
+      </div>
+      
+    </div>
+  </div>
+  
+</section>
+
+<section class="mt-6 ink-soft text-[13px] leading-relaxed">
+  <p>
+    <strong>What you're seeing.</strong> Each row is one open-source DR framework.
+    Higher Elo means it more often wrote a more correct, better-grounded report
+    than its peers across the 56 tasks. <a class="underline" href="/how-it-works">Read the full method →</a>
+    Click any agent row to see per-pillar bars, best/worst tasks, and the upstream project link.
+  </p>
+</section>
+
+
+<style>
+  /* Tied rank styling: same warm-grey neutral, signaling "indistinguishable" */
+  .rank-tied { filter: saturate(0.55) brightness(0.97); box-shadow: inset 0 0 0 1px rgba(120, 113, 108, 0.5) !important; }
+  .rank-tied-other { color: var(--ink-mute); }
+
+  .lb-row.is-open .lb-caret { transform: rotate(180deg); }
+
+  .pillar-bar { position: relative; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .pillar-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #818cf8, #4338ca); border-radius: 999px; }
+  .pillar-row { display: grid; grid-template-columns: 130px 1fr 60px 60px; align-items: center; gap: 10px; padding: 4px 0; font-size: 12px; }
+  .pillar-row .pillar-name { color: var(--ink-soft); font-weight: 500; }
+  .pillar-row .pillar-pct  { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-soft); font-size: 11.5px; }
+  .pillar-row .pillar-elo  { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-mute); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .task-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12.5px; border-bottom: 1px dashed var(--line-soft); }
+  .task-row:last-child { border-bottom: none; }
+  .task-row a { color: var(--accent-ink); text-decoration: none; }
+  .task-row a:hover { text-decoration: underline; }
+  .task-score { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+</style>
+
+<script>
+(function () {
+  // Drill-down: click a row -> fetch /api/agent/<name> -> render under it
+  const cache = {};
+  function pct(x) { return (typeof x === 'number') ? Math.round(x * 100) : null; }
+  function fmt(x, d) { return (typeof x === 'number') ? x.toFixed(d ?? 2) : '-'; }
+
+  function renderDrill(agent, data) {
+    if (!data) return '<div class="text-[12px] ink-mute">Failed to load drill-down for ' + agent + '.</div>';
+    const pillars = [
+      ['url_coverage', 'URL coverage'],
+      ['reachability', 'Reachability'],
+      ['checklist', 'Checklist pass'],
+      ['citation_alignment', 'Citation alignment'],
+      ['analysis_depth', 'Analysis depth'],
+      ['presentation', 'Presentation'],
+    ];
+    let pillarRows = pillars.map(([k, label]) => {
+      const v = data.pillar_means && data.pillar_means[k];
+      const elo = data.pillar_elo && data.pillar_elo[k];
+      const eloMap = { 'url_coverage': 'url_coverage', 'reachability': 'reachability', 'checklist': 'checklist', 'citation_alignment': null, 'analysis_depth': null, 'presentation': null };
+      const eloKey = eloMap[k];
+      const eloShown = (eloKey && elo === undefined && data.pillar_elo) ? data.pillar_elo[eloKey] : elo;
+      const p = pct(v);
+      return `<div class="pillar-row">
+        <span class="pillar-name">${label}</span>
+        <div class="pillar-bar"><div class="pillar-bar-fill" style="width:${p == null ? 0 : Math.max(2, Math.min(100, p))}%"></div></div>
+        <span class="pillar-pct">${p == null ? '-' : p + '%'}</span>
+        <span class="pillar-elo">${typeof eloShown === 'number' ? Math.round(eloShown) : ''}</span>
+      </div>`;
+    }).join('');
+
+    function taskList(rows, labelClass) {
+      if (!rows || !rows.length) return '<div class="text-[12px] ink-mute">No scored tasks yet.</div>';
+      return rows.map(r => `<div class="task-row">
+        <a href="/task/${r.task_id}">${r.task_id}</a>
+        <span class="ink-mute" style="font-size:11px;">composite_v2</span>
+        <span class="task-score ${labelClass}">${fmt(r.composite_v2, 3)}</span>
+        <span class="ink-mute" style="font-size:11px; margin-left:auto;">cov ${pct(r.url_coverage)}% / reach ${pct(r.reachability)}%</span>
+      </div>`).join('');
+    }
+
+    const eloLine = data.elo_v2 && typeof data.elo_v2.elo === 'number'
+      ? `<span class="num-mono">Elo ${Math.round(data.elo_v2.elo)} [${Math.round(data.elo_v2.elo_lo)}, ${Math.round(data.elo_v2.elo_hi)}]</span> · <span>${data.n_pairs} scored pairs</span>`
+      : `<span>${data.n_pairs || 0} scored pairs</span>`;
+
+    const links = [];
+    if (data.github_url) links.push(`<a class="underline" href="${data.github_url}" target="_blank" rel="noopener">GitHub ↗</a>`);
+    if (data.paper_url) links.push(`<a class="underline" href="${data.paper_url}" target="_blank" rel="noopener">Paper ↗</a>`);
+
+    return `<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="md:col-span-1">
+        <div class="label-eyebrow mb-2">${agent}</div>
+        <div class="text-[12.5px] ink-soft mb-2">${eloLine}</div>
+        <div class="text-[12px] mt-1">${links.join(' &nbsp;·&nbsp; ')}</div>
+      </div>
+      <div class="md:col-span-2">
+        <div class="label-eyebrow mb-2">Per-pillar mean (across scored tasks)</div>
+        ${pillarRows}
+        <div class="text-[10.5px] ink-mute mt-1">% = mean per-task pillar score · right-most number = pillar Elo (where available)</div>
+      </div>
+      <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+        <div>
+          <div class="label-eyebrow mb-2" style="color: var(--good);">Best 3 tasks</div>
+          ${taskList(data.best_tasks)}
+        </div>
+        <div>
+          <div class="label-eyebrow mb-2" style="color: var(--bad);">Worst 3 tasks</div>
+          ${taskList(data.worst_tasks)}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function toggle(row) {
+    const agent = row.dataset.agent;
+    const drill = document.querySelector('tr.lb-drill[data-agent-drill="' + agent + '"]');
+    if (!drill) return;
+    const open = drill.style.display !== 'none';
+    if (open) {
+      drill.style.display = 'none';
+      row.classList.remove('is-open');
+      return;
+    }
+    row.classList.add('is-open');
+    drill.style.display = '';
+    const body = drill.querySelector('.lb-drill-body');
+    if (cache[agent]) {
+      body.innerHTML = renderDrill(agent, cache[agent]);
+      return;
+    }
+    body.innerHTML = '<div class="text-[12px] ink-mute">Loading drill-down…</div>';
+    fetch('/api/agent/' + encodeURIComponent(agent) + '.json')
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(d => { cache[agent] = d; body.innerHTML = renderDrill(agent, d); })
+      .catch(err => { body.innerHTML = '<div class="text-[12px]" style="color:var(--bad);">Drill-down request failed: ' + err + '</div>'; });
+  }
+
+  document.querySelectorAll('tr.lb-row').forEach(r => {
+    r.addEventListener('click', (ev) => {
+      // Don't expand if user clicked an internal link.
+      if (ev.target.closest('a')) return;
+      toggle(r);
+    });
+  });
+})();
+</script>
+
+  </main>
+
+  <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
+    <div class="max-w-6xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>Bradley-Terry Elo over <code class="num-mono">composite_v2</code> battles</span>
+      <span class="text-stone-300">|</span>
+      <span class="num-mono">composite_v2 = reachability x (0.40 url + 0.40 judge + 0.20 spec)</span>
+      <span class="text-stone-300">|</span>
+      <span>Sandbox: Magento + Postmill + Kiwix</span>
+      <span class="text-stone-300">|</span>
+      <a href="https://github.com/yibol9768-alt/deep-research-arena" class="hover:text-black" target="_blank" rel="noopener">github.com/yibol9768-alt/deep-research-arena</a>
+    </div>
+  </footer>
+
+  
+</body>
+</html>

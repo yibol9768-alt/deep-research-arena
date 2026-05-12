@@ -1,0 +1,159 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0064",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": {
+    "prompt": "Produce an Enumeration / Catalog report cataloguing every endangered species recovery success story from the following list, providing a summary of each case including key species, geographic region, the nature of recovery efforts, timeline, and outcomes. The report is NOT a guide for species conservation, but rather a compilation of successful recovery programs. Include at least the following: >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 40 products from conservation stores, wildlife NGOs, educational institutions covering conservation merchandise, donations, memberships, field research reports, etc. (B) `__REDDIT__` >= 30 threads from /r/wildlife, /r/conservation, /r/biodiversity, /r/earthscience, /r/endangeredspecies, /r/animals, /r/wheresthedanger — discussions of specific recovery programs, expert opinions, and user contributions. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: California condor, Black-footed ferret, Whooping crane, Red wolf, European bison, African elephant, Przewalski's horse, Sea turtle, Bald eagle, Giant panda — comprehensive species profiles including conservation status and recovery details. Format the catalog table as follows: Protocol Name / Recovery Effort / Geographic Region / Timeline / Outcome / Merchandise Type (cited shopping) / Community Feedback (cited reddit) / Wiki Link (cited Wikipedia). Include a decision tree: Starting with the user's choice of species in danger (endangered/threatened), guide to specific recovery success stories. End with '5 recovery efforts to avoid due to insufficient success and why' — each with a cited source from the 3 mentioned sources. Begin with the catalog table, followed by the decision tree. No chain-of-thought. Use markdown links, and ensure the sandbox-local, non-fabricated nature of the evidence.",
+    "evidence_details": {
+      "shopping": {
+        "items": 40,
+        "cited": 40
+      },
+      "reddit": {
+        "threads": 30
+      },
+      "wikipedia": {
+        "articles": 25,
+        "mandatory": [
+          "California condor",
+          "Black-footed ferret",
+          "Whooping crane",
+          "Red wolf",
+          "European bison",
+          "African elephant",
+          "Przewalski's horse",
+          "Sea turtle",
+          "Bald eagle",
+          "Giant panda"
+        ]
+      }
+    },
+    "format_rules": "Use markdown links for all references. Ensure that all cited evidence is sandbox-local and does not involve fabrication.",
+    "specific_synthesis_requirements": {
+      "task_type": "enumeration",
+      "protocols_min": null,
+      "catalog_columns": [
+        "Protocol Name",
+        "Recovery Effort",
+        "Geographic Region",
+        "Timeline",
+        "Outcome",
+        "Merchandise Type",
+        "Community Feedback",
+        "Wiki Link"
+      ],
+      "min_evidence_per_protocol": null,
+      "decision_tree_levels": 2,
+      "decision_tree_branches": [
+        "endangered",
+        "threatened"
+      ],
+      "avoid_findings_count": 5,
+      "min_evidence_per_avoid": {
+        "shopping": 1,
+        "reddit": 1,
+        "wikipedia": 1
+      },
+      "explicitly_forbid_top10": false
+    }
+  },
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=conservation+books",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0064.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0064.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "enumeration",
+    "protocols_min": null,
+    "catalog_columns": [
+      "Protocol Name",
+      "Recovery Effort",
+      "Geographic Region",
+      "Timeline",
+      "Outcome",
+      "Merchandise Type",
+      "Community Feedback",
+      "Wiki Link"
+    ],
+    "min_evidence_per_protocol": null,
+    "decision_tree_levels": 2,
+    "decision_tree_branches": [
+      "endangered",
+      "threatened"
+    ],
+    "avoid_findings_count": 5,
+    "min_evidence_per_avoid": {
+      "shopping": 1,
+      "reddit": 1,
+      "wikipedia": 1
+    },
+    "explicitly_forbid_top10": false
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/species_recovery_catalog.yaml. Golden: must=149, pool=605."
+}

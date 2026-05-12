@@ -1,0 +1,220 @@
+{
+  "task": "dr_cross_deep_0016",
+  "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0016_matrix.md",
+  "answer_chars": 30236,
+  "url_coverage": {
+    "score": 0.252,
+    "passed": false,
+    "details": {
+      "cited_unique": 88,
+      "must_cite_total": 123,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "pool_total": 768,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 38,
+        "__REDDIT__": 29,
+        "__WIKIPEDIA__": 21
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      },
+      "domain_balance": 0.84,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.9886,
+    "passed": true,
+    "details": {
+      "cited_total": 88,
+      "cited_sandbox": 88,
+      "cited_off_sandbox": 0,
+      "probed": 88,
+      "http_200": 87,
+      "http_4xx": 1,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.9886,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.9917,
+    "passed": true,
+    "details": {
+      "claims_total": 121,
+      "claims_supported": 120,
+      "claims_unreachable": 1,
+      "match_rate": 0.9917,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Eviction_in_the_United_Stat",
+          "supported": true,
+          "overlap": 0.568
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Costa%E2%80%93Hawkins_Renta",
+          "supported": true,
+          "overlap": 0.64
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Just_cause_eviction",
+          "supported": true,
+          "overlap": 0.556
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Eviction",
+          "supported": true,
+          "overlap": 0.526
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Ellis_Act",
+          "supported": true,
+          "overlap": 0.611
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Rent_regulation_in_New_York",
+          "supported": true,
+          "overlap": 0.545
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 3341,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 121,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 45,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are exactly 3 states defined (CA / NY / TX)?",
+        "PASS"
+      ],
+      [
+        "Are exactly 5 dimensions enumerated (eviction notice / deposit / repair-deduct / rent-control / lease-break)?",
+        "PASS"
+      ],
+      [
+        "Is a 3 x 5 comparison matrix presented with all 15 cells populated?",
+        "PASS"
+      ],
+      [
+        "Does each cell cite a state-specific statute or a wiki URL?",
+        "PASS"
+      ],
+      [
+        "Does each cell cite >= 1 reddit thread with a real tenant-renter case?",
+        "FAIL"
+      ],
+      [
+        "Does each cell cite >= 1 shopping product (book) URL?",
+        "FAIL"
+      ],
+      [
+        "Are >= 10 shopping product pages enumerated with price + rating?",
+        "FAIL"
+      ],
+      [
+        "Are >= 30 reddit threads cited from at least 4 legal/state sub-forums?",
+        "FAIL"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "FAIL"
+      ],
+      [
+        "Are all 10 mandatory wiki articles (Landlord-tenant law, Eviction, Security deposit, Rent control, RC-CA, RC-NY, TX Property Code, Lease, Implied warranty of habitability, SoL) cited?",
+        "FAIL"
+      ],
+      [
+        "Are exactly 3 legal-aid resources listed per state (9 total)?",
+        "FAIL"
+      ],
+      [
+        "Does each legal-aid resource cite a wiki or reddit URL?",
+        "FAIL"
+      ],
+      [
+        "Does the matrix explicitly cite state statute names (e.g. CA CIV § 1950.5)?",
+        "PASS"
+      ],
+      [
+        "Are at least 3 cross-state divergences highlighted (e.g. CA 60-day notice vs TX 3-day)?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "UNCLEAR"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "FAIL"
+      ],
+      [
+        "Is per-domain minimum met: >= 10 shopping, >= 30 reddit, >= 25 wiki?",
+        "FAIL"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "FAIL"
+      ],
+      [
+        "Does the report avoid generic Top-N format?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start with the matrix?",
+        "PASS"
+      ],
+      [
+        "Does the report explicitly disclaim 'not legal advice; consult attorney'?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 9,
+    "fail_count": 11,
+    "unclear_count": 1,
+    "pass_rate": 0.4286,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.4056,
+    "truth_factor": 0.4922,
+    "qm_factor": 0.9959,
+    "nli_factor": 0.5,
+    "composite_score": 0.1996,
+    "composite_v1": 0.4009,
+    "legacy_composite": 0.376
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  }
+}

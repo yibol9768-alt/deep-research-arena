@@ -1,0 +1,104 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0024",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce an Enumeration / Catalog report cataloguing the 3 major cloud certification ladders: AWS, Google Cloud (GCP), Microsoft Azure. For each provider, enumerate ALL active certifications by tier (foundational / associate / professional / specialty), with: (a) cert name, (b) tier, (c) exam fee USD, (d) prep time weeks (typical), (e) median 1-year salary bump per reddit / industry survey, (f) renewal period. Cover at least 6 certs per provider = >= 18 certs total. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 books on AWS / GCP / Azure exams + price + rating. (B) `__REDDIT__` >= 30 threads from /f/AWSCertifications, /f/AZURE, /f/googlecloud, /f/cscareerquestions, /f/devops, /f/ITCareerQuestions. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Amazon Web Services, Microsoft Azure, Google Cloud Platform, Cloud computing, Cloud certification, AWS Certifications, IT certification, Public cloud, Infrastructure as a service, DevOps. Output a 3-provider grouped catalog table (>= 18 rows) + 'optimal cert path for X role' section (5 roles: SWE / SRE / DevOps / data engineer / security). Format: markdown links only. Begin with catalog table.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=AWS+book",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 10,
+      "__REDDIT__": 30,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0024.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0024.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "enumeration",
+    "providers": [
+      "AWS",
+      "GCP",
+      "Azure"
+    ],
+    "certs_min_per_provider": 6,
+    "certs_min_total": 18,
+    "catalog_columns": [
+      "name",
+      "tier",
+      "exam_fee",
+      "prep_time",
+      "salary_bump",
+      "renewal"
+    ],
+    "min_evidence_per_cert": {
+      "shopping": 1,
+      "reddit": 1,
+      "wikipedia": 1
+    },
+    "role_path_count": 5
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "Education",
+  "intent_type": "Enumeration"
+}

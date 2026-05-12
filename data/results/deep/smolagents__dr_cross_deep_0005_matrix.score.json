@@ -1,0 +1,393 @@
+{
+  "task": "dr_cross_deep_0005",
+  "answer_path": "data/results/deep/smolagents__dr_cross_deep_0005_matrix.md",
+  "answer_chars": 28366,
+  "url_coverage": {
+    "score": 0.2876,
+    "passed": false,
+    "details": {
+      "cited_unique": 110,
+      "must_cite_total": 123,
+      "must_cite_hit": 30,
+      "must_cite_recall": 0.2785,
+      "pool_total": 797,
+      "pool_hit": 77,
+      "pool_coverage": 0.0966,
+      "per_domain_cited": {
+        "__SHOPPING__": 57,
+        "__REDDIT__": 8,
+        "__WIKIPEDIA__": 45
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.4,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.9909,
+    "passed": true,
+    "details": {
+      "cited_total": 110,
+      "cited_sandbox": 110,
+      "cited_off_sandbox": 0,
+      "probed": 110,
+      "http_200": 109,
+      "http_4xx": 1,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.9909,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.9756,
+    "passed": true,
+    "details": {
+      "claims_total": 123,
+      "claims_supported": 120,
+      "claims_unreachable": 1,
+      "match_rate": 0.9756,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:7770",
+          "supported": true,
+          "overlap": 0.194
+        },
+        {
+          "url": "http://localhost:7770/costa-farms-majesty-palm-indoor-plant-30-inches-tall-in-gr",
+          "supported": true,
+          "overlap": 0.565
+        },
+        {
+          "url": "http://localhost:7770/costa-farms-little-fiddle-leaf-fig-live-indoor-plant-fresh",
+          "supported": true,
+          "overlap": 0.714
+        },
+        {
+          "url": "http://localhost:7770/costa-farms-ponytail-palm-bonsai-live-indoor-plant-15-to-2",
+          "supported": true,
+          "overlap": 0.679
+        },
+        {
+          "url": "http://localhost:7770/la-jolie-muse-flower-pots-outdoor-garden-planters-indoor-p",
+          "supported": true,
+          "overlap": 0.278
+        },
+        {
+          "url": "http://localhost:7770/vanavazon-6-inch-self-watering-planter-pots-for-indoor-pla",
+          "supported": true,
+          "overlap": 0.524
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 2891,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 123,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 7,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Does the report enumerate at least 40 distinct product pages on the shopping site with exact URL + price + rating + review_count?",
+        "PASS"
+      ],
+      [
+        "Are at least 6 distinct brands represented among the enumerated products?",
+        "PASS"
+      ],
+      [
+        "Are at least 3 price tiers represented?",
+        "PASS"
+      ],
+      [
+        "Does each product entry extract at least one marketing feature-claim?",
+        "PASS"
+      ],
+      [
+        "Does the report harvest at least 30 distinct Postmill threads with thread_url + forum + score + comment_count?",
+        "FAIL"
+      ],
+      [
+        "Are threads drawn from at least 4 distinct sub-forums?",
+        "UNCLEAR"
+      ],
+      [
+        "Is every thread classified as one of {praise, complaint, technical_question, comparison, purchase_advice}?",
+        "PASS"
+      ],
+      [
+        "Does the report locate at least 25 distinct Wikipedia articles with article_url + defining statement?",
+        "PASS"
+      ],
+      [
+        "Are the mandatory Wikipedia articles for this topic all present?",
+        "PASS"
+      ],
+      [
+        "Does the report surface at least 5 product-claim vs Wikipedia contradiction findings with triple evidence (product URL + wiki URL + explicit contradiction)?",
+        "FAIL"
+      ],
+      [
+        "Does the report include a brand-sentiment ranking with at least 2 reddit threads cited per ranked brand?",
+        "FAIL"
+      ],
+      [
+        "Does the report surface at least 3 rating-vs-sentiment divergences?",
+        "FAIL"
+      ],
+      [
+        "Does the final TOP-10 list have exactly 10 items?",
+        "UNCLEAR"
+      ],
+      [
+        "Does each TOP-10 item have (≥1 shopping URL + ≥2 reddit URL + ≥1 wiki URL) as evidence chain?",
+        "UNCLEAR"
+      ],
+      [
+        "Are all cited URLs markdown-linked `[label](url)` form and resolvable on the sandbox?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report cite at least 60 distinct URLs in total?",
+        "PASS"
+      ],
+      [
+        "Is at least 30 of the 60+ cited URLs from shopping domain?",
+        "PASS"
+      ],
+      [
+        "Is at least 20 of the 60+ cited URLs from reddit domain?",
+        "FAIL"
+      ],
+      [
+        "Is at least 15 of the 60+ cited URLs from wikipedia domain?",
+        "PASS"
+      ],
+      [
+        "Is the report between 3500 and 8000 words?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start directly with the market-intelligence content?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 12,
+    "fail_count": 5,
+    "unclear_count": 4,
+    "pass_rate": 0.5714,
+    "judge_error": null,
+    "sanity_floor": null,
+    "grounding_downgrades": 0,
+    "reachability_used": 0.9909
+  },
+  "composite": {
+    "spec_pass_fraction": 0.3333,
+    "quality_score": 0.4103,
+    "truth_factor": 0.4894,
+    "qm_factor": 0.9878,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.9909,
+    "raw_score_v3": 0.4236,
+    "citation_alignment": 0.0,
+    "analysis_depth": 0.0,
+    "presentation": 0.4667,
+    "composite_v3": 0.4197,
+    "composite_score": 0.2008,
+    "composite_v2": 0.2008,
+    "composite_v1": 0.4065,
+    "legacy_composite": 0.3938
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  },
+  "analysis_depth": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "tier_a_passed": 0,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.0,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": false,
+          "detail": "contradiction_paragraphs=0"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": false,
+          "detail": "density=0.0, total_paragraphs=10"
+        }
+      ],
+      "tier_b_passed": 0,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.0,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": false,
+          "reason": "Only lists products, no thematic synthesis shown"
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": false,
+          "reason": "No attempt to explain causes or market drivers"
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "No explicit cross-source comparison evident"
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": false,
+          "reason": "No multi-source synthesis or emergent insight provided"
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "No acknowledgment of limits or counterpoints"
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": false,
+          "reason": "Report truncated, lacks actionable recommendations"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. FAIL - Only lists products, no thematic synthesis shown  \n2. FAIL - No attempt to explain causes or market drivers  \n3. FAIL - No explicit cross-source comparison evident  \n4. FAIL - No multi-source synthesis or emergent insight provided  \n5. FAIL - No acknowledgment of limits or counterpoints  \n6. FAIL - Report truncated, lacks actionable recommendations"
+    }
+  },
+  "presentation": {
+    "score": 0.4667,
+    "passed": false,
+    "details": {
+      "tier_a_passed": 4,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.667,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": false,
+          "detail": "levels_found=[1, 2]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": false,
+          "detail": "h2_sections=4"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.725, word_counts=[8, 1430, 530, 897]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=38.2"
+        }
+      ],
+      "tier_b_passed": 2,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.333,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": false,
+          "reason": "No clear intro, analysis, or conclusion sections shown"
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "No bridging sentences between listed items"
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No visible meta-commentary phrases"
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": false,
+          "reason": "Formatting inconsistent (mix of markdown table, varied styles)"
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "No conclusion section to synthesize findings"
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Language factual and professional without AI filler"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. FAIL - No clear intro, analysis, or conclusion sections shown  \n2. FAIL - No bridging sentences between listed items  \n3. PASS - No visible meta-commentary phrases  \n4. FAIL - Formatting inconsistent (mix of markdown table, varied styles)  \n5. FAIL - No conclusion section to synthesize findings  \n6. PASS - Language factual and professional without AI filler"
+    }
+  },
+  "rescore_meta": {
+    "fix": "v2_full_rescore_with_ad_pres_and_fab_guard",
+    "old_checklist_pass_rate": 0.4762,
+    "old_claim_nli_score": 0.0,
+    "old_composite_v3": null,
+    "old_composite_v2": 0.1822,
+    "new_checklist_pass_rate": 0.5714,
+    "new_claim_nli_score": 0.0,
+    "new_analysis_depth": 0.0,
+    "new_presentation": 0.4667,
+    "new_composite_v3": 0.4197,
+    "new_composite_v2": 0.2008
+  }
+}

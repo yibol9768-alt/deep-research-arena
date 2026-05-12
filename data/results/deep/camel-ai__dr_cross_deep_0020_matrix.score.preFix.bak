@@ -1,0 +1,220 @@
+{
+  "task": "dr_cross_deep_0020",
+  "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0020_matrix.md",
+  "answer_chars": 31910,
+  "url_coverage": {
+    "score": 0.1714,
+    "passed": false,
+    "details": {
+      "cited_unique": 58,
+      "must_cite_total": 127,
+      "must_cite_hit": 2,
+      "must_cite_recall": 0.0117,
+      "pool_total": 782,
+      "pool_hit": 26,
+      "pool_coverage": 0.0332,
+      "per_domain_cited": {
+        "__SHOPPING__": 28,
+        "__REDDIT__": 16,
+        "__WIKIPEDIA__": 14
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      },
+      "domain_balance": 0.5333,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.8966,
+    "passed": true,
+    "details": {
+      "cited_total": 58,
+      "cited_sandbox": 58,
+      "cited_off_sandbox": 0,
+      "probed": 58,
+      "http_200": 52,
+      "http_4xx": 6,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.8966,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.855,
+    "passed": true,
+    "details": {
+      "claims_total": 131,
+      "claims_supported": 112,
+      "claims_unreachable": 15,
+      "match_rate": 0.855,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Jet_lag",
+          "supported": true,
+          "overlap": 0.606
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Melatonin",
+          "supported": true,
+          "overlap": 0.5
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Suprachiasmatic_nucleus",
+          "supported": true,
+          "overlap": 0.75
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Jet_lag",
+          "supported": true,
+          "overlap": 0.645
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Circadian_rhythm_sleep_diso",
+          "supported": true,
+          "overlap": 0.484
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Delayed_sleep_phase_disorde",
+          "supported": true,
+          "overlap": 0.5
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 2768,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 131,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 64,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are exactly 5 jet-lag claims defined (melatonin / Argonne / light lamp / bilberry / mask-HP)?",
+        "PASS"
+      ],
+      [
+        "Does each claim receive a verdict in {SUPPORTED, PARTIALLY_SUPPORTED, DEBUNKED, UNDETERMINED}?",
+        "PASS"
+      ],
+      [
+        "For each claim, is there a shopping URL with verbatim marketing quote?",
+        "FAIL"
+      ],
+      [
+        "For each claim, is there >= 1 reddit URL with traveller experience?",
+        "PASS"
+      ],
+      [
+        "For each claim, is there >= 1 wiki URL with circadian-biology grounding?",
+        "PASS"
+      ],
+      [
+        "Does each claim include a 1-paragraph reasoning?",
+        "PASS"
+      ],
+      [
+        "Are >= 10 shopping product pages enumerated with price + rating?",
+        "PASS"
+      ],
+      [
+        "Are >= 30 reddit threads from at least 4 travel/sleep/biohacker sub-forums cited?",
+        "PASS"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "PASS"
+      ],
+      [
+        "Are all 10 mandatory wiki articles cited (Jet lag, Circadian, Melatonin, Light therapy, SCN, Sleep, Adenosine, SOL, Phototherapy, Argonne diet)?",
+        "PASS"
+      ],
+      [
+        "Is an 'eastward vs westward asymmetry' analysis section included with PRC chart reference?",
+        "FAIL"
+      ],
+      [
+        "Does the asymmetry section cite phase-response-curve evidence (wiki + reddit)?",
+        "FAIL"
+      ],
+      [
+        "Is a 6-8 bullet 'pre/during/post flight protocol' included?",
+        "PASS"
+      ],
+      [
+        "Does each protocol bullet cite >= 1 wiki URL?",
+        "PASS"
+      ],
+      [
+        "Are at least 2 of the 5 verdicts DEBUNKED, PARTIALLY_SUPPORTED, or UNDETERMINED?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "FAIL"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "PASS"
+      ],
+      [
+        "Is per-domain minimum met: >= 10 shopping, >= 30 reddit, >= 25 wiki?",
+        "PASS"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid TOP-N format and chain-of-thought?",
+        "PASS"
+      ],
+      [
+        "Does the report cite at least one peer-reviewed study via wiki citation?",
+        "FAIL"
+      ]
+    ],
+    "pass_count": 16,
+    "fail_count": 5,
+    "unclear_count": 0,
+    "pass_rate": 0.7619,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.5067,
+    "truth_factor": 0.4158,
+    "qm_factor": 0.9275,
+    "nli_factor": 0.5,
+    "composite_score": 0.2107,
+    "composite_v1": 0.4543,
+    "legacy_composite": 0.4524
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  }
+}

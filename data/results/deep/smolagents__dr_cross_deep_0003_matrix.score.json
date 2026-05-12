@@ -1,0 +1,393 @@
+{
+  "task": "dr_cross_deep_0003",
+  "answer_path": "data/results/deep/smolagents__dr_cross_deep_0003_matrix.md",
+  "answer_chars": 31398,
+  "url_coverage": {
+    "score": 0.3971,
+    "passed": false,
+    "details": {
+      "cited_unique": 80,
+      "must_cite_total": 127,
+      "must_cite_hit": 16,
+      "must_cite_recall": 0.172,
+      "pool_total": 724,
+      "pool_hit": 12,
+      "pool_coverage": 0.0166,
+      "per_domain_cited": {
+        "__SHOPPING__": 31,
+        "__REDDIT__": 23,
+        "__WIKIPEDIA__": 26
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 1.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.6875,
+    "passed": true,
+    "details": {
+      "cited_total": 80,
+      "cited_sandbox": 80,
+      "cited_off_sandbox": 0,
+      "probed": 80,
+      "http_200": 55,
+      "http_4xx": 25,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.6875,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.7705,
+    "passed": true,
+    "details": {
+      "claims_total": 122,
+      "claims_supported": 94,
+      "claims_unreachable": 26,
+      "match_rate": 0.7705,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Weight_bench",
+          "supported": true,
+          "overlap": 0.242
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Muscle_hypertrophy",
+          "supported": true,
+          "overlap": 0.519
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Strength_training",
+          "supported": true,
+          "overlap": 0.571
+        },
+        {
+          "url": "http://localhost:7770/gaiam-relax-restorative-eye-pillow.html",
+          "supported": true,
+          "overlap": 0.258
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Olympic_weightlifting",
+          "supported": true,
+          "overlap": 0.643
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Progressive_overload",
+          "supported": true,
+          "overlap": 0.762
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 3143,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 122,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 50,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are exactly 3 paths (dumbbell, barbell, bodyweight) defined and labelled P1/P2/P3?",
+        "PASS"
+      ],
+      [
+        "Are exactly 5 use cases (muscle, cardio, apartment, rehab, progression) enumerated?",
+        "PASS"
+      ],
+      [
+        "Does each of the 3 paths list >= 12 distinct shopping products with URL + price + rating?",
+        "FAIL"
+      ],
+      [
+        "Does the report show product totals stay under the $300 starter budget for each path?",
+        "FAIL"
+      ],
+      [
+        "Are >= 30 reddit threads cited across at least 4 fitness-related sub-forums?",
+        "FAIL"
+      ],
+      [
+        "Is each cited reddit thread classified as one of {praise, complaint, technical_question, comparison, purchase_advice}?",
+        "PASS"
+      ],
+      [
+        "Are >= 25 distinct wiki articles cited with URL + defining statement?",
+        "PASS"
+      ],
+      [
+        "Are all 9 mandatory wiki articles (Strength training, Hypertrophy, Aerobic exercise, Calisthenics, Resistance band, Olympic weightlifting, Powerlifting, Range of motion, Progressive overload) present?",
+        "PASS"
+      ],
+      [
+        "Is the 3 x 5 decision matrix fully populated (15 cells, no blanks)?",
+        "PASS"
+      ],
+      [
+        "Does each of the 15 cells cite >= 1 shopping URL + >= 1 reddit URL + >= 1 wiki URL?",
+        "FAIL"
+      ],
+      [
+        "Does each cell rate the path on that use case as {best, acceptable, poor}?",
+        "PASS"
+      ],
+      [
+        "Are >= 3 cross-source contradictions surfaced (marketing claim vs reddit reality vs wiki definition)?",
+        "UNCLEAR"
+      ],
+      [
+        "Are 3 path-persona paragraphs present (one per path) explaining the user profile that should pick that path?",
+        "PASS"
+      ],
+      [
+        "Does each path-persona paragraph cite >= 5 reddit threads?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked `[label](url)` and resolvable on the sandbox?",
+        "PASS"
+      ],
+      [
+        "Are >= 60 distinct URLs cited in total?",
+        "PASS"
+      ],
+      [
+        "Is per-domain minimum met: >= 30 shopping, >= 20 reddit, >= 15 wiki cited URLs?",
+        "FAIL"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid producing a TOP-10 list (this is Comparison, not Ranking)?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start directly with comparison content?",
+        "PASS"
+      ],
+      [
+        "Are reddit thread metadata (forum, score, comment_count) recorded for every cited thread?",
+        "FAIL"
+      ]
+    ],
+    "pass_count": 14,
+    "fail_count": 6,
+    "unclear_count": 1,
+    "pass_rate": 0.6667,
+    "judge_error": null,
+    "sanity_floor": null,
+    "grounding_downgrades": 0,
+    "reachability_used": 0.6875
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.5589,
+    "truth_factor": 0.3043,
+    "qm_factor": 0.8852,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.6875,
+    "raw_score_v3": 0.5585,
+    "citation_alignment": 0.0,
+    "analysis_depth": 0.85,
+    "presentation": 0.8,
+    "composite_v3": 0.384,
+    "composite_score": 0.1701,
+    "composite_v2": 0.1701,
+    "composite_v1": 0.3842,
+    "legacy_composite": 0.5319
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  },
+  "analysis_depth": {
+    "score": 0.85,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 2,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.5,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=2"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=4"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=2"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": false,
+          "detail": "density=0.118, total_paragraphs=51"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies themes across equipment types and use cases"
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains why each setup affects hypertrophy and cardio outcomes"
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": true,
+          "reason": "Cross-references wikis, product pages, and forum observations"
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Synthesizes multi-source evidence into comparative insights"
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Notes data limitations and budget constraints as caveats"
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Provides concrete, evidence-based recommendations per path"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies themes across equipment types and use cases  \n2. PASS - Explains why each setup affects hypertrophy and cardio outcomes  \n3. PASS - Cross-references wikis, product pages, and forum observations  \n4. PASS - Synthesizes multi-source evidence into comparative insights  \n5. PASS - Notes data limitations and budget constraints as caveats  \n6. PASS - Provides concrete, evidence-based recommendations per path"
+    }
+  },
+  "presentation": {
+    "score": 0.8,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 6,
+      "tier_a_total": 6,
+      "tier_a_rate": 1.0,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=7"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.818, word_counts=[79, 62, 1166, 471, 503, 172, 650]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=33.9"
+        }
+      ],
+      "tier_b_passed": 4,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.667,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Clear intro, analysis, and implied conclusion sequence"
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "Section transitions abrupt, lacking connective sentences"
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "Minimal meta-commentary present"
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Formatting and terminology consistent throughout"
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "Conclusion absent or not shown to synthesize findings"
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone, no AI-style filler phrases"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Clear intro, analysis, and implied conclusion sequence  \n2. FAIL - Section transitions abrupt, lacking connective sentences  \n3. PASS - Minimal meta-commentary present  \n4. PASS - Formatting and terminology consistent throughout  \n5. FAIL - Conclusion absent or not shown to synthesize findings  \n6. PASS - Professional tone, no AI-style filler phrases"
+    }
+  },
+  "rescore_meta": {
+    "fix": "v2_full_rescore_with_ad_pres_and_fab_guard",
+    "old_checklist_pass_rate": 0.3333,
+    "old_claim_nli_score": 0.0,
+    "old_composite_v3": null,
+    "old_composite_v2": 0.1295,
+    "new_checklist_pass_rate": 0.6667,
+    "new_claim_nli_score": 0.0,
+    "new_analysis_depth": 0.775,
+    "new_presentation": 0.8,
+    "new_composite_v3": 0.3788,
+    "new_composite_v2": 0.1701
+  }
+}

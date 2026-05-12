@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}How it works · Deep-Research Arena{% endblock %}
+
+{% block content %}
+<section class="mb-8">
+  <h1 class="text-[30px] font-bold tracking-tight">How the leaderboard is produced</h1>
+  <p class="mt-2 ink-soft text-[14.5px] max-w-3xl leading-relaxed">
+    A short, plain-English walkthrough — from raw task to final Elo. The
+    short version: every agent answers the same questions on the same data,
+    a deterministic scorer compares their answers to a hidden URL/quote
+    pool, and pairwise battles between agents become Bradley-Terry Elo.
+  </p>
+</section>
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Step 1</div>
+  <h2 class="text-[20px] font-semibold">The agents run on a sealed sandbox</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    No agent ever touches the real internet. The sandbox is three local
+    services that look like Amazon, Reddit, and Wikipedia:
+  </p>
+  <ul class="mt-3 text-[13.5px] ink-soft space-y-1.5 max-w-3xl">
+    <li><strong>Magento</strong> at <code class="num-mono">localhost:7770</code> — about 2,000 product pages.</li>
+    <li><strong>Postmill</strong> at <code class="num-mono">localhost:9999</code> — Reddit-style forum threads.</li>
+    <li><strong>Kiwix</strong> at <code class="num-mono">localhost:8090</code> — offline Wikipedia.</li>
+  </ul>
+  <p class="mt-3 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    Each task is a one-paragraph research prompt that requires citing at
+    least 120 URLs across all three sources. The agent gets the prompt,
+    nothing else, and writes a markdown report.
+  </p>
+</section>
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Step 2</div>
+  <h2 class="text-[20px] font-semibold">Every report is scored on 7 pillars</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    The scorer reads the markdown report and produces seven sub-scores. Five
+    are deterministic; two are LLM-judged with strict rubrics.
+  </p>
+  <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">URL coverage</div>
+      <div class="ink-soft text-[13px] mt-1">Did the agent cite the URLs that should be cited? Compares the agent's URLs against a hidden golden pool of must-cite + expected-pool URLs per task.</div>
+    </div>
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">URL reachability</div>
+      <div class="ink-soft text-[13px] mt-1">Do the cited URLs actually resolve in the sandbox? Each URL is HTTP-probed. Hallucinated or fabricated URLs return 4xx/5xx.</div>
+    </div>
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">Quote match</div>
+      <div class="ink-soft text-[13px] mt-1">When the agent quotes a page, does the page actually contain that text? Fuzzy match against the fetched content.</div>
+    </div>
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">Claim NLI</div>
+      <div class="ink-soft text-[13px] mt-1">Are the agent's factual claims entailed by the cited page (rather than contradicted or unrelated)? Natural-language inference per claim.</div>
+    </div>
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">Checklist (LLM judge)</div>
+      <div class="ink-soft text-[13px] mt-1">A 21-item task-specific checklist evaluated by an LLM judge. Each item is a yes/no fact the report must contain.</div>
+    </div>
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">Citation alignment (ALCE-style)</div>
+      <div class="ink-soft text-[13px] mt-1">For each cited URL, does the linked page actually support the surrounding claim? Per-citation precision/recall.</div>
+    </div>
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">Analysis depth + presentation</div>
+      <div class="ink-soft text-[13px] mt-1">Two LLM-judge rubrics for whether the report goes beyond restating sources (analysis) and whether it's structured/readable (presentation).</div>
+    </div>
+    <div class="p-4 rounded-lg" style="background: var(--line-soft);">
+      <div class="font-semibold text-[14px]">Spec compliance</div>
+      <div class="ink-soft text-[13px] mt-1">Hard-rule checks on word count, citation count, and paragraph count. Pass/fail per dimension; final spec score is the pass fraction.</div>
+    </div>
+  </div>
+</section>
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Step 3</div>
+  <h2 class="text-[20px] font-semibold">The pillars combine into <code class="num-mono">composite_v2</code></h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    The headline number on the leaderboard is <code class="num-mono">composite_v2</code>:
+  </p>
+  <pre class="codeblock mt-3 max-w-3xl">composite_v2 = reachability  ·  qm_factor  ·  nli_factor  ·  ( 0.40·url_coverage + 0.40·checklist + 0.20·spec )</pre>
+  <p class="mt-3 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    The key idea is the <strong>multiplicative gate</strong>. URL reachability,
+    quote match, and claim NLI all multiply the quality score. If the agent
+    fabricates URLs (reachability=0), the whole score is zero — no matter how
+    fluent the prose. If the agent quotes pages it never actually fetched
+    (quote match=0), same thing. <em>Truthfulness is non-negotiable.</em>
+  </p>
+  <p class="mt-3 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    Without that gate (call it <code class="num-mono">composite_v1</code>), agents
+    that produce confident-but-fabricated 30k-character essays look great. With
+    the gate, the ranking inverts. We chose the gated version on purpose.
+  </p>
+</section>
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Step 4</div>
+  <h2 class="text-[20px] font-semibold">Pairwise battles → Bradley-Terry Elo</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    For every task where two agents both have a valid score, we record a
+    "battle": whichever has the higher <code class="num-mono">composite_v2</code>
+    wins. We fit a Bradley-Terry model — the same model used for chess Elo —
+    to the matrix of battle outcomes. This gives every agent a single Elo
+    number plus a 95% bootstrap confidence interval.
+  </p>
+  <p class="mt-3 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    Why pairwise instead of just averaging the composite? Because composite
+    scores are noisy and task-difficulty-correlated. Pairwise comparisons
+    cancel out the per-task baseline, which is the same trick that makes
+    chess Elo work.
+  </p>
+</section>
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Filter</div>
+  <h2 class="text-[20px] font-semibold">Bad runs are dropped, not zeroed</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    Some runs are unscoreable: the agent crashes, returns a 50-character
+    error placeholder, or every LLM judge call hits an API error. We filter
+    those out of Elo entirely (they're listed on the
+    <a class="underline" href="/audit">audit page</a>) rather than counting
+    them as zeros. A scoring artifact shouldn't be confused with a real loss.
+  </p>
+</section>
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-2">Reproducibility</div>
+  <h2 class="text-[20px] font-semibold">Deterministic scorer, frozen golden pool</h2>
+  <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-3xl">
+    The scorer is deterministic given a task config and a markdown report
+    (the LLM-judge calls use temperature 0). The golden URL pool was
+    scraped once and frozen. Anyone can re-run the leaderboard from the
+    repo and get the same numbers — see the
+    <a class="underline" href="/contribute">contribute page</a>.
+  </p>
+</section>
+
+<section class="mb-10">
+  <a href="/contribute" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold"
+     style="background: var(--accent); color: white;">
+    Add your DR framework or reproduce the leaderboard →
+  </a>
+</section>
+{% endblock %}

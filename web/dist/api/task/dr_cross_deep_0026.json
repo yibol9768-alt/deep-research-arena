@@ -1,0 +1,209 @@
+{
+  "task_id": "dr_cross_deep_0026",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0026",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Timeline / Evolution report tracing the modern board-game renaissance from 1995 (Settlers of Catan) through 4 eras: (E1) 1995-2003 'gateway era' (Catan / Carcassonne / Ticket to Ride foundations), (E2) 2004-2012 'Eurogame ascendancy' (Agricola / Stone Age / Pandemic), (E3) 2013-2019 'Kickstarter explosion' (Gloomhaven / Wingspan / Scythe), (E4) 2020-present 'app-hybrid + legacy era' (Mansions of Madness 2nd / Charterstone / SagrAI). Each era cites >= 3 wiki + >= 3 reddit + >= 3 shopping product pages. Then a 'modern taxonomy by mechanism' section (worker placement / deck building / area control / hidden role / Legacy / cooperative). End with '7 myths the community has now debunked' (e.g. 'Eurogames are dry'). Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 30 board-game products + price + rating. (B) `__REDDIT__` >= 30 threads from /f/boardgames, /f/BoardGameGeek, /f/Eurogames, /f/PandemicLegacy, /f/Gloomhaven, /f/SoloBoardGaming. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Board game, Eurogame, Catan, Carcassonne (board game), Pandemic (board game), Gloomhaven, Wingspan (board game), Worker placement, Deck-building game, Cooperative board game. Output the 4-era timeline + taxonomy + 7-myth section. NO TOP-10 list. Format: markdown links only. Begin with E1.",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=board+game",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0026.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0026.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "timeline",
+      "eras": [
+        "1995_2003_gateway",
+        "2004_2012_eurogame",
+        "2013_2019_kickstarter",
+        "2020_app_hybrid"
+      ],
+      "min_per_era": {
+        "wiki": 3,
+        "shopping": 3,
+        "reddit": 3
+      },
+      "taxonomy_branches": [
+        "worker_placement",
+        "deck_building",
+        "area_control",
+        "hidden_role",
+        "legacy",
+        "cooperative"
+      ],
+      "debunked_myths_count": 7,
+      "explicitly_forbid_top10": true
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+    "domain": "Entertainment",
+    "intent_type": "Timeline"
+  },
+  "rows": [
+    {
+      "agent": "smolagents",
+      "composite_v2": 0.1294,
+      "composite_v3": 0.3718,
+      "url_coverage": 0.17,
+      "reachability": 0.9756,
+      "checklist": 0.3333,
+      "answer_chars": 15241,
+      "answer_path": "data/results/deep/smolagents__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "flowsearcher-ds",
+      "composite_v2": 0.1243,
+      "composite_v3": 0.3644,
+      "url_coverage": 0.0819,
+      "reachability": 0.8649,
+      "checklist": 0.2381,
+      "answer_chars": 34957,
+      "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "camel-ai",
+      "composite_v2": 0.0554,
+      "composite_v3": 0.1819,
+      "url_coverage": 0.0554,
+      "reachability": 0.7308,
+      "checklist": 0.3333,
+      "answer_chars": 24096,
+      "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "deerflow",
+      "composite_v2": 0.0,
+      "composite_v3": 0.016,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.2857,
+      "answer_chars": 20499,
+      "answer_path": "data/results/deep/deerflow__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "gpt-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0207,
+      "url_coverage": 0.13,
+      "reachability": 0.0,
+      "checklist": 0.2381,
+      "answer_chars": 25643,
+      "answer_path": "data/results/deep/gpt-researcher__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "ii-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0048,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.1905,
+      "answer_chars": 74,
+      "answer_path": "data/results/deep/ii-researcher__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "langchain-odr",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0163,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.2381,
+      "answer_chars": 36794,
+      "answer_path": "data/results/deep/langchain-odr__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "ldr",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0029,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0952,
+      "answer_chars": 1926,
+      "answer_path": "data/results/deep/ldr__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "qx-agents",
+      "composite_v2": 0.0,
+      "composite_v3": 0.001,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 367,
+      "answer_path": "data/results/deep/qx-agents__dr_cross_deep_0026_matrix.md"
+    },
+    {
+      "agent": "storm",
+      "composite_v2": 0.0,
+      "composite_v3": 0.002,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0476,
+      "answer_chars": 20,
+      "answer_path": "data/results/deep/storm__dr_cross_deep_0026_matrix.md"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0083",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce a Timeline / Evolution report tracing the evolution of food safety regulations in the US from the early 1900s to the present day. The report is NOT a buying guide; it is a chronological narrative + current-day taxonomy.\n\n- Must-cite URLs: 138\n- Expected pool URLs: 563\n\n- Shopping keywords: food thermometer, cutting board, food storage container, kitchen scale, refrigerator thermometer, hand soap, cleaning gloves, apron, first aid kit\n- Reddit forums: AskReddit, LifeProTips, technology, science, personalfinance, Fitness, politics, worldnews\n- Wiki mandatory articles: Food and Drug Administration, Food Safety Modernization Act, Hazard Analysis and Critical Control Points, Food recall, Foodborne illness, Nutrition, Consumer protection, Health inspection, Food safety regulation, Public health\n\nGround in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 30 food safety products and tools with price + rating + feature_claim. (B) `__REDDIT__` >= 30 threads from /f/food, /f/foodie, /f/nutrition, /f/foodpolitics, /f/foodscience. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Food and Drug Administration, Food Safety Modernization Act, Hazard Analysis and Critical Control Points, Food recall, Foodborne illness, Nutrition, Consumer protection, Health inspection, Food safety regulation, Public health.\n\nOutput a chronological timeline divided into 4 eras (Era 1: Early 1900s to 1930s / Era 2: 1930s to 1960s / Era 3: 1960s to 1980s / Era 4: 1980s to present). For each era: >= 3 wiki articles defining the regulatory landscape, >= 3 shopping products embodying the era's standards, >= 3 reddit threads showing community engagement. Add a modern taxonomy of food safety regulations organized by regulatory approach (precautionary principle, risk assessment, etc.) — a markdown nested list with each leaf citing a shopping product + a wiki article. End with '7 myths the community now considers debunked' — each myth cited with a wiki + reddit pair.\n\nFormat: markdown links only. Begin with Era 1. No chain-of-thought.\n\nSynthesis requirements:\n- task_type: timeline\n- eras: ['Early_1900s_to_1930s', '1930s_to_1960s', '1960s_to_1980s', '1980s_to_present']\n- min_per_era: {\n  'wiki': 3,\n  'shopping': 3,\n  'reddit': 3\n}\n- taxonomy_branches: ['precautionary_principle', 'risk_assessment', 'science_based']\n- min_taxonomy_leaves_with_evidence: 6\n- debunked_myths_count: 7\n- min_per_myth: {\n  'wiki': 1,\n  'reddit': 1\n}\n- explicitly_forbid_top10: true",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=food+thermometer",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0083.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0083.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "timeline",
+    "eras": [
+      "Early_1900s_to_1930s",
+      "1930s_to_1960s",
+      "1960s_to_1980s",
+      "1980s_to_present"
+    ],
+    "min_per_era": {
+      "wiki": 3,
+      "shopping": 3,
+      "reddit": 3
+    },
+    "taxonomy_branches": [
+      "precautionary_principle",
+      "risk_assessment",
+      "science_based"
+    ],
+    "min_taxonomy_leaves_with_evidence": 6,
+    "debunked_myths_count": 7,
+    "min_per_myth": {
+      "wiki": 1,
+      "reddit": 1
+    },
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/food_safety_timeline.yaml. Golden: must=138, pool=563."
+}

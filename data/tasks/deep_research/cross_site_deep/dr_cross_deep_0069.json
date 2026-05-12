@@ -1,0 +1,105 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0069",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "Produce a Causal Explanation report answering: 'Why do most startups fail in years 2-3, and what are the key causal factors leading to this trend?' The report is NOT a buying guide; it must build a causal chain from first principles to observed failure rates. Generate a report based on the following sources:\n\n- Shopping keywords: startup business book, entrepreneurship guide, business plan template, financial calculator, project management book, leadership book, accounting software, whiteboard planner, business card printer\n\n- Reddit forums: Entrepreneur, startups, smallbusiness, AskReddit, personalfinance, technology, venturecapital, LifeProTips\n\n- Wiki mandatory articles: Startup company, Venture capital, Product/market fit, Business model, Cash flow, Burn rate (business), Series A round, Lean startup, Y Combinator, Silicon Valley\n\nCollect and analyze data from the following:\n\n(A) `__SHOPPING__` >= 30 business-related products (Level 2 chargers, battery heaters / blankets, cold-weather accessories, replacement batteries) with marketing claims + price.\n\n(B) `__REDDIT__` >= 30 threads from /f/Entrepreneur, /f/startups, /f/smallbusiness, /f/AskReddit, /f/personalfinance, /f/technology, /f/venturecapital, /f/LifeProTips — startup failure stories, survival tips, business failures analysis.\n\n(C) `__WIKIPEDIA__` >= 25 articles, mandatory: Startup company, Venture capital, Product/market fit, Business model, Cash flow, Burn rate (business), Series A round, Lean startup, Y Combinator, Silicon Valley — plus >= 15 more.\n\nOutput a multi-layer causal diagram in markdown (indented bullet hierarchy, NOT graphviz) tracing 4 causal layers:\n\n- L1 business environment: regulatory changes, market trends, economic shifts (cite wiki).\n- L2 internal factors: team stability, product development issues, financial mismanagement (cite wiki + shopping for accounting software).\n- L3 external factors: competition, customer retention, funding availability (cite reddit threads).\n- L4 startup failure rates: empirical data on survival rates in years 2-3 (cite >= 8 reddit threads with explicit survival rates).\n\nAdd a 'mitigation strategies ranked by % survival rate' table — each strategy cited with one shopping URL (product implementing it) + one reddit URL (user reporting the survival rate). End with a 'successful startup strategies' section ranking >= 3 business models by aggregated reddit sentiment, citing >= 3 reddit threads / model.\n\nFormat: markdown links only. Begin with the L1 layer. No chain-of-thought.\n\nThe report must include:\n\n- >= 120 sandbox URLs, >= 60 cited\n- The 3 sources: __SHOPPING__, __REDDIT__, __WIKIPEDIA__\n- Specific counts per source (products, threads, articles)\n- The mandatory wiki articles\n- Format rules (markdown links, sandbox-local, no fabrication)\n\nSynthesize the information according to the following requirements:\n\n- task_type: causal\n- causal_layers: L1_business_environment, L2_internal_factors, L3_external_factors, L4_startup_failure_rates\n- min_wiki_per_layer: L1_business_environment: 3, L2_internal_factors: 3, L3_external_factors: 3\n- min_reddit_per_layer: L3_external_factors: 5, L4_startup_failure_rates: 8\n- l4_must_have_explicit_percent: true\n- mitigation_strategies_min: 5\n- min_evidence_per_strategy: {shopping: 1, reddit: 1}\n- model_ranking_min: 3\n- min_reddit_per_model: 3\n- explicitly_forbid_top10: true\n",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=startup+business+book",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0069.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0069.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "causal",
+    "causal_layers": [
+      "L1_business_environment",
+      "L2_internal_factors",
+      "L3_external_factors",
+      "L4_startup_failure_rates"
+    ],
+    "min_wiki_per_layer": {
+      "L1_business_environment": 3,
+      "L2_internal_factors": 3,
+      "L3_external_factors": 3
+    },
+    "min_reddit_per_layer": {
+      "L3_external_factors": 5,
+      "L4_startup_failure_rates": 8
+    },
+    "l4_must_have_explicit_percent": true,
+    "mitigation_strategies_min": 5,
+    "min_evidence_per_strategy": {
+      "shopping": 1,
+      "reddit": 1
+    },
+    "model_ranking_min": 3,
+    "min_reddit_per_model": 3,
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/startup_failure_causal.yaml. Golden: must=135, pool=545."
+}

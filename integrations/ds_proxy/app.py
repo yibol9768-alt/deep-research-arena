@@ -32,16 +32,67 @@ INJECT_THINKING_DISABLED = os.environ.get("OPENAI_PROXY_THINKING_DISABLED", "1")
 # `deepseek-v4-flash`. Set OPENAI_PROXY_REWRITE_MODEL=qwen3.5-35b-a3b.
 REWRITE_MODEL = os.environ.get("OPENAI_PROXY_REWRITE_MODEL", "").strip() or None
 
+# Optional minimum max_tokens floor. Reasoning models (Qwen3, DeepSeek-R1)
+# burn 200-800 tokens on chain-of-thought *before* the actual answer; if the
+# caller passed max_tokens=256 and the CoT alone needs 400, the answer never
+# appears, the closing </think> tag never lands, and the strip regex can't
+# salvage anything. Bumping every incoming request to at least N tokens lets
+# the model finish thinking AND produce the answer. 2048 is the empirical
+# sweet spot for Qwen3-27b on JSON-mode judges.
+MIN_MAX_TOKENS = int(os.environ.get("OPENAI_PROXY_MIN_MAX_TOKENS", "0") or "0")
+
 # Strip `<think>...</think>` blocks from response content for reasoning models
 # (Qwen3, DeepSeek-R1) when their tags leak into chat output.
+#
+# Two real failure modes we have to handle:
+#
+# 1. The well-formed case: full ``<think>...</think>\n\n<answer>``. The regex
+#    below catches this. Trivial.
+#
+# 2. The truncated case: response started ``<think>Thinking Process: ...``
+#    but the closing tag never appeared because max_tokens ran out. The
+#    answer is missing entirely, so the safest thing is to return ``""``
+#    rather than leak the chain-of-thought as the "answer". JSON-mode judges
+#    that get a CoT preamble will fail their `json.loads` and the run lands
+#    in degenerate-filter territory, polluting Elo with phantom failures.
+#
+# 3. The "no opening tag" case: some Qwen variants emit ``Thinking Process:``
+#    prose without wrapping it in tags. Same treatment — strip the prose
+#    block before returning, falling back to empty if there's no clear
+#    "answer" segment after the thinking.
 STRIP_THINKING = os.environ.get("OPENAI_PROXY_STRIP_THINKING", "1") != "0"
 _THINK_TAG_RE = re.compile(r"<think>.*?</think>\s*", flags=re.DOTALL | re.IGNORECASE)
+# Matches an unclosed ``<think>`` block at the start (truncated response).
+_THINK_OPEN_NO_CLOSE_RE = re.compile(r"^\s*<think>(?!.*</think>)", flags=re.DOTALL | re.IGNORECASE)
+# Matches the bare ``Thinking Process:`` prose preamble Qwen3 sometimes emits
+# WITHOUT wrapping in tags. We treat the entire numbered/bulleted analysis
+# block as preamble and look for the first non-list paragraph after it.
+_QWEN_PROSE_THINK_RE = re.compile(
+    r"^\s*Thinking Process:.*?(?=\n\n(?:[A-Za-z\{\[\"]|Final Answer|Output|Answer))",
+    flags=re.DOTALL | re.IGNORECASE,
+)
 
 
 def _strip_think(content: Any) -> Any:
     if not STRIP_THINKING or not isinstance(content, str) or not content:
         return content
-    return _THINK_TAG_RE.sub("", content).lstrip("\n")
+    # Case 1: well-formed <think>...</think>
+    out = _THINK_TAG_RE.sub("", content)
+    if out != content:
+        return out.lstrip("\n")
+    # Case 2: <think> opened but never closed -> the answer never landed.
+    # Returning the raw CoT would poison JSON-mode judges, so emit empty
+    # string and let the caller's degenerate filter handle it.
+    if _THINK_OPEN_NO_CLOSE_RE.match(content):
+        return ""
+    # Case 3: no tags, but ``Thinking Process:`` preamble.
+    if content.lstrip().startswith("Thinking Process:"):
+        out = _QWEN_PROSE_THINK_RE.sub("", content, count=1).lstrip()
+        if out and out != content:
+            return out
+        # No clear answer after the preamble -> CoT-only response, drop it.
+        return ""
+    return content
 
 EMB_UPSTREAM = os.environ.get(
     "OPENAI_PROXY_EMB_UPSTREAM",
@@ -77,6 +128,12 @@ async def _forward(path: str, request: Request) -> Any:
         # `thinking` extra-body field (Qwen / others reject it).
         if not REWRITE_MODEL.lower().startswith("deepseek-v4"):
             body.pop("thinking", None)
+
+    # Ensure reasoning models have room for both CoT and answer.
+    if MIN_MAX_TOKENS > 0:
+        cur = body.get("max_tokens")
+        if cur is None or int(cur) < MIN_MAX_TOKENS:
+            body["max_tokens"] = MIN_MAX_TOKENS
 
     # DeepSeek v4 only supports `{"type":"json_object"}` for structured output.
     # Downgrade `json_schema` (LangChain's `with_structured_output(method="json_schema")`)
@@ -134,12 +191,25 @@ async def _forward(path: str, request: Request) -> Any:
         r = await client.post(url, json=body, headers=headers)
         if r.headers.get("content-type", "").startswith("application/json"):
             data = r.json()
-            # Strip <think>...</think> from any reasoning-model output so
-            # client frameworks see a clean assistant message.
+            # Strip <think>...</think> from reasoning-model output so client
+            # frameworks see a clean answer. Preserve the original (with
+            # thinking) in `reasoning_content` so judge_client._call_openai
+            # can detect "answer truncated by max_tokens" and auto-retry with
+            # 8192 tokens. Without this, a 1500-token max_tokens that gets
+            # eaten entirely by Qwen's CoT preamble produces empty content
+            # AND empty reasoning_content, so the retry never fires and the
+            # judge silently records "21/21 unclear" for every checklist.
             for choice in (data.get("choices") if isinstance(data, dict) else None) or []:
                 msg = choice.get("message") or {}
                 if isinstance(msg.get("content"), str):
-                    msg["content"] = _strip_think(msg["content"])
+                    original = msg["content"]
+                    stripped = _strip_think(original)
+                    msg["content"] = stripped
+                    # Only set reasoning_content if we *changed* the content
+                    # (i.e. there was thinking to strip). If the response
+                    # already had clean output, leave reasoning_content alone.
+                    if stripped != original and not msg.get("reasoning_content"):
+                        msg["reasoning_content"] = original
             return JSONResponse(status_code=r.status_code, content=data)
         return JSONResponse(status_code=r.status_code, content={"raw": r.text})
 

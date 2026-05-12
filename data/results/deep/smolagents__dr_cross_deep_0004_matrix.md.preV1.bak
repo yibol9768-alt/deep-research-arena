@@ -1,0 +1,42 @@
+I now have enough data to compile the report. Let me fetch the final pieces - the Wikipedia articles (they are at /content/wikipedia_en_all_nopic/ArticleName) and the remaining product data.
+
+<code>
+import requests
+from bs4 import BeautifulSoup
+import re
+import time
+
+wiki_base = "http://localhost:8090"
+wiki_path = "/content/wikipedia_en_all_nopic"
+
+# Test accessing a Wikipedia article
+articles_to_check = [
+    "Photography", "Digital_single-lens_reflex_camera", "Mirrorless_camera",
+    "Aperture", "Shutter_speed", "Film_speed", "Depth_of_field",
+    "Exposure_(photography)", "Focal_length", "Camera",
+    "Lens_(optics)", "Tripod_(photography)", "Flash_(photography)",
+    "Image_stabilization", "Zoom_lens", "Digital_camera",
+    "Photographic_filter", "Memory_card", "Camera_strap",
+    "Video_camera", "Camera_phone", "Light-emitting_diode",
+    "Optical_zoom", "Megapixel", "Battery_(electricity)"
+]
+
+for article in articles_to_check:
+    url = f"{wiki_base}{wiki_path}/{article}"
+    try:
+        resp = requests.get(url, timeout=5)
+        if resp.status_code == 200:
+            soup = BeautifulSoup(resp.text, 'html.parser')
+            title = soup.title.string if soup.title else "No title"
+            # Get first paragraph
+            p = soup.find('p')
+            first_p = p.get_text(strip=True)[:150] if p else "No content"
+            print(f"OK: {article} - {resp.status_code}")
+        else:
+            print(f"FAIL: {article} - {resp.status_code}")
+    except Exception as e:
+        print(f"ERROR: {article} - {e}")
+    time.sleep(0.1)
+<end_code>
+Calling tools:
+[{'id': 'call_31', 'type': 'function', 'function': {'name': 'python_interpreter', 'arguments': 'import requests\nfrom bs4 import BeautifulSoup\nimport re\nimport time\n\nwiki_base = "http://localhost:8090"\nwiki_path = "/content/wikipedia_en_all_nopic"\n\n# Test accessing a Wikipedia article\narticles_to_check = [\n    "Photography", "Digital_single-lens_reflex_camera", "Mirrorless_camera",\n    "Aperture", "Shutter_speed", "Film_speed", "Depth_of_field",\n    "Exposure_(photography)", "Focal_length", "Camera",\n    "Lens_(optics)", "Tripod_(photography)", "Flash_(photography)",\n    "Image_stabilization", "Zoom_lens", "Digital_camera",\n    "Photographic_filter", "Memory_card", "Camera_strap",\n    "Video_camera", "Camera_phone", "Light-emitting_diode",\n    "Optical_zoom", "Megapixel", "Battery_(electricity)"\n]\n\nfor article in articles_to_check:\n    url = f"{wiki_base}{wiki_path}/{article}"\n    try:\n        resp = requests.get(url, timeout=5)\n        if resp.status_code == 200:\n            soup = BeautifulSoup(resp.text, \'html.parser\')\n            title = soup.title.string if soup.title else "No title"\n            # Get first paragraph\n            p = soup.find(\'p\')\n            first_p = p.get_text(strip=True)[:150] if p else "No content"\n            print(f"OK: {article} - {resp.status_code}")\n        else:\n            print(f"FAIL: {article} - {resp.status_code}")\n    except Exception as e:\n        print(f"ERROR: {article} - {e}")\n    time.sleep(0.1)'}}]

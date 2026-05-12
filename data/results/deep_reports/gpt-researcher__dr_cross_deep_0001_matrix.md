@@ -1,0 +1,1 @@
+(runner error: ModuleNotFoundError: No module named 'gpt_researcher')

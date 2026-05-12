@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en" class="bg-canvas text-ink">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dr_cross_deep_0013 · Deep-Research Arena</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas: #fafaf9;
+      --surface: #ffffff;
+      --ink: #0c0a09;
+      --ink-soft: #44403c;
+      --ink-mute: #78716c;
+      --line: #e7e5e4;
+      --line-soft: #f5f5f4;
+      --accent: #4338ca;
+      --accent-soft: #eef2ff;
+      --accent-ink: #312e81;
+      --good: #15803d;
+      --good-soft: #dcfce7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #a16207;
+      --warn-soft: #fef9c3;
+    }
+    html, body { background: var(--canvas); color: var(--ink); }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+    .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .ink-soft { color: var(--ink-soft); }
+    .ink-mute { color: var(--ink-mute); }
+
+    .surface { background: var(--surface); border: 1px solid var(--line); }
+    .row-hover:hover { background-color: var(--line-soft); }
+    .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
+
+    .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
+    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
+    .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
+    .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* LLM backbone picker chips (current = active, others = "queued") */
+    .llm-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px 5px 9px;
+      border-radius: 8px;
+      font-size: 12.5px; font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-soft);
+      cursor: default;
+    }
+    .llm-chip.is-active { background: var(--accent-soft); color: var(--accent-ink); border-color: rgba(67,56,202,0.35); }
+    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--line-soft); border-color: var(--line); }
+    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
+    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+    .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+    .pill-ok    { background: var(--good-soft); color: var(--good); }
+    .pill-warn  { background: var(--warn-soft); color: var(--warn); }
+    .pill-bad   { background: var(--bad-soft);  color: var(--bad); }
+    .pill-muted { background: var(--line); color: var(--ink-soft); }
+    .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
+
+    /* Old CI track — kept for any callers; new layout uses .ci-bar below. */
+    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
+    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
+    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
+
+    /* New unified CI bar: every row has the same outer width (set by the
+       parent <td>); the bar has 8px horizontal padding so the marker dot
+       can never visually overflow into the next column. */
+    .ci-bar { padding: 0 8px; }
+    .ci-bar-inner { position: relative; height: 14px; }
+    .ci-bar-track  { position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); background: var(--line); border-radius: 999px; }
+    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(67,56,202,0.28); border-radius: 999px; pointer-events: none; }
+    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.4); pointer-events: none; }
+
+    .agent-avatar {
+      width: 26px; height: 26px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--surface);
+      background: linear-gradient(135deg, #475569, #1e293b);
+    }
+
+    .codeblock { background: #0c0a09; color: #f5f5f4; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; }
+
+    /* Markdown body when rendered via python-markdown */
+    .md-body { font-size: 13.5px; line-height: 1.55; }
+    .md-body h1, .md-body h2, .md-body h3 { font-weight: 700; margin: 1em 0 0.4em; }
+    .md-body h1 { font-size: 22px; }
+    .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+    .md-body h3 { font-size: 14px; }
+    .md-body p { margin: 0.5em 0; }
+    .md-body code { background: var(--line-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .md-body pre { background: #0c0a09; color: #f5f5f4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .md-body pre code { background: transparent; padding: 0; color: inherit; }
+    .md-body table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .md-body th, .md-body td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+    .md-body th { background: var(--line-soft); font-weight: 600; }
+    .md-body ul, .md-body ol { margin: 0.4em 0; padding-left: 1.4em; }
+    .md-body li { margin: 0.2em 0; }
+    .md-body a { color: var(--accent); text-decoration: underline; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
+              style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
+        <span class="text-[15px] tracking-tight">Deep-Research Arena</span>
+      </a>
+      <nav class="flex items-center gap-0.5 ml-2 text-sm">
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:2px;">new</span></a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/compare">Compare LLMs</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/how-it-works">How it works</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/about">About</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/contribute">Contribute</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-3">
+        <a href="https://github.com/yibol9768-alt/deep-research-arena"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft border border-stone-200">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+    
+<section class="mb-6">
+  <div class="text-[12px] ink-mute mb-2">
+    <a class="underline" href="/">Leaderboard</a> &nbsp;›&nbsp; <span class="num-mono">dr_cross_deep_0013</span>
+  </div>
+  <h1 class="text-[28px] font-bold tracking-tight">
+    Task <span class="num-mono">dr_cross_deep_0013</span>
+  </h1>
+  <div class="mt-2 flex flex-wrap items-center gap-2 text-[12.5px]">
+    <span class="pill pill-accent">Comparison</span>
+    <span class="pill pill-muted">Finance</span>
+    <span class="pill pill-muted">tier: deep</span>
+    <span class="pill pill-muted">difficulty: 5/5</span>
+    <span class="pill pill-muted">shopping + reddit + wikipedia</span>
+    <span class="pill pill-muted num-mono">10 scored</span>
+  </div>
+</section>
+
+<!-- Task prompt -->
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="flex items-baseline justify-between mb-3">
+    <div class="label-eyebrow">Task prompt</div>
+    <div class="text-[11px] ink-mute">
+      The exact text the agent receives. No hints, no tools beyond the sandbox + LLM.
+    </div>
+  </div>
+  
+    <div class="task-prompt text-[13.5px] leading-[1.65]" style="white-space: pre-wrap; color: var(--ink);">Produce a Comparison report on three starter investing approaches under a $10,000 first-year portfolio: (P1) Passive index ETFs (S&amp;P 500 / Total Market / Bond aggregate), (P2) Target-date / robo-advisor managed (Betterment / Wealthfront / Vanguard target-date fund), (P3) Active stock-picking (DIY through Fidelity / Schwab / E*TRADE), across 5 dimensions: (D1) expected return / volatility, (D2) annual cost incl. expense ratio + advisory fee, (D3) tax efficiency, (D4) time required per month, (D5) behavioural risk (panic-sell during crash). Ground in &gt;= 120 sandbox URLs and cite &gt;= 60. (A) `__SHOPPING__` &gt;= 12 product pages on personal finance books / calculators / planners + price + rating. (B) `__REDDIT__` &gt;= 30 threads from /f/personalfinance, /f/investing, /f/Bogleheads, /f/financialindependence, /f/wallstreetbets, /f/stocks. (C) `__WIKIPEDIA__` &gt;= 25 articles, mandatory: Index fund, Exchange-traded fund, Modern portfolio theory, Sharpe ratio, Expense ratio, Tax-loss harvesting, Robo-advisor, Behavioral finance, Dollar cost averaging, S&amp;P 500. Output a 3 x 5 matrix rated {best/acceptable/poor} with cited evidence per cell. End with &#39;who should pick which path&#39; (3 user persona paragraphs). NO TOP-10. Format: markdown links only. Sandbox URLs only.</div>
+  
+</section>
+
+
+<section class="surface rounded-2xl p-6 mb-6">
+  <div class="label-eyebrow mb-3">Hard constraints</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-[12.5px]">
+    
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Markdown spec</div>
+      <ul class="space-y-1 ink-soft">
+        <li>≥ <span class="num-mono">3500</span> words</li>
+        <li>≤ <span class="num-mono">8000</span> words</li>
+        <li>≥ <span class="num-mono">25</span> paragraphs</li>
+        <li>≥ <span class="num-mono">60</span> citations</li>
+        <li>≥ <span class="num-mono">120</span> distinct URLs cited</li>
+      </ul>
+    </div>
+    
+    
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Citation policy</div>
+      <ul class="space-y-1 ink-soft">
+        <li>≥ <span class="num-mono">60</span> distinct sources</li>
+        <li>≥ <span class="num-mono">3</span> distinct domains</li>
+        
+          
+            <li><span class="num-mono">__SHOPPING__</span>: ≥ 10</li>
+          
+            <li><span class="num-mono">__REDDIT__</span>: ≥ 30</li>
+          
+            <li><span class="num-mono">__WIKIPEDIA__</span>: ≥ 25</li>
+          
+        
+      </ul>
+    </div>
+    
+    
+    <div>
+      <div class="font-semibold mb-1.5 text-[13px]">Synthesis requirements</div>
+      <ul class="space-y-1 ink-soft">
+        
+          <li><span class="num-mono">task_type</span>: comparison</li>
+        
+          <li><span class="num-mono">comparison_paths</span>: [&#39;passive_index&#39;, &#39;robo_target&#39;, &#39;active_diy&#39;]</li>
+        
+          <li><span class="num-mono">use_cases</span>: [&#39;return_volatility&#39;, &#39;annual_cost&#39;, &#39;tax_efficiency&#39;, &#39;time_required&#39;, &#39;behavioural_risk&#39;]</li>
+        
+          <li><span class="num-mono">matrix_cells_required</span>: 15</li>
+        
+          <li><span class="num-mono">min_evidence_per_cell</span>: {&#39;shopping&#39;: 1, &#39;reddit&#39;: 1, &#39;wikipedia&#39;: 1}</li>
+        
+          <li><span class="num-mono">explicitly_forbid_top10</span>: True</li>
+        
+      </ul>
+    </div>
+    
+  </div>
+</section>
+
+
+<!-- Per-task agent leaderboard -->
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">Agent ranking on this task</div>
+    <div class="text-[11px] ink-mute">composite_v2 · multiplicative reachability gate</div>
+  </div>
+  
+  <table class="w-full text-sm">
+    <colgroup>
+      <col style="width: 40px;">
+      <col>
+      <col style="width: 90px;">
+      <col style="width: 80px;">
+      <col style="width: 80px;">
+      <col style="width: 80px;">
+      <col style="width: 90px;">
+    </colgroup>
+    <thead style="border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-4 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">composite_v2</th>
+        <th class="px-3 py-3 font-bold text-right">URL cov</th>
+        <th class="px-3 py-3 font-bold text-right">Reach</th>
+        <th class="px-3 py-3 font-bold text-right">Checklist</th>
+        <th class="px-3 py-3 font-bold text-right">Report</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-1">1</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">SM</span>
+            <span class="font-semibold">smolagents</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.133</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">100%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">33%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/smolagents__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-2">2</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">FL</span>
+            <span class="font-semibold">flowsearcher-ds</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.118</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">12%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">90%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">29%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/flowsearcher-ds__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-3">3</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">CA</span>
+            <span class="font-semibold">camel-ai</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.093</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">20%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">68%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">38%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/camel-ai__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">4</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">LD</span>
+            <span class="font-semibold">ldr</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.015</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">1%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">100%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">14%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/ldr__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">5</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">GP</span>
+            <span class="font-semibold">gpt-researcher</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.005</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">30%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">3%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">86%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/gpt-researcher__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">6</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">DE</span>
+            <span class="font-semibold">deerflow</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.000</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">38%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/deerflow__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">7</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">II</span>
+            <span class="font-semibold">ii-researcher</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.000</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">19%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/ii-researcher__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">8</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">LA</span>
+            <span class="font-semibold">langchain-odr</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.000</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">7%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">38%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/langchain-odr__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">9</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">QX</span>
+            <span class="font-semibold">qx-agents</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.000</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/qx-agents__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">10</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2.5">
+            <span class="agent-avatar">ST</span>
+            <span class="font-semibold">storm</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.000</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">0%</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-soft text-[12.5px]">19%</td>
+        <td class="px-3 py-3 align-middle text-right text-[12px]">
+          
+            <a class="underline" target="_blank" rel="noopener" href="https://github.com/yibol9768-alt/deep-research-arena/blob/main/data/results/deep/storm__dr_cross_deep_0013_matrix.md">view&nbsp;md ↗</a>
+          
+        </td>
+      </tr>
+      
+    </tbody>
+  </table>
+  
+</section>
+
+<section class="text-[12px] ink-mute flex flex-wrap items-center gap-3">
+  <a class="underline" href="/">← All agents</a>
+  
+  
+    <a class="underline" href="/task/dr_cross_deep_0012">← dr_cross_deep_0012</a>
+  
+  
+    <a class="underline" href="/task/dr_cross_deep_0014">dr_cross_deep_0014 →</a>
+  
+  <span class="ml-auto">Raw config: <code class="num-mono">data/tasks/deep_research/cross_site_deep/dr_cross_deep_0013.json</code></span>
+</section>
+
+<style>
+  .task-prompt { background: var(--line-soft); border-radius: 10px; padding: 16px 18px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12.5px; line-height: 1.6; max-height: 560px; overflow-y: auto; }
+</style>
+
+  </main>
+
+  <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
+    <div class="max-w-6xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>Bradley-Terry Elo over <code class="num-mono">composite_v2</code> battles</span>
+      <span class="text-stone-300">|</span>
+      <span class="num-mono">composite_v2 = reachability x (0.40 url + 0.40 judge + 0.20 spec)</span>
+      <span class="text-stone-300">|</span>
+      <span>Sandbox: Magento + Postmill + Kiwix</span>
+      <span class="text-stone-300">|</span>
+      <a href="https://github.com/yibol9768-alt/deep-research-arena" class="hover:text-black" target="_blank" rel="noopener">github.com/yibol9768-alt/deep-research-arena</a>
+    </div>
+  </footer>
+
+  
+</body>
+</html>

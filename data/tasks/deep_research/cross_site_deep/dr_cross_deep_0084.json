@@ -1,0 +1,176 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0084",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": {
+    "prompt": "Produce an Enumeration / Catalog report cataloguing every household toxin present in shopping keywords, Reddit forums, and Wikipedia articles, including a threat model decision tree for safety. The report is NOT a toxicity level assessment; it is a comprehensive taxonomy of toxins and their safety implications.\n\nGround in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 40 pages for products including pesticide spray, household cleaning products, all-purpose cleaner, floor cleaner, dish soap, air freshener, drain cleaner, bug spray, laundry detergent — cite product URL + ingredients + toxicity concerns. (B) `__REDDIT__` >= 30 threads from AskReddit, LifeProTips, HomeImprovement, Parenting, HomeAndGarden, Wellness, HealthyLiving, Toxicology — discussions of safe usage, toxicity, or adverse effects. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Toxicology, Household chemicals, Pesticides, Poison, Household safety, Child safety, Home cleaning products, Drain cleaner, Insect repellent, Poisonous plants — plus >= 15 more.\n\nOutput a toxins catalog table with columns: Toxin name / Common usage / Toxicity level / Symptoms / Safety recommendations (cited wiki) / Typical product cost (cited shopping) / Community safety sentiment (cited reddit). Add a 'safety decision tree': starting from the user's choice between 'children in home', 'pet ownership', and 'allergies', walk to recommended actions — each node cited. End with '5 toxins/products to AVOID and why' — each w/ shopping URL + reddit URL + wiki URL of the reason.\n\nFormat: markdown links. Begin with the catalog table. No chain-of-thought.",
+    "sources": {
+      "__SHOPPING__": {
+        "product_pages": 40,
+        "ingredients": true,
+        "toxicity_concerns": true
+      },
+      "__REDDIT__": {
+        "threads": 30,
+        "discussions": true,
+        "safety": true,
+        "adverse_effects": true
+      },
+      "__WIKIPEDIA__": {
+        "articles": 25,
+        "mandatory": [
+          "Toxicology",
+          "Household chemicals",
+          "Pesticides",
+          "Poison",
+          "Household safety",
+          "Child safety",
+          "Home cleaning products",
+          "Drain cleaner",
+          "Insect repellent",
+          "Poisonous plants"
+        ],
+        "additional": 15
+      }
+    },
+    "format_rules": {
+      "markdown_links": true,
+      "sandbox_local": true,
+      "no_fabrication": true
+    },
+    "specific_synthesis_requirements": {
+      "task_type": "enumeration",
+      "toxins_min": 25,
+      "catalog_columns": [
+        "Toxin name",
+        "Common usage",
+        "Toxicity level",
+        "Symptoms",
+        "Safety recommendations",
+        "Typical product cost",
+        "Community safety sentiment"
+      ],
+      "min_evidence_per_toxin": {
+        "wikipedia": 1,
+        "shopping": 1,
+        "reddit": 1
+      },
+      "decision_tree_levels": 3,
+      "decision_tree_branches": [
+        "children_in_home",
+        "pet_ownership",
+        "allergies"
+      ],
+      "avoid_findings_count": 5,
+      "min_evidence_per_avoid": {
+        "shopping": 1,
+        "reddit": 1,
+        "wikipedia": 1
+      },
+      "explicitly_forbid_top10": true
+    }
+  },
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=pesticide+spray",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0084.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0084.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "enumeration",
+    "toxins_min": 25,
+    "catalog_columns": [
+      "Toxin name",
+      "Common usage",
+      "Toxicity level",
+      "Symptoms",
+      "Safety recommendations",
+      "Typical product cost",
+      "Community safety sentiment"
+    ],
+    "min_evidence_per_toxin": {
+      "wikipedia": 1,
+      "shopping": 1,
+      "reddit": 1
+    },
+    "decision_tree_levels": 3,
+    "decision_tree_branches": [
+      "children_in_home",
+      "pet_ownership",
+      "allergies"
+    ],
+    "avoid_findings_count": 5,
+    "min_evidence_per_avoid": {
+      "shopping": 1,
+      "reddit": 1,
+      "wikipedia": 1
+    },
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+  "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/household_toxins_catalog.yaml. Golden: must=144, pool=748."
+}

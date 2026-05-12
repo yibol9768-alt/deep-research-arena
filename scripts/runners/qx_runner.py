@@ -41,6 +41,7 @@ import time
 from pathlib import Path
 
 from .serper_adapter import SerperAdapter
+from ._runner_lock import runner_exclusive_lock
 
 logger = logging.getLogger(__name__)
 
@@ -227,6 +228,11 @@ async def run(
         adapter_url, shim_url, proxy_url, model,
     )
 
+    # Acquire per-agent lock — qx-agents writes _benchmark_driver.py to a
+    # fixed shared path, so parallel workers must serialize on it.
+    _lock_cm = runner_exclusive_lock("qx-agents")
+    _lock_cm.__enter__()
+
     try:
         # Write the driver script
         driver_code = _build_driver_script(intent, adapter_url, model, proxy_url)
@@ -321,6 +327,10 @@ async def run(
         driver_path = QX_ROOT / "_benchmark_driver.py"
         if driver_path.exists():
             driver_path.unlink(missing_ok=True)
+        try:
+            _lock_cm.__exit__(None, None, None)
+        except Exception:
+            logger.exception("qx-agents lock release failed")
 
 
 # ---------------------------------------------------------------------------

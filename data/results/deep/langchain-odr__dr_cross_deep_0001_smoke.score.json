@@ -1,0 +1,220 @@
+{
+  "task": "dr_cross_deep_0001",
+  "answer_path": "data/results/deep/langchain-odr__dr_cross_deep_0001_smoke.md",
+  "answer_chars": 26501,
+  "url_coverage": {
+    "score": 0.04,
+    "passed": false,
+    "details": {
+      "cited_unique": 87,
+      "must_cite_total": 125,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "pool_total": 739,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 49,
+        "__REDDIT__": 36,
+        "__WIKIPEDIA__": 2
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.1333,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.0345,
+    "passed": false,
+    "details": {
+      "cited_total": 87,
+      "cited_sandbox": 87,
+      "cited_off_sandbox": 0,
+      "probed": 87,
+      "http_200": 3,
+      "http_4xx": 84,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.0345,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "claims_total": 84,
+      "claims_supported": 0,
+      "claims_unreachable": 84,
+      "match_rate": 0.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:7770/products/headphones/budget-sound-buds",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/earphones/wired-basics",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/earbuds/budget-wireless",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/bluetooth-headset/basic-headset",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/headphones/on-ear-budget",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:7770/products/earphones/bass-buds",
+          "supported": false,
+          "reason": "unreachable"
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no agent claims overlap with golden quoted_span URLs",
+      "claims_with_quote": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 2954,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 84,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 32,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Does the report enumerate at least 40 distinct product pages on the shopping site with exact URL + price + rating + review_count?",
+        "PASS"
+      ],
+      [
+        "Are at least 6 distinct brands represented among the enumerated products?",
+        "PASS"
+      ],
+      [
+        "Are at least 3 price tiers represented?",
+        "PASS"
+      ],
+      [
+        "Does each product entry extract at least one marketing feature-claim?",
+        "PASS"
+      ],
+      [
+        "Does the report harvest at least 30 distinct Postmill threads with thread_url + forum + score + comment_count?",
+        "PASS"
+      ],
+      [
+        "Are threads drawn from at least 4 distinct sub-forums?",
+        "PASS"
+      ],
+      [
+        "Is every thread classified as one of {praise, complaint, technical_question, comparison, purchase_advice}?",
+        "PASS"
+      ],
+      [
+        "Does the report locate at least 25 distinct Wikipedia articles with article_url + defining statement?",
+        "UNCLEAR"
+      ],
+      [
+        "Are the mandatory Wikipedia articles for this topic all present?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report surface at least 5 product-claim vs Wikipedia contradiction findings with triple evidence (product URL + wiki URL + explicit contradiction)?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report include a brand-sentiment ranking with at least 2 reddit threads cited per ranked brand?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report surface at least 3 rating-vs-sentiment divergences?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the final TOP-10 list have exactly 10 items?",
+        "UNCLEAR"
+      ],
+      [
+        "Does each TOP-10 item have (≥1 shopping URL + ≥2 reddit URL + ≥1 wiki URL) as evidence chain?",
+        "UNCLEAR"
+      ],
+      [
+        "Are all cited URLs markdown-linked `[label](url)` form and resolvable on the sandbox?",
+        "PASS"
+      ],
+      [
+        "Does the report cite at least 60 distinct URLs in total?",
+        "PASS"
+      ],
+      [
+        "Is at least 30 of the 60+ cited URLs from shopping domain?",
+        "PASS"
+      ],
+      [
+        "Is at least 20 of the 60+ cited URLs from reddit domain?",
+        "PASS"
+      ],
+      [
+        "Is at least 15 of the 60+ cited URLs from wikipedia domain?",
+        "UNCLEAR"
+      ],
+      [
+        "Is the report between 3500 and 8000 words?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start directly with the market-intelligence content?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 12,
+    "fail_count": 0,
+    "unclear_count": 9,
+    "pass_rate": 0.5714,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.3779,
+    "truth_factor": 0.0086,
+    "qm_factor": 0.5,
+    "nli_factor": 0.5,
+    "composite_score": 0.0033,
+    "composite_v1": 0.013,
+    "legacy_composite": 0.32
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "glm-4.5",
+    "base_url": "https://open.bigmodel.cn/api/coding/paas/v4"
+  }
+}

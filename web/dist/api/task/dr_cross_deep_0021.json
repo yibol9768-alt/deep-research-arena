@@ -1,0 +1,208 @@
+{
+  "task_id": "dr_cross_deep_0021",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0021",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Comparison report on 4 popular digital-nomad tax / residency programs: (P1) Estonia e-Residency + 0% on undistributed corporate profit, (P2) Portugal Non-Habitual Resident (NHR) program, (P3) UAE freezone company + 9% corporate tax (post-2023), (P4) Thailand LTR (Long-Term Resident) visa, across 5 dimensions: (D1) setup cost + time, (D2) effective annual tax, (D3) physical-presence requirement, (D4) banking accessibility for remote workers, (D5) renewal / long-term outlook. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 books on remote work / digital nomad / international tax + price. (B) `__REDDIT__` >= 30 threads from /f/digitalnomad, /f/IWantOut, /f/eupersonalfinance, /f/expats, /f/PortugalExpats, /f/dubai, /f/Thailand. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: E-Residency of Estonia, Non-Habitual Resident, Free-trade zone, Thailand LTR Visa, Digital nomad, Tax residence, Permanent establishment, Double taxation, OECD Common Reporting Standard, Foreign Earned Income Exclusion. Output a 4 x 5 matrix + 'red flags' section listing at least 5 due-diligence pitfalls. Format: markdown links only. Begin with matrix.",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=remote+work+book",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0021.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0021.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "comparison",
+      "comparison_paths": [
+        "estonia_e_residency",
+        "portugal_nhr",
+        "uae_freezone",
+        "thailand_ltr"
+      ],
+      "use_cases": [
+        "setup_cost_time",
+        "effective_tax",
+        "physical_presence",
+        "banking",
+        "renewal_outlook"
+      ],
+      "matrix_cells_required": 20,
+      "min_evidence_per_cell": {
+        "shopping": 1,
+        "reddit": 1,
+        "wikipedia": 1
+      },
+      "red_flags_min": 5
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+    "domain": "Travel",
+    "intent_type": "Comparison"
+  },
+  "rows": [
+    {
+      "agent": "camel-ai",
+      "composite_v2": 0.1457,
+      "composite_v3": 0.3935,
+      "url_coverage": 0.03,
+      "reachability": 0.9706,
+      "checklist": 0.381,
+      "answer_chars": 30548,
+      "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "flowsearcher-ds",
+      "composite_v2": 0.085,
+      "composite_v3": 0.2578,
+      "url_coverage": 0.0,
+      "reachability": 0.75,
+      "checklist": 0.3333,
+      "answer_chars": 32197,
+      "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "smolagents",
+      "composite_v2": 0.0826,
+      "composite_v3": 0.4851,
+      "url_coverage": 0.1105,
+      "reachability": 1.0,
+      "checklist": 0.3333,
+      "answer_chars": 9481,
+      "answer_path": "data/results/deep/smolagents__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "deerflow",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0131,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.2857,
+      "answer_chars": 26477,
+      "answer_path": "data/results/deep/deerflow__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "gpt-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0233,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.4286,
+      "answer_chars": 23701,
+      "answer_path": "data/results/deep/gpt-researcher__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "ii-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0039,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.1429,
+      "answer_chars": 74,
+      "answer_path": "data/results/deep/ii-researcher__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "langchain-odr",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0215,
+      "url_coverage": 0.3,
+      "reachability": 0.0,
+      "checklist": 0.381,
+      "answer_chars": 28322,
+      "answer_path": "data/results/deep/langchain-odr__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "ldr",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0032,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0952,
+      "answer_chars": 1204,
+      "answer_path": "data/results/deep/ldr__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "qx-agents",
+      "composite_v2": 0.0,
+      "composite_v3": 0.001,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 367,
+      "answer_path": "data/results/deep/qx-agents__dr_cross_deep_0021_matrix.md"
+    },
+    {
+      "agent": "storm",
+      "composite_v2": 0.0,
+      "composite_v3": 0.021,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 1.0,
+      "answer_chars": 20,
+      "answer_path": "data/results/deep/storm__dr_cross_deep_0021_matrix.md"
+    }
+  ]
+}

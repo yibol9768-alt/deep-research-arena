@@ -27,17 +27,43 @@ from typing import Any
 
 def judge_identity() -> dict:
     """Describes the judge currently configured — useful to stamp into
-    verifier details so cross-judge comparison is traceable."""
+    verifier details so cross-judge comparison is traceable.
+
+    `heavy_model` reports which model heavy / extraction-style verifiers
+    (factual_exactness, internal_consistency) route to via call_judge_heavy.
+    `JUDGE_MODEL_HEAVY` defaults to V4 Pro when unset and the regular
+    JUDGE_MODEL points at a V4-flash sibling, otherwise falls back to the
+    regular JUDGE_MODEL.
+    """
+    regular = (
+        os.environ.get("JUDGE_MODEL")
+        or os.environ.get("CHECKLIST_JUDGE_MODEL")
+        or "glm-5.1"
+    )
+    heavy = os.environ.get("JUDGE_MODEL_HEAVY") or _default_heavy_model(regular)
     return {
         "provider": os.environ.get("JUDGE_PROVIDER", "anthropic").lower(),
-        "model":    os.environ.get("JUDGE_MODEL")
-                    or os.environ.get("CHECKLIST_JUDGE_MODEL")
-                    or "glm-5.1",
+        "model":    regular,
+        "heavy_model": heavy,
         "base_url": os.environ.get("JUDGE_BASE_URL")
                     or os.environ.get("ANTHROPIC_BASE_URL")
                     or os.environ.get("OPENAI_BASE_URL")
                     or "",
     }
+
+
+def _default_heavy_model(regular: str) -> str:
+    """When JUDGE_MODEL_HEAVY is unset, pick V4 Pro if the regular judge is
+    a V4-flash sibling. Reasoning: heavy verifiers (atomic fact extraction,
+    pairwise NLI for intra-document contradiction) materially benefit from
+    V4 Pro's higher-capacity reasoning, while v2-only verifiers (checklist /
+    citation_alignment) keep using V4 Flash to control cost.
+    """
+    low = (regular or "").lower()
+    if low.startswith("deepseek-v4") and "flash" in low:
+        # Same family, Pro tier sibling. Provider-specific override possible.
+        return os.environ.get("DEEPSEEK_PRO_MODEL", "deepseek-v4-pro")
+    return regular
 
 
 def call_judge(
@@ -47,7 +73,12 @@ def call_judge(
     max_tokens: int = 2000,
     temperature: float = 0.2,
 ) -> tuple[str | None, str | None]:
-    """Return (text, error). Uses whichever backend is configured."""
+    """Return (text, error). Uses whichever backend is configured.
+
+    This is the *regular* judge entry point — checklist, citation_alignment,
+    presentation Tier B, analysis_depth Tier B, perspective_balance Tier B
+    use this. For heavy extraction / NLI work, prefer ``call_judge_heavy``.
+    """
     provider = os.environ.get("JUDGE_PROVIDER", "anthropic").lower()
     model = (
         os.environ.get("JUDGE_MODEL")
@@ -58,6 +89,37 @@ def call_judge(
     if provider == "openai":
         return _call_openai(system, user, model=model, max_tokens=max_tokens, temperature=temperature)
     # default: anthropic
+    return _call_anthropic(system, user, model=model, max_tokens=max_tokens)
+
+
+def call_judge_heavy(
+    system: str,
+    user: str,
+    *,
+    max_tokens: int = 4000,
+    temperature: float = 0.0,
+) -> tuple[str | None, str | None]:
+    """Heavy-judge entry point — used by factual_exactness (atomic fact
+    extraction + per-fact verification) and internal_consistency (pairwise
+    NLI). Defaults differ from ``call_judge``: zero temperature for
+    determinism, higher max_tokens for structured JSON outputs, and the
+    model defaults to V4 Pro when the regular judge is V4 Flash.
+
+    Override the heavy model via ``JUDGE_MODEL_HEAVY`` env var. When
+    JUDGE_MODEL_HEAVY is unset and the regular judge is not a V4 sibling,
+    the heavy path falls back to the regular model — heavy verifiers will
+    still work, just without the Pro-tier boost.
+    """
+    provider = os.environ.get("JUDGE_PROVIDER", "anthropic").lower()
+    regular = (
+        os.environ.get("JUDGE_MODEL")
+        or os.environ.get("CHECKLIST_JUDGE_MODEL")
+        or ("deepseek-chat" if provider == "openai" else "glm-5.1")
+    )
+    model = os.environ.get("JUDGE_MODEL_HEAVY") or _default_heavy_model(regular)
+
+    if provider == "openai":
+        return _call_openai(system, user, model=model, max_tokens=max_tokens, temperature=temperature)
     return _call_anthropic(system, user, model=model, max_tokens=max_tokens)
 
 

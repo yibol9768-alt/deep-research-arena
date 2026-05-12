@@ -1,0 +1,393 @@
+{
+  "task": "dr_cross_deep_0009",
+  "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0009_matrix.md",
+  "answer_chars": 32070,
+  "url_coverage": {
+    "score": 0.0641,
+    "passed": false,
+    "details": {
+      "cited_unique": 34,
+      "must_cite_total": 128,
+      "must_cite_hit": 1,
+      "must_cite_recall": 0.0055,
+      "pool_total": 728,
+      "pool_hit": 5,
+      "pool_coverage": 0.0069,
+      "per_domain_cited": {
+        "__SHOPPING__": 11,
+        "__REDDIT__": 4,
+        "__WIKIPEDIA__": 19
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.2,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.7941,
+    "passed": true,
+    "details": {
+      "cited_total": 34,
+      "cited_sandbox": 34,
+      "cited_off_sandbox": 0,
+      "probed": 34,
+      "http_200": 27,
+      "http_4xx": 7,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.7941,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.5,
+    "passed": true,
+    "details": {
+      "claims_total": 82,
+      "claims_supported": 41,
+      "claims_unreachable": 41,
+      "match_rate": 0.5,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Arrhenius_equation",
+          "supported": true,
+          "overlap": 0.429
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Lithium-ion_battery",
+          "supported": true,
+          "overlap": 0.643
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Electrolyte",
+          "supported": true,
+          "overlap": 0.345
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Specific_heat_capacity",
+          "supported": true,
+          "overlap": 0.333
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Internal_resistance",
+          "supported": true,
+          "overlap": 0.48
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Electric_vehicle_battery",
+          "supported": true,
+          "overlap": 0.548
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "markdown_spec": {
+    "word_count": 3435,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 82,
+    "min_citations": 60,
+    "citations_ok": true,
+    "paragraph_count": 90,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Does the report explicitly address 'why does EV range drop in cold weather' as the central question?",
+        "PASS"
+      ],
+      [
+        "Are exactly 4 causal layers defined (L1 chemistry, L2 thermal, L3 behaviour, L4 measured)?",
+        "PASS"
+      ],
+      [
+        "Does L1 cite >= 3 wiki articles on battery chemistry (electrolyte, internal resistance, lithium plating)?",
+        "PASS"
+      ],
+      [
+        "Does L2 cite >= 3 wiki articles on thermal management (heat pump, cabin heater, specific heat capacity)?",
+        "PASS"
+      ],
+      [
+        "Does L3 cite >= 5 reddit threads on driver behaviour and HVAC adjustments?",
+        "FAIL"
+      ],
+      [
+        "Does L4 cite >= 8 reddit threads with **explicit percentage** range-drop numbers?",
+        "FAIL"
+      ],
+      [
+        "Are >= 30 shopping products related to cold-weather EV operation cited (chargers, heaters, accessories)?",
+        "FAIL"
+      ],
+      [
+        "Are >= 30 reddit threads from >= 4 EV-related sub-forums cited?",
+        "FAIL"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "FAIL"
+      ],
+      [
+        "Are all 10 mandatory wiki articles (Li-ion, Thermal mgmt, Heat pump, Internal resistance, Electrolyte, Li plating, Regen, Cabin heater, Specific heat, Arrhenius) cited?",
+        "FAIL"
+      ],
+      [
+        "Is a multi-layer causal hierarchy presented in markdown (indented bullets, not flat list)?",
+        "PASS"
+      ],
+      [
+        "Are >= 5 mitigation strategies ranked by % range recovered?",
+        "PASS"
+      ],
+      [
+        "Does each mitigation strategy cite >= 1 shopping URL + >= 1 reddit URL?",
+        "PASS"
+      ],
+      [
+        "Are >= 3 EV models ranked by aggregated reddit cold-weather sentiment?",
+        "PASS"
+      ],
+      [
+        "Does each ranked model cite >= 3 reddit threads in support?",
+        "PASS"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "FAIL"
+      ],
+      [
+        "Is per-domain minimum met: >= 30 shopping, >= 20 reddit, >= 15 wiki?",
+        "FAIL"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "PASS"
+      ],
+      [
+        "Does the report avoid giving a generic 'best EV' Top-10 (this is Causal, not Recommendation)?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "UNCLEAR"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start with L1 chemistry?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 12,
+    "fail_count": 8,
+    "unclear_count": 1,
+    "pass_rate": 0.5714,
+    "judge_error": null,
+    "sanity_floor": null,
+    "grounding_downgrades": 0,
+    "reachability_used": 0.7941
+  },
+  "composite": {
+    "spec_pass_fraction": 0.6667,
+    "quality_score": 0.3875,
+    "truth_factor": 0.2978,
+    "qm_factor": 0.75,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.7941,
+    "raw_score_v3": 0.3879,
+    "citation_alignment": 0.0,
+    "analysis_depth": 0.575,
+    "presentation": 0.7333,
+    "composite_v3": 0.3081,
+    "composite_score": 0.1154,
+    "composite_v2": 0.1154,
+    "composite_v1": 0.3077,
+    "legacy_composite": 0.332
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  },
+  "rescore_meta": {
+    "fix": "v2_full_rescore_with_ad_pres_and_fab_guard",
+    "old_checklist_pass_rate": 0.6667,
+    "old_claim_nli_score": 0.0,
+    "old_composite_v3": 0.2484,
+    "old_composite_v2": 0.1268,
+    "new_checklist_pass_rate": 0.5714,
+    "new_claim_nli_score": 0.0,
+    "new_analysis_depth": 0.5,
+    "new_presentation": 0.7333,
+    "new_composite_v3": 0.3021,
+    "new_composite_v2": 0.1154
+  },
+  "analysis_depth": {
+    "score": 0.575,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 3,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.75,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=3"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=3"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=2"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.204, total_paragraphs=93"
+        }
+      ],
+      "tier_b_passed": 3,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.5,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "– identifies multi-layer patterns beyond listing facts"
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "– explains chemical and thermal causes of range loss"
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "– cites only wiki sources, no cross-source comparison"
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "– synthesizes chemistry and thermal data for new insight"
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "– no mention of alternative explanations or limitations"
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": false,
+          "reason": "– truncated, lacks specific recommendations or actions"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS – identifies multi-layer patterns beyond listing facts  \n2. PASS – explains chemical and thermal causes of range loss  \n3. FAIL – cites only wiki sources, no cross-source comparison  \n4. PASS – synthesizes chemistry and thermal data for new insight  \n5. FAIL – no mention of alternative explanations or limitations  \n6. FAIL – truncated, lacks specific recommendations or actions"
+    }
+  },
+  "presentation": {
+    "score": 0.7333,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 5,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.833,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=10"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.618, word_counts=[30, 662, 712, 468, 440, 417, 252, 610]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": false,
+          "detail": "flesch_reading_ease=29.5"
+        }
+      ],
+      "tier_b_passed": 4,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.667,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Clear progression from chemistry to thermal layers then implications"
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "Section transitions abrupt; few bridging sentences linking levels"
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No explicit meta statements or filler commentary detected"
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Formatting and citation style consistent throughout excerpt"
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "Conclusion absent in truncated segment; no synthesis shown"
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional technical tone; no AI-generic phrases present"
+        }
+      ],
+      "judge_model": "gpt-5-chat-latest",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Clear progression from chemistry to thermal layers then implications  \n2. FAIL - Section transitions abrupt; few bridging sentences linking levels  \n3. PASS - No explicit meta statements or filler commentary detected  \n4. PASS - Formatting and citation style consistent throughout excerpt  \n5. FAIL - Conclusion absent in truncated segment; no synthesis shown  \n6. PASS - Professional technical tone; no AI-generic phrases present"
+    }
+  }
+}

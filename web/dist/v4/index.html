@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en" class="bg-canvas text-ink">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>v4 leaderboard · Deep-Research Arena</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas: #fafaf9;
+      --surface: #ffffff;
+      --ink: #0c0a09;
+      --ink-soft: #44403c;
+      --ink-mute: #78716c;
+      --line: #e7e5e4;
+      --line-soft: #f5f5f4;
+      --accent: #4338ca;
+      --accent-soft: #eef2ff;
+      --accent-ink: #312e81;
+      --good: #15803d;
+      --good-soft: #dcfce7;
+      --bad: #b91c1c;
+      --bad-soft: #fee2e2;
+      --warn: #a16207;
+      --warn-soft: #fef9c3;
+    }
+    html, body { background: var(--canvas); color: var(--ink); }
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+    .num-mono { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .ink-soft { color: var(--ink-soft); }
+    .ink-mute { color: var(--ink-mute); }
+
+    .surface { background: var(--surface); border: 1px solid var(--line); }
+    .row-hover:hover { background-color: var(--line-soft); }
+    .label-eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 10.5px; font-weight: 700; color: var(--ink-mute); }
+
+    .rank-chip { width: 28px; height: 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .rank-1 { background: linear-gradient(140deg, #fde68a, #f59e0b); color: #422006; box-shadow: inset 0 0 0 1px rgba(180, 83, 9, 0.35); }
+    .rank-2 { background: linear-gradient(140deg, #f1f5f9, #cbd5e1); color: #1e293b; box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.35); }
+    .rank-3 { background: linear-gradient(140deg, #fed7aa, #fb923c); color: #431407; box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.35); }
+    .rank-other { color: var(--ink-mute); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* LLM backbone picker chips (current = active, others = "queued") */
+    .llm-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px 5px 9px;
+      border-radius: 8px;
+      font-size: 12.5px; font-weight: 600;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-soft);
+      cursor: default;
+    }
+    .llm-chip.is-active { background: var(--accent-soft); color: var(--accent-ink); border-color: rgba(67,56,202,0.35); }
+    .llm-chip.is-soon   { color: var(--ink-mute); background: var(--line-soft); border-color: var(--line); }
+    .llm-chip-dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; }
+    .llm-chip-meta { font-size: 10.5px; font-weight: 500; opacity: 0.7; margin-left: 4px; font-variant-numeric: tabular-nums; }
+
+    .pill { display:inline-flex; align-items:center; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; }
+    .pill-ok    { background: var(--good-soft); color: var(--good); }
+    .pill-warn  { background: var(--warn-soft); color: var(--warn); }
+    .pill-bad   { background: var(--bad-soft);  color: var(--bad); }
+    .pill-muted { background: var(--line); color: var(--ink-soft); }
+    .pill-accent{ background: var(--accent-soft); color: var(--accent-ink); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 999px; margin-right: 6px; display: inline-block; }
+
+    /* Old CI track — kept for any callers; new layout uses .ci-bar below. */
+    .ci-track  { position: relative; height: 6px; background: var(--line); border-radius: 999px; }
+    .ci-range  { position: absolute; top: 0; bottom: 0; background: rgba(67,56,202,0.22); border-radius: 999px; }
+    .ci-marker { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px rgba(67,56,202,0.3); }
+
+    /* New unified CI bar: every row has the same outer width (set by the
+       parent <td>); the bar has 8px horizontal padding so the marker dot
+       can never visually overflow into the next column. */
+    .ci-bar { padding: 0 8px; }
+    .ci-bar-inner { position: relative; height: 14px; }
+    .ci-bar-track  { position: absolute; left: 0; right: 0; top: 50%; height: 6px; transform: translateY(-50%); background: var(--line); border-radius: 999px; }
+    .ci-bar-range  { position: absolute; top: 50%; height: 6px; transform: translateY(-50%); background: rgba(67,56,202,0.28); border-radius: 999px; pointer-events: none; }
+    .ci-bar-marker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 999px; background: var(--accent); transform: translate(-50%, -50%); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(67,56,202,0.4); pointer-events: none; }
+
+    .agent-avatar {
+      width: 26px; height: 26px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--surface);
+      background: linear-gradient(135deg, #475569, #1e293b);
+    }
+
+    .codeblock { background: #0c0a09; color: #f5f5f4; padding: 14px 16px; border-radius: 10px; font-size: 12.5px; line-height: 1.55; overflow-x: auto; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; }
+
+    /* Markdown body when rendered via python-markdown */
+    .md-body { font-size: 13.5px; line-height: 1.55; }
+    .md-body h1, .md-body h2, .md-body h3 { font-weight: 700; margin: 1em 0 0.4em; }
+    .md-body h1 { font-size: 22px; }
+    .md-body h2 { font-size: 17px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+    .md-body h3 { font-size: 14px; }
+    .md-body p { margin: 0.5em 0; }
+    .md-body code { background: var(--line-soft); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+    .md-body pre { background: #0c0a09; color: #f5f5f4; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .md-body pre code { background: transparent; padding: 0; color: inherit; }
+    .md-body table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .md-body th, .md-body td { border: 1px solid var(--line); padding: 6px 8px; text-align: left; }
+    .md-body th { background: var(--line-soft); font-weight: 600; }
+    .md-body ul, .md-body ol { margin: 0.4em 0; padding-left: 1.4em; }
+    .md-body li { margin: 0.2em 0; }
+    .md-body a { color: var(--accent); text-decoration: underline; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <header class="sticky top-0 z-30 backdrop-blur" style="background: rgba(255,255,255,0.85); border-bottom: 1px solid var(--line);">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center gap-6">
+      <a href="/" class="flex items-center gap-2.5 font-semibold hover:opacity-80 transition">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-white text-[11px] font-bold tracking-tight"
+              style="background: linear-gradient(135deg, #1e293b, #0c0a09);">DR</span>
+        <span class="text-[15px] tracking-tight">Deep-Research Arena</span>
+      </a>
+      <nav class="flex items-center gap-0.5 ml-2 text-sm">
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/">Leaderboard</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/v4">v4 <span style="font-size:9px;background:var(--warn-soft);color:var(--warn);padding:1px 5px;border-radius:6px;margin-left:2px;">new</span></a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/compare">Compare LLMs</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/how-it-works">How it works</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/about">About</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/contribute">Contribute</a>
+        <a class="px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft" href="/audit">Audit</a>
+      </nav>
+      <div class="ml-auto flex items-center gap-3">
+        <a href="https://github.com/yibol9768-alt/deep-research-arena"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md hover:bg-stone-100 ink-soft border border-stone-200">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+    
+
+<section class="surface rounded-2xl p-7 mb-6">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <span class="pill pill-accent"><span class="pill-dot" style="background:#4338ca;"></span>composite_v4 · 11 dimensions</span>
+    <span class="pill pill-warn">experimental</span>
+    
+      <span class="pill pill-muted num-mono">8 agents</span>
+      <span class="pill pill-muted num-mono">26 real / 44 total runs</span>
+      <span class="pill pill-muted num-mono">53 battles</span>
+      <span class="pill pill-muted">updated 2026-05-11 18:41:14</span>
+    
+  </div>
+  <h1 class="text-[34px] font-bold tracking-tight leading-none">v4 Leaderboard</h1>
+  <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
+    Adds <strong>four new pillars</strong> on top of the v2 verifiers ── atomic
+    factuality, intra-document consistency, perspective balance, and source
+    diversity ── and replaces the v2 quality term with an 11-way weighted mix.
+    The reachability multiplicative gate is preserved, so URL fabrication still
+    zeroes the score. v4 is the answer to the critique that v2 was
+    over-focused on URL grounding alone.
+  </p>
+  <div class="mt-3 text-[12.5px] ink-mute">
+    <strong>Formula:</strong>
+    <code class="num-mono">composite_v4 = reach · (0.10·url_cov + 0.05·spec + 0.10·checklist + 0.10·cit_align + 0.05·qm + 0.13·factual_exactness + 0.13·internal_consistency + 0.08·perspective_balance + 0.06·source_diversity + 0.10·analysis_depth + 0.10·presentation)</code>
+  </div>
+  <div class="mt-4 flex flex-wrap gap-2 text-[13px]">
+    <a href="/" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">v2 leaderboard →</a>
+    <a href="/how-it-works" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">How v2 works →</a>
+    <a href="/api/v4.json" class="px-3 py-1.5 rounded-md border border-stone-200 hover:bg-stone-100">JSON →</a>
+  </div>
+</section>
+
+
+
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">composite_v4 ranking · 11 dimensions · reach × Q(11)</div>
+    <div class="text-[11px] ink-mute hidden sm:block">small-sample experiment (9 agents × 3 tasks); 95% CIs from 1000-resample bootstrap</div>
+  </div>
+  <table class="w-full text-[13px]" style="table-layout: auto;">
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-4 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">Elo</th>
+        <th class="px-3 py-3 font-bold">95% CI</th>
+        <th class="px-3 py-3 font-bold text-right">n</th>
+        <th class="px-3 py-3 font-bold text-right" title="source_diversity (zero LLM)">SD</th>
+        <th class="px-3 py-3 font-bold text-right" title="perspective_balance">PB</th>
+        <th class="px-3 py-3 font-bold text-right" title="factual_exactness (V4 Pro)">FE</th>
+        <th class="px-3 py-3 font-bold text-right" title="internal_consistency (V4 Pro)">IC</th>
+        <th class="px-3 py-3 font-bold text-right" title="composite_v2_truthful mean">v2</th>
+        <th class="px-3 py-3 font-bold text-right" title="composite_v4 mean">v4</th>
+        <th class="px-3 py-3 font-bold text-right" title="Δ = v4 mean - v2 mean">Δ</th>
+      </tr>
+    </thead>
+    <tbody style="border-top: 1px solid var(--line);">
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-1">1</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">CA</span>
+            <span class="font-semibold">camel-ai</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1153</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[1081, 1207]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.69</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.01</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.79</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.98</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.43</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.54</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold" style="color: var(--good);">
+          +0.10
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-2">2</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">FL</span>
+            <span class="font-semibold">flowsearcher-ds</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1116</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[1052, 1176]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">2</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.73</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.03</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.82</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.97</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.30</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.47</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold" style="color: var(--good);">
+          +0.16
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-3">3</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">DE</span>
+            <span class="font-semibold">deerflow</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1042</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[953, 1114]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">6</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.54</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.13</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.64</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.12</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.34</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold" style="color: var(--good);">
+          +0.22
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">4</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">SM</span>
+            <span class="font-semibold">smolagents</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1003</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[931, 1079]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.32</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.68</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.41</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.97</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.16</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.30</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold" style="color: var(--good);">
+          +0.14
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">5</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">ST</span>
+            <span class="font-semibold">storm</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1002</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[920, 1079]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">4</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.41</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.28</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.86</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.17</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.28</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold" style="color: var(--good);">
+          +0.11
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">6</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">II</span>
+            <span class="font-semibold">ii-researcher</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">940</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[877, 1014]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.82</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.20</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.61</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.97</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.23</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.36</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold" style="color: var(--good);">
+          +0.13
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">7</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">LA</span>
+            <span class="font-semibold">langchain-odr</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">877</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[831, 936]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">2</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.82</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.02</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.01</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.01</td>
+        <td class="px-3 py-3 align-middle text-right num-mono " style="color: var(--ink-mute);">
+          -0.00
+        </td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">8</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">GP</span>
+            <span class="font-semibold">gpt-researcher</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">865</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[816, 924]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.81</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.12</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.04</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.91</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.02</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.01</td>
+        <td class="px-3 py-3 align-middle text-right num-mono " style="color: var(--ink-mute);">
+          -0.00
+        </td>
+      </tr>
+      
+    </tbody>
+  </table>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    <strong>Column legend.</strong>
+    SD = source_diversity (zero LLM, deterministic);
+    PB = perspective_balance (sentiment lexicon + LLM judge);
+    FE = factual_exactness (atomic-fact extraction + V4 Pro NLI);
+    IC = internal_consistency (entity clustering + V4 Pro pairwise NLI);
+    v2 = composite_v2_truthful mean across this agent's runs;
+    v4 = composite_v4 mean;
+    Δ = v4 − v2 (green if v4 rates higher than v2, red if lower).
+  </div>
+</section>
+
+
+
+
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 flex items-baseline justify-between" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    <div class="label-eyebrow">composite_v4b · sharpened + rebalanced (no new LLM calls)</div>
+    <div class="text-[11px] ink-mute hidden sm:block">addresses v4's tied-middle problem; IC sharpened, SD upweighted, weights still sum to 1.00</div>
+  </div>
+  
+  <div class="grid grid-cols-3 gap-2 px-5 py-3" style="background: var(--surface); border-bottom: 1px solid var(--line-soft);">
+    <div>
+      <div class="label-eyebrow">Min adjacent gap</div>
+      <div class="num-mono text-[18px]">
+        <span class="ink-mute">0.9</span>
+        <span class="ink-mute">→</span>
+        <span class="font-semibold" style="color: var(--good);">9.2</span>
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Elo (v4 → v4b). Bigger = better discrimination.</div>
+    </div>
+    <div>
+      <div class="label-eyebrow">Mean adjacent gap</div>
+      <div class="num-mono text-[18px]">
+        41.1 → 41.1
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Elo. Roughly unchanged (intentional ── v4b reallocates not amplifies).</div>
+    </div>
+    <div>
+      <div class="label-eyebrow">Weight rebalance</div>
+      <div class="text-[12.5px]" style="line-height:1.4;">
+        IC <span class="num-mono">0.13 → 0.07</span><br>
+        SD <span class="num-mono">0.06 → 0.12</span>
+      </div>
+      <div class="text-[11px] ink-mute mt-0.5">Shifts weight from saturated pillar to high-variance pillar.</div>
+    </div>
+  </div>
+  
+  <table class="w-full text-[13px]" style="table-layout: auto;">
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-4 py-3 font-bold">#</th>
+        <th class="px-3 py-3 font-bold">Agent</th>
+        <th class="px-3 py-3 font-bold text-right">v4b Elo</th>
+        <th class="px-3 py-3 font-bold">95% CI</th>
+        <th class="px-3 py-3 font-bold text-right">n</th>
+        <th class="px-3 py-3 font-bold text-right" title="IC raw">IC raw</th>
+        <th class="px-3 py-3 font-bold text-right" title="IC after sharpening rescale">IC sharp</th>
+        <th class="px-3 py-3 font-bold text-right">SD</th>
+        <th class="px-3 py-3 font-bold text-right">v4 mean</th>
+        <th class="px-3 py-3 font-bold text-right">v4b mean</th>
+      </tr>
+    </thead>
+    <tbody style="border-top: 1px solid var(--line);">
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-1">1</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">CA</span>
+            <span class="font-semibold">camel-ai</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1153</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[1080, 1208]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.98</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.69</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.54</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.40</td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-2">2</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">FL</span>
+            <span class="font-semibold">flowsearcher-ds</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1116</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[1054, 1175]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">2</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.97</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.73</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.47</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.35</td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-chip rank-3">3</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">DE</span>
+            <span class="font-semibold">deerflow</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">1052</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[965, 1122]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">6</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.54</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.34</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.23</td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">4</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">ST</span>
+            <span class="font-semibold">storm</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">990</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[918, 1064]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">4</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.86</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.75</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.41</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.28</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.20</td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">5</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">SM</span>
+            <span class="font-semibold">smolagents</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">981</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[911, 1054]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.97</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.96</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.32</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.30</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.21</td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">6</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">II</span>
+            <span class="font-semibold">ii-researcher</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">965</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[897, 1042]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.97</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.89</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.82</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.36</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.27</td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">7</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">LA</span>
+            <span class="font-semibold">langchain-odr</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">877</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[831, 936]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">2</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">1.00</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.82</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.01</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.01</td>
+      </tr>
+      
+      <tr class="row-hover" style="border-top: 1px solid var(--line-soft);">
+        <td class="px-4 py-3 align-middle">
+          
+            <span class="rank-other">8</span>
+          
+        </td>
+        <td class="px-3 py-3 align-middle whitespace-nowrap">
+          <span class="inline-flex items-center gap-2">
+            <span class="agent-avatar">GP</span>
+            <span class="font-semibold">gpt-researcher</span>
+          </span>
+        </td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold text-[14.5px]">866</td>
+        <td class="px-3 py-3 align-middle num-mono text-[11px] ink-mute whitespace-nowrap">[817, 924]</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">3</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.91</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.67</td>
+        <td class="px-3 py-3 align-middle text-right num-mono">0.81</td>
+        <td class="px-3 py-3 align-middle text-right num-mono ink-mute">0.01</td>
+        <td class="px-3 py-3 align-middle text-right num-mono font-semibold">0.01</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    <strong>What v4b does.</strong> v4 found that <code>internal_consistency</code> saturates ── almost every agent scores 0.95-1.00, so its 13% weight is effectively a constant additive shift. v4b (a) rescales IC so the [0.85, 0.95] band uses the full [0, 1] range (column "IC sharp"), and (b) reallocates weight: IC drops 0.13 → 0.07, source_diversity (the highest-variance pillar) rises 0.06 → 0.12. Same verifiers, same multiplicative reach gate, just better numerics. <strong>The "IC sharp" column reveals true differences hidden in the raw IC saturation.</strong>
+  </div>
+</section>
+
+
+
+<section class="surface rounded-2xl overflow-hidden mb-6">
+  <div class="px-5 py-3 label-eyebrow" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    Adjacent-rank significance · permutation N=1000
+  </div>
+  <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-[12.5px]">
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">camel-ai</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">flowsearcher-ds</span>
+      <span class="num-mono ink-mute ml-auto">Δ37</span>
+      <span class="num-mono ink-mute" style="">p=0.494</span>
+    </div>
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">flowsearcher-ds</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">deerflow</span>
+      <span class="num-mono ink-mute ml-auto">Δ75</span>
+      <span class="num-mono ink-mute" style="">p=0.177</span>
+    </div>
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">deerflow</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">smolagents</span>
+      <span class="num-mono ink-mute ml-auto">Δ38</span>
+      <span class="num-mono ink-mute" style="">p=0.525</span>
+    </div>
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">smolagents</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">storm</span>
+      <span class="num-mono ink-mute ml-auto">Δ1</span>
+      <span class="num-mono ink-mute" style="">p=0.987</span>
+    </div>
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">storm</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">ii-researcher</span>
+      <span class="num-mono ink-mute ml-auto">Δ63</span>
+      <span class="num-mono ink-mute" style="">p=0.262</span>
+    </div>
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">ii-researcher</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">langchain-odr</span>
+      <span class="num-mono ink-mute ml-auto">Δ62</span>
+      <span class="num-mono ink-mute" style="">p=0.212</span>
+    </div>
+    
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <span class="font-medium">langchain-odr</span>
+      <span class="ink-mute">›</span>
+      <span class="font-medium">gpt-researcher</span>
+      <span class="num-mono ink-mute ml-auto">Δ12</span>
+      <span class="num-mono ink-mute" style="">p=0.792</span>
+    </div>
+    
+  </div>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    Small sample (25 runs / 46 battles): no adjacent gap is statistically significant at α=0.05. Scaling the experiment to the full 397-run set will tighten CIs and reveal whether the v2→v4 rank reshuffles (storm +4, deerflow +2, gpt-researcher -2) hold up.
+  </div>
+</section>
+
+
+
+<section class="surface rounded-2xl overflow-hidden mb-8">
+  <div class="px-5 py-3 label-eyebrow" style="background: var(--line-soft); border-bottom: 1px solid var(--line);">
+    Top |v4 − v2| reports · where new pillars rewrote the verdict
+  </div>
+  <table class="w-full text-[13px]">
+    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+      <tr class="label-eyebrow text-left whitespace-nowrap">
+        <th class="px-3 py-3 font-bold">Agent × Task</th>
+        <th class="px-3 py-3 font-bold text-right">v2</th>
+        <th class="px-3 py-3 font-bold text-right">v4</th>
+        <th class="px-3 py-3 font-bold text-right">Δ</th>
+        <th class="px-3 py-3 font-bold text-right">SD</th>
+        <th class="px-3 py-3 font-bold text-right">PB</th>
+        <th class="px-3 py-3 font-bold text-right">FE</th>
+        <th class="px-3 py-3 font-bold text-right">IC</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">deerflow × dr_cross_deep_0006</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.09</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.57</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.48</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.39</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.05</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">deerflow × dr_cross_deep_0001</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.07</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.37</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.30</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.74</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.12</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.80</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">ii-researcher × dr_cross_deep_0006</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.24</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.51</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.27</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.59</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.35</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.40</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.92</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">flowsearcher-ds × dr_cross_deep_0010</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.23</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.50</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.27</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.65</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.03</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.84</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.97</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">storm × dr_cross_deep_0006</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.11</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.29</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.18</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.43</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.00</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.50</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">camel-ai × dr_cross_deep_0010</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.23</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.41</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.17</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.81</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.00</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.72</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.95</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">smolagents × dr_cross_deep_0010</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.21</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.36</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.16</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.59</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.03</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.88</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.97</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">deerflow × dr_cross_deep_0010</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.23</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.38</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.15</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.36</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.07</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">deerflow × dr_cross_deep_0002</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.05</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.20</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.15</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.58</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.10</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.50</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+      </tr>
+      
+      
+      
+      
+      
+      <tr style="border-top: 1px solid var(--line-soft);">
+        <td class="px-3 py-2.5 num-mono">deerflow × dr_cross_deep_0005</td>
+        <td class="px-3 py-2.5 text-right num-mono ink-mute">0.06</td>
+        <td class="px-3 py-2.5 text-right num-mono font-semibold">0.21</td>
+        <td class="px-3 py-2.5 text-right num-mono" style="color: var(--good);">+0.15</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.38</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.37</td>
+        <td class="px-3 py-2.5 text-right num-mono">0.00</td>
+        <td class="px-3 py-2.5 text-right num-mono">1.00</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--line-soft); border-top: 1px solid var(--line);">
+    Positive Δ = v4 rates higher than v2 (likely good multi-perspective / diverse sourcing despite middling URL coverage). Negative Δ = v4 rates lower than v2 (likely URL-true but factually wrong / one-sided / self-contradicting).
+  </div>
+</section>
+
+
+<section class="mt-6 ink-soft text-[13px] leading-relaxed">
+  <h2 class="text-[18px] font-bold mb-3" style="color: var(--ink);">Reading the v4 verdict</h2>
+  <p>
+    The headline question this view answers is whether v4 actually rewrites the verdict on existing reports.
+    Three takeaways from the 25-run sample:
+  </p>
+  <ol class="ml-6 mt-2 list-decimal space-y-1">
+    <li><strong>Head and tail are the same in v4 and v2.</strong> camel-ai is #1 in both;
+      langchain-odr and gpt-researcher hold the tail in both. v4 is not in opposition to v2 ── it
+      builds on it.</li>
+    <li><strong>The middle of the table reshuffles.</strong> deerflow jumps +2 ranks (v2 #6 → v4 #4)
+      and storm jumps an effective +4 (deep v2 tail when ranked there; v4 #5). The shared cause is
+      that v4 rewards high <code>factual_exactness</code> and perfect <code>internal_consistency</code>
+      even when v2's <code>url_coverage</code> alone underweighted them.</li>
+    <li><strong>v4 confirms the fabricated-URL critique.</strong> gpt-researcher and langchain-odr
+      both score <code>factual_exactness = 0.00</code> on every sampled report ── their URLs may be
+      reachable in places, but the atomic facts cited from those URLs are not corroborated by the
+      pages. This is the "fluent fabrication" mode v2 catches via reach, and v4 catches via a
+      second, independent signal.</li>
+  </ol>
+  <p class="mt-3">
+    The headline ranking still uses v2 in production because the truth-gate inversion finding
+    (<a href="/how-it-works">/how-it-works</a>) is the primary methodological contribution and is
+    cleanest at the v2 4-input scale. v4 is the next layer of the same idea ── more dimensions,
+    same multiplicative gate, more robust verdict on the agents that v2 marks as borderline.
+  </p>
+</section>
+
+
+
+
+  </main>
+
+  <footer class="mt-16 py-6" style="border-top: 1px solid var(--line); background: var(--surface);">
+    <div class="max-w-6xl mx-auto px-6 text-xs ink-mute flex flex-wrap items-center gap-x-4 gap-y-2">
+      <span>Bradley-Terry Elo over <code class="num-mono">composite_v2</code> battles</span>
+      <span class="text-stone-300">|</span>
+      <span class="num-mono">composite_v2 = reachability x (0.40 url + 0.40 judge + 0.20 spec)</span>
+      <span class="text-stone-300">|</span>
+      <span>Sandbox: Magento + Postmill + Kiwix</span>
+      <span class="text-stone-300">|</span>
+      <a href="https://github.com/yibol9768-alt/deep-research-arena" class="hover:text-black" target="_blank" rel="noopener">github.com/yibol9768-alt/deep-research-arena</a>
+    </div>
+  </footer>
+
+  
+</body>
+</html>

@@ -1,0 +1,518 @@
+{
+  "task": "dr_cross_deep_0015",
+  "answer_path": "data/results/deep/smolagents__dr_cross_deep_0015_matrix.md",
+  "answer_chars": 7401,
+  "url_coverage": {
+    "score": 0.1508,
+    "passed": false,
+    "details": {
+      "cited_unique": 33,
+      "must_cite_total": 129,
+      "must_cite_hit": 6,
+      "must_cite_recall": 0.0705,
+      "pool_total": 435,
+      "pool_hit": 6,
+      "pool_coverage": 0.0138,
+      "per_domain_cited": {
+        "__SHOPPING__": 11,
+        "__REDDIT__": 11,
+        "__WIKIPEDIA__": 10
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      },
+      "domain_balance": 0.3667,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.2812,
+    "passed": false,
+    "details": {
+      "cited_total": 33,
+      "cited_sandbox": 32,
+      "cited_off_sandbox": 1,
+      "probed": 32,
+      "http_200": 9,
+      "http_4xx": 23,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.2812,
+      "threshold": 0.3
+    }
+  },
+  "quote_match": {
+    "score": 0.5294,
+    "passed": true,
+    "details": {
+      "claims_total": 51,
+      "claims_supported": 27,
+      "claims_unreachable": 23,
+      "match_rate": 0.5294,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Trinity_study",
+          "supported": true,
+          "overlap": 0.429
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Safe_withdrawal_rate",
+          "supported": true,
+          "overlap": 0.125
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Financial_independence",
+          "supported": true,
+          "overlap": 0.435
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Passive_income",
+          "supported": true,
+          "overlap": 0.267
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Geographic_arbitrage",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/FIRE_movement",
+          "supported": true,
+          "overlap": 0.583
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 0.3333,
+    "passed": false,
+    "details": {
+      "citation_precision": 0.3333,
+      "citation_recall": 0.5,
+      "total_pairs": 51,
+      "supported_pairs": 17,
+      "fetch_failures": 23,
+      "sentences_with_cite": 22,
+      "sentences_with_supported_cite": 11,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "deepseek-v4-flash",
+        "base_url": "http://localhost:8088/v1"
+      },
+      "samples": [
+        {
+          "claim": "| Claim | Verdict | Triple Evidence |\n|-------|---------|-----------------|\n| (CL1) 'You can retire on $1M at age 45 with the 4% safe withdrawal rate (SWR)' | **DEBUNKED** | The Trinity study shows 4%",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Trinity_study",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "Safe withdrawal rate analysis indicates lower success rates for extended periods.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Safe_withdrawal_rate",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Financial Independence literature recommends 3-3.5% for early retirees.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Financial_independence",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "|\n| (CL2) 'Geographic arbitrage to Thailand or Mexico cuts cost-of-living by 70%' | **PARTIALLY_SUPPORTED** | While Passive income strategies can reduce costs, no dedicated Geographic arbitrage Wikipe",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Passive_income",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "|\n| (CL2) 'Geographic arbitrage to Thailand or Mexico cuts cost-of-living by 70%' | **PARTIALLY_SUPPORTED** | While Passive income strategies can reduce costs, no dedicated Geographic arbitrage Wikipe",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Geographic_arbitrage",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "The FIRE movement literature suggests 40-60% savings are realistic; 70% is anecdotally achievable but depends heavily on lifestyle and visa requirements.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/FIRE_movement",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "|\n| (CL3) 'Real-estate house-hacking is faster than index investing for FIRE' | **PARTIALLY_SUPPORTED** | Real estate investing offers leverage that can accelerate wealth building, but Passive income ",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Real_estate_investing",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "|\n| (CL3) 'Real-estate house-hacking is faster than index investing for FIRE' | **PARTIALLY_SUPPORTED** | Real estate investing offers leverage that can accelerate wealth building, but Passive income ",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Passive_income",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "|\n| (CL4) 'Healthcare cost is the #1 FIRE blocker pre-Medicare' | **SUPPORTED** | Health insurance in the United States is uniquely expensive among developed nations.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Health_insurance_in_the_United_States",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "The FIRE movement consistently identifies healthcare as the primary obstacle before Medicare eligibility at 65.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/FIRE_movement",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "|\n| (CL5) 'Sequence-of-returns risk is overstated by Bogleheads' | **DEBUNKED** | The Trinity study specifically identifies sequence-of-returns as critical.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Trinity_study",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Safe withdrawal rate research demonstrates that early retirement dramatically amplifies this risk.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Safe_withdrawal_rate",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Financial Independence planning must account for sequence risk.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Financial_independence",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Based on evidence from Trinity study and Safe withdrawal rate:",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Trinity_study",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "Based on evidence from Trinity study and Safe withdrawal rate:",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Safe_withdrawal_rate",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "Trinity study found 4% works for 30 years, not 50+.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Trinity_study",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "FIRE movement",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/FIRE_movement",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "Real estate investing",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Real_estate_investing",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "Health insurance US",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Health_insurance_in_the_United_States",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "Safe withdrawal rate",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/A/Safe_withdrawal_rate",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.4667,
+    "passed": false,
+    "details": {
+      "tier_a_passed": 0,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.0,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": false,
+          "detail": "contradiction_paragraphs=0"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": false,
+          "detail": "density=0.1, total_paragraphs=20"
+        }
+      ],
+      "tier_b_passed": 4,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.667,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies dose-response relationship and exponential risk pattern."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains why sequence risk is amplified for early retirees."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "No explicit comparison across different source types."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Synthesizes Trinity study and SWR data for novel dose-response table."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "No limitations or counterarguments acknowledged."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Provides specific SWR percentages and budget ranges."
+        }
+      ],
+      "judge_model": "deepseek-v4-flash",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies dose-response relationship and exponential risk pattern.\n2. PASS - Explains why sequence risk is amplified for early retirees.\n3. FAIL - No explicit comparison across different source types.\n4. PASS - Synthesizes Trinity study and SWR data for novel dose-response table.\n5. FAIL - No limitations or counterarguments acknowledged.\n6. PASS - Provides specific SWR percentages and budget ranges."
+    }
+  },
+  "presentation": {
+    "score": 0.4667,
+    "passed": false,
+    "details": {
+      "tier_a_passed": 4,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.667,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": false,
+          "detail": "h2_sections=4"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.638, word_counts=[9, 246, 118, 241]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": false,
+          "detail": "flesch_reading_ease=26.0"
+        }
+      ],
+      "tier_b_passed": 2,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.333,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": false,
+          "reason": "No intro, background, or conclusion sections present"
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": false,
+          "reason": "No bridging sentences between disjoint sections"
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": false,
+          "reason": "Contains \"Key finding\" meta-commentary"
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "5. FAIL - No conclusion section exists"
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": false,
+          "reason": "No conclusion section exists"
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": ""
+        }
+      ],
+      "judge_model": "deepseek-v4-flash",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. FAIL - No intro, background, or conclusion sections present\n2. FAIL - No bridging sentences between disjoint sections\n3. FAIL - Contains \"Key finding\" meta-commentary\n4. PASS\n5. FAIL - No conclusion section exists\n6. PASS"
+    }
+  },
+  "markdown_spec": {
+    "word_count": 633,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 51,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 18,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [
+      [
+        "Are exactly 5 FIRE claims defined (4% SWR / geo arbitrage / house hacking / healthcare blocker / SoR risk)?",
+        "PASS"
+      ],
+      [
+        "Does each claim receive a verdict in {SUPPORTED, PARTIALLY_SUPPORTED, DEBUNKED, UNDETERMINED}?",
+        "PASS"
+      ],
+      [
+        "For each claim, is there a shopping URL with the verbatim claim quote (e.g. book chapter title)?",
+        "FAIL"
+      ],
+      [
+        "For each claim, is there >= 1 reddit URL with practitioner experience?",
+        "FAIL"
+      ],
+      [
+        "For each claim, is there >= 1 wiki URL with the underlying mathematical or empirical basis?",
+        "FAIL"
+      ],
+      [
+        "Does each claim include a 1-paragraph reasoning?",
+        "PASS"
+      ],
+      [
+        "Are >= 10 shopping product pages (FIRE / retirement books) enumerated with price + rating?",
+        "FAIL"
+      ],
+      [
+        "Are >= 30 reddit threads from at least 4 FIRE-related sub-forums cited?",
+        "FAIL"
+      ],
+      [
+        "Are >= 25 wiki articles cited?",
+        "FAIL"
+      ],
+      [
+        "Are all 10 mandatory wiki articles (Trinity study, SWR, FI, FIRE movement, SoR risk, Geo arbitrage, US health insurance, REI, Passive income, Withdrawal Plan) cited?",
+        "FAIL"
+      ],
+      [
+        "Is a sequence-of-returns risk dose-response section included with quantitative analysis?",
+        "PASS"
+      ],
+      [
+        "Does the SoR section cite both wiki definitions AND reddit historical-failure-case discussions?",
+        "FAIL"
+      ],
+      [
+        "Is a 6-8 bullet 'FIRE realism cheat-sheet' included?",
+        "PASS"
+      ],
+      [
+        "Does each cheat-sheet bullet describe a non-product action (savings rate, tax strategy, work-life)?",
+        "PASS"
+      ],
+      [
+        "Does each cheat-sheet bullet cite >= 1 wiki URL?",
+        "PASS"
+      ],
+      [
+        "Are >= 60 distinct URLs cited?",
+        "FAIL"
+      ],
+      [
+        "Is per-domain minimum met: >= 10 shopping, >= 30 reddit, >= 25 wiki?",
+        "FAIL"
+      ],
+      [
+        "Is the report 3500-8000 words / >= 25 paragraphs?",
+        "FAIL"
+      ],
+      [
+        "Are at least 2 of the 5 verdicts DEBUNKED, PARTIALLY_SUPPORTED, or UNDETERMINED?",
+        "PASS"
+      ],
+      [
+        "Are all cited URLs markdown-linked and sandbox-resolvable?",
+        "FAIL"
+      ],
+      [
+        "Does the report avoid chain-of-thought and start with the verdict table?",
+        "PASS"
+      ]
+    ],
+    "pass_count": 9,
+    "fail_count": 12,
+    "unclear_count": 0,
+    "pass_rate": 0.4286,
+    "judge_error": null
+  },
+  "composite": {
+    "spec_pass_fraction": 0.0,
+    "quality_score": 0.2318,
+    "truth_factor": 0.1075,
+    "qm_factor": 0.7647,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.2812,
+    "raw_score_v3": 0.3418,
+    "citation_alignment": 0.3333,
+    "analysis_depth": 0.4667,
+    "presentation": 0.4667,
+    "composite_v3": 0.0961,
+    "composite_score": 0.0249,
+    "composite_v2": 0.0249,
+    "composite_v1": 0.0652,
+    "legacy_composite": 0.2254
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "deepseek-v4-flash",
+    "base_url": "http://localhost:8088/v1"
+  }
+}

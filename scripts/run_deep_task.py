@@ -190,6 +190,70 @@ def _setup_sandbox_shim() -> None:
 
 
 async def _run_gpt_researcher(intent: str) -> str:
+    # gpt-researcher 0.12.3 still imports several langchain submodules that
+    # were removed/relocated in langchain 1.x. Install runtime shims pointing
+    # at the new homes so legacy imports resolve.
+    import sys as _sys
+    import types as _types
+
+    def _shim_module(name: str, attrs: dict) -> None:
+        if name in _sys.modules:
+            return
+        m = _types.ModuleType(name)
+        for k, v in attrs.items():
+            setattr(m, k, v)
+        _sys.modules[name] = m
+
+    try:
+        from langchain_core.documents import Document as _LCDoc
+        from langchain_core.vectorstores import VectorStore as _LCVS
+        from langchain_text_splitters import (
+            RecursiveCharacterTextSplitter as _LCSplit,
+            CharacterTextSplitter as _LCCSplit,
+        )
+        _shim_module("langchain.docstore", {"document": None, "Document": _LCDoc})
+        _shim_module("langchain.docstore.document", {"Document": _LCDoc})
+        _sys.modules["langchain.docstore"].document = _sys.modules["langchain.docstore.document"]
+        _shim_module("langchain.vectorstores", {"VectorStore": _LCVS})
+        _shim_module("langchain.text_splitter", {
+            "RecursiveCharacterTextSplitter": _LCSplit,
+            "CharacterTextSplitter": _LCCSplit,
+        })
+        # Generic redirect: any future ``langchain.<x>`` import that fails
+        # falls through to ``langchain_core.<x>`` / ``langchain_community.<x>``.
+        # This catches the long tail of submodules gpt-researcher 0.12.3
+        # references (callbacks, schema, prompts, chains, ...).
+        import importlib.abc
+        import importlib.machinery
+
+        class _LangchainShimFinder(importlib.abc.MetaPathFinder):
+            _checked = set()
+
+            def find_spec(self, fullname, path, target=None):
+                if not fullname.startswith("langchain."):
+                    return None
+                if fullname in self._checked:
+                    return None
+                self._checked.add(fullname)
+                tail = fullname[len("langchain."):]
+                for parent in ("langchain_core", "langchain_community"):
+                    candidate = f"{parent}.{tail}"
+                    try:
+                        spec = importlib.util.find_spec(candidate)
+                    except (ImportError, ValueError, ModuleNotFoundError):
+                        continue
+                    if spec is None:
+                        continue
+                    real = importlib.import_module(candidate)
+                    _sys.modules[fullname] = real
+                    return importlib.util.spec_from_loader(fullname, loader=None)
+                return None
+
+        if not any(isinstance(f, _LangchainShimFinder) for f in _sys.meta_path):
+            _sys.meta_path.append(_LangchainShimFinder())
+    except Exception:
+        pass
+
     # FIX #1: Patch gpt-researcher's TavilySearch to use the sandbox shim for search,
     # and ensure the EMBEDDING env var is "custom:text-embedding-v4" so that the
     # OpenAIEmbeddings class reads OPENAI_BASE_URL (pointing at ds_proxy) instead of
@@ -1235,7 +1299,9 @@ async def _run_local_deep_researcher(intent: str, model: str) -> str:
 # FAST_LLM/SMART_LLM split, camel-ai's tool registration). Don't touch unless
 # you know what you're doing.
 _MANUAL_RUNNERS = {
-    "gpt-researcher":        _run_gpt_researcher,
+    # gpt-researcher: removed — subprocess runner at
+    # scripts/runners/gpt_researcher_runner.py takes precedence via
+    # auto-discovery.  Function body is kept for reference/fallback.
     "smolagents":            _run_smolagents,
     "camel-ai":              _run_camel,
     "storm":                 _run_storm,
@@ -1315,7 +1381,7 @@ async def main() -> int:
     err = None
     report = ""
     try:
-        out = runner(intent, args.backbone) if args.agent != "gpt-researcher" else runner(intent)
+        out = runner(intent, args.backbone)
         report = await out if asyncio.iscoroutine(out) else out
     except Exception as e:
         err = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"

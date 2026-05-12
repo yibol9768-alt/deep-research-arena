@@ -1,0 +1,424 @@
+\documentclass{article}
+\usepackage[preprint]{neurips_2026}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{natbib}
+\usepackage{wrapfig}
+\bibliographystyle{plainnat}
+
+\newcommand{\ours}{\textsc{SandboxDR}}
+
+\title{\ours{}: A Reproducible Multi-Source Benchmark\\for Deep Research Agents with Deterministic Ground Truth}
+
+\author{Anonymous Authors}
+
+\begin{document}
+\maketitle
+
+% ======================================================================
+\begin{abstract}
+Deep research agents have proliferated since 2025. These systems decompose complex queries, search heterogeneous sources, and synthesize long-form cited reports~\citep{drsurvey2025}. Evaluation, however, remains fragmented. The dominant paradigm of live-web benchmarking conflates agent capability with retrieval infrastructure, produces non-reproducible results, and cannot detect citation fabrication~\citep{browsecomp_plus2025}. We introduce \ours{}, a fully reproducible benchmark of 100 cross-source research tasks spanning 13 domains and 6 intent types (recommendation, comparison, debunking, causal explanation, timeline, enumeration). Agents search, interact with, and synthesize information from three containerized sandbox sources: an e-commerce storefront, a discussion forum, and an encyclopedia. All agents face an identical, frozen retrieval surface. Each task carries a deterministic ground truth of $\geq$120 must-cite URLs and a 21-item evaluation checklist. We evaluate 9 open-source frameworks and observe a \emph{fluent hallucinator} phenomenon: without a URL-reachability truthfulness gate, an agent that fabricates 97.5\% of its citations ranks first on text-quality metrics alone. Once the gate is applied, only grounded agents survive. Because LLM-judge evaluation~\citep{llmjudge2024} cannot detect this failure mode, deterministic citation verification is a prerequisite for sound deep research assessment.
+\end{abstract}
+
+% ======================================================================
+\section{Introduction}
+\label{sec:intro}
+
+Deep research is the process by which an agentic AI system decomposes a complex, open-ended query into sub-tasks, iteratively retrieves evidence from diverse sources, and synthesizes the results into a structured, citation-grounded report~\citep{draco2026,drbench2026}. Unlike closed-book question answering~\citep{gaia2024,hle2025} or single-hop retrieval-augmented generation~\citep{frames2024,fanoutqa2024}, deep research demands multi-step planning, cross-source reasoning, and the production of long-form outputs whose breadth rivals that of a human domain expert~\citep{drsurvey2025}.
+
+Both commercial and open-source deep research systems have multiplied rapidly. Commercial offerings (OpenAI Deep Research, Gemini Deep Research, and Perplexity Deep Research) now serve millions of queries daily. Open-source frameworks such as STORM~\citep{storm2024}, Co-STORM~\citep{costorm2024}, MindSearch~\citep{mindsearch2025}, GPT-Researcher~\citep{gptresearcher2024}, and CAMEL-AI~\citep{camelai2023} have made deep research accessible to the broader community. This proliferation has created a pressing need for standardized evaluation.
+
+\paragraph{The reproducibility crisis.} The benchmark landscape has grown correspondingly: DRACO~\citep{draco2026}, DR.~Bench~\citep{drbench2026}, LiveResearchBench~\citep{liveresearchbench2026}, ResearchRubrics~\citep{researchrubrics2025}, DeepResearch Bench~\citep{drb2025}, and others~\citep{drb2_2026,mmdr2026,dr9k2026,reportbench2025,kdrbench2026} have collectively proposed thousands of evaluation tasks. However, nearly all rely on live-web APIs. As \citet{browsecomp_plus2025} observe, such evaluations ``conflate agent system performance with the effectiveness of their retrieval components, [which] severely undermines the reproducibility of experiments.'' The same agent, run on the same benchmark one month apart, may produce different results simply because search rankings have shifted, websites have been updated, or API rate limits have changed~\citep{deepresearchgym2025}. This makes controlled scientific comparison impossible.
+
+\paragraph{The citation truthfulness gap.} A subtler but equally serious problem is \emph{citation fabrication}. Deep research agents are expected to cite their sources, yet we find that some agents generate fluent, well-structured reports with high LLM-judge scores while fabricating the vast majority of their citations. Recent audits of AI-assisted academic writing have found hundreds of hallucinated references in papers accepted at NeurIPS 2025 and ICLR 2026, all missed by multiple peer reviewers. Existing DR benchmarks, which evaluate reports primarily through text-quality rubrics~\citep{draco2026,liveresearchbench2026,researchrubrics2025}, share this vulnerability: they cannot verify whether a cited URL actually exists, let alone whether it supports the claim made in the report.
+
+\paragraph{Contributions.} We present \ours{}, a benchmark designed to address both gaps simultaneously:
+\begin{enumerate}[leftmargin=*,itemsep=3pt]
+\item \textbf{Three-source interactive sandbox} (\S\ref{sec:sandbox}). We combine a Magento e-commerce storefront (${\sim}2{,}000$ products), a Postmill discussion forum (${\sim}5{,}000$ threads), and a Kiwix-served English Wikipedia mirror (${\sim}200{,}000$ articles) into a single Docker-based environment. Unlike prior sandboxes that offer either pure IR~\citep{deepresearchgym2025,browsecomp_plus2025} or pure task completion~\citep{webarena2024}, ours requires agents to exercise both retrieval and interaction across heterogeneous source types.
+
+\item \textbf{100 tasks with an intent-type taxonomy} (\S\ref{sec:tasks}). Tasks span 13 domains and 6 intent types (Recommendation, Comparison, Debunking, Causal, Timeline, Enumeration), enabling stratified analysis that flat, untyped benchmarks cannot support.
+
+\item \textbf{Deterministic citation ground truth} (\S\ref{sec:golden}). Each task is paired with $\geq$120 must-cite sandbox URLs and a 21-item checklist, enabling verification that is impossible when ground truth shifts with every search-API call.
+
+\item \textbf{The fluent hallucinator finding} (\S\ref{sec:f6}). A scoring ablation shows that removing our URL-reachability gate causes the most citation-fabricating agent to rank first, exposing a blind spot in text-only evaluation.
+\end{enumerate}
+
+% ======================================================================
+\section{Related Work}
+\label{sec:related}
+
+We organize prior work along two axes: how agents access information (live-web vs.\ controlled), and how outputs are scored.
+
+\paragraph{Live-web DR benchmarks.} DeepResearch Bench~\citep{drb2025} pioneered PhD-level evaluation across 22 fields, later extended with rubric-based diagnostics in DRB~II~\citep{drb2_2026}. DRACO~\citep{draco2026} raised the bar with 100 tasks mined from Perplexity production queries, graded by 26 domain experts across 4 axes and ${\sim}39$ rubric criteria per task. LiveResearchBench~\citep{liveresearchbench2026} evaluates 17 systems on 100 dynamic tasks, while ResearchRubrics~\citep{researchrubrics2025} provides expert-crafted rubrics for 101 tasks across 9 domains. DR.~Bench~\citep{drbench2026} covers 214 tasks with a multiplicative composite incorporating semantic drift. The landscape continues to expand: MMDeepResearch-Bench~\citep{mmdr2026} targets multimodal report generation (140 tasks, 21 domains), DeepResearch-9K~\citep{dr9k2026} scales to 9{,}000 questions, ReportBench~\citep{reportbench2025} benchmarks against expert academic surveys, and KDR-Bench~\citep{kdrbench2026} emphasizes structured-knowledge grounding with 1{,}252 tables. Across these benchmarks, the same limitation recurs: live-web dependence makes exact replication impossible.
+
+\paragraph{Controlled-environment benchmarks.} Recognizing this, several works have moved toward static or sandboxed corpora. BrowseComp~\citep{browsecomp2025} proposed 1{,}266 fact-seeking questions; BrowseComp-Plus~\citep{browsecomp_plus2025} froze these into a 100K-document corpus, cleanly demonstrating that retrieval quality alone accounts for a 14-point gap on GPT-5. DeepResearchGym~\citep{deepresearchgym2025} indexes ClueWeb22 and FineWeb via DiskANN, achieving sub-commercial-API latency. DR$^3$-Eval~\citep{dr3eval2026} constructs per-task static corpora with multimodal support. On the interactive side, DRBench Enterprise~\citep{drbench_ent2026} containerizes four enterprise applications in Docker. WebArena~\citep{webarena2024} pioneered multi-app sandboxing for web agents but targets task completion, not research synthesis.
+
+\paragraph{Evaluation methodology.} Beyond output quality, TRACE~\citep{trace2026} evaluates trajectory efficiency and cognitive quality at the ACM Web Conference 2026. IDRBench~\citep{idrbench2026} benchmarks interactive DR with user-in-the-loop feedback. For citation evaluation specifically, ALCE~\citep{alce2023} establishes the claim-source alignment paradigm. \citet{llmjudge2024} survey LLM-as-judge methods and document position bias, verbosity bias, and self-enhancement bias.
+
+\paragraph{Agent frameworks.} STORM~\citep{storm2024} generates Wikipedia-like articles via outline-first, multi-perspective questioning; Co-STORM~\citep{costorm2024} extends this to collaborative human-agent dialogue. MindSearch~\citep{mindsearch2025} mimics human cognitive search with a DAG-based multi-agent architecture. \citet{drsurvey2025} provide a taxonomy distinguishing plan-and-execute, iterative-refinement, and multi-agent paradigms.
+
+\paragraph{Our positioning.} Table~\ref{tab:comparison} situates \ours{} within this landscape. We inherit WebArena's~\citep{webarena2024} interactive sandbox lineage and BrowseComp-Plus's~\citep{browsecomp_plus2025} static-corpus reproducibility, and add two features absent from all prior benchmarks: intent-type stratification and deterministic citation ground truth.
+
+\begin{table}[t]
+\centering
+\caption{Comparison with representative deep research benchmarks. \textbf{Reprod.}~= reproducible across time; \textbf{M-src}~= heterogeneous multi-source; \textbf{Inter.}~= interactive sites (not pure IR); \textbf{Intent}~= structured intent taxonomy; \textbf{Det.~GT}~= deterministic citation ground truth.}
+\label{tab:comparison}
+\vspace{1mm}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+\textbf{Benchmark} & \textbf{Tasks} & \textbf{Dom.} & \textbf{Reprod.} & \textbf{M-src} & \textbf{Inter.} & \textbf{Intent} & \textbf{Det.~GT} \\
+\midrule
+DRACO~\citep{draco2026}               & 100 & 10 & \texttimes & \texttimes & \texttimes & \texttimes & \texttimes \\
+LiveResBench~\citep{liveresearchbench2026}   & 100 & 7  & \texttimes & \texttimes & \texttimes & \texttimes & \texttimes \\
+DR.~Bench~\citep{drbench2026}         & 214 & 10 & \texttimes & \texttimes & \texttimes & \texttimes & \texttimes \\
+ResRubrics~\citep{researchrubrics2025} & 101 & 9  & \texttimes & \texttimes & \texttimes & \texttimes & \texttimes \\
+DRB~II~\citep{drb2_2026}              & 132 & 22 & \texttimes & \texttimes & \texttimes & \texttimes & \texttimes \\
+ReportBench~\citep{reportbench2025}    & var & acad & \texttimes & \texttimes & \texttimes & \texttimes & \texttimes \\
+\cmidrule(lr){1-8}
+BC-Plus~\citep{browsecomp_plus2025}    & 830 & broad & \checkmark & \texttimes & \texttimes & \texttimes & \texttimes \\
+DRGym~\citep{deepresearchgym2025}      & ${\sim}$1K & broad & \checkmark & \texttimes & \texttimes & \texttimes & \texttimes \\
+DR$^3$-Eval~\citep{dr3eval2026}       & var & multi & \checkmark & \texttimes & \texttimes & \texttimes & \texttimes \\
+DRBench-E~\citep{drbench_ent2026}     & 100 & ent  & \checkmark & \checkmark & \checkmark & \texttimes & partial \\
+WebArena~\citep{webarena2024}          & 812 & web  & \checkmark & \checkmark & \checkmark & \texttimes & \texttimes \\
+\midrule
+\textbf{\ours{} (Ours)} & \textbf{100} & \textbf{13} & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ======================================================================
+\section{Benchmark Design}
+\label{sec:design}
+
+\subsection{Sandbox Architecture}
+\label{sec:sandbox}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_architecture.png}
+\caption{\ours{} architecture. Three Docker-containerized sandbox sources (top) expose heterogeneous information modalities: e-commerce product pages, community discussion threads, and encyclopedic articles. A Tavily-compatible search shim and a centralized LLM proxy (middle) allow unmodified agent frameworks (bottom) to operate without code changes. The evaluation pipeline (right) combines deterministic URL verification with LLM-judge assessment.}
+\label{fig:architecture}
+\end{figure}
+
+The sandbox (Figure~\ref{fig:architecture}) runs three Docker containers, each serving a distinct information modality:
+
+\textbf{Shopping} (Magento~2, port 7770). Inherited from WebArena~\citep{webarena2024}, the storefront hosts ${\sim}2{,}000$ product pages across categories such as electronics, household goods, books, health products, and outdoor gear. Each product page exposes structured attributes (price, star rating, review count, and free-text feature descriptions) that agents can extract through search or direct browsing.
+
+\textbf{Forum} (Postmill, port 9999). Also from the WebArena ecosystem, the forum hosts ${\sim}5{,}000$ discussion threads across 20+ topic-specific sub-forums (technology, personalfinance, AskReddit, Fitness, etc.). Threads carry metadata including vote scores and comment counts, enabling sentiment analysis.
+
+\textbf{Encyclopedia} (Kiwix, port 8090). An offline Wikipedia mirror serving ${\sim}200{,}000$ articles in the ZIM format. Agents can perform keyword search and read full article text, providing factual and technical grounding.
+
+\textbf{Infrastructure.} A \emph{search shim} (port 8081) presents a Tavily-compatible search API and routes queries to the appropriate sandbox source. All agents share a single LLM backbone, DeepSeek V4 flash with chain-of-thought reasoning disabled, accessed through a centralized proxy (port 8088). The agent framework itself is therefore the only experimental variable: architecture, prompting strategy, and tool-use patterns.
+
+\subsection{Task Design}
+\label{sec:tasks}
+
+\paragraph{Scale and domains.} We construct 100 research tasks spanning 13 thematic domains (Table~\ref{tab:domain_intent}). This matches the scale of leading benchmarks: DRACO~\citep{draco2026} and LiveResearchBench~\citep{liveresearchbench2026} each have 100 tasks; ResearchRubrics~\citep{researchrubrics2025} has 101. Our domain coverage (13 domains) exceeds most competitors.
+
+\begin{table}[t]
+\centering
+\caption{Task distribution across domains and intent types. Each cell shows the number of tasks. The design ensures balanced coverage: 15--17 tasks per intent type and 5--12 per domain.}
+\label{tab:domain_intent}
+\vspace{1mm}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccccc|c@{}}
+\toprule
+\textbf{Domain} & \textbf{Recom.} & \textbf{Comp.} & \textbf{Debunk} & \textbf{Causal} & \textbf{Time.} & \textbf{Enum.} & \textbf{Total} \\
+\midrule
+Consumer         & 3 & 2 & -- & 1 & 1 & 1 & 8 \\
+Health/Medicine  & 2 & 2 & 2 & 2 & 2 & 1 & 11 \\
+Technology       & 2 & 2 & 2 & 2 & 2 & 2 & 12 \\
+Environment      & 2 & 1 & 2 & 2 & 2 & 2 & 11 \\
+Business         & 2 & 1 & 1 & 2 & 1 & 2 & 9 \\
+Politics         & 1 & 2 & 1 & 2 & 1 & 1 & 8 \\
+Finance          & 1 & 1 & 1 & 1 & 1 & 1 & 6 \\
+Law              & -- & 1 & -- & 1 & 1 & 2 & 5 \\
+Travel           & 1 & 2 & 1 & -- & 1 & 1 & 6 \\
+Education        & 1 & 1 & 1 & 1 & 1 & 1 & 6 \\
+Entertainment    & 1 & 1 & 1 & 1 & 1 & 1 & 6 \\
+Science          & -- & 1 & 1 & 1 & 1 & 1 & 5 \\
+Health/Safety    & 1 & -- & 4 & -- & 1 & 1 & 7 \\
+\midrule
+\textbf{Total}   & \textbf{17} & \textbf{17} & \textbf{17} & \textbf{16} & \textbf{16} & \textbf{17} & \textbf{100} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Intent taxonomy.} Unlike prior benchmarks that treat all tasks as undifferentiated research queries, we introduce a six-type intent taxonomy reflecting distinct cognitive demands:
+
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+\item \textbf{Recommendation} (e.g., ``What are the best home blood pressure monitors?''): product search, feature comparison, and sentiment aggregation across shopping and forum sources.
+\item \textbf{Comparison} (e.g., ``AWS vs.\ Azure vs.\ GCP for startup workloads''): structured multi-dimensional matrices with evidence from all three sources.
+\item \textbf{Debunking} (e.g., ``Audit 5 claims about 5G health risks''): claim extraction, evidence retrieval, and verdict classification (supported/refuted/unclear).
+\item \textbf{Causal} (e.g., ``Why do antibiotics cause bacterial resistance?''): causal-chain construction from encyclopedic knowledge, supported by product data and community discussion.
+\item \textbf{Timeline} (e.g., ``Evolution of smartphone processors 2007--2026''): chronological organization with dated milestones and citations.
+\item \textbf{Enumeration} (e.g., ``Catalog of USB standards and connector types''): exhaustive coverage with structured attributes per item.
+\end{itemize}
+
+This taxonomy enables \emph{intent-stratified analysis}: we can identify which agent architectures excel at which cognitive strategies. DRACO~\citep{draco2026}, LiveResearchBench~\citep{liveresearchbench2026}, and all other benchmarks we surveyed lack this capability.
+
+\paragraph{Task generation pipeline.} Tasks are produced through a four-stage semi-automated pipeline:
+
+\textit{Stage 1: Topic generation.} An LLM (GLM-4-flash) proposes candidate topics with domain-specific shopping keywords ($n{=}9$), forum names ($n{=}8$), and Wikipedia article titles (10 mandatory + 15 supplementary). We generate 5 candidates per (domain, intent) cell and select the most sandbox-compatible.
+
+\textit{Stage 2: Sandbox validation.} Every keyword and article title is validated against the live sandbox through HTTP probes: shopping keywords must return $>$0 products, forums must exist in Postmill, and Wikipedia titles must resolve in Kiwix. Invalid entries are replaced with verified alternatives.
+
+\textit{Stage 3: Golden scraping.} A dedicated scraper harvests all relevant URLs from the sandbox for each topic, adaptively balancing across the three sources to produce a golden set of $\geq$120 must-cite URLs (mean: 135, median: 135). Cross-source requirements ensure each golden set spans at least 2 (typically 3) domains.
+
+\textit{Stage 4: Task specification.} An LLM generates the full intent prompt (mean 1{,}937 characters) and a 21-item evaluation checklist tailored to the topic and intent type. Prompts include sandbox placeholders (\texttt{\_\_SHOPPING\_\_}, \texttt{\_\_REDDIT\_\_}, \texttt{\_\_WIKIPEDIA\_\_}) that are resolved at runtime.
+
+\textit{Quality assurance.} All 100 tasks pass automated validation: no missing fields, no unresolved placeholders, golden completeness $\geq$90 must-cite URLs per task, and checklist length $\geq$15 items.
+
+\subsection{Deterministic Ground Truth}
+\label{sec:golden}
+
+A key limitation of live-web benchmarks is the absence of stable ground truth~\citep{browsecomp_plus2025}. When an agent cites a URL, the benchmark cannot verify whether that URL existed when the agent ran, what content it contained, or whether it supports the agent's claim. Rubric-based evaluation~\citep{draco2026,researchrubrics2025} partially addresses this through expert-designed criteria, but remains fundamentally text-centric.
+
+\ours{} provides \emph{deterministic} citation ground truth. For each task, the golden JSON contains: (i) $\geq$120 must-cite URLs drawn from the sandbox, representing pages a comprehensive report \emph{should} reference; (ii) a pool of ${\sim}500$ expected URLs representing the broader relevant surface; and (iii) structured knowledge triples (subject, predicate, object, source\_url) extracted from product pages, forum threads, and encyclopedia articles.
+
+Because the sandbox is frozen, every URL is stable. We can deterministically check whether a cited URL (a)~exists, (b)~returns HTTP~200, (c)~contains text matching the agent's quoted excerpt, and (d)~supports the agent's claim. This implements the full ALCE~\citep{alce2023} citation-quality pipeline with ground truth that never drifts.
+
+\subsection{Scoring Framework}
+\label{sec:scoring}
+
+We combine deterministic verification with LLM-judge evaluation across seven weighted quality dimensions plus a truthfulness gate.
+
+\textbf{URL Coverage} ($w{=}0.20$). Must-cite recall (fraction of golden URLs cited), pool coverage, and domain balance across the three sources. This measures coverage: did the agent find the relevant information?
+
+\textbf{URL Reachability} (truthfulness gate, multiplicative). Every cited URL is probed via HTTP. If an agent fabricates URLs, its reachability approaches zero, which multiplicatively floors the composite at 10\% of quality. Treating truthfulness as a near-prerequisite rather than a weighted factor is the central design choice of our scoring framework.
+
+\textbf{Quote Match} ($w{=}0.20$). Fuzzy string matching of in-text quotations against the actual page content at cited URLs, measuring \emph{faithfulness} of extraction.
+
+\textbf{Checklist Judge} ($w{=}0.20$). A 21-item task-specific checklist evaluated by an LLM judge (PASS / FAIL / UNCLEAR per item), following the binary-rubric approach of DRACO~\citep{draco2026}.
+
+\textbf{Spec Compliance} ($w{=}0.10$). Format requirements: word count (3{,}500--8{,}000), citation count ($\geq$60 markdown links), paragraph count ($\geq$25).
+
+\textbf{Citation Alignment} ($w{=}0.15$). For each (claim, cited URL) pair, an LLM judge decides whether the cited page actually supports the claim, following the ALCE paradigm~\citep{alce2023}.
+
+\textbf{Analysis Depth} ($w{=}0.10$). Six structural and six judge-rated criteria capturing causal reasoning, multi-perspective treatment, and quantitative grounding.
+
+\textbf{Presentation} ($w{=}0.05$). Six deterministic format checks plus six judge-rated criteria on clarity and structure.
+
+\paragraph{Composite score.} The truthfulness-gated composite (\textsc{V3}) is:
+\begin{equation}
+\text{score} = \underbrace{\max(0.1, r)}_{\text{ground gate}} \;\times\; \underbrace{\bigl(0.20\,u + 0.20\,q + 0.20\,j + 0.15\,a + 0.10\,d + 0.10\,s + 0.05\,p\bigr)}_{\text{quality}}
+\label{eq:composite}
+\end{equation}
+where $r{=}\text{reachability}$, $u{=}\text{url\_coverage}$, $q{=}\text{quote\_match}$, $j{=}\text{judge\_pass\_rate}$, $a{=}\text{citation\_alignment}$, $d{=}\text{analysis\_depth}$, $s{=}\text{spec\_compliance}$, and $p{=}\text{presentation}$. The multiplicative gate floors at 0.1 to retain partial credit for low-but-nonzero reachability while still penalizing wholesale fabrication: an agent with $r{=}0$ keeps only 10\% of its quality score, an order of magnitude below grounded competitors. We also report \textsc{V1}, an additive variant $0.4\,u + 0.4\,j + 0.2\,s$ \emph{without} the gate, used in \S\ref{sec:f6} to expose the fluent-hallucinator phenomenon. Rankings are computed via the Bradley-Terry model~\citep{bradleyterry1952} with 95\% CIs from 1{,}000 bootstrap resamples.
+
+% ======================================================================
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Systems Evaluated}
+
+We evaluate 9 open-source frameworks, all on the same hardware (NVIDIA RTX 5090, 32\,GB VRAM) with the same LLM backbone (DeepSeek V4 flash, reasoning disabled):
+
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+\item \textbf{CAMEL-AI}~\citep{camelai2023}: Multi-agent role-playing with autonomous tool use.
+\item \textbf{SmolagentS}: Hugging Face's code-based agentic framework.
+\item \textbf{GPT-Researcher}~\citep{gptresearcher2024}: Parallel sub-query decomposition with iterative report refinement.
+\item \textbf{Langchain-ODR}: LangChain's plan-and-execute Open Deep Research.
+\item \textbf{STORM}~\citep{storm2024}: Outline-first, multi-perspective questioning.
+\item \textbf{DeerFlow}: ByteDance's multi-agent research framework.
+\item \textbf{FlowSearcher}: Our hierarchical-memory agent (L1/L2/L3 memory tiers).
+\item \textbf{II-Researcher}: Iterative self-critique and refinement.
+\item \textbf{Local-Deep-Research} (LDR): Lightweight local-first agent that streams citations as it browses.
+\end{itemize}
+
+Each agent's search is routed to the sandbox shim, and LLM calls go through the shared proxy. No agent has internet access. The judge LLM is the same DeepSeek V4 flash served through a separate endpoint, isolating judge calls from agent calls; cross-family judges (GPT-5, Claude) are reserved for the multi-judge robustness study (\S\ref{sec:limitations}).
+
+\subsection{Main Results}
+
+\begin{table}[t]
+\centering
+\caption{Headline leaderboard under the V3 truthfulness-gated composite (Eq.~\ref{eq:composite}). Bradley-Terry Elo~\citep{bradleyterry1952} with 95\% CI from 1{,}000 bootstrap resamples on 240 head-to-head battles per agent (30 common tasks $\times$ 8 opponents). The top~3 form a clear tier ($p > 0.2$ within), separated from the bottom~6 by 341~Elo points ($p < 0.001$); the bottom~6 are pairwise indistinguishable ($p > 0.8$).}
+\label{tab:leaderboard}
+\vspace{1mm}
+\small
+\begin{tabular}{@{}rlccccc@{}}
+\toprule
+\textbf{Rank} & \textbf{Agent} & \textbf{Elo} & \textbf{95\% CI} & \textbf{W} & \textbf{L} & \textbf{D} \\
+\midrule
+1 & CAMEL-AI         & \textbf{1314} & [1232, 1400] & 187 & 19 & 34 \\
+2 & SmolagentS       & \underline{1237} & [1149, 1305] & 158 & 29 & 53 \\
+3 & FlowSearcher (ours) & 1231 & [1156, 1309] & 166 & 32 & 42 \\
+\cmidrule(lr){1-7}
+4 & DeerFlow         & 890 & [854, 933] &  12 & 72 & 156 \\
+5 & GPT-Researcher   & 874 & [843, 916] &   5 & 74 & 161 \\
+6 & LDR              & 869 & [838, 911] &   0 & 72 & 168 \\
+7 & Langchain-ODR    & 862 & [835, 896] &   0 & 76 & 164 \\
+8 & STORM            & 862 & [834, 894] &   0 & 77 & 163 \\
+9 & II-Researcher    & 860 & [833, 895] &   0 & 77 & 163 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:leaderboard} presents the primary ranking. CAMEL-AI, SmolagentS, and FlowSearcher form an indistinguishable top tier (pairwise Elo gaps of 6--77 are non-significant at $p > 0.2$), a tier that is decisively separated from the bottom six by a 341~Elo gap ($p < 0.001$ by permutation test).
+
+\paragraph{What separates the tiers?} Table~\ref{tab:profiles} decomposes the composite into its constituent dimensions. The top-3 agents achieve high URL reachability (CAMEL-AI 0.91, FlowSearcher 0.80, SmolagentS 0.71), meaning they actually navigate the sandbox and cite real pages. The bottom six split into two failure modes: \emph{wholesale fabrication} (GPT-Researcher 0.03, Langchain-ODR 0.004, II-Researcher 0.002, STORM 0.0 reachability), and \emph{output collapse} (DeerFlow, LDR, STORM cite very few URLs at all). The fabricators generate plausible-looking sandbox URLs that do not correspond to any page that actually exists.
+
+This failure is decoupled from report quality. GPT-Researcher achieves the highest scores on url\_coverage (0.191), checklist judge (0.610), analysis depth (0.301), and presentation (0.682), outperforming the top tier on most quality dimensions. Yet its composite score is 0.030, because the truthfulness gate reduces its effective score to 10\% of its quality.
+
+\begin{table}[t]
+\centering
+\caption{Per-dimension raw means (V3 score files, $n{=}30$ tasks per agent except CAMEL-AI which extends to $n{=}56$). \textbf{Bold}: best in column. \underline{Underline}: second best. \texttt{cite} is citation alignment; \texttt{depth} is analysis depth; \texttt{pres} is presentation. GPT-Researcher leads four of seven quality dimensions yet collapses on \texttt{reach} and \texttt{cite}, dragging its composite an order of magnitude below the top tier.}
+\label{tab:profiles}
+\vspace{1mm}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+\textbf{Agent} & \textbf{url\_cov} & \textbf{reach} & \textbf{quote} & \textbf{judge} & \textbf{cite} & \textbf{depth} & \textbf{pres} & \textbf{spec} & \textbf{comp.\ V3} \\
+\midrule
+CAMEL-AI         & 0.137 & \textbf{0.905} & \textbf{0.780} & 0.592 & \textbf{0.600} & 0.192 & 0.651 & \underline{0.667} & \textbf{0.468} \\
+FlowSearcher     & 0.096 & \underline{0.795} & \underline{0.726} & 0.492 & \underline{0.511} & 0.192 & 0.634 & \textbf{0.678} & \underline{0.368} \\
+SmolagentS       & 0.117 & 0.713 & 0.634 & 0.444 & 0.416 & 0.196 & 0.559 & 0.356 & 0.315 \\
+DeerFlow         & 0.006 & 0.155 & 0.017 & 0.256 & 0.000 & 0.259 & 0.581 & 0.444 & 0.032 \\
+GPT-Researcher   & \textbf{0.191} & 0.031 & 0.001 & \textbf{0.610} & 0.000 & \underline{0.301} & \textbf{0.682} & 0.622 & 0.030 \\
+LDR              & 0.007 & 0.650 & 0.000 & 0.103 & 0.000 & 0.015 & 0.233 & 0.000 & 0.024 \\
+Langchain-ODR    & 0.071 & 0.004 & 0.001 & \underline{0.498} & 0.000 & \textbf{0.318} & \underline{0.671} & 0.511 & 0.023 \\
+II-Researcher    & 0.031 & 0.002 & 0.001 & 0.398 & 0.000 & 0.050 & 0.299 & 0.122 & 0.012 \\
+STORM            & 0.000 & 0.000 & 0.000 & 0.356 & 0.000 & 0.000 & 0.189 & 0.000 & 0.008 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ======================================================================
+\section{Analysis}
+\label{sec:analysis}
+
+\subsection{The Fluent Hallucinator Finding}
+\label{sec:f6}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fig_f6_finding.png}
+\caption{The fluent hallucinator effect. \textbf{Left}: V3 ranking with truthfulness gate (CAMEL-AI / SmolagentS / FlowSearcher form the top tier). \textbf{Right}: V1 ranking without the gate. GPT-Researcher jumps from rank~5 to rank~1 despite fabricating 97.5\% of its citations. Kendall~$\tau{=}0.50$.}
+\label{fig:f6}
+\end{figure}
+
+To isolate the effect of the truthfulness gate, we recompute rankings using the V1 additive composite $0.4\,u + 0.4\,j + 0.2\,s$ that ignores reachability entirely. The result (Figure~\ref{fig:f6}) is dramatic:
+
+\vspace{1mm}
+\begin{center}
+\footnotesize
+\begin{tabular}{ll}
+\textbf{V3 (with gate):} & CAMEL-AI $>$ SmolagentS $>$ FlowSearcher $\gg$ DeerFlow $>$ GPT-R $>$ LDR $>$ ODR $>$ STORM $>$ II-R \\
+\textbf{V1 (no gate):}  & GPT-R $>$ CAMEL-AI $>$ SmolagentS $>$ FlowSearcher $>$ ODR $>$ II-R $>$ DeerFlow $>$ LDR $>$ STORM \\
+\end{tabular}
+\end{center}
+\vspace{1mm}
+
+The Kendall $\tau$ between these rankings is 0.50: a substantial reordering driven entirely by the gate. GPT-Researcher rises from rank~5 to rank~1, leapfrogging the entire top tier; it produces the most fluent, best-structured reports with the highest checklist pass rates and analysis-depth scores, yet 97.5\% of its cited URLs do not exist in the sandbox (Table~\ref{tab:fab}).
+
+\begin{table}[t]
+\centering
+\caption{Citation fabrication rate by agent (1 -- HTTP-200 reachability over all cited URLs). Three agents fabricate near-completely; one fabricates a quarter of citations; the rest cite real pages or cite very few URLs at all.}
+\label{tab:fab}
+\vspace{1mm}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Agent} & \textbf{Cited URLs} & \textbf{Fabrication \%} \\
+\midrule
+Langchain-ODR    & 1{,}247 & \textbf{99.1\%} \\
+II-Researcher    &   395 & \textbf{98.5\%} \\
+GPT-Researcher   & 1{,}870 & \textbf{97.5\%} \\
+DeerFlow         &   406 & 87.4\% \\
+SmolagentS       & 1{,}397 & 23.9\% \\
+FlowSearcher     & 1{,}577 & 24.0\% \\
+LDR              &    67 & 10.4\% \\
+CAMEL-AI         & 3{,}152 & \phantom{0}8.8\% \\
+STORM            &     0 & --- (cites nothing) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why this matters.} An LLM judge~\citep{llmjudge2024} evaluating the same reports without URL verification would rank GPT-Researcher first by a wide margin. This is not a hypothetical failure mode. It mirrors the real-world problem of hallucinated citations in AI-assisted academic writing, where plausible-looking references pass peer review despite being entirely fabricated. Because our corpus is frozen and fully known, URL verification is deterministic, complete, and zero-cost.
+
+\subsection{Scoring Ablation}
+\label{sec:ablation}
+
+We probe the V3 composite by zeroing each scoring dimension in turn, recomputing the Bradley-Terry leaderboard, and measuring rank stability via Kendall~$\tau$ (Table~\ref{tab:ablation}). The V1$\leftrightarrow$V3 inversion in \S\ref{sec:f6} is the headline rank-altering perturbation; here we study finer-grained leave-one-out effects.
+
+\begin{table}[t]
+\centering
+\caption{Leave-one-out ablation on the V3 composite (9 agents, 30 common tasks). Reachability is again the only dimension whose removal substantially reorders the leaderboard (the bottom-six fabrication-fed cluster collapses upward). Quality dimensions are correlated and individually rank-irrelevant given the present spread of agents.}
+\label{tab:ablation}
+\vspace{1mm}
+\small
+\begin{tabular}{@{}lcl@{}}
+\toprule
+\textbf{Dropped dimension} & \textbf{$\tau$ vs.\ V3} & \textbf{Effect on top tier} \\
+\midrule
+url\_coverage      & 1.00 & none \\
+quote\_match       & 0.94 & top tier intact; bottom shuffles \\
+checklist\_judge   & 1.00 & none \\
+citation\_alignment & 0.94 & top tier intact; bottom shuffles \\
+analysis\_depth    & 1.00 & none \\
+presentation       & 1.00 & none \\
+spec\_compliance   & 1.00 & none \\
+\textbf{reachability} & \textbf{0.50} & \textbf{GPT-Researcher 5$\to$1; cf.\ \S\ref{sec:f6}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three observations emerge. \textbf{(1)} Reachability is the dominant rank-altering dimension; removing it yields the V1 ranking (Kendall~$\tau{=}0.50$), with GPT-Researcher leapfrogging the entire top tier. \textbf{(2)} Reachability, quote match, and citation alignment are tightly correlated (Spearman $\rho > 0.85$ pairwise): agents that cite real URLs also quote them accurately and align cited evidence with claims. Grounding behaves as an all-or-nothing capability rather than a gradient — fabricators fabricate everything, and grounders ground everything. \textbf{(3)} Quality-dimension weights are largely irrelevant under the present agent landscape: sweeping any single quality weight $\pm$50\% with renormalization preserves the rank order. This will likely change as agents improve and the truthfulness gate no longer dominates the variance budget; for now, it confirms that grounding, not quality, is the binding constraint.
+
+\subsection{Error Analysis}
+\label{sec:errors}
+
+\textbf{GPT-Researcher} generates URLs that look like sandbox pages (e.g., \texttt{localhost:7770/product-name.html}) but with fabricated product names. Its parallel sub-query architecture appears to generate URL patterns from training data rather than from actual sandbox navigation; 97.5\% of its 1{,}870 cited URLs return HTTP errors.
+
+\textbf{Langchain-ODR} (99.1\% fabrication) and \textbf{II-Researcher} (98.5\%) exhibit the same failure mode at greater intensity: their planner-style architectures emit reports that pattern-match on URL syntax rather than on results returned by the search shim.
+
+\textbf{DeerFlow} cites only 406 URLs across 30 tasks (vs.\ 1{,}500--3{,}000 for the top tier) and fabricates 87\% of even those. Its multi-agent pipeline appears to skip the browse-and-verify step entirely under sandbox conditions.
+
+\textbf{STORM} produces consistently empty outputs (20 bytes). Its knowledge-curation pipeline, designed for live Wikipedia and web APIs, fails to initialize when confined to the sandbox's search shim. This is a framework-integration issue, not a fundamental limitation.
+
+\textbf{LDR} cites real URLs (89.6\% reachable) but only 67 of them across 30 tasks; the framework's lightweight design produces reports too short to satisfy the spec compliance dimension.
+
+\textbf{CAMEL-AI}, \textbf{FlowSearcher}, and \textbf{SmolagentS} succeed because each separates search from synthesis: explicit tool-use agents issue search queries, receive real results, and pass verified URLs to the writing agent. CAMEL-AI achieves the highest reachability (91\%) and quote fidelity (78\%); FlowSearcher's hierarchical memory matches CAMEL-AI on spec compliance and presentation while citing half as many URLs; SmolagentS sits between them on every dimension.
+
+% ======================================================================
+\section{Limitations and Future Work}
+\label{sec:limitations}
+
+\paragraph{Ecological validity.} Sandbox evaluation trades realism for control. Agents optimized for live-web APIs may underperform when confined to a 200K-document corpus with a non-standard search shim. We view this as analogous to controlled experiments in medicine~\citep{deepresearchgym2025}: controlled conditions are necessary for causal claims about agent capabilities. \ours{} is intended to complement, not replace, live-web benchmarks.
+
+\paragraph{Current data scope.} The Bradley-Terry leaderboard reported here is based on the 30-task $\times$ 9-agent common subset (270 head-to-head ground truths, 296 V3 score files including a 26-task extension for CAMEL-AI as a stability check). Per-dimension trends and the fluent-hallucinator finding are stable on the extended subset. The full 100-task $\times$ 9-agent matrix (${\sim}$900 evaluation runs) is in progress; the benchmark infrastructure (tasks, golden data, scoring) is complete and validated, and the remaining 70 tasks already have golden URL sets and quoted-span ground truth ready for scoring.
+
+\paragraph{Single LLM judge.} Our checklist evaluation uses a single LLM (DeepSeek V4 flash). Best practice calls for multi-judge ensembles~\citep{draco2026,researchrubrics2025} with inter-judge agreement reporting~\citep{llmjudge2024}. Future work will add cross-family judges (e.g., GPT-5, Claude).
+
+\paragraph{No human evaluation.} While our deterministic URL metrics reduce reliance on human judgment, the checklist dimension benefits from human validation of LLM-judge alignment. STORM~\citep{storm2024} used 10 Wikipedia editors; MindSearch~\citep{mindsearch2025} used 5 domain experts. A similar focused study is planned.
+
+\paragraph{Source coverage.} Three sandbox sources (e-commerce, forum, encyclopedia) cover consumer and knowledge-intensive queries but not specialized domains such as legal databases, medical records, or code repositories. The modular architecture supports adding new sources.
+
+% ======================================================================
+\section{Broader Impact}
+\label{sec:impact}
+
+\ours{} is designed to improve the reliability of deep research agent evaluation. By providing deterministic ground truth and exposing citation fabrication, we aim to steer the field toward agents that are not only fluent but also truthful. The fluent hallucinator finding has implications beyond benchmarking: it suggests that deploying deep research agents in high-stakes domains (medicine, law, finance) without citation verification is risky, as users may trust well-formatted but fabricated references. Our benchmark and evaluation toolkit are released to support transparent, reproducible research.
+
+% ======================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We introduced \ours{}, a reproducible benchmark for deep research agents built on a three-source interactive sandbox with deterministic citation ground truth. Our principal finding, the \emph{fluent hallucinator} phenomenon, reveals that standard text-quality evaluation misses a failure mode in which agents produce reports that outperform grounded competitors on every quality metric while fabricating $>$95\% of their citations. Only a truthfulness gate based on deterministic URL verification can detect this. We argue that (i)~sandbox-based evaluation is a necessary complement to live-web benchmarks~\citep{browsecomp_plus2025,deepresearchgym2025}, (ii)~citation truthfulness must be a first-class evaluation dimension~\citep{alce2023}, and (iii)~intent-type stratification enables deeper analysis of agent capabilities than flat task sets permit.
+
+\bibliography{refs}
+
+\end{document}
