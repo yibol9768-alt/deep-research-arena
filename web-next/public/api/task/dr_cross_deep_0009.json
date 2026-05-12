@@ -1,0 +1,211 @@
+{
+  "task_id": "dr_cross_deep_0009",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0009",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Causal Explanation report answering: 'Why does an electric vehicle's effective range typically drop 20-40% in cold-weather (sub-freezing) operation, and what physical, chemical, and behavioural factors compose that loss?' The report is NOT a buying guide; it must build a causal chain from first principles to road-tested numbers.\n\nGround in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 30 EV-related products (Level 2 chargers, battery heaters / blankets, cold-weather accessories, replacement batteries) with marketing claims + price. (B) `__REDDIT__` >= 30 threads from /f/electricvehicles, /f/teslamotors, /f/cars, /f/BoltEV, /f/Volt — winter range reports, real-world MPGe drop logs, charging speed degradation reports. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Lithium-ion battery, Battery thermal management, Heat pump, Internal resistance, Electrolyte, Lithium plating, Regenerative braking, Cabin heater, Specific heat capacity, Arrhenius equation — plus >= 15 more.\n\nOutput a multi-layer causal diagram in markdown (indented bullet hierarchy, NOT graphviz) tracing 4 causal layers:\n- L1 chemistry: lithium-ion electrolyte conductivity drop, lithium plating risk, internal resistance increase (cite wiki).\n- L2 thermal: cabin heating energy budget, battery preconditioning, heat pump efficiency (cite wiki + shopping for heat-pump-equipped models).\n- L3 driver behaviour: HVAC settings, regen reduction in cold, route planning (cite reddit experience reports).\n- L4 measured impact: empirical % range drop reported by users (cite >= 8 reddit threads with explicit %).\n\nAdd a 'mitigation strategies ranked by % range recovered' table — each strategy cited with one shopping URL (product implementing it) + one reddit URL (user reporting the recovery). End with a 'what cars handle cold best' section ranking >= 3 EV models by aggregated reddit cold-weather sentiment, citing >= 3 reddit threads / model.\n\nFormat: markdown links only. Begin with the L1 layer. No chain-of-thought.",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=ev+charger",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0009.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0009.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "causal",
+      "causal_layers": [
+        "L1_chemistry",
+        "L2_thermal",
+        "L3_behaviour",
+        "L4_measured_impact"
+      ],
+      "min_wiki_per_layer": {
+        "L1_chemistry": 3,
+        "L2_thermal": 3
+      },
+      "min_reddit_per_layer": {
+        "L3_behaviour": 5,
+        "L4_measured_impact": 8
+      },
+      "l4_must_have_explicit_percent": true,
+      "mitigation_strategies_min": 5,
+      "min_evidence_per_strategy": {
+        "shopping": 1,
+        "reddit": 1
+      },
+      "model_ranking_min": 3,
+      "min_reddit_per_model": 3,
+      "explicitly_forbid_top10": true
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+    "domain": "Consumer",
+    "intent_type": "Causal"
+  },
+  "rows": [
+    {
+      "agent": "flowsearcher-ds",
+      "composite_v2": 0.1837,
+      "composite_v3": 0.4292,
+      "url_coverage": 0.0752,
+      "reachability": 0.8182,
+      "checklist": 1.0,
+      "answer_chars": 31236,
+      "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "camel-ai",
+      "composite_v2": 0.1237,
+      "composite_v3": 0.3328,
+      "url_coverage": 0.0758,
+      "reachability": 0.7879,
+      "checklist": 0.5714,
+      "answer_chars": 29073,
+      "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "smolagents",
+      "composite_v2": 0.1015,
+      "composite_v3": 0.447,
+      "url_coverage": 0.03,
+      "reachability": 1.0,
+      "checklist": 0.381,
+      "answer_chars": 13404,
+      "answer_path": "data/results/deep/smolagents__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "ldr",
+      "composite_v2": 0.0105,
+      "composite_v3": 0.0344,
+      "url_coverage": 0.01,
+      "reachability": 1.0,
+      "checklist": 0.0952,
+      "answer_chars": 1161,
+      "answer_path": "data/results/deep/ldr__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "deerflow",
+      "composite_v2": 0.0,
+      "composite_v3": 0.015,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.2381,
+      "answer_chars": 17489,
+      "answer_path": "data/results/deep/deerflow__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "gpt-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0316,
+      "url_coverage": 0.3,
+      "reachability": 0.0,
+      "checklist": 0.3333,
+      "answer_chars": 29666,
+      "answer_path": "data/results/deep/gpt-researcher__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "ii-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0048,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.1905,
+      "answer_chars": 74,
+      "answer_path": "data/results/deep/ii-researcher__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "langchain-odr",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0069,
+      "url_coverage": 0.06,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 19832,
+      "answer_path": "data/results/deep/langchain-odr__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "qx-agents",
+      "composite_v2": 0.0,
+      "composite_v3": 0.001,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 367,
+      "answer_path": "data/results/deep/qx-agents__dr_cross_deep_0009_matrix.md"
+    },
+    {
+      "agent": "storm",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 409,
+      "answer_path": "data/results/deep/storm__dr_cross_deep_0009_matrix.md"
+    }
+  ]
+}

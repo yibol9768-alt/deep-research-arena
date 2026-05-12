@@ -1,0 +1,134 @@
+{
+  "task_id": "dr_cross_deep_0041",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0041",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce an Enumeration / Catalog report cataloguing every FDA-approved weight loss medication available in the market, organized by mechanism of action and potential side effects. The report is NOT a prescription guide; it is a comprehensive taxonomy in which every medication gets a risk profile.\n\nGround in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 40 weight loss medication product pages covering at minimum these mechanisms: Appetite suppressants, Fat blockers, Norepinephrine/dopamine reuptake inhibitors, Serotonin receptor agonists, GLP-1 receptor agonists, 5-HT2C receptor antagonists, Bupropion/naltrexone combination — cite product URL + medication name + price. (B) `__REDDIT__` >= 30 threads from /r/weightloss, /r/medicationuse, /r/health, /r/nutrition, /r/diet — discussions of medication effectiveness, side effects, user experiences. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: FDA-approved weight loss drugs, Phentermine, Orlistat, Topiramate, Liraglutide, Bupropion/naltrexone, Belviq, Contrave, Saxenda, Qsymia — plus >= 15 more.\n\nOutput a medication catalog table with columns: medication name / mechanism of action / potential side effects / drug class / efficacy level (cited shopping) / safety concerns (cited wiki) / typical cost (cited shopping) / user satisfaction sentiment (cited reddit). Add a 'risk assessment decision tree': starting from the user's choice between short-term vs long-term use, walk to recommended medications — each node cited. End with '5 medications / products to AVOID and why' — each w/ shopping URL + reddit URL + wiki URL of the failure mode.\n\nFormat: markdown links. Begin with the catalog table. No chain-of-thought.\n\n[Reference checklist (same intent type, DIFFERENT topic -- create NEW task-specific items):\n[\n  \"Does the catalog table have >= 7 columns (name / mechanism / side effects / class / efficacy / safety / cost / sentiment)?\",\n  \"Does each catalog row cite >= 1 wiki URL for the medication's safety concerns discussion?\",\n  \"Does each row cite >= 1 shopping URL showing a product implementing it with price?\",\n  \"Does each row cite >= 1 reddit URL for user satisfaction sentiment?\",\n  \"Are >= 8 distinct mechanisms of action catalogued (Appetite suppressants, Fat blockers, Norepinephrine/dopamine reuptake inhibitors, Serotonin receptor agonists, GLP-1 receptor agonists, 5-HT2C receptor antagonists, Bupropion/naltrexone combination, etc.)?\",\n  \"Are the mandatory Wikipedia articles included in the evidence?\",\n  \"Do the cited shopping URLs reflect a minimum of 40 product pages?\",\n  \"Do the cited Reddit URLs reflect a minimum of 30 threads?\",\n  \"Do the cited Wikipedia articles reflect a minimum of 25 articles?\",\n  \"Is the 'risk assessment decision tree' properly cited and structured?\",\n  \"Is the '5 medications / products to AVOID and why' section properly cited and structured?\",\n  \"Is the format consistent with markdown links, sandbox-local, and no fabrication?\",\n  \"Is the catalog table formatted correctly with headers and rows?\",\n  \"Are the 'known vulnerabilities' fields present and properly cited?\",\n  \"Are the 'typical product cost' fields present and properly cited?\",\n  \"Are the 'community reliability sentiment' fields present and properly cited?\",\n  \"Are the 'threat-model decision tree' levels and branches properly cited and structured?\",\n  \"Are the '5 protocols / products to AVOID and why' items properly cited and structured?\",\n  \"Are the 'avoid findings' properly cited and linked?\",\n  \"Is the report not a buying guide and focuses on comprehensive taxonomy?\",\n  \"Are the references properly formatted and listed?\"\n]\n\n[Reference synthesis_requirements:\n{\n  \"task_type\": \"enumeration\",\n  \"protocols_min\": 8,\n  \"catalog_columns\": [\n    \"name\",\n    \"mechanism\",\n    \"side_effects\",\n    \"class\",\n    \"efficacy\",\n    \"safety\",\n    \"cost\",\n    \"sentiment\"\n  ],\n  \"min_evidence_per_protocol\": {\n    \"wikipedia\": 1,\n    \"shopping\": 1,\n    \"reddit\": 1\n  },\n  \"decision_tree_levels\": 2,\n  \"decision_tree_branches\": [\n    \"short_term\",\n    \"long_term\"\n  ],\n  \"avoid_findings_count\": 5,\n  \"min_evidence_per_avoid\": {\n    \"shopping\": 1,\n    \"reddit\": 1,\n    \"wikipedia\": 1\n  },\n  \"explicitly_forbid_top10\": true\n}\n]",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=weight+loss+supplements",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0041.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0041.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "enumeration",
+      "mechanisms_min": 8,
+      "catalog_columns": [
+        "name",
+        "mechanism",
+        "side_effects",
+        "class",
+        "efficacy",
+        "safety",
+        "cost",
+        "sentiment"
+      ],
+      "min_evidence_per_mechanism": {
+        "wikipedia": 1,
+        "shopping": 1,
+        "reddit": 1
+      },
+      "decision_tree_levels": 2,
+      "decision_tree_branches": [
+        "short_term",
+        "long_term"
+      ],
+      "avoid_findings_count": 5,
+      "min_evidence_per_avoid": {
+        "shopping": 1,
+        "reddit": 1,
+        "wikipedia": 1
+      },
+      "explicitly_forbid_top10": true
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/weight_loss_drugs_catalog.yaml. Golden: must=140, pool=466."
+  },
+  "rows": [
+    {
+      "agent": "camel-ai",
+      "composite_v2": 0.1242,
+      "composite_v3": 0.3917,
+      "url_coverage": 0.103,
+      "reachability": 1.0,
+      "checklist": 0.2857,
+      "answer_chars": 30687,
+      "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0041_matrix.md"
+    },
+    {
+      "agent": "flowsearcher-ds",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0007,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 27,
+      "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0041_matrix.md"
+    }
+  ]
+}

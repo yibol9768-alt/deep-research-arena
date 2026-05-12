@@ -1,0 +1,108 @@
+{
+  "task_id": "dr_cross_deep_0070",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0070",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Causal Explanation report answering: 'How does inflation impact the financial health of small businesses compared to large corporations, and what are the underlying economic factors causing this disparity?' The report is NOT an investment advice document; it must build a causal chain from economic theory to empirical observations. Ground in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 30 small business management tools (inventory control, cash flow management software, point of sale systems, credit card processing solutions, accounting software) with features + pricing. (B) `__REDDIT__` >= 30 threads from /r/Entrepreneurship, /r/SmallBusiness, /r/PersonalFinance, /r/Investing, /r/Business — discussions on inflation effects, financial impact stories, survival strategies. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Small business finance, Cost of goods sold, Cash flow statement, Inventory management, Economic indicator, Business cycle, Monetary policy, Business inflation index, Credit crunch, Economic inequality. The report must contain a multi-layer causal diagram in markdown format (indented bullet hierarchy, NOT graphviz), tracing 4 causal layers: - L1 economic theory: inflation definition, cost-push, demand-pull models, business cycle (cite wiki). - L2 financial implications: cash flow impact, credit availability, cost structure changes (cite wiki + shopping for financial tools). - L3 external factors: supply chain disruptions, consumer spending patterns, regulatory environment (cite reddit). - L4 empirical effects: small vs large business financial performance, inflation rates (cite >= 8 reddit threads with specific data). Add a 'strategies to mitigate inflation impact ranked by financial health improvement' table — each strategy cited with one shopping URL (product addressing it) + one reddit URL (user reporting improvement). End with a 'most resilient small businesses during inflation' ranking section ranking >= 3 business types by aggregated Reddit sentiment, citing >= 3 reddit threads / business type. Format: markdown links only. Begin with the L1 layer. No chain-of-thought. The report must include the following synthesis requirements: - task_type: causal - causal_layers: ['L1_economic_theory', 'L2_financial_implications', 'L3_external_factors', 'L4_empirical_effects'] - min_wiki_per_layer: {'L1_economic_theory': 3, 'L2_financial_implications': 3} - min_reddit_per_layer: {'L3_external_factors': 5, 'L4_empirical_effects': 8} - l4_must_have_explicit_percent: true - mitigation_strategies_min: 5 - min_evidence_per_strategy: {'shopping': 1, 'reddit': 1} - model_ranking_min: 3 - min_reddit_per_model: 3 - explicitly_forbid_top10: true",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=inventory+control",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0070.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0070.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "causal",
+      "causal_layers": [
+        "L1_economic_theory",
+        "L2_financial_implications",
+        "L3_external_factors",
+        "L4_empirical_effects"
+      ],
+      "min_wiki_per_layer": {
+        "L1_economic_theory": 3,
+        "L2_financial_implications": 3
+      },
+      "min_reddit_per_layer": {
+        "L3_external_factors": 5,
+        "L4_empirical_effects": 8
+      },
+      "l4_must_have_explicit_percent": true,
+      "mitigation_strategies_min": 5,
+      "min_evidence_per_strategy": {
+        "shopping": 1,
+        "reddit": 1
+      },
+      "model_ranking_min": 3,
+      "min_reddit_per_model": 3,
+      "explicitly_forbid_top10": true
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/inflation_small_biz_causal.yaml. Golden: must=138, pool=424."
+  },
+  "rows": []
+}

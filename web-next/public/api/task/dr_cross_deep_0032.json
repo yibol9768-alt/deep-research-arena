@@ -1,0 +1,114 @@
+{
+  "task_id": "dr_cross_deep_0032",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0032",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a comprehensive recommendation report on Vitamin D Supplements, spanning THREE dimensions. The report must be grounded in AT LEAST 120 distinct source URLs drawn from the sandbox (shopping / reddit / wikipedia), and MUST cite at least 60 of them as markdown links.\n\n(A) PRODUCT LANDSCAPE — Enumerate Vitamin D Supplements products on the One Stop Market (`__SHOPPING__`) across every relevant search facet: keywords at minimum {vitamin D supplements, vitamin D3, vitamin D tablets, vitamin D drops, cod liver oil, vitamin D liquid, vitamin D3 supplement, vitamin D gummies, vitamin D spray}. Target: ≥ 40 distinct product pages spanning ≥ 6 brands and ≥ 3 price tiers. For EACH product record: exact product_url, price, star rating, review_count, and every marketing feature-claim that appears on the page.\n\n(B) COMMUNITY SENTIMENT — Harvest ≥ 30 distinct Postmill threads (`__REDDIT__`) discussing Vitamin D Supplements across AT LEAST four sub-forums (e.g. /f/nutrition, /f/Health, /f/VitaminD, /f/Fitness, /f/medicine, /f/personalfinance — any four that yield on-topic posts). For each thread record: thread_url, forum, score, comment_count, and a one-sentence summary of the top-voted take. Classify each thread into one of {praise, complaint, technical_question, comparison, purchase_advice}.\n\n(C) TECHNICAL GROUNDING — Using the English Wikipedia corpus served by Kiwix (`__WIKIPEDIA__`), locate ≥ 25 distinct Wikipedia articles that define OR explain the technical claims extracted from (A). Mandatory coverage for: {Vitamin D, Osteoporosis, Vitamin D deficiency, Sunlight, Calcium, Cod liver oil, Osteopenia, Rickets, Osteoarthritis, Vitamin D analogues} plus ≥ 15 more articles covering the specific feature claims found in (A). For each article record: article_url and a one-sentence extraction of the defining statement.\n\n(D) CROSS-SOURCE SYNTHESIS — The final report must include sections that:\n  1. List ≥ 5 product feature claims from (A) that either LACK Wikipedia backing or CONTRADICT it — each with the product URL, the wiki URL, and the specific contradiction.\n  2. Rank the brands found in (A) by aggregated Reddit sentiment, citing ≥ 2 reddit threads per brand as evidence.\n  3. Surface ≥ 3 divergences where a product's star rating is high (≥ 4.0) but Reddit sentiment is negative, OR vice versa — each divergence cited with product URL + ≥ 1 reddit URL.\n  4. Output a final TOP-10 list where each pick has (product URL + ≥ 2 reddit URL + ≥ 1 wiki URL) traceable evidence chain.\n\nFormatting rules: every factual claim is a markdown link `[label](url)`. Source URLs MUST be sandbox-local. Do not fabricate URLs — the URL must resolve on the sandbox. Answer starts with the final report in Markdown; no chain-of-thought.\n\nGolden metadata:\n- Must-cite URLs: 133\n- Expected pool URLs: 613",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=vitamin+D+supplements",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0032.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0032.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "contradiction_findings_min": 5,
+      "brand_sentiment_rankings_min": 4,
+      "rating_sentiment_divergences_min": 3,
+      "final_buy_list_size": 10,
+      "final_buy_list_sources_per_item": {
+        "shopping": 1,
+        "reddit": 2,
+        "wikipedia": 1
+      }
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/vitamin_d_supplements.yaml. Golden: must=133, pool=613."
+  },
+  "rows": [
+    {
+      "agent": "camel-ai",
+      "composite_v2": 0.2668,
+      "composite_v3": 0.6106,
+      "url_coverage": 0.2117,
+      "reachability": 0.9452,
+      "checklist": 1.0,
+      "answer_chars": 28495,
+      "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0032_matrix.md"
+    },
+    {
+      "agent": "flowsearcher-ds",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0007,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 27,
+      "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0032_matrix.md"
+    }
+  ]
+}

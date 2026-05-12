@@ -1,0 +1,205 @@
+{
+  "task_id": "dr_cross_deep_0014",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0014",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Recommendation report on choosing a brokerage / robo-advisor for a new investor with $5,000 to deploy, constrained by (C1) zero commission on US stocks/ETFs, (C2) fractional shares supported, (C3) tax-loss harvesting available, (C4) accessible app + research tools. Compare AT LEAST 4 platforms (e.g. Fidelity, Schwab, E*TRADE, Vanguard, Betterment, Wealthfront, Robinhood, Public, M1 Finance), each scored on the 4 constraints, and produce a final TOP-4 ranked recommendation. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 12 product pages on investing books, calculators, planners + price. (B) `__REDDIT__` >= 30 threads from /f/personalfinance, /f/investing, /f/Bogleheads, /f/financialindependence, /f/RobinHood, /f/M1Finance, /f/wealthfront covering platform comparisons. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Brokerage firm, Online brokerage, Discount broker, Robo-advisor, Fractional share, Tax-loss harvesting, Commission (remuneration), Robinhood Markets, Charles Schwab Corporation, Vanguard Group. Output a 4-platform x 4-constraint scoring table + final TOP-4 list with full evidence chain (>= 1 shopping + >= 2 reddit + >= 1 wiki per pick). Format: markdown links only. No fabrication. Begin with scoring table.",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=investing+book",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0014.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0014.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "recommendation",
+      "platforms_min": 4,
+      "constraints": [
+        "zero_commission",
+        "fractional_shares",
+        "tax_loss_harvesting",
+        "app_quality"
+      ],
+      "scoring_table_dimensions": [
+        4,
+        4
+      ],
+      "top_n": 4,
+      "min_evidence_per_pick": {
+        "shopping": 1,
+        "reddit": 2,
+        "wikipedia": 1
+      }
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+    "domain": "Finance",
+    "intent_type": "Recommendation"
+  },
+  "rows": [
+    {
+      "agent": "smolagents",
+      "composite_v2": 0.16,
+      "composite_v3": 0.4576,
+      "url_coverage": 0.3666,
+      "reachability": 0.9583,
+      "checklist": 0.1905,
+      "answer_chars": 26918,
+      "answer_path": "data/results/deep/smolagents__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "camel-ai",
+      "composite_v2": 0.1011,
+      "composite_v3": 0.4822,
+      "url_coverage": 0.036,
+      "reachability": 1.0,
+      "checklist": 0.1429,
+      "answer_chars": 24359,
+      "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "flowsearcher-ds",
+      "composite_v2": 0.0529,
+      "composite_v3": 0.1526,
+      "url_coverage": 0.08,
+      "reachability": 0.425,
+      "checklist": 0.4286,
+      "answer_chars": 31848,
+      "answer_path": "data/results/deep/flowsearcher-ds__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "ldr",
+      "composite_v2": 0.001,
+      "composite_v3": 0.012,
+      "url_coverage": 0.01,
+      "reachability": 1.0,
+      "checklist": 0.0,
+      "answer_chars": 1778,
+      "answer_path": "data/results/deep/ldr__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "deerflow",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0149,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.381,
+      "answer_chars": 16734,
+      "answer_path": "data/results/deep/deerflow__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "gpt-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0267,
+      "url_coverage": 0.3,
+      "reachability": 0.0,
+      "checklist": 0.4286,
+      "answer_chars": 30076,
+      "answer_path": "data/results/deep/gpt-researcher__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "ii-researcher",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0058,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.2381,
+      "answer_chars": 74,
+      "answer_path": "data/results/deep/ii-researcher__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "langchain-odr",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0194,
+      "url_coverage": 0.12,
+      "reachability": 0.0,
+      "checklist": 0.2857,
+      "answer_chars": 20517,
+      "answer_path": "data/results/deep/langchain-odr__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "qx-agents",
+      "composite_v2": 0.0,
+      "composite_v3": 0.001,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.0,
+      "answer_chars": 367,
+      "answer_path": "data/results/deep/qx-agents__dr_cross_deep_0014_matrix.md"
+    },
+    {
+      "agent": "storm",
+      "composite_v2": 0.0,
+      "composite_v3": 0.0048,
+      "url_coverage": 0.0,
+      "reachability": 0.0,
+      "checklist": 0.1905,
+      "answer_chars": 20,
+      "answer_path": "data/results/deep/storm__dr_cross_deep_0014_matrix.md"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "task_id": "dr_cross_deep_0094",
+  "config": {
+    "schema_version": "deep-1.0.0",
+    "task_id": "dr_cross_deep_0094",
+    "tier": "deep",
+    "sites": [
+      "shopping",
+      "reddit",
+      "wikipedia"
+    ],
+    "difficulty": 5,
+    "expected_steps": 80,
+    "intent": "Produce a Causal Explanation report answering: 'Why do cryptocurrency markets crash in correlated waves, and what causal factors lead to this pattern?' The report is NOT a speculative prediction; it must build a causal chain from first principles to observed market behavior. Gather evidence from the following sources:\n\n- (A) __SHOPPING__ >= 30 products related to cryptocurrency trading (exchanges, wallets, mining equipment) with features + pricing information.\n- (B) __REDDIT__ >= 30 threads from cryptocurrency forums, AskReddit, and investing subreddits, discussing market crashes and correlation.\n- (C) __WIKIPEDIA__ >= 25 articles on relevant topics, including mandatory articles on Cryptocurrency exchange, Cryptocurrency bubble, Financial crisis, Asset bubble, Correlation (statistics), Volatility (finance), Market manipulation, Regulatory risk, Technical analysis, Fundamental analysis.\n\nThe report must be structured in the following format:\n\n- **Layer 1: Economic Theories**\n  - Economic models of market bubbles + crashes (cite economics texts).\n- **Layer 2: Technological and Blockchain-Specific Factors**\n  - Analysis of blockchain data + transaction speeds in bubble periods (cite blockchain research).\n- **Layer 3: Investor Psychology and Behavioral Finance**\n  - Behavioral patterns leading to herd mentality + market bubbles (cite behavioral finance studies).\n- **Layer 4: External and Internal Risks**\n  - Government actions + regulatory impacts (cite policy analyses) + internal firm failures (cite news on exchange hacks).\n\nInclude at least 120 sandbox URLs, with 60 of them being citations. The report should adhere to the following rules:\n\n- Format: markdown links only.\n- Sandbox-local URLs only, no fabrication allowed.\n\nYour report should meet the following synthesis requirements:\n\n- Causal Layers: L1 Economic Theories, L2 Technological and Blockchain-Specific Factors, L3 Investor Psychology and Behavioral Finance, L4 External and Internal Risks.\n- Min Wiki Articles: >= 3 for each layer.\n- Min Reddit Threads: >= 3 for each layer.\n- Must-Cite URLs: >= 142.\n- Expected Pool URLs: >= 522.\n- Cite specific wiki articles in each layer as appropriate.\n- Causal explanation depth: Must establish clear causal chains, not mere correlation.\n- Exclude any top 10 cryptocurrency by market capitalization in your analysis.\n\n",
+    "start_url": "__SHOPPING__/catalogsearch/result/?q=cryptocurrency",
+    "storage_state": null,
+    "require_login": false,
+    "markdown_spec": {
+      "min_words": 3500,
+      "max_words": 8000,
+      "min_paragraphs": 25,
+      "min_citations": 60,
+      "min_pages_browsed": 120
+    },
+    "citation_policy": {
+      "required_for": [
+        "price",
+        "rating",
+        "thread_score",
+        "feature_claim",
+        "wiki_definition"
+      ],
+      "must_be_in_domain": [
+        "__SHOPPING__",
+        "__REDDIT__",
+        "__WIKIPEDIA__"
+      ],
+      "min_distinct_sources": 60,
+      "min_distinct_domains": 3,
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      }
+    },
+    "url_coverage": {
+      "golden_pool_path": "data/golden/deep/dr_cross_deep_0094.json",
+      "min_unique_urls_browsed": 100,
+      "min_unique_urls_cited": 60,
+      "min_must_cite_recall": 0.45,
+      "min_expected_pool_coverage": 0.0,
+      "min_domain_balance": 0.8,
+      "weight_in_composite": 0.25,
+      "scoring_weights": {
+        "must_cite_recall": 0.55,
+        "pool_coverage": 0.15,
+        "domain_balance": 0.3
+      }
+    },
+    "url_reachability": {
+      "min_reachability_rate": 0.3,
+      "probe_timeout_seconds": 6.0
+    },
+    "golden": {
+      "triples_path": "data/golden/deep/dr_cross_deep_0094.json",
+      "expected_predicates": [
+        "price",
+        "rating",
+        "review_count",
+        "feature_claim",
+        "forum",
+        "thread_score",
+        "comment_count",
+        "thread_classification",
+        "wiki_defines"
+      ]
+    },
+    "synthesis_requirements": {
+      "task_type": "causal",
+      "causal_layers": [
+        "L1_economic_theories",
+        "L2_technological_blockchain",
+        "L3_investor_psychology",
+        "L4_external_internal_risks"
+      ],
+      "min_wiki_per_layer": {
+        "L1_economic_theories": 3,
+        "L2_technological_blockchain": 3,
+        "L3_investor_psychology": 3,
+        "L4_external_internal_risks": 3
+      },
+      "min_reddit_per_layer": {
+        "L1_economic_theories": 3,
+        "L2_technological_blockchain": 3,
+        "L3_investor_psychology": 3,
+        "L4_external_internal_risks": 3
+      },
+      "l4_must_have_explicit_percent": false,
+      "mitigation_strategies_min": 5,
+      "min_evidence_per_strategy": {
+        "shopping": 1,
+        "reddit": 1
+      },
+      "model_ranking_min": 3,
+      "min_reddit_per_model": 3,
+      "explicitly_forbid_top10": true
+    },
+    "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
+    "author_notes": "Deep-tier task generated by gen_task_spec.py from configs/deep_topics/crypto_crash_causal.yaml. Golden: must=142, pool=522."
+  },
+  "rows": []
+}
