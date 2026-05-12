@@ -295,6 +295,19 @@ def build(out_dir: Path) -> None:
         encoding="utf-8",
     )
 
+    # wrangler config so Cloudflare's "npx wrangler deploy" treats dist as
+    # a static-asset upload (no requirements.txt pip install).
+    (out_dir / "wrangler.jsonc").write_text(
+        '{\n'
+        '  "name": "deepresearcharena",\n'
+        '  "compatibility_date": "2025-01-01",\n'
+        '  "assets": {\n'
+        '    "directory": "."\n'
+        '  }\n'
+        '}\n',
+        encoding="utf-8",
+    )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build a static export of the Deep Research Arena web app.")
