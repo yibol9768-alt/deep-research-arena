@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 {% set active_page = "audit" %}
-{% block title %}Audit · Deep-Research Arena{% endblock %}
+{% block title %}Audit log · Deep-Research Arena{% endblock %}
 
 {% block content %}
 <section class="mb-8">
-  <div class="flex flex-wrap items-center gap-2 mb-3">
-    <span class="pill pill-warn"><span class="pill-dot" style="background: var(--warn);"></span>Exclusion log</span>
-  </div>
-  <h1 class="display-2">Score-file audit</h1>
-  <p class="mt-3 ink-soft text-[15px] max-w-3xl leading-relaxed">
-    Read-only render of the latest <code class="num-mono">DR_SCORE_AUDIT_*.md</code>
-    in <code class="num-mono">data/results/audit/</code>. Lists which agents
-    were excluded from Elo and why — runner placeholders, infra failures,
-    judge-error storms.
+  <h1 class="page-h1">Score-file audit</h1>
+  <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
+    Read-only render of the latest <code class="num-mono">DR_SCORE_AUDIT_*.md</code> in <code class="num-mono">data/results/audit/</code>.
+    Lists which agents were excluded from Elo and why — runner placeholders, infra failures, judge-error storms.
   </p>
 </section>
+
+<nav class="subnav">
+  <a href="/">Leaderboard</a>
+  <a href="/how-it-works">Method</a>
+  <a class="is-current" href="/audit">Audit</a>
+  <a href="/v4">v4</a>
+</nav>
 
 {% if md_text %}
   <section class="surface-card p-6">

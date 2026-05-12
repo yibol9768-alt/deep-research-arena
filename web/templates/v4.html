@@ -1,41 +1,40 @@
 {% extends "base.html" %}
 {% set active_page = "v4" %}
-{% block title %}v4 leaderboard · Deep-Research Arena{% endblock %}
+{% block title %}v4 Multi-pillar Leaderboard · Deep-Research Arena{% endblock %}
 
 {% block content %}
 
 <section class="mb-8">
-  <div class="flex flex-wrap items-center gap-2 mb-4">
-    <span class="pill pill-accent"><span class="pill-dot" style="background: var(--accent);"></span>composite_v4 · 11 dimensions</span>
+  <h1 class="page-h1">v4 Multi-pillar Leaderboard</h1>
+  <p class="mt-3 ink-soft max-w-3xl text-[14.5px] leading-relaxed">
+    Adds <strong>four new pillars</strong> on top of the v2 verifiers — atomic factuality, intra-document consistency,
+    perspective balance, and source diversity — and replaces the v2 quality term with an 11-way weighted mix. The
+    reachability gate is preserved, so URL fabrication still zeroes the score. v4 is the answer to the critique
+    that v2 was over-focused on URL grounding alone.
+  </p>
+  <div class="mt-4 flex flex-wrap items-center gap-2">
+    <span class="pill pill-accent">composite_v4 · 11 dimensions</span>
     <span class="pill pill-warn">experimental</span>
     {% if loaded %}
       <span class="pill pill-muted num-mono">{{ ranked|length }} agents</span>
-      <span class="pill pill-muted num-mono">{{ n_rows_real }} real / {{ n_rows_total }} total runs</span>
+      <span class="pill pill-muted num-mono">{{ n_rows_real }} real runs</span>
       <span class="pill pill-muted num-mono">{{ n_battles }} battles</span>
       {% if mtime_str %}<span class="pill pill-muted">updated {{ mtime_str }}</span>{% endif %}
     {% endif %}
   </div>
-  <h1 class="display-1">v4 Leaderboard</h1>
-  <p class="mt-4 ink-soft max-w-3xl text-[15px] leading-relaxed">
-    Adds <strong>four new pillars</strong> on top of the v2 verifiers — atomic
-    factuality, intra-document consistency, perspective balance, and source
-    diversity — and replaces the v2 quality term with an 11-way weighted mix.
-    The reachability multiplicative gate is preserved, so URL fabrication still
-    zeroes the score. v4 is the answer to the critique that v2 was
-    over-focused on URL grounding alone.
-  </p>
-  <div class="mt-4 text-[12.5px] ink-mute">
+  <div class="mt-3 text-[12px] ink-mute">
     <strong>Formula:</strong>
     <code class="num-mono">composite_v4 = reach · (0.10·url_cov + 0.05·spec + 0.10·checklist + 0.10·cit_align + 0.05·qm + 0.13·factual_exactness + 0.13·internal_consistency + 0.08·perspective_balance + 0.06·source_diversity + 0.10·analysis_depth + 0.10·presentation)</code>
   </div>
-  <div class="mt-5 flex flex-wrap gap-2">
-    <a href="/" class="btn btn-primary btn-sm">v2 leaderboard
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-    </a>
-    <a href="/how-it-works" class="btn btn-ghost btn-sm">How v2 works</a>
-    <a href="/api/v4.json" class="btn btn-ghost btn-sm">JSON ↗</a>
-  </div>
 </section>
+
+<nav class="subnav">
+  <a href="/">Intelligence Index</a>
+  <a class="is-current" href="/v4">v4 Multi-pillar</a>
+  <a href="/compare">Compare backbones</a>
+  <a href="/audit">Audit</a>
+  <a href="/how-it-works">Method</a>
+</nav>
 
 {% if not loaded %}
 <section class="surface-card p-6 mb-8">
