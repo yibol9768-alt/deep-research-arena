@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leaderboard · Deep-Research Arena</title>
+  <title>Deep-Research Arena — independent leaderboard for open-source research agents</title>
   <meta name="description" content="An independent leaderboard of open-source deep-research agents, scored on a sealed sandbox of Magento, Postmill, and Wikipedia.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='50%25' y='54%25' fill='white' font-family='Inter,Arial' font-size='14' font-weight='800' text-anchor='middle' dominant-baseline='middle'%3EDR%3C/text%3E%3C/svg%3E">
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
@@ -335,6 +335,254 @@
     .chart-gridline { stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 3; }
     .chart-axis-tick { fill: var(--ink-mute); font-size: 10px; font-family: 'JetBrains Mono', monospace; }
     .chart-axis-label { fill: var(--ink-soft); font-size: 11px; font-weight: 600; font-family: 'Inter', sans-serif; }
+
+    /* ─────────────── Glass-morphism ─────────────── */
+    .glass {
+      background: rgba(255, 255, 255, 0.62);
+      backdrop-filter: blur(18px) saturate(170%);
+      -webkit-backdrop-filter: blur(18px) saturate(170%);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      box-shadow:
+        0 1px 1px rgba(15, 23, 42, 0.04),
+        0 8px 28px rgba(15, 23, 42, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(22px) saturate(190%);
+      -webkit-backdrop-filter: blur(22px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow:
+        0 1px 1px rgba(15, 23, 42, 0.04),
+        0 10px 32px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: white;
+      box-shadow: 0 10px 32px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .frost-card {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 16px;
+      box-shadow:
+        0 1px 1px rgba(15, 23, 42, 0.03),
+        0 6px 20px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.35s ease;
+    }
+    .frost-card:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 1px 1px rgba(15, 23, 42, 0.04),
+        0 16px 40px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      border-color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* ─────────────── Animated aurora (hero background) ─────────────── */
+    .aurora-stage {
+      position: absolute; inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .aurora-stage::before,
+    .aurora-stage::after,
+    .aurora-orb {
+      content: ''; position: absolute;
+      filter: blur(60px);
+      opacity: 0.55;
+      will-change: transform;
+      border-radius: 999px;
+    }
+    .aurora-stage::before {
+      width: 620px; height: 620px;
+      left: -120px; top: -180px;
+      background: radial-gradient(circle at 30% 30%, #93c5fd 0%, transparent 65%);
+      animation: aurora-drift-1 22s ease-in-out infinite alternate;
+    }
+    .aurora-stage::after {
+      width: 700px; height: 700px;
+      right: -180px; top: -100px;
+      background: radial-gradient(circle at 60% 40%, #c4b5fd 0%, transparent 60%);
+      animation: aurora-drift-2 26s ease-in-out infinite alternate;
+    }
+    .aurora-orb.orb-c {
+      width: 520px; height: 520px;
+      left: 35%; bottom: -260px;
+      background: radial-gradient(circle at 50% 50%, #fbcfe8 0%, transparent 60%);
+      opacity: 0.45;
+      animation: aurora-drift-3 30s ease-in-out infinite alternate;
+    }
+    .aurora-orb.orb-d {
+      width: 360px; height: 360px;
+      right: 18%; top: 40%;
+      background: radial-gradient(circle at 50% 50%, #67e8f9 0%, transparent 55%);
+      opacity: 0.4;
+      animation: aurora-drift-4 18s ease-in-out infinite alternate;
+    }
+    @keyframes aurora-drift-1 {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(80px, 50px) scale(1.1); }
+    }
+    @keyframes aurora-drift-2 {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-90px, 70px) scale(1.08); }
+    }
+    @keyframes aurora-drift-3 {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-60px, -40px) scale(1.12); }
+    }
+    @keyframes aurora-drift-4 {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, -30px) scale(1.15); }
+    }
+    .aurora-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at 50% 35%, black 30%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 30%, transparent 75%);
+      pointer-events: none;
+    }
+    .aurora-noise {
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence baseFrequency='0.9' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+      opacity: 0.05;
+      pointer-events: none;
+      mix-blend-mode: overlay;
+    }
+
+    /* Gradient-text utility */
+    .gradient-text {
+      background: linear-gradient(120deg, #2563eb 0%, #7c3aed 45%, #db2777 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    .gradient-text-blue {
+      background: linear-gradient(120deg, #1d4ed8 0%, #0891b2 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+
+    /* ─────────────── Scroll reveal ─────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition:
+        opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal[data-delay="1"] { transition-delay: 80ms; }
+    .reveal[data-delay="2"] { transition-delay: 160ms; }
+    .reveal[data-delay="3"] { transition-delay: 240ms; }
+    .reveal[data-delay="4"] { transition-delay: 320ms; }
+    .reveal[data-delay="5"] { transition-delay: 400ms; }
+    .reveal[data-delay="6"] { transition-delay: 480ms; }
+    .reveal-fade { opacity: 0; transition: opacity 0.9s ease; }
+    .reveal-fade.is-visible { opacity: 1; }
+
+    /* Subtle on-load fade for above-fold */
+    .above-fold-in { animation: above-fold-fade 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    @keyframes above-fold-fade {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─────────────── Sticky section nav ─────────────── */
+    .section-nav {
+      position: sticky; top: 56px; z-index: 20;
+      margin-bottom: 24px;
+      padding: 6px;
+      display: inline-flex;
+      gap: 2px;
+      border-radius: 999px;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+    .section-nav.is-visible {
+      opacity: 1; transform: translateY(0);
+      pointer-events: auto;
+    }
+    .section-nav a {
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12.5px; font-weight: 600;
+      color: var(--ink-soft);
+      white-space: nowrap;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .section-nav a:hover { background: rgba(15, 23, 42, 0.06); color: var(--ink); }
+    .section-nav a.is-current { background: var(--ink); color: white; }
+
+    /* ─────────────── Glow chip / count-up ─────────────── */
+    .glow-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 13px 6px 10px;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+    .glow-chip .pulse {
+      width: 7px; height: 7px; border-radius: 999px;
+      background: var(--good);
+      box-shadow: 0 0 0 0 rgba(4, 120, 87, 0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(4, 120, 87, 0.55); }
+      70%  { box-shadow: 0 0 0 10px rgba(4, 120, 87, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(4, 120, 87, 0); }
+    }
+    .count-up { font-variant-numeric: tabular-nums; }
+
+    /* ─────────────── Provider gradient dot (for chart hover etc.) ─────────────── */
+    .ring-dot { position: relative; }
+    .ring-dot::after {
+      content: ''; position: absolute; inset: -4px;
+      border-radius: 999px;
+      box-shadow: 0 0 0 1.5px rgba(255,255,255,0.85), 0 0 0 3px rgba(0,0,0,0.04);
+      pointer-events: none;
+    }
+
+    /* Reduced-motion bypass */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .reveal-fade { opacity: 1 !important; transform: none !important; }
+      .aurora-stage::before,
+      .aurora-stage::after,
+      .aurora-orb { animation: none !important; }
+      .above-fold-in { animation: none !important; }
+      .glow-chip .pulse { animation: none !important; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -381,127 +629,173 @@
   <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
     
 
-<section class="mb-8 sm:mb-10">
-  <div class="flex flex-wrap items-center gap-2 mb-4">
-    <span class="pill pill-accent">
-      <span class="pill-dot" style="background: var(--accent);"></span>
-      Bradley-Terry Elo · live
-    </span>
-    
-      <span class="pill pill-muted">Updated 2026-05-09 15:07:01</span>
-    
-    <a href="/api/leaderboard.json" class="pill pill-muted hover:underline">API</a>
+<section class="relative -mx-4 sm:-mx-6 -mt-6 sm:-mt-10 px-4 sm:px-6 pt-12 sm:pt-20 pb-16 sm:pb-24 mb-12 overflow-hidden">
+  
+  <div class="aurora-stage" aria-hidden="true">
+    <div class="aurora-orb orb-c"></div>
+    <div class="aurora-orb orb-d"></div>
   </div>
+  <div class="aurora-grid" aria-hidden="true"></div>
+  <div class="aurora-noise" aria-hidden="true"></div>
 
-  <h1 class="display-1">The Deep-Research Arena</h1>
-  <p class="mt-4 ink-soft max-w-3xl text-[15px] leading-relaxed">
-    An independent leaderboard for open-source <em>deep-research</em> agents.
-    Every framework answers the same questions on a sealed sandbox
-    (Magento + Postmill + Wikipedia), the reports are scored on URL grounding,
-    judge pass rate, and presentation, and pairwise battles become a single
-    Elo. The reachability gate kills any agent that fabricates URLs — no matter
-    how fluent the prose.
-  </p>
-
-  <div class="mt-5 flex flex-wrap gap-2">
-    <a href="/how-it-works" class="btn btn-primary btn-sm">
-      How the ranking works
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
-    </a>
-    <a href="/contribute" class="btn btn-ghost btn-sm">Reproduce / add your agent</a>
-    <a href="/v4" class="btn btn-ghost btn-sm">v4 multi-pillar <span class="nav-link-badge">NEW</span></a>
-    <a href="https://github.com/yibol9768-alt/deep-research-arena" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">GitHub ↗</a>
-  </div>
-</section>
-
-
-
-<section class="mb-8">
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-    <div class="surface-card is-hover p-4">
-      <div class="eyebrow">Agents ranked</div>
-      <div class="font-display font-bold mt-1.5" style="font-size: 28px; letter-spacing: -0.03em;">9</div>
-      <div class="ink-mute text-[11.5px] mt-0.5">open-source frameworks · 283 runs</div>
+  <div class="relative max-w-5xl mx-auto text-center above-fold-in">
+    <div class="inline-flex">
+      <span class="glow-chip">
+        <span class="pulse"></span>
+        Live · Bradley-Terry Elo · updated 2026-05-09 15:07:01
+      </span>
     </div>
-    <div class="surface-card is-hover p-4">
-      <div class="eyebrow">Pairwise battles</div>
-      <div class="font-display font-bold mt-1.5 num-mono" style="font-size: 28px; letter-spacing: -0.03em;">344</div>
-      <div class="ink-mute text-[11.5px] mt-0.5">scored across 56 cross-site tasks</div>
+    <h1 class="display-1 mt-6" style="font-size: clamp(40px, 6.5vw, 64px);">
+      The independent leaderboard for<br>
+      <span class="gradient-text">open-source deep research</span>
+    </h1>
+    <p class="mt-6 ink-soft text-[16px] sm:text-[17px] leading-relaxed max-w-2xl mx-auto">
+      Every framework answers the same questions on a sealed sandbox.
+      Reports are scored on URL grounding, judge pass-rate, and presentation.
+      Pairwise battles become a single Elo number — with confidence intervals
+      you can argue about.
+    </p>
+    <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <a href="#leaderboard" class="btn btn-primary">
+        View the leaderboard
+        <svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v8M3 7l3 3 3-3"/></svg>
+      </a>
+      <a href="/how-it-works" class="btn btn-ghost">How the ranking works</a>
+      <a href="https://github.com/yibol9768-alt/deep-research-arena" target="_blank" rel="noopener" class="btn btn-ghost">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        GitHub
+      </a>
     </div>
-    <div class="surface-card is-hover p-4">
-      <div class="eyebrow">Unique URLs cited</div>
-      <div class="font-display font-bold mt-1.5 num-mono" style="font-size: 28px; letter-spacing: -0.03em;">2,568</div>
-      <div class="ink-mute text-[11.5px] mt-0.5">distinct sandbox pages across all reports</div>
-    </div>
-    <div class="surface-card is-hover p-4">
-      <div class="eyebrow">Tokens consumed</div>
-      <div class="font-display font-bold mt-1.5 num-mono" style="font-size: 28px; letter-spacing: -0.03em;">
-        1.4M
+
+    
+    
+    <div class="mt-12 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
+      <div class="frost-card p-4 text-left">
+        <div class="eyebrow">Agents</div>
+        <div class="font-display font-bold count-up mt-1.5" style="font-size: 32px; letter-spacing: -0.04em;"
+             data-countup="9">0</div>
+        <div class="ink-mute text-[11.5px] mt-0.5">open-source frameworks</div>
       </div>
-      <div class="ink-mute text-[11.5px] mt-0.5">15,580 judge calls + agent generation</div>
+      <div class="frost-card p-4 text-left">
+        <div class="eyebrow">Battles scored</div>
+        <div class="font-display font-bold count-up mt-1.5" style="font-size: 32px; letter-spacing: -0.04em;"
+             data-countup="344">0</div>
+        <div class="ink-mute text-[11.5px] mt-0.5">across 56 cross-site tasks</div>
+      </div>
+      <div class="frost-card p-4 text-left">
+        <div class="eyebrow">URLs cited</div>
+        <div class="font-display font-bold count-up mt-1.5" style="font-size: 32px; letter-spacing: -0.04em;"
+             data-countup="2568">0</div>
+        <div class="ink-mute text-[11.5px] mt-0.5">distinct sandbox pages</div>
+      </div>
+      <div class="frost-card p-4 text-left">
+        <div class="eyebrow">Tokens consumed</div>
+        <div class="font-display font-bold mt-1.5" style="font-size: 32px; letter-spacing: -0.04em;">
+          
+            <span class="count-up" data-countup="1.4" data-decimals="1" data-suffix="M">0</span>
+          
+        </div>
+        <div class="ink-mute text-[11.5px] mt-0.5">judge + agent generation</div>
+      </div>
+    </div>
+    
+  </div>
+
+  
+  <div id="section-nav-trigger" style="position: absolute; bottom: 20px; height: 1px; width: 1px;"></div>
+</section>
+
+
+<div class="flex justify-center" style="margin-top: -20px;">
+  <nav id="section-nav" class="section-nav glass-strong" aria-label="On-page sections">
+    <a href="#landscape">Landscape</a>
+    <a href="#leaderboard">Leaderboard</a>
+    <a href="#sandbox">Sandbox</a>
+    <a href="#method">Method</a>
+    <a href="#reproduce">Reproduce</a>
+  </nav>
+</div>
+
+
+<section class="mb-16 sm:mb-20">
+  <div class="text-center max-w-2xl mx-auto mb-8 reveal">
+    <div class="eyebrow">Why this benchmark</div>
+    <h2 class="display-2 mt-2">Truthful answers, not fluent fabrications</h2>
+    <p class="mt-3 ink-soft text-[14.5px] leading-relaxed">
+      The three design choices that make this leaderboard different from
+      "ask GPT to evaluate, average the score."
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="frost-card p-6 reveal" data-delay="1">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+           style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <h3 class="font-display font-bold text-[17px] tracking-tight">Reachability gate</h3>
+      <p class="mt-2 ink-soft text-[13.5px] leading-relaxed">
+        Every cited URL is HTTP-probed. If the agent fabricates URLs, the entire
+        score is multiplied by zero. Truth is non-negotiable.
+      </p>
+      <div class="mt-3 text-[12px] num-mono ink-mute">composite = <span style="color: var(--bad);">reach</span> · quality</div>
+    </div>
+    <div class="frost-card p-6 reveal" data-delay="2">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+           style="background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #be185d;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
+      </div>
+      <h3 class="font-display font-bold text-[17px] tracking-tight">Sealed sandbox</h3>
+      <p class="mt-2 ink-soft text-[13.5px] leading-relaxed">
+        No agent touches the real internet. Magento, Postmill, and Kiwix
+        give us a frozen, scrapable corpus — so the golden answer set is
+        reproducible forever.
+      </p>
+      <div class="mt-3 text-[12px] ink-mute">3 sites · 2,000+ pages · 30 cross-site tasks</div>
+    </div>
+    <div class="frost-card p-6 reveal" data-delay="3">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
+           style="background: linear-gradient(135deg, #ccfbf1, #99f6e4); color: #0f766e;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6l3-9 3 18 3-9h3"/></svg>
+      </div>
+      <h3 class="font-display font-bold text-[17px] tracking-tight">Pairwise Elo</h3>
+      <p class="mt-2 ink-soft text-[13.5px] leading-relaxed">
+        Composite scores are noisy and task-correlated, so we don't average
+        them. We pit each agent against every other on every task — exactly
+        like chess Elo — and bootstrap a 95% CI.
+      </p>
+      <div class="mt-3 text-[12px] num-mono ink-mute">Bradley-Terry · N=1000 bootstrap</div>
     </div>
   </div>
 </section>
 
 
 
-<section class="mb-8">
-  <div class="flex flex-wrap items-center gap-2">
-    <span class="eyebrow mr-2 self-center" style="line-height: 28px;">Backbone LLM</span>
-    <span class="llm-chip is-active">
-      <span class="llm-chip-dot" style="background: var(--good);"></span>
-      DeepSeek V4-flash
-      <span class="llm-chip-meta">283 runs</span>
-    </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
-      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
-      DeepSeek V4-pro
-      <span class="llm-chip-meta">queued</span>
-    </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
-      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
-      GPT-4o-mini
-      <span class="llm-chip-meta">queued</span>
-    </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
-      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
-      Claude Sonnet 4.6
-      <span class="llm-chip-meta">queued</span>
-    </span>
-    <span class="llm-chip is-soon" title="Same evaluation, different backbone — coming soon.">
-      <span class="llm-chip-dot" style="background: var(--ink-faint);"></span>
-      Gemini 2.5 Pro
-      <span class="llm-chip-meta">queued</span>
-    </span>
-  </div>
-  <p class="mt-3 text-[12px] ink-mute">
-    Composite scores are backbone-dependent. The ranking below is built on DeepSeek V4-flash.
-    Once the other backbones land, the picker activates and the agent × LLM matrix appears on
-    <a class="accent-link" href="/compare">/compare</a>.
-  </p>
-</section>
-
-
-
-
-
-<section class="surface-card overflow-hidden mb-6">
-  <div class="px-5 py-3 flex items-baseline justify-between gap-4 flex-wrap" style="background: var(--surface-sunken); border-bottom: 1px solid var(--line);">
+<section id="landscape" class="mb-16 sm:mb-20 scroll-mt-24">
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6 reveal">
     <div>
       <div class="eyebrow">Score landscape</div>
-      <div class="text-[13.5px] mt-0.5"><strong>Elo vs task coverage</strong> · each dot is one agent</div>
+      <h2 class="display-2 mt-1.5">Where each agent stands</h2>
+      <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-2xl">
+        Elo on the X-axis · pick the Y-axis to compare across coverage,
+        win-rate, or estimate certainty. Top-right is better.
+      </p>
     </div>
-    <div class="text-[11.5px] ink-mute hidden sm:flex items-center gap-3">
-      <span class="inline-flex items-center gap-1.5">
-        <span class="agent-dot" style="--avatar-from: var(--accent);"></span> agent
-      </span>
-      <span>top-right is better · higher Elo + higher coverage</span>
+    <div class="flex items-center gap-1.5 frost-card p-1.5" id="scatter-axis-picker">
+      <button type="button" class="scatter-axis-btn is-active" data-axis="coverage">Coverage</button>
+      <button type="button" class="scatter-axis-btn" data-axis="winrate">Win rate</button>
+      <button type="button" class="scatter-axis-btn" data-axis="ci">CI width</button>
     </div>
   </div>
-  <div id="scatter-mount" class="px-3 sm:px-5 py-5" style="overflow: hidden;">
-    
-    <div class="ink-mute text-[12px]">Loading chart…</div>
+
+  <div class="frost-card overflow-hidden reveal" data-delay="1">
+    <div id="scatter-mount" class="px-3 sm:px-5 py-5" style="overflow: hidden; position: relative;">
+      <div class="ink-mute text-[12px]">Loading chart…</div>
+    </div>
+    <div class="px-5 py-3 border-t border-slate-200/60 text-[11.5px] ink-mute flex flex-wrap items-center gap-x-4 gap-y-1.5" id="scatter-legend">
+      
+    </div>
   </div>
+
   <script type="application/json" id="scatter-data">
     {
       "agents": [
@@ -511,8 +805,10 @@
             "elo": 1480.6,
             "elo_lo": 1404.9,
             "elo_hi": 1566.7,
+            "ci_width": 161.79999999999995,
             "wins": 206,
             "losses": 20,
+            "draws": 1,
             "coverage": 56,
             "n_tasks_target": 57
           },
@@ -522,8 +818,10 @@
             "elo": 1401.2,
             "elo_lo": 1323.8,
             "elo_hi": 1485.5,
+            "ci_width": 161.70000000000005,
             "wins": 193,
             "losses": 32,
+            "draws": 2,
             "coverage": 48,
             "n_tasks_target": 57
           },
@@ -533,8 +831,10 @@
             "elo": 1307.1,
             "elo_lo": 1211.4,
             "elo_hi": 1404.0,
+            "ci_width": 192.5999999999999,
             "wins": 170,
             "losses": 42,
+            "draws": 15,
             "coverage": 30,
             "n_tasks_target": 57
           },
@@ -544,8 +844,10 @@
             "elo": 945.1,
             "elo_lo": 871.1,
             "elo_hi": 1014.3,
+            "ci_width": 143.19999999999993,
             "wins": 80,
             "losses": 100,
+            "draws": 47,
             "coverage": 30,
             "n_tasks_target": 57
           },
@@ -555,8 +857,10 @@
             "elo": 865.8,
             "elo_lo": 793.1,
             "elo_hi": 940.8,
+            "ci_width": 147.69999999999993,
             "wins": 60,
             "losses": 114,
+            "draws": 53,
             "coverage": 30,
             "n_tasks_target": 57
           },
@@ -566,8 +870,10 @@
             "elo": 821.7,
             "elo_lo": 756.0,
             "elo_hi": 903.1,
+            "ci_width": 147.10000000000002,
             "wins": 40,
             "losses": 118,
+            "draws": 69,
             "coverage": 30,
             "n_tasks_target": 57
           },
@@ -577,8 +883,10 @@
             "elo": 731.5,
             "elo_lo": 676.0,
             "elo_hi": 775.7,
+            "ci_width": 99.70000000000005,
             "wins": 5,
             "losses": 130,
+            "draws": 92,
             "coverage": 30,
             "n_tasks_target": 57
           },
@@ -588,8 +896,10 @@
             "elo": 728.8,
             "elo_lo": 674.4,
             "elo_hi": 780.9,
+            "ci_width": 106.5,
             "wins": 6,
             "losses": 129,
+            "draws": 92,
             "coverage": 30,
             "n_tasks_target": 57
           },
@@ -599,8 +909,10 @@
             "elo": 718.2,
             "elo_lo": 677.2,
             "elo_hi": 762.8,
+            "ci_width": 85.59999999999991,
             "wins": 0,
             "losses": 75,
+            "draws": 61,
             "coverage": 30,
             "n_tasks_target": 57
           }
@@ -612,11 +924,31 @@
 
 
 
-<section class="surface-card overflow-hidden">
-  <div class="px-5 py-3 flex items-baseline justify-between gap-3 flex-wrap" style="background: var(--surface-sunken); border-bottom: 1px solid var(--line);">
+<section id="leaderboard" class="mb-16 sm:mb-20 scroll-mt-24">
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-6 reveal">
     <div>
       <div class="eyebrow">Ranking</div>
-      <div class="text-[13.5px] mt-0.5"><strong>composite_v2</strong> · multiplicative reachability gate</div>
+      <h2 class="display-2 mt-1.5">composite_v2 · reachability-gated Elo</h2>
+      <p class="mt-2 ink-soft text-[14px] leading-relaxed max-w-2xl">
+        Click any agent for per-pillar bars, best & worst tasks, and the upstream project.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="llm-chip is-active">
+        <span class="llm-chip-dot" style="background: var(--good);"></span>
+        DeepSeek V4-flash
+        <span class="llm-chip-meta">283 runs</span>
+      </span>
+      <a href="/compare" class="btn btn-ghost btn-sm">+4 backbones queued ↗</a>
+    </div>
+  </div>
+
+
+
+<div class="frost-card overflow-hidden reveal" data-delay="1">
+  <div class="px-5 py-3 flex items-baseline justify-between gap-3 flex-wrap" style="border-bottom: 1px solid rgba(15,23,42,0.08);">
+    <div>
+      <div class="eyebrow">9 agents · 56 tasks · 283 runs</div>
     </div>
     <div class="text-[11px] ink-mute hidden sm:block">95% CI from 1000 bootstrap iterations · click a row for drill-down</div>
   </div>
@@ -631,7 +963,7 @@
       <col class="lb-hide-mobile" style="width: 50px;">
       <col class="lb-hide-mobile" style="width: 50px;">
     </colgroup>
-    <thead style="background: var(--surface); border-bottom: 1px solid var(--line);">
+    <thead style="background: rgba(255,255,255,0.65); border-bottom: 1px solid rgba(15,23,42,0.08);">
       <tr class="eyebrow text-left whitespace-nowrap">
         <th class="px-5 py-3 font-bold">#</th>
         <th class="px-3 py-3 font-bold">Agent</th>
@@ -650,7 +982,7 @@
       
       
       
-      <tr class="row-hover lb-row" data-agent="camel-ai" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="camel-ai" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-chip rank-1 " title="Rank 1">1</span>
@@ -693,7 +1025,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">1</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="camel-ai" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -709,7 +1041,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="flowsearcher-ds" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="flowsearcher-ds" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-chip rank-2 rank-tied" title="Tied with rank above (gap not statistically significant)">2</span>
@@ -752,7 +1084,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">2</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="flowsearcher-ds" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -768,7 +1100,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="smolagents" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="smolagents" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-chip rank-3 rank-tied" title="Tied with rank above (gap not statistically significant)">3</span>
@@ -811,7 +1143,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">15</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="smolagents" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -827,7 +1159,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="ldr" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="ldr" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-other " title="">4</span>
@@ -870,7 +1202,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">47</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="ldr" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -886,7 +1218,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="gpt-researcher" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="gpt-researcher" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">5<span style="margin-left:3px; font-size:9px; color: var(--ink-faint);">~</span></span>
@@ -929,7 +1261,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">53</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="gpt-researcher" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -945,7 +1277,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="deerflow" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="deerflow" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">6<span style="margin-left:3px; font-size:9px; color: var(--ink-faint);">~</span></span>
@@ -988,7 +1320,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">69</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="deerflow" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -1004,7 +1336,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="ii-researcher" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="ii-researcher" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">7<span style="margin-left:3px; font-size:9px; color: var(--ink-faint);">~</span></span>
@@ -1047,7 +1379,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">92</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="ii-researcher" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -1063,7 +1395,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="langchain-odr" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="langchain-odr" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">8<span style="margin-left:3px; font-size:9px; color: var(--ink-faint);">~</span></span>
@@ -1106,7 +1438,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">92</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="langchain-odr" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -1122,7 +1454,7 @@
         
         
       
-      <tr class="row-hover lb-row" data-agent="storm" style="border-top: 1px solid var(--line-soft); cursor: pointer;">
+      <tr class="row-hover lb-row" data-agent="storm" style="border-top: 1px solid rgba(15,23,42,0.04); cursor: pointer;">
         <td class="px-5 py-3.5 align-middle">
           
             <span class="rank-other rank-tied-other" title="Tied with rank above (gap not statistically significant)">9<span style="margin-left:3px; font-size:9px; color: var(--ink-faint);">~</span></span>
@@ -1165,7 +1497,7 @@
         <td class="px-3 py-3.5 align-middle text-right num-mono text-[13px] ink-mute lb-hide-mobile">61</td>
       </tr>
       <tr class="lb-drill" data-agent-drill="storm" style="display: none;">
-        <td colspan="8" class="px-0 py-0" style="background: var(--canvas-deep); border-top: 1px solid var(--line);">
+        <td colspan="8" class="px-0 py-0" style="background: rgba(241, 245, 249, 0.65); border-top: 1px solid rgba(15,23,42,0.06);">
           <div class="lb-drill-body" style="padding: 20px 24px;">
             <div class="text-[12px] ink-mute">Loading drill-down…</div>
           </div>
@@ -1175,36 +1507,20 @@
     </tbody>
   </table>
 
-  <div class="px-5 py-3 text-[11.5px] ink-mute" style="background: var(--surface-sunken); border-top: 1px solid var(--line);">
+  <div class="px-5 py-3 text-[11.5px] ink-mute" style="border-top: 1px solid rgba(15,23,42,0.06);">
     <strong>Coverage</strong> is how many of the 57 tasks this agent has a valid score for.
     Agents with fewer than 30 pairs are marked
     <span class="pill pill-warn" style="font-size: 10px; padding: 1px 6px;">partial</span>
-    — their Elo will tighten as more pairs land. The full bulk is still in flight for newly-added agents.
-    A small "<span class="num-mono">~</span>" marker on the rank means the gap to the row above is not statistically significant.
-  </div>
-
-  <div class="px-5 py-3 text-[11px] ink-mute flex items-center gap-4 flex-wrap" style="background: var(--surface); border-top: 1px solid var(--line-soft);">
-    <span class="num-mono">674</span>
-    <div class="flex-1 flex items-center gap-3 flex-wrap">
-      <span>Bar spans the global Elo range:</span>
-      <span class="inline-flex items-center gap-1.5">
-        <span style="display:inline-block; width:36px; height:6px; background: rgba(37,99,235,0.28); border-radius: 999px;"></span>
-        <span>95% CI</span>
-      </span>
-      <span class="inline-flex items-center gap-1.5">
-        <span style="display:inline-block; width:10px; height:10px; background: var(--accent); border-radius: 999px; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px rgba(37,99,235,0.4);"></span>
-        <span>point estimate</span>
-      </span>
-    </div>
-    <span class="num-mono">1567</span>
+    — their Elo will tighten as more pairs land.
+    A small "<span class="num-mono">~</span>" marker means the gap to the row above is not statistically significant.
   </div>
 
   
-  <div style="border-top: 1px solid var(--line); background: var(--canvas-deep);" class="px-5 py-4">
+  <div class="px-5 py-4" style="border-top: 1px solid rgba(15,23,42,0.06);">
     <div class="eyebrow mb-3">Adjacent-rank significance · permutation N=1000</div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[12px]">
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">camel-ai</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">flowsearcher-ds</span>
@@ -1212,7 +1528,7 @@
         <span class="num-mono ink-mute" style="">p=0.305</span>
       </div>
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">flowsearcher-ds</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">smolagents</span>
@@ -1220,7 +1536,7 @@
         <span class="num-mono ink-mute" style="">p=0.447</span>
       </div>
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">smolagents</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">ldr</span>
@@ -1228,7 +1544,7 @@
         <span class="num-mono font-semibold" style="color: var(--accent-ink);">p=0.0</span>
       </div>
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">ldr</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">gpt-researcher</span>
@@ -1236,7 +1552,7 @@
         <span class="num-mono ink-mute" style="">p=0.326</span>
       </div>
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">gpt-researcher</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">deerflow</span>
@@ -1244,7 +1560,7 @@
         <span class="num-mono ink-mute" style="">p=0.573</span>
       </div>
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">deerflow</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">ii-researcher</span>
@@ -1252,7 +1568,7 @@
         <span class="num-mono ink-mute" style="">p=0.31</span>
       </div>
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">ii-researcher</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">langchain-odr</span>
@@ -1260,7 +1576,7 @@
         <span class="num-mono ink-mute" style="">p=0.97</span>
       </div>
       
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: var(--surface); border: 1px solid var(--line-soft);">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md" style="background: rgba(255,255,255,0.65); border: 1px solid rgba(15,23,42,0.06);">
         <span class="font-medium">langchain-odr</span>
         <span class="ink-mute">›</span>
         <span class="font-medium">storm</span>
@@ -1271,53 +1587,286 @@
     </div>
   </div>
   
+</div>
+
 </section>
 
-<section class="mt-6 ink-soft text-[13px] leading-relaxed max-w-3xl">
-  <p>
-    <strong>What you're seeing.</strong> Each row is one open-source DR framework.
-    Higher Elo means it more often wrote a more correct, better-grounded report
-    than its peers across the 56 tasks.
-    <a class="accent-link" href="/how-it-works">Read the full method →</a>
-    Click any agent row to see per-pillar bars, best/worst tasks, and the upstream project link.
-  </p>
+
+<section id="sandbox" class="mb-16 sm:mb-20 scroll-mt-24">
+  <div class="text-center max-w-2xl mx-auto mb-8 reveal">
+    <div class="eyebrow">The sandbox</div>
+    <h2 class="display-2 mt-2">Three sites. One sealed corpus.</h2>
+    <p class="mt-3 ink-soft text-[14.5px] leading-relaxed">
+      No agent ever touches the real internet. Every URL it cites must
+      resolve inside this Docker stack — that's how the reachability gate
+      kills fluent-but-fabricated reports.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="reveal" data-delay="1">
+      <div class="frost-card p-6 h-full">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-[18px] font-display"
+               style="background: linear-gradient(135deg, #f59e0b, #ea580c);">M</div>
+          <div>
+            <div class="font-display font-bold text-[16px]">Magento</div>
+            <div class="text-[11.5px] num-mono ink-mute">localhost:7770</div>
+          </div>
+        </div>
+        <p class="ink-soft text-[13px] leading-relaxed">
+          ~2,000 frozen e-commerce product pages. Specs, reviews, price history, related items.
+        </p>
+        <div class="mt-4 text-[11.5px] ink-mute flex items-center gap-1.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Shopping & specifications
+        </div>
+      </div>
+    </div>
+    <div class="reveal" data-delay="2">
+      <div class="frost-card p-6 h-full">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-[18px] font-display"
+               style="background: linear-gradient(135deg, #ec4899, #be185d);">P</div>
+          <div>
+            <div class="font-display font-bold text-[16px]">Postmill</div>
+            <div class="text-[11.5px] num-mono ink-mute">localhost:9999</div>
+          </div>
+        </div>
+        <p class="ink-soft text-[13px] leading-relaxed">
+          Reddit-style forum threads. Opinion, user experience, edge-case warnings — the kind of context the spec sheets miss.
+        </p>
+        <div class="mt-4 text-[11.5px] ink-mute flex items-center gap-1.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          Community discussion
+        </div>
+      </div>
+    </div>
+    <div class="reveal" data-delay="3">
+      <div class="frost-card p-6 h-full">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-[18px] font-display"
+               style="background: linear-gradient(135deg, #0891b2, #0f766e);">K</div>
+          <div>
+            <div class="font-display font-bold text-[16px]">Kiwix (Wikipedia)</div>
+            <div class="text-[11.5px] num-mono ink-mute">localhost:8090</div>
+          </div>
+        </div>
+        <p class="ink-soft text-[13px] leading-relaxed">
+          Offline Wikipedia snapshot. Background knowledge, definitions, citations for the agent to ground its synthesis.
+        </p>
+        <div class="mt-4 text-[11.5px] ink-mute flex items-center gap-1.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Encyclopedic knowledge
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mt-6 text-center reveal" data-delay="4">
+    <p class="text-[12.5px] ink-mute">
+      Each cross-site task requires ≥120 cited URLs spanning all three sources.
+      Search calls route through a Tavily-compatible shim that only returns sandbox URLs.
+    </p>
+  </div>
 </section>
 
+
+<section id="method" class="mb-16 sm:mb-20 scroll-mt-24">
+  <div class="text-center max-w-2xl mx-auto mb-10 reveal">
+    <div class="eyebrow">Method</div>
+    <h2 class="display-2 mt-2">From prompt to Elo, in four steps</h2>
+  </div>
+  <div class="relative">
+    
+    <div class="hidden md:block absolute top-7 left-[8%] right-[8%] h-[2px] reveal-fade" data-delay="1"
+         style="background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.3), rgba(124, 58, 237, 0.3), rgba(219, 39, 119, 0.3), transparent);"></div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+      <div class="reveal" data-delay="1">
+        <div class="text-center mb-3">
+          <div class="inline-flex w-14 h-14 rounded-full items-center justify-center font-display font-bold text-[18px] text-white relative"
+               style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 6px 18px rgba(37, 99, 235, 0.25), 0 0 0 6px white;">
+            1
+          </div>
+        </div>
+        <div class="frost-card p-5">
+          <h3 class="font-display font-bold text-[15px] mb-1.5">Run</h3>
+          <p class="ink-soft text-[12.5px] leading-relaxed">Each DR framework gets the same one-paragraph prompt and writes a markdown report. Search is routed through a sandbox shim — no live internet.</p>
+        </div>
+      </div>
+      <div class="reveal" data-delay="2">
+        <div class="text-center mb-3">
+          <div class="inline-flex w-14 h-14 rounded-full items-center justify-center font-display font-bold text-[18px] text-white relative"
+               style="background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 6px 18px rgba(79, 70, 229, 0.25), 0 0 0 6px white;">
+            2
+          </div>
+        </div>
+        <div class="frost-card p-5">
+          <h3 class="font-display font-bold text-[15px] mb-1.5">Score</h3>
+          <p class="ink-soft text-[12.5px] leading-relaxed">A deterministic scorer produces 7 sub-scores: URL coverage, reachability, quote match, judge pass-rate, citation alignment, depth, presentation.</p>
+        </div>
+      </div>
+      <div class="reveal" data-delay="3">
+        <div class="text-center mb-3">
+          <div class="inline-flex w-14 h-14 rounded-full items-center justify-center font-display font-bold text-[18px] text-white relative"
+               style="background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: 0 6px 18px rgba(124, 58, 237, 0.25), 0 0 0 6px white;">
+            3
+          </div>
+        </div>
+        <div class="frost-card p-5">
+          <h3 class="font-display font-bold text-[15px] mb-1.5">Battle</h3>
+          <p class="ink-soft text-[12.5px] leading-relaxed">For every task two agents both scored, the higher composite_v2 wins. The reach gate × quality combine means fabricators forfeit.</p>
+        </div>
+      </div>
+      <div class="reveal" data-delay="4">
+        <div class="text-center mb-3">
+          <div class="inline-flex w-14 h-14 rounded-full items-center justify-center font-display font-bold text-[18px] text-white relative"
+               style="background: linear-gradient(135deg, #ec4899, #db2777); box-shadow: 0 6px 18px rgba(219, 39, 119, 0.25), 0 0 0 6px white;">
+            4
+          </div>
+        </div>
+        <div class="frost-card p-5">
+          <h3 class="font-display font-bold text-[15px] mb-1.5">Elo</h3>
+          <p class="ink-soft text-[12.5px] leading-relaxed">Bradley-Terry fits one Elo per agent over all battles. 1000 bootstrap iterations give a 95% CI you can argue about.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="text-center mt-8 reveal" data-delay="5">
+    <a href="/how-it-works" class="btn btn-ghost">
+      Read the full method walkthrough
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+    </a>
+  </div>
+</section>
+
+
+<section id="reproduce" class="mb-16 scroll-mt-24">
+  <div class="relative overflow-hidden rounded-3xl reveal" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #312e81 100%);">
+    <div class="aurora-stage" aria-hidden="true" style="opacity: 0.45;">
+      <div class="aurora-orb" style="width: 480px; height: 480px; right: -100px; top: -120px; background: radial-gradient(circle, #7c3aed 0%, transparent 60%); opacity: 0.5; animation: aurora-drift-2 24s ease-in-out infinite alternate;"></div>
+      <div class="aurora-orb" style="width: 380px; height: 380px; left: -60px; bottom: -100px; background: radial-gradient(circle, #2563eb 0%, transparent 60%); opacity: 0.45; animation: aurora-drift-3 28s ease-in-out infinite alternate;"></div>
+    </div>
+    <div class="absolute inset-0" aria-hidden="true"
+         style="background-image:
+           linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+           linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+           background-size: 48px 48px;
+           mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 75%);
+           -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 75%);"></div>
+    <div class="relative px-6 sm:px-12 py-12 sm:py-16 grid md:grid-cols-2 gap-8 items-center">
+      <div class="text-white">
+        <div class="eyebrow" style="color: rgba(255,255,255,0.65);">Open · reproducible</div>
+        <h2 class="display-2 mt-2" style="color: white;">Run the benchmark on your machine.</h2>
+        <p class="mt-4 text-[14.5px] leading-relaxed" style="color: rgba(255,255,255,0.75);">
+          Six parallel workers, ~3 hours wall-clock for a fresh 397-pair run.
+          The scorer is deterministic; the golden pool is frozen; the proxy +
+          shim are docker-compose-up away. Or just submit one (agent, task)
+          pair as a PR — it's the cheapest way to engage.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="/contribute" class="btn" style="background: white; color: var(--ink);">
+            Contribute or reproduce
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h8M7 3l3 3-3 3"/></svg>
+          </a>
+          <a href="https://github.com/yibol9768-alt/deep-research-arena" target="_blank" rel="noopener" class="btn glass-dark" style="color: white;">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+            Star on GitHub
+          </a>
+        </div>
+      </div>
+      <div class="glass-dark p-5 rounded-2xl" style="border-radius: 14px;">
+        <div class="eyebrow mb-3" style="color: rgba(255,255,255,0.65);">Quickstart</div>
+        <pre style="background: rgba(0,0,0,0.35); padding: 14px 16px; border-radius: 10px; font-size: 12px; line-height: 1.6; color: #e2e8f0; overflow-x: auto; font-family: 'JetBrains Mono', monospace;"><span style="color: #94a3b8;"># 1. clone + bring up the sandbox</span>
+git clone https://github.com/yibol9768-alt/deep-research-arena.git
+cd deep-research-arena
+docker compose -f sandbox/docker-compose.yml up -d
+
+<span style="color: #94a3b8;"># 2. run one (agent × task) pair</span>
+.venv-camel/bin/python scripts/run_deep_task.py \
+    --agent smolagents --task dr_cross_deep_0001 \
+    --backbone deepseek-v4-flash
+
+<span style="color: #94a3b8;"># 3. score + rebuild the leaderboard</span>
+scripts/score_deep_answer.py ...
+scripts/build_deep_leaderboard.py</pre>
+      </div>
+    </div>
+  </div>
+</section>
 
 <style>
+  /* Scoped: only kicks in when the row is open */
   .lb-row.is-open .lb-caret { transform: rotate(180deg); }
 
   .pillar-bar { position: relative; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
-  .pillar-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #60a5fa, #2563eb); border-radius: 999px; }
+  .pillar-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #60a5fa, #2563eb); border-radius: 999px; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
   .pillar-row { display: grid; grid-template-columns: 130px 1fr 60px 60px; align-items: center; gap: 10px; padding: 4px 0; font-size: 12px; }
   .pillar-row .pillar-name { color: var(--ink-soft); font-weight: 500; }
   .pillar-row .pillar-pct  { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-soft); font-size: 11.5px; }
   .pillar-row .pillar-elo  { font-variant-numeric: tabular-nums; text-align: right; color: var(--ink-mute); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
-  .task-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12.5px; border-bottom: 1px dashed var(--line-soft); }
+  .task-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12.5px; border-bottom: 1px dashed rgba(15,23,42,0.06); }
   .task-row:last-child { border-bottom: none; }
   .task-row a { color: var(--accent-ink); text-decoration: none; }
   .task-row a:hover { text-decoration: underline; }
   .task-score { font-variant-numeric: tabular-nums; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
 
-  /* Scatter chart */
-  #scatter-mount svg { display: block; width: 100%; height: auto; max-height: 380px; }
-  .scatter-dot { cursor: pointer; transition: r 0.15s, filter 0.15s; }
+  /* Scatter chart styles */
+  #scatter-mount svg { display: block; width: 100%; height: auto; max-height: 440px; }
+  .scatter-dot {
+    cursor: pointer;
+    transition: r 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.15s, opacity 0.6s;
+  }
   .scatter-dot:hover { filter: brightness(0.85); }
-  .scatter-label { font-size: 10.5px; font-family: 'Inter', sans-serif; font-weight: 600; fill: var(--ink); pointer-events: none; }
-  .scatter-label-bg { fill: rgba(255,255,255,0.85); }
+  .scatter-dot-pop { animation: dot-pop 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: center; transform-box: fill-box; }
+  @keyframes dot-pop {
+    from { opacity: 0; transform: scale(0.2); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .scatter-label { font-size: 10.5px; font-family: 'Inter', sans-serif; font-weight: 700; fill: var(--ink); pointer-events: none; }
   #scatter-tooltip {
     position: absolute; pointer-events: none; z-index: 10;
     background: var(--ink); color: white;
-    padding: 8px 11px; border-radius: 8px; font-size: 11.5px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    padding: 9px 12px; border-radius: 10px; font-size: 11.5px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.22);
     transition: opacity 0.12s ease;
-    opacity: 0; min-width: 140px;
+    opacity: 0; min-width: 150px;
     transform: translate(-50%, -100%);
-    margin-top: -8px;
+    margin-top: -10px;
   }
-  #scatter-tooltip strong { display: block; font-size: 12.5px; margin-bottom: 3px; }
-  #scatter-tooltip .row { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
-  #scatter-tooltip .row span:first-child { opacity: 0.75; }
+  #scatter-tooltip::after {
+    content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg);
+    width: 10px; height: 10px; background: var(--ink);
+  }
+  #scatter-tooltip strong { display: block; font-size: 12.5px; margin-bottom: 4px; }
+  #scatter-tooltip .row { display: flex; justify-content: space-between; gap: 10px; font-variant-numeric: tabular-nums; line-height: 1.5; }
+  #scatter-tooltip .row span:first-child { opacity: 0.65; }
+
+  /* Scatter axis picker */
+  .scatter-axis-btn {
+    padding: 6px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 600;
+    color: var(--ink-soft);
+    background: transparent; border: none; cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-family: inherit;
+  }
+  .scatter-axis-btn:hover { color: var(--ink); background: rgba(15,23,42,0.04); }
+  .scatter-axis-btn.is-active {
+    background: var(--ink); color: white;
+  }
+
+  /* Scatter legend chips */
+  .scatter-legend-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 999px;
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(15,23,42,0.08);
+    font-size: 11px; font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .scatter-legend-chip:hover { color: var(--ink); background: white; }
+  .scatter-legend-chip .agent-dot { width: 8px; height: 8px; box-shadow: none; }
 </style>
 
 <script>
@@ -1429,10 +1978,18 @@
     });
   });
 
-  // ─────────────── Scatter chart ───────────────
+  // ─────────────── Scatter chart with axis toggle ───────────────
+  const AXIS_DEFS = {
+    coverage: { label: 'Tasks covered', extract: a => a.coverage, max: a => Math.max(a.n_tasks_target, ...a.values), unit: '/' },
+    winrate:  { label: 'Win rate', extract: a => (a.wins + a.losses) > 0 ? a.wins / (a.wins + a.losses) : 0, max: () => 1, unit: '%' },
+    ci:       { label: 'CI width (Elo)', extract: a => a.ci_width, max: a => Math.max(...a.values) * 1.1, unit: '', invert: true },
+  };
+  let currentAxis = 'coverage';
+
   function renderScatter() {
     const mount = document.getElementById('scatter-mount');
     const dataNode = document.getElementById('scatter-data');
+    const legendEl = document.getElementById('scatter-legend');
     if (!mount || !dataNode) return;
     let dataset;
     try { dataset = JSON.parse(dataNode.textContent); }
@@ -1440,31 +1997,36 @@
     const agents = dataset.agents || [];
     if (agents.length < 2) { mount.innerHTML = '<div class="ink-mute text-[12px]">Need 2+ agents to render.</div>'; return; }
 
+    const def = AXIS_DEFS[currentAxis];
     const W = mount.clientWidth || 800;
-    const H = Math.max(280, Math.min(380, W * 0.42));
-    const M = { l: 56, r: 28, t: 18, b: 42 };
+    const H = Math.max(320, Math.min(440, W * 0.46));
+    const M = { l: 64, r: 28, t: 22, b: 50 };
     const innerW = W - M.l - M.r;
     const innerH = H - M.t - M.b;
 
-    const eloMin = Math.min(...agents.map(a => a.elo_lo));
-    const eloMax = Math.max(...agents.map(a => a.elo_hi));
-    const eloPad = (eloMax - eloMin) * 0.06 || 20;
-    const xMin = eloMin - eloPad, xMax = eloMax + eloPad;
-    const targetN = agents[0].n_tasks_target || 30;
-    const yMax = Math.max(targetN, ...agents.map(a => a.coverage));
+    const eloLo = Math.min(...agents.map(a => a.elo_lo));
+    const eloHi = Math.max(...agents.map(a => a.elo_hi));
+    const eloPad = (eloHi - eloLo) * 0.06 || 20;
+    const xMin = eloLo - eloPad, xMax = eloHi + eloPad;
+
+    const values = agents.map(def.extract);
+    const yMaxRaw = def.max({ ...agents[0], values });
+    const yMax = def.invert ? yMaxRaw : (currentAxis === 'winrate' ? 1 : yMaxRaw);
     const yMin = 0;
 
     function sx(v) { return M.l + (v - xMin) / (xMax - xMin) * innerW; }
     function sy(v) { return M.t + innerH - (v - yMin) / (yMax - yMin) * innerH; }
 
-    // Gridlines (5 horizontal, 5 vertical)
     const xTicks = 5, yTicks = 5;
     let grid = '';
     for (let i = 0; i <= yTicks; i++) {
       const v = yMin + (yMax - yMin) * i / yTicks;
       const y = sy(v);
       grid += `<line class="chart-gridline" x1="${M.l}" x2="${M.l + innerW}" y1="${y}" y2="${y}"></line>`;
-      grid += `<text class="chart-axis-tick" x="${M.l - 8}" y="${y + 3}" text-anchor="end">${Math.round(v)}</text>`;
+      let label = '';
+      if (currentAxis === 'winrate') label = Math.round(v * 100) + '%';
+      else label = (Math.round(v * 100) / 100).toString();
+      grid += `<text class="chart-axis-tick" x="${M.l - 8}" y="${y + 3}" text-anchor="end">${label}</text>`;
     }
     for (let i = 0; i <= xTicks; i++) {
       const v = xMin + (xMax - xMin) * i / xTicks;
@@ -1472,28 +2034,29 @@
       grid += `<line class="chart-gridline" x1="${x}" x2="${x}" y1="${M.t}" y2="${M.t + innerH}"></line>`;
       grid += `<text class="chart-axis-tick" x="${x}" y="${M.t + innerH + 16}" text-anchor="middle">${Math.round(v)}</text>`;
     }
-    // Axis labels
-    grid += `<text class="chart-axis-label" x="${M.l + innerW / 2}" y="${H - 6}" text-anchor="middle">Elo (Bradley-Terry)</text>`;
-    grid += `<text class="chart-axis-label" x="${-M.t - innerH / 2}" y="14" text-anchor="middle" transform="rotate(-90)">Tasks covered (/${targetN})</text>`;
+    grid += `<text class="chart-axis-label" x="${M.l + innerW / 2}" y="${H - 8}" text-anchor="middle">Elo (Bradley-Terry)</text>`;
+    grid += `<text class="chart-axis-label" x="${-M.t - innerH / 2}" y="16" text-anchor="middle" transform="rotate(-90)">${def.label}</text>`;
 
-    // Target coverage line (yLine = targetN)
-    if (targetN <= yMax) {
-      const yLine = sy(targetN);
-      grid += `<line x1="${M.l}" x2="${M.l + innerW}" y1="${yLine}" y2="${yLine}" stroke="${'#0f172a'}" stroke-width="1" stroke-dasharray="5 4" opacity="0.45"></line>`;
+    // Optional reference line for coverage = target
+    if (currentAxis === 'coverage' && agents[0].n_tasks_target <= yMax) {
+      const yLine = sy(agents[0].n_tasks_target);
+      grid += `<line x1="${M.l}" x2="${M.l + innerW}" y1="${yLine}" y2="${yLine}" stroke="#0f172a" stroke-width="1" stroke-dasharray="5 4" opacity="0.4"></line>`;
       grid += `<text class="chart-axis-tick" x="${M.l + innerW - 4}" y="${yLine - 5}" text-anchor="end" style="fill: var(--ink-soft); font-weight: 600;">full coverage</text>`;
     }
 
-    // Dots
     let dots = '';
     let labels = '';
     agents.forEach((a, i) => {
       const c = window.agentColor(a.name);
-      const x = sx(a.elo), y = sy(a.coverage);
-      const r = 7;
-      dots += `<circle class="scatter-dot" cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="var(--surface)" stroke-width="2" data-name="${a.name}" data-elo="${Math.round(a.elo)}" data-cov="${a.coverage}" data-target="${targetN}" data-wins="${a.wins}" data-losses="${a.losses}"></circle>`;
-      // Label only top-3 by elo and bottom-1 to avoid clutter
+      const yVal = def.extract(a);
+      const x = sx(a.elo), y = sy(yVal);
+      const r = 8;
+      const yDisp = currentAxis === 'winrate' ? Math.round(yVal * 100) + '%' : (currentAxis === 'ci' ? Math.round(yVal) + ' Elo' : (a.coverage + ' / ' + a.n_tasks_target));
+      dots += `<circle class="scatter-dot scatter-dot-pop" cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="white" stroke-width="2.5"
+               style="animation-delay: ${i * 35}ms;"
+               data-name="${a.name}" data-elo="${Math.round(a.elo)}" data-ydisp="${yDisp}" data-wins="${a.wins}" data-losses="${a.losses}" data-draws="${a.draws}"></circle>`;
     });
-    // Decide which to label: top 3 elo + lowest elo agent
+
     const sorted = [...agents].sort((a, b) => b.elo - a.elo);
     const toLabel = new Set();
     sorted.slice(0, 3).forEach(a => toLabel.add(a.name));
@@ -1501,58 +2064,97 @@
 
     agents.forEach((a) => {
       if (!toLabel.has(a.name)) return;
-      const x = sx(a.elo), y = sy(a.coverage);
-      // Place label above the dot
-      const lx = x, ly = y - 13;
+      const yVal = def.extract(a);
+      const x = sx(a.elo), y = sy(yVal);
+      const lx = x, ly = y - 14;
       const text = a.name.length > 14 ? a.name.slice(0, 13) + '…' : a.name;
-      // text bg via filter? Simpler: two text elements (stroke + fill).
-      labels += `<text class="scatter-label" x="${lx}" y="${ly}" text-anchor="middle" stroke="white" stroke-width="3" stroke-linejoin="round" paint-order="stroke">${text}</text>`;
+      labels += `<text class="scatter-label" x="${lx}" y="${ly}" text-anchor="middle" stroke="white" stroke-width="3.5" stroke-linejoin="round" paint-order="stroke">${text}</text>`;
       labels += `<text class="scatter-label" x="${lx}" y="${ly}" text-anchor="middle">${text}</text>`;
     });
 
     const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-      <rect x="${M.l}" y="${M.t}" width="${innerW}" height="${innerH}" fill="var(--surface-sunken)" rx="6"/>
+      <defs>
+        <linearGradient id="plotBg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="rgba(241, 245, 249, 0.4)"/>
+          <stop offset="100%" stop-color="rgba(255, 255, 255, 0.4)"/>
+        </linearGradient>
+      </defs>
+      <rect x="${M.l}" y="${M.t}" width="${innerW}" height="${innerH}" fill="url(#plotBg)" rx="8"/>
       ${grid}
       ${dots}
       ${labels}
     </svg>`;
 
-    mount.style.position = 'relative';
     mount.innerHTML = svg + '<div id="scatter-tooltip"></div>';
     const tt = document.getElementById('scatter-tooltip');
+    const svgEl = mount.querySelector('svg');
     mount.querySelectorAll('.scatter-dot').forEach(node => {
       node.addEventListener('mouseenter', (ev) => {
         const n = ev.target;
         const name = n.getAttribute('data-name');
         const elo = n.getAttribute('data-elo');
-        const cov = n.getAttribute('data-cov');
-        const tgt = n.getAttribute('data-target');
+        const ydisp = n.getAttribute('data-ydisp');
         const w = n.getAttribute('data-wins');
         const l = n.getAttribute('data-losses');
-        const rect = mount.getBoundingClientRect();
+        const d = n.getAttribute('data-draws');
         const cx = parseFloat(n.getAttribute('cx'));
         const cy = parseFloat(n.getAttribute('cy'));
-        // Convert SVG coords to mount-local pixel coords
-        const scale = (mount.querySelector('svg').clientWidth) / W;
+        const scale = svgEl.clientWidth / W;
         tt.style.left = (cx * scale) + 'px';
         tt.style.top = (cy * scale) + 'px';
         tt.innerHTML = `<strong>${name}</strong>
           <div class="row"><span>Elo</span><span>${elo}</span></div>
-          <div class="row"><span>Coverage</span><span>${cov} / ${tgt}</span></div>
-          <div class="row"><span>W · L</span><span>${w} · ${l}</span></div>`;
+          <div class="row"><span>${def.label}</span><span>${ydisp}</span></div>
+          <div class="row"><span>W · L · D</span><span>${w} · ${l} · ${d}</span></div>`;
         tt.style.opacity = '1';
+        n.setAttribute('r', '11');
       });
-      node.addEventListener('mouseleave', () => { tt.style.opacity = '0'; });
+      node.addEventListener('mouseleave', (ev) => {
+        tt.style.opacity = '0';
+        ev.target.setAttribute('r', '8');
+      });
       node.addEventListener('click', () => {
         const name = node.getAttribute('data-name');
         const row = document.querySelector(`tr.lb-row[data-agent="${CSS.escape(name)}"]`);
         if (row) {
           row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          toggleRow(row);
+          // Open after scroll settles
+          setTimeout(() => toggleRow(row), 280);
         }
       });
     });
+
+    // Legend
+    if (legendEl) {
+      legendEl.innerHTML = agents.map(a => {
+        const c = window.agentColor(a.name);
+        return `<span class="scatter-legend-chip" data-agent="${a.name}">
+          <span class="agent-dot" style="--avatar-from: ${c};"></span>
+          <span>${a.name}</span>
+        </span>`;
+      }).join('');
+      legendEl.querySelectorAll('.scatter-legend-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const name = chip.getAttribute('data-agent');
+          const row = document.querySelector(`tr.lb-row[data-agent="${CSS.escape(name)}"]`);
+          if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => toggleRow(row), 280);
+          }
+        });
+      });
+    }
   }
+
+  // Axis toggle
+  document.querySelectorAll('.scatter-axis-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.scatter-axis-btn').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      currentAxis = btn.getAttribute('data-axis');
+      renderScatter();
+    });
+  });
 
   function readyScatter() {
     if (document.readyState === 'loading') {
@@ -1674,6 +2276,134 @@
         el.style.setProperty('--avatar-to', _darken(c, 0.35));
       });
     });
+
+    // ───────── Site-wide scroll reveal ─────────
+    (function () {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion) {
+        document.addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll('.reveal, .reveal-fade').forEach(el => el.classList.add('is-visible'));
+        });
+        return;
+      }
+      function watch() {
+        const els = document.querySelectorAll('.reveal, .reveal-fade');
+        if (!('IntersectionObserver' in window)) {
+          els.forEach(el => el.classList.add('is-visible'));
+          return;
+        }
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach(ent => {
+            if (ent.isIntersecting) {
+              ent.target.classList.add('is-visible');
+              io.unobserve(ent.target);
+            }
+          });
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+        els.forEach(el => io.observe(el));
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', watch);
+      } else {
+        watch();
+      }
+    })();
+
+    // ───────── Number count-up: any [data-countup="123.45"] element ─────────
+    (function () {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function format(n, decimals, suffix, prefix) {
+        const fixed = decimals > 0 ? n.toFixed(decimals) : Math.round(n).toString();
+        let parts = fixed.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return (prefix || '') + parts.join('.') + (suffix || '');
+      }
+      function animate(el) {
+        const target = parseFloat(el.getAttribute('data-countup'));
+        if (isNaN(target)) return;
+        const decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+        const suffix = el.getAttribute('data-suffix') || '';
+        const prefix = el.getAttribute('data-prefix') || '';
+        if (reduceMotion) {
+          el.textContent = format(target, decimals, suffix, prefix);
+          return;
+        }
+        const duration = 1100;
+        const start = performance.now();
+        function step(now) {
+          const t = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - t, 3);
+          el.textContent = format(target * eased, decimals, suffix, prefix);
+          if (t < 1) requestAnimationFrame(step);
+          else el.textContent = format(target, decimals, suffix, prefix);
+        }
+        requestAnimationFrame(step);
+      }
+      function watch() {
+        const els = document.querySelectorAll('[data-countup]');
+        if (!('IntersectionObserver' in window)) {
+          els.forEach(animate);
+          return;
+        }
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach(ent => {
+            if (ent.isIntersecting) {
+              animate(ent.target);
+              io.unobserve(ent.target);
+            }
+          });
+        }, { threshold: 0.5 });
+        els.forEach(el => io.observe(el));
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', watch);
+      } else {
+        watch();
+      }
+    })();
+
+    // ───────── Sticky section nav: visible only past hero ─────────
+    (function () {
+      function setup() {
+        const nav = document.getElementById('section-nav');
+        if (!nav) return;
+        const trigger = document.getElementById('section-nav-trigger');
+        if (!trigger) {
+          nav.classList.add('is-visible');
+          return;
+        }
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach(ent => {
+            // When trigger leaves viewport (scrolled past), show nav
+            if (!ent.isIntersecting && ent.boundingClientRect.top < 0) {
+              nav.classList.add('is-visible');
+            } else if (ent.isIntersecting) {
+              nav.classList.remove('is-visible');
+            }
+          });
+        }, { threshold: 0 });
+        io.observe(trigger);
+
+        // Current section highlight
+        const links = nav.querySelectorAll('a[href^="#"]');
+        const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+        if (!sections.length) return;
+        const cur = new IntersectionObserver((entries) => {
+          entries.forEach(ent => {
+            if (ent.isIntersecting) {
+              const id = '#' + ent.target.id;
+              links.forEach(l => l.classList.toggle('is-current', l.getAttribute('href') === id));
+            }
+          });
+        }, { rootMargin: '-40% 0px -55% 0px', threshold: 0 });
+        sections.forEach(s => cur.observe(s));
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+      } else {
+        setup();
+      }
+    })();
   </script>
 
   
