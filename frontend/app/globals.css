@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #FAFAF7;
+    --ink: #0B0B0F;
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  ::selection {
+    background-color: rgba(127, 75, 243, 0.18);
+  }
+
+  /* tabular nums for numeric tables */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-card border border-hairline shadow-soft;
+  }
+  .card-lift {
+    @apply transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:shadow-lift;
+  }
+  .hairline-b {
+    @apply border-b border-hairline;
+  }
+  .hairline-t {
+    @apply border-t border-hairline;
+  }
+  .pill {
+    @apply inline-flex items-center rounded-pill border border-hairline bg-white px-3 py-1 text-xs font-medium text-ink;
+  }
+  .tab-trigger {
+    @apply relative px-3 py-1.5 text-sm text-muted hover:text-ink transition-colors duration-150;
+  }
+  .tab-trigger[data-active='true'] {
+    @apply text-ink font-medium;
+  }
+  .pareto-wash {
+    background: linear-gradient(135deg, rgba(127, 75, 243, 0.10) 0%, rgba(127, 75, 243, 0) 100%);
+  }
+  .label-caps {
+    @apply text-caps uppercase tracking-wider text-muted;
+  }
+  .scroll-fade-x {
+    mask-image: linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent);
+  }
+  /* hide scrollbars on horizontal carousels */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+}
