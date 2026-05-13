@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Search, Menu, X, Activity } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
 
 const NAV = [
@@ -15,6 +14,7 @@ const NAV = [
   { href: '/arena', label: 'Arena' },
   { href: '/insights', label: 'Insights' },
   { href: '/methodology', label: 'Methodology' },
+  { href: '/sandbox', label: 'Sandbox' },
 ]
 
 export function SiteHeader() {
@@ -57,16 +57,16 @@ export function SiteHeader() {
             <Search className="h-4 w-4" />
           </button>
           <a
-            href="https://github.com/"
+            href="https://github.com/yibol9768-alt/deep-research-arena"
             target="_blank"
             rel="noreferrer"
             className="hidden text-xs font-medium text-muted hover:text-ink md:inline-flex"
           >
             GitHub
           </a>
-          <Button variant="primary" size="sm" className="hidden md:inline-flex">
-            Sign in
-          </Button>
+          <a href="/contribute" className="hidden h-8 items-center rounded-tab bg-ink px-3 text-sm font-medium text-white hover:bg-ink-soft md:inline-flex">
+            Contribute
+          </a>
           <button
             className="inline-flex h-9 w-9 items-center justify-center rounded-tab text-ink lg:hidden"
             onClick={() => setOpen((v) => !v)}
@@ -95,8 +95,8 @@ export function SiteHeader() {
               </Link>
             ))}
             <div className="mt-2 flex items-center gap-2 px-3 pt-3 hairline-t">
-              <Button variant="primary" size="sm" className="flex-1">Sign in</Button>
-              <a href="https://github.com/" className="text-xs text-muted">GitHub</a>
+              <a href="/contribute" className="inline-flex h-8 flex-1 items-center justify-center rounded-tab bg-ink px-3 text-sm font-medium text-white">Contribute</a>
+              <a href="https://github.com/yibol9768-alt/deep-research-arena" className="text-xs text-muted">GitHub</a>
             </div>
           </nav>
         </div>

@@ -25,10 +25,10 @@ const COLS: { title: string; links: { href: string; label: string }[] }[] = [
   {
     title: 'Resources',
     links: [
-      { href: '#', label: 'Paper (PDF)' },
-      { href: '#', label: 'GitHub' },
-      { href: '#', label: 'API' },
-      { href: '#', label: 'Changelog' },
+      { href: '/methodology', label: 'Paper notes' },
+      { href: 'https://github.com/yibol9768-alt/deep-research-arena', label: 'GitHub' },
+      { href: '/api/leaderboard', label: 'API' },
+      { href: '/about', label: 'Changelog' },
     ],
   },
 ]
@@ -81,7 +81,7 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
           <div className="md:col-span-1">
             <h4 className="text-caps uppercase tracking-wider text-brand-dark/70">Follow</h4>
             <div className="mt-4 flex gap-3">
-              <a href="#" aria-label="GitHub" className="text-brand-dark/80 hover:text-brand-dark"><Github className="h-4 w-4" /></a>
+              <a href="https://github.com/yibol9768-alt/deep-research-arena" aria-label="GitHub" className="text-brand-dark/80 hover:text-brand-dark"><Github className="h-4 w-4" /></a>
               <a href="#" aria-label="Twitter" className="text-brand-dark/80 hover:text-brand-dark"><Twitter className="h-4 w-4" /></a>
               <a href="#" aria-label="LinkedIn" className="text-brand-dark/80 hover:text-brand-dark"><Linkedin className="h-4 w-4" /></a>
               <a href="#" aria-label="Discord" className="text-brand-dark/80 hover:text-brand-dark"><MessageCircle className="h-4 w-4" /></a>
