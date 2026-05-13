@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BenchAgent AI - Agents Hub</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#e6e0e9",
+                    "on-tertiary-container": "#503d00",
+                    "secondary": "#63597c",
+                    "tertiary-fixed": "#ffdf93",
+                    "inverse-on-surface": "#f5eff7",
+                    "primary-fixed": "#e9ddff",
+                    "tertiary-fixed-dim": "#e7c365",
+                    "on-surface": "#1d1b20",
+                    "secondary-fixed": "#e9ddff",
+                    "on-primary-fixed-variant": "#4f378a",
+                    "error-container": "#ffdad6",
+                    "background": "#fdf7ff",
+                    "on-secondary-container": "#645a7d",
+                    "on-primary": "#ffffff",
+                    "on-primary-fixed": "#22005d",
+                    "surface-variant": "#e6e0e9",
+                    "surface-dim": "#ded8e0",
+                    "surface-tint": "#6750a4",
+                    "surface-container-high": "#ece6ee",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "tertiary-container": "#c9a74d",
+                    "surface-container": "#f2ecf4",
+                    "surface": "#fdf7ff",
+                    "on-background": "#1d1b20",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed-dim": "#cfbcff",
+                    "surface-bright": "#fdf7ff",
+                    "on-primary-container": "#e0d2ff",
+                    "inverse-surface": "#322f35",
+                    "secondary-container": "#e1d4fd",
+                    "primary": "#4f378a",
+                    "surface-container-low": "#f8f2fa",
+                    "on-error-container": "#93000a",
+                    "on-tertiary-fixed": "#241a00",
+                    "outline-variant": "#cbc4d2",
+                    "inverse-primary": "#cfbcff",
+                    "outline": "#7a7582",
+                    "tertiary": "#765b00",
+                    "primary-container": "#6750a4",
+                    "secondary-fixed-dim": "#cdc0e9",
+                    "on-secondary-fixed": "#1f1635",
+                    "on-tertiary-fixed-variant": "#594400",
+                    "on-surface-variant": "#494551",
+                    "on-secondary-fixed-variant": "#4b4263",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "section-gap": "64px",
+                    "stack-lg": "32px",
+                    "margin-mobile": "16px",
+                    "container-max": "1280px",
+                    "stack-md": "16px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-md": [
+                            "Instrument Serif"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "headline-sm": [
+                            "Instrument Serif"
+                    ],
+                    "data-mono": [
+                            "Inter"
+                    ],
+                    "label-caps": [
+                            "Inter"
+                    ],
+                    "display-lg": [
+                            "Instrument Serif"
+                    ]
+            },
+            "fontSize": {
+                    "headline-md": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-sm": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "data-mono": [
+                            "13px",
+                            {
+                                    "lineHeight": "1",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "label-caps": [
+                            "12px",
+                            {
+                                    "lineHeight": "1",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "1.1",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+        }
+        }
+      }
+    </script>
+<style>
+        /* Hide scrollbar for clean chip scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Mobile specific adjustments to ensure no top-row links are shown as per rules, using a hamburger instead for mobile TopAppBar representation */
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md antialiased flex flex-col min-h-screen">
+<!-- TopNavBar JSON Injection -->
+<header class="bg-surface dark:bg-surface-dim fixed top-0 w-full z-50 border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none transition-all duration-200 ease-in-out">
+<div class="flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto">
+<!-- Brand -->
+<div class="font-headline-md text-headline-md text-primary dark:text-primary-fixed">
+                BenchAgent AI
+            </div>
+<!-- Navigation Links (Hidden on Mobile per mandate) -->
+<nav class="hidden md:flex gap-gutter items-center font-body-md text-body-md">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Leaderboard</a>
+<!-- Active Item: Agents -->
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1 hover:text-primary dark:hover:text-primary-fixed" href="#">Agents</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Tasks</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Pillars</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Arena</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Insights</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Methodology</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-stack-md">
+<!-- Mobile Menu Trigger -->
+<button class="md:hidden text-on-surface p-2 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<button class="hidden md:block bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded-full hover:bg-on-primary-fixed-variant transition-colors">
+                    Sign In
+                </button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-[80px] pb-section-gap w-full max-w-container-max mx-auto">
+<!-- Mobile Header Area -->
+<div class="px-margin-mobile pt-stack-md pb-stack-sm md:px-gutter">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2">Agents Hub</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Explore and filter top performing autonomous agents.</p>
+</div>
+<!-- Scrollable Chip Filters -->
+<div class="px-margin-mobile md:px-gutter py-stack-sm flex gap-stack-sm overflow-x-auto no-scrollbar whitespace-nowrap border-b border-outline-variant/30 mb-stack-md">
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded-full shrink-0">
+                All Architectures
+            </button>
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-caps text-label-caps px-4 py-2 rounded-full shrink-0">
+                ReAct
+            </button>
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-caps text-label-caps px-4 py-2 rounded-full shrink-0">
+                Chain of Thought
+            </button>
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-caps text-label-caps px-4 py-2 rounded-full shrink-0">
+                Tree of Thoughts
+            </button>
+<button class="bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors font-label-caps text-label-caps px-4 py-2 rounded-full shrink-0">
+                Reflection
+            </button>
+</div>
+<!-- High Density Mobile List -->
+<div class="px-margin-mobile md:px-gutter flex flex-col gap-stack-sm">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 flex items-center justify-between shadow-[0px_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0px_4px_20px_rgba(0,0,0,0.08)] hover:-translate-y-[1px] transition-all duration-200 cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="font-data-mono text-data-mono text-on-surface-variant w-5 text-center font-bold">1</div>
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-bold text-on-surface leading-tight">GPT-4o Agent</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant mt-1">ReAct</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="font-data-mono text-data-mono text-primary font-bold">1285</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Elo</span>
+</div>
+<!-- Sparkline Placeholder -->
+<div class="w-12 h-6 flex items-end shrink-0 opacity-80">
+<svg class="w-full h-full stroke-primary fill-none stroke-[2] stroke-linecap-round stroke-linejoin-round" viewbox="0 0 48 24">
+<path d="M0,20 L8,18 L16,12 L24,15 L32,6 L40,8 L48,2"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 flex items-center justify-between shadow-[0px_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0px_4px_20px_rgba(0,0,0,0.08)] hover:-translate-y-[1px] transition-all duration-200 cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="font-data-mono text-data-mono text-on-surface-variant w-5 text-center font-bold">2</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">precision_manufacturing</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-bold text-on-surface leading-tight">Claude 3.5 Sonnet</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant mt-1">Chain of Thought</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="font-data-mono text-data-mono text-primary font-bold">1272</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Elo</span>
+</div>
+<div class="w-12 h-6 flex items-end shrink-0 opacity-80">
+<svg class="w-full h-full stroke-primary fill-none stroke-[2] stroke-linecap-round stroke-linejoin-round" viewbox="0 0 48 24">
+<path d="M0,22 L10,18 L20,20 L30,10 L40,12 L48,4"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 flex items-center justify-between shadow-[0px_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0px_4px_20px_rgba(0,0,0,0.08)] hover:-translate-y-[1px] transition-all duration-200 cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="font-data-mono text-data-mono text-on-surface-variant w-5 text-center font-bold">3</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-bold text-on-surface leading-tight">Llama-3-70B-Instruct</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant mt-1">ReAct</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="font-data-mono text-data-mono text-primary font-bold">1240</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Elo</span>
+</div>
+<div class="w-12 h-6 flex items-end shrink-0 opacity-80">
+<svg class="w-full h-full stroke-outline fill-none stroke-[2] stroke-linecap-round stroke-linejoin-round" viewbox="0 0 48 24">
+<path d="M0,18 L12,18 L24,14 L36,16 L48,10"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 flex items-center justify-between shadow-[0px_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0px_4px_20px_rgba(0,0,0,0.08)] hover:-translate-y-[1px] transition-all duration-200 cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="font-data-mono text-data-mono text-on-surface-variant w-5 text-center font-bold">4</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">hub</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-bold text-on-surface leading-tight">Mixtral-8x22B</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant mt-1">Tree of Thoughts</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="font-data-mono text-data-mono text-primary font-bold">1215</span>
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider">Elo</span>
+</div>
+<div class="w-12 h-6 flex items-end shrink-0 opacity-80">
+<svg class="w-full h-full stroke-outline fill-none stroke-[2] stroke-linecap-round stroke-linejoin-round" viewbox="0 0 48 24">
+<path d="M0,15 L10,18 L20,12 L30,14 L40,8 L48,10"></path>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer JSON Injection -->
+<footer class="bg-primary dark:bg-primary-container w-full mt-section-gap">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter px-gutter py-stack-lg max-w-container-max mx-auto text-on-primary text-on-primary dark:text-on-primary-container">
+<div class="md:col-span-12 flex flex-col items-center md:items-start mb-stack-md">
+<span class="font-headline-sm text-headline-sm text-on-primary dark:text-on-primary-container">
+                    BenchAgent AI
+                </span>
+<span class="font-body-md text-body-md opacity-80 mt-2 text-center md:text-left">
+                    © 2024 BenchAgent AI. All rights reserved.
+                </span>
+</div>
+<div class="md:col-span-12 flex flex-wrap justify-center md:justify-start gap-stack-md font-body-md text-body-md">
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Resources</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Documentation</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">API</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Terms</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Privacy</a>
+</div>
+</div>
+</footer>
+</body></html>

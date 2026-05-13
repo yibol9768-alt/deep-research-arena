@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Deep Research Arena</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#594400",
+                        "on-primary-fixed": "#22005d",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#e9ddff",
+                        "on-primary-container": "#e0d2ff",
+                        "surface": "#fdf7ff",
+                        "outline": "#7a7582",
+                        "primary-fixed-dim": "#cfbcff",
+                        "secondary": "#63597c",
+                        "surface-variant": "#e6e0e9",
+                        "surface-tint": "#6750a4",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#fdf7ff",
+                        "on-secondary-fixed-variant": "#4b4263",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#4f378a",
+                        "inverse-on-surface": "#f5eff7",
+                        "surface-dim": "#ded8e0",
+                        "surface-container-high": "#ece6ee",
+                        "on-tertiary-fixed": "#241a00",
+                        "secondary-container": "#e1d4fd",
+                        "surface-container": "#f2ecf4",
+                        "primary-fixed": "#e9ddff",
+                        "on-secondary-fixed": "#1f1635",
+                        "background": "#fdf7ff",
+                        "surface-container-highest": "#e6e0e9",
+                        "outline-variant": "#cbc4d2",
+                        "on-background": "#1d1b20",
+                        "inverse-surface": "#322f35",
+                        "surface-container-low": "#f8f2fa",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#1d1b20",
+                        "tertiary": "#765b00",
+                        "on-secondary-container": "#645a7d",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#cdc0e9",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#503d00",
+                        "primary": "#4f378a",
+                        "inverse-primary": "#cfbcff",
+                        "tertiary-fixed-dim": "#e7c365",
+                        "tertiary-container": "#c9a74d",
+                        "tertiary-fixed": "#ffdf93",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#494551",
+                        "primary-container": "#6750a4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "section-gap": "64px",
+                        "gutter": "24px",
+                        "container-max": "1280px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "stack-md": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Instrument Serif"],
+                        "data-mono": ["Inter"],
+                        "display-lg": ["Instrument Serif"],
+                        "headline-sm": ["Instrument Serif"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-md": ["32px", { "lineHeight": "1.2", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+                        "headline-sm": ["24px", { "lineHeight": "1.3", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #FAFAF7; }
+        .hairline-border { border: 1px solid #E8E8E4; }
+        .card-shadow { box-shadow: 0px 4px 20px rgba(0,0,0,0.03); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface antialiased">
+<!-- Mobile Top Navigation (Simplified from JSON for mobile view as requested) -->
+<nav class="bg-surface dark:bg-surface-dim shadow-sm dark:shadow-none fixed top-0 w-full z-50 border-b border-outline-variant dark:border-outline">
+<div class="flex justify-between items-center px-margin-mobile py-4 max-w-container-max mx-auto md:hidden">
+<span class="font-headline-md text-headline-md text-primary dark:text-primary-fixed">BenchAgent AI</span>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary">search</span>
+<span class="material-symbols-outlined text-primary">menu</span>
+</div>
+</div>
+<!-- Desktop Nav Hidden on Mobile -->
+<div class="hidden md:flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto">
+<span class="font-headline-md text-headline-md text-primary dark:text-primary-fixed">BenchAgent AI</span>
+<div class="flex gap-6">
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1" href="#">Arena</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors" href="#">Leaderboard</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors" href="#">Agents</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors" href="#">Tasks</a>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-DEFAULT font-label-caps text-label-caps">Sign In</button>
+</div>
+</nav>
+<main class="mt-[72px] pb-section-gap">
+<!-- Hero Section -->
+<section class="px-margin-mobile py-stack-lg relative overflow-hidden">
+<div class="absolute inset-0 bg-surface-container-low opacity-50 z-0" style="background-image: radial-gradient(circle at 2px 2px, #cfbcff 1px, transparent 0); background-size: 20px 20px;"></div>
+<div class="relative z-10">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-stack-sm">Deep Research Arena</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-stack-lg">Evaluating the next generation of autonomous reasoning agents across rigorous academic benchmarks.</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-lg hairline-border card-shadow">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1">TOTAL EVALS</p>
+<p class="font-headline-md text-headline-md text-primary">142,854</p>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-lg hairline-border card-shadow">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-1">ACTIVE AGENTS</p>
+<p class="font-headline-md text-headline-md text-primary">87</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Highlights Strip (Horizontal Scroll) -->
+<section class="pl-margin-mobile py-stack-md">
+<h2 class="font-headline-sm text-headline-sm mb-stack-md pr-margin-mobile">Latest Breakthroughs</h2>
+<div class="flex overflow-x-auto hide-scrollbar gap-4 pb-4 pr-margin-mobile">
+<div class="min-w-[280px] bg-surface-container-lowest p-4 rounded-lg hairline-border card-shadow flex-shrink-0">
+<span class="inline-block px-2 py-1 bg-secondary-fixed text-on-secondary-fixed text-[10px] rounded uppercase tracking-wider mb-2 font-semibold">New SOTA</span>
+<h3 class="font-body-lg text-body-lg font-semibold mb-1">Claude 3.5 Opus takes the lead in complex reasoning tasks.</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Surpassing GPT-4o by 4.2% on the highly challenging SWE-bench.</p>
+</div>
+<div class="min-w-[280px] bg-surface-container-lowest p-4 rounded-lg hairline-border card-shadow flex-shrink-0">
+<span class="inline-block px-2 py-1 bg-surface-container-high text-on-surface text-[10px] rounded uppercase tracking-wider mb-2 font-semibold">Cost Efficiency</span>
+<h3 class="font-body-lg text-body-lg font-semibold mb-1">Llama 3 70B delivers unprecedented value.</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Matching GPT-4 performance at 1/10th the inference cost.</p>
+</div>
+</div>
+</section>
+<!-- Leaderboard (Mobile Stacked Cards) -->
+<section class="px-margin-mobile py-stack-md">
+<div class="flex justify-between items-end mb-stack-md">
+<h2 class="font-headline-sm text-headline-sm">Global Leaderboard</h2>
+<a class="font-label-caps text-label-caps text-primary flex items-center gap-1" href="#">VIEW ALL <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+</div>
+<div class="space-y-4">
+<!-- Rank 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg hairline-border card-shadow flex items-center gap-4 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-[#fbbc05]"></div>
+<div class="font-headline-md text-headline-md text-on-surface-variant w-8 text-center">1</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-body-lg text-body-lg font-semibold">GPT-4o</span>
+<span class="border border-outline-variant text-[10px] px-1.5 py-0.5 rounded text-on-surface-variant">OpenAI</span>
+</div>
+<div class="flex justify-between items-center">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block">ELO RATING</span>
+<span class="font-data-mono text-data-mono font-bold text-primary">1284.5</span>
+</div>
+<div class="w-16 h-6 bg-surface-container-high rounded flex items-center justify-center text-[10px] text-on-surface-variant">Sparkline</div>
+</div>
+</div>
+</div>
+<!-- Rank 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-lg hairline-border card-shadow flex items-center gap-4 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-[#e3e3e3]"></div>
+<div class="font-headline-md text-headline-md text-on-surface-variant w-8 text-center">2</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-body-lg text-body-lg font-semibold">Claude 3.5 Sonnet</span>
+<span class="border border-outline-variant text-[10px] px-1.5 py-0.5 rounded text-on-surface-variant">Anthropic</span>
+</div>
+<div class="flex justify-between items-center">
+<div>
+<span class="font-label-caps text-label-caps text-on-surface-variant block">ELO RATING</span>
+<span class="font-data-mono text-data-mono font-bold text-primary">1279.1</span>
+</div>
+<div class="w-16 h-6 bg-surface-container-high rounded flex items-center justify-center text-[10px] text-on-surface-variant">Sparkline</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-[#C8A8FF] dark:bg-primary-container w-full mt-section-gap grid grid-cols-1 md:grid-cols-12 gap-gutter px-margin-mobile py-stack-lg max-w-container-max mx-auto text-on-primary">
+<div class="md:col-span-12 flex flex-col items-center text-center">
+<span class="font-headline-sm text-headline-sm text-on-primary dark:text-on-primary-container mb-4">BenchAgent AI</span>
+<div class="w-full max-w-sm mb-8">
+<p class="font-body-md text-body-md text-on-primary mb-2">Subscribe to our research newsletter</p>
+<div class="flex gap-2">
+<input class="flex-1 bg-surface-container-lowest/20 border-on-primary/30 text-on-primary placeholder-on-primary/70 rounded px-3 py-2 text-sm focus:ring-on-primary focus:border-on-primary" placeholder="Email address" type="email"/>
+<button class="bg-on-primary text-primary px-4 py-2 rounded font-label-caps text-label-caps">SUBSCRIBE</button>
+</div>
+</div>
+<div class="flex flex-wrap justify-center gap-4 mb-8">
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity font-body-md text-body-md" href="#">Resources</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity font-body-md text-body-md" href="#">Documentation</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity font-body-md text-body-md" href="#">API</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity font-body-md text-body-md" href="#">Terms</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity font-body-md text-body-md" href="#">Privacy</a>
+</div>
+<p class="font-body-md text-body-md text-on-primary/70">© 2024 BenchAgent AI. All rights reserved.</p>
+</div>
+</footer>
+</body></html>

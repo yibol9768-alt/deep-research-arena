@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Methodology - BenchAgent AI</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e6e0e9",
+                        "on-tertiary-container": "#503d00",
+                        "secondary": "#63597c",
+                        "tertiary-fixed": "#ffdf93",
+                        "inverse-on-surface": "#f5eff7",
+                        "primary-fixed": "#e9ddff",
+                        "tertiary-fixed-dim": "#e7c365",
+                        "on-surface": "#1d1b20",
+                        "secondary-fixed": "#e9ddff",
+                        "on-primary-fixed-variant": "#4f378a",
+                        "error-container": "#ffdad6",
+                        "background": "#fdf7ff",
+                        "on-secondary-container": "#645a7d",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#22005d",
+                        "surface-variant": "#e6e0e9",
+                        "surface-dim": "#ded8e0",
+                        "surface-tint": "#6750a4",
+                        "surface-container-high": "#ece6ee",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#c9a74d",
+                        "surface-container": "#f2ecf4",
+                        "surface": "#fdf7ff",
+                        "on-background": "#1d1b20",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#cfbcff",
+                        "surface-bright": "#fdf7ff",
+                        "on-primary-container": "#e0d2ff",
+                        "inverse-surface": "#322f35",
+                        "secondary-container": "#e1d4fd",
+                        "primary": "#4f378a",
+                        "surface-container-low": "#f8f2fa",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#241a00",
+                        "outline-variant": "#cbc4d2",
+                        "inverse-primary": "#cfbcff",
+                        "outline": "#7a7582",
+                        "tertiary": "#765b00",
+                        "primary-container": "#6750a4",
+                        "secondary-fixed-dim": "#cdc0e9",
+                        "on-secondary-fixed": "#1f1635",
+                        "on-tertiary-fixed-variant": "#594400",
+                        "on-surface-variant": "#494551",
+                        "on-secondary-fixed-variant": "#4b4263",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "section-gap": "64px",
+                        "stack-lg": "32px",
+                        "margin-mobile": "16px",
+                        "container-max": "1280px",
+                        "stack-md": "16px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Instrument Serif"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Instrument Serif"],
+                        "data-mono": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Instrument Serif"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-sm": ["24px", {"lineHeight": "1.3", "fontWeight": "400"}],
+                        "data-mono": ["13px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for data tables to match aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbc4d2; /* outline-variant */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7a7582; /* outline */
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-body-md antialiased selection:bg-primary selection:text-on-primary min-h-screen flex flex-col">
+<!-- TopNavBar Shared Component -->
+<header class="bg-surface dark:bg-surface-dim font-body-md text-body-md fixed top-0 w-full z-50 border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none transition-all duration-200 ease-in-out">
+<div class="flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto">
+<div class="flex items-center gap-stack-lg">
+<a class="font-headline-md text-headline-md text-primary dark:text-primary-fixed tracking-tight" href="#">
+                    BenchAgent AI
+                </a>
+<nav class="hidden md:flex gap-stack-md ml-stack-lg items-center">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Leaderboard</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Agents</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Tasks</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Pillars</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Arena</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Insights</a>
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1 hover:text-primary dark:hover:text-primary-fixed" href="#">Methodology</a>
+</nav>
+</div>
+<div class="flex items-center gap-stack-md">
+<div class="hidden lg:flex relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-full text-body-md font-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-64 transition-all placeholder:text-on-surface-variant/70" placeholder="Search methodology..." type="text"/>
+</div>
+<button class="bg-primary text-on-primary px-5 py-2 rounded-full font-body-md text-body-md font-medium hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm">
+                    Sign In
+                </button>
+</div>
+</div>
+</header>
+<!-- Main Layout Grid -->
+<main class="flex-grow pt-[100px] pb-section-gap px-margin-mobile md:px-gutter max-w-container-max mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-gutter items-start">
+<!-- Sticky TOC Sidebar (Left) -->
+<aside class="hidden md:block md:col-span-3 lg:col-span-2 sticky top-[120px]">
+<div class="pb-stack-lg border-b border-outline-variant mb-stack-md">
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-stack-md">Contents</h4>
+<ul class="space-y-stack-sm font-body-md text-body-md">
+<li><a class="text-on-surface hover:text-primary transition-colors inline-block py-1" href="#introduction">Introduction</a></li>
+<li><a class="text-primary font-semibold inline-block py-1" href="#composite-formula">Composite v3.1 Formula</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-colors inline-block py-1 pl-4" href="#formula-breakdown">Formula Breakdown</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-colors inline-block py-1" href="#bradley-terry">Bradley-Terry Elo</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-colors inline-block py-1" href="#grounding-gate">Grounding Gate</a></li>
+<li><a class="text-on-surface-variant hover:text-primary transition-colors inline-block py-1" href="#verifier-inventory">Verifier Inventory</a></li>
+</ul>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg border border-outline-variant">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-2">Last Updated</p>
+<p class="font-data-mono text-data-mono text-on-surface">October 24, 2024</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant mt-4 mb-2">Version</p>
+<p class="font-data-mono text-data-mono text-on-surface">v3.1.4</p>
+</div>
+</aside>
+<!-- Main Content Area (MDX Style) -->
+<article class="col-span-1 md:col-span-9 lg:col-span-8 max-w-[800px]">
+<header class="mb-section-gap" id="introduction">
+<h1 class="font-display-lg text-display-lg text-on-surface mb-stack-md text-balance">Evaluation Methodology &amp; Core Formulations</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    BenchAgent AI utilizes a rigorous, multi-faceted evaluation framework to assess agentic capabilities. This document details the mathematical foundations and architectural design of our latest scoring engine, moving beyond simple accuracy metrics to encapsulate complex reasoning, factual grounding, and comparative performance.
+                </p>
+</header>
+<!-- Section: Composite v3.1 Formula -->
+<section class="mb-section-gap scroll-mt-[120px]" id="composite-formula">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-md">Composite v3.1 Formula</h2>
+<p class="font-body-md text-body-md text-on-surface mb-stack-lg leading-relaxed">
+                    The core of our ranking system relies on a unified composite score (<span class="font-data-mono text-data-mono">C_score</span>) that normalizes outputs across varied task typologies. It integrates deterministic verification with probabilistic peer assessment.
+                </p>
+<!-- Academic Math Block Mockup -->
+<div class="bg-surface-container-low border border-outline-variant rounded-xl py-12 px-6 flex justify-center items-center overflow-x-auto mb-stack-lg shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)]">
+<div class="font-headline-md text-headline-md text-on-surface text-center whitespace-nowrap tracking-wide">
+<span class="italic">C</span><sub>score</sub> = <span class="italic">λ</span> <span class="text-outline">·</span> E<sub>BT</sub>(θ) + (1 - <span class="italic">λ</span>) <span class="text-outline">·</span> <span class="text-[40px] leading-none align-middle">∑</span><sub class="text-body-md -ml-2">i=1</sub><sup class="text-body-md -ml-3">k</sup> ω<sub>i</sub> <span class="italic">V</span>(x<sub>i</sub>, y<sub>i</sub>) <span class="text-outline">·</span> G(y<sub>i</sub>)
+                    </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter mb-stack-lg">
+<div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-2 border-b border-outline-variant pb-2">Variables</h4>
+<ul class="font-body-md text-body-md text-on-surface space-y-2 mt-3">
+<li><span class="font-data-mono text-data-mono bg-surface-container-low px-1 rounded">E_BT</span> : Bradley-Terry Elo estimate</li>
+<li><span class="font-data-mono text-data-mono bg-surface-container-low px-1 rounded">V</span> : Task-specific Verifier function</li>
+<li><span class="font-data-mono text-data-mono bg-surface-container-low px-1 rounded">G</span> : Grounding Gate penalty (0 or 1)</li>
+</ul>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-lg shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-2 border-b border-outline-variant pb-2">Parameters</h4>
+<ul class="font-body-md text-body-md text-on-surface space-y-2 mt-3">
+<li><span class="font-data-mono text-data-mono bg-surface-container-low px-1 rounded">λ</span> : Domain weighting factor (default 0.45)</li>
+<li><span class="font-data-mono text-data-mono bg-surface-container-low px-1 rounded">ω_i</span> : Complexity weight for task instance <span class="italic">i</span></li>
+</ul>
+</div>
+</div>
+</section>
+<!-- Section: Formula Breakdown Chart -->
+<section class="mb-section-gap scroll-mt-[120px]" id="formula-breakdown">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-stack-md">Formula Weighting Breakdown</h3>
+<p class="font-body-md text-body-md text-on-surface mb-stack-lg">
+                    The visualization below illustrates the standard distribution of the <span class="font-data-mono text-data-mono">λ</span> parameter across different evaluation pillars, highlighting how qualitative peer assessment (Elo) balances against deterministic execution.
+                </p>
+<!-- High-end UI Pattern: Glassmorphism/Minimal Chart Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-gutter shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:-translate-y-[2px] transition-all duration-300 relative overflow-hidden">
+<!-- Subtle background decoration -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-stack-lg">
+<!-- Chart Item 1 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-label-caps text-on-surface">Coding &amp; Logic Pillar</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant">λ = 0.20</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-primary/40 w-[20%] transition-all duration-1000" title="Elo Component"></div>
+<div class="h-full bg-primary w-[80%] transition-all duration-1000" title="Deterministic Component"></div>
+</div>
+</div>
+<!-- Chart Item 2 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-label-caps text-on-surface">Creative Writing Pillar</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant">λ = 0.85</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-tertiary-container w-[85%] transition-all duration-1000" title="Elo Component"></div>
+<div class="h-full bg-tertiary w-[15%] transition-all duration-1000" title="Deterministic Component"></div>
+</div>
+</div>
+<!-- Chart Item 3 -->
+<div>
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-label-caps text-on-surface">Data Analysis Pillar</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant">λ = 0.40</span>
+</div>
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary-container w-[40%] transition-all duration-1000" title="Elo Component"></div>
+<div class="h-full bg-secondary w-[60%] transition-all duration-1000" title="Deterministic Component"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 mt-2 pt-4 border-t border-outline-variant/50">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary-container opacity-50"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Peer Elo (Subjective)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<span class="font-label-caps text-label-caps text-on-surface-variant">Verifier (Deterministic)</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Bradley-Terry Elo -->
+<section class="mb-section-gap scroll-mt-[120px]" id="bradley-terry">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-md">Bradley-Terry Elo Implementation</h2>
+<p class="font-body-md text-body-md text-on-surface mb-stack-md leading-relaxed">
+                    For open-ended generation tasks where deterministic verification is intractable, we employ a modified Bradley-Terry model. It estimates the latent capability θ of agent <span class="italic">A</span> relative to agent <span class="italic">B</span> based on win-rates in blind pairwise comparisons conducted by a strong judge model.
+                </p>
+<div class="bg-surface-container-lowest border-l-4 border-primary p-5 my-stack-md rounded-r-lg">
+<p class="font-body-md text-body-md text-on-surface italic">
+                        "The probability that Agent A outperforms Agent B is modeled as the logistic function of the difference in their true capabilities, adjusted by a task-specific temperature coefficient."
+                    </p>
+</div>
+</section>
+<!-- Section: Grounding Gate -->
+<section class="mb-section-gap scroll-mt-[120px]" id="grounding-gate">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-md">The Grounding Gate Architecture</h2>
+<p class="font-body-md text-body-md text-on-surface mb-stack-md leading-relaxed">
+                    A critical innovation in v3.1 is the implementation of the <span class="font-semibold text-primary">Grounding Gate (G)</span>. Before any output is scored by the primary verifier, it must pass a strict factual consistency check against the provided context window.
+                </p>
+<!-- Diagrammatic Layout using Flex -->
+<div class="flex flex-col md:flex-row items-stretch gap-4 my-stack-lg">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-4 rounded-lg flex flex-col items-center justify-center text-center shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<span class="material-symbols-outlined text-outline text-[32px] mb-2">data_object</span>
+<h4 class="font-label-caps text-label-caps text-on-surface mb-1">Raw Output</h4>
+<p class="font-data-mono text-data-mono text-on-surface-variant text-[11px]">y_i = f(x_i)</p>
+</div>
+<div class="hidden md:flex flex-col justify-center items-center text-outline-variant">
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+<div class="flex-1 bg-error-container/20 border border-error-container p-4 rounded-lg flex flex-col items-center justify-center text-center relative overflow-hidden">
+<div class="absolute inset-0 bg-error/5 border-b-2 border-error"></div>
+<span class="material-symbols-outlined text-error relative z-10 text-[32px] mb-2">policy</span>
+<h4 class="font-label-caps text-label-caps text-on-error-container relative z-10 mb-1">Grounding Gate</h4>
+<p class="font-data-mono text-data-mono text-error relative z-10 text-[11px]">G(y_i) ∈ {0, 1}</p>
+</div>
+<div class="hidden md:flex flex-col justify-center items-center text-outline-variant">
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant p-4 rounded-lg flex flex-col items-center justify-center text-center shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<span class="material-symbols-outlined text-primary text-[32px] mb-2">verified</span>
+<h4 class="font-label-caps text-label-caps text-on-surface mb-1">Final Verifier</h4>
+<p class="font-data-mono text-data-mono text-on-surface-variant text-[11px]">Score calculation</p>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant text-sm">
+                    If G(y_i) = 0 (hallucination detected), the entire trace is scored 0, preventing agents from exploiting heuristic verifiers with fabricated constraints.
+                </p>
+</section>
+<!-- Section: Verifier Inventory Table -->
+<section class="mb-section-gap scroll-mt-[120px]" id="verifier-inventory">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-md">Verifier Inventory</h2>
+<p class="font-body-md text-body-md text-on-surface mb-stack-lg leading-relaxed">
+                    The following table outlines the deterministic verification strategies applied across different task domains within the BenchAgent suite.
+                </p>
+<!-- Academic Table Style -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr>
+<th class="bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant py-4 px-6 border-b border-outline-variant whitespace-nowrap">Task Domain</th>
+<th class="bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant py-4 px-6 border-b border-outline-variant whitespace-nowrap">Verifier Type</th>
+<th class="bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant py-4 px-6 border-b border-outline-variant">Methodology Detail</th>
+<th class="bg-surface-container-low font-label-caps text-label-caps text-on-surface-variant py-4 px-6 border-b border-outline-variant text-right">Coverage</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md text-on-surface">
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 px-6 border-b border-outline-variant font-medium">Software Engineering</td>
+<td class="py-4 px-6 border-b border-outline-variant"><span class="bg-secondary-container text-on-secondary-container px-2 py-1 rounded-md text-[12px] font-medium">AST &amp; Test Suite</span></td>
+<td class="py-4 px-6 border-b border-outline-variant text-on-surface-variant">Execution of isolated Docker containers against predefined rigorous unit tests; AST parsing for style constraints.</td>
+<td class="py-4 px-6 border-b border-outline-variant font-data-mono text-data-mono text-right text-primary">100%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 px-6 border-b border-outline-variant font-medium">Mathematical Proofs</td>
+<td class="py-4 px-6 border-b border-outline-variant"><span class="bg-tertiary-container/30 text-on-tertiary-container px-2 py-1 rounded-md text-[12px] font-medium">Formal Solver (Lean 4)</span></td>
+<td class="py-4 px-6 border-b border-outline-variant text-on-surface-variant">Translation of outputs to formal theorem proving language; compilation success indicates correctness.</td>
+<td class="py-4 px-6 border-b border-outline-variant font-data-mono text-data-mono text-right text-primary">85%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 px-6 border-b border-outline-variant font-medium">Information Retrieval</td>
+<td class="py-4 px-6 border-b border-outline-variant"><span class="bg-primary-container/20 text-primary px-2 py-1 rounded-md text-[12px] font-medium">Exact Match &amp; ROUGE</span></td>
+<td class="py-4 px-6 border-b border-outline-variant text-on-surface-variant">Strict regex matching for needle-in-haystack tasks; normalized n-gram overlap for summarization.</td>
+<td class="py-4 px-6 border-b border-outline-variant font-data-mono text-data-mono text-right text-primary">95%</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors">
+<td class="py-4 px-6 font-medium">Agentic Web Browsing</td>
+<td class="py-4 px-6"><span class="bg-outline-variant/30 text-on-surface-variant px-2 py-1 rounded-md text-[12px] font-medium">State Trajectory</span></td>
+<td class="py-4 px-6 text-on-surface-variant">Comparison of action trace against optimal shortest-path DOM interactions on static mirrored environments.</td>
+<td class="py-4 px-6 font-data-mono text-data-mono text-right text-primary">70%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</article>
+<!-- Empty right column for balance in 12-col grid -->
+<div class="hidden lg:block lg:col-span-2"></div>
+</main>
+<!-- Footer Shared Component -->
+<footer class="bg-primary dark:bg-primary-container w-full mt-section-gap grid grid-cols-1 md:grid-cols-12 gap-gutter px-gutter py-stack-lg max-w-container-max mx-auto text-on-primary">
+<div class="md:col-span-4 flex flex-col gap-stack-md">
+<span class="font-headline-sm text-headline-sm text-on-primary dark:text-on-primary-container tracking-tight">BenchAgent AI</span>
+<p class="font-body-md text-body-md text-on-primary opacity-80">
+                Advancing the frontier of agentic evaluation through rigorous, reproducible, and open methodology.
+            </p>
+</div>
+<div class="md:col-span-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-stack-lg">
+<nav class="flex flex-wrap gap-x-stack-lg gap-y-stack-sm font-body-md text-body-md">
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Resources</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Documentation</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">API</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Terms</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Privacy</a>
+</nav>
+<div class="font-body-md text-body-md text-on-primary opacity-60">
+                © 2024 BenchAgent AI. All rights reserved.
+            </div>
+</div>
+</footer>
+</body></html>

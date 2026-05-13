@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BenchAgent AI - Task Explorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-tertiary": "#ffffff",
+                      "surface-container-highest": "#e6e0e9",
+                      "on-tertiary-container": "#503d00",
+                      "secondary": "#63597c",
+                      "tertiary-fixed": "#ffdf93",
+                      "inverse-on-surface": "#f5eff7",
+                      "primary-fixed": "#e9ddff",
+                      "tertiary-fixed-dim": "#e7c365",
+                      "on-surface": "#1d1b20",
+                      "secondary-fixed": "#e9ddff",
+                      "on-primary-fixed-variant": "#4f378a",
+                      "error-container": "#ffdad6",
+                      "background": "#fdf7ff",
+                      "on-secondary-container": "#645a7d",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed": "#22005d",
+                      "surface-variant": "#e6e0e9",
+                      "surface-dim": "#ded8e0",
+                      "surface-tint": "#6750a4",
+                      "surface-container-high": "#ece6ee",
+                      "on-secondary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "tertiary-container": "#c9a74d",
+                      "surface-container": "#f2ecf4",
+                      "surface": "#fdf7ff",
+                      "on-background": "#1d1b20",
+                      "surface-container-lowest": "#ffffff",
+                      "primary-fixed-dim": "#cfbcff",
+                      "surface-bright": "#fdf7ff",
+                      "on-primary-container": "#e0d2ff",
+                      "inverse-surface": "#322f35",
+                      "secondary-container": "#e1d4fd",
+                      "primary": "#4f378a",
+                      "surface-container-low": "#f8f2fa",
+                      "on-error-container": "#93000a",
+                      "on-tertiary-fixed": "#241a00",
+                      "outline-variant": "#cbc4d2",
+                      "inverse-primary": "#cfbcff",
+                      "outline": "#7a7582",
+                      "tertiary": "#765b00",
+                      "primary-container": "#6750a4",
+                      "secondary-fixed-dim": "#cdc0e9",
+                      "on-secondary-fixed": "#1f1635",
+                      "on-tertiary-fixed-variant": "#594400",
+                      "on-surface-variant": "#494551",
+                      "on-secondary-fixed-variant": "#4b4263",
+                      "on-error": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "section-gap": "64px",
+                      "stack-lg": "32px",
+                      "margin-mobile": "16px",
+                      "container-max": "1280px",
+                      "stack-md": "16px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "Instrument Serif"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Instrument Serif"
+                      ],
+                      "data-mono": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Instrument Serif"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.5",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-sm": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "data-mono": [
+                              "13px",
+                              {
+                                      "lineHeight": "1",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "1",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Subtle lift on hover for cards */
+        .academic-card {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.03);
+            transition: all 0.2s ease-in-out;
+        }
+        .academic-card:hover {
+            box-shadow: 0px 8px 24px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col">
+<!-- TopNavBar Shared Component -->
+<nav class="bg-surface dark:bg-surface-dim font-body-md text-body-md fixed top-0 w-full z-50 border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none transition-all duration-200 ease-in-out">
+<div class="flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto">
+<div class="font-headline-md text-headline-md text-primary dark:text-primary-fixed">
+                BenchAgent AI
+            </div>
+<div class="hidden md:flex items-center gap-gutter">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Leaderboard</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Agents</a>
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-primary dark:border-primary-fixed pb-1 hover:text-primary dark:hover:text-primary-fixed" href="#">Tasks</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Pillars</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Arena</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Insights</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors hover:text-primary dark:hover:text-primary-fixed" href="#">Methodology</a>
+</div>
+<div class="flex items-center gap-stack-md">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary" data-icon="search">search</span>
+<button class="bg-primary text-on-primary font-label-caps text-label-caps px-4 py-2 rounded-full hover:opacity-90 transition-opacity">Sign In</button>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-section-gap mt-[72px]"> <!-- Offset for fixed nav -->
+<!-- Hero Section -->
+<header class="max-w-container-max mx-auto px-gutter mb-stack-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between border-b border-outline-variant pb-stack-lg gap-stack-md">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-stack-sm">Task Explorer</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                        A comprehensive registry of reproducible tasks used to evaluate agent performance across various domains and intents.
+                    </p>
+</div>
+<div class="flex gap-stack-md">
+<div class="bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-1">Total Tasks</span>
+<span class="font-headline-sm text-headline-sm text-primary">107</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3 flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-1">Intent Types</span>
+<span class="font-headline-sm text-headline-sm text-primary">6</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Layout Grid -->
+<div class="max-w-container-max mx-auto px-gutter grid grid-cols-1 md:grid-cols-12 gap-gutter pb-section-gap">
+<!-- Sidebar Filters -->
+<aside class="md:col-span-3 space-y-stack-lg">
+<!-- Search Filter -->
+<div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]" data-icon="search">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-10 pr-4 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search tasks by ID or keyword..." type="text"/>
+</div>
+</div>
+<!-- Intent Filter -->
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface uppercase tracking-widest mb-stack-md border-b border-outline-variant pb-2">Intent</h3>
+<div class="space-y-2 font-body-md text-body-md text-on-surface-variant">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="group-hover:text-on-surface transition-colors">Recommendation (32)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="group-hover:text-on-surface transition-colors">Comparison (24)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="group-hover:text-on-surface transition-colors">Data Extraction (18)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="group-hover:text-on-surface transition-colors">Navigation (15)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="group-hover:text-on-surface transition-colors">Transaction (10)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="group-hover:text-on-surface transition-colors">Synthesis (8)</span>
+</label>
+</div>
+</div>
+<!-- Domain Filter -->
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface uppercase tracking-widest mb-stack-md border-b border-outline-variant pb-2">Domain</h3>
+<div class="space-y-2 font-body-md text-body-md text-on-surface-variant flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-high border border-outline-variant rounded-full text-[12px] cursor-pointer hover:bg-surface-variant transition-colors">Shopping</span>
+<span class="px-3 py-1 bg-primary/10 border border-primary text-primary rounded-full text-[12px] cursor-pointer">Travel</span>
+<span class="px-3 py-1 bg-surface-container-high border border-outline-variant rounded-full text-[12px] cursor-pointer hover:bg-surface-variant transition-colors">Finance</span>
+<span class="px-3 py-1 bg-surface-container-high border border-outline-variant rounded-full text-[12px] cursor-pointer hover:bg-surface-variant transition-colors">Academic</span>
+<span class="px-3 py-1 bg-surface-container-high border border-outline-variant rounded-full text-[12px] cursor-pointer hover:bg-surface-variant transition-colors">Social</span>
+</div>
+</div>
+<!-- Difficulty Filter -->
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface uppercase tracking-widest mb-stack-md border-b border-outline-variant pb-2">Difficulty</h3>
+<div class="flex flex-col gap-2">
+<input class="w-full accent-primary" max="5" min="1" type="range" value="3"/>
+<div class="flex justify-between font-data-mono text-data-mono text-on-surface-variant">
+<span>Lvl 1</span>
+<span>Lvl 5</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content: Task Grid -->
+<section class="md:col-span-9 grid grid-cols-1 lg:grid-cols-2 gap-gutter content-start">
+<!-- Task Card 1 -->
+<div class="academic-card bg-surface-container-lowest border border-outline-variant rounded-xl p-gutter flex flex-col h-full relative overflow-hidden group">
+<div class="flex justify-between items-start mb-stack-md">
+<div class="flex flex-col">
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-1 rounded inline-block w-max mb-2">TSK-042</span>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+</div>
+</div>
+<div class="flex gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="shopping_cart" title="Shopping">shopping_cart</span>
+<span class="material-symbols-outlined" data-icon="forum" title="Reddit/Forum">forum</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2 line-clamp-2">Cross-Retailer Price Optimization &amp; Review Synthesis</h4>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow mb-stack-lg">
+                        Find the best price for Sony WH-1000XM5 headphones across BestBuy, Amazon, and Target. Synthesize the top 3 recurring complaints from recent Reddit threads regarding build quality.
+                    </p>
+<div class="border-t border-outline-variant pt-stack-md flex justify-between items-end mt-auto">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Score Distribution</span>
+<div class="flex items-end gap-[2px] h-8 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="w-2 bg-outline-variant h-2 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-3 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary-container h-5 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary h-8 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary-container h-6 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-3 rounded-t-[1px]"></div>
+</div>
+</div>
+<span class="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">View Details →</span>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="academic-card bg-surface-container-lowest border border-outline-variant rounded-xl p-gutter flex flex-col h-full relative overflow-hidden group">
+<div class="flex justify-between items-start mb-stack-md">
+<div class="flex flex-col">
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-1 rounded inline-block w-max mb-2">TSK-089</span>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+</div>
+</div>
+<div class="flex gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="flight" title="Travel">flight</span>
+<span class="material-symbols-outlined" data-icon="menu_book" title="Wiki/Documentation">menu_book</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2 line-clamp-2">Multi-City Itinerary Planning with Visa Constraints</h4>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow mb-stack-lg">
+                        Construct a 14-day travel itinerary spanning Tokyo, Seoul, and Taipei for an Indian passport holder. Include flight options under $800 total and verify visa-on-arrival requirements from official sources.
+                    </p>
+<div class="border-t border-outline-variant pt-stack-md flex justify-between items-end mt-auto">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Score Distribution</span>
+<div class="flex items-end gap-[2px] h-8 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="w-2 bg-primary h-7 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary-container h-4 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-3 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-2 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-1 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-1 rounded-t-[1px]"></div>
+</div>
+</div>
+<span class="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">View Details →</span>
+</div>
+</div>
+<!-- Task Card 3 -->
+<div class="academic-card bg-surface-container-lowest border border-outline-variant rounded-xl p-gutter flex flex-col h-full relative overflow-hidden group">
+<div class="flex justify-between items-start mb-stack-md">
+<div class="flex flex-col">
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-1 rounded inline-block w-max mb-2">TSK-012</span>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star">star</span>
+</div>
+</div>
+<div class="flex gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="account_balance" title="Finance">account_balance</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2 line-clamp-2">Historical Stock Yield Comparison</h4>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow mb-stack-lg">
+                        Compare the dividend yields of AAPL, MSFT, and GOOGL over the last 5 years. Present the data in a tabular format and identify which year had the highest average yield across the three.
+                    </p>
+<div class="border-t border-outline-variant pt-stack-md flex justify-between items-end mt-auto">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Score Distribution</span>
+<div class="flex items-end gap-[2px] h-8 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="w-2 bg-outline-variant h-1 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-1 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-2 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary-container h-4 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary-container h-6 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary h-8 rounded-t-[1px]"></div>
+</div>
+</div>
+<span class="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">View Details →</span>
+</div>
+</div>
+<!-- Task Card 4 -->
+<div class="academic-card bg-surface-container-lowest border border-outline-variant rounded-xl p-gutter flex flex-col h-full relative overflow-hidden group">
+<div class="flex justify-between items-start mb-stack-md">
+<div class="flex flex-col">
+<span class="font-data-mono text-data-mono text-on-surface-variant bg-surface-container px-2 py-1 rounded inline-block w-max mb-2">TSK-104</span>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[16px] icon-fill" data-icon="star">star</span>
+</div>
+</div>
+<div class="flex gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="school" title="Academic">school</span>
+<span class="material-symbols-outlined" data-icon="article" title="Papers">article</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface mb-2 line-clamp-2">Methodology Extraction from ArXiv Preprints</h4>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow mb-stack-lg">
+                        Locate the 5 most recent papers on "Direct Preference Optimization" on ArXiv. Extract the specific loss function variants proposed in each and summarize the hardware setup used for their evaluations.
+                    </p>
+<div class="border-t border-outline-variant pt-stack-md flex justify-between items-end mt-auto">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-1">Score Distribution</span>
+<div class="flex items-end gap-[2px] h-8 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="w-2 bg-primary h-6 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary h-7 rounded-t-[1px]"></div>
+<div class="w-2 bg-primary-container h-4 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-2 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-1 rounded-t-[1px]"></div>
+<div class="w-2 bg-outline-variant h-1 rounded-t-[1px]"></div>
+</div>
+</div>
+<span class="font-label-caps text-label-caps text-primary cursor-pointer hover:underline">View Details →</span>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer Shared Component -->
+<footer class="bg-primary dark:bg-primary-container font-body-md text-body-md w-full mt-section-gap grid grid-cols-1 md:grid-cols-12 gap-gutter px-gutter py-stack-lg max-w-container-max mx-auto text-on-primary">
+<div class="col-span-1 md:col-span-4 flex flex-col gap-stack-md">
+<span class="font-headline-sm text-headline-sm text-on-primary dark:text-on-primary-container">
+                BenchAgent AI
+            </span>
+<span class="text-on-primary opacity-80">
+                © 2024 BenchAgent AI. All rights reserved.
+            </span>
+</div>
+<div class="col-span-1 md:col-span-8 flex flex-wrap justify-start md:justify-end gap-gutter items-center">
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Resources</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Documentation</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">API</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Terms</a>
+<a class="text-on-primary opacity-80 hover:opacity-100 transition-opacity hover:underline decoration-on-primary-fixed-variant" href="#">Privacy</a>
+</div>
+</footer>
+</body></html>

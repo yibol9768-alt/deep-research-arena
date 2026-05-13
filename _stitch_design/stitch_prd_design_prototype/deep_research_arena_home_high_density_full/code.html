@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Deep Research Arena</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7F4BF3",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f9f9f9",
+                        "surface-container-high": "#f0f0f0",
+                        "on-surface": "#111111",
+                        "on-surface-variant": "#555555",
+                        "outline-variant": "#e0e0e0",
+                        "error": "#ba1a1a",
+                        "brand-openai": "#2e2e2e",
+                        "brand-anthropic": "#d97757",
+                        "brand-deepseek": "#4a90e2",
+                        "brand-google": "#34a853"
+                    },
+                    fontFamily: {
+                        "display-lg": ["Instrument Serif", "serif"],
+                        "headline-sm": ["Instrument Serif", "serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-caps": ["Inter", "sans-serif"],
+                        "data-mono": ["Inter", "sans-serif"]
+                    },
+                    boxShadow: {
+                        "soft": "0px 2px 8px rgba(0,0,0,0.04)",
+                        "hover": "0px 6px 16px rgba(0,0,0,0.08)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #FAFAF7; }
+        .card-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card-lift:hover { transform: translateY(-2px); box-shadow: 0px 6px 16px rgba(0,0,0,0.08); }
+        .hairline-b { border-bottom: 1px solid #e0e0e0; }
+        .hairline-r { border-right: 1px solid #e0e0e0; }
+        .hairline-t { border-top: 1px solid #e0e0e0; }
+        .hairline { border: 1px solid #e0e0e0; }
+        .row-hover:hover { background-color: #f9f9f9; }
+        .pareto-front {
+            background: linear-gradient(135deg, rgba(127,75,243,0.08) 0%, rgba(127,75,243,0.0) 100%);
+            border-bottom-right-radius: 90%;
+        }
+    </style>
+</head>
+<body class="text-on-surface antialiased font-body-md min-h-screen flex flex-col pt-20">
+<!-- Refined TopNavBar -->
+<div class="fixed top-0 left-0 w-full z-50 bg-[#FAFAF7]/90 backdrop-blur-md border-b border-outline-variant">
+<header class="max-w-[1440px] mx-auto px-6 py-4 flex items-center justify-between w-full">
+<div class="flex items-center gap-8">
+<div class="bg-black text-white px-4 py-1.5 rounded-full font-body-md font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">analytics</span>
+                Deep Research Arena
+            </div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface font-medium hover:text-primary transition-colors text-sm" href="#">Models</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">Coding Agents</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">Speech, Image, Video</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">Leaderboards</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors text-sm" href="#">About</a>
+</nav>
+</div>
+<div class="flex items-center gap-3">
+<button class="bg-black text-white font-medium text-sm px-5 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                Log in
+            </button>
+<button class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</button>
+</div>
+</header>
+</div>
+<div class="flex-1 w-full max-w-[1440px] mx-auto px-6 pb-20 flex flex-col lg:flex-row gap-12 mt-8">
+<!-- Left Sidebar -->
+<aside class="w-64 hidden lg:block shrink-0">
+<div class="sticky top-28 flex flex-col gap-1 pr-6 border-r border-outline-variant/50 h-[calc(100vh-120px)] overflow-y-auto">
+<h3 class="font-semibold text-sm mb-4 px-2">Highlights</h3>
+<a class="text-on-surface font-medium p-2 flex items-center gap-3 transition-colors text-sm group" href="#">
+<div class="w-2.5 h-2.5 bg-primary"></div> Intelligence
+            </a>
+<a class="text-on-surface-variant hover:text-on-surface p-2 flex items-center gap-3 transition-colors text-sm group" href="#">
+<div class="w-2.5 h-2.5 bg-gray-300 group-hover:bg-gray-400"></div> Output Speed
+            </a>
+<a class="text-on-surface-variant hover:text-on-surface p-2 flex items-center gap-3 transition-colors text-sm group" href="#">
+<div class="w-2.5 h-2.5 bg-gray-300 group-hover:bg-gray-400"></div> Latency
+            </a>
+<a class="text-on-surface-variant hover:text-on-surface p-2 flex items-center gap-3 transition-colors text-sm group" href="#">
+<div class="w-2.5 h-2.5 bg-gray-300 group-hover:bg-gray-400"></div> Context Window
+            </a>
+<a class="text-on-surface-variant hover:text-on-surface p-2 flex items-center gap-3 transition-colors text-sm group" href="#">
+<div class="w-2.5 h-2.5 bg-gray-300 group-hover:bg-gray-400"></div> Pricing
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col gap-12 min-w-0">
+<!-- Hero Section -->
+<section class="max-w-4xl">
+<h1 class="font-display-lg text-5xl text-on-surface mb-6 leading-tight tracking-tight">Comparison of Models: Intelligence,<br/>Performance &amp; Price Analysis</h1>
+<p class="font-body-md text-on-surface-variant text-lg leading-relaxed max-w-3xl">
+                Comparison and analysis of AI models across key performance metrics including quality, price, output speed, latency, context window &amp; others. Click on any model to see detailed metrics. Detailed metrics aggregated from 7 core autonomous research tasks.
+            </p>
+</section>
+<!-- Highlights Cards -->
+<section>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Highlight Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-soft border border-outline-variant/60 card-lift flex flex-col gap-3">
+<div class="text-sm font-medium text-on-surface pb-2 border-b border-outline-variant/40">Intelligence</div>
+<div class="text-[13px] text-on-surface-variant leading-relaxed mt-1">
+<span class="font-semibold text-on-surface flex items-center gap-1 inline-flex"><span class="w-1.5 h-1.5 rounded-full bg-brand-deepseek"></span> GPT-5.5 (xhigh)</span> and <span class="font-semibold text-on-surface">GPT-5.5 (high)</span> are the highest intelligence models, followed by <span class="font-semibold text-on-surface flex items-center gap-1 inline-flex"><span class="w-1.5 h-1.5 rounded-full bg-brand-anthropic"></span> Claude Opus 4.7</span> &amp; Gemini 3.1 Pro.
+                    </div>
+</div>
+<!-- Highlight Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-soft border border-outline-variant/60 card-lift flex flex-col gap-3">
+<div class="text-sm font-medium text-on-surface pb-2 border-b border-outline-variant/40">Output Speed (tokens/s)</div>
+<div class="text-[13px] text-on-surface-variant leading-relaxed mt-1">
+<span class="font-semibold text-on-surface flex items-center gap-1 inline-flex"><span class="w-1.5 h-1.5 rounded-full bg-brand-google"></span> Mercury 2 (786)</span> and Gemini 3.1 FL (340) lead in output generation, followed by Qwen3.5 2B.
+                    </div>
+</div>
+<!-- Highlight Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-soft border border-outline-variant/60 card-lift flex flex-col gap-3">
+<div class="text-sm font-medium text-on-surface pb-2 border-b border-outline-variant/40">Latency (seconds)</div>
+<div class="text-[13px] text-on-surface-variant leading-relaxed mt-1">
+<span class="font-semibold text-on-surface flex items-center gap-1 inline-flex"><span class="w-1.5 h-1.5 rounded-full bg-brand-openai"></span> Qwen3.5 2B (0.34s)</span> provides the fastest initial response time, followed by Qwen3.5 0.8B (0.40s).
+                    </div>
+</div>
+<!-- Highlight Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-soft border border-outline-variant/60 card-lift flex flex-col gap-3">
+<div class="text-sm font-medium text-on-surface pb-2 border-b border-outline-variant/40">Price ($ per M tokens)</div>
+<div class="text-[13px] text-on-surface-variant leading-relaxed mt-1">
+<span class="font-semibold text-on-surface flex items-center gap-1 inline-flex"><span class="w-1.5 h-1.5 rounded-full bg-brand-anthropic"></span> Qwen3.5 0.8B ($0.02)</span> is currently the most cost-effective option, followed by Gemma 3n E4B.
+                    </div>
+</div>
+</div>
+</section>
+<!-- Charts Section Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+<!-- Refined Bar Chart -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-6 shadow-soft flex flex-col relative">
+<div class="absolute top-6 right-6 text-[10px] font-medium text-on-surface-variant uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border border-outline-variant/40">Artificial Analysis</div>
+<div class="flex flex-col mb-6">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 bg-primary"></div>
+<h3 class="text-lg font-display-lg">Intelligence</h3>
+</div>
+<span class="text-xs text-on-surface-variant">Artificial Analysis Intelligence Index · Higher is better</span>
+</div>
+<div class="flex-1 flex flex-col gap-3 justify-center pt-2 border-t border-outline-variant/30">
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">GPT-5.5 (xh)</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-openai absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 100%;">60</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Claude Op 4.7</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-anthropic absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 95%;">57</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Gemini 3.1 P</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-google absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 90%;">54</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">DeepSeek V4</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-deepseek absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 86%;">52</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Refined Scatter Plot with Pareto Front -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-6 shadow-soft flex flex-col relative">
+<div class="absolute top-6 right-6 text-[10px] font-medium text-on-surface-variant uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border border-outline-variant/40">Artificial Analysis</div>
+<div class="flex flex-col mb-6">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 bg-brand-anthropic"></div>
+<h3 class="text-lg font-display-lg">Quality vs Cost</h3>
+</div>
+<span class="text-xs text-on-surface-variant">Top-left indicates high quality/low cost</span>
+</div>
+<div class="flex-1 relative border-l border-b border-outline-variant/50 ml-8 mb-6 mt-4 min-h-[160px]">
+<!-- Y Axis Label -->
+<div class="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-on-surface-variant whitespace-nowrap">Quality (Elo)</div>
+<!-- X Axis Label -->
+<div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-on-surface-variant whitespace-nowrap">Cost ($ / M tokens)</div>
+<!-- Pareto Front Quadrant -->
+<div class="absolute top-0 left-0 w-2/3 h-2/3 pareto-front pointer-events-none"></div>
+<!-- Plot Points -->
+<div class="absolute top-[15%] left-[10%] w-3 h-3 rounded bg-brand-deepseek shadow-sm hover:scale-150 transition-transform cursor-pointer" title="react-qwen35plus"></div>
+<div class="absolute top-[10%] left-[85%] w-3 h-3 rounded bg-brand-openai shadow-sm hover:scale-150 transition-transform cursor-pointer" title="GPT-5.5 (xhigh)"></div>
+<div class="absolute top-[25%] left-[65%] w-3 h-3 rounded bg-brand-anthropic shadow-sm hover:scale-150 transition-transform cursor-pointer" title="gpt-researcher"></div>
+<div class="absolute top-[45%] left-[30%] w-3 h-3 rounded bg-brand-google shadow-sm hover:scale-150 transition-transform cursor-pointer" title="gemini-explorer"></div>
+</div>
+</section>
+</div>
+<!-- Additional Metrics Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+<!-- Coding Index Table -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-6 shadow-soft flex flex-col relative">
+<div class="absolute top-6 right-6 text-[10px] font-medium text-on-surface-variant uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border border-outline-variant/40">Artificial Analysis</div>
+<div class="flex flex-col mb-6">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 bg-brand-openai"></div>
+<h3 class="text-lg font-display-lg">Coding Index</h3>
+</div>
+<span class="text-xs text-on-surface-variant">Aggregated coding task performance · Higher is better</span>
+</div>
+<div class="flex-1 flex flex-col gap-3 justify-center pt-2 border-t border-outline-variant/30">
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">GPT-5.5 (xh)</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-openai absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 100%;">92.4</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Claude Op 4.7</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-anthropic absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 88%;">86.1</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">DeepSeek Coder</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-deepseek absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 85%;">84.2</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Gemini 3.1 P</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-google absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 78%;">79.5</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Agentic Index Table -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-6 shadow-soft flex flex-col relative">
+<div class="absolute top-6 right-6 text-[10px] font-medium text-on-surface-variant uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border border-outline-variant/40">Artificial Analysis</div>
+<div class="flex flex-col mb-6">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 bg-primary"></div>
+<h3 class="text-lg font-display-lg">Agentic Index</h3>
+</div>
+<span class="text-xs text-on-surface-variant">Multi-step autonomous execution · Higher is better</span>
+</div>
+<div class="flex-1 flex flex-col gap-3 justify-center pt-2 border-t border-outline-variant/30">
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Claude Op 4.7</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-anthropic absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 100%;">48.2</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">GPT-5.5 (xh)</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-openai absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 95%;">45.8</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Gemini 3.1 P</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-google absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 82%;">38.4</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">DeepSeek V4</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-deepseek absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 75%;">35.1</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Reasoning & Knowledge Table -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-6 shadow-soft flex flex-col relative">
+<div class="absolute top-6 right-6 text-[10px] font-medium text-on-surface-variant uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border border-outline-variant/40">Artificial Analysis</div>
+<div class="flex flex-col mb-6">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 bg-brand-anthropic"></div>
+<h3 class="text-lg font-display-lg">Reasoning &amp; Knowledge</h3>
+</div>
+<span class="text-xs text-on-surface-variant">Humanity's Last Exam · Higher is better</span>
+</div>
+<div class="flex-1 flex flex-col gap-3 justify-center pt-2 border-t border-outline-variant/30">
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">GPT-5.5 (xh)</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-openai absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 100%;">88.5</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Claude Op 4.7</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-anthropic absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 92%;">81.2</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">DeepSeek V4</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-deepseek absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 86%;">76.4</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Gemini 3.1 P</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-google absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 82%;">72.8</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Scientific Reasoning Table -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/60 p-6 shadow-soft flex flex-col relative">
+<div class="absolute top-6 right-6 text-[10px] font-medium text-on-surface-variant uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border border-outline-variant/40">Artificial Analysis</div>
+<div class="flex flex-col mb-6">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-3 h-3 bg-brand-google"></div>
+<h3 class="text-lg font-display-lg">Scientific Reasoning</h3>
+</div>
+<span class="text-xs text-on-surface-variant">GPQA Diamond · Higher is better</span>
+</div>
+<div class="flex-1 flex flex-col gap-3 justify-center pt-2 border-t border-outline-variant/30">
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Claude Op 4.7</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-anthropic absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 100%;">68.4</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">GPT-5.5 (xh)</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-openai absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 94%;">64.2</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">Gemini 3.1 P</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-google absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 85%;">58.6</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-24 text-right text-xs text-on-surface-variant truncate">DeepSeek V4</div>
+<div class="flex-1 h-6 bg-surface-container-low rounded-r overflow-hidden relative">
+<div class="h-full bg-brand-deepseek absolute left-0 top-0 flex items-center px-2 justify-end text-white text-[10px] font-bold" style="width: 78%;">53.1</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Leaderboard Table -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant/60 shadow-soft overflow-hidden flex flex-col mt-4">
+<div class="p-4 border-b border-outline-variant/60 bg-white flex justify-between items-center">
+<div class="flex items-center gap-4">
+<button class="px-4 py-1.5 bg-gray-100 rounded text-sm font-medium">Artificial Analysis Intelligence Index</button>
+<button class="px-4 py-1.5 hover:bg-gray-50 rounded text-sm text-on-surface-variant">Coding Index</button>
+<button class="px-4 py-1.5 hover:bg-gray-50 rounded text-sm text-on-surface-variant">Agentic Index</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse text-sm whitespace-nowrap">
+<thead>
+<tr class="border-b border-outline-variant/60 text-[11px] text-on-surface-variant uppercase tracking-wider bg-white">
+<th class="py-3 px-4 font-medium w-12 text-center">#</th>
+<th class="py-3 px-4 font-medium">Agent / Backbone</th>
+<th class="py-3 px-4 font-medium">Elo ± CI</th>
+<th class="py-3 px-4 font-medium text-center">Battles</th>
+<th class="py-3 px-4 font-medium text-center">W / L / D</th>
+<th class="py-3 px-4 font-medium">Pillars</th>
+</tr>
+</thead>
+<tbody class="text-[13px] bg-white">
+<!-- Row 1 -->
+<tr class="border-b border-outline-variant/40 row-hover transition-colors group cursor-pointer">
+<td class="py-3 px-4 text-center text-on-surface-variant">1</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2.5">
+<span class="w-4 h-4 rounded-full bg-brand-openai flex-shrink-0"></span>
+<span class="text-on-surface font-medium text-sm">react-qwen35plus</span>
+<span class="text-[11px] text-on-surface-variant bg-gray-100 px-2 py-0.5 rounded-full ml-1">Qwen 3.5+</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<span class="font-semibold text-on-surface">1284</span>
+<span class="text-on-surface-variant text-[11px] ml-1">± 35</span>
+</td>
+<td class="py-3 px-4 text-center text-on-surface-variant">50</td>
+<td class="py-3 px-4 text-center text-on-surface-variant">
+                                42 / 5 / 3
+                            </td>
+<td class="py-3 px-4">
+<div class="flex gap-0.5 items-end h-5 w-24">
+<div class="w-2.5 bg-gray-300 h-[90%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[95%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[85%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-400 h-[100%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[70%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[60%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[80%] rounded-t-sm"></div>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="border-b border-outline-variant/40 row-hover transition-colors group cursor-pointer">
+<td class="py-3 px-4 text-center text-on-surface-variant">2</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2.5">
+<span class="w-4 h-4 rounded-full bg-brand-anthropic flex-shrink-0"></span>
+<span class="text-on-surface font-medium text-sm">gpt-researcher</span>
+<span class="text-[11px] text-on-surface-variant bg-gray-100 px-2 py-0.5 rounded-full ml-1">Claude 3.5</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<span class="font-semibold text-on-surface">1256</span>
+<span class="text-on-surface-variant text-[11px] ml-1">± 40</span>
+</td>
+<td class="py-3 px-4 text-center text-on-surface-variant">50</td>
+<td class="py-3 px-4 text-center text-on-surface-variant">
+                                38 / 8 / 4
+                            </td>
+<td class="py-3 px-4">
+<div class="flex gap-0.5 items-end h-5 w-24">
+<div class="w-2.5 bg-gray-300 h-[85%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[80%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[90%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[60%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-400 h-[95%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[50%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[70%] rounded-t-sm"></div>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="border-b border-outline-variant/40 row-hover transition-colors group cursor-pointer">
+<td class="py-3 px-4 text-center text-on-surface-variant">3</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2.5">
+<span class="w-4 h-4 rounded-full bg-brand-deepseek flex-shrink-0"></span>
+<span class="text-on-surface font-medium text-sm">deerflow-glm</span>
+<span class="text-[11px] text-on-surface-variant bg-gray-100 px-2 py-0.5 rounded-full ml-1">GLM-4.6</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<span class="font-semibold text-on-surface">1210</span>
+<span class="text-on-surface-variant text-[11px] ml-1">± 32</span>
+</td>
+<td class="py-3 px-4 text-center text-on-surface-variant">50</td>
+<td class="py-3 px-4 text-center text-on-surface-variant">
+                                35 / 12 / 3
+                            </td>
+<td class="py-3 px-4">
+<div class="flex gap-0.5 items-end h-5 w-24">
+<div class="w-2.5 bg-gray-200 h-[70%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[75%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[80%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-300 h-[85%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[60%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[65%] rounded-t-sm"></div>
+<div class="w-2.5 bg-gray-200 h-[50%] rounded-t-sm"></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<details class="group border-t border-outline-variant/40">
+<summary class="p-4 cursor-pointer flex justify-between items-center text-sm font-medium text-on-surface hover:bg-gray-50 transition-colors list-none">
+                    Composite v3 Formula Details
+                    <span class="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform text-lg">expand_more</span>
+</summary>
+<div class="p-4 pt-0 text-sm text-on-surface-variant leading-relaxed bg-white">
+<p class="mb-3 mt-2">Aggregated from 7 capability pillars across diverse academic/technical domains.</p>
+<div class="bg-gray-50 p-3 rounded text-xs border border-outline-variant/50 inline-block font-mono">
+                        C_elo = 0.3(Q_cit) + 0.2(D_analysis) + 0.15(R_logic) + 0.15(F_accuracy) + 0.1(S_syntagmatic) + 0.1(E_efficiency)
+                    </div>
+</div>
+</details>
+</section>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-[#C8A8FF] w-full py-16 mt-auto">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-12 px-6 max-w-[1440px] mx-auto">
+<div class="md:col-span-5 flex flex-col gap-6">
+<div class="flex items-center gap-2 text-black font-semibold text-lg">
+<span class="material-symbols-outlined text-black">analytics</span>
+                Deep Research Arena
+            </div>
+<p class="text-black/80 text-sm max-w-sm leading-relaxed">Evaluating the frontier of autonomous research agents and large language models.</p>
+<div class="mt-4">
+<h4 class="text-black font-medium mb-3 text-sm">Subscribe to AI Trends</h4>
+<div class="flex max-w-sm">
+<input class="px-4 py-2.5 rounded-l-lg border-0 w-full text-sm focus:ring-2 focus:ring-black" placeholder="Email address" type="email"/>
+<button class="bg-black text-white px-5 py-2.5 rounded-r-lg font-medium text-sm hover:bg-gray-800 transition-colors">Subscribe</button>
+</div>
+</div>
+<div class="text-black/60 text-xs mt-8">© 2024 Deep Research Arena. All rights reserved.</div>
+</div>
+<div class="md:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-8">
+<div class="flex flex-col gap-3">
+<span class="font-semibold text-black text-sm mb-2">Models</span>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">Intelligence</a>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">Speed</a>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">Price</a>
+</div>
+<div class="flex flex-col gap-3">
+<span class="font-semibold text-black text-sm mb-2">Resources</span>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">Documentation</a>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">Methodology</a>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">GitHub</a>
+</div>
+<div class="flex flex-col gap-3">
+<span class="font-semibold text-black text-sm mb-2">Company</span>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">About Us</a>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">Newsletter</a>
+<a class="text-black/80 hover:text-black text-sm transition-colors" href="#">Privacy Policy</a>
+</div>
+</div>
+</div>
+</footer>
+</body></html>
