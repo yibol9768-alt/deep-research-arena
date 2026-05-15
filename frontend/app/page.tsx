@@ -69,7 +69,7 @@ export default function HomePage() {
             <CompositeBar
               agents={agents}
               title="Composite Elo (v3.1)"
-              subtitle="Higher is better. Tick marks show 95% bootstrap confidence interval."
+              subtitle="Higher is better. The two | marks bracket each bar's 95% bootstrap confidence interval (not a rendering glitch) — wider spread means fewer battles, so the rank is less certain."
             />
           </div>
 
