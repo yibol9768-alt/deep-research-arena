@@ -148,6 +148,16 @@ const AGENTS: AgentMeta[] = [
     color: PROVIDER_COLOR.z,
     blurb: 'II-Researcher: lightweight ReAct loop + retrieval. Strong on debunking tasks.',
   },
+  {
+    id: 'claude-code',
+    display: 'Claude Code',
+    backbone: 'DeepSeek V4 flash',
+    family: 'ReAct',
+    provider: 'anthropic',
+    color: PROVIDER_COLOR.anthropic,
+    github: 'https://github.com/anthropics/claude-code',
+    blurb: 'General coding agent repurposed for DR via claude-code-router → ds_proxy. Same DeepSeek backbone, 1.15× CAMEL-AI on the 5-task sample.',
+  },
 ]
 
 export const AGENT_INDEX: Record<string, AgentMeta> = Object.fromEntries(AGENTS.map((a) => [a.id, a]))
