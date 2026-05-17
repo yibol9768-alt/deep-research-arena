@@ -156,7 +156,17 @@ const AGENTS: AgentMeta[] = [
     provider: 'anthropic',
     color: PROVIDER_COLOR.anthropic,
     github: 'https://github.com/anthropics/claude-code',
-    blurb: 'General coding agent repurposed for DR via claude-code-router → ds_proxy. Same DeepSeek backbone, 1.15× CAMEL-AI on the 5-task sample.',
+    blurb: 'General coding agent repurposed for DR via claude-code-router → ds_proxy. Same DeepSeek backbone as every specialist; with only a 30-line sandbox-only system prompt and no DR scaffolding, ranks #1 on composite_v2_truthful (+165 Elo over the top specialist).',
+  },
+  {
+    id: 'opencode',
+    display: 'opencode',
+    backbone: 'DeepSeek V4 flash',
+    family: 'ReAct',
+    provider: 'openai',
+    color: PROVIDER_COLOR.openai,
+    github: 'https://github.com/sst/opencode',
+    blurb: 'General OAI-compat CLI agent (sst/opencode) routed at per-run config through ds_proxy → DeepSeek V4 flash. Bare prompt, ranks #2 by Elo — second confirmation that the general-agent harness recovers most of the specialist edge with zero DR-specific code.',
   },
 ]
 

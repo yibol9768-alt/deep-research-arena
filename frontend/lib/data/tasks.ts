@@ -1,124 +1,134 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-export interface DeepTask {
-  task_id: string
-  intent: string
-  intent_type?: string
-  domain?: string
-  sites?: string[]
-  difficulty?: number
-  expected_steps?: number
-  url_coverage?: Record<string, number>
-  synthesis_requirements?: string[]
-  golden?: {
-    required_urls?: string[]
-    must_cite_urls?: string[]
-  }
-}
+const TASKS_DIR = path.join(
+  process.cwd(),
+  '..',
+  'data',
+  'tasks',
+  'deep_research',
+  'cross_site_deep',
+)
 
-export interface TaskSummary {
+export interface Task {
   id: string
   title: string
+  prompt: string
   intentType: string
   domain: string
-  sites: string[]
   difficulty: number
   expectedSteps: number
-  requiredUrls: number
+  sites: string[]
   checklistItems: number
-  prompt: string
+  /** Total URLs the task requires citing (read from url_coverage.must_cite or similar) */
+  requiredUrls: number
+  tier?: string
 }
 
-const REPO_ROOT = path.resolve(process.cwd(), '..')
-const TASK_DIR = path.join(REPO_ROOT, 'data/tasks/deep_research/cross_site_deep')
-const CHECKLIST_PATH = path.join(TASK_DIR, 'checklists_deep.json')
+interface TaskJson {
+  task_id: string
+  intent: string
+  domain?: string
+  intent_type?: string
+  difficulty?: number | string
+  expected_steps?: number | string
+  sites?: string[]
+  tier?: string
+  url_coverage?: { must_cite?: number; total?: number }
+}
 
-function readJsonOrNull<T>(p: string): T | null {
-  try {
-    return JSON.parse(fs.readFileSync(p, 'utf8')) as T
-  } catch {
-    return null
+let _tasksCache: Task[] | null = null
+let _checklistsCache: Record<string, string[]> | null = null
+
+function _loadChecklistsRaw(): Record<string, string[]> {
+  if (_checklistsCache) return _checklistsCache
+  const p = path.join(TASKS_DIR, 'checklists_deep.json')
+  if (!fs.existsSync(p)) {
+    _checklistsCache = {}
+    return _checklistsCache
   }
+  _checklistsCache = JSON.parse(fs.readFileSync(p, 'utf-8')) as Record<string, string[]>
+  return _checklistsCache
 }
-
-let cachedTasks: TaskSummary[] | null = null
-let cachedChecklist: Record<string, string[]> | null = null
 
 export function loadChecklists(): Record<string, string[]> {
-  if (cachedChecklist) return cachedChecklist
-  cachedChecklist = readJsonOrNull<Record<string, string[]>>(CHECKLIST_PATH) ?? {}
-  return cachedChecklist
+  return _loadChecklistsRaw()
 }
 
-export function loadTasks(): TaskSummary[] {
-  if (cachedTasks) return cachedTasks
-  const checklists = loadChecklists()
-  let files: string[] = []
-  try {
-    files = fs
-      .readdirSync(TASK_DIR)
-      .filter((name) => /^dr_cross_deep_\d+\.json$/.test(name))
-      .sort()
-  } catch {
-    files = []
+function _firstLine(s: string): string {
+  const line = (s.split(/\n/)[0] || '').trim()
+  // Stop at the first colon for cleaner card titles when intents are like
+  // "Produce a comprehensive market-intelligence report on X, spanning THREE…"
+  if (line.length > 110) {
+    const trimmed = line.slice(0, 107).trimEnd()
+    return trimmed + '…'
   }
+  return line
+}
 
-  cachedTasks = files.map((name) => {
-    const raw = readJsonOrNull<DeepTask>(path.join(TASK_DIR, name))
-    const id = raw?.task_id ?? name.replace(/\.json$/, '')
-    const prompt = typeof raw?.intent === 'string' ? raw.intent : JSON.stringify(raw?.intent ?? '')
-    const requiredUrls =
-      raw?.golden?.required_urls?.length ??
-      raw?.golden?.must_cite_urls?.length ??
-      Object.values(raw?.url_coverage ?? {}).reduce((sum, n) => sum + Number(n || 0), 0)
-    return {
-      id,
-      title: prompt.split('\n')[0]?.replace(/^Produce an? /, '').slice(0, 110) || id,
-      intentType: typeof raw?.intent_type === 'string' ? raw.intent_type : inferIntent(prompt),
-      domain: typeof raw?.domain === 'string' ? raw.domain : inferDomain(id, prompt),
-      sites: Array.isArray(raw?.sites) ? raw.sites.map(String) : [],
-      difficulty: raw?.difficulty ?? 5,
-      expectedSteps: raw?.expected_steps ?? 80,
-      requiredUrls,
-      checklistItems: checklists[id]?.length ?? 0,
-      prompt,
+export function loadTasks(): Task[] {
+  if (_tasksCache) return _tasksCache
+  if (!fs.existsSync(TASKS_DIR)) {
+    _tasksCache = []
+    return _tasksCache
+  }
+  const checklists = _loadChecklistsRaw()
+  const entries = fs
+    .readdirSync(TASKS_DIR)
+    .filter((f) => f.startsWith('dr_cross_deep_') && f.endsWith('.json'))
+    .sort()
+  const tasks: Task[] = []
+  for (const f of entries) {
+    try {
+      const j = JSON.parse(fs.readFileSync(path.join(TASKS_DIR, f), 'utf-8')) as TaskJson
+      const id = j.task_id
+      const intent = j.intent ?? ''
+      tasks.push({
+        id,
+        title: _firstLine(intent) || id,
+        prompt: intent,
+        intentType: (j.intent_type || 'unknown').toLowerCase(),
+        domain: j.domain || 'unknown',
+        difficulty: Number(j.difficulty ?? 3),
+        expectedSteps: Number(j.expected_steps ?? 15),
+        sites: j.sites || ['shopping', 'reddit', 'wikipedia'],
+        checklistItems: (checklists[id] || []).length,
+        requiredUrls: Number(j.url_coverage?.must_cite ?? j.url_coverage?.total ?? 0),
+        tier: j.tier,
+      })
+    } catch {
+      // Skip malformed entries silently — they shouldn't break the build.
     }
-  })
-  return cachedTasks
+  }
+  _tasksCache = tasks
+  return tasks
 }
 
-export function getTask(id: string): TaskSummary | undefined {
-  return loadTasks().find((task) => task.id === id)
+export function getTask(id: string): Task | undefined {
+  return loadTasks().find((t) => t.id === id)
 }
 
-export function taskStats() {
+export function taskStats(): {
+  count: number
+  intents: number
+  checklistItems: number
+  avgDifficulty: number
+} {
   const tasks = loadTasks()
-  const intents = new Set(tasks.map((task) => task.intentType))
-  const domains = new Set(tasks.map((task) => task.domain))
-  const sites = new Set(tasks.flatMap((task) => task.sites))
+  const intents = new Set(tasks.map((t) => t.intentType)).size
+  const checklistItems = Object.values(_loadChecklistsRaw()).reduce(
+    (acc, items) => acc + (items?.length || 0),
+    0,
+  )
+  const avgDifficulty =
+    tasks.length === 0
+      ? 0
+      : tasks.reduce((acc, t) => acc + (Number.isFinite(t.difficulty) ? t.difficulty : 3), 0) /
+        tasks.length
   return {
     count: tasks.length,
-    intents: intents.size,
-    domains: domains.size,
-    sites: sites.size,
-    avgDifficulty: tasks.reduce((sum, task) => sum + task.difficulty, 0) / Math.max(1, tasks.length),
-    checklistItems: tasks.reduce((sum, task) => sum + task.checklistItems, 0),
+    intents,
+    checklistItems,
+    avgDifficulty,
   }
-}
-
-function inferIntent(prompt: string): string {
-  const lower = prompt.toLowerCase()
-  if (lower.includes('recommend')) return 'recommendation'
-  if (lower.includes('compare') || lower.includes('comparison')) return 'comparison'
-  if (lower.includes('debunk') || lower.includes('fact-check')) return 'debunking'
-  if (lower.includes('causal') || lower.includes('why')) return 'causal'
-  if (lower.includes('timeline')) return 'timeline'
-  return 'enumeration'
-}
-
-function inferDomain(id: string, prompt: string): string {
-  const match = prompt.match(/on ([^,\n]+),? spanning/i)
-  if (match?.[1]) return match[1]
-  return id.replace('dr_cross_deep_', 'task ')
 }
