@@ -7,7 +7,7 @@ import type { RankedAgent } from '@/lib/data/types'
 interface Tile {
   title: string
   blurb: (top: RankedAgent[]) => React.ReactNode
-  ofWhich: 'composite' | 'wins' | 'efficiency' | 'risers'
+  ofWhich: 'composite' | 'wins' | 'efficiency' | 'depth' | 'risers'
 }
 
 const TILES: Tile[] = [
@@ -36,6 +36,26 @@ const TILES: Tile[] = [
         <>
           <Inline color={a.color}>{a.display}</Inline> took{' '}
           <Tnum>{sorted[0].wins}</Tnum> wins out of {sorted[0].n_battles} battles — the most decisive performer.
+        </>
+      )
+    },
+  },
+  {
+    title: 'Deepest reports',
+    ofWhich: 'depth',
+    blurb: (top) => {
+      // Find the top agent by depth_avg (v3 per-agent profile field).
+      const candidates = top.filter((a) => typeof a.depth_avg === 'number')
+      if (candidates.length === 0) {
+        return <span className="text-muted">Per-pillar depth scores not available in this build.</span>
+      }
+      const sorted = [...candidates].sort((a, b) => (b.depth_avg ?? 0) - (a.depth_avg ?? 0))
+      const a = agentMeta(sorted[0].id)
+      const depth = sorted[0].depth_avg ?? 0
+      return (
+        <>
+          <Inline color={a.color}>{a.display}</Inline> writes the deepest cross-source reports{' '}
+          (depth_avg <Tnum>{depth.toFixed(2)}</Tnum>) on the v3 scoring pillars.
         </>
       )
     },
@@ -93,7 +113,7 @@ export function HighlightTiles({ top }: { top: RankedAgent[] }) {
         whileInView="show"
         viewport={{ once: true, margin: '-50px' }}
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07 } } }}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
       >
         {TILES.map((tile) => (
           <motion.article

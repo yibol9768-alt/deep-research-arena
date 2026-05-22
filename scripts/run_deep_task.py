@@ -285,9 +285,73 @@ async def _run_gpt_researcher(intent: str) -> str:
     return await r.write_report()
 
 
-async def _run_smolagents(intent: str, model: str) -> str:
+# ---------------------------------------------------------------------------
+# Workstream C — in-process HTTP gate
+# ---------------------------------------------------------------------------
+#
+# Used by `_run_smolagents` and `_run_camel` (which both run in the parent
+# process, not a subprocess venv). Reuses the helper inside the runner
+# modules where available; falls back to its own implementation here so the
+# strict-sandbox plumbing works regardless of which runner is invoked.
+
+_INPROC_SANDBOX_HOSTS = frozenset({
+    "localhost:7770", "localhost:8090", "localhost:9999", "localhost:8081",
+    "127.0.0.1:7770", "127.0.0.1:8090", "127.0.0.1:9999", "127.0.0.1:8081",
+})
+
+
+def _install_inproc_sandbox_gate() -> None:
+    """Install a `requests.Session.send` interceptor that rejects any
+    non-sandbox URL with a synthetic 403 response. Idempotent.
+
+    The interceptor is reset when the parent process exits — these in-
+    process runners always run one task per parent process anyway.
+    """
+    if getattr(_install_inproc_sandbox_gate, "_done", False):
+        return
+    from urllib.parse import urlparse as _up
+
+    def _ok(url: str) -> bool:
+        try:
+            p = _up(url)
+            host = (p.hostname or "").lower()
+            port = p.port
+        except Exception:
+            return False
+        if not host or port is None:
+            return False
+        return f"{host}:{port}" in _INPROC_SANDBOX_HOSTS
+
+    try:
+        import requests  # type: ignore
+    except ImportError:
+        return
+    _orig = requests.Session.send
+
+    def _gated(self, request, **kw):
+        if not _ok(request.url):
+            print(f"[strict-sandbox] BLOCK non-sandbox: {request.url[:120]}")
+            from requests.models import Response  # type: ignore
+            r = Response()
+            r.status_code = 403
+            r._content = b'{"error":"non_sandbox_url_blocked"}'
+            return r
+        return _orig(self, request, **kw)
+
+    requests.Session.send = _gated
+    _install_inproc_sandbox_gate._done = True  # type: ignore[attr-defined]
+
+
+async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
+    if strict_sandbox:
+        # Install the HTTP gate FIRST so any tool that bypasses the
+        # patched TavilyClient (e.g. VisitWebpageTool fetching a URL the
+        # model hallucinated) is refused at the requests layer instead of
+        # leaking to the real internet.
+        _install_inproc_sandbox_gate()
+        os.environ["SHIM_MODE"] = "strict"
     try:
         import tavily
         _orig = tavily.TavilyClient.__init__
@@ -342,9 +406,15 @@ async def _run_smolagents(intent: str, model: str) -> str:
     return str(result)
 
 
-async def _run_camel(intent: str, model: str) -> str:
+async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
+    if strict_sandbox:
+        # Same gate as smolagents — camel-ai's SearchToolkit may add new
+        # tools at any release; the HTTP-layer gate catches anything that
+        # doesn't go through the patched TavilyClient.
+        _install_inproc_sandbox_gate()
+        os.environ["SHIM_MODE"] = "strict"
 
     import tavily
     _orig = tavily.TavilyClient.__init__
@@ -1324,10 +1394,26 @@ def _wrap_runner(run_fn):
     (intent, model) signature this script invokes. Picks shim/proxy URLs from
     the same env vars `_setup_ds_backbone` and `_setup_sandbox_shim` already
     use, so a registry-discovered runner Just Works.
+
+    Workstream C: also forwards `strict_sandbox` if the wrapped runner's
+    signature accepts it. Otherwise it is silently dropped (the runner's
+    module-level `STRICT_SANDBOX_ELIGIBLE` flag is what determines whether
+    `main()` permits the run; the kwarg itself is purely informational).
     """
-    async def _adapter(intent: str, model: str) -> str:
+    import inspect as _inspect
+    try:
+        _supports_strict = "strict_sandbox" in _inspect.signature(run_fn).parameters
+    except (TypeError, ValueError):
+        _supports_strict = False
+
+    async def _adapter(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
         shim = os.environ.get("SHIM_URL", "http://localhost:8081")
         proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
+        if _supports_strict:
+            return await run_fn(
+                intent=intent, model=model, shim_url=shim, proxy_url=proxy,
+                strict_sandbox=strict_sandbox,
+            )
         return await run_fn(intent=intent, model=model, shim_url=shim, proxy_url=proxy)
     _adapter.__name__ = f"_adapter_{getattr(run_fn, '__module__', 'runner')}"
     return _adapter
@@ -1359,34 +1445,194 @@ def _build_runners_map():
 RUNNERS = _build_runners_map()
 
 
+# ---------------------------------------------------------------------------
+# Strict-sandbox plumbing — Workstream C
+# ---------------------------------------------------------------------------
+#
+# `--strict-sandbox` flips the arena into an audited closed-book mode where
+# every cited URL must resolve to one of the four local origins
+# (Magento :7770, Postmill :9999, Kiwix :8090, search shim :8081).
+#
+# The flag is enforced at three independent layers:
+#   1. Per-adapter tool allowlist — passed as `strict_sandbox=True` to each
+#      runner; runners that honour it whitelist Read/Write/Bash(curl localhost*)
+#      and reject everything else. Runners that cannot honour it raise
+#      `NotImplementedError` here BEFORE the run starts.
+#   2. Shim-level URL gate — set SHIM_MODE=strict in the subprocess env so
+#      `integrations/search_shim/app.py` returns 403 for any non-sandbox
+#      target. (Not all runners use the shim, but those that do get gated.)
+#   3. Post-run domain audit — `src/verifiers/sandbox_compliance_verifier`
+#      scans the final report and writes ``policy_violation`` into the
+#      .meta.json so leaderboard composites can disqualify offending runs.
+#
+# A runner declares itself strict-eligible by setting
+# ``STRICT_SANDBOX_ELIGIBLE = True`` at module top level, or by exposing a
+# ``strict_sandbox`` keyword on its `run()` signature. The dispatch below
+# inspects both before deciding to forward the flag.
+# ---------------------------------------------------------------------------
+
+def _runner_supports_strict(runner) -> bool:
+    """Return True if `runner` accepts `strict_sandbox=` or is an in-process
+    helper declared strict-eligible. Used by `main()` to decide between
+    forwarding the kwarg, refusing the run, or silently dropping it.
+    """
+    import inspect
+    try:
+        sig = inspect.signature(runner)
+    except (TypeError, ValueError):
+        return False
+    return "strict_sandbox" in sig.parameters
+
+
+# Manual in-process runners (defined above in this file) that ARE strict-
+# sandbox eligible. Each entry was hand-reviewed for the closing of the
+# "Bash/raw HTTP can leak past the patched search" gap — see
+# docs/STRICT_SANDBOX_CONTRACT.md for the per-adapter table.
+_INPROC_STRICT_ELIGIBLE: set[str] = {
+    "smolagents",
+    "camel-ai",
+}
+
+# Manual in-process runners that are NOT strict-sandbox eligible because
+# their upstream framework does not expose a hook we can use to enforce
+# the URL allowlist. Listed here so `main()` can refuse `--strict-sandbox`
+# pre-flight rather than letting the runner silently leak.
+_INPROC_STRICT_INELIGIBLE: set[str] = {
+    # `langchain-odr`, `ldr`, `ii-researcher`, `dzhng`, `flowsearcher-ds`,
+    # `tongyi-dr`, `co-storm`, `deepagents` were NOT audited for strict
+    # mode in this Workstream. They run today as "best-effort, shim-gated
+    # only". Leaving them out of the eligible set is more honest than
+    # claiming compliance we haven't verified.
+}
+
+
+def _runner_module_strict_eligible(name: str) -> bool | None:
+    """Resolve `name -> STRICT_SANDBOX_ELIGIBLE` across both runner sources.
+
+    Lookup order:
+      1. Inline manual entries (`_INPROC_STRICT_ELIGIBLE` /
+         `_INPROC_STRICT_INELIGIBLE`) which cover the runners defined
+         inside this script (smolagents, camel-ai, storm, etc.).
+      2. The registry-discovered runner modules under
+         `scripts/runners/<name>_runner.py`.
+
+    Returns True/False if either source declares a verdict, None when both
+    sources are silent (treated by `main()` as "best-effort eligible").
+    """
+    if name in _INPROC_STRICT_ELIGIBLE:
+        return True
+    if name in _INPROC_STRICT_INELIGIBLE:
+        return False
+    try:
+        from scripts.runners import registry  # type: ignore
+        runners, _ = registry.discover()
+        if name not in runners:
+            return None
+        mod = runners[name].__globals__.get("__name__")
+        if mod:
+            import importlib
+            m = importlib.import_module(mod)
+            v = getattr(m, "STRICT_SANDBOX_ELIGIBLE", None)
+            if isinstance(v, bool):
+                return v
+    except Exception:
+        pass
+    return None
+
+
+def _post_audit_sandbox(report: str) -> dict:
+    """Run the deterministic sandbox-compliance audit on the final report
+    and return a dict suitable for embedding in `.meta.json`.
+
+    Failure modes (import errors, malformed reports) degrade to
+    ``{"audit_error": ...}`` so the run isn't blocked on a verifier bug.
+    """
+    try:
+        from src.verifiers.sandbox_compliance_verifier import (  # noqa: E402
+            verify_sandbox_compliance,
+        )
+        return verify_sandbox_compliance(report)
+    except Exception as e:  # pragma: no cover — defensive
+        return {"audit_error": f"{type(e).__name__}: {e}"}
+
+
 async def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--agent", required=True, choices=list(RUNNERS.keys()))
     ap.add_argument("--task", required=True)
     ap.add_argument("--backbone", default=os.environ.get("AGENT_LLM_MODEL", "deepseek-v4-flash"))
     ap.add_argument("--out-suffix", default="")
+    ap.add_argument(
+        "--strict-sandbox",
+        action="store_true",
+        default=False,
+        help=(
+            "Enforce the closed-book contract: per-adapter tool allowlist, "
+            "shim-level URL gate (SHIM_MODE=strict), and post-run domain "
+            "audit. Runners that cannot honour the allowlist are refused. "
+            "See docs/STRICT_SANDBOX_CONTRACT.md."
+        ),
+    )
     args = ap.parse_args()
 
     _setup_ds_backbone(args.backbone)
     _setup_sandbox_shim()
 
+    # Propagate strict mode to the shim and to any subprocess driver scripts
+    # that read SHIM_MODE. Runners that wrap subprocess.run() with their own
+    # env dict will see this var in os.environ and copy it through.
+    if args.strict_sandbox:
+        os.environ["SHIM_MODE"] = "strict"
+
     task_cfg = _load_task(args.task)
     intent = _resolve_intent(task_cfg)
     print(f"[deep_run] agent={args.agent} task={args.task} backbone={args.backbone}")
     print(f"[deep_run] intent length={len(intent)} chars")
+    if args.strict_sandbox:
+        print("[deep_run] strict-sandbox mode: per-adapter allowlist + shim gate + post-audit")
 
     os.environ["_FLOWSEARCHER_TASK_ID"] = args.task
     runner = RUNNERS[args.agent]
     t0 = time.time()
     err = None
     report = ""
-    try:
-        out = runner(intent, args.backbone)
-        report = await out if asyncio.iscoroutine(out) else out
-    except Exception as e:
-        err = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
-        report = f"(runner error: {type(e).__name__}: {e})"
+
+    # Strict-mode dispatch. If the runner advertises `strict_sandbox` as a
+    # kwarg we forward it. If the runner's MODULE declares itself
+    # ineligible we refuse pre-flight rather than letting it silently make
+    # non-sandbox HTTP calls. Otherwise we run as normal and rely solely on
+    # the shim gate + post-audit (best-effort).
+    runner_kwargs: dict[str, object] = {}
+    if args.strict_sandbox:
+        eligible = _runner_module_strict_eligible(args.agent)
+        if eligible is False:
+            err = (
+                f"agent={args.agent} is marked STRICT_SANDBOX_ELIGIBLE=False — "
+                "its upstream framework cannot honour the per-adapter "
+                "allowlist. Rerun without --strict-sandbox or pick a "
+                "different agent. See docs/STRICT_SANDBOX_CONTRACT.md."
+            )
+            report = f"(strict-sandbox refused: {err})"
+        elif _runner_supports_strict(runner):
+            runner_kwargs["strict_sandbox"] = True
+
+    if not err:
+        try:
+            out = runner(intent, args.backbone, **runner_kwargs)
+            report = await out if asyncio.iscoroutine(out) else out
+        except NotImplementedError as e:
+            err = f"strict_sandbox unsupported: {e}"
+            report = f"(runner refused strict-sandbox: {e})"
+        except Exception as e:
+            err = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
+            report = f"(runner error: {type(e).__name__}: {e})"
     elapsed = time.time() - t0
+
+    # Run the deterministic sandbox-compliance audit on the final report.
+    # We do this regardless of --strict-sandbox so the meta.json always
+    # carries the URL-leak signal — strict mode just promotes it from
+    # "informational" to "policy violation".
+    sandbox_audit = _post_audit_sandbox(report or "")
 
     suffix = f"_{args.out_suffix}" if args.out_suffix else ""
     out_md = OUT_DIR / f"{args.agent}__{args.task}{suffix}.md"
@@ -1397,9 +1643,16 @@ async def main() -> int:
         "elapsed_seconds": round(elapsed, 1),
         "report_chars": len(report or ""),
         "error": err,
+        "strict_sandbox": bool(args.strict_sandbox),
+        "sandbox_audit": sandbox_audit,
     }, indent=2, ensure_ascii=False))
 
     print(f"[deep_run] done in {elapsed:.0f}s, {len(report)} chars → {out_md.name}")
+    if sandbox_audit.get("policy_violation"):
+        print(
+            f"[deep_run] sandbox audit: {len(sandbox_audit.get('non_sandbox_urls') or [])}"
+            f" non-sandbox URL(s) cited"
+        )
     if err:
         print(f"[deep_run] ERR: {err.splitlines()[0]}")
         return 1

@@ -552,3 +552,88 @@ reachability  = #(HTTP 200 cited) / #cited
 2. **URL 抽查** — `scripts/sample_urls_for_human_audit.py` 输出每 (agent, task) 抽 20 cited URL 的 markdown checklist。人勾选 PASS/UNCLEAR/FAIL(URL 真实 + 是否真支撑了 claim)。结果落 `data/results/human_url_audit_<agent>_<task>.json`,聚合为 leaderboard 一栏 `human_url_pass_rate`,作为 truthfulness 的 ground truth。
 
 抽查样本估算:5 agent × 12 task × 20 URL = 1200 URL × ~30s/URL = 10h 人工 → 实际只抽 ≥3 个 agent 的 top-task,~3-4h 即可。
+
+---
+
+## 5. V2 (adversarial) tasks — top-player separability lever
+
+**Status**: design 2026-05-21. Created by Workstream B (separability).
+**Motivation**: after the 30-task v1 leaderboard, the top three agents
+(camel-ai 1188, opencode 1250, claude-code 1352 in `data/results/deep_v3/leaderboard_deep.json`)
+all have ±60-95 Elo bootstrap CIs that overlap with their adjacent neighbours.
+camel-ai vs smolagents gap is 119 Elo at p=0.054 — close but no significance.
+Composite saturation (top agents score >= 1130 on every pillar) and pillar
+correlation (reach <-> quote_match Spearman ρ=0.91) compound the problem.
+
+Arena-Hard (Li et al. 2024) reaches **87.4% pairwise separability** vs
+MT-Bench's 22.6% by **adversarial task selection** — BenchBuilder filters
+prompts by 7 hardness criteria and keeps only top-quartile-difficulty items.
+We adopt that for v2: add 20 tasks that stress the three orthogonal pillars
+the v1 grid under-tests (depth, rigor, coverage) and that demonstrably
+*flip the leaderboard ordering* under at-leaderboard agents.
+
+### 5.1 Three new task families
+
+| Family | Stress pillar | Mechanism | Why it discriminates |
+|---|---|---|---|
+| **Causal / Debunking heavy** | `rigor` | Force counter-evidence retrieval against a popular marketing claim. Pre-seed at least 3 contradictory wiki + reddit sources in golden pool. Weak-rigor agents (cited the marketing page only) fail the verdict; strong-rigor agents surface the counter-evidence and reach a DEBUNKED / PARTIALLY_SUPPORTED verdict. | The v1 grid already has Debunking tasks (0006-0008, 0011), but the verdict columns are loose — saturation at the top. v2 raises the bar: each claim has **≥ 1 wiki must-cite that contradicts** the marketing page, and the rubric explicitly penalises any verdict not backed by the contradicting URL. |
+| **Synthesis-under-contradiction** | `depth` | Two pre-curated source clusters disagree on the same fact (e.g. reddit experience says X, wiki / academic says ¬X). Agent must surface **both** sides and reconcile (acknowledge the tension or pick a side with reasoning). | Single-source / surface searcher always wins one cluster, misses the other → flat one-sided summary → fails depth checklist items. Multi-hop / reasoning-trace agents (claude-code, camel-ai) surface both. **This is the lever that should split rank 1 from rank 2 most cleanly.** |
+| **Long-tail recall** | `coverage` | Golden URL pool oversampled with deliberately niche items (deep-page wiki articles, low-traffic subreddit threads, long-tail product SKUs on Magento). The surface searcher (top results of the obvious query) misses them; the agent that uses a real exploration strategy lands them. | v1 must-cite recall plateaus at ~0.6 for top agents because the pools are biased toward popular URLs. v2 inverts that: ≥ 60% of must-cite items are reachable only via 2+ hops or via non-obvious search terms. Forces the **breadth + recall** lever that current top-agents tie on. |
+
+### 5.2 v2 task budget
+
+20 task specs total, balanced across the three families and across sandbox sites:
+
+| Family | Count | Magento (shopping) anchor | Postmill (reddit) anchor | Kiwix (wikipedia) anchor |
+|---|---:|---:|---:|---:|
+| Causal / Debunking heavy | 7 | 4 | 3 | 7 (all use wiki for verdict ground truth) |
+| Synthesis-under-contradiction | 7 | 3 | 7 | 5 |
+| Long-tail recall | 6 | 6 | 4 | 6 |
+| **Total**         | **20** | **13** | **14** | **18** |
+
+(Each task is cross-site by design, so site counts overlap.)
+
+### 5.3 Design recipe (per task)
+
+Five things every v2 spec carries; the build script fans them into the
+existing `cross_site_deep` JSON schema:
+
+1. `family` — one of `{causal, contradiction, long_tail}`.
+2. `topic` — short slug.
+3. `must_cite_pool` — initial seed (≥ 5 URL strings). Build script expands
+   to the full 120-130 must-cite golden on the westd scraper, but **the
+   contradicting / niche items in this seed list are non-negotiable**.
+4. `expected_dim_stress` — list of `{depth, rigor, coverage}` indicating
+   which pillar(s) the task is designed to discriminate on.
+5. `adversarial_rationale` — one-sentence justification: why this task
+   should split top agents. Reviewed by parent before scrape.
+
+### 5.4 Pre-screen protocol (small adversarial pilot)
+
+Before promoting any v2 task into the full leaderboard pool, run a
+**3 agents × 5 tasks** pilot to verify it actually discriminates:
+
+1. Pick 5 v2 candidates (from `V2_ADVERSARIAL_TASKS.json`) per family.
+2. Run **3 agents** — one expected winner (camel-ai or claude-code), one
+   expected middle (smolagents or deerflow), one expected loser (ldr or
+   langchain-odr) — through each candidate task on westd.
+3. Score the 15 runs with the existing v2_truthful composite + v3 pillars.
+4. **Keep**: tasks where the score variance across the 3 agents is in the
+   top-50% (median across all candidates). Drop the rest.
+5. From the surviving 4-5 tasks per family, expand to the full 13-agent
+   matrix. The full-matrix runs go into the v3 leaderboard alongside v1.
+
+Target: after the pilot prunes the weakest candidates and the full matrix
+runs, the new pairwise separability (fraction of agent pairs with
+non-overlapping CIs) should rise from current ~45% to **≥ 65%**
+(intermediate target — Arena-Hard's 87% is the long-term goal).
+
+### 5.5 Pre-registration
+
+The 20 specs in `V2_ADVERSARIAL_TASKS.json` are pre-registered before any
+agent runs. We do **not** later swap in tasks that happen to flatter
+camel-ai or claude-code. The drop / keep decision in step 5.4 #4 uses
+**variance** as the criterion, not "the task we like ranks our favourite
+agent #1". Variance is direction-agnostic — a task that splits ldr from
+ii-researcher counts as much as one that splits claude-code from opencode.
+

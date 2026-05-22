@@ -15,6 +15,7 @@ const NAV = [
   { href: '/insights', label: 'Insights' },
   { href: '/methodology', label: 'Methodology' },
   { href: '/sandbox', label: 'Sandbox' },
+  { href: '/changelog', label: 'Changelog' },
 ]
 
 export function SiteHeader() {

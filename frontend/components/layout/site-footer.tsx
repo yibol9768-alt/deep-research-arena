@@ -28,7 +28,7 @@ const COLS: { title: string; links: { href: string; label: string }[] }[] = [
       { href: '/methodology', label: 'Paper notes' },
       { href: 'https://github.com/yibol9768-alt/deep-research-arena', label: 'GitHub' },
       { href: '/api/leaderboard', label: 'API' },
-      { href: '/about', label: 'Changelog' },
+      { href: '/changelog', label: 'Changelog' },
     ],
   },
 ]

@@ -1,0 +1,107 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_adv_long_tail_005",
+  "tier": "deep_v2_adversarial",
+  "sites": [
+    "wikipedia",
+    "shopping",
+    "reddit"
+  ],
+  "difficulty": 6,
+  "expected_steps": 90,
+  "intent": "Enumerate online-learning platforms: must include ≥ 8 niche / specialist offerings — fast.ai, DeepLearning.AI, Khan Academy, Brilliant.org, Frontend Masters, Pluralsight specialist tracks, plus discussions on /f/learnprogramming or /f/learnmachinelearning. Mainstream-only enumeration fails the long-tail recall threshold.\n\nThe golden must-cite URL pool is DELIBERATELY oversampled with niche / long-tail items: ≥ 60% of the must-cite URLs are reachable only via 2+ hops or via non-obvious search terms. Surface-only searching (cite top-3 results of the obvious query) will yield a must-cite recall under 0.40 and fail the url_coverage threshold. The report's enumeration / catalog MUST include ≥ 8 niche items beyond the popular top-3 / top-5.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=online+course",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition",
+      "counter_evidence"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 20,
+      "__REDDIT__": 25,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep_v2/dr_adv_long_tail_005.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.6,
+      "pool_coverage": 0.2,
+      "domain_balance": 0.2
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep_v2/dr_adv_long_tail_005.json",
+    "must_cite_seed": [
+      "__WIKIPEDIA__/A/Massive_open_online_course",
+      "__WIKIPEDIA__/A/EdX",
+      "__WIKIPEDIA__/A/Khan_Academy",
+      "__WIKIPEDIA__/A/Fast.ai",
+      "__SHOPPING__/catalogsearch/result/?q=online+course",
+      "__REDDIT__/f/learnprogramming",
+      "__REDDIT__/f/learnmachinelearning",
+      "__REDDIT__/f/OnlineEducation"
+    ],
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines",
+      "counter_evidence"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "long_tail_recall",
+    "min_niche_items": 8,
+    "min_distinct_tiers": 2,
+    "min_must_cite_recall_long_tail_fraction": 0.6,
+    "explicitly_forbid_top10_only": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep_v2/checklists_deep_v2.json",
+  "author_notes": "v2 adversarial task. See configs/deep_topics/V2_ADVERSARIAL_TASKS.json and V1_TASK_DESIGN_GRID.md section 5 for the design recipe. Family: long_tail. Real golden scrape happens on westd; this file only carries the must_cite seed.",
+  "domain": "Education",
+  "intent_type": "Long-Tail-Enumeration",
+  "v2_meta": {
+    "family": "long_tail",
+    "topic": "Niche mooc platforms beyond Coursera / edX",
+    "expected_dim_stress": [
+      "coverage"
+    ],
+    "adversarial_rationale": "Niche platforms live in dedicated communities — coverage rewards multi-forum exploration."
+  }
+}

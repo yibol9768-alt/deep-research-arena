@@ -1,0 +1,112 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_adv_causal_005",
+  "tier": "deep_v2_adversarial",
+  "sites": [
+    "wikipedia",
+    "shopping",
+    "reddit"
+  ],
+  "difficulty": 6,
+  "expected_steps": 90,
+  "intent": "Audit the camera-marketing claim 'Micro Four Thirds gives a 1.6x crop factor'. The actual crop factor is 2.0x; 1.6x is APS-C (Canon). Force the agent to (a) cite the Crop factor wiki article, (b) identify a shopping product page that makes the wrong claim, (c) surface reddit /f/photography or /f/M43 threads correcting the misinformation.\n\nThe report MUST surface explicit COUNTER-EVIDENCE against the audited claim and the verdict must cite the contradicting wiki article(s) by URL. A verdict of SUPPORTED is allowed only when the agent has actively searched for counter-evidence and documented the absence — a 'no contrary evidence found' clause is required. Verdict columns without an explicit contradicting citation will be marked DEBUNKED-BY-OMISSION in the rubric.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=micro+four+thirds",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition",
+      "counter_evidence"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep_v2/dr_adv_causal_005.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep_v2/dr_adv_causal_005.json",
+    "must_cite_seed": [
+      "__WIKIPEDIA__/A/Crop_factor",
+      "__WIKIPEDIA__/A/Image_sensor_format",
+      "__WIKIPEDIA__/A/Micro_Four_Thirds_system",
+      "__WIKIPEDIA__/A/Image_sensor",
+      "__SHOPPING__/catalogsearch/result/?q=micro+four+thirds",
+      "__REDDIT__/f/photography",
+      "__REDDIT__/f/M43"
+    ],
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines",
+      "counter_evidence"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "causal_debunking",
+    "claim_count": 1,
+    "verdict_levels": [
+      "SUPPORTED",
+      "PARTIALLY_SUPPORTED",
+      "DEBUNKED",
+      "UNDETERMINED"
+    ],
+    "min_counter_evidence_citations": 3,
+    "require_contradicting_wiki_citation": true,
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep_v2/checklists_deep_v2.json",
+  "author_notes": "v2 adversarial task. See configs/deep_topics/V2_ADVERSARIAL_TASKS.json and V1_TASK_DESIGN_GRID.md section 5 for the design recipe. Family: causal. Real golden scrape happens on westd; this file only carries the must_cite seed.",
+  "domain": "Consumer",
+  "intent_type": "Causal-Debunking",
+  "v2_meta": {
+    "family": "causal",
+    "topic": "Crop-factor mis-statement in mirrorless marketing",
+    "expected_dim_stress": [
+      "rigor"
+    ],
+    "adversarial_rationale": "A specific, verifiable factual error in product marketing. Rigor-low agents repeat the error; rigor-high agents catch and contradict it."
+  }
+}

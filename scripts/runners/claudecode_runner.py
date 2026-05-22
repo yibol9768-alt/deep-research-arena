@@ -42,6 +42,16 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[2]
 AGENT_NAME = "claude-code"
 
+# Workstream C — strict-sandbox eligibility.
+# claude-code supports `--allowed-tools` with argument patterns. Under
+# strict_sandbox=True we replace the disallowlist (WebSearch / WebFetch /
+# NotebookEdit) with a WHITELIST that admits only Read/Write/Edit/Glob/Grep
+# plus Bash patterns that match `curl http://localhost*` or
+# `curl http://127.0.0.1*`. This closes the long-standing Bash-curl gap
+# where the model could `curl https://en.wikipedia.org/...` from inside an
+# otherwise locked-down session because Bash itself was implicitly allowed.
+STRICT_SANDBOX_ELIGIBLE = True
+
 DEFAULT_TIMEOUT_S = 1800
 SSH_HOST = os.environ.get("CLAUDE_CODE_SSH_HOST", "5090")
 REMOTE_DIR_WIN = os.environ.get("CLAUDE_CODE_REMOTE_DIR", "C:/tools/cc_runner")
@@ -121,7 +131,7 @@ $claudeArgs = @(
   '--dangerously-skip-permissions',
   '--add-dir', $WorkDir,
   '--add-dir', $reportDir,
-  '--disallowedTools', 'WebSearch', 'WebFetch', 'NotebookEdit',
+  __TOOL_POLICY_ARGS__
   '--append-system-prompt', $systemPrompt
 )
 
@@ -135,8 +145,46 @@ exit $rc
 """
 
 
-def _build_ps_driver() -> str:
-    return _PS_DRIVER_TEMPLATE.replace("__CCR_URL__", CCR_BASE_URL)
+# Workstream C: two tool-policy stanzas — picked based on `strict_sandbox`.
+#
+# OPEN policy (default, pre-Workstream-C behavior):
+#   The classic disallowlist. Bans `WebSearch`, `WebFetch`, `NotebookEdit`
+#   but leaves `Bash` (and therefore `curl <any-url>`) free. Comparable to
+#   how every other DR baseline was previously configured.
+#
+# STRICT policy (Workstream C):
+#   An ALLOWLIST. Only `Read`, `Write`, `Edit`, `Glob`, `Grep` and Bash
+#   commands whose first arg matches a sandbox-localhost `curl` pattern
+#   are permitted. Everything else (WebSearch, WebFetch, NotebookEdit, AND
+#   any `Bash(curl https://...)`) is rejected by claude-code's own
+#   tool-policy engine. Claude Code's `--allowed-tools` accepts argument
+#   patterns of the form `Bash(<pattern>)`; we list every URL prefix the
+#   sandbox can serve.
+_TOOL_POLICY_OPEN = "'--disallowedTools', 'WebSearch', 'WebFetch', 'NotebookEdit',"
+_TOOL_POLICY_STRICT = (
+    "'--allowed-tools', "
+    "'Read,Write,Edit,Glob,Grep,"
+    "Bash(curl http://localhost:7770*),"
+    "Bash(curl http://localhost:8090*),"
+    "Bash(curl http://localhost:9999*),"
+    "Bash(curl http://localhost:8081*),"
+    "Bash(curl http://127.0.0.1:7770*),"
+    "Bash(curl http://127.0.0.1:8090*),"
+    "Bash(curl http://127.0.0.1:9999*),"
+    "Bash(curl http://127.0.0.1:8081*),"
+    "Bash(curl -s http://localhost:*),"
+    "Bash(curl -sL http://localhost:*),"
+    "Bash(curl -X POST http://localhost:8081*)',"
+)
+
+
+def _build_ps_driver(*, strict_sandbox: bool = False) -> str:
+    policy = _TOOL_POLICY_STRICT if strict_sandbox else _TOOL_POLICY_OPEN
+    return (
+        _PS_DRIVER_TEMPLATE
+        .replace("__CCR_URL__", CCR_BASE_URL)
+        .replace("__TOOL_POLICY_ARGS__", policy)
+    )
 
 
 def _ssh(cmd: str, *, timeout_s: int = 60) -> subprocess.CompletedProcess:
@@ -172,6 +220,7 @@ async def run(
     proxy_url: str,
     *,
     timeout_s: int = DEFAULT_TIMEOUT_S,
+    strict_sandbox: bool = False,
 ) -> str:
     """Run claude-code on the remote 5090 host and return the markdown report.
 
@@ -181,6 +230,12 @@ async def run(
         shim_url: sandbox shim URL, baked into the agent's system prompt.
         proxy_url: ignored — ccr is configured separately to talk to ds_proxy.
         timeout_s: hard timeout for the remote subprocess.
+        strict_sandbox: when True, the PowerShell driver swaps claude-code's
+            `--disallowedTools` flag for `--allowed-tools <whitelist>` that
+            admits only Read/Write/Edit/Glob/Grep and Bash(curl <sandbox URL>).
+            Closes the Bash-curl gap where the model could previously
+            ``curl https://en.wikipedia.org/...`` despite WebSearch/WebFetch
+            being banned.
     """
     del model, proxy_url  # informational only — wiring lives in ccr config
 
@@ -197,7 +252,11 @@ async def run(
     driver_local = Path(f"/tmp/cc_driver_{job_id}.ps1")
 
     intent_local.write_text(intent, encoding="utf-8")
-    driver_local.write_text(_build_ps_driver(), encoding="utf-8")
+    driver_local.write_text(
+        _build_ps_driver(strict_sandbox=strict_sandbox), encoding="utf-8",
+    )
+    if strict_sandbox:
+        logger.info("claude-code: strict-sandbox tool allowlist active")
 
     shopping_url = os.environ.get("SHOPPING", "http://localhost:7770")
     reddit_url = os.environ.get("REDDIT", "http://localhost:9999")
@@ -310,11 +369,13 @@ if __name__ == "__main__":
     parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o")
+    parser.add_argument("--strict-sandbox", action="store_true", default=False)
     args = parser.parse_args()
     out = asyncio.run(run(
         intent=args.intent, model=args.model,
         shim_url=args.shim_url, proxy_url=args.proxy_url,
         timeout_s=args.timeout,
+        strict_sandbox=args.strict_sandbox,
     ))
     if args.output:
         Path(args.output).write_text(out)

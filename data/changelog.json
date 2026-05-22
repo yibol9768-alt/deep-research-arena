@@ -1,0 +1,63 @@
+{
+  "_schema": "deep-research-arena-changelog/v1",
+  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse — this is what users read on /changelog.",
+  "entries": [
+    {
+      "version": "v3-2026-05-21",
+      "date": "2026-05-21",
+      "title": "V3 Scoring Overhaul",
+      "tags": ["scoring", "leaderboard", "sandbox", "frontend"],
+      "summary": "Replaced the 3-dimension heuristic composite with a 6-dimension quality vector and a soft-floor truth gate, added 20 adversarial tasks to pull the top of the leaderboard apart, hardened the closed-book sandbox, and surfaced real per-pillar data on the site.",
+      "sections": [
+        {
+          "heading": "Scoring",
+          "bullets": [
+            "New composite: composite_v3 = (0.5 + 0.5 × quote_match) × Σ w_d · score_d across 6 quality dims (coverage, depth, rigor, style, checklist, spec).",
+            "Soft-floor replaces the hard multiplicative gate — broken citations no longer zero out an entire report, but quote_match still scales the result.",
+            "Three new LLM-judge verifiers (depth, rigor, style), each 5-point rubric with self-consistency (3× temp 0.3, median), CoT disabled.",
+            "New ArenaEvaluator (src/eval/evaluator.py) exposes a callable reward function for downstream RL training loops."
+          ]
+        },
+        {
+          "heading": "Separability",
+          "bullets": [
+            "Current leaderboard separability measured at 62.86% — 2.14 pp below the 65% intermediate target.",
+            "20 adversarial tasks generated across 3 families (causal/debunking, synthesis-under-contradiction, long-tail recall) to stress the new dims.",
+            "Top-pair densification (--strategy top-pair-densify) added to the battle runner; n=20 per top pair drops CI half-width from ~70 to ~25 Elo."
+          ]
+        },
+        {
+          "heading": "Sandbox",
+          "bullets": [
+            "New --strict-sandbox flag enforces the closed-book contract at three layers: per-adapter tool allowlist, shim-level 403 gate on non-localhost URLs, and post-run domain audit.",
+            "Closed the ClaudeCode Bash-curl gap by replacing the disallowlist with --allowed-tools Bash(curl http://localhost*).",
+            "OpenCode now ships a per-run opencode.json with commands.allowed rather than relying on a soft prompt.",
+            "8 runners are strict-eligible end-to-end; 9 others remain best-effort via the shim and audit layers."
+          ]
+        },
+        {
+          "heading": "Human alignment",
+          "bullets": [
+            "Pairwise A/B preference collector lives at tools/human_pref_collector/ (vanilla HTML + 50-LOC stdlib server, keyboard shortcuts a/s/d).",
+            "Bradley-Terry weight fit via softmax reparameterization + L-BFGS-B (16 restarts); 5-fold CV refuses to publish weights worse than uniform baseline.",
+            "Targets Spearman ≥ 0.85 with humans on composite ranking once ≥ 200 preferences land."
+          ]
+        },
+        {
+          "heading": "Site",
+          "bullets": [
+            "Replaced the synthetic 7-bar sparkline with a real 8-dimension per-pillar sparkline (depth, rigor, style, coverage, checklist, spec, reachability, quote_match) with hover tooltips.",
+            "New Quality Profile card on each agent's detail page.",
+            "New “Deepest reports” highlight tile on the homepage.",
+            "Dry-run banner renders when the leaderboard data is synthetic so visitors are not misled by placeholder numbers.",
+            "Adjacent-pair statistical significance now marked with an asterisk on the leaderboard."
+          ]
+        }
+      ],
+      "links": [
+        { "label": "Scoring spec", "href": "/methodology" },
+        { "label": "Strict-sandbox contract", "href": "/sandbox" }
+      ]
+    }
+  ]
+}

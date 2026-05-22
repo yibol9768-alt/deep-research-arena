@@ -6,6 +6,7 @@ import { QualityCostScatter } from '@/components/home/quality-cost-scatter'
 import { LeaderboardTable } from '@/components/home/leaderboard-table'
 import { PillarBars } from '@/components/home/pillar-bars'
 import { SectionNav } from '@/components/home/section-nav'
+import { DryRunBanner } from '@/components/home/dry-run-banner'
 
 export const dynamic = 'force-static'
 
@@ -45,6 +46,7 @@ export default function HomePage() {
 
   return (
     <>
+      <DryRunBanner isDryRun={!!lb.is_dry_run} schemaVersion={lb.schema_version} />
       <Hero stats={stats} />
 
       <div id="highlights" className="container">

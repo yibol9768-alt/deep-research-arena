@@ -233,12 +233,73 @@ def _build_storm_runner(
 # AGENT_NAME used in score files: data/results/deep_v3/storm__<task>_matrix.score.json
 AGENT_NAME = "storm"
 
+# Workstream C — strict-sandbox eligibility.
+# DECISION: storm is strict_sandbox_eligible.
+#
+# Rationale (vs. the alternative — patching en.wikipedia.org -> :8090):
+# storm's retrieval already goes through SandboxSearchRM (this file) which
+# only talks to the shim. The remaining attack surface is STORM's internal
+# WebPageHelper that fetches result URLs to re-rank — but those URLs only
+# come from the shim, which we gate in strict mode. The narrow alternative
+# (patching requests.Session.send to rewrite en.wikipedia.org -> :8090) is
+# larger code than installing the sandbox-only HTTP gate below; both
+# converge on the same outcome (no traffic ever leaves the box) so we go
+# with the smaller patch.
+STRICT_SANDBOX_ELIGIBLE = True
+
+
+def _install_strict_http_gate() -> None:
+    """Install a `requests.Session.send` interceptor that refuses any
+    non-sandbox URL. Idempotent — repeat calls are no-ops.
+
+    Called only when run() is invoked with strict_sandbox=True. STORM's
+    WebPageHelper fetches result URLs via requests; without this gate a
+    malicious shim response (or a STORM bug that supplies a URL not
+    derived from the shim) could reach the real internet.
+    """
+    if getattr(_install_strict_http_gate, "_done", False):
+        return
+    from urllib.parse import urlparse as _up
+
+    _SBX = {
+        "localhost:7770", "localhost:8090", "localhost:9999", "localhost:8081",
+        "127.0.0.1:7770", "127.0.0.1:8090", "127.0.0.1:9999", "127.0.0.1:8081",
+    }
+
+    def _sandbox_only(url: str) -> bool:
+        try:
+            p = _up(url)
+            host = (p.hostname or "").lower()
+            port = p.port
+        except Exception:
+            return False
+        if not host or port is None:
+            return False
+        return f"{host}:{port}" in _SBX
+
+    _orig = requests.Session.send
+
+    def _gated(self, request, **kw):
+        if not _sandbox_only(request.url):
+            logger.warning("storm strict: BLOCK non-sandbox %s", request.url[:120])
+            from requests.models import Response
+            r = Response()
+            r.status_code = 403
+            r._content = b'{"error":"non_sandbox_url_blocked"}'
+            return r
+        return _orig(self, request, **kw)
+
+    requests.Session.send = _gated
+    _install_strict_http_gate._done = True  # type: ignore[attr-defined]
+
 
 async def run(
     intent: str,
     model: str,
     shim_url: str,
     proxy_url: str,
+    *,
+    strict_sandbox: bool = False,
 ) -> str:
     """Run STORM and return the markdown report.
 
@@ -247,10 +308,18 @@ async def run(
         model: LLM model name (e.g. 'deepseek-v4-flash').
         shim_url: Tavily-compatible search shim (e.g. 'http://localhost:8081').
         proxy_url: OpenAI-compatible LLM proxy (e.g. 'http://localhost:8088/v1').
+        strict_sandbox: when True, installs an HTTP-layer gate that refuses
+            any non-sandbox URL (belt-and-suspenders behind SandboxSearchRM
+            which already only talks to the shim). Also forwards
+            SHIM_MODE=strict via the process env.
 
     Returns:
         The polished article as a markdown string.
     """
+    if strict_sandbox:
+        os.environ["SHIM_MODE"] = "strict"
+        _install_strict_http_gate()
+        logger.info("storm: strict-sandbox HTTP gate installed")
     api_key = os.environ.get("OPENAI_API_KEY", "anything")
 
     # Use a unique scratch dir per run to avoid collisions.

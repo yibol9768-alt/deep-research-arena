@@ -34,6 +34,16 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[2]
 AGENT_NAME = "opencode"
 
+# Workstream C — strict-sandbox eligibility.
+# OpenCode's `commands.allowed` block in opencode.json is the only available
+# shell-command gate. Under strict_sandbox=True we inject an allowlist of
+# command prefixes (`curl http://localhost*`, `curl http://127.0.0.1*`,
+# plus the read-only utilities the agent uses to walk reports). Anything
+# else — `curl https://en.wikipedia.org`, `wget`, `nslookup`, `node -e
+# 'fetch(...)'` — is auto-rejected by opencode itself. The soft prompt
+# (`You have no direct internet access`) is no longer the gate.
+STRICT_SANDBOX_ELIGIBLE = True
+
 DEFAULT_TIMEOUT_S = 1800
 SSH_HOST = os.environ.get("OPENCODE_SSH_HOST", os.environ.get("CLAUDE_CODE_SSH_HOST", "5090"))
 REMOTE_DIR_WIN = os.environ.get("OPENCODE_REMOTE_DIR", "C:/tools/opencode_runner")
@@ -54,7 +64,8 @@ _PS_DRIVER_TEMPLATE = r"""param(
   [string]$RedditUrl,
   [string]$WikipediaUrl,
   [string]$Model,
-  [string]$DsProxyUrl
+  [string]$DsProxyUrl,
+  [int]$StrictSandbox = 0
 )
 $ErrorActionPreference = 'Continue'
 
@@ -71,7 +82,13 @@ Set-Content -Path $ReportPath  -Value '' -Encoding UTF8
 # Write a per-run opencode config that defines a "ds-shim" provider pointing
 # at ds_proxy → DeepSeek V4 flash.  $OPENCODE_CONFIG overrides the default
 # config path so the user's machine-wide config is not touched.
-$ocConfig = @{
+#
+# Workstream C: when -StrictSandbox 1 is passed, also inject a
+# `commands.allowed` whitelist so opencode's shell tool rejects anything
+# that isn't a sandbox-local curl or a read-only file utility. Without
+# this block the only gate is the soft system prompt, which is not a real
+# gate. Reference: https://opencode.ai/docs/config (`commands.allowed`).
+$ocConfigObj = @{
   '$schema'  = 'https://opencode.ai/config.json'
   provider   = @{
     'ds-shim' = @{
@@ -87,7 +104,26 @@ $ocConfig = @{
       }
     }
   }
-} | ConvertTo-Json -Depth 10
+}
+if ($StrictSandbox -eq 1) {
+  $ocConfigObj['commands'] = @{
+    allowed = @(
+      'curl http://localhost*',
+      'curl http://127.0.0.1*',
+      'curl -s http://localhost*',
+      'curl -s http://127.0.0.1*',
+      'curl -sL http://localhost*',
+      'curl -sL http://127.0.0.1*',
+      'curl -X POST http://localhost:8081*',
+      'curl -X POST http://127.0.0.1:8081*',
+      'cat',
+      'ls',
+      'head',
+      'tail'
+    )
+  }
+}
+$ocConfig = $ocConfigObj | ConvertTo-Json -Depth 10
 $ocConfigPath = Join-Path $WorkDir 'opencode.json'
 # Write WITHOUT BOM — opencode's JSONC parser rejects the BOM.
 [System.IO.File]::WriteAllText($ocConfigPath, $ocConfig, (New-Object System.Text.UTF8Encoding $false))
@@ -216,6 +252,7 @@ async def run(
     proxy_url: str,
     *,
     timeout_s: int = DEFAULT_TIMEOUT_S,
+    strict_sandbox: bool = False,
 ) -> str:
     """Run opencode on the remote 5090 host and return the markdown report.
 
@@ -227,6 +264,11 @@ async def run(
         shim_url: sandbox shim URL, baked into the agent's system prompt.
         proxy_url: ignored.
         timeout_s: hard timeout for the remote subprocess.
+        strict_sandbox: when True, the per-run `opencode.json` includes a
+            `commands.allowed` whitelist that admits only sandbox-local
+            curl commands plus read-only file utilities. Anything else
+            is rejected by opencode's own command gate — the soft prompt
+            is no longer the gate.
     """
     del proxy_url
     # Caller may pass a bare "deepseek-v4-flash" or the full "ds-shim/deepseek-v4-flash"
@@ -274,8 +316,11 @@ async def run(
             f'-ShimUrl "{shim_url}" -ShoppingUrl "{shopping_url}" '
             f'-RedditUrl "{reddit_url}" -WikipediaUrl "{wikipedia_url}" '
             f'-Model "{opencode_model}" '
-            f'-DsProxyUrl "{OPENCODE_DS_PROXY}"'
+            f'-DsProxyUrl "{OPENCODE_DS_PROXY}" '
+            f'-StrictSandbox {1 if strict_sandbox else 0}'
         )
+        if strict_sandbox:
+            logger.info("opencode: strict-sandbox commands.allowed allowlist active")
 
         t0 = time.time()
         proc = await asyncio.get_event_loop().run_in_executor(
@@ -363,11 +408,13 @@ if __name__ == "__main__":
     parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o")
+    parser.add_argument("--strict-sandbox", action="store_true", default=False)
     args = parser.parse_args()
     out = asyncio.run(run(
         intent=args.intent, model=args.model,
         shim_url=args.shim_url, proxy_url=args.proxy_url,
         timeout_s=args.timeout,
+        strict_sandbox=args.strict_sandbox,
     ))
     if args.output:
         Path(args.output).write_text(out)

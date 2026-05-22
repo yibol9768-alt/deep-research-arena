@@ -1,0 +1,112 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_adv_causal_006",
+  "tier": "deep_v2_adversarial",
+  "sites": [
+    "wikipedia",
+    "shopping",
+    "reddit"
+  ],
+  "difficulty": 6,
+  "expected_steps": 90,
+  "intent": "Audit 'Z-Wave Plus devices use AES-256 encryption' (frequently claimed on smart-home product packaging). The actual Z-Wave S2 spec uses AES-128-CCM. Force the agent to cite the Z-Wave wiki article, the AES wiki article, and at least 2 /f/homeautomation reddit threads where the community has corrected this claim.\n\nThe report MUST surface explicit COUNTER-EVIDENCE against the audited claim and the verdict must cite the contradicting wiki article(s) by URL. A verdict of SUPPORTED is allowed only when the agent has actively searched for counter-evidence and documented the absence — a 'no contrary evidence found' clause is required. Verdict columns without an explicit contradicting citation will be marked DEBUNKED-BY-OMISSION in the rubric.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=z-wave",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition",
+      "counter_evidence"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep_v2/dr_adv_causal_006.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep_v2/dr_adv_causal_006.json",
+    "must_cite_seed": [
+      "__WIKIPEDIA__/A/Z-Wave",
+      "__WIKIPEDIA__/A/Advanced_Encryption_Standard",
+      "__WIKIPEDIA__/A/CCM_mode",
+      "__WIKIPEDIA__/A/Pre-shared_key",
+      "__SHOPPING__/catalogsearch/result/?q=z-wave",
+      "__REDDIT__/f/homeautomation",
+      "__REDDIT__/f/smarthome"
+    ],
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines",
+      "counter_evidence"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "causal_debunking",
+    "claim_count": 1,
+    "verdict_levels": [
+      "SUPPORTED",
+      "PARTIALLY_SUPPORTED",
+      "DEBUNKED",
+      "UNDETERMINED"
+    ],
+    "min_counter_evidence_citations": 3,
+    "require_contradicting_wiki_citation": true,
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep_v2/checklists_deep_v2.json",
+  "author_notes": "v2 adversarial task. See configs/deep_topics/V2_ADVERSARIAL_TASKS.json and V1_TASK_DESIGN_GRID.md section 5 for the design recipe. Family: causal. Real golden scrape happens on westd; this file only carries the must_cite seed.",
+  "domain": "Tech",
+  "intent_type": "Causal-Debunking",
+  "v2_meta": {
+    "family": "causal",
+    "topic": "Z-Wave AES-256 vs AES-128",
+    "expected_dim_stress": [
+      "rigor"
+    ],
+    "adversarial_rationale": "Technical-claim verification — surface searchers cannot tell AES-128 from AES-256 without a real spec citation. Wiki and the spec text are the only ground truth."
+  }
+}

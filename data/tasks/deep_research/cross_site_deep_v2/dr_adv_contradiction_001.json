@@ -1,0 +1,107 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_adv_contradiction_001",
+  "tier": "deep_v2_adversarial",
+  "sites": [
+    "wikipedia",
+    "shopping",
+    "reddit"
+  ],
+  "difficulty": 6,
+  "expected_steps": 90,
+  "intent": "Vendor specs claim Cherry MX switches last 100 million keystrokes. The /f/MechanicalKeyboards community report distribution is bimodal: a long tail of failures at 5-20M keystrokes (debouncing-related), and a smaller tail at 80-100M+. Force the agent to surface BOTH the vendor claim cluster AND the community failure cluster, with at least 3 citations on each side, then reconcile.\n\nTwo source clusters DISAGREE on the central question. The report MUST identify BOTH clusters (≥ 3 citations each), name the specific disagreement, and reconcile it. A one-sided summary (only citing the cluster that agrees with the prevailing marketing or community narrative) FAILS the depth checklist regardless of word count. The reconciliation section must either (a) pick one side with explicit reasoning citing both, or (b) acknowledge irreducible tension and characterise which kind of user / question each side serves.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=cherry+mx+keyboard",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition",
+      "counter_evidence"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep_v2/dr_adv_contradiction_001.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep_v2/dr_adv_contradiction_001.json",
+    "must_cite_seed": [
+      "__WIKIPEDIA__/A/Cherry_(keyboards)",
+      "__WIKIPEDIA__/A/Computer_keyboard",
+      "__WIKIPEDIA__/A/Switch",
+      "__SHOPPING__/catalogsearch/result/?q=cherry+mx+keyboard",
+      "__REDDIT__/f/MechanicalKeyboards",
+      "__REDDIT__/f/olkb",
+      "__REDDIT__/f/keyboards"
+    ],
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines",
+      "counter_evidence"
+    ]
+  },
+  "synthesis_requirements": {
+    "task_type": "synthesis_under_contradiction",
+    "cluster_count": 2,
+    "min_citations_per_cluster": 3,
+    "require_named_disagreement": true,
+    "require_reconciliation_section": true,
+    "explicitly_forbid_one_sided_summary": true
+  },
+  "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep_v2/checklists_deep_v2.json",
+  "author_notes": "v2 adversarial task. See configs/deep_topics/V2_ADVERSARIAL_TASKS.json and V1_TASK_DESIGN_GRID.md section 5 for the design recipe. Family: contradiction. Real golden scrape happens on westd; this file only carries the must_cite seed.",
+  "domain": "Tech",
+  "intent_type": "Synthesis-Contradiction",
+  "v2_meta": {
+    "family": "contradiction",
+    "topic": "Mechanical keyboard switch durability — vendor spec vs community lifetime",
+    "expected_dim_stress": [
+      "depth"
+    ],
+    "adversarial_rationale": "Single-source summariser parrots the vendor spec; depth agent surfaces both clusters. The 'reconcile' step (depth checklist item) is where rank-1 vs rank-2 should diverge."
+  }
+}

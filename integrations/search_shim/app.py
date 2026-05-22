@@ -11,11 +11,14 @@ internet without adding a real token gate.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import time
 import uuid
+from pathlib import Path
 from typing import Any, Literal, Optional, Union
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException, Query
@@ -36,6 +39,134 @@ LLM_UPSTREAM = os.environ.get(
 # of agents that hardcode "deepseek-v4-flash" at an LM Studio server whose
 # loaded model is "qwen3.5-35b-a3b" — without touching agent code.
 LLM_REWRITE_MODEL = os.environ.get("SHIM_LLM_REWRITE_MODEL", "").strip() or None
+
+
+# ---------------------------------------------------------------------------
+# Strict mode — Workstream C
+# ---------------------------------------------------------------------------
+#
+# When `--mode strict` (or SHIM_MODE=strict) is set, the shim ENFORCES the
+# closed-book contract: every URL returned from a search endpoint AND every
+# URL targeted by an extract/scrape call MUST resolve to one of the four
+# sandbox origins (Magento :7770, Postmill :9999, Kiwix :8090, shim :8081)
+# on either localhost or 127.0.0.1.
+#
+# Any non-allowlist URL is replaced with a 403-error sentinel in /search
+# responses and triggers an HTTP 403 in /extract|/scrape. Every blocked URL
+# is appended to logs/shim_blocks.jsonl for audit.
+#
+# Open mode (the default and previous behavior) is unchanged — the gate is
+# a no-op and every URL flows through.
+# ---------------------------------------------------------------------------
+
+# Origins that the strict gate accepts. Same set as
+# `src/verifiers/sandbox_compliance_verifier.DEFAULT_ALLOWED_ORIGINS` —
+# kept duplicated here so the shim has no Python-path dependency on the
+# verifier package (the shim can be deployed standalone).
+SHIM_ALLOWLIST_HOSTS: tuple[str, ...] = (
+    "localhost:7770", "localhost:8090", "localhost:9999", "localhost:8081",
+    "127.0.0.1:7770", "127.0.0.1:8090", "127.0.0.1:9999", "127.0.0.1:8081",
+)
+
+# Where to log blocked URLs. Path is repo-relative so multiple shim
+# instances writing concurrently still land in the same audit file.
+_SHIM_ROOT = Path(__file__).resolve().parents[2]
+_SHIM_BLOCKS_LOG = _SHIM_ROOT / "logs" / "shim_blocks.jsonl"
+
+
+def _shim_mode() -> str:
+    """Return the current shim mode — 'strict' or 'open'.
+
+    Read at request time (not import time) so test fixtures can toggle the
+    mode via the environment without restarting the process.
+    """
+    m = os.environ.get("SHIM_MODE", "open").strip().lower()
+    return "strict" if m == "strict" else "open"
+
+
+def _url_is_sandbox(url: str) -> bool:
+    """Strict host:port equality check against `SHIM_ALLOWLIST_HOSTS`.
+
+    Substring matching (``"localhost:7770" in url``) is unsafe — it admits
+    ``http://localhost:77703/leak`` because the literal "localhost:7770" is
+    a prefix. We parse the URL and compare ``host:port`` netlocs exactly.
+    """
+    if not url:
+        return False
+    try:
+        p = urlparse(url)
+    except Exception:
+        return False
+    host = (p.hostname or "").lower()
+    if not host:
+        return False
+    try:
+        port = p.port
+    except (ValueError, TypeError):
+        port = None
+    netloc = f"{host}:{port}" if port else host
+    for allowed in SHIM_ALLOWLIST_HOSTS:
+        a = allowed.lower()
+        if ":" in a:
+            if netloc == a:
+                return True
+        elif host == a:
+            return True
+    return False
+
+
+def _log_blocked_url(url: str, endpoint: str, *, query: str | None = None) -> None:
+    """Append a JSON line to `logs/shim_blocks.jsonl` for audit.
+
+    Best-effort — log failures are swallowed so a missing/unwritable logs
+    dir never breaks a request. The directory is created on first call.
+    """
+    try:
+        _SHIM_BLOCKS_LOG.parent.mkdir(parents=True, exist_ok=True)
+        record = {
+            "ts": round(time.time(), 3),
+            "endpoint": endpoint,
+            "url": url,
+            "query": query,
+            "reason": "non_sandbox_url_blocked",
+        }
+        with _SHIM_BLOCKS_LOG.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+def _filter_hits_strict(
+    hits: list[SearchHit], *, endpoint: str, query: str | None = None,
+) -> list[SearchHit]:
+    """In strict mode, drop any hit whose URL is not in the allowlist and
+    log it. In open mode this is a passthrough."""
+    if _shim_mode() != "strict":
+        return hits
+    kept: list[SearchHit] = []
+    for h in hits:
+        if _url_is_sandbox(h.url):
+            kept.append(h)
+        else:
+            _log_blocked_url(h.url, endpoint, query=query)
+    return kept
+
+
+def _ensure_url_allowed(url: str, endpoint: str) -> None:
+    """In strict mode, raise HTTP 403 for non-sandbox extract/scrape targets.
+
+    No-op in open mode. Logs every block to `logs/shim_blocks.jsonl` first
+    so the audit trail captures the attempt even though the request fails.
+    """
+    if _shim_mode() != "strict":
+        return
+    if _url_is_sandbox(url):
+        return
+    _log_blocked_url(url, endpoint)
+    raise HTTPException(
+        status_code=403,
+        detail={"error": "non_sandbox_url_blocked", "url": url},
+    )
 
 
 app = FastAPI(
@@ -122,6 +253,7 @@ def tavily_search(
         include_domains=req.include_domains or [],
         exclude_domains=req.exclude_domains or [],
     )
+    hits = _filter_hits_strict(hits, endpoint="/search", query=req.query)
     return TavilySearchResponse(
         query=req.query,
         results=[_hit_to_tavily(h, req.include_raw_content) for h in hits],
@@ -156,6 +288,11 @@ def tavily_extract(
     authorization: Optional[str] = Header(default=None),
 ) -> TavilyExtractResponse:
     t0 = time.time()
+    # Strict mode: refuse the WHOLE call if any target is off-allowlist.
+    # Returning a partial result would let an agent silently confirm which
+    # URLs the gate considers private; a single 403 is cleaner.
+    for u in req.urls:
+        _ensure_url_allowed(u, endpoint="/extract")
     rows = extract(req.urls)
     results: list[TavilyExtractResultItem] = []
     failed: list[dict] = []
@@ -215,6 +352,7 @@ class FirecrawlSearchResponse(BaseModel):
 
 def _do_firecrawl_search(req: FirecrawlSearchRequest) -> FirecrawlSearchResponse:
     hits = search(req.query, max_results=req.limit or 5)
+    hits = _filter_hits_strict(hits, endpoint="/v2/search", query=req.query)
     web = [FirecrawlSearchItem(
         title=h.title, description=h.content, url=h.url,
         markdown=h.content,  # shallow — /v2/scrape is where full markdown goes
@@ -246,6 +384,7 @@ def firecrawl_search_v1(
     authorization: Optional[str] = Header(default=None),
 ) -> FirecrawlV1SearchResponse:
     hits = search(req.query, max_results=req.limit or 5)
+    hits = _filter_hits_strict(hits, endpoint="/v1/search", query=req.query)
     items = [
         {
             "url": h.url,
@@ -280,6 +419,7 @@ def firecrawl_scrape(
     req: FirecrawlScrapeRequest,
     authorization: Optional[str] = Header(default=None),
 ) -> FirecrawlScrapeResponse:
+    _ensure_url_allowed(req.url, endpoint="/scrape")
     rows = extract([req.url])
     if not rows:
         raise HTTPException(status_code=500, detail="extract returned no rows")
@@ -452,6 +592,7 @@ def serper_search(
     Tongyi DeepResearch. Body: `{"q": "...", "num": N}`. Returns
     `{"organic": [{title, link, snippet}], "credits": 1}`."""
     hits = search(req.q, max_results=req.num or 10)
+    hits = _filter_hits_strict(hits, endpoint="/v1/serper", query=req.q)
     organic = [
         SerperOrganicItem(title=h.title, link=h.url, snippet=h.content)
         for h in hits
@@ -491,6 +632,7 @@ def brave_search(
     """Brave Search API compat (`api.search.brave.com/res/v1/web/search`).
     Returns Brave-style `{"web": {"results": [{url, title, description}]}}`."""
     hits = search(q, max_results=count or 10)
+    hits = _filter_hits_strict(hits, endpoint="/v1/brave/web/search", query=q)
     items = [
         BraveResultItem(url=h.url, title=h.title, description=h.content)
         for h in hits
@@ -530,6 +672,7 @@ def searxng_search(
     Used by Perplexica and ii-researcher. Returns `{"results": [{url, title,
     content}], "query": "..."}`."""
     hits = search(q, max_results=10)
+    hits = _filter_hits_strict(hits, endpoint="/searxng/search", query=q)
     items = [
         SearxNGResultItem(url=h.url, title=h.title, content=h.content)
         for h in hits
@@ -572,6 +715,7 @@ def duckduckgo_search(
     by smolagents' default `DuckDuckGoSearchTool`. Returns
     `{"AbstractText": "...", "RelatedTopics": [{FirstURL, Text}]}`."""
     hits = search(q, max_results=10)
+    hits = _filter_hits_strict(hits, endpoint="/duckduckgo/search", query=q)
     abstract = hits[0].content if hits else ""
     abstract_url = hits[0].url if hits else ""
     heading = hits[0].title if hits else q
@@ -771,4 +915,55 @@ async def llm_messages(
 
 @app.get("/healthz")
 def healthz() -> dict:
-    return {"ok": True, "version": app.version}
+    return {"ok": True, "version": app.version, "mode": _shim_mode()}
+
+
+# ============================================================================
+# Direct CLI launch — `python integrations/search_shim/app.py --mode strict`
+# ============================================================================
+#
+# Most callers run the shim via `uvicorn integrations.search_shim.app:app`,
+# but the arena harness wants a one-shot CLI that takes `--mode strict`
+# (sets SHIM_MODE=strict for the lifetime of the process) so the operator
+# does not have to remember to export an env var separately.
+#
+# Either approach works — strict mode is keyed off the SHIM_MODE env var
+# inside the request path, so `SHIM_MODE=strict uvicorn ...` is equivalent.
+# This `__main__` block is just the convenience entrypoint.
+
+if __name__ == "__main__":
+    import argparse
+
+    ap = argparse.ArgumentParser(
+        description="Tavily/Firecrawl/Serper/Brave compatible shim over the "
+                    "Deep Research Arena sandbox.",
+    )
+    ap.add_argument(
+        "--mode", choices=("open", "strict"),
+        default=os.environ.get("SHIM_MODE", "open"),
+        help=(
+            "open: every backend hit flows through unchanged (default, "
+            "previous behavior). "
+            "strict: enforce the sandbox URL allowlist — non-allowlist "
+            "URLs are dropped from /search responses and rejected with "
+            "HTTP 403 from /extract|/scrape, and every block is logged "
+            "to logs/shim_blocks.jsonl. Equivalent to SHIM_MODE=strict."
+        ),
+    )
+    ap.add_argument("--host", default="0.0.0.0")
+    ap.add_argument("--port", type=int, default=8081)
+    ap.add_argument("--reload", action="store_true", help="uvicorn auto-reload")
+    args = ap.parse_args()
+
+    # The gate reads SHIM_MODE at request time, so we just set it.
+    os.environ["SHIM_MODE"] = args.mode
+    print(f"[shim] mode={args.mode} host={args.host} port={args.port}")
+    if args.mode == "strict":
+        print(f"[shim] allowlist hosts: {SHIM_ALLOWLIST_HOSTS}")
+        print(f"[shim] blocks logged to: {_SHIM_BLOCKS_LOG}")
+
+    import uvicorn  # type: ignore
+    uvicorn.run(
+        "integrations.search_shim.app:app",
+        host=args.host, port=args.port, reload=args.reload,
+    )

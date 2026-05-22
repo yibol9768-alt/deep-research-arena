@@ -1,0 +1,362 @@
+{
+  "schema_version": "v2-adversarial-1.0.0",
+  "purpose": "20 adversarial task specs that stress depth / rigor / coverage to break the top-3 agent cluster. Pre-registered 2026-05-21. See configs/deep_topics/V1_TASK_DESIGN_GRID.md section 5 for the design recipe.",
+  "anchor_grid": "V1_TASK_DESIGN_GRID.md",
+  "target_separability_pct": 65.0,
+  "family_counts": {
+    "causal": 7,
+    "contradiction": 7,
+    "long_tail": 6
+  },
+  "tasks": [
+    {
+      "task_id": "dr_adv_causal_001",
+      "family": "causal",
+      "topic": "PFOA-free non-stick safety reframing",
+      "intent_seed": "Audit the marketing claim 'PFOA-free Teflon is safe at all cooking temperatures'. Surface counter-evidence: PTFE off-gas products (Wikipedia 'Polymer fume fever' / 'Polytetrafluoroethylene') and at least 3 reddit threads on /f/Cooking, /f/AskCulinary documenting bird-death incidents and pan-warpage at high heat. Verdict must be DEBUNKED or PARTIALLY_SUPPORTED with explicit citation to the contradicting wiki article.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Polytetrafluoroethylene",
+        "__WIKIPEDIA__/A/Polymer_fume_fever",
+        "__WIKIPEDIA__/A/Perfluorooctanoic_acid",
+        "__WIKIPEDIA__/A/Non-stick_surface",
+        "__SHOPPING__/catalogsearch/result/?q=teflon+pan",
+        "__REDDIT__/f/Cooking",
+        "__REDDIT__/f/AskCulinary"
+      ],
+      "expected_dim_stress": ["rigor", "depth"],
+      "adversarial_rationale": "Surface searcher will land on the product marketing page only. The polymer-fume-fever wiki article is two hops from any non-stick product page and forces a real claim audit."
+    },
+    {
+      "task_id": "dr_adv_causal_002",
+      "family": "causal",
+      "topic": "FDA grain-free DCM causal claim",
+      "intent_seed": "Audit the popular claim 'FDA confirmed grain-free dog food causes 80% of canine dilated cardiomyopathy'. Force the agent to find the actual 2019 / 2022 FDA statements (no causal link confirmed; investigation status unresolved) AND the academic counter-rebuttals. Verdict must be DEBUNKED with citation to the actual FDA position wiki + at least 2 reddit /f/dogs threads showing the corrected scientific framing.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Dilated_cardiomyopathy",
+        "__WIKIPEDIA__/A/Dog_food",
+        "__WIKIPEDIA__/A/Grain-free",
+        "__WIKIPEDIA__/A/Food_and_Drug_Administration",
+        "__REDDIT__/f/dogs",
+        "__REDDIT__/f/AskVet",
+        "__SHOPPING__/catalogsearch/result/?q=grain+free+dog+food"
+      ],
+      "expected_dim_stress": ["rigor"],
+      "adversarial_rationale": "The 80% number is widely repeated on retailer marketing pages but unsupported. Agents that paraphrase marketing pages without verifying against wiki fail. The verdict must explicitly cite the contradicting source."
+    },
+    {
+      "task_id": "dr_adv_causal_003",
+      "family": "causal",
+      "topic": "Cast-iron skillet dietary iron contribution",
+      "intent_seed": "Audit 'Cast iron skillets contribute meaningful dietary iron'. The actual literature: contribution is highly food-dependent (acidic foods leach more), and the typical amount per serving is microgram-to-low-milligram, not the '10 mg' often cited. Require the agent to (a) cite the actual Wikipedia Cast-iron cookware article, (b) cite the Iron (nutrient) RDA wiki, (c) compute the gap between marketing claim and RDA.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Cast-iron_cookware",
+        "__WIKIPEDIA__/A/Iron",
+        "__WIKIPEDIA__/A/Reference_Daily_Intake",
+        "__WIKIPEDIA__/A/Maillard_reaction",
+        "__SHOPPING__/catalogsearch/result/?q=cast+iron+skillet",
+        "__REDDIT__/f/castiron"
+      ],
+      "expected_dim_stress": ["rigor", "depth"],
+      "adversarial_rationale": "Forces the agent to do arithmetic across two wiki facts — the per-serving leach rate and the RDA. Single-page summarisers cannot answer; multi-hop reasoners can."
+    },
+    {
+      "task_id": "dr_adv_causal_004",
+      "family": "causal",
+      "topic": "Melatonin dose-response inversion",
+      "intent_seed": "Audit '10 mg melatonin is more effective than 0.3 mg for sleep onset'. The actual literature (Lewy et al., subsequent meta-analyses) shows the dose-response is U-shaped — 0.3 mg often outperforms 5-10 mg for sleep onset latency. Force the agent to surface the inversion AND cite the supporting wiki AND show reddit /f/sleep or /f/Supplements threads where users report rebound insomnia at high doses.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Melatonin",
+        "__WIKIPEDIA__/A/Dose-response_relationship",
+        "__WIKIPEDIA__/A/Sleep_onset",
+        "__WIKIPEDIA__/A/Insomnia",
+        "__SHOPPING__/catalogsearch/result/?q=melatonin",
+        "__REDDIT__/f/sleep",
+        "__REDDIT__/f/Supplements"
+      ],
+      "expected_dim_stress": ["rigor", "depth"],
+      "adversarial_rationale": "Shopping pages overwhelmingly sell 5-10 mg SKUs and frame more = better. Agent must actively contradict this via Wikipedia + reddit experience reports — depth (multi-source synthesis) + rigor (counter-evidence)."
+    },
+    {
+      "task_id": "dr_adv_causal_005",
+      "family": "causal",
+      "topic": "Crop-factor mis-statement in mirrorless marketing",
+      "intent_seed": "Audit the camera-marketing claim 'Micro Four Thirds gives a 1.6x crop factor'. The actual crop factor is 2.0x; 1.6x is APS-C (Canon). Force the agent to (a) cite the Crop factor wiki article, (b) identify a shopping product page that makes the wrong claim, (c) surface reddit /f/photography or /f/M43 threads correcting the misinformation.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Crop_factor",
+        "__WIKIPEDIA__/A/Image_sensor_format",
+        "__WIKIPEDIA__/A/Micro_Four_Thirds_system",
+        "__WIKIPEDIA__/A/Image_sensor",
+        "__SHOPPING__/catalogsearch/result/?q=micro+four+thirds",
+        "__REDDIT__/f/photography",
+        "__REDDIT__/f/M43"
+      ],
+      "expected_dim_stress": ["rigor"],
+      "adversarial_rationale": "A specific, verifiable factual error in product marketing. Rigor-low agents repeat the error; rigor-high agents catch and contradict it."
+    },
+    {
+      "task_id": "dr_adv_causal_006",
+      "family": "causal",
+      "topic": "Z-Wave AES-256 vs AES-128",
+      "intent_seed": "Audit 'Z-Wave Plus devices use AES-256 encryption' (frequently claimed on smart-home product packaging). The actual Z-Wave S2 spec uses AES-128-CCM. Force the agent to cite the Z-Wave wiki article, the AES wiki article, and at least 2 /f/homeautomation reddit threads where the community has corrected this claim.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Z-Wave",
+        "__WIKIPEDIA__/A/Advanced_Encryption_Standard",
+        "__WIKIPEDIA__/A/CCM_mode",
+        "__WIKIPEDIA__/A/Pre-shared_key",
+        "__SHOPPING__/catalogsearch/result/?q=z-wave",
+        "__REDDIT__/f/homeautomation",
+        "__REDDIT__/f/smarthome"
+      ],
+      "expected_dim_stress": ["rigor"],
+      "adversarial_rationale": "Technical-claim verification — surface searchers cannot tell AES-128 from AES-256 without a real spec citation. Wiki and the spec text are the only ground truth."
+    },
+    {
+      "task_id": "dr_adv_causal_007",
+      "family": "causal",
+      "topic": "Vitamin D 'all-cause mortality' headline claim",
+      "intent_seed": "Audit 'Vitamin D supplements reduce all-cause mortality by 30%'. The 2019 VITAL trial and subsequent meta-analyses found no significant all-cause mortality reduction; the 30% figure traces to an early 2007 meta-analysis that has not survived replication. Force the agent to surface the contradiction with citation to Vitamin D wiki + at least 3 reddit /f/Supplements or /f/Health threads discussing the negative trials.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Vitamin_D",
+        "__WIKIPEDIA__/A/Vitamin_D_deficiency",
+        "__WIKIPEDIA__/A/Mortality_rate",
+        "__WIKIPEDIA__/A/Meta-analysis",
+        "__SHOPPING__/catalogsearch/result/?q=vitamin+d",
+        "__REDDIT__/f/Supplements",
+        "__REDDIT__/f/Health"
+      ],
+      "expected_dim_stress": ["rigor", "depth"],
+      "adversarial_rationale": "Marketing pages stake their value on the obsolete claim. Verdict requires the agent to surface the negative replication evidence — a counter-citation that requires depth + rigor."
+    },
+    {
+      "task_id": "dr_adv_contradiction_001",
+      "family": "contradiction",
+      "topic": "Mechanical keyboard switch durability — vendor spec vs community lifetime",
+      "intent_seed": "Vendor specs claim Cherry MX switches last 100 million keystrokes. The /f/MechanicalKeyboards community report distribution is bimodal: a long tail of failures at 5-20M keystrokes (debouncing-related), and a smaller tail at 80-100M+. Force the agent to surface BOTH the vendor claim cluster AND the community failure cluster, with at least 3 citations on each side, then reconcile.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Cherry_(keyboards)",
+        "__WIKIPEDIA__/A/Computer_keyboard",
+        "__WIKIPEDIA__/A/Switch",
+        "__SHOPPING__/catalogsearch/result/?q=cherry+mx+keyboard",
+        "__REDDIT__/f/MechanicalKeyboards",
+        "__REDDIT__/f/olkb",
+        "__REDDIT__/f/keyboards"
+      ],
+      "expected_dim_stress": ["depth"],
+      "adversarial_rationale": "Single-source summariser parrots the vendor spec; depth agent surfaces both clusters. The 'reconcile' step (depth checklist item) is where rank-1 vs rank-2 should diverge."
+    },
+    {
+      "task_id": "dr_adv_contradiction_002",
+      "family": "contradiction",
+      "topic": "EV winter range — manufacturer EPA vs cold-weather user logs",
+      "intent_seed": "Manufacturer EPA-rated range and cold-weather user logs disagree by 30-45%. Surface both data sources: the EPA / wiki battery thermal management article AND at least 5 specific reddit posts on /f/electricvehicles or /f/teslamotors with explicit % range drop numbers. Reconcile by attributing the gap to identified causal layers (heat-pump availability, HVAC budget, regen reduction).",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Lithium-ion_battery",
+        "__WIKIPEDIA__/A/Battery_thermal_management",
+        "__WIKIPEDIA__/A/Heat_pump",
+        "__WIKIPEDIA__/A/Electric_vehicle",
+        "__SHOPPING__/catalogsearch/result/?q=ev+battery+heater",
+        "__REDDIT__/f/electricvehicles",
+        "__REDDIT__/f/teslamotors",
+        "__REDDIT__/f/BoltEV"
+      ],
+      "expected_dim_stress": ["depth", "coverage"],
+      "adversarial_rationale": "The contradiction is between manufacturer (formal) and community (empirical) sources. Reconciling them requires the depth pillar — multi-source synthesis + causal attribution."
+    },
+    {
+      "task_id": "dr_adv_contradiction_003",
+      "family": "contradiction",
+      "topic": "Carbon offsets — registry standards vs investigative journalism debunks",
+      "intent_seed": "Registry organizations (Verra, Gold Standard) claim project additionality; investigative journalism (Guardian 2023, ProPublica 2022) found ~90% of forest-offset credits had no measurable climate benefit. Force the agent to cite BOTH the registry methodology wiki AND the investigative reporting (via reddit /f/environment or /f/climate citations of the journalism), then reconcile.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Carbon_offset",
+        "__WIKIPEDIA__/A/Additionality",
+        "__WIKIPEDIA__/A/Verified_Carbon_Standard",
+        "__WIKIPEDIA__/A/REDD%2B",
+        "__SHOPPING__/catalogsearch/result/?q=carbon+offset",
+        "__REDDIT__/f/environment",
+        "__REDDIT__/f/climate"
+      ],
+      "expected_dim_stress": ["depth", "rigor"],
+      "adversarial_rationale": "Both clusters are 'authoritative' on their face. Reconciling requires recognising the institutional self-interest of registries vs the independent verification of journalism — a depth call."
+    },
+    {
+      "task_id": "dr_adv_contradiction_004",
+      "family": "contradiction",
+      "topic": "Sleep tracker accuracy — vendor whitepaper vs polysomnography validation",
+      "intent_seed": "Wearable vendors (Fitbit, Garmin, Apple) publish whitepapers claiming 90%+ sleep-stage accuracy. Independent polysomnography validation studies (de Zambotti et al.) find 60-80% accuracy with systematic biases. Force the agent to surface both, cite the Actigraphy / Polysomnography wiki articles, then reconcile by naming the validation gap.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Actigraphy",
+        "__WIKIPEDIA__/A/Polysomnography",
+        "__WIKIPEDIA__/A/Sleep",
+        "__WIKIPEDIA__/A/Photoplethysmogram",
+        "__SHOPPING__/catalogsearch/result/?q=sleep+tracker",
+        "__REDDIT__/f/sleep",
+        "__REDDIT__/f/Biohackers",
+        "__REDDIT__/f/AskScience"
+      ],
+      "expected_dim_stress": ["depth", "rigor"],
+      "adversarial_rationale": "Vendor self-claims vs independent validation is the canonical reconciliation pattern. Depth agents trace both sides; shallow agents trust the vendor."
+    },
+    {
+      "task_id": "dr_adv_contradiction_005",
+      "family": "contradiction",
+      "topic": "Intermittent fasting — observational vs RCT evidence divergence",
+      "intent_seed": "Observational and short-term RCT data on time-restricted eating diverge: observational supports weight-loss and metabolic benefits; recent 12-month RCTs (Lowe et al., Liu et al. 2022) show no benefit over caloric restriction alone. Force the agent to surface both, cite Intermittent fasting + Time-restricted eating + Caloric restriction wiki, and reconcile.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Intermittent_fasting",
+        "__WIKIPEDIA__/A/Caloric_restriction",
+        "__WIKIPEDIA__/A/Randomized_controlled_trial",
+        "__WIKIPEDIA__/A/Observational_study",
+        "__SHOPPING__/catalogsearch/result/?q=fasting+supplement",
+        "__REDDIT__/f/intermittentfasting",
+        "__REDDIT__/f/loseit",
+        "__REDDIT__/f/AskScience"
+      ],
+      "expected_dim_stress": ["depth", "rigor"],
+      "adversarial_rationale": "The contradiction is design-driven (observational vs RCT). Reconciling requires understanding study design — a higher-order reasoning step the rank-1 vs rank-2 split should expose."
+    },
+    {
+      "task_id": "dr_adv_contradiction_006",
+      "family": "contradiction",
+      "topic": "ETF passive vs active — academic vs industry framing",
+      "intent_seed": "Academic literature (Fama-French, Carhart) overwhelmingly supports passive ETFs over time horizons > 10 years. Active-fund industry commentary frames the picture as 'depends on market regime'. Force the agent to surface both narratives, cite the academic wiki (Efficient-market hypothesis, Index fund, Active management) AND at least 4 /f/investing or /f/Bogleheads threads showing the community position, then reconcile.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Index_fund",
+        "__WIKIPEDIA__/A/Efficient-market_hypothesis",
+        "__WIKIPEDIA__/A/Active_management",
+        "__WIKIPEDIA__/A/Exchange-traded_fund",
+        "__WIKIPEDIA__/A/Fama%E2%80%93French_three-factor_model",
+        "__REDDIT__/f/investing",
+        "__REDDIT__/f/Bogleheads",
+        "__REDDIT__/f/financialindependence"
+      ],
+      "expected_dim_stress": ["depth"],
+      "adversarial_rationale": "Same data, two narratives. The reconciliation requires reading the academic literature as the more reliable source — depth + epistemic ranking."
+    },
+    {
+      "task_id": "dr_adv_contradiction_007",
+      "family": "contradiction",
+      "topic": "5G health concerns — regulatory consensus vs activist citations",
+      "intent_seed": "WHO / FCC / regulatory consensus: no demonstrated non-thermal health effect of 5G RF below limits. Activist-cited studies: cherry-picked observational papers, often with methodological issues. Force the agent to surface both, cite the actual regulatory wiki (Wireless device radiation and health, Electromagnetic hypersensitivity), and reconcile by naming the methodological gaps in the activist citations.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/5G",
+        "__WIKIPEDIA__/A/Wireless_device_radiation_and_health",
+        "__WIKIPEDIA__/A/Electromagnetic_hypersensitivity",
+        "__WIKIPEDIA__/A/Non-ionizing_radiation",
+        "__REDDIT__/f/5G",
+        "__REDDIT__/f/AskScience",
+        "__REDDIT__/f/skeptic"
+      ],
+      "expected_dim_stress": ["rigor", "depth"],
+      "adversarial_rationale": "Surface searchers can fall into the activist citation cluster. The reconciliation requires identifying methodological weaknesses — depth + rigor."
+    },
+    {
+      "task_id": "dr_adv_long_tail_001",
+      "family": "long_tail",
+      "topic": "VPN providers — niche / privacy-focused offerings beyond top-5",
+      "intent_seed": "Enumerate VPN providers, but explicitly include long-tail privacy-focused options (Mullvad, IVPN, ProtonVPN smaller competitors) AND niche subreddit threads (/f/privacytoolsIO, /f/VPN) discussing them. Surface searcher will rank ExpressVPN / NordVPN / Surfshark and miss the long tail; recall-aware agents will find the niche items.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Virtual_private_network",
+        "__WIKIPEDIA__/A/Mullvad",
+        "__WIKIPEDIA__/A/Privacy",
+        "__WIKIPEDIA__/A/WireGuard",
+        "__SHOPPING__/catalogsearch/result/?q=vpn",
+        "__REDDIT__/f/VPN",
+        "__REDDIT__/f/privacytoolsIO",
+        "__REDDIT__/f/privacy"
+      ],
+      "expected_dim_stress": ["coverage"],
+      "adversarial_rationale": "Long-tail must-cite items are buried 2-3 hops from any obvious query. Surface searcher coverage saturates at the top-5 brand cluster; deep-search agents reach the niche."
+    },
+    {
+      "task_id": "dr_adv_long_tail_002",
+      "family": "long_tail",
+      "topic": "Indie board game evolution — niche designers beyond Catan/Carcassonne",
+      "intent_seed": "Trace the board game evolution timeline but require ≥ 12 indie / niche designer citations (Vital Lacerda, Cole Wehrle, Stonemaier-but-not-Wingspan releases) AND specific /f/boardgames or /f/AvantGardeGaming threads on their works. The popular pages (Catan, Settlers, Risk) are necessary anchors but not sufficient.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Board_game",
+        "__WIKIPEDIA__/A/Eurogame",
+        "__WIKIPEDIA__/A/Hobby_game",
+        "__WIKIPEDIA__/A/Cole_Wehrle",
+        "__SHOPPING__/catalogsearch/result/?q=board+game",
+        "__REDDIT__/f/boardgames",
+        "__REDDIT__/f/heavyboardgames",
+        "__REDDIT__/f/AvantGardeGaming"
+      ],
+      "expected_dim_stress": ["coverage"],
+      "adversarial_rationale": "Indie designer wiki articles are deep-page and rarely surfaced by simple queries. Tests breadth-vs-depth tradeoff explicitly."
+    },
+    {
+      "task_id": "dr_adv_long_tail_003",
+      "family": "long_tail",
+      "topic": "Specialty NAS hardware beyond Synology / QNAP",
+      "intent_seed": "Enumerate budget / DIY NAS options: Synology and QNAP are obvious; require ≥ 8 niche citations — Asustor, TrueNAS Scale, Unraid, Openmediavault, plus DIY ITX builds on /f/HomeServer or /f/DataHoarder. The shopping enumeration must include long-tail brand SKUs, not just top-3.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Network-attached_storage",
+        "__WIKIPEDIA__/A/TrueNAS",
+        "__WIKIPEDIA__/A/Unraid",
+        "__WIKIPEDIA__/A/OpenMediaVault",
+        "__SHOPPING__/catalogsearch/result/?q=nas",
+        "__REDDIT__/f/DataHoarder",
+        "__REDDIT__/f/HomeServer",
+        "__REDDIT__/f/selfhosted"
+      ],
+      "expected_dim_stress": ["coverage"],
+      "adversarial_rationale": "Long-tail NAS SKUs and the DIY OS options live deep in /r/HomeServer and /r/selfhosted. Top-page search misses them entirely."
+    },
+    {
+      "task_id": "dr_adv_long_tail_004",
+      "family": "long_tail",
+      "topic": "Long-tail open-source LLM ecosystem",
+      "intent_seed": "Enumerate open-source LLMs beyond LLaMA / Mistral / Qwen — require ≥ 10 niche citations: OLMo (Allen AI), Phi-3 series, Yi, DBRX, Mixtral fine-tunes, plus specialist releases on /f/LocalLLaMA or /f/MachineLearning. The 3-4 popular models alone fail the must-cite recall.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Large_language_model",
+        "__WIKIPEDIA__/A/Foundation_model",
+        "__WIKIPEDIA__/A/Mixture_of_experts",
+        "__WIKIPEDIA__/A/Mistral_AI",
+        "__SHOPPING__/catalogsearch/result/?q=ai+gpu",
+        "__REDDIT__/f/LocalLLaMA",
+        "__REDDIT__/f/MachineLearning",
+        "__REDDIT__/f/OpenAI"
+      ],
+      "expected_dim_stress": ["coverage"],
+      "adversarial_rationale": "Open-source LLM ecosystem long-tail moves quickly. Reddit /r/LocalLLaMA is the only sandbox source for niche release info; high-recall agents land it."
+    },
+    {
+      "task_id": "dr_adv_long_tail_005",
+      "family": "long_tail",
+      "topic": "Niche mooc platforms beyond Coursera / edX",
+      "intent_seed": "Enumerate online-learning platforms: must include ≥ 8 niche / specialist offerings — fast.ai, DeepLearning.AI, Khan Academy, Brilliant.org, Frontend Masters, Pluralsight specialist tracks, plus discussions on /f/learnprogramming or /f/learnmachinelearning. Mainstream-only enumeration fails the long-tail recall threshold.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/Massive_open_online_course",
+        "__WIKIPEDIA__/A/EdX",
+        "__WIKIPEDIA__/A/Khan_Academy",
+        "__WIKIPEDIA__/A/Fast.ai",
+        "__SHOPPING__/catalogsearch/result/?q=online+course",
+        "__REDDIT__/f/learnprogramming",
+        "__REDDIT__/f/learnmachinelearning",
+        "__REDDIT__/f/OnlineEducation"
+      ],
+      "expected_dim_stress": ["coverage"],
+      "adversarial_rationale": "Niche platforms live in dedicated communities — coverage rewards multi-forum exploration."
+    },
+    {
+      "task_id": "dr_adv_long_tail_006",
+      "family": "long_tail",
+      "topic": "Specialty USB / data-cable standards beyond USB-A/B/C",
+      "intent_seed": "Catalog USB and data-cable standards: must include ≥ 8 niche entries — USB Power Delivery 3.1 EPR, USB4 v2 / Thunderbolt 5, USB-C alt modes (DisplayPort, HDMI, MHL), Lightning history, plus FireWire / IEEE 1394 historical anchors. Top-3 standard enumeration is insufficient.",
+      "must_cite_pool": [
+        "__WIKIPEDIA__/A/USB",
+        "__WIKIPEDIA__/A/USB-C",
+        "__WIKIPEDIA__/A/USB_Power_Delivery",
+        "__WIKIPEDIA__/A/Thunderbolt_(interface)",
+        "__WIKIPEDIA__/A/IEEE_1394",
+        "__WIKIPEDIA__/A/Lightning_(connector)",
+        "__SHOPPING__/catalogsearch/result/?q=usb-c+cable",
+        "__REDDIT__/f/UsbCHardware"
+      ],
+      "expected_dim_stress": ["coverage"],
+      "adversarial_rationale": "USB standards have a deep technical taxonomy; surface searchers list 3-4 popular speeds and miss the alt-mode + PD subspec long tail."
+    }
+  ]
+}

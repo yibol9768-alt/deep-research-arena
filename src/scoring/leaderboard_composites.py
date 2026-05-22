@@ -453,3 +453,163 @@ def composite_v4c_weights() -> dict[str, float]:
     weight — so saturated pillars contribute ~constantly to everyone and
     the high-variance pillars get to discriminate."""
     return composite_v4b_weights()
+
+
+# ---------------------------------------------------------------------------
+# v3-softfloor — Workstream A (2026-05-21) replacement for the v2 hard gate
+# ---------------------------------------------------------------------------
+#
+# v2's multiplicative reach gate (`composite_v2_truthful = reach × quality`)
+# zeroes any run with even one broken URL. F6 came from this — and it was
+# correct as a finding ("URL truthfulness matters multiplicatively") — but
+# the hard zero is a wrecking-ball for downstream uses:
+#   * AgentRL needs a smooth, never-zero reward signal.
+#   * Workstream D wants human-pref weight fitting on real-valued scores,
+#     not on a binary "did the agent fabricate any URL" indicator.
+#   * Workstream E's leaderboard becomes uninformative when half the agents
+#     get composite_v2 ≈ 0 for one bad citation.
+#
+# v3 keeps the truthfulness signal but softens it:
+#
+#   composite_v3 = reach_soft × Q
+#   reach_soft   = 0.5 + 0.5 × quote_match     # in [0.5, 1.0]
+#   Q            = Σ_d w_d · score_d           # 6 quality dims
+#
+# Quote_match (not reach!) is the soft-floor input because it's the
+# already-deterministic per-citation truthfulness signal: did the agent's
+# quoted span actually appear on the cited URL. Reachability is an upstream
+# health-check (does the URL resolve), already partially captured by url_coverage
+# and by quote_match's denominator. Using quote_match as the soft-gate means
+# v3 punishes hallucinated *quotes* (not just dead URLs), which is the
+# stronger truthfulness signal.
+#
+# Initial WEIGHTS_V3 are placeholder uniform-ish weights; Workstream D fits
+# these to human preference data via `scripts/fit_weights_v3.py`. The 6
+# dims are intentionally NOT the same as v4's 11 pillars — v3 collapses
+# down to the dimensions humans actually distinguish (coverage / depth /
+# rigor / style / checklist / spec).
+
+WEIGHTS_V3: dict[str, float] = {
+    "coverage":  0.20,
+    "depth":     0.20,
+    "rigor":     0.20,
+    "style":     0.10,
+    "checklist": 0.20,
+    "spec":      0.10,
+}
+
+assert abs(sum(WEIGHTS_V3.values()) - 1.0) < 1e-9, (
+    "WEIGHTS_V3 must sum to 1.0; got "
+    f"{sum(WEIGHTS_V3.values()):.6f}"
+)
+
+
+def _v3_dim_score(score: dict[str, Any], dim: str) -> float:
+    """Read a v3 quality dim from a score dict, tolerating two shapes:
+
+      1. A top-level scalar in [0, 1]:  score[dim] = 0.7
+      2. A verifier dict:                score[dim] = {"score": 0.7, ...}
+
+    Falls back to the legacy verifier locations used by v2 / v4:
+      - "coverage"  → url_coverage.score
+      - "checklist" → checklist.pass_rate (via checklist_pass_rate helper)
+      - "spec"      → markdown_spec via spec_pass_fraction helper
+    depth / rigor / style do not have legacy fallbacks (they are new in v3).
+    Missing dims default to 0.0, matching how composite_v3 / v4 treat
+    absent pillars.
+    """
+    if dim in score:
+        v = score[dim]
+        if isinstance(v, dict):
+            inner = v.get("score")
+            if inner is not None:
+                return float(inner)
+        elif isinstance(v, (int, float)):
+            return float(v)
+    if dim == "coverage":
+        return float((score.get("url_coverage") or {}).get("score") or 0)
+    if dim == "checklist":
+        return checklist_pass_rate(score.get("checklist") or {})
+    if dim == "spec":
+        return spec_pass_fraction(score.get("markdown_spec") or {})
+    return 0.0
+
+
+def _reach_soft(score: dict[str, Any]) -> float:
+    """0.5 + 0.5 * quote_match, clipped to [0.5, 1.0].
+
+    quote_match is the per-quoted-span truthfulness signal — far stronger
+    than mere reachability (a URL can resolve but the quote can be
+    invented). Clipping below at 0.5 is what makes v3 a *soft* floor:
+    even an agent with no quote matches still gets half-credit on Q,
+    giving downstream learners (AgentRL) and rankers (Bradley-Terry over
+    composite) a usable gradient.
+    """
+    qm = score.get("quote_match")
+    if isinstance(qm, dict):
+        qm_val = qm.get("score")
+    else:
+        qm_val = qm
+    qm_val = float(qm_val or 0.0)
+    raw = 0.5 + 0.5 * qm_val
+    # Clip — quote_match is supposed to be in [0,1] but score dicts in the
+    # wild sometimes contain stray values.
+    if raw < 0.5:
+        return 0.5
+    if raw > 1.0:
+        return 1.0
+    return raw
+
+
+def composite_v3_softfloor(score: dict[str, Any]) -> float:
+    """v3 soft-floor composite — never-zero replacement for composite_v2.
+
+    composite_v3 = reach_soft · Σ w_d · score_d
+                   where reach_soft = 0.5 + 0.5 * quote_match
+                         w_d        = WEIGHTS_V3
+                         dims       = {coverage, depth, rigor, style, checklist, spec}
+
+    Returns a float in [0.5 · 0, 1.0 · 1] = [0, 1]. In practice the
+    soft-floor multiplies a non-negative Q by at least 0.5, so an agent
+    that completely fails truthfulness (quote_match = 0) still gets
+    0.5 · Q on the quality side. F6 stays observable as a *gap* between
+    high-quote_match and low-quote_match agents, but no run is zeroed.
+
+    The function name is suffixed `_softfloor` because the bare
+    `composite_v3` symbol is taken by the legacy 7-dim variant above.
+    Both stay callable side-by-side for parallel computation, per the
+    Workstream A spec ("keep `composite_v2_truthful` callable").
+    """
+    rs = _reach_soft(score)
+    q = sum(w * _v3_dim_score(score, d) for d, w in WEIGHTS_V3.items())
+    return rs * q
+
+
+def composite_v3_breakdown(score: dict[str, Any]) -> dict[str, Any]:
+    """Return the per-dim contribution to composite_v3_softfloor.
+
+    Shape:
+      {
+        "reach_soft": float in [0.5, 1.0],
+        "q_value":    float in [0, 1],
+        "per_dim_contribution": {dim: w_d * score_d},
+        "composite":  float = reach_soft * q_value,
+      }
+
+    Useful for the frontend leaderboard (per-pillar breakdown) and for
+    weight-fitting (Workstream D) which needs the raw dim scores.
+    """
+    rs = _reach_soft(score)
+    per_dim: dict[str, float] = {}
+    q_val = 0.0
+    for d, w in WEIGHTS_V3.items():
+        s_d = _v3_dim_score(score, d)
+        contribution = w * s_d
+        per_dim[d] = round(contribution, 6)
+        q_val += contribution
+    return {
+        "reach_soft": round(rs, 6),
+        "q_value": round(q_val, 6),
+        "per_dim_contribution": per_dim,
+        "composite": round(rs * q_val, 6),
+    }

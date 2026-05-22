@@ -402,6 +402,99 @@ def render_elo_table(elos: dict[str, dict]) -> str:
     return "\n".join(lines)
 
 
+def compute_separability(
+    elo_table: dict[str, dict],
+    ci_table: dict[str, dict] | None = None,
+) -> dict:
+    """Arena-Hard-style separability: fraction of agent pairs whose 95%
+    Elo CIs do NOT overlap.
+
+    Arena-Hard-Auto (Li et al. 2024, "From Live Data to High-Quality
+    Benchmarks") reports this metric as the single best summary of how
+    well a benchmark can distinguish near-peer models. Arena-Hard reaches
+    87.4%; MT-Bench reports 22.6%. Our current v2 leaderboard (30 tasks,
+    13 agents) sits around 45%; the v2 adversarial task pack + top-pair
+    densification is designed to lift that above 65%.
+
+    Inputs:
+        elo_table : {agent: {"elo": float, "elo_lo": float, "elo_hi": float}}
+                    Either the bootstrap-CI dict produced by
+                    `compute_elo_with_ci`, or a "flat" dict that already
+                    carries elo_lo / elo_hi keys.
+        ci_table  : Optional separate dict mapping agent -> {"elo_lo", "elo_hi"}.
+                    If supplied it overrides whatever bounds are in
+                    `elo_table`. Provided so callers that store the point
+                    estimates and the CI bounds separately can still call us.
+
+    Returns:
+        {
+            "separability_pct":  float (0-100),
+            "n_pairs":           int,
+            "n_non_overlapping": int,
+            "pair_breakdown": [
+                {
+                    "a":            str,
+                    "b":            str,
+                    "gap_elo":      float,
+                    "ci_overlap":   bool,
+                    "a_elo":        float,
+                    "b_elo":        float,
+                    "a_ci":         [lo, hi],
+                    "b_ci":         [lo, hi],
+                }, ...
+            ],
+        }
+
+    CI overlap rule (Arena-Hard): two CIs [a_lo, a_hi] and [b_lo, b_hi]
+    overlap iff NOT (a_hi < b_lo OR b_hi < a_lo). A non-overlapping pair
+    is "separable" in the bootstrap sense.
+    """
+    # Pull bounds — prefer ci_table when provided.
+    bounds: dict[str, tuple[float, float, float]] = {}
+    source = ci_table if ci_table is not None else elo_table
+    for agent, row in source.items():
+        if "elo_lo" not in row or "elo_hi" not in row:
+            # Missing bounds — skip this agent. The caller probably has a
+            # mixed leaderboard.
+            continue
+        elo = row.get("elo", row.get("elo_mean", elo_table.get(agent, {}).get("elo", START_RATING)))
+        bounds[agent] = (float(elo), float(row["elo_lo"]), float(row["elo_hi"]))
+
+    agents = sorted(bounds.keys())
+    n_pairs = 0
+    n_non_overlapping = 0
+    pair_breakdown: list[dict] = []
+    for i in range(len(agents)):
+        for j in range(i + 1, len(agents)):
+            a, b = agents[i], agents[j]
+            a_elo, a_lo, a_hi = bounds[a]
+            b_elo, b_lo, b_hi = bounds[b]
+            overlap = not (a_hi < b_lo or b_hi < a_lo)
+            n_pairs += 1
+            if not overlap:
+                n_non_overlapping += 1
+            pair_breakdown.append({
+                "a":          a,
+                "b":          b,
+                "gap_elo":    round(abs(a_elo - b_elo), 1),
+                "ci_overlap": overlap,
+                "a_elo":      round(a_elo, 1),
+                "b_elo":      round(b_elo, 1),
+                "a_ci":       [round(a_lo, 1), round(a_hi, 1)],
+                "b_ci":       [round(b_lo, 1), round(b_hi, 1)],
+            })
+    # Sort breakdown by gap descending — easier to read in reports.
+    pair_breakdown.sort(key=lambda r: -r["gap_elo"])
+
+    pct = (100.0 * n_non_overlapping / n_pairs) if n_pairs else 0.0
+    return {
+        "separability_pct":  round(pct, 2),
+        "n_pairs":           n_pairs,
+        "n_non_overlapping": n_non_overlapping,
+        "pair_breakdown":    pair_breakdown,
+    }
+
+
 def per_pillar_elo(per_run_results: list[dict]) -> dict[str, dict[str, float]]:
     """Compute Elo per pillar. Each agent gets a row of {pillar: elo}.
 

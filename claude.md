@@ -1,120 +1,284 @@
-# CLAUDE.md
+# Deep Research Arena Maintenance Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This repository powers the public Deep Research Arena site:
 
-## Project Overview
+- Public site: `https://www.deepresearcharena.com/`
+- GitHub repository: `yibol9768-alt/deep-research-arena`
+- SSH remote: `git@github.com:yibol9768-alt/deep-research-arena.git`
+- Default branch: `main`
 
-Deep Research (DR) agent benchmark with sandbox-based evaluation. Tests 11 open-source DR frameworks on 30 cross-site tasks requiring ≥120 cited sandbox URLs across 3 sources.
+Important: this local directory, `/root/Desktop/lyb/deep_reserch`, is a working
+copy but not currently a Git checkout. `git status` fails here because there is
+no `.git` directory. To publish website changes, use a real checkout of the
+GitHub repository, commit the changed source plus generated static output, and
+push to `main`.
 
-## Architecture
+## Hosting Model
 
-### Sandbox (runs on westd WSL)
-- **Shopping** (Magento): `localhost:7770` — ~2000 product pages
-- **Reddit** (Postmill): `localhost:9999` — forum threads
-- **Wikipedia** (Kiwix): `localhost:8090` — offline Wikipedia
-- **Search Shim**: `localhost:8081` — Tavily-compatible search API proxying to sandbox
-- **DS Proxy**: `localhost:8088` — OpenAI-compat proxy to DeepSeek V4 flash (auto-injects `thinking:disabled`)
+The site is updated through GitHub, but the live domain is served through
+Cloudflare. Current HTTP headers for `www.deepresearcharena.com` show
+`server: cloudflare`, and the latest repository history references
+`web/dist` plus Cloudflare Workers Builds. There are no GitHub Actions workflows
+in this repo, and GitHub's Pages API does not report a standard GitHub Pages
+site.
 
-### Key Scripts
-- `scripts/run_deep_task.py` — Main runner. RUNNERS dict maps agent name → async function. Each agent runs against sandbox via shim.
-- `scripts/score_deep_answer.py` — Scores one report: url_coverage + url_reachability + quote_match + checklist_judge + citation_alignment + presentation + analysis_depth → composite_v3
-- `scripts/build_deep_leaderboard.py` — Reads all `*_matrix.score.json`, computes Bradley-Terry Elo, writes `LEADERBOARD_DEEP.md`
-- `scripts/build_deep_golden.py` — Scrapes sandbox to build golden URL pools per task
-- `scripts/runners/` — Clean runner modules per framework (deerflow, storm, ldr, qx-agents). Each exports `async def run(intent, model, shim_url, proxy_url) -> str`
+Operationally, treat this as:
 
-### Scoring Formula (v3)
+```text
+edit source -> build static site -> sync to web/dist -> commit -> push GitHub -> Cloudflare deploys
 ```
-grounding_gate = max(0.1, reachability)
-raw_score = 0.20*url_coverage + 0.20*quote_fidelity + 0.20*judge_pass + 0.10*spec + 0.15*citation_alignment + 0.10*analysis_depth + 0.05*presentation
-composite_v3 = grounding_gate * raw_score
+
+If someone says "GitHub Pages" for this project, they usually mean the
+GitHub-backed static deployment path. The practical update action is still:
+push the correct files to GitHub.
+
+## Production Website Source
+
+Use these paths for the live website:
+
+- `frontend/` is the current production Next.js app.
+- `frontend/next.config.js` uses `output: 'export'`, so `npm run build`
+  produces a static export in `frontend/out/`.
+- `web/dist/` is the tracked static deployment artifact consumed by Cloudflare
+  Workers Builds.
+- `web/dist/wrangler.jsonc` is required. Do not let `rsync --delete` remove it.
+
+Do not use these paths for normal production website edits:
+
+- `web-next/` is an older Next.js/static prototype and data snapshot.
+- `web/server.py` and `web/templates/` are the legacy FastAPI/Jinja site.
+- `web/build_static.py` is legacy static generation for that older site.
+
+## Common Website Edits
+
+Homepage and leaderboard:
+
+- `frontend/app/page.tsx`
+- `frontend/components/home/*`
+- `frontend/components/layout/site-header.tsx`
+- `frontend/components/layout/site-footer.tsx`
+
+Navigation and metadata:
+
+- `frontend/app/layout.tsx`
+- `frontend/components/layout/site-header.tsx`
+- `frontend/components/layout/site-footer.tsx`
+
+Agent names, models, colors, and GitHub links:
+
+- `frontend/lib/providers.ts`
+
+Leaderboard and task data loading:
+
+- `frontend/lib/data/load-leaderboard.ts`
+- `frontend/lib/data/tasks.ts`
+- `frontend/app/api/leaderboard/route.ts`
+
+Task pages:
+
+- `frontend/app/tasks/page.tsx`
+- `frontend/app/tasks/[id]/page.tsx`
+- `data/tasks/deep_research/cross_site_deep/*.json`
+
+Methodology, sandbox, insights, and contribution pages:
+
+- `frontend/app/methodology/page.tsx`
+- `frontend/app/sandbox/page.tsx`
+- `frontend/app/insights/page.tsx`
+- `frontend/app/contribute/page.tsx`
+
+Changelog page (data-driven; renders `data/changelog.json`):
+
+- `frontend/app/changelog/page.tsx`
+- `frontend/lib/data/changelog.ts`
+- `data/changelog.json` (source of truth — append new entries to the top of
+  the `entries` array)
+
+## Changelog Discipline (hard rule)
+
+Every meaningful change to scoring, tasks, adapters, sandbox enforcement,
+frontend, or methodology MUST be logged in `data/changelog.json` and
+rendered on `/changelog` before deployment. Skipping this step is not
+acceptable — `/changelog` is the user-facing record of every shipped change.
+
+Entry schema (in `data/changelog.json`):
+
+```json
+{
+  "version": "v<MAJOR>-<YYYY-MM-DD>",
+  "date": "YYYY-MM-DD",
+  "title": "Short headline",
+  "summary": "1-2 sentence summary of why this update matters.",
+  "tags": ["scoring", "frontend", "sandbox", ...],
+  "sections": [
+    { "heading": "Scoring", "bullets": ["terse bullet", "..."] },
+    { "heading": "Site",    "bullets": ["...", "..."] }
+  ],
+  "links": [
+    { "label": "Spec", "href": "/methodology" }
+  ]
+}
 ```
-Also computes composite_v2 (multiplicative truthfulness gate) and composite_v1 (legacy additive) for backward compat.
 
-### Verifiers (`src/verifiers/`)
-- `url_coverage_verifier.py` — must-cite recall + pool coverage + domain balance
-- `url_reachability_verifier.py` — HTTP probe all cited URLs
-- `quote_match_verifier.py` — fuzzy match cited text against fetched page content
-- `checklist_verifier.py` — 21-item task-specific checklist via LLM judge
-- `citation_alignment_verifier.py` — does cited URL actually support the claim? (ALCE-style)
-- `presentation_verifier.py` — 12 criteria: 6 deterministic + 6 LLM judge
-- `analysis_depth_verifier.py` — 10 criteria: 4 structural + 6 LLM judge
-- `judge_client.py` — routes LLM calls to JUDGE_BASE_URL (ds_proxy or gpt-5-chat)
+Workflow for any user-visible update:
 
-### Memory Module (`src/memory/`)
-- `hierarchical.py` — L1 (per-task) / L2 (per-intent) / L3 (global) memory for FlowSearcher agent
-- `workflow_miner.py` — mines existing matrix results to cold-start memory
+1. Make the code/data change.
+2. Append a new entry to the top of `entries` in `data/changelog.json`.
+3. `cd frontend && npm run typecheck && npm run build` — verify zero errors.
+4. `rsync -a --delete --exclude 'wrangler.jsonc' frontend/out/ web/dist/` and
+   confirm `web/dist/wrangler.jsonc` still exists (restore from this file's
+   "Publishing Workflow" section if rsync stripped it).
+5. Commit source/data + regenerated `web/dist/` together.
+6. Push `main`. Cloudflare redeploys automatically.
 
-### Data Layout
-- `data/tasks/deep_research/cross_site_deep/dr_cross_deep_XXXX.json` — 30 task definitions
-- `data/golden/deep/dr_cross_deep_XXXX.json` — golden URL pools (120-130 must-cite per task)
-- `data/results/deep/<agent>__<task>_matrix.md` — agent reports
-- `data/results/deep/<agent>__<task>_matrix.score.json` — scored results
-- `data/results/deep/LEADERBOARD_DEEP.md` — current leaderboard
-- `configs/deep_topics/XXXX_*.yaml` — topic configs for golden scraper
+For multi-workstream releases (like the V3 overhaul, 2026-05-21), still
+ship one consolidated changelog entry. Sub-sections inside the entry are how
+you split scoring vs. site vs. sandbox concerns.
 
-## Running Experiments on westd
+## Leaderboard Data Flow
+
+The benchmark and scoring pipeline writes result files under `data/results/`.
+The production frontend reads the v3 leaderboard at build time from:
+
+```text
+data/results/deep_v3/leaderboard_deep.json
+data/results/deep_v3/kpi_stats.json
+```
+
+Related scripts:
 
 ```bash
-# SSH
+python scripts/build_deep_leaderboard.py
+python scripts/build_v4_leaderboard.py
+python scripts/recompute_v4b.py
+python scripts/recompute_v4c.py
+```
+
+After changing result JSON or task JSON, rebuild the static site and commit both
+the source/data changes and the regenerated `web/dist/` output.
+
+## Publishing Workflow
+
+Use a clean checkout when publishing:
+
+```bash
+cd /root/Desktop/lyb
+git clone git@github.com:yibol9768-alt/deep-research-arena.git deep-research-arena-publish
+cd deep-research-arena-publish
+git status --short --branch
+```
+
+Apply the intended source/data changes there. If work was done in
+`/root/Desktop/lyb/deep_reserch`, copy only the needed files into the checkout.
+Do not bulk-copy caches, virtualenvs, secrets, or third-party checkouts.
+
+Build the production static site:
+
+```bash
+cd frontend
+npm ci
+npm run typecheck
+npm run build
+cd ..
+```
+
+Sync the static export into the deploy artifact directory:
+
+```bash
+rsync -a --delete --exclude 'wrangler.jsonc' frontend/out/ web/dist/
+test -f web/dist/wrangler.jsonc
+```
+
+If `web/dist/wrangler.jsonc` is missing, restore it before committing:
+
+```json
+{
+  "name": "deepresearcharena",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "."
+  }
+}
+```
+
+Inspect and commit:
+
+```bash
+git status --short
+git diff --stat
+git add frontend web/dist data/results/deep_v3 data/results/deep_v4 data/tasks docs README.md claude.md CLAUDE.md agent.md AGENT.md AGENTS.md
+git commit -m "Update Deep Research Arena website"
+git push origin main
+```
+
+After pushing, Cloudflare should redeploy the site from GitHub. Verify:
+
+```bash
+curl -I https://www.deepresearcharena.com/
+curl -s https://www.deepresearcharena.com/api/leaderboard | head
+```
+
+## Local Verification
+
+Before pushing a frontend change:
+
+```bash
+cd frontend
+npm ci
+npm run typecheck
+npm run build
+```
+
+After syncing `frontend/out` to `web/dist`, smoke-test the static artifact:
+
+```bash
+cd ..
+python3 -m http.server 8080 --directory web/dist
+```
+
+In another terminal:
+
+```bash
+curl -I http://127.0.0.1:8080/
+curl -s http://127.0.0.1:8080/api/leaderboard | head
+```
+
+For Python/scoring changes, run the relevant tests before rebuilding the site:
+
+```bash
+python -m pytest -q
+```
+
+## Remote Benchmark Execution
+
+The sandbox and long-running benchmark jobs live on `westd` / WSL. Useful paths:
+
+- Remote project: `/opt/deep_reserch`
+- Main venv: `.venv-camel`
+- Sandbox services: Magento `:7770`, Postmill `:9999`, Kiwix `:8090`
+- Search shim: `:8081`
+- DS proxy: `:8088`
+
+Common remote commands:
+
+```bash
 ssh westd
-
-# Enter WSL
 wsl -d Ubuntu
-
-# All services must be running:
-# docker containers: kiwix, webarena_reddit, webarena_shopping
-# ds_proxy: schtask DsProxy (port 8088)
-# shim: schtask ShimDaemon (port 8081)
-
-# Run one agent on one task
 cd /opt/deep_reserch
-.venv-camel/bin/python3 scripts/run_deep_task.py \
-    --agent camel-ai --task dr_cross_deep_0001 \
-    --backbone deepseek-v4-flash --out-suffix matrix
-
-# Score
-.venv-camel/bin/python3 scripts/score_deep_answer.py \
-    --task dr_cross_deep_0001 \
-    --answer data/results/deep/camel-ai__dr_cross_deep_0001_matrix.md \
-    --out data/results/deep/camel-ai__dr_cross_deep_0001_matrix.score.json
-
-# Rebuild leaderboard
-.venv-camel/bin/python3 scripts/build_deep_leaderboard.py
+.venv-camel/bin/python scripts/build_deep_leaderboard.py
 ```
 
-## Framework Integration Pattern
+For long-running benchmark jobs, use the existing scripts and scheduled-task
+pattern already documented in the repository. Avoid running fragile long jobs
+directly in a short SSH session.
 
-Each framework needs: (1) search routed to shim, (2) LLM routed to ds_proxy, (3) no real internet access.
+## Security Rules
 
-- **In-process agents** (camel-ai, smolagents, gpt-researcher, langchain-odr): monkey-patch tavily client or use framework config to point search at shim. `src/shim_intercept.py` patches requests/httpx/aiohttp at transport layer.
-- **Subprocess agents** (deerflow, ldr, ii-researcher, qx-agents): run in their own venv via subprocess. Driver scripts written to `/tmp/` at runtime. Use env vars for config.
-- **Clean runner agents** (storm, deerflow, ldr, qx-agents): `scripts/runners/*.py` modules that use framework-native config mechanisms instead of monkey-patching.
-
-## Agent Venvs on westd
-- `.venv-camel` — camel-ai + scoring + flowsearcher (main venv)
-- `.venv-smol` — smolagents
-- `.venv-gptr` — gpt-researcher
-- `.venv-storm` — STORM (knowledge_storm)
-- `.venv-langchain-odr` — langchain open_deep_research
-- `.venv-ldr312` — local-deep-research (Python 3.12)
-- `.venv-ii` — ii-researcher
-- `.venv-qx` — qx-agents (agents-deep-research)
-- `.venv-tongyi` — Tongyi DeepResearch (Alibaba-NLP/DeepResearch)
-
-## Environment Variables
-```
-DS_PROXY_URL=http://localhost:8088/v1
-SHIM_URL=http://localhost:8081
-OPENAI_API_KEY=anything  # ds_proxy uses server-side key
-JUDGE_BASE_URL=http://localhost:8088/v1
-JUDGE_MODEL=deepseek-v4-flash
-SHOPPING=http://localhost:7770
-REDDIT=http://localhost:9999
-WIKIPEDIA=http://localhost:8090
-```
-
-## Constraints
-- All LLM judge/NLI calls MUST use DeepSeek V4 flash non-reasoning (via ds_proxy)
-- Each deep task MUST have ≥120 must-cite URLs across 3 sandbox sources
-- DO NOT touch proxy/network/Mihomo config on westd
-- For long-running commands on westd, use schtasks (SSH drops after ~5 min)
+- Never commit API keys, provider tokens, `.env`, `secrets.yaml`, `.pem`, or
+  `.key` files.
+- Never commit virtualenvs, caches, Playwright artifacts, `node_modules`, or
+  temporary benchmark scratch files.
+- Be careful with `third_party/`, `webarena_ref/`, `paper_dr_lab/`, and large
+  corpus files. They are generally not part of a routine website update.
+- Do not edit `web/dist/` by hand except for emergency static-asset fixes.
+  Prefer editing `frontend/`, rebuilding, and syncing.

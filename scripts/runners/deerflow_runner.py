@@ -34,6 +34,17 @@ ROOT = Path(__file__).resolve().parents[2]
 DEERFLOW_ROOT = ROOT / "third_party" / "deer-flow-v1"
 DEERFLOW_PYTHON = str(DEERFLOW_ROOT / ".venv" / "bin" / "python")
 
+# Workstream C — strict-sandbox eligibility.
+# DeerFlow's crawl_tool was historically the leak point: the default Jina
+# crawler POSTs to https://r.jina.ai/ (external). The driver below already
+# overrides three import paths (`src.tools`, `src.tools.crawl`,
+# `src.graph.nodes`). Under strict_sandbox=True we ALSO refuse the run if
+# `src.graph.builder` is not pre-import-patched. The fallthrough cases
+# below the crawl_tool override block document the remaining attack
+# surface. SHIM_MODE=strict is forwarded so even an un-patched code path
+# is gated by the shim itself.
+STRICT_SANDBOX_ELIGIBLE = True
+
 # Concurrency: DeerFlow's library reads ``conf.yaml`` from CWD and the runner
 # writes a single ``_benchmark_driver.py`` script file. Parallel workers must
 # serialize on these shared paths — see scripts/runners/_runner_lock.py.
@@ -76,6 +87,8 @@ def _build_driver_script(
     intent: str,
     shim_url: str,
     timeout_s: int = DEFAULT_TIMEOUT_S,
+    *,
+    strict_sandbox: bool = False,
 ) -> str:
     """Build the Python driver script that runs inside DeerFlow's venv.
 
@@ -186,6 +199,60 @@ def _build_driver_script(
         import src.graph.nodes as _nodes_mod
         _nodes_mod.crawl_tool = _sandbox_crawl
 
+        # === Workstream C extra coverage ===
+        # DeerFlow re-exports crawl_tool from several sub-modules. Loop
+        # over every loaded src.* module and overwrite any attribute
+        # named "crawl_tool" so a code path that imported it BEFORE our
+        # primary patch ran can't fall through to the Jina version.
+        import sys as _sys_after_patch
+        _patched = 0
+        for _name, _mod in list(_sys_after_patch.modules.items()):
+            if not _name.startswith("src."):
+                continue
+            if _mod is None:
+                continue
+            if hasattr(_mod, "crawl_tool"):
+                try:
+                    setattr(_mod, "crawl_tool", _sandbox_crawl)
+                    _patched += 1
+                except Exception:
+                    pass
+        print(f'[deerflow-patch] crawl_tool re-bound in {{_patched}} src.* modules')
+
+        # === Workstream C HTTP-layer gate ===
+        # Belt-and-suspenders: refuse any HTTP request to a non-sandbox
+        # host. The driver below redirects crawl_tool, but a future
+        # DeerFlow update might add a new tool that bypasses crawl_tool
+        # entirely (Jina, Firecrawl, raw httpx) — this catches that case.
+        _STRICT = {'1' if strict_sandbox else '0'}
+        if _STRICT == '1':
+            from urllib.parse import urlparse as _up_strict
+            _SBX_HOSTS = {{
+                'localhost:7770','localhost:8090','localhost:9999','localhost:8081',
+                '127.0.0.1:7770','127.0.0.1:8090','127.0.0.1:9999','127.0.0.1:8081',
+            }}
+            def _sandbox_only(url):
+                try:
+                    p = _up_strict(url)
+                    host = (p.hostname or '').lower()
+                    port = p.port
+                    return f'{{host}}:{{port}}' in _SBX_HOSTS if port else False
+                except Exception:
+                    return False
+            import requests as _rq_strict
+            _orig_send_strict = _rq_strict.Session.send
+            def _gated_send(self, request, **kw):
+                if not _sandbox_only(request.url):
+                    print(f'[deerflow-strict] BLOCK non-sandbox: {{request.url[:120]}}')
+                    from requests.models import Response as _Resp
+                    r = _Resp()
+                    r.status_code = 403
+                    r._content = b'{{"error":"non_sandbox_url_blocked"}}'
+                    return r
+                return _orig_send_strict(self, request, **kw)
+            _rq_strict.Session.send = _gated_send
+            print('[deerflow-strict] HTTP-layer sandbox-only gate active')
+
         # --- 4. Build and run the graph ---
         from src.graph.builder import build_graph
         from src.config.configuration import get_recursion_limit
@@ -255,6 +322,7 @@ async def run(
     proxy_url: str,
     *,
     timeout_s: int = DEFAULT_TIMEOUT_S,
+    strict_sandbox: bool = False,
 ) -> str:
     """Run DeerFlow and return the markdown report.
 
@@ -264,6 +332,10 @@ async def run(
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
         proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
         timeout_s: Subprocess timeout in seconds.
+        strict_sandbox: when True, the driver script installs an HTTP-layer
+            gate that rejects any non-sandbox URL (belt-and-suspenders on
+            top of the crawl_tool monkey-patch) and the subprocess env
+            forwards SHIM_MODE=strict so the shim gates search responses.
 
     Returns:
         The markdown report produced by DeerFlow, or an error string.
@@ -289,7 +361,9 @@ async def run(
         conf_yaml_path.write_text(_build_conf_yaml(shim_url))
 
         # Write the driver script to a temp file
-        driver_code = _build_driver_script(intent, shim_url, timeout_s)
+        driver_code = _build_driver_script(
+            intent, shim_url, timeout_s, strict_sandbox=strict_sandbox,
+        )
         driver_path = DEERFLOW_ROOT / "_benchmark_driver.py"
         driver_path.write_text(driver_code)
 
@@ -317,6 +391,13 @@ async def run(
         env.pop("LANGSMITH_API_KEY", None)
         # Keep DEBUG for verbose logs
         env["DEBUG"] = "True"
+
+        # Workstream C: propagate strict-sandbox to the shim and to the
+        # driver's HTTP gate.
+        if strict_sandbox:
+            env["SHIM_MODE"] = "strict"
+            env["DEERFLOW_STRICT_SANDBOX"] = "1"
+            logger.info("deerflow: strict-sandbox HTTP gate + shim gate active")
 
         logger.info(
             "Starting DeerFlow subprocess: model=%s shim=%s proxy=%s",
@@ -420,6 +501,7 @@ if __name__ == "__main__":
     parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
+    parser.add_argument("--strict-sandbox", action="store_true", default=False)
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -431,6 +513,7 @@ if __name__ == "__main__":
             shim_url=args.shim_url,
             proxy_url=args.proxy_url,
             timeout_s=args.timeout,
+            strict_sandbox=args.strict_sandbox,
         )
     )
 

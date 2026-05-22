@@ -58,6 +58,21 @@ _REPORT_END = "===GPTR_REPORT_END==="
 # Agent identifier for the auto-discovery registry.
 AGENT_NAME = "gpt-researcher"
 
+# Workstream C — strict-sandbox eligibility.
+# gpt-researcher honours RETRIEVER + TAVILY base-URL patches. Under
+# strict_sandbox=True we force RETRIEVER=tavily, point its base URL at the
+# shim, and fail-fast if a real TAVILY_API_KEY is leaking through the
+# environment (which would route to api.tavily.com under any code path we
+# don't monkey-patch). The shim itself runs in strict mode in this
+# scenario, so even if the patch fell through to real Tavily the gate at
+# the shim would still drop the response.
+STRICT_SANDBOX_ELIGIBLE = True
+
+# Real Tavily keys start with `tvly-` followed by alphanumeric content;
+# our fake sandbox key is `tvly-shim-fake`. Anything matching the prefix
+# but NOT our sentinel is treated as a real key and refused under strict.
+_FAKE_TAVILY_KEY = "tvly-shim-fake"
+
 
 def _build_driver_script(
     intent: str,
@@ -211,6 +226,7 @@ async def run(
     proxy_url: str,
     *,
     timeout_s: int = DEFAULT_TIMEOUT_S,
+    strict_sandbox: bool = False,
 ) -> str:
     """Run gpt-researcher and return the markdown report.
 
@@ -220,11 +236,33 @@ async def run(
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
         proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
         timeout_s: Subprocess timeout in seconds.
+        strict_sandbox: when True, pre-flight asserts no real Tavily key is
+            present in the env (which would route past our monkey-patch to
+            api.tavily.com), forces RETRIEVER=tavily-shim-only, and writes
+            SHIM_MODE=strict into the subprocess so any leaked request that
+            still hits the shim is refused at the gate.
 
     Returns:
         The markdown report, or an error string starting with
         "(gpt-researcher ...".
     """
+    # Strict-mode pre-flight: refuse the run if the operator has a real
+    # Tavily key in their environment. The patch only redirects in-process
+    # uses of `gpt_researcher.retrievers.tavily.tavily_search.TavilySearch`;
+    # anything that bypasses that class (e.g. a future framework code path
+    # that imports `tavily.TavilyClient` directly) would still hit the real
+    # endpoint with the real key. We'd rather fail loud.
+    if strict_sandbox:
+        env_key = os.environ.get("TAVILY_API_KEY", "")
+        if env_key and env_key != _FAKE_TAVILY_KEY:
+            return (
+                "(gpt-researcher: strict-sandbox refused — TAVILY_API_KEY is "
+                f"set to a non-sandbox value (prefix={env_key[:10]}...). "
+                "Unset it or set it to 'tvly-shim-fake' before running with "
+                "--strict-sandbox.)"
+            )
+        logger.info("gpt-researcher: strict-sandbox active (RETRIEVER=tavily->shim, no real Tavily key)")
+
     gptr_python = Path(GPTR_PYTHON)
     if not gptr_python.exists():
         return (
@@ -246,6 +284,14 @@ async def run(
         driver_path.write_text(driver_code)
 
         env = _build_env(proxy_url, model, shim_url)
+
+        # Strict-mode propagation: pin TAVILY_API_KEY to our sentinel and
+        # forward SHIM_MODE=strict so the search shim's URL gate is the
+        # second layer of defence behind the in-process monkey-patch.
+        if strict_sandbox:
+            env["TAVILY_API_KEY"] = _FAKE_TAVILY_KEY
+            env["SHIM_MODE"] = "strict"
+            env["GPTR_STRICT_SANDBOX"] = "1"
 
         logger.info(
             "Starting gpt-researcher subprocess: model=%s shim=%s proxy=%s",
@@ -322,6 +368,7 @@ if __name__ == "__main__":
     parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
+    parser.add_argument("--strict-sandbox", action="store_true", default=False)
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -333,6 +380,7 @@ if __name__ == "__main__":
             shim_url=args.shim_url,
             proxy_url=args.proxy_url,
             timeout_s=args.timeout,
+            strict_sandbox=args.strict_sandbox,
         )
     )
 

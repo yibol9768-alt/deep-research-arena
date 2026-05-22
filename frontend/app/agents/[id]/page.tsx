@@ -4,6 +4,7 @@ import { ArrowLeft, Github, Swords } from 'lucide-react'
 import { rankedAgents } from '@/lib/data/load-leaderboard'
 import { agentMeta, allAgents } from '@/lib/providers'
 import { MetricCard } from '@/components/layout/metric-card'
+import { QualityProfile } from '@/components/agents/quality-profile'
 
 export const dynamic = 'force-static'
 
@@ -67,6 +68,21 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
             This page is static and deploy-safe: it is generated from the same leaderboard JSON as the home table.
             Per-task report drill-down can be added without changing the URL contract.
           </p>
+        </div>
+      </section>
+
+      <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <QualityProfile
+            accentColor={meta.color}
+            synthetic={agent.synthetic_placeholder}
+            depth={agent.depth_avg}
+            rigor={agent.rigor_avg}
+            style={agent.style_avg}
+            coverage={agent.coverage_pct}
+            checklist={agent.checklist_pass_rate}
+            urlVeracity={agent.url_veracity_pct}
+          />
         </div>
       </section>
     </div>

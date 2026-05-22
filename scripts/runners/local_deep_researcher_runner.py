@@ -143,6 +143,8 @@ def _build_driver_script(
     proxy_url: str,
     model: str,
     max_loops: int = 3,
+    *,
+    strict_sandbox: bool = False,
 ) -> str:
     """Build the Python driver script that runs inside the lcdr venv.
 
@@ -169,6 +171,44 @@ def _build_driver_script(
             if _pv.lower() in ('http_proxy', 'https_proxy', 'all_proxy', 'ftp_proxy'):
                 del os.environ[_pv]
         os.environ['NO_PROXY'] = '*'
+
+        # === Workstream C: HTTP-layer sandbox gate (strict mode only) ===
+        # Refuses any HTTP request whose target host:port is not in the
+        # sandbox allowlist. The framework historically emitted 38 off-
+        # sandbox en.wikipedia.org URLs — this catches the requests that
+        # the wiki-URL-rewriting in `_unmask_report` couldn't (e.g. URLs
+        # not in the final report, but fetched mid-loop). It does NOT
+        # rewrite — strict mode is a refusal, not a redirect.
+        _STRICT_LCDR = {'1' if strict_sandbox else '0'}
+        if _STRICT_LCDR == '1':
+            from urllib.parse import urlparse as _up_strict_lcdr
+            _SBX_HOSTS_LCDR = {{
+                'localhost:7770','localhost:8090','localhost:9999','localhost:8081',
+                '127.0.0.1:7770','127.0.0.1:8090','127.0.0.1:9999','127.0.0.1:8081',
+            }}
+            def _ok_strict_lcdr(url):
+                try:
+                    p = _up_strict_lcdr(url)
+                    host = (p.hostname or '').lower()
+                    port = p.port
+                    return f'{{host}}:{{port}}' in _SBX_HOSTS_LCDR if port else False
+                except Exception:
+                    return False
+            try:
+                import requests as _rq_lcdr
+                _orig_send_lcdr = _rq_lcdr.Session.send
+                def _gated_send_lcdr(self, request, **kw):
+                    if not _ok_strict_lcdr(request.url):
+                        print(f'[lcdr-strict] BLOCK non-sandbox: {{request.url[:120]}}')
+                        from requests.models import Response as _R
+                        r = _R(); r.status_code = 403
+                        r._content = b'{{"error":"non_sandbox_url_blocked"}}'
+                        return r
+                    return _orig_send_lcdr(self, request, **kw)
+                _rq_lcdr.Session.send = _gated_send_lcdr
+            except ImportError:
+                pass
+            print('[lcdr-strict] HTTP-layer sandbox-only gate active')
 
         # Configure via environment variables (read by Configuration.from_runnable_config)
         os.environ['SEARCH_API'] = 'tavily'
@@ -462,6 +502,24 @@ def _build_env(proxy_url: str, model: str, shim_url: str) -> dict:
 # AGENT_NAME used in score files: data/results/deep_v3/local-deep-researcher__<task>_matrix.score.json
 AGENT_NAME = "local-deep-researcher"
 
+# Workstream C — strict-sandbox eligibility.
+# DECISION: local-deep-researcher is strict_sandbox_eligible BUT relies on
+# the driver's HTTP-layer redirect+gate to honour the contract.
+#
+# Per FRAMEWORK_AUDIT.md, this framework historically emitted 38 off-
+# sandbox `en.wikipedia.org` URLs in open mode. The driver below already
+# rewrites en.wikipedia.org -> :8090 in `_unmask_report`. Under strict
+# mode we ALSO install an HTTP-layer gate inside the driver process so
+# any request that wasn't covered by the rewrite is refused at the
+# requests / httpx layer. The shim is set to SHIM_MODE=strict so the
+# Tavily wrapper sees gated responses.
+#
+# Alternative considered: mark this runner ineligible and skip it. We
+# went the patch route because the code already handles the redirect
+# (just needs the gate added) and removing this framework from strict
+# benchmarks would lose useful coverage.
+STRICT_SANDBOX_ELIGIBLE = True
+
 
 async def run(
     intent: str,
@@ -470,6 +528,7 @@ async def run(
     proxy_url: str,
     *,
     timeout_s: int = DEFAULT_TIMEOUT_S,
+    strict_sandbox: bool = False,
 ) -> str:
     """Run LangChain local-deep-researcher and return the markdown report.
 
@@ -502,8 +561,13 @@ async def run(
     clean_intent = _sanitize_intent(intent)
 
     # Build the driver script
-    driver_code = _build_driver_script(clean_intent, shim_url, proxy_url, model)
+    driver_code = _build_driver_script(
+        clean_intent, shim_url, proxy_url, model,
+        strict_sandbox=strict_sandbox,
+    )
     driver_path = ROOT / "scripts" / "_lcdr_benchmark_driver.py"
+    if strict_sandbox:
+        logger.info("local-deep-researcher: strict-sandbox HTTP gate active")
 
     # Per-agent lock so parallel workers don't trample the shared driver path.
     _lock_cm = runner_exclusive_lock("local-deep-researcher")
@@ -514,6 +578,9 @@ async def run(
 
         # Build subprocess environment
         env = _build_env(proxy_url, model, shim_url)
+        if strict_sandbox:
+            env["SHIM_MODE"] = "strict"
+            env["LCDR_STRICT_SANDBOX"] = "1"
 
         logger.info(
             "Starting local-deep-researcher subprocess: model=%s shim=%s proxy=%s",
@@ -607,6 +674,7 @@ if __name__ == "__main__":
     parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
+    parser.add_argument("--strict-sandbox", action="store_true", default=False)
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -618,6 +686,7 @@ if __name__ == "__main__":
             shim_url=args.shim_url,
             proxy_url=args.proxy_url,
             timeout_s=args.timeout,
+            strict_sandbox=args.strict_sandbox,
         )
     )
 

@@ -1,13 +1,40 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { agentMeta } from '@/lib/providers'
 import { fmt, rankMedal } from '@/lib/format'
-import type { RankedAgent } from '@/lib/data/types'
+import type { PerPillarElo, RankedAgent } from '@/lib/data/types'
 import { Swords } from 'lucide-react'
 import { cn } from '@/lib/cn'
+
+/**
+ * Render order for the per-pillar sparkline. Picked to read left-to-right as
+ * "content quality (depth, rigor, style, coverage), task adherence (checklist,
+ * spec), and grounding (reachability, quote_match)".
+ */
+const PILLAR_ORDER: Array<keyof PerPillarElo> = [
+  'depth',
+  'rigor',
+  'style',
+  'coverage',
+  'checklist',
+  'spec',
+  'reachability',
+  'quote_match',
+]
+
+const PILLAR_LABEL: Record<keyof PerPillarElo, string> = {
+  depth: 'Depth',
+  rigor: 'Rigor',
+  style: 'Style',
+  coverage: 'Coverage',
+  checklist: 'Checklist',
+  spec: 'Spec',
+  reachability: 'Reachability',
+  quote_match: 'Quote match',
+}
 
 const TABS = [
   { key: 'composite', label: 'Composite Elo v2' },
@@ -26,6 +53,28 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
     if (tab === 'precision') return arr.sort((a, b) => a.ci_half - b.ci_half)
     return arr.sort((a, b) => b.elo - a.elo)
   })()
+
+  // Compute global per-pillar bounds for sparkline scaling, so bar heights are
+  // comparable across rows rather than re-normalised per-agent.
+  const pillarBounds = useMemo(() => {
+    const bounds: Record<string, { min: number; max: number }> = {}
+    for (const dim of PILLAR_ORDER) {
+      let mn = Number.POSITIVE_INFINITY
+      let mx = Number.NEGATIVE_INFINITY
+      for (const a of agents) {
+        const v = a.per_pillar?.[dim]
+        if (typeof v === 'number') {
+          if (v < mn) mn = v
+          if (v > mx) mx = v
+        }
+      }
+      bounds[dim] = {
+        min: Number.isFinite(mn) ? mn : 0,
+        max: Number.isFinite(mx) ? mx : 1,
+      }
+    }
+    return bounds
+  }, [agents])
 
   return (
     <section id="leaderboard" className="card overflow-hidden">
@@ -91,6 +140,15 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                       <Link href={`/agents/${a.id}`} className="text-sm font-medium text-ink hover:text-brand">
                         {meta.display}
                       </Link>
+                      {a.sig_vs_next ? (
+                        <span
+                          title="Gap to the next-ranked agent is statistically significant (p < 0.05)"
+                          className="text-[11px] font-semibold text-brand"
+                          aria-label="statistically significant"
+                        >
+                          *
+                        </span>
+                      ) : null}
                       <span className="rounded-pill bg-surface-mid px-2 py-0.5 text-[11px] text-muted">{meta.backbone}</span>
                     </div>
                   </td>
@@ -103,7 +161,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                     {a.wins} / {a.losses} / {a.draws}
                   </td>
                   <td className="px-4 py-3">
-                    <PillarsSparkline color={meta.color} />
+                    <PillarsSparkline color={meta.color} pillars={a.per_pillar} bounds={pillarBounds} />
                   </td>
                   <td className="px-4 py-3">
                     <Link
@@ -150,24 +208,47 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
   )
 }
 
-// Tiny per-pillar sparkline (synthetic for now; will read pillar_elo when wired).
-function PillarsSparkline({ color }: { color: string }) {
-  // Use a deterministic-looking pseudo-random pattern so different agents render differently.
-  // Replace with real per-pillar Elo when available.
-  const heights = [55, 80, 65, 92, 70, 60, 78].map((v, i) => v - ((i * 7) % 18))
+/**
+ * Per-pillar Elo sparkline. Renders one bar per dimension in PILLAR_ORDER.
+ *
+ * Heights are scaled within the table's global per-dimension min/max so a tall
+ * bar means "best on this pillar" rather than "highest Elo across pillars" —
+ * which would otherwise be dominated by quote_match.
+ */
+function PillarsSparkline({
+  color,
+  pillars,
+  bounds,
+}: {
+  color: string
+  pillars?: PerPillarElo
+  bounds: Record<string, { min: number; max: number }>
+}) {
+  if (!pillars) {
+    return <span className="text-xs text-muted-2" aria-label="per-pillar data unavailable">—</span>
+  }
   return (
-    <div className="flex h-5 w-24 items-end gap-0.5">
-      {heights.map((h, i) => (
-        <div
-          key={i}
-          className="w-2.5 rounded-t-sm"
-          style={{
-            height: `${h}%`,
-            backgroundColor: i === 3 ? color : 'rgb(229,229,224)',
-            opacity: i === 3 ? 0.95 : 0.8,
-          }}
-        />
-      ))}
+    <div className="flex h-5 w-28 items-end gap-0.5">
+      {PILLAR_ORDER.map((dim) => {
+        const v = pillars[dim]
+        const b = bounds[dim] ?? { min: 0, max: 1 }
+        const range = b.max - b.min || 1
+        const norm = Math.max(0, Math.min(1, (v - b.min) / range))
+        // Bar height: 18% floor so even worst-on-pillar is visible.
+        const h = 18 + 82 * norm
+        return (
+          <div
+            key={dim}
+            className="w-2.5 rounded-t-sm"
+            style={{
+              height: `${h}%`,
+              backgroundColor: color,
+              opacity: 0.45 + 0.5 * norm,
+            }}
+            title={`${PILLAR_LABEL[dim]}: ${Math.round(v)}`}
+          />
+        )
+      })}
     </div>
   )
 }
