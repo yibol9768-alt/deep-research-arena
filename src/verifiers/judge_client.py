@@ -6,7 +6,7 @@ meet the **self-preference mitigation** requirement flagged by the
 peer-review audit (Wataoka 2024 NeurIPS / JudgeBench ICLR 2025): if an
 agent is GLM-5, the judge must be a *different-family* model.
 
-Select backend with env vars (all optional — defaults kept for back-
+Select backend with env vars (all optional; defaults kept for back-
 compat with the legacy Anthropic path):
 
     JUDGE_PROVIDER     anthropic | openai      (default: anthropic)
@@ -21,12 +21,221 @@ Back-compat fallback when JUDGE_* not set:
 
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 from typing import Any
 
 
+# ---------------------------------------------------------------------------
+# Shared judge-alignment helpers (used by depth/rigor/style/checklist).
+# These keep the four verifiers consistent on de-truncation, few-shot
+# exemplar loading, evidence-block formatting, and cross-family routing.
+# ---------------------------------------------------------------------------
+
+_EXEMPLAR_ROOT = Path(__file__).resolve().parents[2] / "data" / "judge_exemplars"
+
+# Known model-family keywords. Used by cross-family routing to pick a judge
+# of a DIFFERENT family from the agent under test (self-preference mitigation).
+_FAMILY_KEYWORDS = {
+    "glm": "glm",
+    "chatglm": "glm",
+    "zhipu": "glm",
+    "deepseek": "deepseek",
+    "ds": "deepseek",
+    "claude": "claude",
+    "anthropic": "claude",
+    "gpt": "openai",
+    "openai": "openai",
+    "qwen": "qwen",
+    "gemini": "gemini",
+}
+
+
+def family_of(name: str | None) -> str | None:
+    """Map a model or agent name to a coarse model family keyword.
+
+    Returns None when the family cannot be inferred. Matching is
+    case-insensitive substring against a small keyword table so that names
+    like ``glm-5.1`` or ``deepseek-v4-flash`` resolve correctly.
+    """
+    if not name:
+        return None
+    low = str(name).lower()
+    for kw, fam in _FAMILY_KEYWORDS.items():
+        if kw in low:
+            return fam
+    return None
+
+
+def configured_judge_families() -> dict[str, str]:
+    """Return the judge families that are configured via env vars.
+
+    Looks at JUDGE_MODEL (primary) and JUDGE_MODEL_ALT (an optional second
+    family configured for cross-family routing). Keys are family names,
+    values are the concrete model strings. Graceful when only one family
+    is configured: the dict then has a single entry.
+    """
+    out: dict[str, str] = {}
+    primary = (
+        os.environ.get("JUDGE_MODEL")
+        or os.environ.get("CHECKLIST_JUDGE_MODEL")
+        or "deepseek-v4-flash"
+    )
+    fam = family_of(primary)
+    if fam:
+        out[fam] = primary
+    alt = os.environ.get("JUDGE_MODEL_ALT")
+    if alt:
+        afam = family_of(alt)
+        if afam:
+            out[afam] = alt
+    return out
+
+
+def select_cross_family_judge(agent_family: str | None) -> dict[str, Any]:
+    """Pick a judge model of a DIFFERENT family than the agent under test.
+
+    A GLM-family agent should be judged by a non-GLM judge and vice versa,
+    to remove the self-preference confound. Behaviour:
+
+      - If two (or more) judge families are configured and one of them
+        differs from ``agent_family``, return that different-family judge.
+      - If only one judge family is configured, or the agent family is
+        unknown, fall back to the configured default JUDGE_MODEL.
+
+    Returns ``{"model": <str>, "family": <str|None>, "cross_family": bool,
+    "reason": <str>}``. This is env-driven and never raises offline.
+    """
+    families = configured_judge_families()
+    default_model = (
+        os.environ.get("JUDGE_MODEL")
+        or os.environ.get("CHECKLIST_JUDGE_MODEL")
+        or "deepseek-v4-flash"
+    )
+    agent_fam = family_of(agent_family) if agent_family else None
+
+    if not agent_fam:
+        return {
+            "model": default_model,
+            "family": family_of(default_model),
+            "cross_family": False,
+            "reason": "agent family unknown; using configured default judge",
+        }
+
+    # Prefer a configured family that differs from the agent family.
+    for fam, model in families.items():
+        if fam != agent_fam:
+            return {
+                "model": model,
+                "family": fam,
+                "cross_family": True,
+                "reason": f"selected {fam} judge for {agent_fam} agent",
+            }
+
+    return {
+        "model": default_model,
+        "family": family_of(default_model),
+        "cross_family": False,
+        "reason": "only the agent's own family is configured; using default judge",
+    }
+
+
+def smart_truncate(text: str, *, cap: int = 9000, head_frac: float = 0.6) -> str:
+    """De-truncate replacement for the old hard ``text[:6000]`` slice.
+
+    The old slice silently dropped the conclusion of long reports, where
+    synthesis usually lives. This keeps BOTH the head and the tail: if the
+    text exceeds ``cap``, we keep the first ``head_frac`` of the budget and
+    the last ``1 - head_frac``, joined by a visible elision marker so the
+    judge knows the middle was cut. Short texts pass through unchanged.
+    """
+    text = text or ""
+    if len(text) <= cap:
+        return text
+    marker = "\n\n[... middle of report omitted to fit context; head and conclusion kept ...]\n\n"
+    budget = cap - len(marker)
+    if budget <= 0:
+        return text[:cap]
+    head_len = int(budget * head_frac)
+    tail_len = budget - head_len
+    head = text[:head_len]
+    tail = text[-tail_len:] if tail_len > 0 else ""
+    return head + marker + tail
+
+
+def load_exemplars(dimension: str) -> list[dict[str, Any]]:
+    """Load few-shot calibration exemplars for a dimension.
+
+    Reads ``data/judge_exemplars/<dimension>.json``. Each entry is
+    ``{"level": int, "snippet": str, "rationale": str}``. Returns an empty
+    list when the file is missing or malformed, so callers fall back to the
+    pre-existing no-exemplar behaviour.
+    """
+    path = _EXEMPLAR_ROOT / f"{dimension}.json"
+    try:
+        data = json.loads(path.read_text())
+    except Exception:
+        return []
+    if not isinstance(data, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in data:
+        if isinstance(item, dict) and "snippet" in item and "rationale" in item:
+            out.append(item)
+    return out
+
+
+def format_exemplars_block(exemplars: list[dict[str, Any]]) -> str:
+    """Render exemplars as a calibration-anchor block for the rubric prompt.
+
+    Returns the empty string when there are no exemplars so the prompt is
+    byte-for-byte unchanged in the fallback path.
+    """
+    if not exemplars:
+        return ""
+    lines = ["Calibration exemplars (hand-authored anchors; match the level scale):"]
+    for ex in exemplars:
+        lvl = ex.get("level", "?")
+        snippet = str(ex.get("snippet", "")).strip()[:400]
+        rationale = str(ex.get("rationale", "")).strip()[:300]
+        lines.append(f"  LEVEL {lvl}: {snippet}")
+        lines.append(f"    why: {rationale}")
+    return "\n".join(lines)
+
+
+def format_evidence_block(evidence: dict | None, *, cap: int = 4000) -> str:
+    """Render retrieved evidence (url -> snippet text) as a bounded block.
+
+    Returns the empty string when ``evidence`` is None or empty, so the
+    no-evidence path behaves exactly as before. When present, the block is
+    capped to ``cap`` chars (truncated gracefully) and instructs the judge
+    to check grounding and genuine cross-source synthesis.
+    """
+    if not evidence or not isinstance(evidence, dict):
+        return ""
+    parts: list[str] = []
+    used = 0
+    for url, snippet in evidence.items():
+        chunk = f"- {url}\n  {str(snippet or '').strip()}"
+        if used + len(chunk) > cap:
+            remaining = cap - used
+            if remaining > 0:
+                parts.append(chunk[:remaining])
+            break
+        parts.append(chunk)
+        used += len(chunk)
+    body = "\n".join(parts)
+    return (
+        "Retrieved evidence the report had access to (check that claims are\n"
+        "grounded in these sources and that the report genuinely synthesises\n"
+        "ACROSS sources rather than restating one):\n"
+        f"{body}"
+    )
+
+
 def judge_identity() -> dict:
-    """Describes the judge currently configured — useful to stamp into
+    """Describes the judge currently configured. Useful to stamp into
     verifier details so cross-judge comparison is traceable.
 
     `heavy_model` reports which model heavy / extraction-style verifiers
@@ -38,7 +247,7 @@ def judge_identity() -> dict:
     regular = (
         os.environ.get("JUDGE_MODEL")
         or os.environ.get("CHECKLIST_JUDGE_MODEL")
-        or "glm-5.1"
+        or "deepseek-v4-flash"
     )
     heavy = os.environ.get("JUDGE_MODEL_HEAVY") or _default_heavy_model(regular)
     return {
@@ -75,7 +284,7 @@ def call_judge(
 ) -> tuple[str | None, str | None]:
     """Return (text, error). Uses whichever backend is configured.
 
-    This is the *regular* judge entry point — checklist, citation_alignment,
+    This is the *regular* judge entry point: checklist, citation_alignment,
     presentation Tier B, analysis_depth Tier B, perspective_balance Tier B
     use this. For heavy extraction / NLI work, prefer ``call_judge_heavy``.
     """
@@ -99,7 +308,7 @@ def call_judge_heavy(
     max_tokens: int = 4000,
     temperature: float = 0.0,
 ) -> tuple[str | None, str | None]:
-    """Heavy-judge entry point — used by factual_exactness (atomic fact
+    """Heavy-judge entry point, used by factual_exactness (atomic fact
     extraction + per-fact verification) and internal_consistency (pairwise
     NLI). Defaults differ from ``call_judge``: zero temperature for
     determinism, higher max_tokens for structured JSON outputs, and the
@@ -107,7 +316,7 @@ def call_judge_heavy(
 
     Override the heavy model via ``JUDGE_MODEL_HEAVY`` env var. When
     JUDGE_MODEL_HEAVY is unset and the regular judge is not a V4 sibling,
-    the heavy path falls back to the regular model — heavy verifiers will
+    the heavy path falls back to the regular model; heavy verifiers will
     still work, just without the Pro-tier boost.
     """
     provider = os.environ.get("JUDGE_PROVIDER", "anthropic").lower()

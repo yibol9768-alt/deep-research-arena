@@ -122,11 +122,14 @@ def _cohen_kappa(pairs: list[tuple[str, str]]) -> tuple[float, int]:
 
 def main():
     prefs = _load_prefs()
-    scores, src = _load_dim_scores()
     if not prefs:
-        sys.exit("No prefs found in data/human_prefs/*.jsonl.")
+        print("no human labels found at data/human_prefs/*.jsonl; nothing to score")
+        sys.exit(0)
+    scores, src = _load_dim_scores()
     if not scores:
-        sys.exit("No dim scores available; cannot compute judge labels.")
+        print("no dim scores available (data/results/deep_v3/leaderboard_*.json); "
+              "cannot compute judge labels. Nothing to score.")
+        sys.exit(0)
 
     # Build per-dim filtered pair lists, then compute kappa.
     per_dim: dict[str, list[tuple[str, str]]] = {d: [] for d in JUDGE_DIMS}
@@ -137,7 +140,9 @@ def main():
         sa, sb = scores.get(a), scores.get(b)
         if not (sa and sb):
             continue
-        cited = set(p.get("dims_cited") or [])
+        # Accept either the legacy `dims_cited` field or the new `dims`
+        # field documented in data/human_prefs/SCHEMA.md (union if both).
+        cited = set(p.get("dims_cited") or []) | set(p.get("dims") or [])
         for d in JUDGE_DIMS:
             if d not in cited:
                 continue

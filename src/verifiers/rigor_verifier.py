@@ -36,11 +36,22 @@ import statistics
 from typing import Any
 
 from .base import VerifierResult
-from .judge_client import call_judge, judge_identity
+from .judge_client import (
+    call_judge,
+    format_evidence_block,
+    format_exemplars_block,
+    judge_identity,
+    load_exemplars,
+    smart_truncate,
+)
 
 
 _N_SAMPLES = int(os.environ.get("V3_JUDGE_N_SAMPLES", "3"))
 _TEMP = float(os.environ.get("V3_JUDGE_TEMP", "0.3"))
+
+_REPORT_CAP = int(os.environ.get("V3_JUDGE_REPORT_CAP", "9000"))
+
+_DIMENSION = "rigor"
 
 
 _SYSTEM = (
@@ -62,15 +73,25 @@ _SYSTEM = (
 )
 
 
-def _build_user_prompt(intent: str, answer: str) -> str:
-    truncated = (answer or "")[:6000]
-    return (
-        f"Research task:\n{intent}\n\n"
-        f"Agent report (truncated to 6000 chars):\n---\n{truncated}\n---\n\n"
+def _build_user_prompt(intent: str, answer: str, evidence: dict | None = None) -> str:
+    # De-truncation: keep head AND conclusion instead of a hard 6000 slice.
+    truncated = smart_truncate(answer or "", cap=_REPORT_CAP)
+    exemplars_block = format_exemplars_block(load_exemplars(_DIMENSION))
+    evidence_block = format_evidence_block(evidence)
+    sections = [f"Research task:\n{intent}"]
+    if exemplars_block:
+        sections.append(exemplars_block)
+    sections.append(
+        f"Agent report (head and conclusion preserved):\n---\n{truncated}\n---"
+    )
+    if evidence_block:
+        sections.append(evidence_block)
+    sections.append(
         "Score and output exactly:\n"
         "LEVEL: <1|2|3|4|5>\n"
         "EVIDENCE: <one short sentence>"
     )
+    return "\n\n".join(sections)
 
 
 _LEVEL_RE = re.compile(r"^\s*LEVEL\s*[:\-]\s*([1-5])\b", re.IGNORECASE | re.MULTILINE)
@@ -106,7 +127,15 @@ class RigorVerifier:
         self.n_samples = int(n_samples if n_samples is not None else _N_SAMPLES)
         self.temperature = float(temperature if temperature is not None else _TEMP)
 
-    def verify(self, *, task_config: dict[str, Any], answer: str, page: Any = None) -> VerifierResult:
+    def verify(
+        self,
+        *,
+        task_config: dict[str, Any],
+        answer: str,
+        page: Any = None,
+        evidence: dict | None = None,
+        **kwargs: Any,
+    ) -> VerifierResult:
         from .base import is_degenerate_answer
         degen, why = is_degenerate_answer(answer, min_words=50, require_citations=False)
         if degen:
@@ -124,7 +153,7 @@ class RigorVerifier:
             )
 
         intent = task_config.get("intent", "")
-        user_prompt = _build_user_prompt(intent, answer)
+        user_prompt = _build_user_prompt(intent, answer, evidence)
 
         levels: list[int] = []
         evidences: list[str] = []
@@ -186,3 +215,36 @@ class RigorVerifier:
                 "cot_disabled": True,
             },
         )
+
+    def verify_pairwise(
+        self,
+        task_config: dict[str, Any],
+        answer_a: str,
+        answer_b: str,
+        evidence_a: dict | None = None,
+        evidence_b: dict | None = None,
+    ) -> dict[str, Any]:
+        """Comparative mode: which report is stronger on logical rigor?
+
+        Delegates to the dimension-aware pairwise judge. Returns
+        ``{"winner": "a"|"b"|"tie", "reason": str}`` and degrades to tie
+        when the judge backend is unconfigured.
+        """
+        from src.scoring.pairwise_judge import battle
+
+        res = battle(
+            task_intent=task_config.get("intent", ""),
+            agent_a="a",
+            answer_a=answer_a,
+            agent_b="b",
+            answer_b=answer_b,
+            dimension=_DIMENSION,
+            evidence_a=evidence_a,
+            evidence_b=evidence_b,
+        )
+        winner = (res.get("winner") or "tie").lower()
+        if winner not in ("a", "b", "tie"):
+            winner = "tie"
+        reasonings = res.get("reasonings") or []
+        reason = reasonings[0] if reasonings else res.get("error", "")
+        return {"winner": winner, "reason": reason}

@@ -156,23 +156,12 @@ function buildCache(): NormalizedCache {
     }
   }
 
-  // Last-resort synthetic seed so the site still renders during local dev.
+  // No valid leaderboard file found. Render EMPTY rather than fabricate a
+  // ranking. The previous hardcoded claude-code/opencode/camel-ai seed was a
+  // synthetic placeholder that misrepresented real standings, so it was removed.
   return {
     isDryRun: false,
-    elo: {
-      'claude-code': {
-        elo: 1352.9, elo_lo: 1282, elo_hi: 1400, elo_half_width: 59,
-        n_battles: 49, wins: 48, losses: 1, draws: 0,
-      },
-      'opencode': {
-        elo: 1250.6, elo_lo: 1181, elo_hi: 1319, elo_half_width: 69,
-        n_battles: 31, wins: 29, losses: 2, draws: 0,
-      },
-      'camel-ai': {
-        elo: 1188.0, elo_lo: 1111, elo_hi: 1262, elo_half_width: 76,
-        n_battles: 36, wins: 29, losses: 5, draws: 2,
-      },
-    },
+    elo: {},
     pillarElo: {},
     perAgentProfile: {},
     rankSignificance: [],

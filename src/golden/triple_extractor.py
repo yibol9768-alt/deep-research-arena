@@ -25,7 +25,7 @@ from typing import Any
 from .db_schema_map import PREDICATES
 
 
-EXTRACT_MODEL = os.environ.get("EXTRACT_MODEL", "glm-5.1")
+EXTRACT_MODEL = os.environ.get("EXTRACT_MODEL", "deepseek-v4-flash")
 
 
 def _predicates_for(site: str) -> list[str]:

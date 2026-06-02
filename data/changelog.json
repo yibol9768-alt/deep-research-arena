@@ -3,10 +3,52 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse — this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v3-2026-06-02",
+      "date": "2026-06-02",
+      "title": "Real grounding-gated scoring (synthetic leaderboard removed)",
+      "tags": [
+        "scoring",
+        "leaderboard",
+        "fairness",
+        "grounding"
+      ],
+      "summary": "Replaced the placeholder leaderboard with real scores under a simpler, harder-to-game scheme: grounding and quality are scored separately, fluent-but-ungrounded and fabricated reports are gated out, and citation volume no longer inflates rank.",
+      "sections": [
+        {
+          "heading": "Why",
+          "bullets": [
+            "The previous public top ranks were synthetic placeholder data, not measured scores.",
+            "The real composite rewarded reachable-citation volume over grounding in the required facts, inflating long, heavily-cited reports."
+          ]
+        },
+        {
+          "heading": "What changed",
+          "bullets": [
+            "Grounding = F1 of citation precision (with proof-of-fetch) and must-cite recall; the volume terms (domain balance, cited-count gate) were removed.",
+            "Quality = length-controlled pairwise win-rate vs peers, Bradley-Terry Elo, judged cross-family by DeepSeek with position-swap.",
+            "Truth-gate: a report must clear a grounding floor to be ranked; ungrounded or fabricated reports are excluded with a stated reason.",
+            "Removed the hardcoded synthetic fallback that fabricated the top ranks."
+          ]
+        },
+        {
+          "heading": "Method basis",
+          "bullets": [
+            "Aligned with DeepResearch Bench (RACE and FACT), Arena-Hard, and ALCE: separate grounding from quality, and never reward verbosity or volume."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
       "version": "v3-2026-05-21",
       "date": "2026-05-21",
       "title": "V3 Scoring Overhaul",
-      "tags": ["scoring", "leaderboard", "sandbox", "frontend"],
+      "tags": [
+        "scoring",
+        "leaderboard",
+        "sandbox",
+        "frontend"
+      ],
       "summary": "Replaced the 3-dimension heuristic composite with a 6-dimension quality vector and a soft-floor truth gate, added 20 adversarial tasks to pull the top of the leaderboard apart, hardened the closed-book sandbox, and surfaced real per-pillar data on the site.",
       "sections": [
         {
@@ -55,8 +97,14 @@
         }
       ],
       "links": [
-        { "label": "Scoring spec", "href": "/methodology" },
-        { "label": "Strict-sandbox contract", "href": "/sandbox" }
+        {
+          "label": "Scoring spec",
+          "href": "/methodology"
+        },
+        {
+          "label": "Strict-sandbox contract",
+          "href": "/sandbox"
+        }
       ]
     }
   ]

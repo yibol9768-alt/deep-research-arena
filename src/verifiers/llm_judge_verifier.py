@@ -34,7 +34,7 @@ from .base import VerifierResult
 from .judge_client import call_judge, judge_identity
 
 
-JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "glm-5.1")
+JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "deepseek-v4-flash")
 
 DIMENSIONS = [
     ("comprehensiveness",    0.35),

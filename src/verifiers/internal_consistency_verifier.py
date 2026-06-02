@@ -237,9 +237,11 @@ def _sampled_pairs(indices: list[int], cap: int) -> list[tuple[int, int]]:
 class InternalConsistencyVerifier:
     """Intra-document contradiction-detection pillar (v4 new).
 
-    Returns score = 1 - (contradictions / pairs_tested). When no clusters
-    of size ≥ 2 exist (very short reports, or reports where entities
-    cannot be extracted), returns score = 1.0 with `applicable=False`.
+    Returns score = 1 - (contradictions / pairs_tested). When the report is
+    not testable (too few sentences, no entity clusters of size >= 2, or no
+    pair actually tested), returns score = None with `applicable=False` so
+    callers EXCLUDE this pillar instead of counting a free 1.0 (a missing-data
+    inflation bug fixed per SCORING_REDESIGN.md sec 0/3).
 
     Constructor knobs:
         max_pairs_per_cluster   default 12
@@ -270,8 +272,11 @@ class InternalConsistencyVerifier:
 
         sents = _split_sentences(answer or "")
         if len(sents) < 6:
+            # NOT-APPLICABLE: too little testable text. Returning score=1.0
+            # here would inflate the report (missing data -> free full marks).
+            # Signal None + applicable=False so callers EXCLUDE this pillar.
             return VerifierResult(
-                score=1.0, passed=True,
+                score=None, passed=False,
                 details={
                     "applicable": False,
                     "reason": "too_few_sentences",
@@ -281,8 +286,10 @@ class InternalConsistencyVerifier:
 
         clusters = _build_entity_clusters(sents)
         if not clusters:
+            # NOT-APPLICABLE: no entity clusters to compare. See note above —
+            # exclude rather than award a free 1.0.
             return VerifierResult(
-                score=1.0, passed=True,
+                score=None, passed=False,
                 details={
                     "applicable": False,
                     "reason": "no_entity_clusters",
@@ -338,8 +345,11 @@ class InternalConsistencyVerifier:
             })
 
         if total_pairs == 0:
+            # NOT-APPLICABLE: clusters existed but no pair was actually tested
+            # (e.g. judge unreachable / all pairs deduped). Exclude, don't
+            # award a free 1.0.
             return VerifierResult(
-                score=1.0, passed=True,
+                score=None, passed=False,
                 details={
                     "applicable": False,
                     "reason": "no_pairs_tested",

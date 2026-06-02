@@ -165,24 +165,35 @@ class URLCoverageVerifier:
 
         min_must_recall = float(cov_cfg.get("min_must_cite_recall", 0.45))
         min_pool_cov = float(cov_cfg.get("min_expected_pool_coverage", 0.12))
+        # NOTE (anti-volume): `min_cited_n` and `min_domain_balance` are still
+        # read for backward-compat / diagnostics but are NO LONGER part of the
+        # pass gate. Citing many URLs (or padding per-domain counts) must not
+        # earn a pass or raise the score. See SCORING_REDESIGN.md sec 0/2.A:
+        # raw citation volume and per-domain count balance were gameable —
+        # claude-code cited 155 URLs with 6/121 must-cite recall yet scored
+        # high. must_cite_recall (golden relevance) is what we reward.
         min_cited_n = int(cov_cfg.get("min_unique_urls_cited", 60))
         min_dom_balance = float(cov_cfg.get("min_domain_balance", 0.80))
 
+        # Anti-volume scoring: must_cite_recall dominant, pool_coverage minor,
+        # domain_balance DROPPED from the weighted score (it is a pure count
+        # term that hits 1.0 by padding citations per domain regardless of
+        # golden relevance). domain_balance stays COMPUTED + reported below
+        # for diagnostics only.
         sw = cov_cfg.get("scoring_weights") or {
-            "must_cite_recall": 0.55,
+            "must_cite_recall": 0.85,
             "pool_coverage": 0.15,
-            "domain_balance": 0.30,
         }
         weighted = (
-            sw.get("must_cite_recall", 0.55) * must_cite_recall
+            sw.get("must_cite_recall", 0.85) * must_cite_recall
             + sw.get("pool_coverage", 0.15) * pool_coverage
-            + sw.get("domain_balance", 0.30) * domain_balance
         )
+        # Pass gate: grounded relevance only. No raw-volume count gate and no
+        # domain_balance gate — neither reflects whether the agent cited the
+        # golden must-cite evidence.
         passed = (
             must_cite_recall >= min_must_recall
             and pool_coverage >= min_pool_cov
-            and domain_balance >= min_dom_balance
-            and len(cited) >= min_cited_n
         )
 
         return VerifierResult(

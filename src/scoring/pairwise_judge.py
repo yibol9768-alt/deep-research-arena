@@ -6,7 +6,7 @@ better overall? Returns winner ∈ {"A", "B", "tie"}, with brief rationale.
 This is the gold standard for open-ended generation evaluation
 (Zheng et al. MT-Bench 2023, lmsys Arena). It's noisy but unbiased
 between architectures (treats prose vs JSON the same way a human would
-— "did the report answer my question well?").
+like "did the report answer my question well?").
 
 Mitigations against known judge biases:
   - Position bias  : run twice swapping (A,B) ↔ (B,A); average outcome
@@ -24,7 +24,19 @@ import textwrap
 from typing import Any
 
 
-JUDGE_MODEL = os.environ.get("PAIRWISE_JUDGE_MODEL", "glm-5.1")
+def _default_judge_model() -> str:
+    """Resolve the pairwise judge model at call time.
+
+    Honors PAIRWISE_JUDGE_MODEL first, then the shared JUDGE_MODEL /
+    CHECKLIST_JUDGE_MODEL used by the verifiers, so a single judge.env
+    drives every judge. Falls back to a DeepSeek model (project default).
+    """
+    return (
+        os.environ.get("PAIRWISE_JUDGE_MODEL")
+        or os.environ.get("JUDGE_MODEL")
+        or os.environ.get("CHECKLIST_JUDGE_MODEL")
+        or "deepseek-v4-flash"
+    )
 
 _SYSTEM = textwrap.dedent("""\
     You are an expert reviewer judging two deep-research agent reports
@@ -39,7 +51,7 @@ _SYSTEM = textwrap.dedent("""\
       4. Is the reasoning insightful, not just enumeration?
       5. Is it readable and well-structured?
 
-    Explicitly DISCOUNT verbosity — a tight, correct answer beats a long
+    Explicitly DISCOUNT verbosity. A tight, correct answer beats a long
     rambling one. Markdown vs. JSON formatting is fine; only penalize if
     the task explicitly required a specific format AND the report
     ignored it.
@@ -63,19 +75,108 @@ def _extract_verdict(text: str) -> str:
 
 
 from src.verifiers.judge_client import call_judge  # pluggable backend
+from src.verifiers.judge_client import format_evidence_block
 
 
-def _judge_once(model_unused: str, task_intent: str, ans_a: str, ans_b: str) -> tuple[str, str]:
-    user = (
-        f"Research task:\n{task_intent}\n\n"
-        f"--- Report A ---\n{(ans_a or '')[:5000]}\n\n"
-        f"--- Report B ---\n{(ans_b or '')[:5000]}\n\n"
-        "Reason briefly, then emit `VERDICT: A | B | TIE`."
+# Per-dimension framing. When `dimension` is passed to `battle`, the judge is
+# asked "which report is stronger on <dimension>, and why?" instead of overall
+# quality. Humans labeled by picking a pair winner and citing a dimension, so
+# dimension-aware comparative judging is the closer match to the human signal.
+_DIMENSION_FOCUS = {
+    "depth": (
+        "analytical DEPTH: how much genuine multi-source synthesis happens "
+        "(reconciling contradictions and driving downstream claims) versus "
+        "mere enumeration of facts."
+    ),
+    "rigor": (
+        "logical RIGOR: internal consistency and appropriate hedging. Penalize "
+        "internal contradictions and over-claiming; reward flagging weak or "
+        "disputed evidence."
+    ),
+    "style": (
+        "STYLE: structure, signposting, and citation integration. Reward clear "
+        "sectioning with inline markdown citations; penalize raw dumps and bare "
+        "trailing URLs."
+    ),
+    "checklist": (
+        "COVERAGE: which report more completely and verifiably satisfies the "
+        "task's coverage criteria, with explicit evidence rather than vague "
+        "assertions."
+    ),
+}
+
+
+def _system_for_dimension(dimension: str | None) -> str:
+    if not dimension:
+        return _SYSTEM
+    focus = _DIMENSION_FOCUS.get(
+        dimension.lower(), f"the {dimension} quality of the report."
     )
-    text, err = call_judge(_SYSTEM, user, max_tokens=1500)
+    return textwrap.dedent(
+        """\
+        You are an expert reviewer judging two deep-research agent reports
+        on the SAME research task. Decide which report is stronger on ONE
+        specific dimension only, and explain why.
+
+        The dimension to judge is {focus}
+
+        Judge ONLY this dimension. Explicitly DISCOUNT verbosity. Markdown
+        vs. JSON formatting is fine unless the task required a specific format.
+
+        Output a brief reason (a few short bullets), then a final verdict line
+        that MUST match exactly one of:
+            VERDICT: A
+            VERDICT: B
+            VERDICT: TIE
+
+        Use TIE only if the two are genuinely indistinguishable on this
+        dimension.
+        """
+    ).format(focus=focus)
+
+
+def _judge_once(
+    model_unused: str,
+    task_intent: str,
+    ans_a: str,
+    ans_b: str,
+    *,
+    dimension: str | None = None,
+    evidence_a: dict | None = None,
+    evidence_b: dict | None = None,
+) -> tuple[str, str]:
+    ev_a = format_evidence_block(evidence_a)
+    ev_b = format_evidence_block(evidence_b)
+    user_parts = [
+        f"Research task:\n{task_intent}",
+        f"--- Report A ---\n{(ans_a or '')[:5000]}",
+    ]
+    if ev_a:
+        user_parts.append(f"[Evidence available to Report A]\n{ev_a}")
+    user_parts.append(f"--- Report B ---\n{(ans_b or '')[:5000]}")
+    if ev_b:
+        user_parts.append(f"[Evidence available to Report B]\n{ev_b}")
+    if dimension:
+        user_parts.append(
+            f"Reason briefly about {dimension} only, then emit "
+            "`VERDICT: A | B | TIE`."
+        )
+    else:
+        user_parts.append("Reason briefly, then emit `VERDICT: A | B | TIE`.")
+    user = "\n\n".join(user_parts)
+    text, err = call_judge(_system_for_dimension(dimension), user, max_tokens=1500)
     if text is None:
         return "tie", f"(judge error: {err})"
     return _extract_verdict(text), text[:600]
+
+
+def _combine(v1: str, v2: str) -> str:
+    """Combine an original-order verdict with an un-swapped verdict."""
+    if v1 == v2:
+        return v1
+    if "TIE" in (v1, v2):
+        return v1 if v2 == "TIE" else v2
+    return "TIE"  # A and B disagree, so call it a tie
 
 
 def battle(
@@ -87,37 +188,74 @@ def battle(
     answer_b: str,
     model: str | None = None,
     swap_for_position_bias: bool = True,
+    dimension: str | None = None,
+    evidence_a: dict | None = None,
+    evidence_b: dict | None = None,
+    n_samples: int = 3,
 ) -> dict[str, Any]:
     """Run a pairwise LLM-judge battle. Returns:
 
     {
       "winner": "A" | "B" | "tie",
       "agent_winner": <agent name or "tie">,
-      "verdicts_raw": [first_verdict, swap_verdict],
+      "verdicts_raw": [...],
       "reasonings": [...],
     }
 
     `winner` corresponds to the FIRST presentation order.
     `agent_winner` resolves the "A"/"B" labels back to the agent names,
     accounting for the swap.
+
+    When `dimension` is one of {"depth","rigor","style","checklist"}, the
+    judge is asked which report is stronger on THAT dimension specifically
+    (closer to how humans labeled pairs). `n_samples` controls how many
+    debiased rounds are run; the per-round verdicts are aggregated by
+    majority. Position-swap debiasing is kept within each round when
+    `swap_for_position_bias` is True. `evidence_a` / `evidence_b` (url ->
+    snippet) ground each report against the sources it had access to.
     """
-    m = model or JUDGE_MODEL
+    m = model or _default_judge_model()
+    n = max(1, int(n_samples))
     try:
-        v1, r1 = _judge_once(m, task_intent, answer_a, answer_b)
-        if not swap_for_position_bias:
-            return _resolve(v1, [v1], [r1], agent_a, agent_b)
-        v2_swapped, r2 = _judge_once(m, task_intent, answer_b, answer_a)
-        # Un-swap verdict 2: if judge said A under swap (= original B),
-        # then the real winner is B
-        v2 = {"A": "B", "B": "A", "TIE": "TIE"}[v2_swapped]
-        # Combine both verdicts
-        if v1 == v2:
-            final = v1
-        elif "TIE" in (v1, v2):
-            final = v1 if v2 == "TIE" else v2
+        round_finals: list[str] = []
+        all_v: list[str] = []
+        all_r: list[str] = []
+        for _ in range(n):
+            v1, r1 = _judge_once(
+                m, task_intent, answer_a, answer_b,
+                dimension=dimension, evidence_a=evidence_a, evidence_b=evidence_b,
+            )
+            all_v.append(v1)
+            all_r.append(r1)
+            if not swap_for_position_bias:
+                round_finals.append(v1)
+                continue
+            v2_swapped, r2 = _judge_once(
+                m, task_intent, answer_b, answer_a,
+                dimension=dimension, evidence_a=evidence_b, evidence_b=evidence_a,
+            )
+            all_v.append(v2_swapped)
+            all_r.append(r2)
+            # Un-swap verdict 2: if judge said A under swap (= original B),
+            # then the real winner is B.
+            v2 = {"A": "B", "B": "A", "TIE": "TIE"}[v2_swapped]
+            round_finals.append(_combine(v1, v2))
+
+        # Majority across rounds. Ties in the vote count fall back to TIE.
+        counts = {"A": 0, "B": 0, "TIE": 0}
+        for f in round_finals:
+            counts[f] = counts.get(f, 0) + 1
+        if counts["A"] > counts["B"] and counts["A"] >= counts["TIE"]:
+            final = "A"
+        elif counts["B"] > counts["A"] and counts["B"] >= counts["TIE"]:
+            final = "B"
         else:
-            final = "TIE"  # A and B disagree → tie
-        return _resolve(final, [v1, v2], [r1, r2], agent_a, agent_b)
+            final = "TIE"
+        res = _resolve(final, all_v, all_r, agent_a, agent_b)
+        res["judge_model"] = m
+        if dimension:
+            res["dimension"] = dimension
+        return res
     except Exception as e:
         return {"winner": "tie", "agent_winner": "tie", "error": f"{type(e).__name__}: {e}"}
 
@@ -134,5 +272,5 @@ def _resolve(verdict: str, all_v: list[str], all_r: list[str], agent_a: str, age
         "agent_winner": agent_winner,
         "verdicts_raw": all_v,
         "reasonings": all_r,
-        "judge_model": JUDGE_MODEL,
+        "judge_model": _default_judge_model(),
     }
