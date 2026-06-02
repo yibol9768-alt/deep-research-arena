@@ -1,0 +1,120 @@
+{
+  "schema_version": "rl-1.0.0",
+  "task_id": "rl_tool_rag_0001",
+  "tier": "rl_train",
+  "sites": [
+    "wikipedia",
+    "reddit",
+    "shopping"
+  ],
+  "difficulty": 1,
+  "language": "en",
+  "intent": "Write a ~350-word grounded explainer on how active noise cancellation in headphones works and where it falls short in everyday use. Pull the technical definition from English Wikipedia (__WIKIPEDIA__), at least one real user experience thread from Postmill (__REDDIT__), and at least one concrete product page for an ANC headphone from the One Stop Market store (__SHOPPING__). Cite every factual claim as a markdown [label](url) link to sandbox-local pages you actually opened. The report must explain (1) the destructive-interference mechanism, (2) at least one concrete limitation users hit (wind, sudden voices, fit, high-frequency noise), and (3) how a forum user's lived experience or a product's advertised spec lines up with or diverges from the textbook description. Answer starts with the report in Markdown; no chain-of-thought.\n\n[Modality demonstrator: this task declares the rag_search local dense+hybrid (BM25+embedding) retriever over the fixed corpus; the reward is modality-agnostic, so a chunk surfaced by rag_search is credited identically to a fetched page.]",
+  "sandbox_hosts": [
+    "localhost:7770",
+    "localhost:9999",
+    "localhost:8090"
+  ],
+  "domain_aliases": {
+    "__SHOPPING__": [
+      "localhost:7770"
+    ],
+    "__REDDIT__": [
+      "localhost:9999"
+    ],
+    "__WIKIPEDIA__": [
+      "localhost:8090"
+    ]
+  },
+  "markdown_spec": {
+    "min_words": 300,
+    "max_words": 900,
+    "min_paragraphs": 3,
+    "min_citations": 3,
+    "min_pages_browsed": 3,
+    "target_words": 350
+  },
+  "citation_policy": {
+    "must_be_in_domain": [
+      "__WIKIPEDIA__",
+      "__REDDIT__",
+      "__SHOPPING__"
+    ],
+    "min_distinct_sources": 3,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__WIKIPEDIA__": 1,
+      "__REDDIT__": 1,
+      "__SHOPPING__": 1
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/rl/rl_easy_0001.json",
+    "min_unique_urls_browsed": 3,
+    "min_unique_urls_cited": 3,
+    "min_must_cite_recall": 0.3,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.5,
+    "per_domain_minimum": {
+      "wiki": 1,
+      "reddit": 1,
+      "shopping": 1
+    },
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "golden": {
+    "triples_path": "data/golden/rl/rl_easy_0001.json"
+  },
+  "source_diversity": {
+    "min_subforums": 1
+  },
+  "perspective_balance": {
+    "evaluated_entities": [],
+    "min_score": 0.5
+  },
+  "search": {
+    "target_distinct_queries": 3
+  },
+  "coverage_checklist": [
+    {
+      "id": "c1",
+      "must_mention": [
+        "active noise control"
+      ]
+    },
+    {
+      "id": "c2",
+      "must_mention": [
+        "destructive interference"
+      ]
+    },
+    {
+      "id": "c3",
+      "must_mention": [
+        "limitation"
+      ]
+    },
+    {
+      "id": "c4",
+      "must_mention": [
+        "user experience"
+      ]
+    }
+  ],
+  "acquisition": {
+    "modalities": [
+      "shim"
+    ],
+    "backend": "shim",
+    "shim_url": "http://localhost:8081",
+    "tools_allowed": [
+      "search",
+      "fetch",
+      "rag_search"
+    ]
+  }
+}

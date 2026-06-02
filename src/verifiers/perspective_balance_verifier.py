@@ -328,7 +328,14 @@ class PerspectiveBalanceVerifier:
         self.tier_a_weight = tier_a_weight
         self.tier_b_weight = tier_b_weight
 
-    def verify(self, *, task_config: dict[str, Any], answer: str = "", page: Any = None) -> VerifierResult:
+    def verify(
+        self,
+        *,
+        task_config: dict[str, Any],
+        answer: str = "",
+        page: Any = None,
+        deterministic_only: bool = False,
+    ) -> VerifierResult:
         # Guard 1: degenerate answer.
         degen, reason = is_degenerate_answer(answer or "", min_words=50, require_citations=False)
         if degen:
@@ -341,16 +348,45 @@ class PerspectiveBalanceVerifier:
         if not entities:
             # Not a perspective-bearing task; return 1.0 (neutral),
             # mark `applicable=False` so callers can see this is N/A.
+            details = {
+                "applicable": False,
+                "reason": "no_evaluated_entities",
+                "note": "task does not declare evaluated_entities and no H3 entity headings found",
+            }
+            if deterministic_only:
+                details["mode"] = "deterministic_only"
+                details["tier_a"] = {
+                    "weight": 1.0,
+                    "rate": 1.0,
+                    "rows": [],
+                }
+                details["tier_b"] = {"skipped": True}
             return VerifierResult(
                 score=1.0, passed=True,
-                details={
-                    "applicable": False,
-                    "reason": "no_evaluated_entities",
-                    "note": "task does not declare evaluated_entities and no H3 entity headings found",
-                },
+                details=details,
             )
 
         tier_a_rate, tier_a_rows = _tier_a(answer, entities)
+        if deterministic_only:
+            score = tier_a_rate
+            passed = score >= float((task_config.get("perspective_balance") or {}).get("min_score", 0.50))
+
+            return VerifierResult(
+                score=round(float(score), 4),
+                passed=bool(passed),
+                details={
+                    "applicable": True,
+                    "mode": "deterministic_only",
+                    "entities": entities,
+                    "tier_a": {
+                        "weight": 1.0,
+                        "rate": round(tier_a_rate, 4),
+                        "rows": tier_a_rows,
+                    },
+                    "tier_b": {"skipped": True},
+                },
+            )
+
         tier_b_rate, tier_b_rows, judge_err = _tier_b(answer, entities)
 
         score = (

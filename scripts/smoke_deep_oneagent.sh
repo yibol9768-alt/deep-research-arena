@@ -6,17 +6,19 @@
 #   AGENT=smolagents bash /tmp/smoke_deep_oneagent.sh
 #   AGENT=camel-ai bash /tmp/smoke_deep_oneagent.sh
 #   AGENT=langchain-odr bash /tmp/smoke_deep_oneagent.sh
+#   AGENT=browser-dr bash /tmp/smoke_deep_oneagent.sh
 #
 set -e
 cd /opt/deep_reserch
 
-AGENT="${AGENT:?must set AGENT=gpt-researcher|smolagents|camel-ai|langchain-odr|...}"
+AGENT="${AGENT:?must set AGENT=browser-dr|gpt-researcher|smolagents|camel-ai|langchain-odr|...}"
 TASK="${TASK:-dr_cross_deep_0001}"
 SUFFIX="${SUFFIX:-smoke}"
 
 # pick venv per agent
 case "$AGENT" in
   gpt-researcher) VENV=.venv-gptr ;;
+  browser-dr)     VENV=.venv-camel ;;
   smolagents)     VENV=.venv-smol ;;
   camel-ai)       VENV=.venv-camel ;;
   langchain-odr)  VENV=.venv-langchain-odr ;;

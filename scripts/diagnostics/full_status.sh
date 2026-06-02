@@ -12,7 +12,7 @@ ps -ef | grep -E 'run_full_leaderboard.sh|run_deep_task.py' | grep -v grep | awk
 
 echo
 echo "=== 2. Per-agent score count (all live) ==="
-for a in camel-ai deerflow flowsearcher-ds gpt-researcher ii-researcher \
+for a in browser-dr camel-ai deerflow flowsearcher-ds gpt-researcher ii-researcher \
          langchain-odr ldr qx-agents smolagents storm tongyi-dr \
          co-storm local-deep-researcher dzhng deepagents; do
     n=$(ls $DIR/${a}__*_matrix.score.json 2>/dev/null | wc -l)

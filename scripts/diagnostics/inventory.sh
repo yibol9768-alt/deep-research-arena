@@ -30,7 +30,7 @@ done
 echo
 echo "=== 4. What's in the current leaderboard (per-agent count) ==="
 DIR=$ROOT/data/results/deep_v3
-for a in camel-ai deerflow flowsearcher-ds gpt-researcher ii-researcher \
+for a in browser-dr camel-ai deerflow flowsearcher-ds gpt-researcher ii-researcher \
          langchain-odr ldr qx-agents smolagents storm tongyi-dr \
          deepagents local-deep-researcher; do
     n=$(ls $DIR/${a}__*_matrix.score.json 2>/dev/null | wc -l)
@@ -44,7 +44,7 @@ done
 echo
 echo "=== 5. Pre-existing reports in data/results/deep/ per agent ==="
 DEEP=$ROOT/data/results/deep
-for a in camel-ai deerflow flowsearcher-ds gpt-researcher ii-researcher \
+for a in browser-dr camel-ai deerflow flowsearcher-ds gpt-researcher ii-researcher \
          langchain-odr ldr qx-agents smolagents storm tongyi-dr \
          deepagents local-deep-researcher; do
     n=$(ls $DEEP/${a}__*_matrix.md 2>/dev/null | wc -l)

@@ -1,0 +1,113 @@
+{
+  "schema_version": "rl-1.0.0",
+  "task_id": "rl_bilingual_0001",
+  "tier": "rl_train",
+  "sites": [
+    "wikipedia",
+    "reddit"
+  ],
+  "difficulty": 2,
+  "language": "zh",
+  "intent": "用中文撰写一份约400字的研究报告,解释蓝牙音频编解码器(如 AptX、LDAC)如何影响无线耳机的音质与延迟。技术依据取自英文维基百科(__WIKIPEDIA__),并结合至少一个 Postmill 论坛真实用户讨论帖(__REDDIT__)。报告正文必须为中文(使用中文标点。,;),但所有引用链接指向英文沙盒页面。报告需说明(1)编解码器与比特率、采样率的关系,(2)至少一个实际局限(设备兼容性、延迟、连接稳定性),(3)一位论坛用户的真实使用反馈。每条事实性陈述都用 markdown [文字](url) 形式引用你实际打开过的沙盒页面。报告以 Markdown 正文开头,不要输出思维链。",
+  "sandbox_hosts": [
+    "localhost:9999",
+    "localhost:8090"
+  ],
+  "domain_aliases": {
+    "__SHOPPING__": [
+      "localhost:7770"
+    ],
+    "__REDDIT__": [
+      "localhost:9999"
+    ],
+    "__WIKIPEDIA__": [
+      "localhost:8090"
+    ]
+  },
+  "markdown_spec": {
+    "min_words": 280,
+    "max_words": 900,
+    "min_paragraphs": 3,
+    "min_citations": 3,
+    "min_pages_browsed": 3,
+    "target_words": 350
+  },
+  "citation_policy": {
+    "must_be_in_domain": [
+      "__WIKIPEDIA__",
+      "__REDDIT__"
+    ],
+    "min_distinct_sources": 3,
+    "min_distinct_domains": 2,
+    "per_domain_minimum": {
+      "__WIKIPEDIA__": 1,
+      "__REDDIT__": 1
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/rl/rl_bilingual_0001.json",
+    "min_unique_urls_browsed": 3,
+    "min_unique_urls_cited": 3,
+    "min_must_cite_recall": 0.3,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.5,
+    "per_domain_minimum": {
+      "wiki": 1,
+      "reddit": 1
+    },
+    "scoring_weights": {
+      "must_cite_recall": 0.28,
+      "pool_coverage": 0.07,
+      "domain_balance": 0.65
+    }
+  },
+  "golden": {
+    "triples_path": "data/golden/rl/rl_bilingual_0001.json"
+  },
+  "source_diversity": {
+    "min_subforums": 1
+  },
+  "perspective_balance": {
+    "evaluated_entities": [
+      "LDAC",
+      "AptX"
+    ],
+    "min_score": 0.5
+  },
+  "search": {
+    "target_distinct_queries": 3
+  },
+  "coverage_checklist": [
+    {
+      "id": "c1",
+      "must_mention": [
+        "AptX"
+      ]
+    },
+    {
+      "id": "c2",
+      "must_mention": [
+        "LDAC"
+      ]
+    },
+    {
+      "id": "c3",
+      "must_mention": [
+        "比特率"
+      ]
+    },
+    {
+      "id": "c4",
+      "must_mention": [
+        "延迟或兼容性局限"
+      ]
+    }
+  ],
+  "acquisition": {
+    "modalities": [
+      "shim"
+    ],
+    "backend": "shim",
+    "shim_url": "http://localhost:8081"
+  }
+}
