@@ -1,0 +1,112 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_pilot_smoke_0001",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "wikipedia"
+  ],
+  "difficulty": 1,
+  "expected_steps": 80,
+  "intent": "Write a short grounded mini-report (a few paragraphs) on noise-cancelling headphones using the sandbox. Search the One Stop Market (__SHOPPING__) for a couple of headphone products and cite their pages, and cite one Wikipedia (__WIKIPEDIA__) article on active noise control. Cite at least 3 sandbox URLs as markdown links. Keep it concise and factual; only cite pages you actually opened.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=headphones",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 250,
+    "max_words": 1200,
+    "min_paragraphs": 3,
+    "min_citations": 3,
+    "min_pages_browsed": 4
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 3,
+    "min_distinct_domains": 2,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0001.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0001.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ]
+  },
+  "synthesis_requirements": {
+    "contradiction_findings_min": 5,
+    "brand_sentiment_rankings_min": 4,
+    "rating_sentiment_divergences_min": 3,
+    "final_buy_list_size": 10,
+    "final_buy_list_sources_per_item": {
+      "shopping": 1,
+      "reddit": 2,
+      "wikipedia": 1
+    }
+  },
+  "author_notes": "Deep-tier task generated from configs/deep_topics/0001_audio_headphones.yaml. Golden: must=125, pool=739.",
+  "domain": "Consumer",
+  "intent_type": "Pilot-Smoke",
+  "id": "dr_pilot_smoke_0001",
+  "coverage_checklist": [
+    {
+      "id": "c1",
+      "must_mention": [
+        "noise",
+        "cancel"
+      ]
+    },
+    {
+      "id": "c2",
+      "must_mention": [
+        "headphone"
+      ]
+    },
+    {
+      "id": "c3",
+      "must_mention": [
+        "price"
+      ]
+    }
+  ],
+  "language": "en"
+}

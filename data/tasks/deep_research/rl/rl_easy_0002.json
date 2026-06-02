@@ -1,0 +1,114 @@
+{
+  "schema_version": "rl-1.0.0",
+  "task_id": "rl_easy_0002",
+  "tier": "rl_train",
+  "sites": [
+    "wikipedia",
+    "reddit",
+    "shopping"
+  ],
+  "difficulty": 1,
+  "language": "en",
+  "intent": "Write a ~350-word grounded explainer on why lithium-ion batteries lose capacity over time and what that means for the lifespan of wireless earbuds. Take the technical grounding from English Wikipedia (__WIKIPEDIA__), at least one real owner thread from Postmill (__REDDIT__) describing battery decline, and the listed battery/runtime spec from one earbud product page on the One Stop Market (__SHOPPING__). Cite every factual claim as a markdown [label](url) link to sandbox-local pages you actually opened. The report must cover (1) charge-cycle and thermal aging mechanisms (from Wikipedia), (2) the practical consequence for the small cell in a real earbud product (anchor this to the product page's stated battery/runtime spec), and (3) at least one forum owner's reported battery-life decline. Answer starts with the report in Markdown; no chain-of-thought.",
+  "sandbox_hosts": [
+    "localhost:7770",
+    "localhost:9999",
+    "localhost:8090"
+  ],
+  "domain_aliases": {
+    "__SHOPPING__": [
+      "localhost:7770"
+    ],
+    "__REDDIT__": [
+      "localhost:9999"
+    ],
+    "__WIKIPEDIA__": [
+      "localhost:8090"
+    ]
+  },
+  "markdown_spec": {
+    "min_words": 300,
+    "max_words": 900,
+    "min_paragraphs": 3,
+    "min_citations": 3,
+    "min_pages_browsed": 3,
+    "target_words": 350
+  },
+  "citation_policy": {
+    "must_be_in_domain": [
+      "__WIKIPEDIA__",
+      "__REDDIT__",
+      "__SHOPPING__"
+    ],
+    "min_distinct_sources": 3,
+    "min_distinct_domains": 2,
+    "per_domain_minimum": {
+      "__WIKIPEDIA__": 1,
+      "__REDDIT__": 1
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/rl/rl_easy_0002.json",
+    "min_unique_urls_browsed": 3,
+    "min_unique_urls_cited": 3,
+    "min_must_cite_recall": 0.3,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.5,
+    "per_domain_minimum": {
+      "wiki": 1,
+      "reddit": 1,
+      "shopping": 1
+    },
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "golden": {
+    "triples_path": "data/golden/rl/rl_easy_0002.json"
+  },
+  "source_diversity": {
+    "min_subforums": 1
+  },
+  "perspective_balance": {
+    "evaluated_entities": [],
+    "min_score": 0.5
+  },
+  "search": {
+    "target_distinct_queries": 3
+  },
+  "coverage_checklist": [
+    {
+      "id": "c1",
+      "must_mention": [
+        "charge cycles"
+      ]
+    },
+    {
+      "id": "c2",
+      "must_mention": [
+        "capacity fade"
+      ]
+    },
+    {
+      "id": "c3",
+      "must_mention": [
+        "thermal"
+      ]
+    },
+    {
+      "id": "c4",
+      "must_mention": [
+        "earbuds battery life"
+      ]
+    }
+  ],
+  "acquisition": {
+    "modalities": [
+      "shim"
+    ],
+    "backend": "shim",
+    "shim_url": "http://localhost:8081"
+  }
+}

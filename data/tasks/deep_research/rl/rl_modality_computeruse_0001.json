@@ -1,0 +1,117 @@
+{
+  "schema_version": "rl-1.0.0",
+  "task_id": "rl_modality_computeruse_0001",
+  "tier": "rl_train",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 3,
+  "language": "en",
+  "intent": "Write a ~460-word grounded analysis that RECONCILES CONTRADICTORY evidence about the NovaMax Pro headphones. The product listing on the One Stop Market (__SHOPPING__) makes battery-life and noise-isolation marketing claims; Postmill owner threads (__REDDIT__) report heat buildup, repair uncertainty, and mixed real-world battery experience; and the English Wikipedia references (__WIKIPEDIA__) on active noise control and lithium-ion batteries bound what is physically plausible. The report MUST: (1) state at least one product claim that the forum or technical sources CONTRADICT or qualify, (2) present BOTH positive and negative sentiment on the NovaMax Pro, (3) cite at least two distinct sandbox domains for the contested claim, and (4) end with a bounded, evidence-weighted verdict. Cite every factual claim as a markdown [label](url) link to sandbox-local pages you actually opened. Answer starts with the report in Markdown; no chain-of-thought.\n\n[Modality demonstrator: this task declares the 'computeruse' acquisition channel. The reward is modality-agnostic; same task, different fetch channel.]",
+  "sandbox_hosts": [
+    "localhost:7770",
+    "localhost:9999",
+    "localhost:8090"
+  ],
+  "domain_aliases": {
+    "__SHOPPING__": [
+      "localhost:7770"
+    ],
+    "__REDDIT__": [
+      "localhost:9999"
+    ],
+    "__WIKIPEDIA__": [
+      "localhost:8090"
+    ]
+  },
+  "markdown_spec": {
+    "min_words": 430,
+    "max_words": 900,
+    "min_paragraphs": 4,
+    "min_citations": 4,
+    "min_pages_browsed": 4,
+    "target_words": 460
+  },
+  "citation_policy": {
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 4,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 1,
+      "__REDDIT__": 1,
+      "__WIKIPEDIA__": 1
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/rl/rl_harder_0001.json",
+    "min_unique_urls_browsed": 3,
+    "min_unique_urls_cited": 3,
+    "min_must_cite_recall": 0.3,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.5,
+    "per_domain_minimum": {
+      "shopping": 1,
+      "reddit": 1,
+      "wiki": 1
+    },
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "golden": {
+    "triples_path": "data/golden/rl/rl_harder_0001.json"
+  },
+  "source_diversity": {
+    "min_subforums": 2
+  },
+  "perspective_balance": {
+    "evaluated_entities": [
+      "NovaMax Pro"
+    ],
+    "min_score": 0.5
+  },
+  "search": {
+    "target_distinct_queries": 4
+  },
+  "coverage_checklist": [
+    {
+      "id": "c1",
+      "must_mention": [
+        "NovaMax Pro"
+      ]
+    },
+    {
+      "id": "c2",
+      "must_mention": [
+        "contradiction or qualified claim"
+      ]
+    },
+    {
+      "id": "c3",
+      "must_mention": [
+        "battery and noise control"
+      ]
+    },
+    {
+      "id": "c4",
+      "must_mention": [
+        "evidence-weighted verdict"
+      ]
+    }
+  ],
+  "acquisition": {
+    "modalities": [
+      "computeruse"
+    ],
+    "backend": "computeruse",
+    "shim_url": "http://localhost:8081"
+  }
+}

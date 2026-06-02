@@ -18,6 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 DEFAULT_AGENTS = [
+    "browser-dr",
     "camel-ai",
     "deerflow",
     "flowsearcher-ds",
@@ -34,7 +35,7 @@ DEFAULT_AGENTS = [
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--agents", nargs="+", default=DEFAULT_AGENTS,
-                    help="agents to schedule (default: all 10)")
+                    help="agents to schedule (default: all 11)")
     ap.add_argument("--task-range", default="1-57",
                     help="task id range, inclusive, e.g. 1-30 or 31-57 (default: 1-57)")
     ap.add_argument("--results-dir", default="deep_v3",

@@ -95,6 +95,14 @@ _register("baseline-random",      "integrations.agents.baselines.agent", "Random
 _register("baseline-stuffer",     "integrations.agents.baselines.agent", "StufferBaselineAgent")
 _register("baseline-golden-dump", "integrations.agents.baselines.agent", "GoldenDumpBaselineAgent")
 
+# ---------------------------------------------------------------------------
+# Real-browser acquisition adapter. Brings the Playwright/browser modality onto
+# the leaderboard (the other slugs are search-shim-only). Lazy: importing this
+# registry does NOT import playwright or the RL env; those load only when the
+# agent is instantiated/run, so a box without playwright still boots the harness.
+# ---------------------------------------------------------------------------
+_register("browser-dr", "integrations.agents.browser_dr.agent", "BrowserDRAgent")
+
 
 __all__ = [
     "AgentResult",

@@ -1,0 +1,117 @@
+{
+  "schema_version": "rl-1.0.0",
+  "task_id": "rl_medium_0001",
+  "tier": "rl_train",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 2,
+  "language": "en",
+  "intent": "Write a ~420-word grounded buying recommendation for the NovaMax Pro over-ear headphones, drawing on the product listing on the One Stop Market (__SHOPPING__), at least one Postmill owner thread (__REDDIT__), and one English Wikipedia technical reference (__WIKIPEDIA__). The report MUST present BOTH concrete strengths (sound, battery, comfort) AND at least one concrete weakness (price, pad heat, clamp, repairability) for the NovaMax Pro, then end with a bounded recommendation naming who should and should not buy it. Cite every factual claim as a markdown [label](url) link to sandbox-local pages you actually opened. Answer starts with the report in Markdown; no chain-of-thought.",
+  "sandbox_hosts": [
+    "localhost:7770",
+    "localhost:9999",
+    "localhost:8090"
+  ],
+  "domain_aliases": {
+    "__SHOPPING__": [
+      "localhost:7770"
+    ],
+    "__REDDIT__": [
+      "localhost:9999"
+    ],
+    "__WIKIPEDIA__": [
+      "localhost:8090"
+    ]
+  },
+  "markdown_spec": {
+    "min_words": 380,
+    "max_words": 900,
+    "min_paragraphs": 4,
+    "min_citations": 4,
+    "min_pages_browsed": 4,
+    "target_words": 420
+  },
+  "citation_policy": {
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 4,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 1,
+      "__REDDIT__": 1,
+      "__WIKIPEDIA__": 1
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/rl/rl_medium_0001.json",
+    "min_unique_urls_browsed": 3,
+    "min_unique_urls_cited": 3,
+    "min_must_cite_recall": 0.3,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.5,
+    "per_domain_minimum": {
+      "shopping": 1,
+      "reddit": 1,
+      "wiki": 1
+    },
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    }
+  },
+  "golden": {
+    "triples_path": "data/golden/rl/rl_medium_0001.json"
+  },
+  "source_diversity": {
+    "min_subforums": 2
+  },
+  "perspective_balance": {
+    "evaluated_entities": [
+      "NovaMax Pro"
+    ],
+    "min_score": 0.5
+  },
+  "search": {
+    "target_distinct_queries": 3
+  },
+  "coverage_checklist": [
+    {
+      "id": "c1",
+      "must_mention": [
+        "NovaMax Pro"
+      ]
+    },
+    {
+      "id": "c2",
+      "must_mention": [
+        "pros and cons"
+      ]
+    },
+    {
+      "id": "c3",
+      "must_mention": [
+        "price or comfort drawback"
+      ]
+    },
+    {
+      "id": "c4",
+      "must_mention": [
+        "bounded recommendation"
+      ]
+    }
+  ],
+  "acquisition": {
+    "modalities": [
+      "shim"
+    ],
+    "backend": "shim",
+    "shim_url": "http://localhost:8081"
+  }
+}
