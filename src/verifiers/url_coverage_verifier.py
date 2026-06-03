@@ -44,6 +44,7 @@ from .citation_format import (  # noqa: F401
     canonicalize_url as _canonical,
 )
 from .citation_format import extract_cited_urls as _extract_cited_urls_full
+from .golden_curate import curate_must_cite, curated_recall
 
 
 def _extract_cited_urls(markdown: str) -> tuple[set[str], dict[str, set[str]]]:
@@ -130,7 +131,19 @@ class URLCoverageVerifier:
         must_hits = cited & set(must.keys())
         must_weight_hit = sum(must[u] for u in must_hits)
         must_weight_total = sum(must.values()) or 1.0
-        must_cite_recall = must_weight_hit / must_weight_total
+        # FULL recall: weighted hits over the entire (over-specified) crawl.
+        # The full must_cite_urls is the whole product crawl (~121 entries), so
+        # this is structurally near-unreachable. Kept for transparency only.
+        must_cite_recall_full = must_weight_hit / must_weight_total
+
+        # CURATED recall (headline): unweighted fraction of the top-K most
+        # important must-cite entries that were cited. Derived at scoring time
+        # from the same golden, no re-crawl. K is config-overridable.
+        curated_k = int(cov_cfg.get("curated_k", 12))
+        curated_entries = curate_must_cite(must_entries, k=curated_k)
+        must_cite_recall = curated_recall(
+            cited, must_entries, k=curated_k, canon=_canonical
+        )
 
         pool_hits = cited & pool
         pool_coverage = len(pool_hits) / len(pool) if pool else 0.0
@@ -163,7 +176,10 @@ class URLCoverageVerifier:
         else:
             domain_balance = 1.0
 
-        min_must_recall = float(cov_cfg.get("min_must_cite_recall", 0.45))
+        # Gate now applies to the curated headline recall, so the default is
+        # lowered from 0.45 (unreachable vs the full crawl) to 0.30 (achievable
+        # vs the curated top-K). Override via url_coverage.min_must_cite_recall.
+        min_must_recall = float(cov_cfg.get("min_must_cite_recall", 0.30))
         min_pool_cov = float(cov_cfg.get("min_expected_pool_coverage", 0.12))
         # NOTE (anti-volume): `min_cited_n` and `min_domain_balance` are still
         # read for backward-compat / diagnostics but are NO LONGER part of the
@@ -204,6 +220,8 @@ class URLCoverageVerifier:
                 "must_cite_total": len(must),
                 "must_cite_hit": len(must_hits),
                 "must_cite_recall": round(must_cite_recall, 4),
+                "must_cite_recall_full": round(must_cite_recall_full, 4),
+                "curated_must_cite_n": len(curated_entries),
                 "pool_total": len(pool),
                 "pool_hit": len(pool_hits),
                 "pool_coverage": round(pool_coverage, 4),

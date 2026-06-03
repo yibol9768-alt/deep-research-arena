@@ -76,6 +76,20 @@ def _extract_verdict(text: str) -> str:
 
 from src.verifiers.judge_client import call_judge  # pluggable backend
 from src.verifiers.judge_client import format_evidence_block
+from src.verifiers.judge_client import smart_truncate
+
+
+def _report_cap() -> int:
+    """Per-report char cap visible to the judge (env-configurable).
+
+    Raised from the old hard 5000 head-only clip to a larger default so a
+    long report's conclusion (where synthesis/depth lives) stays visible.
+    """
+    try:
+        cap = int(os.environ.get("PAIRWISE_REPORT_CAP", "12000"))
+    except (TypeError, ValueError):
+        cap = 12000
+    return cap if cap > 0 else 12000
 
 
 # Per-dimension framing. When `dimension` is passed to `battle`, the judge is
@@ -147,13 +161,17 @@ def _judge_once(
 ) -> tuple[str, str]:
     ev_a = format_evidence_block(evidence_a)
     ev_b = format_evidence_block(evidence_b)
+    cap = _report_cap()
+    # Smart truncation keeps BOTH head and conclusion of long reports, so the
+    # judge sees intro AND synthesis instead of only the first `cap` chars.
+    # Short reports (< cap) pass through verbatim.
     user_parts = [
         f"Research task:\n{task_intent}",
-        f"--- Report A ---\n{(ans_a or '')[:5000]}",
+        f"--- Report A ---\n{smart_truncate(ans_a or '', cap=cap)}",
     ]
     if ev_a:
         user_parts.append(f"[Evidence available to Report A]\n{ev_a}")
-    user_parts.append(f"--- Report B ---\n{(ans_b or '')[:5000]}")
+    user_parts.append(f"--- Report B ---\n{smart_truncate(ans_b or '', cap=cap)}")
     if ev_b:
         user_parts.append(f"[Evidence available to Report B]\n{ev_b}")
     if dimension:
