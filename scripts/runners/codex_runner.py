@@ -169,6 +169,35 @@ def _build_ps_driver() -> str:
     return _PS_DRIVER_TEMPLATE
 
 
+def _degenerate_marker(elapsed_s: float, returncode: int | None) -> str:
+    """Recognized 'produced no report' marker.
+
+    Format matches the leaderboard's ``_RUNNER_FAILURE_PREFIX_RE`` so that
+    ``_looks_degenerate`` / ``is_degenerate_answer`` reliably exclude the run
+    from URL coverage, analysis_depth, presentation scoring and the
+    Bradley-Terry/Elo computation.
+    """
+    # The leaderboard's _RUNNER_FAILURE_PREFIX_RE requires ``exit=\d+`` (a
+    # non-negative integer), so a missing/negative code must be normalized to a
+    # non-negative sentinel or the marker would NOT be recognized as degenerate.
+    rc = returncode if isinstance(returncode, int) and returncode >= 0 else 1
+    return f"(codex produced no report after {elapsed_s:.0f}s, exit={rc})"
+
+
+def _wrap_stdout_fallback(stdout_text: str, elapsed_s: float, returncode: int | None) -> str:
+    """Wrap a raw 2>&1 stdout dump in the degenerate marker.
+
+    The remote driver captures stdout via ``& codex @args 2>&1 | Set-Content``,
+    so ``stdout_text`` is the merged stdout+stderr stream (chain-of-thought,
+    tool-call logs, curl output, error traces), NOT a research report. When the
+    agent fails to write the report file this dump must NOT be scored as a real
+    report. Prefixing the recognized marker makes the leaderboard's degenerate
+    filters drop it instead of feeding a crashed/empty run into scoring.
+    """
+    marker = _degenerate_marker(elapsed_s, returncode)
+    return f"{marker}\n\n--- agent stdout tail (no report file written) ---\n{stdout_text.strip()}"
+
+
 def _ssh(cmd: str, *, timeout_s: int = 60) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["ssh",
@@ -290,16 +319,23 @@ async def run(
             pass
 
         if len(report) < 500 and stdout_text.strip():
+            # The report file is missing/short and all we have is the merged
+            # 2>&1 stdout stream. This is NOT a research report (it is tool-call
+            # logs, chain-of-thought, curl output, error traces), so we must not
+            # let it be scored as one. Prefix the recognized degenerate marker
+            # so the leaderboard's _looks_degenerate / is_degenerate_answer
+            # filters exclude it from scoring and Elo, instead of returning a
+            # bare stdout dump that frequently passes the chars/URL filters.
             logger.info(
-                "codex: report file is %d chars, falling back to %d chars stdout",
+                "codex: report file is %d chars, marking %d chars stdout as degenerate fallback",
                 len(report), len(stdout_text),
             )
-            report = stdout_text.strip()
+            report = _wrap_stdout_fallback(stdout_text, elapsed, proc.returncode)
 
         if not report:
             return (
-                f"(codex produced no report after {elapsed:.0f}s, "
-                f"exit={proc.returncode})\n\n--- ssh stdout tail ---\n"
+                f"{_degenerate_marker(elapsed, proc.returncode)}\n\n"
+                f"--- ssh stdout tail ---\n"
                 f"{proc.stdout[-1500:]}\n\n--- ssh stderr tail ---\n"
                 f"{proc.stderr[-1500:]}\n\n--- agent stdout tail ---\n"
                 f"{stdout_text[-1500:]}"

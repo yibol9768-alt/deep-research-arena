@@ -266,18 +266,25 @@ def extract_citations(
 
     Style precedence
     ----------------
-    A given URL string is reported once. The first match in the iteration
-    order wins; iteration order is: markdown → bare → numbered references
-    → footnote references → ``Source:`` prefix → bullet-line. So a URL
-    appearing both as ``[label](url)`` and bare is reported as ``markdown``,
-    not bare.
+    A given URL string is reported once per distinct citation site. The
+    iteration order is: markdown → ``Source:`` prefix → bullet-line →
+    numbered references → footnote references → bare. The bare pass is a
+    catchall and runs last; it skips any URL whose canonical form was
+    already emitted by an earlier, more-specific pass. This prevents a
+    numbered/footnote/source/bullet reference-line URL (e.g.
+    ``[1] http://host/x`` on a References line) from being double-counted:
+    once as the anchored citation and again as a bare URL.
     """
     if not answer:
         return []
     sandbox_set = set(sandbox_hosts) if sandbox_hosts else None
     out: list[Citation] = []
     seen_offsets: set[int] = set()
-    seen_urls: set[str] = set()
+    # Canonical URLs already emitted by the anchored passes (steps 1-5).
+    # The bare catchall (step 6) skips these so a reference-line URL that
+    # backs a numbered/footnote/source/bullet citation is not counted a
+    # second time as a standalone bare URL.
+    bare_skip: set[str] = set()
 
     def _maybe_emit(raw: str, ctx_offset: int, style: str) -> None:
         raw = strip_url_trail(raw)
@@ -289,10 +296,16 @@ def extract_citations(
         # Same offset reported multiple times by overlapping passes -> skip.
         if ctx_offset in seen_offsets:
             return
-        # Same URL elsewhere already counted? Keep both — multiple cites of
-        # the same URL are legitimate (different claims).
+        # Bare catchall: the reference-line URL backing a more-specific
+        # citation (numbered/footnote/source/bullet) is the same citation,
+        # not a new one. Skip it so numbered cites aren't double-counted.
+        if style == "bare" and canon in bare_skip:
+            return
+        # Same URL at a different offset under an anchored style? Keep both
+        # note: multiple distinct cites of the same URL are legitimate.
         seen_offsets.add(ctx_offset)
-        seen_urls.add(canon)
+        if style != "bare":
+            bare_skip.add(canon)
         out.append(Citation(
             canonical_url=canon,
             raw_url=raw,
@@ -301,10 +314,12 @@ def extract_citations(
             style=style,
         ))
 
-    # Iteration order matters — `_maybe_emit` rejects re-counts of the same
-    # offset. Sort styles from most-specific to least-specific so a URL
-    # surrounded by an anchoring pattern (e.g. "Source: <url>") is reported
-    # under that style instead of falling through to bare.
+    # Iteration order matters. `_maybe_emit` rejects re-counts of the same
+    # offset, and the bare catchall (step 6, last) skips any canonical URL
+    # already emitted by an anchored pass (steps 1-5). Styles run from
+    # most-specific to least-specific so a URL carried by an anchoring
+    # pattern (e.g. "Source: <url>" or a "[N] <url>" reference line) is
+    # reported under that style instead of also surfacing as a bare URL.
 
     # 1. Markdown links: [label](url) — most explicit, definite citation.
     for m in MD_LINK_RE.finditer(answer):

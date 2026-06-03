@@ -22,6 +22,87 @@ REDDIT = os.environ.get("REDDIT", "http://localhost:9999").rstrip("/")
 KIWIX = os.environ.get("KIWIX", "http://localhost:8090").rstrip("/")
 KIWIX_BOOK = os.environ.get("KIWIX_BOOK", "wikipedia_en_all_nopic")
 
+# ---------------------------------------------------------------------------
+# Strict-mode allowlist (closed-book contract enforcement)
+# ---------------------------------------------------------------------------
+#
+# In strict mode (SHIM_MODE=strict) fetches must never leave the sandbox.
+# app.py validates the *requested* URL via its own _url_is_sandbox gate, but
+# that pre-fetch check is bypassed when a sandbox page 30x-redirects off
+# origin and requests follows the redirect (allow_redirects=True). To close
+# that hole, extract() must (a) not follow redirects and (b) re-validate the
+# final response URL against the same allowlist before returning content.
+#
+# The host:port set mirrors app.SHIM_ALLOWLIST_HOSTS. It is kept self
+# contained here (rather than importing app) so the backend has no dependency
+# on the FastAPI layer and importing it has no side effects. It is also
+# extended with the netlocs of the configured SHOPPING/REDDIT/KIWIX bases so
+# the gate tracks whatever sandbox origins this process is actually pointed
+# at.
+_STATIC_ALLOWLIST_HOSTS: tuple[str, ...] = (
+    "localhost:7770", "localhost:8090", "localhost:9999", "localhost:8081",
+    "127.0.0.1:7770", "127.0.0.1:8090", "127.0.0.1:9999", "127.0.0.1:8081",
+)
+
+
+def _netloc_of(base: str) -> str:
+    p = urllib.parse.urlparse(base)
+    host = (p.hostname or "").lower()
+    try:
+        port = p.port
+    except (ValueError, TypeError):
+        port = None
+    return f"{host}:{port}" if port else host
+
+
+def _allowlist_hosts() -> frozenset[str]:
+    hosts = set(_STATIC_ALLOWLIST_HOSTS)
+    for base in (SHOPPING, REDDIT, KIWIX):
+        n = _netloc_of(base)
+        if n:
+            hosts.add(n)
+    return frozenset(hosts)
+
+
+SHIM_ALLOWLIST_HOSTS: frozenset[str] = _allowlist_hosts()
+
+
+def _shim_strict_mode() -> bool:
+    """Return True when SHIM_MODE=strict. Read at call time so callers/tests
+    can toggle the mode via the environment without reimporting."""
+    return os.environ.get("SHIM_MODE", "open").strip().lower() == "strict"
+
+
+def _url_is_sandbox(url: str) -> bool:
+    """Strict host:port equality check against `SHIM_ALLOWLIST_HOSTS`.
+
+    Mirrors app._url_is_sandbox: substring matching is unsafe (it admits
+    http://localhost:77703/leak and userinfo tricks), so we parse the URL and
+    compare host:port netlocs exactly.
+    """
+    if not url:
+        return False
+    try:
+        p = urllib.parse.urlparse(url)
+    except Exception:
+        return False
+    host = (p.hostname or "").lower()
+    if not host:
+        return False
+    try:
+        port = p.port
+    except (ValueError, TypeError):
+        port = None
+    netloc = f"{host}:{port}" if port else host
+    for allowed in SHIM_ALLOWLIST_HOSTS:
+        a = allowed.lower()
+        if ":" in a:
+            if netloc == a:
+                return True
+        elif host == a:
+            return True
+    return False
+
 # Reddit forums we search by default. Overridable via env.
 _DEFAULT_REDDIT_FORUMS = os.environ.get(
     "SHIM_REDDIT_FORUMS",
@@ -310,19 +391,41 @@ def search(
     return out
 
 
-def extract(urls: Iterable[str]) -> list[dict]:
+def extract(urls: Iterable[str], *, strict: bool | None = None) -> list[dict]:
     """Fetch full page content for `urls`. Returns list of
-    {url, raw_content, title, source, status}."""
+    {url, raw_content, title, source, status}.
+
+    In strict mode (``strict=True``, or ``strict=None`` with
+    ``SHIM_MODE=strict``) redirects are NOT followed and the final response
+    URL is re-validated against the sandbox allowlist. This closes the hole
+    where a sandbox page returns a 301/302 to an off-allowlist host: with
+    allow_redirects=True the pre-fetch gate in app.py is bypassed because it
+    only sees the requested (pre-redirect) URL. A blocked redirect is
+    reported as a failed row (status preserved, error set, no raw_content) so
+    no off-allowlist content is ever returned.
+    """
+    if strict is None:
+        strict = _shim_strict_mode()
     out = []
     for url in urls:
         entry = {"url": url, "raw_content": "", "title": "", "source": "", "status": 0}
         try:
             t0 = time.time()
-            r = requests.get(url, timeout=20, allow_redirects=True)
+            r = requests.get(url, timeout=20, allow_redirects=not strict)
             entry["status"] = r.status_code
             if r.status_code >= 400:
                 out.append(entry)
                 continue
+            if strict:
+                # allow_redirects=False above means a 3xx is returned as-is
+                # (with no body to parse). Treat any redirect, or a final URL
+                # that left the allowlist, as a block so off-allowlist content
+                # never leaks through the closed-book contract.
+                if 300 <= r.status_code < 400 or not _url_is_sandbox(str(r.url)):
+                    entry["error"] = "non_sandbox_redirect_blocked"
+                    entry["raw_content"] = ""
+                    out.append(entry)
+                    continue
             soup = BeautifulSoup(r.text, "html.parser")
             # Strip noisy nodes
             for sel in soup.select("script, style, nav, header, footer"):

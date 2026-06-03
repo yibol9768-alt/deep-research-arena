@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Difficulty(int, Enum):
@@ -54,7 +54,7 @@ class Goal(BaseModel):
 
 class StructuredInstruction(BaseModel):
     """Structured task instruction"""
-    goals: List[Goal] = Field(..., min_items=1, max_items=5)
+    goals: List[Goal] = Field(..., min_length=1, max_length=5)
     required_tools: Optional[List[str]] = None
     preconditions: Optional[List[str]] = None
 
@@ -70,7 +70,7 @@ class OutputFormatSpec(BaseModel):
     type: str = Field(..., pattern="^(object|array|string|number)$")
     properties: Dict[str, Any]
     required: List[str]
-    examples: List[Any] = Field(..., min_items=1)
+    examples: List[Any] = Field(..., min_length=1)
     counterexamples: Optional[List[Any]] = None
 
 
@@ -100,7 +100,7 @@ class SuccessCriteria(BaseModel):
 class NoiseProfile(BaseModel):
     """Noise configuration for a task"""
     name: str = Field(..., pattern="^(clean|realistic|adversarial|degraded)$")
-    network_latency_ms: List[int] = Field(..., min_items=2, max_items=2)
+    network_latency_ms: List[int] = Field(..., min_length=2, max_length=2)
     request_timeout_probability: float = Field(..., ge=0, le=1)
     image_load_failure_rate: float = Field(default=0, ge=0, le=1)
     visual_noise_level: float = Field(default=0, ge=0, le=1)
@@ -189,5 +189,7 @@ class Task(BaseModel):
             raise ValueError(f"Invalid domain prefix: {parts[0]}")
         return v
 
-    class Config:
-        use_enum_values = False
+    # Use ConfigDict instead of the class-based `Config`, which is deprecated
+    # in pydantic V2 and scheduled for removal in V3.0 (same removal class as
+    # min_items/max_items). Semantics are identical.
+    model_config = ConfigDict(use_enum_values=False)

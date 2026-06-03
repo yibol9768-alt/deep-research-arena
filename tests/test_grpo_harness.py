@@ -239,6 +239,38 @@ def test_rubric_refresh_fires_on_interval_and_next_snapshot_is_used(
     assert policy.last_update_batch["rubric_snapshot"]["version"] == 1
 
 
+def test_evaluator_is_rl_strict_by_default(tmp_path: Path):
+    # The live RL training loop must run with strict grounding so a rollout
+    # that cites sandbox URLs but fetched no pages scores 0 instead of taking
+    # the text-only proxy branch. _evaluator must force _rl_strict=True even
+    # when the default factory or a factory that forgets the flag is used.
+    config = _task_config(tmp_path)
+
+    # Default factory (no custom factory passed): must still be strict.
+    default_trainer = GRPOTrainer(
+        MockPolicy(quality_level="high"),
+        None,
+        {TASK_ID: RubricStore(TASK_ID)},
+        GRPOConfig(g=2, refresh_every_n=99),
+    )
+    default_eval = default_trainer._evaluator(TASK_ID, config)
+    assert default_eval._rl_strict is True
+    assert default_eval._task_config == config
+
+    # Custom factory that omits the flag: _evaluator must still force it on.
+    def forgetful_factory(task_id: str) -> ArenaEvaluator:
+        return ArenaEvaluator(task_id, mode="fast")
+
+    forgetful_trainer = GRPOTrainer(
+        MockPolicy(quality_level="high"),
+        forgetful_factory,
+        {TASK_ID: RubricStore(TASK_ID)},
+        GRPOConfig(g=2, refresh_every_n=99),
+    )
+    forgetful_eval = forgetful_trainer._evaluator(TASK_ID, config)
+    assert forgetful_eval._rl_strict is True
+
+
 def test_checkpoint_roundtrip_restores_trainer_and_rubric_state(tmp_path: Path):
     config = _task_config(tmp_path)
     store = RubricStore(TASK_ID)

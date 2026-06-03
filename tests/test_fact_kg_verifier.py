@@ -23,6 +23,12 @@ from src.verifiers.fact_kg_verifier import (
     _number_in,
     _load_golden,
 )
+from src.golden.triple_extractor import (
+    _normalize_sites,
+    _predicates_for,
+    _EXTRACTOR_SYSTEM_TMPL,
+    extract_triples,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,6 +71,54 @@ def test_load_golden_known_task():
 
 def test_load_golden_missing_task():
     assert _load_golden("dr_nonexistent") == []
+
+
+# -------------------- triple extractor --------------------
+
+
+def test_normalize_sites():
+    assert _normalize_sites("shopping") == ["shopping"]
+    # order-preserving de-dup
+    assert _normalize_sites(["shopping", "reddit", "shopping"]) == ["shopping", "reddit"]
+    # drops empties / None and trims whitespace
+    assert _normalize_sites(["", None, " reddit "]) == ["reddit"]
+
+
+def test_predicates_for_single_and_multi_site():
+    shop = set(_predicates_for("shopping"))
+    red = set(_predicates_for("reddit"))
+    both = set(_predicates_for(["shopping", "reddit"]))
+    assert "price" in shop and "score" not in shop
+    assert "score" in red and "price" not in red
+    # A cross-site task must be offered BOTH vocabularies (regression: the
+    # reddit half used to be silently dropped when only sites[0] was passed).
+    assert both == shop | red
+    assert {"price", "score"} <= both
+
+
+def test_extractor_prompt_has_literal_site_labels():
+    """The rule text must read literal 'shopping'/'reddit', never '{site}-shopping'."""
+    preds = sorted(_predicates_for(["shopping", "reddit"]))
+    rendered = _EXTRACTOR_SYSTEM_TMPL.format(
+        site="shopping, reddit", predicates=", ".join(preds)
+    )
+    assert "{site}" not in rendered
+    assert "shopping-shopping" not in rendered
+    assert "reddit-reddit" not in rendered
+    assert "For shopping," in rendered
+    assert "For reddit," in rendered
+
+
+def test_extract_triples_unknown_site_returns_error():
+    out, err = extract_triples("anything", site="not-a-site")
+    assert out == []
+    assert "no predicates registered" in err
+
+
+def test_extract_triples_empty_site_list_returns_error():
+    out, err = extract_triples("anything", site=[])
+    assert out == []
+    assert "no site provided" in err
 
 
 # -------------------- recall acceptance --------------------

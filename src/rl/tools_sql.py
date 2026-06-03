@@ -117,6 +117,36 @@ _KNOWN_TABLES: set[str] = {
 }
 
 
+def _merge_column_allow() -> dict[str, set[str]]:
+    """Union the per-db column allow-lists into one table -> columns map.
+
+    Used as the fallback column gate when ``db`` is unrecognised/empty so a
+    sensitive table's restricted column set (e.g. postmill ``users`` ->
+    {id, username, created_at}) is STILL enforced. A table is the union of its
+    per-db column sets; if ANY db exposes it as ``{"*"}`` the merged entry is
+    ``{"*"}`` (the table gates access there), otherwise the merged entry is the
+    union of the explicit columns so a restricted table stays restricted no
+    matter which db is omitted. Tables are unique across our dbs today, so this
+    is just a flatten in practice, but the union keeps the gate correct if that
+    ever changes.
+    """
+
+    merged: dict[str, set[str]] = {}
+    for db in _ALLOWLIST.values():
+        for table, cols in db.items():
+            existing = merged.get(table)
+            if existing is None:
+                merged[table] = set(cols)
+            elif "*" in existing or "*" in cols:
+                merged[table] = {"*"}
+            else:
+                merged[table] = existing | cols
+    return merged
+
+
+_MERGED_COLUMN_ALLOW: dict[str, set[str]] = _merge_column_allow()
+
+
 # ---------------------------------------------------------------------------
 # Guard errors
 # ---------------------------------------------------------------------------
@@ -141,6 +171,48 @@ _WORD = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 _TABLE_REF = re.compile(
     r"\b(?:FROM|JOIN)\s+([A-Za-z_][A-Za-z_0-9]*)",
     re.IGNORECASE,
+)
+# A comma-separated continuation of a FROM/JOIN table list, e.g. the ``, b`` in
+# ``FROM a, b`` (a valid implicit CROSS JOIN). Without this the table allow-list
+# would only see the first table and silently pass off-allowlist tables joined
+# by comma. ``,`` may be followed by an optional schema-qualified identifier; we
+# capture the FIRST identifier token of each comma-listed entry (the base table
+# or its schema prefix, both of which we want to gate). A leading ``(`` (a
+# subquery / VALUES list / row constructor) has no top-level table name token,
+# so it simply does not match here while its inner real tables still match
+# ``_TABLE_REF``.
+_TABLE_LIST_TAIL = re.compile(
+    r",\s*([A-Za-z_][A-Za-z_0-9]*)",
+    re.IGNORECASE,
+)
+# Clause keywords that terminate a comma-separated FROM table list. A comma that
+# appears AFTER one of these (e.g. inside a ``GROUP BY a, b`` or a ``SELECT a, b``
+# projection) is not a table reference and must not be scanned as one.
+_FROM_LIST_TERMINATORS = frozenset(
+    {
+        "WHERE",
+        "GROUP",
+        "HAVING",
+        "ORDER",
+        "LIMIT",
+        "OFFSET",
+        "UNION",
+        "INTERSECT",
+        "EXCEPT",
+        "WINDOW",
+        "FETCH",
+        "FOR",
+        "ON",
+        "USING",
+        "JOIN",
+        "INNER",
+        "LEFT",
+        "RIGHT",
+        "FULL",
+        "CROSS",
+        "NATURAL",
+        "SELECT",
+    }
 )
 # CTE names defined by ``WITH name AS (...)`` / ``, name AS (...)``. These are
 # query-local aliases, NOT base tables, so they are excluded from the table
@@ -168,6 +240,44 @@ def _split_statements(sql: str) -> list[str]:
     """
 
     return [s.strip() for s in sql.split(";") if s.strip()]
+
+
+def _extract_table_refs(statement: str) -> list[str]:
+    """Every base-table identifier referenced by a FROM/JOIN, comma-joins included.
+
+    ``_TABLE_REF`` only sees the single token right after FROM/JOIN, so an
+    implicit cross join ``FROM a, b`` would leave ``b`` (a potentially
+    off-allowlist table) unchecked and bypass the table allow-list. This walks
+    each FROM/JOIN match and then consumes the comma-separated continuation
+    (``, b , c ...``) that can follow, stopping at the next clause keyword. Each
+    comma-listed entry contributes its first identifier token (the base table, or
+    its schema prefix for ``schema.tbl`` forms, both of which we want to gate).
+    Identifiers are returned lower-cased; the caller filters out CTE aliases.
+    """
+
+    tables: list[str] = []
+    for m in _TABLE_REF.finditer(statement):
+        tables.append(m.group(1))
+        # Walk the comma-separated tail immediately following this table token,
+        # advancing the cursor past each accepted entry. We stop as soon as a
+        # clause keyword appears between the cursor and the next comma (that
+        # comma belongs to GROUP BY / ORDER BY / a projection, not the FROM list)
+        # or the next match is no longer contiguous.
+        cursor = m.end()
+        while True:
+            tail = _TABLE_LIST_TAIL.search(statement, cursor)
+            if tail is None:
+                break
+            between = statement[cursor : tail.start()]
+            words = _WORD.findall(between)
+            if any(w.upper() in _FROM_LIST_TERMINATORS for w in words):
+                break
+            ident = tail.group(1)
+            if ident.upper() in _FROM_LIST_TERMINATORS:
+                break
+            tables.append(ident)
+            cursor = tail.end()
+    return [t.lower() for t in tables]
 
 
 def validate_select(sql: str, *, db: str | None = None) -> dict[str, Any]:
@@ -219,9 +329,9 @@ def validate_select(sql: str, *, db: str | None = None) -> dict[str, Any]:
 
     cte_names = {c.lower() for c in _CTE_DEF.findall(statement)}
     tables = [
-        t.lower()
-        for t in _TABLE_REF.findall(statement)
-        if t.lower() not in cte_names
+        t
+        for t in _extract_table_refs(statement)
+        if t not in cte_names
     ]
     allow = _ALLOWLIST.get(str(db or "").lower())
     allowed_tables = set(allow) if allow else set(_KNOWN_TABLES)
@@ -236,9 +346,16 @@ def validate_select(sql: str, *, db: str | None = None) -> dict[str, Any]:
     # column set. We do a conservative token scan: if such a restricted table is
     # referenced and the statement uses ``SELECT *`` or names a column outside the
     # set, reject. Tables with ``{"*"}`` skip the column gate.
-    if allow:
+    #
+    # This MUST run even when ``db`` is unrecognised/empty: otherwise an agent on a
+    # single-database deployment could omit ``db`` and read a sensitive table's
+    # restricted columns (the table gate still passes via _KNOWN_TABLES). When
+    # ``allow`` is None we fall back to the merged-across-dbs column map so a
+    # restricted table stays restricted regardless of which db was supplied.
+    column_allow = allow if allow else _MERGED_COLUMN_ALLOW
+    if column_allow:
         for table in tables:
-            cols = allow.get(table)
+            cols = column_allow.get(table)
             if not cols or "*" in cols:
                 continue
             if re.search(r"\bSELECT\s+\*", statement, re.IGNORECASE) or re.search(

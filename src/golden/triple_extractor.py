@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import os
 import re
-from typing import Any
+from typing import Any, Iterable
 
 from .db_schema_map import PREDICATES
 
@@ -28,19 +28,42 @@ from .db_schema_map import PREDICATES
 EXTRACT_MODEL = os.environ.get("EXTRACT_MODEL", "deepseek-v4-flash")
 
 
-def _predicates_for(site: str) -> list[str]:
-    return [p for p, spec in PREDICATES.items() if spec.site == site]
+def _normalize_sites(site: str | Iterable[str]) -> list[str]:
+    """Coerce the `site` argument into a de-duplicated, ordered list of sites.
+
+    Accepts either a single site string ('shopping') or an iterable of sites
+    (['shopping', 'reddit']) so cross-site tasks offer the full predicate
+    vocabulary rather than silently dropping one site's claims.
+    """
+    if isinstance(site, str):
+        raw = [site]
+    else:
+        raw = list(site)
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for s in raw:
+        s = (s or "").strip()
+        if s and s not in seen:
+            seen.add(s)
+            ordered.append(s)
+    return ordered
+
+
+def _predicates_for(site: str | Iterable[str]) -> list[str]:
+    """Predicates registered for the given site (or any of the given sites)."""
+    sites = set(_normalize_sites(site))
+    return [p for p, spec in PREDICATES.items() if spec.site in sites]
 
 
 _EXTRACTOR_SYSTEM_TMPL = """You extract atomic factual claims from a research report as (subject, predicate, object) triples.
 
-Site: {site}
+Site(s): {site}
 Allowed predicates (do NOT invent others): {predicates}
 
 Rules:
   - One claim per triple. If the report says "Product A costs $30", emit {{"subject":"Product A","predicate":"price","object":"30"}}.
   - Strip currency symbols, 'stars', 'reviews' from the object (raw number only).
-  - For {site}-shopping, `subject` is the PRODUCT NAME exactly as written. For {site}-reddit, `subject` is a POST TITLE (for score/comment_count/forum/post_title) or a USERNAME (for author). Aggregate predicates (avg_*, n_*, median_*) may use 'forum:<name>' or 'author:<name>' as subject.
+  - For shopping, `subject` is the PRODUCT NAME exactly as written. For reddit, `subject` is a POST TITLE (for score/comment_count/forum/post_title) or a USERNAME (for author). Aggregate predicates (avg_*, n_*, median_*) may use 'forum:<name>' or 'author:<name>' as subject.
   - Ignore opinion / qualitative text. Only numeric / categorical facts tied to the allowed predicates.
   - Skip claims where you cannot identify both subject and object with high confidence.
 
@@ -85,24 +108,33 @@ def _parse_array(text: str) -> list[dict]:
 def extract_triples(
     markdown: str,
     *,
-    site: str,
+    site: str | Iterable[str],
     model: str | None = None,
     max_tokens: int = 3000,
 ) -> tuple[list[dict], str]:
     """Return (triples, raw_llm_text). Triples are [{subject, predicate, object}, ...].
 
+    `site` may be a single site string ('shopping') or an iterable of sites
+    (['shopping', 'reddit']). For cross-site tasks, pass the full list so the
+    extractor is offered every site's predicate vocabulary; otherwise the
+    other site's claims are silently dropped from precision.
+
     If the LLM is unavailable, returns ([], error_message).
     """
-    preds = _predicates_for(site)
+    sites = _normalize_sites(site)
+    if not sites:
+        return [], "no site provided"
+
+    preds = _predicates_for(sites)
     if not preds:
-        return [], f"no predicates registered for site={site}"
+        return [], f"no predicates registered for site(s)={', '.join(sites)}"
 
     client, err = _build_client()
     if client is None:
         return [], f"extractor client unavailable: {err}"
 
     sys_msg = _EXTRACTOR_SYSTEM_TMPL.format(
-        site=site,
+        site=", ".join(sites),
         predicates=", ".join(sorted(preds)),
     )
     user_msg = (

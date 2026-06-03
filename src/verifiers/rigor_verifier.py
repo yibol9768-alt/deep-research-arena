@@ -181,11 +181,19 @@ class RigorVerifier:
                     evidences.append(evidence)
 
         if not levels:
+            # All judge calls failed or returned unparseable output. This pillar
+            # was never actually evaluated, so we must NOT award a numeric score:
+            # a 0.5 here is half credit for an un-judged report, which inflates
+            # the composite whenever the judge backend is transiently down.
+            # Follow the internal_consistency_verifier convention: return
+            # score=None + applicable=False so the composite scorer DROPS this
+            # pillar (and renormalizes) instead of averaging in a free 0.5.
             return VerifierResult(
-                score=0.5,
+                score=None,
                 passed=False,
                 details={
-                    "level": 3,
+                    "applicable": False,
+                    "level": None,
                     "evidence": "judge_unavailable",
                     "raw_judge_output": " ||| ".join(raw_chunks)[:1000],
                     "n_samples": 0,
@@ -203,6 +211,7 @@ class RigorVerifier:
             score=round(score, 3),
             passed=score >= 0.5,
             details={
+                "applicable": True,
                 "level": level_final,
                 "evidence": evidences[0] if evidences else "",
                 "samples": levels,

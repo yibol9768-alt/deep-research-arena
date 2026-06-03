@@ -172,6 +172,12 @@ class GRPOTrainer:
             evaluator = self.evaluator_factory(task_config)  # type: ignore[arg-type]
         if hasattr(evaluator, "_task_config"):
             evaluator._task_config = task_config  # type: ignore[attr-defined]
+        # Strict grounding is mandatory for the live RL training loop: no-fetch
+        # rollouts score 0 (no text-only proxy) and citing unfetched URLs
+        # nullifies as fabrication. Without this the reward perversely favours
+        # not reading. We force it here so callers cannot silently train against
+        # the non-strict reward by passing a factory that forgets to set it.
+        evaluator._rl_strict = True  # type: ignore[attr-defined]
         return evaluator
 
     def _store(self, task_id: str) -> RubricStore:

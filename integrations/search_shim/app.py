@@ -424,8 +424,20 @@ def firecrawl_scrape(
     if not rows:
         raise HTTPException(status_code=500, detail="extract returned no rows")
     row = rows[0]
-    if row.get("status") and row["status"] >= 400:
-        raise HTTPException(status_code=row["status"], detail=row.get("error") or "fetch failed")
+    # Mirror the success condition used in tavily_extract: a row counts as a
+    # success only when it has non-empty raw_content, a sub-400 status, and no
+    # 'error'. extract() seeds each row with status=0 and, on a request
+    # exception (connection refused, DNS failure, timeout), leaves status=0
+    # and sets 'error' with no raw_content. status==0 is falsy, so the old
+    # guard `if row.get("status") and row["status"] >= 400` skipped the
+    # exception path entirely and reported a failed fetch as a successful
+    # empty scrape. Treat status==0 (the exception sentinel) and any present
+    # 'error' as a failure.
+    if not row.get("raw_content") or (row.get("status") or 0) >= 400 or row.get("error"):
+        raise HTTPException(
+            status_code=(row.get("status") or 502),
+            detail=row.get("error") or "fetch failed",
+        )
     return FirecrawlScrapeResponse(
         success=True,
         data=FirecrawlScrapeData(
@@ -466,25 +478,60 @@ class PostLookupResponse(BaseModel):
     error: Optional[str] = None
 
 
+def _forum_from_url(url: str) -> Optional[str]:
+    """Derive the Postmill forum slug from a submission URL or path.
+
+    Postmill canonical comment-page URLs are ``/f/<forum>/<id>/<slug>``.
+    get_submission does not return a top-level forum for the detail page, so
+    parse it from the path. Returns None if no ``/f/<forum>`` segment exists.
+    """
+    if not url:
+        return None
+    try:
+        path = urlparse(url).path or url
+    except Exception:
+        path = url
+    m = re.search(r"/f/([A-Za-z0-9_]+)", path)
+    return m.group(1) if m else None
+
+
 @app.post("/post_lookup", response_model=PostLookupResponse)
 def post_lookup(req: PostLookupRequest) -> PostLookupResponse:
     """Return structured JSON for a single Postmill submission. Delegates
     to envs.reddit.scrape.get_submission (requests-based, no Playwright)."""
+    # Honor SHIM_MODE=strict: get_submission's _fetch does an unrestricted
+    # requests.get on any URL containing '://', so without this gate an agent
+    # could fetch arbitrary off-allowlist/external URLs through this endpoint
+    # (SSRF / closed-book contract violation). Enforce the same allowlist as
+    # tavily_extract and firecrawl_scrape BEFORE any fetch.
+    _ensure_url_allowed(req.url, endpoint="/post_lookup")
     try:
         from envs.reddit.scrape import get_submission  # lazy import
         data = get_submission(req.url)
         if not data or not data.get("title"):
             return PostLookupResponse(ok=False, url=req.url, error="post not found or empty")
+        # get_submission (envs/reddit/scrape.py:127-145) only sets these
+        # top-level keys: url, title, score, author, body_html, comments
+        # (a list), num_comments. It never sets comment_count, a top-level
+        # forum, or body. Map to the actual keys so this endpoint stops
+        # returning null comment_count/forum/body for valid posts.
+        comments = data.get("comments") or []
+        comment_count = data.get("num_comments")
+        if comment_count is None:
+            comment_count = len(comments)
+        # Strip HTML from the post body_html for a plain-text body.
+        body_html = data.get("body_html") or ""
+        body = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", body_html)).strip() or None
         return PostLookupResponse(
             ok=True,
             url=req.url,
             title=data.get("title"),
             author=data.get("author"),
-            forum=data.get("forum"),
+            forum=data.get("forum") or _forum_from_url(req.url),
             score=data.get("score"),
-            comment_count=data.get("comment_count"),
-            body=data.get("body"),
-            top_comments=data.get("comments") or [],
+            comment_count=comment_count,
+            body=body,
+            top_comments=comments,
         )
     except Exception as e:
         return PostLookupResponse(ok=False, url=req.url, error=f"{type(e).__name__}: {e}")
@@ -515,13 +562,34 @@ def product_lookup(req: ProductLookupRequest) -> ProductLookupResponse:
     envs.shopping.oracle_dr.magento_scrape.product_details, but all agents
     can call it through the shim."""
     import re
+    # Honor SHIM_MODE=strict: this handler does requests.get on the raw
+    # client-supplied URL, so without this gate an agent could fetch arbitrary
+    # off-allowlist/external URLs (SSRF / closed-book contract violation).
+    # Enforce the allowlist BEFORE any fetch, and outside the try below so the
+    # 403 is not swallowed by the broad except.
+    _ensure_url_allowed(req.url, endpoint="/product_lookup")
+    strict = _shim_mode() == "strict"
     try:
         import requests  # type: ignore
-        r = requests.get(req.url, timeout=20, allow_redirects=True)
+        # In strict mode do not follow redirects: a sandbox PDP that
+        # 30x-redirects off origin would otherwise bypass the pre-fetch
+        # allowlist gate (which only saw the requested URL) and let requests
+        # return off-allowlist content. Re-validate the final response URL too.
+        r = requests.get(req.url, timeout=20, allow_redirects=not strict)
+        if strict and (300 <= r.status_code < 400 or not _url_is_sandbox(str(r.url))):
+            _log_blocked_url(str(r.url), endpoint="/product_lookup")
+            raise HTTPException(
+                status_code=403,
+                detail={"error": "non_sandbox_redirect_blocked", "url": str(r.url)},
+            )
         if r.status_code >= 400:
             return ProductLookupResponse(ok=False, url=req.url,
                                          error=f"HTTP {r.status_code}")
         html = r.text
+    except HTTPException:
+        # The strict redirect block must propagate as a 403, not be swallowed
+        # by the broad except below and turned into an ok=False 200 body.
+        raise
     except Exception as e:
         return ProductLookupResponse(ok=False, url=req.url,
                                      error=f"{type(e).__name__}: {e}")

@@ -31,11 +31,13 @@ Usage (on westd, with shim+sandbox+ds_proxy running):
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import os
+import shutil
 import sys
+import time
+import uuid
 from pathlib import Path
 from typing import Callable, List, Union
 
@@ -293,6 +295,73 @@ def _install_strict_http_gate() -> None:
     _install_strict_http_gate._done = True  # type: ignore[attr-defined]
 
 
+def _extract_article(scratch_path: Path, run_start_mtime: float) -> str:
+    """Recover the STORM article from a scratch tree.
+
+    Only files whose mtime is >= run_start_mtime are considered, so a stale
+    article left behind by a prior run (or a concurrent run sharing the tree)
+    can never be picked up as this run's output. Within the fresh candidates we
+    prefer the polished article, then any storm_gen_article*.txt, then any .txt,
+    and finally pick the largest (most likely the full polished article).
+
+    Args:
+        scratch_path: root of the per-run scratch directory.
+        run_start_mtime: epoch seconds captured just before STORM ran; files
+            older than this are treated as stale and ignored.
+
+    Returns:
+        The article markdown (with an appended References section when STORM's
+        url_to_info.json is available), or "(empty storm output)" if no fresh
+        article was produced.
+    """
+
+    def _fresh(paths: List[Path]) -> List[Path]:
+        fresh = []
+        for p in paths:
+            try:
+                if p.stat().st_mtime >= run_start_mtime:
+                    fresh.append(p)
+            except OSError:
+                continue
+        return fresh
+
+    candidates = _fresh(list(scratch_path.rglob("storm_gen_article_polished.txt")))
+    if not candidates:
+        candidates = _fresh(list(scratch_path.rglob("storm_gen_article*.txt")))
+    if not candidates:
+        candidates = _fresh(list(scratch_path.rglob("*.txt")))
+
+    if candidates:
+        # Pick the largest file (most likely the polished article).
+        candidates.sort(key=lambda p: p.stat().st_size, reverse=True)
+        result = candidates[0].read_text()
+        logger.info(f"STORM output: {candidates[0]} ({len(result)} chars)")
+        # Append a References section so the URL extractor can recover the
+        # bibliography STORM tracks separately in url_to_info.json.
+        try:
+            url_info_paths = list(candidates[0].parent.glob("url_to_info.json"))
+            if not url_info_paths:
+                url_info_paths = list(scratch_path.rglob("url_to_info.json"))
+            if url_info_paths:
+                url_to_idx = json.loads(url_info_paths[0].read_text()).get("url_to_unified_index", {})
+                refs = sorted(url_to_idx.items(), key=lambda kv: kv[1])
+                if refs:
+                    bibliography = "\n\n## References\n\n" + "\n".join(f"[{idx}] {url}" for url, idx in refs)
+                    result = result + bibliography
+                    logger.info(f"Appended {len(refs)} references from {url_info_paths[0]}")
+        except Exception as e:
+            logger.warning(f"Failed to append references: {e}")
+        return result
+
+    # Debug: list what STORM actually wrote.
+    all_files = list(scratch_path.rglob("*"))
+    logger.warning(
+        f"No article found in {scratch_path}. "
+        f"Files: {[str(f) for f in all_files[:20]]}"
+    )
+    return "(empty storm output)"
+
+
 async def run(
     intent: str,
     model: str,
@@ -322,70 +391,49 @@ async def run(
         logger.info("storm: strict-sandbox HTTP gate installed")
     api_key = os.environ.get("OPENAI_API_KEY", "anything")
 
-    # Use a unique scratch dir per run to avoid collisions.
-    topic_hash = hashlib.md5(intent[:300].encode()).hexdigest()[:12]
+    # Use a unique per-invocation scratch dir. Keying on a content hash of the
+    # intent (the old behaviour) made two runs of the same task share a tree
+    # that was never cleaned, so a failing run could silently read back a stale
+    # or cross-run article as its own output. A uuid4 token guarantees no
+    # collision across runs (sequential or concurrent), and the finally block
+    # below deletes the tree so nothing leaks into a later run.
     scratch_dir = os.path.join(
         str(ROOT / "data" / "results" / "deep"),
-        f"_storm_scratch_{topic_hash}",
+        f"_storm_scratch_{uuid.uuid4().hex}",
     )
     os.makedirs(scratch_dir, exist_ok=True)
-
-    runner = _build_storm_runner(
-        shim_url=shim_url,
-        proxy_url=proxy_url,
-        model=model,
-        output_dir=scratch_dir,
-        api_key=api_key,
-    )
-
-    # STORM's run() is synchronous (uses threading internally).
-    # Truncate topic to 300 chars to avoid filesystem path issues.
-    topic = intent[:300]
-    runner.run(
-        topic=topic,
-        do_research=True,
-        do_generate_outline=True,
-        do_generate_article=True,
-        do_polish_article=True,
-    )
-    runner.post_run()
-
-    # Collect the output article.
-    # STORM creates a subdirectory named after the topic (sanitized).
-    # Look for the polished article first, then fall back to other outputs.
     scratch_path = Path(scratch_dir)
-    candidates = list(scratch_path.rglob("storm_gen_article_polished.txt"))
-    if not candidates:
-        candidates = list(scratch_path.rglob("storm_gen_article*.txt"))
-    if not candidates:
-        candidates = list(scratch_path.rglob("*.txt"))
 
-    if candidates:
-        # Pick the largest file (most likely the polished article).
-        candidates.sort(key=lambda p: p.stat().st_size, reverse=True)
-        result = candidates[0].read_text()
-        logger.info(f"STORM output: {candidates[0]} ({len(result)} chars)")
-        # Append a References section so the URL extractor can recover the
-        # bibliography STORM tracks separately in url_to_info.json.
-        try:
-            url_info_paths = list(candidates[0].parent.glob("url_to_info.json"))
-            if not url_info_paths:
-                url_info_paths = list(scratch_path.rglob("url_to_info.json"))
-            if url_info_paths:
-                url_to_idx = json.loads(url_info_paths[0].read_text()).get("url_to_unified_index", {})
-                refs = sorted(url_to_idx.items(), key=lambda kv: kv[1])
-                if refs:
-                    bibliography = "\n\n## References\n\n" + "\n".join(f"[{idx}] {url}" for url, idx in refs)
-                    result = result + bibliography
-                    logger.info(f"Appended {len(refs)} references from {url_info_paths[0]}")
-        except Exception as e:
-            logger.warning(f"Failed to append references: {e}")
-        return result
+    try:
+        runner = _build_storm_runner(
+            shim_url=shim_url,
+            proxy_url=proxy_url,
+            model=model,
+            output_dir=scratch_dir,
+            api_key=api_key,
+        )
 
-    # Debug: list what STORM actually wrote.
-    all_files = list(scratch_path.rglob("*"))
-    logger.warning(
-        f"No article found in {scratch_dir}. "
-        f"Files: {[str(f) for f in all_files[:20]]}"
-    )
-    return "(empty storm output)"
+        # Capture the wall-clock start so the extractor can ignore any file
+        # that predates this run (belt-and-suspenders on top of the unique
+        # dir). Subtract a small skew margin so a file written in the same
+        # second STORM started is still counted as fresh.
+        run_start_mtime = time.time() - 1.0
+
+        # STORM's run() is synchronous (uses threading internally).
+        # Truncate topic to 300 chars to avoid filesystem path issues.
+        topic = intent[:300]
+        runner.run(
+            topic=topic,
+            do_research=True,
+            do_generate_outline=True,
+            do_generate_article=True,
+            do_polish_article=True,
+        )
+        runner.post_run()
+
+        # Collect the output article. STORM creates a subdirectory named after
+        # the topic (sanitized); _extract_article walks the tree, ignores any
+        # stale file, and returns the best fresh article.
+        return _extract_article(scratch_path, run_start_mtime)
+    finally:
+        shutil.rmtree(scratch_dir, ignore_errors=True)

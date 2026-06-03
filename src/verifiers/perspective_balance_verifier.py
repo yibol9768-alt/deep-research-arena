@@ -199,16 +199,26 @@ _TIER_B_SYSTEM = (
 )
 
 
-def _tier_b(answer: str, entities: list[str]) -> tuple[float, list[dict], str | None]:
+def _tier_b(answer: str, entities: list[str]) -> tuple[float, list[dict], str | None, int]:
     """Per-entity LLM verdict.
 
-    Returns (rate, per_entity_breakdown, judge_error). When entities is
-    empty, returns (1.0, [], None) — task is not perspective-bearing.
+    Returns (rate, per_entity_breakdown, judge_error, n_errors). When
+    entities is empty, returns (1.0, [], None, 0): task is not
+    perspective-bearing.
+
+    Entities whose judge call errored are recorded with verdict 'ERROR' and
+    EXCLUDED from the rate denominator: a judge / infra failure must not be
+    conflated with a report that genuinely lacks balance. The rate is
+    ``passes / max(1, evaluated)`` where ``evaluated`` counts only entities
+    that received a real PASS / FAIL verdict. ``n_errors`` is surfaced so the
+    caller can detect the all-errored case and exclude the pillar.
     """
     if not entities:
-        return 1.0, [], None
+        return 1.0, [], None, 0
     rows = []
     passes = 0
+    evaluated = 0
+    n_errors = 0
     judge_err: str | None = None
     for ent in entities:
         # Per-entity prompt is small (~ entity + 6k chars of report excerpts);
@@ -218,7 +228,10 @@ def _tier_b(answer: str, entities: list[str]) -> tuple[float, list[dict], str | 
         if len(win) > 4000:
             win = win[:4000]
         if not win:
+            # "not_mentioned" is a real FAIL (the report omits the entity
+            # entirely), not an infra error, so it counts toward the rate.
             rows.append({"entity": ent, "verdict": "FAIL", "reason": "not_mentioned"})
+            evaluated += 1
             continue
         user = (
             f"ENTITY: {ent}\n\n"
@@ -228,16 +241,21 @@ def _tier_b(answer: str, entities: list[str]) -> tuple[float, list[dict], str | 
         )
         text, err = call_judge(_TIER_B_SYSTEM, user, max_tokens=100, temperature=0.0)
         if err and not text:
+            # Judge unreachable for this entity: record but exclude from the
+            # denominator. Penalising the agent for an infra failure would
+            # unfairly drag down the combined score.
             judge_err = err
+            n_errors += 1
             rows.append({"entity": ent, "verdict": "ERROR", "reason": err})
             continue
+        evaluated += 1
         verdict = "FAIL"
         if text and "PASS" in text.upper():
             verdict = "PASS"
             passes += 1
         rows.append({"entity": ent, "verdict": verdict})
-    rate = passes / len(entities)
-    return rate, rows, judge_err
+    rate = passes / max(1, evaluated)
+    return rate, rows, judge_err, n_errors
 
 
 # ---------------------------------------------------------------------------
@@ -318,6 +336,12 @@ class PerspectiveBalanceVerifier:
     tasks that don't have evaluated entities; if a task should be
     perspective-bearing, the task spec should list ``evaluated_entities``
     so the verifier picks them up.
+
+    When the tier-B judge errors on EVERY entity (backend down), the pillar
+    returns score=None + applicable=False so callers EXCLUDE it rather than
+    scoring a misleading 0.0 (which would conflate "judge unreachable" with
+    "report lacks balance"). Entities that individually error are excluded
+    from the tier-B rate denominator for the same reason.
     """
 
     kind = "perspective_balance"
@@ -387,7 +411,36 @@ class PerspectiveBalanceVerifier:
                 },
             )
 
-        tier_b_rate, tier_b_rows, judge_err = _tier_b(answer, entities)
+        tier_b_rate, tier_b_rows, judge_err, n_errors = _tier_b(answer, entities)
+
+        if n_errors >= len(entities):
+            # NOT-APPLICABLE: the judge errored on EVERY entity, so tier_b has
+            # no real signal. Returning a 0.0 tier_b rate here would conflate
+            # "judge unreachable" with "report lacks balance" and unfairly
+            # tank the combined score. Mirror internal_consistency: signal
+            # score=None + applicable=False so callers EXCLUDE this pillar
+            # rather than scoring it.
+            return VerifierResult(
+                score=None, passed=False,
+                details={
+                    "applicable": False,
+                    "reason": "tier_b_all_errored",
+                    "entities": entities,
+                    "n_errors": n_errors,
+                    "tier_a": {
+                        "weight": self.tier_a_weight,
+                        "rate": round(tier_a_rate, 4),
+                        "rows": tier_a_rows,
+                    },
+                    "tier_b": {
+                        "weight": self.tier_b_weight,
+                        "rows": tier_b_rows,
+                        "judge": judge_identity()["model"],
+                        "judge_error": judge_err,
+                        "n_errors": n_errors,
+                    },
+                },
+            )
 
         score = (
             self.tier_a_weight * tier_a_rate
@@ -412,6 +465,7 @@ class PerspectiveBalanceVerifier:
                     "rows": tier_b_rows,
                     "judge": judge_identity()["model"],
                     "judge_error": judge_err,
+                    "n_errors": n_errors,
                 },
             },
         )

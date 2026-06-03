@@ -361,6 +361,110 @@ def test_validate_select_rejects_codes() -> None:
             raise AssertionError(f"{sql!r} should have raised {code}")
 
 
+def test_blocks_comma_join_off_allowlist_table() -> None:
+    # An implicit CROSS JOIN via a comma-separated table list must NOT bypass the
+    # table allow-list: the FIRST table is allow-listed but the second is not, and
+    # the guard must see and reject the second one.
+    try:
+        validate_select("SELECT * FROM submissions, pg_shadow", db="postmill")
+    except SqlGuardError as exc:
+        assert exc.code == "sql_table_not_allowed"
+        assert "pg_shadow" in exc.detail
+    else:
+        raise AssertionError("comma-join to off-allowlist table should be rejected")
+
+    # Generic ``FROM a, b`` with b off-allowlist (magento db).
+    try:
+        validate_select("SELECT a.name FROM catalog_product_entity a, secrets", db="magento")
+    except SqlGuardError as exc:
+        assert exc.code == "sql_table_not_allowed"
+        assert "secrets" in exc.detail
+    else:
+        raise AssertionError("comma-join to off-allowlist table should be rejected")
+
+    # And the metadata reflects BOTH tables when both ARE allow-listed.
+    meta = validate_select(
+        "SELECT s.title FROM submissions s, comments c", db="postmill"
+    )
+    assert "submissions" in meta["tables"]
+    assert "comments" in meta["tables"]
+
+
+def test_comma_join_does_not_false_positive_on_projection_or_order_by() -> None:
+    # Commas in the SELECT projection and ORDER BY must NOT be misread as extra
+    # FROM tables (otherwise legitimate queries would be wrongly rejected).
+    meta = validate_select(
+        "SELECT name, price FROM catalog_product_entity ORDER BY price, name",
+        db="magento",
+    )
+    assert meta["tables"] == ["catalog_product_entity"]
+
+
+def test_comma_join_table_guard_blocks_via_tool_run() -> None:
+    # End-to-end through SqlQueryTool.run: the secrets table joined by comma is
+    # rejected and nothing is landed (NO data leak, NO snippet).
+    conn = _seed_sqlite()
+    result = SqlQueryTool().run(
+        _ctx(conn),
+        {
+            "sql": "SELECT name FROM catalog_product_entity, secrets",
+            "db": "magento",
+            "page_url": PDP_URL,
+        },
+    )
+    assert result.ok is False
+    assert result.error == "sql_table_not_allowed"
+    assert result.snippets == {}
+
+
+def test_column_gate_enforced_when_db_omitted() -> None:
+    # The per-column PII allow-list MUST be enforced even when ``db`` is omitted,
+    # otherwise an agent on a single-db deployment could read restricted columns
+    # (password_hash, email, ...) simply by not naming the db.
+    for omitted in ("", None):
+        try:
+            validate_select("SELECT users.password_hash FROM users", db=omitted)
+        except SqlGuardError as exc:
+            assert exc.code == "sql_column_not_allowed", f"db={omitted!r}"
+        else:
+            raise AssertionError(f"db={omitted!r}: restricted column should be rejected")
+
+    # SELECT * on the restricted table is likewise blocked with db omitted.
+    try:
+        validate_select("SELECT * FROM users", db="")
+    except SqlGuardError as exc:
+        assert exc.code == "sql_column_not_allowed"
+    else:
+        raise AssertionError("SELECT * on restricted table should be rejected (db omitted)")
+
+    # An allow-listed column on the restricted table still passes with db omitted.
+    meta = validate_select("SELECT users.username FROM users", db="")
+    assert meta["tables"] == ["users"]
+
+
+def test_column_gate_db_omitted_blocks_via_tool_run() -> None:
+    # End-to-end: omitting db must not let password_hash through on a single-db
+    # deployment (engine resolves to the only configured engine).
+    conn = sqlite3.connect(":memory:")
+    conn.execute(
+        "CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, password_hash TEXT)"
+    )
+    conn.execute("INSERT INTO users VALUES (1, 'jane', 'deadbeef')")
+    conn.commit()
+    ctx = ToolContext(
+        backend=None,
+        task_config={"task_id": "sql_test"},
+        extras={"sql_engines": {"postmill": conn}},
+    )
+    result = SqlQueryTool().run(
+        ctx,
+        {"sql": "SELECT users.password_hash FROM users", "page_url": FORUM_URL},
+    )
+    assert result.ok is False
+    assert result.error == "sql_column_not_allowed"
+    assert result.snippets == {}
+
+
 def test_wrap_with_row_cap_clamps_to_hard_ceiling() -> None:
     wrapped = wrap_with_row_cap("SELECT 1 FROM catalog_product_entity", 10_000)
     assert "LIMIT 500" in wrapped  # hard ceiling

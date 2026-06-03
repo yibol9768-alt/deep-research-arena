@@ -164,6 +164,12 @@ def _dim_not_measurable(details: dict) -> bool:
         return True
     if details.get("applicable") is False:
         return True
+    # A verifier that no-ops because the task lacks its spec marks the dim with
+    # a `skipped` note (e.g. MarkdownReportVerifier on a task with no
+    # markdown_spec). That dim carries no signal and must be dropped, not
+    # folded into the weighted quality at its placeholder score.
+    if details.get("skipped"):
+        return True
     reason = str(details.get("reason") or "").lower()
     if not reason:
         return False
@@ -173,6 +179,14 @@ def _dim_not_measurable(details: dict) -> bool:
         "word_count_too_low",
         "answer_starts_with",
         "no sandbox citations",
+        # URLCoverageVerifier.fail() reasons for tasks with no golden pool /
+        # url_coverage spec. These return score=0.0 with a `reason` (and no
+        # `error` key), so without these markers a non-applicable coverage dim
+        # would freeze ~18% of WEIGHTS_RL mass at a constant 0.0.
+        "no url_coverage spec",
+        "golden_pool_path missing",
+        "golden pool not found",
+        "empty must_cite_urls",
     )
     return any(marker in reason for marker in markers)
 
@@ -578,7 +592,7 @@ class ArenaEvaluator:
         except Exception as e:
             logger.warning("url_coverage import failed: %s", e)
             cov_score, cov_details = _NEUTRAL, {"error": str(e)}
-        if isinstance(cov_details, dict) and cov_details.get("error"):
+        if _dim_not_measurable(cov_details):
             degraded_dims.append("coverage")
         det_per_dim["coverage"] = cov_score
         det_details["coverage"] = cov_details
@@ -589,7 +603,7 @@ class ArenaEvaluator:
         except Exception as e:
             logger.warning("markdown_report import failed: %s", e)
             spec_score, spec_details = _NEUTRAL, {"error": str(e)}
-        if isinstance(spec_details, dict) and spec_details.get("error"):
+        if _dim_not_measurable(spec_details):
             degraded_dims.append("spec")
         det_per_dim["spec"] = spec_score
         det_details["spec"] = spec_details
@@ -768,27 +782,39 @@ class ArenaEvaluator:
             fast_dropped_dims=dropped or None,
             mode="rl_fast" if self.mode == "fast" else "rl_full",
         )
-        if penalty_terms.get("nullify") and (proof_grounded or rl_strict):
+        nullified = bool(penalty_terms.get("nullify")) and (proof_grounded or rl_strict)
+        if nullified:
             composite = 0.0
             breakdown["composite"] = 0.0
             breakdown["nullified"] = True
 
         if execution_score is not None and execution_terms is not None:
             original_composite = float(composite)
+            # The anti-fabrication gate (nullified) must survive the execution
+            # override. Citing URLs the policy never fetched is fabrication and
+            # forces composite=0.0; an agent must not be able to recover the
+            # full state-diff reward by also doing the cart/order action. So we
+            # zero the state-diff contribution here when nullified, keeping the
+            # gate authoritative over the override.
+            effective_state_diff = 0.0 if nullified else float(execution_score)
             if execution_mode == "blend":
                 state_weight = _execution_blend_weight(execution_goal or {})
-                composite = ((1.0 - state_weight) * original_composite) + (state_weight * execution_score)
+                composite = ((1.0 - state_weight) * original_composite) + (state_weight * effective_state_diff)
                 breakdown["execution_blend"] = {
                     "state_weight": round(state_weight, 6),
                     "original_composite": round(original_composite, 6),
                     "state_diff": round(float(execution_score), 6),
+                    "state_diff_effective": round(effective_state_diff, 6),
+                    "nullified": nullified,
                 }
             else:
-                composite = float(execution_score)
+                composite = effective_state_diff
                 breakdown["execution_override"] = {
                     "mode": "state_diff_only",
                     "original_composite": round(original_composite, 6),
                     "state_diff": round(float(execution_score), 6),
+                    "state_diff_effective": round(effective_state_diff, 6),
+                    "nullified": nullified,
                 }
             breakdown["composite"] = round(float(composite), 6)
 

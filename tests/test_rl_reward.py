@@ -245,6 +245,104 @@ def test_fetch_aware_cap_keeps_fetched_citations_ahead_of_unfetched(tmp_path: Pa
     assert result.composite > 0.0
 
 
+def test_fabricated_cites_past_cap_still_penalized(tmp_path: Path):
+    # Regression: CITATION_CAP real fetched citations plus extra never-fetched
+    # ones. The fetched-first reorder used to push every fabricated cite past the
+    # cap so it was dropped before fabrication was measured (p_fabricate == 0).
+    # Fabrication must be counted over the full deduped cited set.
+    real_urls = [
+        f"http://localhost:7770/w-fetched-{i:02d}.html"
+        for i in range(CITATION_CAP)
+    ]
+    fake_urls = [
+        f"http://localhost:7770/a-unfetched-{i:02d}.html"
+        for i in range(5)
+    ]
+    real_paragraphs = [
+        (
+            f"Fetched page {i:02d} documents battery comfort and sound "
+            f"detail {i:02d} [real{i:02d}]({url})."
+        )
+        for i, url in enumerate(real_urls)
+    ]
+    fake_links = " ".join(
+        f"[fake{i:02d}]({url})" for i, url in enumerate(fake_urls)
+    )
+    report = (
+        "# Fabricated Past Cap Report\n\n"
+        + "\n\n".join(real_paragraphs)
+        + "\n\n"
+        + fake_links
+        + "\n\nThe fabricated cites must not hide behind the cap."
+    )
+    rollout = Rollout(
+        task_id="rl_synth",
+        report_md=report,
+        retrieved_snippets={
+            canonicalize_url(url): (
+                f"Fetched page {i:02d} documents battery comfort and sound detail {i:02d}."
+            )
+            for i, url in enumerate(real_urls)
+        },
+        fetched_urls=real_urls,
+        tool_calls=[
+            {"endpoint": "/search", "query": "fab past cap", "n_results": 20, "ok": True},
+        ],
+        step_count=1,
+    )
+    result = _evaluator(
+        _task_config(
+            tmp_path,
+            max_words=2000,
+            min_citations=CITATION_CAP,
+            golden_urls=real_urls,
+        )
+    ).evaluate_rollout(rollout)
+    # 5 fabricated out of 25 cited -> 0.20 fabrication signal, must survive.
+    assert result.reward_terms["penalties"]["p_fabricate"] > 0.0
+    # The honest fetched citations still ground, so this is not a full nullify.
+    assert result.reward_terms["penalties"]["nullify"] is False
+
+
+def test_compute_penalties_counts_fabrication_over_full_set(tmp_path: Path):
+    # Unit-level check on the pure reward term: even when the caller passes the
+    # capped (n_cited, n_resolved) that hide the fabricated cites, compute_penalties
+    # recovers the fabrication from the uncapped cited set.
+    from src.eval.reward_terms import compute_penalties
+
+    real_urls = [
+        f"http://localhost:7770/w-fetched-{i:02d}.html"
+        for i in range(CITATION_CAP)
+    ]
+    fake_urls = [
+        f"http://localhost:7770/a-unfetched-{i:02d}.html"
+        for i in range(5)
+    ]
+    links = " ".join(
+        f"[c]({u})" for u in (real_urls + fake_urls)
+    )
+    report = "# R\n\n" + links + "\n\nbody text for the report."
+    rollout = Rollout(
+        task_id="rl_synth",
+        report_md=report,
+        retrieved_snippets={canonicalize_url(u): "page text" for u in real_urls},
+        fetched_urls=real_urls,
+        tool_calls=[],
+        step_count=0,
+    )
+    config = _task_config(tmp_path, golden_urls=real_urls)
+    # Simulate the buggy capped counts the caller would have derived.
+    penalties = compute_penalties(
+        rollout,
+        config,
+        s_ground=0.5,
+        n_cited=CITATION_CAP,
+        n_resolved=CITATION_CAP,
+    )
+    # 5 fabricated / 25 cited == 0.2 over the full deduped set.
+    assert penalties["p_fabricate"] == 0.2
+
+
 def test_fabricated_url_rollout_nullifies(tmp_path: Path):
     config = _task_config(tmp_path)
     honest = _evaluator(config).evaluate_rollout(_rollout())

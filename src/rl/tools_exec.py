@@ -50,9 +50,15 @@ when no production executor is injected. It enforces, default-deny:
 * **scrubbed env** -- no host secrets / PATH leakage beyond a minimal allowlist.
 * **network-lock** -- outbound sockets to any non-localhost host are blocked; the
   only permitted egress is ``127.0.0.1`` / ``localhost`` on the three sandbox
-  ports ``{7770, 9999, 8090}``. Enforced in the child via a ``socket.connect``
-  shim prelude (a connect() to anything else raises before any bytes leave). A
-  static pre-flight also refuses snippets that name an obvious non-local host.
+  ports ``{7770, 9999, 8090}``. For PYTHON this is enforced in the child via a
+  ``socket.connect`` shim prelude (a connect() to anything else raises before any
+  bytes leave). A static pre-flight also refuses snippets that name an obvious
+  non-local host (named hosts and numeric IPs). BASH has no in-child socket shim,
+  so the local runner CANNOT enforce the runtime lock for it; therefore bash is
+  REFUSED (``refused="bash_requires_microvm"``) unless an isolating executor was
+  injected or ``ctx.extras["exec_allow_local_bash"]`` is explicitly set (offline
+  tests / benign opt-in only). Production never sets that flag, so it can never
+  implicitly run unguarded local bash (no SSRF / exfil surface).
 * **wall-clock timeout** -- ``subprocess`` ``timeout`` kills the process group on
   over-run (``timed_out=True``); **memory cap** via ``resource.setrlimit
   (RLIMIT_AS)`` in a ``preexec_fn`` (``resource`` imported lazily).
@@ -220,9 +226,10 @@ def check_fs_escape(code: str) -> str | None:
 
 def check_network_egress(code: str) -> str | None:
     """Return a refusal reason if the snippet names an obvious non-local network
-    target, else ``None``. The in-child ``connect()`` shim is the authoritative
-    block (it permits only localhost:{7770,9999,8090}); this is a static screen
-    that refuses the snippet before we ever launch it.
+    target, else ``None``. For Python the in-child ``connect()`` shim is the
+    authoritative block (it permits only localhost:{7770,9999,8090}); this static
+    screen refuses the snippet before we ever launch it, and for the opt-in local
+    bash path (which has NO runtime shim) it is the primary network screen.
     """
     low = str(code or "").lower()
     # Permit explicit localhost references on allowed ports; only flag the
@@ -235,6 +242,30 @@ def check_network_egress(code: str) -> str | None:
                 if _only_localhost_urls(low):
                     continue
             return f"network_egress_blocked:{token}"
+    # Numeric IPv4 literals: refuse ANY that is not an allowed localhost address.
+    # The fixed token list above cannot enumerate every hostile IP (the static
+    # screen previously missed the 169.254.169.254 cloud-metadata endpoint and
+    # arbitrary exfil IPs), so screen every dotted-quad found in the snippet.
+    bad_ip = _first_nonlocal_ipv4(low)
+    if bad_ip is not None:
+        return f"network_egress_blocked:{bad_ip}"
+    return None
+
+
+def _first_nonlocal_ipv4(low: str) -> str | None:
+    """Return the first dotted-quad IPv4 literal in ``low`` that is not an allowed
+    localhost address, else ``None``. Catches numeric egress targets (cloud
+    metadata, arbitrary exfil hosts) the fixed token list cannot enumerate.
+    """
+    import re
+
+    for m in re.finditer(r"(?<![\d.])((?:\d{1,3}\.){3}\d{1,3})(?![\d.])", low):
+        ip = m.group(1)
+        octets = ip.split(".")
+        if any(not o or int(o) > 255 for o in octets):
+            continue  # not a valid dotted-quad; ignore (e.g. a version string)
+        if ip not in _ALLOWED_HOSTS:
+            return ip
     return None
 
 
@@ -352,8 +383,17 @@ class LocalGuardedRunner:
     strong isolation surface in production is the injected microVM executor.
     """
 
-    def __init__(self, mem_bytes: int = _DEFAULT_MEM_BYTES) -> None:
+    def __init__(self, mem_bytes: int = _DEFAULT_MEM_BYTES, *, allow_local_bash: bool = False) -> None:
         self.mem_bytes = max(64 * 1024 * 1024, min(_HARD_MEM_BYTES, int(mem_bytes)))
+        # Bash has NO runtime network lock under the local runner (unlike Python,
+        # which gets the _PY_NETLOCK_PRELUDE socket shim). The static pre-flight
+        # alone cannot catch numeric-IP / arbitrary-host egress, so running bash
+        # locally would expose cloud-metadata SSRF (169.254.169.254) and outbound
+        # exfil from the training host. Therefore bash is REFUSED by default and
+        # only runs under an injected isolating (microVM) executor. Offline tests
+        # and explicitly-opted-in benign use set this flag; production never does,
+        # so it can never implicitly reach unguarded local bash.
+        self.allow_local_bash = bool(allow_local_bash)
 
     def _scrubbed_env(self, cwd: str) -> dict[str, str]:
         env = dict(_SCRUBBED_ENV)
@@ -427,10 +467,18 @@ class LocalGuardedRunner:
             program = _netlock_prelude() + "\n" + str(code)
             argv = [sys.executable, "-I", "-S", "-c", program]
         elif lang == "bash":
-            # Bash has no socket of its own; the network-lock for bash is the
-            # scrubbed env (blanked proxies) + the cwd confinement + the
-            # pre-flight static screen. We additionally restrict PATH so only
-            # /usr/bin:/bin tools are reachable.
+            # Default-deny: bash has no in-child socket shim, so the local runner
+            # cannot enforce the localhost:{7770,9999,8090} network-lock that the
+            # Python prelude provides. The scrubbed env + cwd confinement + static
+            # pre-flight do NOT stop numeric-IP / arbitrary-host egress (e.g. the
+            # 169.254.169.254 cloud-metadata endpoint or an outbound nc exfil), so
+            # we REFUSE bash unless an isolating executor was injected. Only an
+            # explicit opt-in (allow_local_bash) runs bash on the host.
+            if not self.allow_local_bash:
+                return ExecResult(refused="bash_requires_microvm")
+            # Opted-in benign/offline use only. The network-lock for bash here is
+            # the scrubbed env (blanked proxies) + cwd confinement + the static
+            # pre-flight; PATH is restricted to /usr/bin:/bin tools.
             argv = ["/bin/bash", "--noprofile", "--norc", "-c", str(code)]
         else:
             return ExecResult(refused=f"unsupported_lang:{lang}")
@@ -518,16 +566,24 @@ def _resolve_executor(ctx: ToolContext) -> Executor:
     PRODUCTION SEAM: ``ctx.extras["code_executor"]`` is where an E2B / gVisor /
     Firecracker microVM executor plugs in. Absent that, the local guarded runner
     is used (benign code only; it refuses if it cannot establish its limits).
+
+    The local runner refuses ``lang=='bash'`` unless ``ctx.extras
+    ["exec_allow_local_bash"]`` is explicitly truthy. Production never sets that
+    flag, so a deployment that allow-lists ``run_bash`` without injecting an
+    isolating ``code_executor`` gets a refusal instead of unguarded host bash
+    (no implicit SSRF / exfil surface).
     """
-    injected = (ctx.extras or {}).get("code_executor")
+    extras = ctx.extras or {}
+    injected = extras.get("code_executor")
     if injected is not None and hasattr(injected, "run"):
         return injected
-    mem = (ctx.extras or {}).get("exec_mem_bytes", _DEFAULT_MEM_BYTES)
+    mem = extras.get("exec_mem_bytes", _DEFAULT_MEM_BYTES)
     try:
         mem_bytes = int(mem)
     except (TypeError, ValueError):
         mem_bytes = _DEFAULT_MEM_BYTES
-    return LocalGuardedRunner(mem_bytes=mem_bytes)
+    allow_local_bash = bool(extras.get("exec_allow_local_bash", False))
+    return LocalGuardedRunner(mem_bytes=mem_bytes, allow_local_bash=allow_local_bash)
 
 
 def _truncate(text: str) -> str:
@@ -670,6 +726,13 @@ class RunBashTool:
 
     Same default-deny posture and the same COMPUTE-OVER-PAGES landing as
     :class:`RunCodeTool`, for shell idioms (grep / sort / wc) over fetched text.
+
+    NOTE: bash has no in-child network-lock shim, so the LOCAL guarded runner
+    refuses it (``refused="bash_requires_microvm"``) unless an isolating
+    ``code_executor`` is injected or ``ctx.extras["exec_allow_local_bash"]`` is
+    explicitly set. Production never sets that flag, so allow-listing ``run_bash``
+    without an injected microVM executor yields a refusal, not unguarded host
+    bash (no implicit SSRF / outbound-exfil surface).
     """
 
     name = "run_bash"

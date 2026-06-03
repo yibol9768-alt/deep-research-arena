@@ -173,22 +173,38 @@ class FactKGVerifier:
         extracted: list[dict] = []
         raw_extract = ""
         verified = unverifiable = wrong = 0
-        if self.do_precision and site:
-            extracted, raw_extract = extract_triples(answer or "", site=site)
+        if self.do_precision and sites:
+            # Offer the extractor every site's predicate vocabulary. For
+            # cross-site tasks (sites=['shopping','reddit']) passing only the
+            # first site would silently drop the other site's claims.
+            extracted, raw_extract = extract_triples(answer or "", site=sites)
             extracted = extracted[: self.max_precision_triples]
             if extracted:
                 # For each extracted triple: DB lookup → True/False/None.
                 # Fallback: if DB unverifiable, check if the triple is in golden.
-                try:
-                    store = get_store(site)
-                except Exception:
-                    store = None
+                # Route each triple to the store for its predicate's site so
+                # cross-site claims hit the correct DB; stores are cached so
+                # repeat lookups for the same site are cheap.
+                store_cache: dict[str, Any] = {}
+
+                def _store_for(predicate: str):
+                    pred_site = site_of(predicate)
+                    if not pred_site:
+                        return None
+                    if pred_site not in store_cache:
+                        try:
+                            store_cache[pred_site] = get_store(pred_site)
+                        except Exception:
+                            store_cache[pred_site] = None
+                    return store_cache[pred_site]
+
                 golden_keys = {
                     (_normalize(t["subject"]), t["predicate"], _normalize(str(t["object"])))
                     for t in golden
                 }
                 for et in extracted:
                     out = None
+                    store = _store_for(et["predicate"])
                     if store:
                         try:
                             out = store.verify(et["subject"], et["predicate"], str(et["object"])).outcome

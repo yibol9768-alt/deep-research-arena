@@ -89,6 +89,72 @@ def test_checklist_verify_accepts_evidence_and_rubric_snapshot(monkeypatch, tmp_
 
 
 # --------------------------------------------------------------------------
+# Acceptance 1b: judge-unavailable returns score=None + applicable=False
+# (NOT an inflated neutral 0.5). The composite scorer drops the pillar.
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "mod,Verifier",
+    [
+        (depth_mod, DepthVerifier),
+        (rigor_mod, RigorVerifier),
+        (style_mod, StyleVerifier),
+    ],
+)
+def test_judge_unavailable_excludes_pillar(monkeypatch, mod, Verifier):
+    # Every judge sample reports an error (backend down / SDK missing).
+    def dead_call_judge(system, user, **kwargs):  # type: ignore[no-untyped-def]
+        return None, "ConnectionError: judge proxy unreachable"
+
+    monkeypatch.setattr(mod, "call_judge", dead_call_judge)
+    res = Verifier(n_samples=3).verify(
+        task_config={"intent": "compare phones"},
+        answer="A grounded report body with plenty of words. " * 30,
+    )
+    # The un-judged pillar must be EXCLUDED, not awarded a free 0.5.
+    assert res.score is None, "judge-unavailable must not award a numeric score"
+    assert res.passed is False
+    assert res.details["applicable"] is False
+    assert res.details["evidence"] == "judge_unavailable"
+    assert res.details["n_samples"] == 0
+    assert res.details["judge_errors"], "judge errors should be retained"
+
+
+@pytest.mark.parametrize(
+    "mod,Verifier",
+    [
+        (depth_mod, DepthVerifier),
+        (rigor_mod, RigorVerifier),
+        (style_mod, StyleVerifier),
+    ],
+)
+def test_judge_unparseable_excludes_pillar(monkeypatch, mod, Verifier):
+    # Judge returns text, but no parseable LEVEL anywhere -> no usable samples.
+    def garbage_call_judge(system, user, **kwargs):  # type: ignore[no-untyped-def]
+        return "I refuse to follow the format and emit zero digits.", None
+
+    monkeypatch.setattr(mod, "call_judge", garbage_call_judge)
+    res = Verifier(n_samples=3).verify(
+        task_config={"intent": "compare phones"},
+        answer="A grounded report body with plenty of words. " * 30,
+    )
+    assert res.score is None
+    assert res.details["applicable"] is False
+
+
+def test_judge_available_marks_pillar_applicable(monkeypatch):
+    # Sanity: when the judge DOES answer, the pillar is applicable with a score.
+    prompts: list[str] = []
+    monkeypatch.setattr(depth_mod, "call_judge", _capture(prompts, "LEVEL: 4\nEVIDENCE: ok"))
+    res = DepthVerifier(n_samples=1).verify(
+        task_config={"intent": "x"},
+        answer="A grounded report body with plenty of words. " * 30,
+    )
+    assert res.score is not None
+    assert res.details["applicable"] is True
+
+
+# --------------------------------------------------------------------------
 # Acceptance 2: few-shot exemplars are injected into the prompt
 # --------------------------------------------------------------------------
 

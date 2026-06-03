@@ -250,3 +250,265 @@ def test_anthropic_passthrough(monkeypatch: pytest.MonkeyPatch, client: TestClie
     assert sent["max_tokens"] == 32
     assert sent["messages"][0] == {"role": "system", "content": "You are helpful."}
     assert sent["messages"][1] == {"role": "user", "content": "hello"}
+
+
+# ---------------------------------------------------------------------------
+# firecrawl_scrape: a failed fetch must NOT be reported as an empty success
+# ---------------------------------------------------------------------------
+
+def test_firecrawl_scrape_failed_fetch_is_error(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """extract()'s except branch returns a row with status=0, no raw_content,
+    and an 'error' field. The scrape endpoint must surface that as an HTTP
+    error, not success=True with empty markdown."""
+
+    def _fake_extract(urls: Any) -> list[dict]:
+        # Exact shape produced by backend.extract() on a request exception.
+        return [{
+            "url": list(urls)[0],
+            "raw_content": "",
+            "title": "",
+            "source": "",
+            "status": 0,
+            "error": "ConnectionError: refused",
+        }]
+
+    monkeypatch.setattr(app_module, "extract", _fake_extract)
+    r = client.post("/v2/scrape", json={"url": "http://localhost:7770/dead.html"})
+    assert r.status_code >= 400
+    # The old buggy guard returned 200 with success=True and empty markdown.
+    assert r.status_code != 200
+
+
+def test_firecrawl_scrape_success(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """A genuine fetch with raw_content and status<400 still succeeds."""
+
+    def _fake_extract(urls: Any) -> list[dict]:
+        return [{
+            "url": list(urls)[0],
+            "raw_content": "Full page markdown here.",
+            "title": "Headphone X",
+            "source": "shopping",
+            "status": 200,
+            "elapsed_ms": 12,
+        }]
+
+    monkeypatch.setattr(app_module, "extract", _fake_extract)
+    r = client.post("/v2/scrape", json={"url": "http://localhost:7770/headphone-x.html"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["success"] is True
+    assert data["data"]["markdown"] == "Full page markdown here."
+
+
+# ---------------------------------------------------------------------------
+# post_lookup: field names must align with get_submission's actual keys
+# ---------------------------------------------------------------------------
+
+def test_post_lookup_field_mapping(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """get_submission returns num_comments / body_html / comments (list) and
+    no top-level forum. post_lookup must map those to comment_count / body /
+    forum (derived from the URL) instead of returning None."""
+
+    def _fake_get_submission(url: str, **_kw: Any) -> dict:
+        return {
+            "url": url,
+            "title": "Best ANC under $200?",
+            "score": 42,
+            "author": "alice",
+            "body_html": "<p>Looking for <b>quiet</b> headphones.</p>",
+            "comments": [{"author": "bob", "body": "Sony.", "score": 5}],
+            "num_comments": 1,
+        }
+
+    import envs.reddit.scrape as scrape_mod
+    monkeypatch.setattr(scrape_mod, "get_submission", _fake_get_submission)
+
+    r = client.post(
+        "/post_lookup",
+        json={"url": "http://localhost:9999/f/headphones/1/best-anc"},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["ok"] is True
+    assert data["comment_count"] == 1  # mapped from num_comments, not None
+    assert data["body"] == "Looking for quiet headphones."  # from body_html
+    assert data["forum"] == "headphones"  # derived from the URL path
+    assert len(data["top_comments"]) == 1
+
+
+# ---------------------------------------------------------------------------
+# Strict mode: post_lookup / product_lookup must honor the URL allowlist
+# ---------------------------------------------------------------------------
+
+def test_post_lookup_strict_blocks_offlist_url(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """In strict mode an off-allowlist URL must be rejected with 403 BEFORE
+    any fetch, not silently fetched (SSRF / closed-book violation)."""
+    monkeypatch.setenv("SHIM_MODE", "strict")
+
+    def _boom(*_a: Any, **_kw: Any) -> dict:
+        raise AssertionError("get_submission must not be called for blocked URL")
+
+    import envs.reddit.scrape as scrape_mod
+    monkeypatch.setattr(scrape_mod, "get_submission", _boom)
+
+    r = client.post("/post_lookup", json={"url": "http://evil.example.com/x"})
+    assert r.status_code == 403
+
+
+def test_product_lookup_strict_blocks_offlist_url(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """product_lookup must also enforce the allowlist in strict mode."""
+    monkeypatch.setenv("SHIM_MODE", "strict")
+
+    import requests as _requests  # type: ignore
+
+    def _boom(*_a: Any, **_kw: Any) -> Any:
+        raise AssertionError("requests.get must not be called for blocked URL")
+
+    monkeypatch.setattr(_requests, "get", _boom)
+
+    r = client.post("/product_lookup", json={"url": "http://169.254.169.254/latest/meta-data/"})
+    assert r.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# Strict mode: a sandbox page that 30x-redirects off origin must NOT leak
+# off-allowlist content. The pre-fetch gate only sees the requested URL, so
+# extract()/product_lookup must not follow redirects in strict mode and must
+# re-validate the final response URL.
+# ---------------------------------------------------------------------------
+
+class _FakeResponse:
+    """Minimal stand-in for requests.Response with a settable final .url."""
+
+    def __init__(self, *, status_code: int, url: str, text: str = "") -> None:
+        self.status_code = status_code
+        self.url = url
+        self.text = text
+
+
+def test_extract_strict_does_not_follow_redirects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """In strict mode extract() must pass allow_redirects=False and treat a
+    3xx (returned as-is, no body) as a blocked fetch, not a success."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.setenv("SHIM_MODE", "strict")
+    seen_kwargs: dict[str, Any] = {}
+
+    def _fake_get(url: str, **kwargs: Any) -> _FakeResponse:
+        seen_kwargs.update(kwargs)
+        # Sandbox page replies with a 302 to an external host. With
+        # allow_redirects=False this 302 is returned verbatim (empty body).
+        return _FakeResponse(status_code=302, url=url, text="")
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+
+    rows = backend_mod.extract(["http://localhost:7770/p.html"])
+    assert seen_kwargs.get("allow_redirects") is False
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["raw_content"] == ""
+    assert row.get("error") == "non_sandbox_redirect_blocked"
+
+
+def test_extract_strict_rejects_offlist_final_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Even on a 200, if the final response URL left the allowlist (e.g. a
+    transparently-followed redirect in some client), extract() must discard
+    the content rather than return off-allowlist HTML."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.setenv("SHIM_MODE", "strict")
+
+    def _fake_get(url: str, **_kw: Any) -> _FakeResponse:
+        # Final URL is off-allowlist even though status is 200.
+        return _FakeResponse(
+            status_code=200,
+            url="http://evil.example.com/leak",
+            text="<html><body>secret</body></html>",
+        )
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+
+    rows = backend_mod.extract(["http://localhost:7770/p.html"])
+    assert len(rows) == 1
+    assert rows[0]["raw_content"] == ""
+    assert rows[0].get("error") == "non_sandbox_redirect_blocked"
+
+
+def test_extract_open_mode_follows_redirects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """In open mode (default) behavior is unchanged: redirects are followed
+    and content is returned."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.delenv("SHIM_MODE", raising=False)
+
+    def _fake_get(url: str, **kwargs: Any) -> _FakeResponse:
+        assert kwargs.get("allow_redirects") is True
+        return _FakeResponse(
+            status_code=200, url=url,
+            text="<html><body><main>hello world</main></body></html>",
+        )
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+
+    rows = backend_mod.extract(["http://localhost:7770/p.html"])
+    assert rows[0]["status"] == 200
+    assert "hello world" in rows[0]["raw_content"]
+    assert "error" not in rows[0]
+
+
+def test_extract_strict_allows_inorigin_200(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A normal in-allowlist 200 still succeeds in strict mode."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.setenv("SHIM_MODE", "strict")
+
+    def _fake_get(url: str, **_kw: Any) -> _FakeResponse:
+        return _FakeResponse(
+            status_code=200, url=url,
+            text="<html><body><main>product page</main></body></html>",
+        )
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+
+    rows = backend_mod.extract(["http://localhost:7770/p.html"])
+    assert rows[0]["status"] == 200
+    assert "product page" in rows[0]["raw_content"]
+    assert "error" not in rows[0]
+
+
+def test_product_lookup_strict_blocks_offlist_redirect(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """product_lookup must 403 when an allowlisted PDP 30x-redirects off
+    origin, instead of returning the redirected (off-allowlist) content."""
+    monkeypatch.setenv("SHIM_MODE", "strict")
+
+    import requests as _requests  # type: ignore
+
+    def _fake_get(url: str, **kwargs: Any) -> _FakeResponse:
+        assert kwargs.get("allow_redirects") is False
+        # Sandbox PDP responds with a 301 to an external host.
+        return _FakeResponse(status_code=301, url="http://evil.example.com/x", text="")
+
+    monkeypatch.setattr(_requests, "get", _fake_get)
+
+    r = client.post("/product_lookup", json={"url": "http://localhost:7770/p.html"})
+    assert r.status_code == 403

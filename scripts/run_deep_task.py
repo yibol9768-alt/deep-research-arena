@@ -483,12 +483,20 @@ async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -
     return content
 
 
-async def _run_storm(intent: str, model: str) -> str:
-    """STORM via clean runner module — uses SandboxSearchRM (dspy.Retrieve subclass)."""
+async def _run_storm(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
+    """STORM via clean runner module:uses SandboxSearchRM (dspy.Retrieve subclass).
+
+    Forwards `strict_sandbox` so storm_runner.run() installs its strict HTTP
+    gate (_install_strict_http_gate). Without this the gate is never armed and
+    a closed-book run would be silently downgraded to best-effort shim-only.
+    """
     from scripts.runners.storm_runner import run as storm_run
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
-    return await storm_run(intent=intent, model=model, shim_url=shim, proxy_url=proxy)
+    return await storm_run(
+        intent=intent, model=model, shim_url=shim, proxy_url=proxy,
+        strict_sandbox=strict_sandbox,
+    )
 
 
 async def _run_storm_OLD(intent: str, model: str) -> str:
@@ -824,12 +832,20 @@ async def _run_langchain_odr(intent: str, model: str) -> str:
     return final or "(empty langchain-odr result)"
 
 
-async def _run_deerflow(intent: str, model: str) -> str:
-    """DeerFlow via clean runner module — uses native env vars + conf.yaml."""
+async def _run_deerflow(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
+    """DeerFlow via clean runner module:uses native env vars + conf.yaml.
+
+    Forwards `strict_sandbox` so deerflow_runner.run() arms the in-driver HTTP
+    gate (_STRICT block). Without this the gate is never armed and a closed-book
+    run would be silently downgraded to best-effort shim-only.
+    """
     from scripts.runners.deerflow_runner import run as deerflow_run
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
-    return await deerflow_run(intent=intent, model=model, shim_url=shim, proxy_url=proxy)
+    return await deerflow_run(
+        intent=intent, model=model, shim_url=shim, proxy_url=proxy,
+        strict_sandbox=strict_sandbox,
+    )
 
 
 async def _run_deerflow_OLD(intent: str, model: str) -> str:
@@ -898,7 +914,7 @@ async def _run_deerflow_OLD(intent: str, model: str) -> str:
 
 
 async def _run_ldr(intent: str, model: str) -> str:
-    """LDR via clean runner module — intent sanitization + LDR official API."""
+    """LDR via clean runner module:intent sanitization + LDR official API."""
     from scripts.runners.ldr_runner import run as ldr_run
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
@@ -1357,7 +1373,7 @@ async def _run_tongyi_dr(intent: str, model: str) -> str:
 
 
 async def _run_costorm(intent: str, model: str) -> str:
-    """Co-STORM (Stanford) via clean runner module — collaborative multi-perspective research."""
+    """Co-STORM (Stanford) via clean runner module:collaborative multi-perspective research."""
     from scripts.runners.costorm_runner import run as costorm_run
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
@@ -1365,7 +1381,7 @@ async def _run_costorm(intent: str, model: str) -> str:
 
 
 async def _run_deepagents(intent: str, model: str) -> str:
-    """LangChain DeepAgents via clean runner module — LangGraph super-agent."""
+    """LangChain DeepAgents via clean runner module:LangGraph super-agent."""
     from scripts.runners.deepagents_runner import run as deepagents_run
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
@@ -1631,6 +1647,22 @@ async def main() -> int:
             report = f"(strict-sandbox refused: {err})"
         elif _runner_supports_strict(runner):
             runner_kwargs["strict_sandbox"] = True
+        else:
+            # The run was NOT refused (eligible is True or None) but the runner
+            # callable does not expose a `strict_sandbox` kwarg, so the flag
+            # would be silently dropped and the strict HTTP gate would never be
+            # installed. Recording strict_sandbox=true here would falsely claim
+            # an enforced closed-book run. Fail loud instead. See bug:
+            # "--strict-sandbox silently NOT enforced".
+            err = (
+                f"agent={args.agent} advertises strict-sandbox eligibility "
+                f"(STRICT_SANDBOX_ELIGIBLE={eligible!r}) but its runner does "
+                "not accept a `strict_sandbox` kwarg, so the strict HTTP gate "
+                "cannot be installed. Refusing the run rather than recording "
+                "an unenforced run as strict_sandbox=true. See "
+                "docs/STRICT_SANDBOX_CONTRACT.md."
+            )
+            report = f"(strict-sandbox refused: {err})"
 
     if not err:
         try:

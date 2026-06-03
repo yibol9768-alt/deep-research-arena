@@ -199,7 +199,8 @@ class DepthVerifier:
                 # Defensive: if the judge backend itself raises (e.g. the DS
                 # proxy is unreachable, the SDK is missing), do not crash the
                 # whole eval pipeline. Mark this sample as unavailable and
-                # continue; if every sample fails we fall back to neutral 0.5.
+                # continue; if every sample fails we return score=None +
+                # applicable=False so the pillar is excluded, not awarded 0.5.
                 text, err = None, f"{type(e).__name__}: {e}"
             if text is None:
                 judge_errors.append(err or "unknown")
@@ -212,14 +213,19 @@ class DepthVerifier:
                     evidences.append(evidence)
 
         if not levels:
-            # All judge calls failed or returned unparseable output. Per the
-            # spec: code defensively and return a neutral score with a
-            # judge_unavailable marker rather than crashing the eval.
+            # All judge calls failed or returned unparseable output. This pillar
+            # was never actually evaluated, so we must NOT award a numeric score:
+            # a 0.5 here is half credit for an un-judged report, which inflates
+            # the composite whenever the judge backend is transiently down.
+            # Follow the internal_consistency_verifier convention: return
+            # score=None + applicable=False so the composite scorer DROPS this
+            # pillar (and renormalizes) instead of averaging in a free 0.5.
             return VerifierResult(
-                score=0.5,
+                score=None,
                 passed=False,
                 details={
-                    "level": 3,
+                    "applicable": False,
+                    "level": None,
                     "evidence": "judge_unavailable",
                     "raw_judge_output": " ||| ".join(raw_chunks)[:1000],
                     "n_samples": 0,
@@ -240,6 +246,7 @@ class DepthVerifier:
             score=round(score, 3),
             passed=score >= 0.5,
             details={
+                "applicable": True,
                 "level": level_final,
                 "evidence": evidences[0] if evidences else "",
                 "samples": levels,

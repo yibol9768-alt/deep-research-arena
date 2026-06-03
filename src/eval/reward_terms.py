@@ -32,7 +32,36 @@ def _sandbox_hosts(task_config: dict[str, Any]) -> tuple[str, ...]:
     return _DEFAULT_SANDBOX_HOSTS
 
 
-def _ordered_cited_urls(rollout, task_config: dict[str, Any]) -> list[str]:
+def _fetched_url_set(rollout) -> set[str]:
+    """Canonical set of URLs the policy actually fetched during the run.
+
+    Combines the explicit ``fetched_urls`` trace with any non-empty entries in
+    ``retrieved_snippets`` so that a citation counts as resolved if the page was
+    reached by either path.
+    """
+    fetched = {
+        canonicalize_url(u)
+        for u in (getattr(rollout, "fetched_urls", None) or [])
+        if u
+    }
+    raw_store = getattr(rollout, "retrieved_snippets", None) or {}
+    fetched.update(
+        canonicalize_url(str(url))
+        for url, text in raw_store.items()
+        if str(url).strip() and str(text or "")
+    )
+    return fetched
+
+
+def _deduped_cited_urls(rollout, task_config: dict[str, Any]) -> list[str]:
+    """Full deduped list of sandbox URLs cited in the report, in document order.
+
+    This is the uncapped, un-reordered source of truth for fabrication: a URL
+    cited but never fetched is fabricated regardless of how many real citations
+    precede it. The fetched-first reorder and CITATION_CAP truncation must never
+    be applied before the fabrication signal is measured, or fabricated cites can
+    hide behind the cap.
+    """
     citations = extract_citations(
         rollout.report_md or "",
         _sandbox_hosts(task_config),
@@ -45,18 +74,12 @@ def _ordered_cited_urls(rollout, task_config: dict[str, Any]) -> list[str]:
             continue
         seen.add(c.canonical_url)
         out.append(c.canonical_url)
+    return out
 
-    fetched = {
-        canonicalize_url(u)
-        for u in (getattr(rollout, "fetched_urls", None) or [])
-        if u
-    }
-    raw_store = getattr(rollout, "retrieved_snippets", None) or {}
-    fetched.update(
-        canonicalize_url(str(url))
-        for url, text in raw_store.items()
-        if str(url).strip() and str(text or "")
-    )
+
+def _ordered_cited_urls(rollout, task_config: dict[str, Any]) -> list[str]:
+    out = _deduped_cited_urls(rollout, task_config)
+    fetched = _fetched_url_set(rollout)
     if fetched:
         out = [u for u in out if u in fetched] + [u for u in out if u not in fetched]
     return out[:CITATION_CAP]
@@ -162,10 +185,28 @@ def compute_penalties(
     )
     fetched = {canonicalize_url(u) for u in (rollout.fetched_urls or []) if u}
 
-    if n_cited > 0:
-        p_fabricate = min(PENALTY_CAP, max(0, n_cited - n_resolved) / n_cited)
-    else:
-        p_fabricate = 0.0
+    # Fabrication must be measured over the FULL deduped cited set, before the
+    # fetched-first reorder and CITATION_CAP truncation in _ordered_cited_urls.
+    # The capped (n_cited, n_resolved) the caller derived from that ordered list
+    # would let an agent cite CITATION_CAP real URLs plus any number of
+    # never-fetched ones, pushing every fabricated cite past the cap so it is
+    # dropped before fabrication is counted (n_cited == n_resolved == cap,
+    # p_fabricate == 0). Recomputing here over the uncapped set closes that hole.
+    full_fetched = _fetched_url_set(rollout)
+    full_cited = _deduped_cited_urls(rollout, task_config)
+    full_n_cited = len(full_cited)
+    full_n_resolved = sum(1 for u in full_cited if u in full_fetched)
+
+    # Use the stronger fabrication signal so fabricated cites cannot be hidden by
+    # whichever counting path (capped caller-supplied or uncapped full set)
+    # happens to undercount them.
+    p_capped = max(0, n_cited - n_resolved) / n_cited if n_cited > 0 else 0.0
+    p_full = (
+        max(0, full_n_cited - full_n_resolved) / full_n_cited
+        if full_n_cited > 0
+        else 0.0
+    )
+    p_fabricate = min(PENALTY_CAP, max(p_capped, p_full))
 
     fetched_not_cited = fetched - cited
     p_unused = 0.10 * (len(fetched_not_cited) / len(fetched)) if fetched else 0.0
@@ -208,6 +249,8 @@ __all__ = [
     "PENALTY_CAP",
     "SEARCH_BREADTH_TARGET",
     "_ordered_cited_urls",
+    "_deduped_cited_urls",
+    "_fetched_url_set",
     "_coverage_growth",
     "compute_process",
     "compute_penalties",

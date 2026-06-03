@@ -158,6 +158,30 @@ def _parse_json_action(text: str) -> Action | None:
     payload = _json_payload(text)
     if payload is None:
         return None
+
+    # The natural tool-call shape is ``{"tool": "rag_search", "args": {...}}``.
+    # Detect it before the verb switch so the tool NAME is not mistaken for a
+    # directive verb (which would drop the args and misroute to ReadMemory or an
+    # empty Search). The trigger is an explicit args container (a dict under
+    # args/arguments/input): its presence is what distinguishes a tool call from
+    # a flat directive, and only this form drops operands today. A flat
+    # ``{"tool": "search", "query": ...}`` (no args container) keeps falling
+    # through to the verb switch, so prior behaviour for that shape is unchanged.
+    tool_args = _tool_args_dict(payload)
+    if tool_args is not None:
+        tname = _clean_payload(
+            payload.get("tool")
+            or payload.get("tool_name")
+            or payload.get("name")
+            or ""
+        )
+        # Only short-circuit to CallTool when the payload actually names a tool
+        # via a tool/tool_name key (not via an action/type verb): an
+        # ``{"action": "search", "args": {...}}`` floor verb is handled below so
+        # its operand is recovered from the args container.
+        if tname and ("tool" in payload or "tool_name" in payload):
+            return CallTool(tname, dict(tool_args))
+
     verb = str(
         payload.get("action")
         or payload.get("type")
@@ -173,27 +197,33 @@ def _parse_json_action(text: str) -> Action | None:
         )
         targs = payload.get("args") or payload.get("arguments") or payload.get("input") or {}
         return CallTool(tname, dict(targs) if isinstance(targs, dict) else {})
+    # A floor verb (action/type) may still nest its operands inside an args
+    # container, e.g. {"action":"search","args":{"query":"x"}}. Read the field
+    # from the top level first, then fall back into that container so the
+    # operand is not silently dropped.
+    fields = dict(tool_args) if tool_args is not None else {}
+    fields.update({k: v for k, v in payload.items() if k not in {"args", "arguments", "input"}})
     if verb == "search":
-        return Search(_clean_payload(payload.get("query") or payload.get("q") or ""))
+        return Search(_clean_payload(fields.get("query") or fields.get("q") or ""))
     if verb == "open":
-        url = _clean_payload(payload.get("url") or payload.get("link") or "")
+        url = _clean_payload(fields.get("url") or fields.get("link") or "")
         return Open(_extract_url(url) or url)
     if verb == "read":
         return Read()
     if verb in {"note", "write_memory", "memory_write"}:
-        return WriteMemory(_clean_payload(payload.get("text") or payload.get("note") or ""))
+        return WriteMemory(_clean_payload(fields.get("text") or fields.get("note") or ""))
     if verb in {"recall", "read_memory", "memory_read"}:
         return ReadMemory()
     if verb == "cite":
-        url = _clean_payload(payload.get("url") or payload.get("link") or "")
+        url = _clean_payload(fields.get("url") or fields.get("link") or "")
         return Cite(_extract_url(url) or url)
     if verb == "finalize":
         return Finalize(
             _clean_report(
-                payload.get("report_md")
-                or payload.get("report")
-                or payload.get("markdown")
-                or payload.get("content")
+                fields.get("report_md")
+                or fields.get("report")
+                or fields.get("markdown")
+                or fields.get("content")
                 or ""
             )
         )
@@ -249,6 +279,21 @@ def _coerce_scalar(value: str) -> Any:
     except ValueError:
         pass
     return value
+
+
+def _tool_args_dict(payload: dict[str, Any]) -> dict[str, Any] | None:
+    """Return the tool-call args container if the payload carries one.
+
+    Recognizes the args/arguments/input keys and returns the dict only when the
+    value is actually a dict; a non-dict (or absent key) yields None so the
+    caller can distinguish "no args container" from "empty args".
+    """
+
+    for key in ("args", "arguments", "input"):
+        value = payload.get(key)
+        if isinstance(value, dict):
+            return value
+    return None
 
 
 def _json_payload(text: str) -> dict[str, Any] | None:

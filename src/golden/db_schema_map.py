@@ -35,16 +35,25 @@ MAG_BASE_URL = "http://localhost:7770"
 
 def _mag_name_match(subject: str) -> str:
     # Match subject against the full product name (varchar attr 73).
-    # Use LIKE on the prefix — product names are unique-ish up to 64 chars.
-    safe = subject.replace("'", "''")
-    # Use first 60 chars as the match prefix to dodge truncation + punctuation drift.
-    prefix = safe[:60]
+    # Use LIKE on the prefix - product names are unique-ish up to 64 chars.
+    # Slice the raw subject to 60 chars first (the intended match prefix is
+    # the first 60 characters of the product *name*), then escape. We escape
+    # the backslash and the LIKE metacharacters ('%', '_') so a name like
+    # 'Foo_Bar' or '50% Cotton Shirt' is matched literally rather than as a
+    # wildcard pattern, and finally double single quotes for SQL string safety.
+    prefix = subject[:60]
+    safe = (
+        prefix.replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+        .replace("'", "''")
+    )
     return (
         "SELECT p.entity_id "
         "FROM catalog_product_entity p "
         "JOIN catalog_product_entity_varchar v "
         "  ON v.entity_id=p.entity_id AND v.attribute_id=73 "
-        f"WHERE v.value LIKE '{prefix}%' LIMIT 1"
+        f"WHERE v.value LIKE '{safe}%' ESCAPE '\\\\' LIMIT 1"
     )
 
 
