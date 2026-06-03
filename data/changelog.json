@@ -3,6 +3,36 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse — this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v3-2026-06-02b",
+      "date": "2026-06-02",
+      "title": "Eval validity fixes: judge window, curated golden, invalid-run exclusion",
+      "tags": [
+        "scoring",
+        "eval-validity",
+        "grounding"
+      ],
+      "summary": "Fixed three measurement bugs found by a forensic audit, then re-scored: the pairwise judge no longer truncates long reports' conclusions, must-cite recall is scored against a curated key set instead of the whole crawl, and runner capture-failures are excluded instead of scored as real low scores.",
+      "sections": [
+        {
+          "heading": "Fixes",
+          "bullets": [
+            "Pairwise judge window raised 5000 to 12000 chars with head+conclusion truncation, so a long report's synthesis is visible to the ranking judge.",
+            "must-cite recall now scored against a curated top-12 key golden set (by weight/reviews), not the whole ~121-URL crawl that was structurally unreachable (old ceiling 0.28 vs a 0.45 gate).",
+            "Capture failures (empty/error/traceback reports, e.g. storm stubs) are excluded as invalid runs, not scored as a real low score.",
+            "Wikipedia /wiki/ citations are retried in canonical /content/ form before being judged unreachable."
+          ]
+        },
+        {
+          "heading": "Result after re-score",
+          "bullets": [
+            "Ranked (grounded): claude-code, camel-ai. Excluded: gpt-researcher and langchain-odr (fabricated/unresolvable citations), smolagents (borderline 0.29 grounding), opencode (no real data); storm runs were all invalid capture stubs.",
+            "Judge alignment re-validated on full reports: synthetic-gold discrimination 0.906, LLMBar agreement 0.817."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
       "version": "v3-2026-06-02",
       "date": "2026-06-02",
       "title": "Real grounding-gated scoring (synthetic leaderboard removed)",
