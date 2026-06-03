@@ -158,6 +158,35 @@ def read_report_text(path: Path) -> str:
         return ""
 
 
+def _curated_recall_from_report(report_path: Path, task_id: str, k: int = 12) -> float | None:
+    """Recompute must_cite_recall against the CURATED top-K golden set.
+
+    Pure local set-intersection of the report's cited sandbox URLs with the
+    curated key golden subset (no fetch). Fixes the structurally-unreachable
+    full-crawl must_cite_recall. Returns None if the golden is missing.
+    """
+    try:
+        from src.verifiers.golden_curate import curated_recall
+        from src.verifiers.citation_format import canonicalize_url
+    except Exception:
+        return None
+    gpath = _REPO_ROOT / "data" / "golden" / "deep" / f"{task_id}.json"
+    if not gpath.exists():
+        return None
+    try:
+        import re
+        golden = json.loads(gpath.read_text(encoding="utf-8"))
+        mc = golden.get("must_cite_urls") or []
+        if not mc:
+            return None
+        text = read_report_text(report_path)
+        urls = re.findall(r'https?://localhost:\d+/[^\s)\]"\'>]+', text)
+        cited = {canonicalize_url(u) for u in urls}
+        return float(curated_recall(cited, mc, k=k))
+    except Exception:
+        return None
+
+
 # --------------------------------------------------------------------------- #
 # Invalid-capture detection (BUG C).
 #
@@ -345,6 +374,13 @@ def build(
                 grounding_missing.append({"agent": a, "task": task})
                 continue
             val, src = grounding_for(sj)
+            # Prefer curated must-cite recall (recomputed locally from the report
+            # + curated top-K golden) over the stale full-crawl recall in the JSON.
+            cr = _curated_recall_from_report(reports[a][task], task)
+            if cr is not None:
+                qm = float((sj.get("quote_match") or {}).get("score") or 0.0)
+                val = max(0.0, min(1.0, 0.5 * cr + 0.5 * qm))
+                src = "curated_recall+quote"
             grounding_vals[a].append(val)
             grounding_sources.add(src)
 
