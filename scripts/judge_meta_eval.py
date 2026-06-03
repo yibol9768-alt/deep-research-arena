@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Label-free human-alignment validation for the Deep Research pairwise judge.
 
-We have NO local human preference labels and only a lite judge model
-(deepseek-v4-flash). This harness produces a defensible "our judge tracks
-human judgment" number via three label-free methods:
+We have NO local human preference labels. This harness produces a defensible
+"our judge tracks human judgment" number via three label-free methods, run
+against the CONFIGURED judge model (e.g. GLM-5.1). The judge model is resolved
+from --judge-model, then PAIRWISE_JUDGE_MODEL / JUDGE_MODEL env, then a lite
+fallback, and the resolved model is threaded into every battle and stamped into
+the output JSON (and any --doc), so the validation always describes the judge
+we actually use:
 
   1. Synthetic-gold perturbation accuracy (PRIMARY, fully offline + lite judge).
      Take real report .md files, build programmatically DEGRADED variants
@@ -24,16 +28,20 @@ human judgment" number via three label-free methods:
      report agreement with the human-labeled winner. Skipped with a clear note
      and a ready-to-run command when the network is unavailable.
 
-The judge is sourced at runtime from /root/.config/dra/judge.env and we only
-ever call the lite model deepseek-v4-flash (project policy; never pro).
+The judge is sourced at runtime from /root/.config/dra/judge.env (or the
+--judge-model flag). Project policy still forbids the pro tier; pass the
+configured non-pro judge.
 
 Usage:
     set -a; . /root/.config/dra/judge.env; set +a
     python3 scripts/judge_meta_eval.py --run synth grounding llmbar
+    python3 scripts/judge_meta_eval.py --judge-model glm-5.1 --run synth
     python3 scripts/judge_meta_eval.py --dry-run            # plan only, no judge
     python3 scripts/judge_meta_eval.py --limit 4 --run synth
 
 Outputs JSON to data/judge_gold/meta_eval_results.json and prints a summary.
+The resolved judge model is stamped into that JSON and, when --doc is given,
+into a delimited marker block of the named doc.
 """
 
 from __future__ import annotations
@@ -55,7 +63,28 @@ DEEP_DIR = ROOT / "data" / "results" / "deep"
 SCORE_DIR = ROOT / "data" / "results" / "deep_v3"
 TASKS_DIR = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep"
 GOLD_DIR = ROOT / "data" / "judge_gold"
+# Fallback judge model when neither --judge-model nor any env override is set.
+# Kept as a module constant for backward compatibility; the actual model used
+# is resolved at runtime by resolve_judge_model() and threaded into every
+# battle() call (so the GLM-5.1 judge we will actually use is validated and
+# stamped, not a hardwired default).
 LITE_MODEL = "deepseek-v4-flash"
+
+
+def resolve_judge_model(cli_model: str | None = None) -> str:
+    """Resolve the judge model actually used for validation.
+
+    Precedence (highest first): explicit --judge-model CLI value, then the
+    PAIRWISE_JUDGE_MODEL env, then the shared JUDGE_MODEL env, then the lite
+    fallback. This mirrors pairwise_judge._default_judge_model so the model we
+    validate, run, and stamp is exactly the configured judge.
+    """
+    return (
+        (cli_model or "").strip()
+        or os.environ.get("PAIRWISE_JUDGE_MODEL")
+        or os.environ.get("JUDGE_MODEL")
+        or LITE_MODEL
+    )
 
 # Preferred (better) reports for the synthetic-gold set. We pick the larger,
 # higher-grounding agents so the ORIGINAL is unambiguously a strong report.
@@ -216,7 +245,8 @@ PERTURBATIONS: dict[str, Callable[[str, random.Random], str]] = {
 # Method 1: synthetic-gold perturbation accuracy
 # ---------------------------------------------------------------------------
 def run_synthetic_gold(
-    battle_fn, reports: list[Path], *, n_samples: int, seed: int, dry_run: bool
+    battle_fn, reports: list[Path], *, n_samples: int, seed: int, dry_run: bool,
+    judge_model: str = LITE_MODEL,
 ) -> dict[str, Any]:
     rng = random.Random(seed)
     per_type: dict[str, dict[str, Any]] = {
@@ -246,7 +276,7 @@ def run_synthetic_gold(
                 answer_b=degraded,
                 dimension=None,
                 n_samples=n_samples,
-                model=LITE_MODEL,
+                model=judge_model,
             )
             winner = (res.get("agent_winner") or "tie")
             rec = per_type[ptype]
@@ -309,7 +339,8 @@ def load_grounding_signal(report_path: Path) -> dict[str, float] | None:
 
 
 def run_grounding_correlation(
-    battle_fn, reports: list[Path], *, n_samples: int, dry_run: bool
+    battle_fn, reports: list[Path], *, n_samples: int, dry_run: bool,
+    judge_model: str = LITE_MODEL,
 ) -> dict[str, Any]:
     # Keep reports that have a deterministic grounding signal.
     items = []
@@ -346,7 +377,7 @@ def run_grounding_correlation(
                 answer_b=rp_j.read_text(errors="ignore"),
                 dimension=None,
                 n_samples=n_samples,
-                model=LITE_MODEL,
+                model=judge_model,
             )
             w = res.get("agent_winner")
             games[i] += 1
@@ -421,7 +452,8 @@ def _try_download_llmbar() -> tuple[list | None, str]:
         return None, f"{type(e).__name__}: {e}"
 
 
-def run_llmbar(battle_fn, *, limit: int, n_samples: int, dry_run: bool) -> dict[str, Any]:
+def run_llmbar(battle_fn, *, limit: int, n_samples: int, dry_run: bool,
+               judge_model: str = LITE_MODEL) -> dict[str, Any]:
     ready_cmd = (
         "  # Run on a box with network/proxy:\n"
         "  set -a; . /root/.config/dra/judge.env; set +a\n"
@@ -453,7 +485,7 @@ def run_llmbar(battle_fn, *, limit: int, n_samples: int, dry_run: bool) -> dict[
             answer_b=it.get("output_2", ""),
             dimension=None,
             n_samples=n_samples,
-            model=LITE_MODEL,
+            model=judge_model,
         )
         w = res.get("agent_winner")
         judged = 1 if w == "out1" else (2 if w == "out2" else 0)
@@ -472,6 +504,53 @@ def run_llmbar(battle_fn, *, limit: int, n_samples: int, dry_run: bool) -> dict[
         "ties": ties,
         "trials": trials,
     }
+
+
+# ---------------------------------------------------------------------------
+# Doc stamping: record the REAL judge model that produced the validation run
+# ---------------------------------------------------------------------------
+DOC_STAMP_BEGIN = "<!-- JUDGE_META_EVAL_STAMP:BEGIN -->"
+DOC_STAMP_END = "<!-- JUDGE_META_EVAL_STAMP:END -->"
+
+
+def stamp_doc(doc_path: Path, judge_model: str) -> bool:
+    """Stamp the REAL judge model into a markdown doc, idempotently.
+
+    Replaces (or inserts at the top, after a leading H1 if present) a clearly
+    delimited marker block recording the judge model that produced the latest
+    validation run. Everything outside the marker block is left untouched, so
+    re-stamping with a new model only updates the one block. Returns True when
+    the doc was written.
+    """
+    block = (
+        f"{DOC_STAMP_BEGIN}\n"
+        f"Validated judge model: `{judge_model}`\n"
+        f"{DOC_STAMP_END}"
+    )
+    try:
+        text = doc_path.read_text()
+    except FileNotFoundError:
+        doc_path.parent.mkdir(parents=True, exist_ok=True)
+        doc_path.write_text(block + "\n")
+        return True
+
+    begin = text.find(DOC_STAMP_BEGIN)
+    end = text.find(DOC_STAMP_END)
+    if begin != -1 and end != -1 and end > begin:
+        new_text = text[:begin] + block + text[end + len(DOC_STAMP_END):]
+        doc_path.write_text(new_text)
+        return True
+
+    # No existing block: insert after a leading H1 title if one exists, else
+    # prepend to the top of the doc.
+    lines = text.splitlines(keepends=True)
+    if lines and lines[0].lstrip().startswith("# "):
+        head = lines[0]
+        rest = "".join(lines[1:])
+        doc_path.write_text(head + "\n" + block + "\n\n" + rest.lstrip("\n"))
+    else:
+        doc_path.write_text(block + "\n\n" + text)
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -494,36 +573,60 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--seed", type=int, default=13)
     ap.add_argument("--dry-run", action="store_true", help="plan only; do not call the judge")
     ap.add_argument("--out", default=str(GOLD_DIR / "meta_eval_results.json"))
+    ap.add_argument(
+        "--judge-model", default=None,
+        help="judge model to validate (overrides PAIRWISE_JUDGE_MODEL / "
+             "JUDGE_MODEL env). The resolved model is stamped into the output "
+             "JSON and any --doc.",
+    )
+    ap.add_argument(
+        "--doc", default=None,
+        help="markdown doc to stamp the REAL validated judge model into "
+             "(idempotent; updates a delimited marker block only).",
+    )
     args = ap.parse_args(argv)
+
+    # Resolve the judge model that we actually validate / run / stamp, so the
+    # configured judge (e.g. GLM-5.1) is what gets measured, not a hardwired
+    # default. CLI flag wins, then PAIRWISE_JUDGE_MODEL / JUDGE_MODEL env.
+    judge_model = resolve_judge_model(args.judge_model)
 
     battle_fn = None if args.dry_run else _get_battle_fn()
 
     reports = pick_reports(args.limit)
     results: dict[str, Any] = {
-        "judge_model": LITE_MODEL,
+        "judge_model": judge_model,
         "dry_run": args.dry_run,
         "n_samples": args.n_samples,
         "reports_selected": [p.name for p in reports],
     }
 
+    print(f"[judge] validating judge_model={judge_model!r}", file=sys.stderr)
+
     if "synth" in args.run:
         print(f"[synth] {len(reports)} reports x {len(PERTURBATIONS)} perturbations ...", file=sys.stderr)
         results["synthetic_gold"] = run_synthetic_gold(
-            battle_fn, reports, n_samples=args.n_samples, seed=args.seed, dry_run=args.dry_run
+            battle_fn, reports, n_samples=args.n_samples, seed=args.seed,
+            dry_run=args.dry_run, judge_model=judge_model,
         )
     if "grounding" in args.run:
         print("[grounding] correlating judge win-rate with deterministic signals ...", file=sys.stderr)
         results["grounding_correlation"] = run_grounding_correlation(
-            battle_fn, reports, n_samples=args.n_samples, dry_run=args.dry_run
+            battle_fn, reports, n_samples=args.n_samples, dry_run=args.dry_run,
+            judge_model=judge_model,
         )
     if "llmbar" in args.run:
         print("[llmbar] attempting public judge-benchmark slice ...", file=sys.stderr)
         results["llmbar_agreement"] = run_llmbar(
-            battle_fn, limit=args.llmbar_pairs, n_samples=args.n_samples, dry_run=args.dry_run
+            battle_fn, limit=args.llmbar_pairs, n_samples=args.n_samples,
+            dry_run=args.dry_run, judge_model=judge_model,
         )
 
     GOLD_DIR.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(results, indent=2))
+    if args.doc:
+        stamp_doc(Path(args.doc), judge_model)
+        print(f"Stamped judge_model into doc -> {args.doc}", file=sys.stderr)
     print(json.dumps(_compact_summary(results), indent=2))
     print(f"\nFull results -> {args.out}", file=sys.stderr)
     return 0

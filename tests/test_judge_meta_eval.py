@@ -204,3 +204,123 @@ def test_cli_dry_run(tmp_path, monkeypatch):
     rc = jme.main(["--dry-run", "--limit", "4", "--out", str(out)])
     assert rc == 0
     assert out.is_file()
+
+
+# ---------------------------------------------------------------------------
+# Configured judge model: resolution precedence, threading, and stamping
+# ---------------------------------------------------------------------------
+def test_resolve_judge_model_precedence(monkeypatch):
+    # CLI flag wins over both env vars.
+    monkeypatch.setenv("PAIRWISE_JUDGE_MODEL", "glm-pairwise-env")
+    monkeypatch.setenv("JUDGE_MODEL", "glm-shared-env")
+    assert jme.resolve_judge_model("glm-5.1") == "glm-5.1"
+    # No CLI flag -> PAIRWISE_JUDGE_MODEL wins over JUDGE_MODEL.
+    assert jme.resolve_judge_model(None) == "glm-pairwise-env"
+    # Only JUDGE_MODEL set.
+    monkeypatch.delenv("PAIRWISE_JUDGE_MODEL", raising=False)
+    assert jme.resolve_judge_model(None) == "glm-shared-env"
+    # Nothing set -> lite fallback.
+    monkeypatch.delenv("JUDGE_MODEL", raising=False)
+    assert jme.resolve_judge_model(None) == jme.LITE_MODEL
+    # Blank CLI value is ignored (treated as unset).
+    monkeypatch.setenv("JUDGE_MODEL", "glm-shared-env")
+    assert jme.resolve_judge_model("  ") == "glm-shared-env"
+
+
+def _model_capturing_judge(seen: list):
+    """A mock battle that records the model it was called with and returns a
+    deterministic verdict so the run functions complete."""
+    def _judge(*, task_intent, agent_a, answer_a, agent_b, answer_b,
+               dimension=None, n_samples=1, model=None, **kw):
+        seen.append(model)
+        return {"agent_winner": agent_a, "winner": "a", "verdicts_raw": ["A"],
+                "error": None}
+    return _judge
+
+
+def test_synthetic_gold_threads_configured_judge_model():
+    reports = jme.pick_reports(2)
+    assert reports
+    seen: list = []
+    jme.run_synthetic_gold(
+        _model_capturing_judge(seen), reports, n_samples=1, seed=3,
+        dry_run=False, judge_model="glm-5.1",
+    )
+    assert seen, "judge was never called"
+    assert all(m == "glm-5.1" for m in seen), seen
+
+
+def test_llmbar_threads_configured_judge_model(monkeypatch):
+    fake = [{"input": "q1", "output_1": "a", "output_2": "b", "label": 1}]
+    monkeypatch.setattr(jme, "_try_download_llmbar", lambda: (fake, "mock"))
+    seen: list = []
+    jme.run_llmbar(
+        _model_capturing_judge(seen), limit=10, n_samples=1, dry_run=False,
+        judge_model="glm-5.1",
+    )
+    assert seen and all(m == "glm-5.1" for m in seen), seen
+
+
+def test_cli_uses_and_stamps_configured_judge_model(tmp_path, monkeypatch):
+    """End-to-end: --judge-model is threaded into every battle and stamped into
+    the output JSON and the --doc, with the judge backend fully mocked."""
+    out = tmp_path / "res.json"
+    doc = tmp_path / "VALIDATION.md"
+    doc.write_text("# Judge Alignment Validation\n\nBody stays intact.\n")
+
+    seen: list = []
+    monkeypatch.setattr(jme, "_get_battle_fn", lambda: _model_capturing_judge(seen))
+    # Env points at a DIFFERENT model; --judge-model must win and be stamped.
+    monkeypatch.setenv("JUDGE_MODEL", jme.LITE_MODEL)
+    monkeypatch.setenv("PAIRWISE_JUDGE_MODEL", jme.LITE_MODEL)
+
+    rc = jme.main([
+        "--run", "synth", "--limit", "2", "--n-samples", "1",
+        "--judge-model", "glm-5.1", "--out", str(out), "--doc", str(doc),
+    ])
+    assert rc == 0
+    # The mocked judge was called only with the configured model.
+    assert seen and all(m == "glm-5.1" for m in seen), seen
+    # The REAL judge model is stamped into the output JSON.
+    import json as _json
+    results = _json.loads(out.read_text())
+    assert results["judge_model"] == "glm-5.1"
+    assert results["synthetic_gold"]["overall_total"] > 0
+    # The doc is stamped with the real model, and existing content is preserved.
+    doc_text = doc.read_text()
+    assert "Validated judge model: `glm-5.1`" in doc_text
+    assert jme.DOC_STAMP_BEGIN in doc_text and jme.DOC_STAMP_END in doc_text
+    assert "Body stays intact." in doc_text
+    assert doc_text.startswith("# Judge Alignment Validation")
+
+
+def test_cli_env_judge_model_when_no_flag(tmp_path, monkeypatch):
+    """With no --judge-model, the env-configured judge is used and stamped."""
+    out = tmp_path / "res.json"
+    seen: list = []
+    monkeypatch.setattr(jme, "_get_battle_fn", lambda: _model_capturing_judge(seen))
+    monkeypatch.delenv("PAIRWISE_JUDGE_MODEL", raising=False)
+    monkeypatch.setenv("JUDGE_MODEL", "glm-5.1")
+
+    rc = jme.main(["--run", "synth", "--limit", "2", "--n-samples", "1",
+                   "--out", str(out)])
+    assert rc == 0
+    assert seen and all(m == "glm-5.1" for m in seen), seen
+    import json as _json
+    assert _json.loads(out.read_text())["judge_model"] == "glm-5.1"
+
+
+def test_stamp_doc_is_idempotent_and_updates_model(tmp_path):
+    doc = tmp_path / "doc.md"
+    doc.write_text("# Title\n\nKeep me.\n")
+    jme.stamp_doc(doc, "glm-5.1")
+    first = doc.read_text()
+    assert "Validated judge model: `glm-5.1`" in first
+    assert first.count(jme.DOC_STAMP_BEGIN) == 1
+    # Re-stamp with a new model: single block, updated value, body preserved.
+    jme.stamp_doc(doc, "deepseek-v4-flash")
+    second = doc.read_text()
+    assert "Validated judge model: `deepseek-v4-flash`" in second
+    assert "glm-5.1" not in second
+    assert second.count(jme.DOC_STAMP_BEGIN) == 1
+    assert "Keep me." in second

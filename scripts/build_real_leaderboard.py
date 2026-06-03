@@ -11,11 +11,16 @@ Two orthogonal numbers per the redesign (docs/SCORING_REDESIGN.md), plus a gate:
 
   GROUNDING (deterministic, from stored pillars / simple_score)
     Per (agent, task) we read the real ``*.score.json`` and compute a grounding
-    number. We prefer ``src.scoring.simple_score.grounding_score`` if it is
-    importable at runtime; otherwise we fall back to
-    ``0.5 * must_cite_recall + 0.5 * quote_match.score``. Reachable-but-non-
-    golden citation VOLUME never helps: domain_balance, pool_coverage, and the
-    cited>=N count gate are deliberately ignored.
+    number. We would prefer ``src.scoring.simple_score.grounding_score``, but
+    that function requires three positional arguments (cited_pairs,
+    retrieved_snippets, golden) which the stored JSON cannot supply, so the
+    preferred path is INAPPLICABLE and the number actually computed is the
+    ADDITIVE blend ``0.5 * curated_must_cite_recall + 0.5 * quote_match.score``
+    (curated recall recomputed locally when a golden set exists, else the
+    stored ``must_cite_recall``). This is the honest ``composite_formula``
+    reported in the output; it is NOT an F1. Reachable-but-non-golden citation
+    VOLUME never helps: domain_balance, pool_coverage, and the cited>=N count
+    gate are deliberately ignored.
 
   QUALITY (pairwise LLM judge, length-controlled)
     Per task we run ``pairwise_judge.battle(dimension=None)`` between agents'
@@ -23,8 +28,15 @@ Two orthogonal numbers per the redesign (docs/SCORING_REDESIGN.md), plus a gate:
     model (deepseek-v4-flash) with position-swap (battle already swaps). LENGTH
     CONTROL: both reports are truncated to the same word budget before judging
     so a longer report cannot win on length alone; per-report word counts are
-    also recorded. All battle outcomes feed a Bradley-Terry rating
-    (src.scoring.bradley_terry) with bootstrap CI.
+    also recorded. A pre-flight 1-battle judge SMOKE runs first and ABORTS the
+    build if the judge backend is down (so a degenerate all-tie board is never
+    written), and the fraction of judge-error battles is tracked and aborts /
+    loudly flags past ~5%. Each battle persists ``verdicts_raw`` + any
+    ``error`` into the battle_log so a degenerate run is detectable. The
+    HEADLINE Bradley-Terry rating (src.scoring.bradley_terry, bootstrap CI) is
+    fit on UNGATED agents only (battles touching a gated side are dropped) so
+    beating gated junk cannot inflate the headline Elo; a transparency full-set
+    fit and the full battle_log are also kept.
 
   GATE
     Agents whose mean grounding is below --grounding-floor are flagged
@@ -37,6 +49,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import inspect
 import json
 import os
 import re
@@ -57,6 +70,37 @@ DEFAULT_OUT = _REPO_ROOT / "data" / "results" / "real" / "leaderboard_real.json"
 DEFAULT_MODEL = "deepseek-v4-flash"
 DEFAULT_GROUNDING_FLOOR = 0.30
 DEFAULT_WORD_BUDGET = 1500
+
+# The grounding number this script actually computes is an ADDITIVE blend of a
+# citation-fidelity term (quote_match score) and a curated must-cite recall
+# term, NOT the F1(precision, recall) that src.scoring.simple_score.grounding_score
+# would compute. We surface the honest formula in the output JSON so a reader
+# is never misled into thinking an F1 was used.
+GROUNDING_COMPOSITE_FORMULA = "0.5 * curated_must_cite_recall + 0.5 * quote_match_score"
+GROUNDING_DESCRIPTION = (
+    "Additive citation-fidelity + curated recall: "
+    "0.5 * curated_must_cite_recall + 0.5 * quote_match_score. "
+    "This is NOT an F1; citation VOLUME (domain_balance / pool_coverage / "
+    "cited counts) is deliberately ignored."
+)
+
+# Fraction of judge-error battles above which the run is degenerate and must be
+# aborted (or loudly flagged). An all-error board collapses to flat ~1000 Elo.
+JUDGE_ERROR_ABORT_FRACTION = 0.05
+
+
+class JudgeErrorAbort(RuntimeError):
+    """Raised when the judge backend is failing so the board would be garbage.
+
+    Carries ``error_fraction`` (and for the pre-flight smoke, the failing
+    battle result) so callers can report precisely why the run was aborted
+    instead of silently emitting a flat ~1000-Elo board.
+    """
+
+    def __init__(self, message: str, *, error_fraction: float | None = None, sample: dict | None = None):
+        super().__init__(message)
+        self.error_fraction = error_fraction
+        self.sample = sample
 
 # Only matrix reports are scored (smoke runs are warm-up). Pattern:
 #   <agent>__<task_id>_matrix.md
@@ -87,30 +131,64 @@ def score_path_for(score_dir: Path, agent: str, task: str) -> Path:
 # --------------------------------------------------------------------------- #
 # GROUNDING (deterministic).
 # --------------------------------------------------------------------------- #
+def _required_positional_count(fn) -> int:
+    """Number of required (no-default) positional parameters ``fn`` accepts.
+
+    Used to decide whether the preferred ``fn(score_json)`` single-dict calling
+    convention is even applicable, WITHOUT swallowing a real signature mismatch
+    at call time. ``*args`` is reported as a single optional slot (0 required).
+    """
+    try:
+        sig = inspect.signature(fn)
+    except (TypeError, ValueError):
+        # Builtin / un-introspectable: assume the single-dict shape may apply.
+        return 1
+    required = 0
+    for p in sig.parameters.values():
+        if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD):
+            if p.default is inspect.Parameter.empty:
+                required += 1
+    return required
+
+
 def _load_simple_score():
-    """Import grounding_score from the sibling module if available (runtime)."""
+    """Import grounding_score from the sibling module if usable (runtime).
+
+    The preferred path drives the scorer with a single stored-JSON dict
+    (``fn(score_json)``). The current ``simple_score.grounding_score`` instead
+    requires THREE positional arguments (cited_pairs, retrieved_snippets,
+    golden), which the stored JSON cannot supply (it does not retain per-claim
+    (url, claim) support tuples; fabricating them would be exactly the invented
+    signal this redesign forbids). So if the imported function is not callable
+    with a single positional dict, the preferred path is INAPPLICABLE and we
+    return None, letting the deterministic additive formula run. This decision
+    is made by signature inspection, NOT by swallowing a TypeError, so a
+    genuine runtime error in an applicable single-arg scorer fails loudly.
+    """
     try:
         from src.scoring.simple_score import grounding_score  # type: ignore
-        return grounding_score
     except Exception:
         return None
+    if _required_positional_count(grounding_score) > 1:
+        # Wrong calling convention for the stored-JSON path: do not pretend.
+        return None
+    return grounding_score
 
 
 def _simple_score_from_json(fn, score_json: dict) -> float | None:
-    """Try to drive ``simple_score.grounding_score`` from a stored score JSON.
+    """Drive a single-dict ``grounding_score`` from a stored score JSON.
 
-    The sibling module's signature is not fixed across versions, so we attempt
-    a couple of shapes and return None if none apply (caller then falls back).
-    First try the simple ``fn(score_json)`` shape; if that raises, give up and
-    let the deterministic fallback handle it. We do NOT synthesize cited pairs
-    from the stored JSON, because the stored JSON does not retain per-claim
-    (url, claim) support tuples; fabricating them would be exactly the kind of
-    invented signal this redesign forbids.
+    ``fn`` has already been vetted by ``_load_simple_score`` as callable with a
+    single positional dict. We do NOT wrap the call in a bare ``except`` that
+    swallows everything: a real mismatch (wrong arity, a runtime error inside
+    the scorer) MUST fail loudly so a broken wiring is detected instead of
+    silently and ALWAYS falling back to the additive formula.
+
+    We do NOT synthesize cited pairs from the stored JSON, because the stored
+    JSON does not retain per-claim (url, claim) support tuples; fabricating
+    them would be exactly the kind of invented signal this redesign forbids.
     """
-    try:
-        val = fn(score_json)
-    except Exception:
-        return None
+    val = fn(score_json)
     # grounding_score may return a dict {"grounding": x, ...} or a float.
     if isinstance(val, dict):
         for k in ("grounding", "score", "grounding_score"):
@@ -261,6 +339,50 @@ def word_count(text: str) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# Judge-error detection (BUG B3).
+#
+# When the judge backend errors, ``pairwise_judge`` does not raise: a per-round
+# failure returns the verdict "tie" with a reasoning that starts with
+# "(judge error: ...)", and a hard failure returns {"error": ...}. Either way
+# the battle silently becomes a TIE. If MANY battles error, the Bradley-Terry
+# fit collapses to a flat ~1000 Elo for everyone and the run looks "fine".
+# We detect such battles so the build can abort / loudly flag a degenerate run
+# and so the raw verdicts + error are persisted for post-hoc detection.
+# --------------------------------------------------------------------------- #
+_JUDGE_ERROR_PREFIX = "(judge error"
+
+
+def is_judge_error_result(res: dict) -> bool:
+    """True if ``res`` (a ``pairwise_judge.battle`` return) is a judge error.
+
+    A battle is treated as a judge error when it carries an outer ``error``
+    key (hard failure), OR it produced no usable verdict at all: every entry of
+    ``verdicts_raw`` is None / missing, or every per-round reasoning starts with
+    ``"(judge error"``. A degenerate run made of such battles collapses BT to a
+    flat ~1000 Elo, so we surface it instead of silently scoring everyone tied.
+    """
+    if not isinstance(res, dict):
+        return True
+    if res.get("error"):
+        return True
+    verdicts = res.get("verdicts_raw")
+    reasonings = res.get("reasonings") or []
+    # Reasoning-based detection: every round explicitly reports a judge error.
+    if reasonings and all(
+        isinstance(r, str) and r.strip().startswith(_JUDGE_ERROR_PREFIX)
+        for r in reasonings
+    ):
+        return True
+    # Verdict-based detection: no usable verdict survived any round.
+    if verdicts is not None:
+        if len(verdicts) == 0:
+            return True
+        if all(v is None for v in verdicts):
+            return True
+    return False
+
+
+# --------------------------------------------------------------------------- #
 # Battle plan.
 # --------------------------------------------------------------------------- #
 def build_battle_plan(
@@ -307,6 +429,8 @@ def build(
     dry_run: bool = False,
     n_samples: int = 3,
     bootstrap: bool = True,
+    abort_on_judge_error: bool = True,
+    judge_error_abort_fraction: float = JUDGE_ERROR_ABORT_FRACTION,
 ) -> dict[str, Any]:
     reports = discover_reports(report_dir)
 
@@ -404,6 +528,10 @@ def build(
         "grounding_score_source": (
             "+".join(sorted(grounding_sources)) if grounding_sources else "n/a"
         ),
+        # HONEST grounding formula: this is the additive citation-fidelity +
+        # curated recall actually computed here, NOT an F1.
+        "composite_formula": GROUNDING_COMPOSITE_FORMULA,
+        "grounding_description": GROUNDING_DESCRIPTION,
         "n_invalid_runs": len(invalid_runs),
     }
 
@@ -422,6 +550,11 @@ def build(
     from src.scoring.pairwise_judge import battle as _battle
     from src.scoring import bradley_terry as bt
 
+    # GATE is deterministic (depends only on grounding_mean), so compute it
+    # BEFORE battling. (BUG D) the headline Bradley-Terry rating must be fit on
+    # UNGATED agents only: beating a gated junk report should not inflate Elo.
+    gated_set: set[str] = {a for a in included_agents if grounding_mean[a] < grounding_floor}
+
     # Cache truncated report text per (agent, task).
     text_cache: dict[tuple[str, str], str] = {}
     raw_words: dict[tuple[str, str], int] = {}
@@ -434,24 +567,50 @@ def build(
             text_cache[key] = truncate_words(full, word_budget)
         return text_cache[key]
 
-    battles: list[dict] = []
-    battle_log: list[dict] = []
-    for item in plan:
-        task, a, b = item["task"], item["agent_a"], item["agent_b"]
-        ans_a = _report(a, task)
-        ans_b = _report(b, task)
-        res = _battle(
+    def _run_battle(task: str, a: str, b: str) -> dict:
+        return _battle(
             task_intent=f"Deep research task: {task}",
             agent_a=a,
-            answer_a=ans_a,
+            answer_a=_report(a, task),
             agent_b=b,
-            answer_b=ans_b,
+            answer_b=_report(b, task),
             model=model,
             dimension=None,
             n_samples=n_samples,
         )
+
+    # ----- (BUG B3.i) pre-flight judge SMOKE ------------------------- #
+    # Run ONE real battle first. If the judge backend is down, that single
+    # battle returns a judge error and we ABORT immediately with a clear
+    # message instead of burning the whole plan and emitting a flat board.
+    smoke_result: dict | None = None
+    if plan:
+        s0 = plan[0]
+        smoke_result = _run_battle(s0["task"], s0["agent_a"], s0["agent_b"])
+        if abort_on_judge_error and is_judge_error_result(smoke_result):
+            raise JudgeErrorAbort(
+                "Judge SMOKE battle returned a judge error; aborting before "
+                "running the full plan. Fix the judge backend (model / API "
+                f"key / endpoint) and retry. Smoke result: {smoke_result!r}",
+                error_fraction=1.0,
+                sample=smoke_result,
+            )
+
+    battles: list[dict] = []
+    battle_log: list[dict] = []
+    n_judge_errors = 0
+    for i, item in enumerate(plan):
+        task, a, b = item["task"], item["agent_a"], item["agent_b"]
+        # Reuse the smoke result for the first battle instead of paying for it
+        # twice.
+        res = smoke_result if (i == 0 and smoke_result is not None) else _run_battle(task, a, b)
+        judge_errored = is_judge_error_result(res)
+        if judge_errored:
+            n_judge_errors += 1
         winner = res.get("agent_winner", "tie")
         battles.append({"agent_a": a, "agent_b": b, "winner": winner})
+        # (BUG B3.iii) persist verdicts_raw + any error so a degenerate run is
+        # detectable from the saved JSON alone.
         battle_log.append({
             "task": task,
             "agent_a": a,
@@ -459,27 +618,67 @@ def build(
             "winner": winner,
             "words_a": raw_words.get((a, task)),
             "words_b": raw_words.get((b, task)),
+            "verdicts_raw": res.get("verdicts_raw"),
+            "error": res.get("error"),
+            "judge_error": judge_errored,
         })
 
+    # ----- (BUG B3.ii) judge-error fraction guard -------------------- #
+    judge_error_fraction = (n_judge_errors / len(battles)) if battles else 0.0
+    if (
+        abort_on_judge_error
+        and battles
+        and judge_error_fraction > judge_error_abort_fraction
+    ):
+        raise JudgeErrorAbort(
+            f"Judge-error fraction {judge_error_fraction:.1%} exceeds the "
+            f"{judge_error_abort_fraction:.1%} threshold "
+            f"({n_judge_errors}/{len(battles)} battles errored). The board "
+            "would collapse toward a flat ~1000 Elo; aborting. Fix the judge "
+            "backend and retry.",
+            error_fraction=judge_error_fraction,
+        )
+
     # ----- Bradley-Terry rating --------------------------------------- #
-    quality: dict[str, dict[str, float]] = {}
-    if battles:
+    # (BUG D) The HEADLINE ranking is fit on UNGATED agents only: any battle
+    # where either side is gated is dropped, so beating gated junk cannot
+    # inflate the headline Elo. We ALSO keep a transparency fit over the FULL
+    # battle set (per-agent `quality_elo`, including gated agents) so the JSON
+    # still shows where every agent landed; the full battle_log is emitted
+    # unfiltered for audit.
+    ranked_battles = [
+        b for b in battles
+        if b["agent_a"] not in gated_set and b["agent_b"] not in gated_set
+    ]
+    n_battles_dropped_gated = len(battles) - len(ranked_battles)
+    ungated_agents = [a for a in included_agents if a not in gated_set]
+
+    def _fit(battle_list: list[dict], agents_scope: list[str]) -> dict[str, dict[str, float]]:
+        out: dict[str, dict[str, float]] = {}
+        if not battle_list:
+            return out
         if bootstrap:
-            ci = bt.bootstrap_ci(battles)
-            for a in included_agents:
+            ci = bt.bootstrap_ci(battle_list)
+            for a in agents_scope:
                 row = ci.get(a)
                 if row:
-                    quality[a] = {
+                    out[a] = {
                         "quality_elo": row["elo"],
                         "ci_lo": row["lo"],
                         "ci_hi": row["hi"],
                         "ci_half_width": row["half_width"],
                     }
         else:
-            elo = bt.fit_bradley_terry(battles)
-            for a in included_agents:
+            elo = bt.fit_bradley_terry(battle_list)
+            for a in agents_scope:
                 if a in elo:
-                    quality[a] = {"quality_elo": round(elo[a], 1)}
+                    out[a] = {"quality_elo": round(elo[a], 1)}
+        return out
+
+    # Transparency fit (all battles, all included agents).
+    quality = _fit(battles, included_agents)
+    # Headline fit (ungated-only battles, ungated agents).
+    quality_ranked = _fit(ranked_battles, ungated_agents)
 
     # ----- Assemble per-agent rows + GATE ----------------------------- #
     agent_rows: dict[str, dict[str, Any]] = {}
@@ -491,12 +690,22 @@ def build(
     for a in included_agents:
         g = grounding_mean[a]
         q = quality.get(a, {})
+        qr = quality_ranked.get(a, {})
         agent_rows[a] = {
             "agent": a,
+            # Full-set Elo (transparency; includes gated agents).
             "quality_elo": q.get("quality_elo"),
             "quality_ci": (
                 {"lo": q["ci_lo"], "hi": q["ci_hi"], "half_width": q["ci_half_width"]}
                 if "ci_lo" in q else None
+            ),
+            # HEADLINE Elo: ungated-only fit, NOT inflated by beating gated
+            # junk (BUG D). None for gated agents (not fit) and for ungated
+            # agents that had no ungated opponent.
+            "quality_elo_ranked": qr.get("quality_elo"),
+            "quality_ci_ranked": (
+                {"lo": qr["ci_lo"], "hi": qr["ci_hi"], "half_width": qr["ci_half_width"]}
+                if "ci_lo" in qr else None
             ),
             "grounding": round(g, 4),
             "gated": bool(g < grounding_floor),
@@ -504,12 +713,25 @@ def build(
             "n_battles": n_battles_per_agent.get(a, 0),
         }
 
-    # Ranked views.
+    # Ranked views. Headline ranking is over UNGATED agents, ordered by the
+    # ungated-only Elo when available, falling back to the full-set Elo for an
+    # ungated agent that had no ungated opponent (so it is not silently
+    # dropped from the board).
+    def _headline_elo(r: dict) -> float | None:
+        if r["quality_elo_ranked"] is not None:
+            return r["quality_elo_ranked"]
+        return r["quality_elo"]
+
     by_quality = sorted(
-        [r for r in agent_rows.values() if not r["gated"] and r["quality_elo"] is not None],
-        key=lambda r: -r["quality_elo"],
+        [r for r in agent_rows.values() if not r["gated"] and _headline_elo(r) is not None],
+        key=lambda r: -_headline_elo(r),
     )
     by_grounding = sorted(agent_rows.values(), key=lambda r: -r["grounding"])
+
+    summary["n_judge_errors"] = n_judge_errors
+    summary["judge_error_fraction"] = round(judge_error_fraction, 4)
+    summary["n_battles_dropped_gated"] = n_battles_dropped_gated
+    summary["n_ranked_battles"] = len(ranked_battles)
 
     return {
         "synthetic_placeholder": False,
@@ -521,6 +743,12 @@ def build(
         "ranked_by_grounding": [r["agent"] for r in by_grounding],
         "battle_log": battle_log,
         "n_battles": len(battles),
+        # Headline Elo is fit on UNGATED battles only (BUG D); the full
+        # battle_log above is unfiltered for audit.
+        "n_ranked_battles": len(ranked_battles),
+        "n_battles_dropped_gated": n_battles_dropped_gated,
+        "n_judge_errors": n_judge_errors,
+        "judge_error_fraction": round(judge_error_fraction, 4),
         "grounding_missing": grounding_missing,
         "invalid_runs": invalid_runs,
     }
@@ -540,6 +768,17 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--model", type=str, default=DEFAULT_MODEL)
     p.add_argument("--n-samples", type=int, default=3)
     p.add_argument("--no-bootstrap", action="store_true")
+    p.add_argument(
+        "--no-judge-error-abort",
+        action="store_true",
+        help="do NOT abort on judge errors; flag loudly but keep the (degenerate) board",
+    )
+    p.add_argument(
+        "--judge-error-abort-fraction",
+        type=float,
+        default=JUDGE_ERROR_ABORT_FRACTION,
+        help="abort if more than this fraction of battles are judge errors (default 0.05)",
+    )
     p.add_argument("--dry-run", action="store_true", help="build work list + count battles; NO judge calls")
     p.add_argument("--report-dir", type=str, default=str(DEFAULT_REPORT_DIR))
     p.add_argument("--score-dir", type=str, default=str(DEFAULT_SCORE_DIR))
@@ -567,6 +806,7 @@ def _print_summary(result: dict) -> None:
     print(f"Tasks: {s['n_tasks']}   Reference: {s['reference']}")
     print(f"Battles planned: {s['n_battles_planned']}   Word budget: {s['word_budget']}")
     print(f"Grounding floor: {s['grounding_floor']}   Grounding source: {s['grounding_score_source']}")
+    print(f"Grounding formula: {s.get('composite_formula')}")
     gm = result.get("grounding_mean")
     if gm is not None:
         print("Grounding (mean) per agent:")
@@ -574,6 +814,12 @@ def _print_summary(result: dict) -> None:
             print(f"  - {a}: {gm.get(a)}")
     if result["mode"] != "dry-run":
         print(f"Battles run: {result.get('n_battles')}")
+        nje = result.get("n_judge_errors", 0)
+        frac = result.get("judge_error_fraction", 0.0)
+        if nje:
+            print(f"WARNING: judge errors in {nje} battles ({frac:.1%}); board may be degraded.")
+        print(f"Battles dropped (gated side): {result.get('n_battles_dropped_gated')}   "
+              f"Ranked (ungated) battles: {result.get('n_ranked_battles')}")
         print("Ranked by quality_elo (gated):", result.get("ranked_by_quality_elo_gated"))
         print("Ranked by grounding:", result.get("ranked_by_grounding"))
 
@@ -581,20 +827,29 @@ def _print_summary(result: dict) -> None:
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
     agents_filter = [a.strip() for a in args.agents.split(",") if a.strip()] if args.agents else None
-    result = build(
-        report_dir=Path(args.report_dir),
-        score_dir=Path(args.score_dir),
-        limit_tasks=args.limit_tasks,
-        limit_agents=args.limit_agents,
-        agents_filter=agents_filter,
-        reference=args.reference,
-        grounding_floor=args.grounding_floor,
-        word_budget=args.word_budget,
-        model=args.model,
-        dry_run=args.dry_run,
-        n_samples=args.n_samples,
-        bootstrap=not args.no_bootstrap,
-    )
+    try:
+        result = build(
+            report_dir=Path(args.report_dir),
+            score_dir=Path(args.score_dir),
+            limit_tasks=args.limit_tasks,
+            limit_agents=args.limit_agents,
+            agents_filter=agents_filter,
+            reference=args.reference,
+            grounding_floor=args.grounding_floor,
+            word_budget=args.word_budget,
+            model=args.model,
+            dry_run=args.dry_run,
+            n_samples=args.n_samples,
+            bootstrap=not args.no_bootstrap,
+            abort_on_judge_error=not args.no_judge_error_abort,
+            judge_error_abort_fraction=args.judge_error_abort_fraction,
+        )
+    except JudgeErrorAbort as exc:
+        print("=" * 64)
+        print("ABORTED: judge backend is failing; refusing to write a flat board.")
+        print(str(exc))
+        print("=" * 64)
+        return 2
     _print_summary(result)
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

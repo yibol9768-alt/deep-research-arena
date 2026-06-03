@@ -279,6 +279,7 @@ def call_judge(
     system: str,
     user: str,
     *,
+    model: str | None = None,
     max_tokens: int = 2000,
     temperature: float = 0.2,
 ) -> tuple[str | None, str | None]:
@@ -287,9 +288,16 @@ def call_judge(
     This is the *regular* judge entry point: checklist, citation_alignment,
     presentation Tier B, analysis_depth Tier B, perspective_balance Tier B
     use this. For heavy extraction / NLI work, prefer ``call_judge_heavy``.
+
+    When ``model`` is provided it OVERRIDES the JUDGE_MODEL /
+    CHECKLIST_JUDGE_MODEL env vars for this single call, so a caller that has
+    already resolved a concrete judge (e.g. the pairwise battle picking a
+    cross-family judge) can guarantee that exact model is used rather than
+    silently re-reading the environment. When ``model`` is None the env-driven
+    default is used (back-compat behaviour).
     """
     provider = os.environ.get("JUDGE_PROVIDER", "anthropic").lower()
-    model = (
+    model = model or (
         os.environ.get("JUDGE_MODEL")
         or os.environ.get("CHECKLIST_JUDGE_MODEL")
         or ("deepseek-chat" if provider == "openai" else "glm-5.1")
@@ -345,6 +353,16 @@ def _call_anthropic(system: str, user: str, *, model: str, max_tokens: int) -> t
     if not key:
         return None, "judge key missing (set JUDGE_API_KEY or ANTHROPIC_AUTH_TOKEN)"
     timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "120"))
+    # GLM-family models are routed through the bigmodel anthropic-compatible
+    # endpoint (the default base_url here). They default to emitting a long
+    # chain-of-thought that, on the tight pairwise budget, consumes the whole
+    # token allowance and leaves the text content empty -> spurious TIE.
+    # Disable thinking via the extra body the bigmodel endpoint understands.
+    # Native Anthropic (claude-*) models ignore this branch entirely, so the
+    # legacy Claude path is byte-for-byte unchanged.
+    extra: dict = {}
+    if model.lower().startswith("glm"):
+        extra["thinking"] = {"type": "disabled"}
     try:
         # Anthropic SDK timeout was missing entirely; without it a stalled
         # provider hangs the whole rescore loop indefinitely.
@@ -354,6 +372,7 @@ def _call_anthropic(system: str, user: str, *, model: str, max_tokens: int) -> t
             max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": user}],
+            extra_body=extra or None,
         )
         text = "".join(
             b.text for b in resp.content
@@ -380,10 +399,20 @@ def _call_openai(
     if not key:
         return None, "judge key missing (set JUDGE_API_KEY or OPENAI_API_KEY)"
     extra_body: dict = {}
+    low_model = model.lower()
     # Case-insensitive: `JUDGE_MODEL=DeepSeek-V4-flash` would otherwise miss
     # the thinking-disabled flag and the model would hide the answer in
     # `reasoning_content`, breaking JSON parsing downstream.
-    if model.lower().startswith("deepseek-v4"):
+    if low_model.startswith("deepseek-v4"):
+        extra_body["thinking"] = {"type": "disabled"}
+    # GLM-family models (glm-4.6, glm-5, glm-5.1, ...) default to emitting a
+    # long chain-of-thought into `reasoning_content`. On a tight pairwise
+    # budget (1500 tokens) that reasoning eats the whole budget and leaves
+    # `content` empty, which downstream parses as an unparseable verdict and
+    # collapses to a spurious TIE. Disable thinking so the budget is spent on
+    # the visible answer. GLM accepts the same `thinking: {type: disabled}`
+    # shape as DeepSeek on its OpenAI-compatible endpoint.
+    elif low_model.startswith("glm"):
         extra_body["thinking"] = {"type": "disabled"}
 
     timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "120"))

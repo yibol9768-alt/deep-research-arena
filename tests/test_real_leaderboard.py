@@ -233,3 +233,258 @@ def test_invalid_capture_excluded_from_ranking(tmp_path, monkeypatch):
     assert res["summary"]["n_invalid_runs"] == 2
     # The valid agent is unaffected.
     assert res["agents"]["good"]["gated"] is False
+
+
+# --------------------------------------------------------------------------- #
+# Fixtures with THREE agents: two UNGATED (good1, good2) and one GATED (junk).
+# Used by the BUG-D ungated-only Bradley-Terry tests.
+# --------------------------------------------------------------------------- #
+@pytest.fixture()
+def synth3(tmp_path):
+    rdir = tmp_path / "deep"
+    sdir = tmp_path / "deep_v3"
+    tasks = ["t0001", "t0002"]
+    for t in tasks:
+        _write_report(rdir, "good1", t, words=2000)
+        _write_score(sdir, "good1", t, recall=0.9, quote=0.9)
+        _write_report(rdir, "good2", t, words=2000)
+        _write_score(sdir, "good2", t, recall=0.8, quote=0.8)
+        # junk: grounded BELOW the floor -> gated.
+        _write_report(rdir, "junk", t, words=2000)
+        _write_score(sdir, "junk", t, recall=0.02, quote=0.05)
+    return rdir, sdir, tasks
+
+
+# --------------------------------------------------------------------------- #
+# 8. Integrity: preferred simple_score path is INAPPLICABLE (wrong arity), so
+#    the deterministic additive formula is used; a real single-arg scorer that
+#    raises must FAIL LOUDLY (no bare-except swallow).
+# --------------------------------------------------------------------------- #
+def test_load_simple_score_rejects_wrong_arity():
+    # The real grounding_score requires 3 positional args -> not the single-dict
+    # convention this path assumes, so _load_simple_score returns None and the
+    # additive fallback is used.
+    from src.scoring.simple_score import grounding_score
+    assert brl._required_positional_count(grounding_score) == 3
+    assert brl._load_simple_score() is None
+
+
+def test_simple_score_from_json_does_not_swallow_errors():
+    """A genuine runtime error inside an applicable single-arg scorer must
+    propagate, NOT be swallowed into a silent None fallback."""
+    def boom(_score_json):
+        raise ValueError("scorer exploded")
+
+    with pytest.raises(ValueError, match="scorer exploded"):
+        brl._simple_score_from_json(boom, {"any": "json"})
+
+
+def test_simple_score_from_json_dict_and_float_shapes():
+    assert brl._simple_score_from_json(lambda j: {"grounding": 0.7}, {}) == 0.7
+    assert brl._simple_score_from_json(lambda j: 0.42, {}) == 0.42
+    assert brl._simple_score_from_json(lambda j: {"nope": 1}, {}) is None
+    assert brl._simple_score_from_json(lambda j: None, {}) is None
+
+
+def test_grounding_for_uses_additive_not_f1():
+    """grounding_for must report the additive formula source, never an F1 that
+    it does not compute (the real grounding_score is inapplicable here)."""
+    sj = {
+        "url_coverage": {"details": {"must_cite_recall": 0.2}},
+        "quote_match": {"score": 0.4},
+    }
+    val, src = brl.grounding_for(sj)
+    assert abs(val - 0.3) < 1e-9  # 0.5*0.2 + 0.5*0.4
+    assert src == "fallback_recall_quote"
+
+
+def test_output_states_actual_additive_formula(synth, monkeypatch):
+    """The output JSON composite_formula / grounding_description must describe
+    the additive citation-fidelity + curated recall actually in use, NOT F1."""
+    rdir, sdir, _ = synth
+    monkeypatch.setattr(brl, "_load_simple_score", lambda: None)
+
+    def _fake_battle(*, agent_a, agent_b, **kw):
+        return {"winner": "tie", "agent_winner": "good" if "good" in (agent_a, agent_b) else "tie"}
+
+    import src.scoring.pairwise_judge as pj
+    monkeypatch.setattr(pj, "battle", _fake_battle)
+
+    res = brl.build(report_dir=rdir, score_dir=sdir, word_budget=100, n_samples=1)
+    s = res["summary"]
+    assert "curated" in s["composite_formula"].lower()
+    assert "quote_match" in s["composite_formula"].lower()
+    assert "f1" not in s["composite_formula"].lower()
+    assert "additive" in s["grounding_description"].lower()
+    assert "not an f1" in s["grounding_description"].lower()
+
+
+# --------------------------------------------------------------------------- #
+# 9. BUG B3: judge-error detection + smoke abort + fraction abort + persistence.
+# --------------------------------------------------------------------------- #
+def test_is_judge_error_result():
+    # Hard failure: outer error key.
+    assert brl.is_judge_error_result({"error": "RuntimeError: down"}) is True
+    # Every round reported a (judge error ...) reasoning.
+    assert brl.is_judge_error_result({
+        "agent_winner": "tie",
+        "verdicts_raw": ["TIE"],
+        "reasonings": ["(judge error: timeout)"],
+    }) is True
+    # All verdicts None.
+    assert brl.is_judge_error_result({"verdicts_raw": [None, None], "reasonings": []}) is True
+    # A clean result is NOT a judge error.
+    assert brl.is_judge_error_result({
+        "agent_winner": "good",
+        "verdicts_raw": ["A", "A"],
+        "reasonings": ["- good is better\nVERDICT: A"],
+    }) is False
+    # Bare mocked result (no verdicts/reasonings) is NOT a judge error.
+    assert brl.is_judge_error_result({"winner": "tie", "agent_winner": "tie"}) is False
+
+
+def test_smoke_abort_on_judge_error(synth, monkeypatch):
+    """The pre-flight 1-battle SMOKE must ABORT loudly if the judge errors,
+    before the full plan is run."""
+    rdir, sdir, _ = synth
+    monkeypatch.setattr(brl, "_load_simple_score", lambda: None)
+
+    calls = {"n": 0}
+
+    def _error_battle(*, agent_a, agent_b, **kw):
+        calls["n"] += 1
+        return {"winner": "tie", "agent_winner": "tie",
+                "error": "RuntimeError: judge backend unreachable"}
+
+    import src.scoring.pairwise_judge as pj
+    monkeypatch.setattr(pj, "battle", _error_battle)
+
+    with pytest.raises(brl.JudgeErrorAbort) as ei:
+        brl.build(report_dir=rdir, score_dir=sdir, word_budget=100, n_samples=1)
+    # Smoke aborts after exactly ONE battle, never burning the full plan.
+    assert calls["n"] == 1
+    assert ei.value.error_fraction == 1.0
+
+
+def test_judge_error_fraction_abort(synth3, monkeypatch):
+    """If more than ~5% of battles error (past the smoke), ABORT instead of
+    emitting a flat ~1000-Elo board."""
+    rdir, sdir, _ = synth3
+    monkeypatch.setattr(brl, "_load_simple_score", lambda: None)
+
+    state = {"n": 0}
+
+    def _mostly_error_battle(*, agent_a, agent_b, **kw):
+        state["n"] += 1
+        # First battle (the smoke) succeeds so we get PAST the smoke; the rest
+        # error, pushing the fraction well past 5%.
+        if state["n"] == 1:
+            return {"agent_winner": "good1", "verdicts_raw": ["A"],
+                    "reasonings": ["VERDICT: A"]}
+        return {"agent_winner": "tie", "verdicts_raw": ["TIE"],
+                "reasonings": ["(judge error: timeout)"]}
+
+    import src.scoring.pairwise_judge as pj
+    monkeypatch.setattr(pj, "battle", _mostly_error_battle)
+
+    with pytest.raises(brl.JudgeErrorAbort) as ei:
+        brl.build(report_dir=rdir, score_dir=sdir, word_budget=100, n_samples=1)
+    assert ei.value.error_fraction is not None
+    assert ei.value.error_fraction > 0.05
+
+
+def test_judge_errors_flagged_not_aborted_when_disabled(synth3, monkeypatch):
+    """With abort disabled, a degenerate run is loudly FLAGGED (summary +
+    persisted verdicts/error) instead of silently scoring everyone tied."""
+    rdir, sdir, _ = synth3
+    monkeypatch.setattr(brl, "_load_simple_score", lambda: None)
+
+    def _all_error_battle(*, agent_a, agent_b, **kw):
+        return {"agent_winner": "tie", "verdicts_raw": ["TIE"], "error": "down"}
+
+    import src.scoring.pairwise_judge as pj
+    monkeypatch.setattr(pj, "battle", _all_error_battle)
+
+    res = brl.build(report_dir=rdir, score_dir=sdir, word_budget=100, n_samples=1,
+                    abort_on_judge_error=False)
+    # Degenerate run is detectable: every battle flagged, fraction == 1.0.
+    assert res["summary"]["judge_error_fraction"] == 1.0
+    assert res["summary"]["n_judge_errors"] == res["n_battles"]
+    # Persisted verdicts_raw + error per battle (BUG B3.iii).
+    for blog in res["battle_log"]:
+        assert blog["judge_error"] is True
+        assert blog["error"] == "down"
+        assert blog["verdicts_raw"] == ["TIE"]
+
+
+def test_battle_log_persists_verdicts(synth3, monkeypatch):
+    """verdicts_raw + error are persisted into the battle_log on a healthy run
+    too, so a board can always be audited."""
+    rdir, sdir, _ = synth3
+    monkeypatch.setattr(brl, "_load_simple_score", lambda: None)
+
+    def _ok_battle(*, agent_a, agent_b, **kw):
+        winner = "good1" if "good1" in (agent_a, agent_b) else (
+            "good2" if "good2" in (agent_a, agent_b) else "tie")
+        if winner not in (agent_a, agent_b):
+            winner = "tie"
+        return {"agent_winner": winner, "verdicts_raw": ["A", "A"],
+                "reasonings": ["VERDICT: A"], "error": None}
+
+    import src.scoring.pairwise_judge as pj
+    monkeypatch.setattr(pj, "battle", _ok_battle)
+
+    res = brl.build(report_dir=rdir, score_dir=sdir, word_budget=100, n_samples=1)
+    assert res["summary"]["n_judge_errors"] == 0
+    for blog in res["battle_log"]:
+        assert "verdicts_raw" in blog
+        assert "error" in blog
+        assert blog["judge_error"] is False
+
+
+# --------------------------------------------------------------------------- #
+# 10. BUG D: headline Bradley-Terry ranking drops battles vs GATED agents.
+# --------------------------------------------------------------------------- #
+def test_headline_bt_drops_gated_battles(synth3, monkeypatch):
+    """Battles where either side is gated are excluded from the headline
+    (ungated-only) fit, so beating gated junk does not inflate the Elo."""
+    rdir, sdir, _ = synth3
+    monkeypatch.setattr(brl, "_load_simple_score", lambda: None)
+
+    def _judge(*, agent_a, agent_b, **kw):
+        # good1 > good2 > junk. Resolve to the stronger agent present.
+        order = {"good1": 3, "good2": 2, "junk": 1}
+        winner = agent_a if order[agent_a] >= order[agent_b] else agent_b
+        return {"agent_winner": winner, "verdicts_raw": ["A"], "reasonings": ["VERDICT: A"]}
+
+    import src.scoring.pairwise_judge as pj
+    monkeypatch.setattr(pj, "battle", _judge)
+
+    res = brl.build(report_dir=rdir, score_dir=sdir, word_budget=100, n_samples=1)
+
+    # junk is gated; good1/good2 are not.
+    assert res["agents"]["junk"]["gated"] is True
+    assert res["agents"]["good1"]["gated"] is False
+    assert res["agents"]["good2"]["gated"] is False
+
+    # Round-robin over 3 agents x 2 tasks = 6 battles total; battles touching
+    # junk (good1-junk, good2-junk per task = 4) are dropped from the headline.
+    assert res["n_battles"] == 6
+    assert res["n_battles_dropped_gated"] == 4
+    assert res["n_ranked_battles"] == 2  # only good1-vs-good2, one per task
+
+    # Headline ranking contains ONLY ungated agents, good1 first.
+    assert res["ranked_by_quality_elo_gated"] == ["good1", "good2"]
+    assert "junk" not in res["ranked_by_quality_elo_gated"]
+
+    # Headline (ungated-only) Elo exists for the ungated agents and gives
+    # good1 the edge; the gated junk has no headline Elo.
+    assert res["agents"]["good1"]["quality_elo_ranked"] is not None
+    assert res["agents"]["good2"]["quality_elo_ranked"] is not None
+    assert res["agents"]["junk"]["quality_elo_ranked"] is None
+    assert (res["agents"]["good1"]["quality_elo_ranked"]
+            > res["agents"]["good2"]["quality_elo_ranked"])
+
+    # The full battle_log is kept unfiltered (all 6 battles, including vs junk).
+    assert len(res["battle_log"]) == 6
+    assert any(b["agent_a"] == "junk" or b["agent_b"] == "junk" for b in res["battle_log"])

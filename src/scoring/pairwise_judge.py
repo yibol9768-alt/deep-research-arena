@@ -150,7 +150,7 @@ def _system_for_dimension(dimension: str | None) -> str:
 
 
 def _judge_once(
-    model_unused: str,
+    model: str,
     task_intent: str,
     ans_a: str,
     ans_b: str,
@@ -182,7 +182,13 @@ def _judge_once(
     else:
         user_parts.append("Reason briefly, then emit `VERDICT: A | B | TIE`.")
     user = "\n\n".join(user_parts)
-    text, err = call_judge(_system_for_dimension(dimension), user, max_tokens=1500)
+    # Thread the resolved judge model through to call_judge so the chosen model
+    # is actually honored. Without an explicit model, call_judge silently
+    # re-reads JUDGE_MODEL from the environment, which can differ from the
+    # model `battle` resolved (and stamped) -> the stamped judge_model lies.
+    text, err = call_judge(
+        _system_for_dimension(dimension), user, model=model, max_tokens=1500
+    )
     if text is None:
         return "tie", f"(judge error: {err})"
     return _extract_verdict(text), text[:600]
@@ -269,7 +275,9 @@ def battle(
             final = "B"
         else:
             final = "TIE"
-        res = _resolve(final, all_v, all_r, agent_a, agent_b)
+        res = _resolve(final, all_v, all_r, agent_a, agent_b, model=m)
+        # Stamp the ACTUAL model that was threaded into every call_judge call,
+        # not the env-driven default, so the recorded judge_model never lies.
         res["judge_model"] = m
         if dimension:
             res["dimension"] = dimension
@@ -278,17 +286,27 @@ def battle(
         return {"winner": "tie", "agent_winner": "tie", "error": f"{type(e).__name__}: {e}"}
 
 
-def _resolve(verdict: str, all_v: list[str], all_r: list[str], agent_a: str, agent_b: str) -> dict[str, Any]:
+def _resolve(
+    verdict: str,
+    all_v: list[str],
+    all_r: list[str],
+    agent_a: str,
+    agent_b: str,
+    *,
+    model: str | None = None,
+) -> dict[str, Any]:
     if verdict == "A":
         agent_winner = agent_a
     elif verdict == "B":
         agent_winner = agent_b
     else:
         agent_winner = "tie"
+    # Stamp the actual model used when provided; only fall back to the
+    # env-driven default for back-compat when a caller does not pass one.
     return {
         "winner": verdict.lower() if verdict != "TIE" else "tie",
         "agent_winner": agent_winner,
         "verdicts_raw": all_v,
         "reasonings": all_r,
-        "judge_model": _default_judge_model(),
+        "judge_model": model or _default_judge_model(),
     }
