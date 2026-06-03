@@ -35,9 +35,9 @@ explicit and honest.
 | gpt-researcher | 32 tasks | trustworthy run, but the agent fabricates URLs -> gated (correct) |
 | langchain-odr | 31 tasks | same as gpt-researcher: fabricates -> gated |
 | flowsearcher-ds | 48 tasks | partial (about a third of runs are capture failures) |
-| storm | 31 tasks | NOT trustworthy: ~97% are runner capture stubs (empty / OSError) |
-| qx-agents | 30 tasks | NOT trustworthy: 100% identical 367-char stub (OS venv-path bug) |
-| ii-researcher | 30 tasks | NOT trustworthy: ~77% are 74-char crash stubs |
+| storm | 31 tasks (historical stubs) | RESOLVED on re-run: produces a REAL grounded report (task 0002: 13,978 chars, 31 real Magento URLs with accurate prices). History was missing-venv + a since-resolved LLM-balance issue, NOT a broken agent. |
+| qx-agents | 30 tasks (historical stubs) | RE-RUN: installs + starts but cannot complete with deepseek-v4-flash (KnowledgeGapOutput structured-output schema mismatch, no retry -> abort). Lite-model-incompatible, not an infra bug. |
+| ii-researcher | 30 tasks (historical stubs) | RESOLVED on re-run: produces a REAL grounded report (task 0002: 29,617 chars, 18 real sandbox URLs). History was missing-venv, NOT a broken agent. |
 | ldr | 30 tasks | runs, but produces tiny shallow reports |
 | deerflow | 30 tasks | runs, fluent but under-cited + cites off-sandbox URLs |
 
@@ -72,6 +72,21 @@ forum content. Consequences:
 **Mid-term fix (sandbox-gated, needs my5090):** seed coffee/fitness/photography/
 gardening forum content into Postmill (option 1), then re-crawl golden and re-run
 agents. This is the path to making 0002-0005 fully valid.
+
+## Re-run resolution (2026-06-02, my5090 sandbox)
+
+The box's real working repo is **`/opt/deep_reserch`** (all framework sources under
+`third_party/` + prebuilt per-framework venvs `.venv-storm`/`.venv-qx`/`.venv-ii`),
+NOT the stripped `/root/deep_reserch` tarball. Running from `/opt` with the
+sandbox + shim + ds_proxy up: STORM and ii-researcher both produce REAL,
+sandbox-grounded reports on task 0002 (pulled to `data/results/deep/*__rerun0602.md`).
+So their historical "runner-broken" status was an environment artifact, now
+resolved. qx-agents alone genuinely cannot complete with the lite DeepSeek
+backbone (structured-output incompatibility). Their curated must-cite recall is
+low (storm 0.00, ii 0.083) like every other framework, i.e. they cite real
+products but not the specific curated key set; full grounding (quote_match) needs
+a box-side re-score. A multi-task re-run on `/opt` would let them join the ranked
+leaderboard properly.
 
 ## What full completion still requires (all sandbox-gated)
 
