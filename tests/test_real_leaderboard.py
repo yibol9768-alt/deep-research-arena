@@ -179,3 +179,57 @@ def test_truncate_words():
     assert brl.word_count(brl.truncate_words(text, 100)) == 100
     short = "a b c"
     assert brl.truncate_words(short, 100) == short
+
+
+# --------------------------------------------------------------------------- #
+# 7. BUG C: invalid-capture reports land in invalid_runs, NOT in the ranking.
+# --------------------------------------------------------------------------- #
+def test_detect_invalid_report():
+    assert brl.detect_invalid_report("(empty storm output)") is not None
+    assert brl.detect_invalid_report("(runner error: Boom)") is not None
+    assert brl.detect_invalid_report("") == "empty_report"
+    assert brl.detect_invalid_report("a\nTraceback (most recent call last):\n  ...") is not None
+    assert brl.detect_invalid_report("too short") is not None  # < 50 words
+    # A genuine (if weak) report is NOT flagged.
+    assert brl.detect_invalid_report(" ".join(f"w{i}" for i in range(200))) is None
+
+
+def test_invalid_capture_excluded_from_ranking(tmp_path, monkeypatch):
+    """A '(empty storm output)' report must be bucketed into invalid_runs and
+    never ranked, grounded, or battled."""
+    rdir = tmp_path / "deep"
+    sdir = tmp_path / "deep_v3"
+    tasks = ["t0001", "t0002"]
+    for t in tasks:
+        # good agent: real long report, high grounding.
+        _write_report(rdir, "good", t, words=2000)
+        _write_score(sdir, "good", t, recall=0.9, quote=0.9)
+        # storm agent: capture failure -> invalid, even though a score.json exists.
+        rdir.mkdir(parents=True, exist_ok=True)
+        (rdir / f"storm__{t}_matrix.md").write_text("(empty storm output)", encoding="utf-8")
+        _write_score(sdir, "storm", t, recall=0.0, quote=0.0)
+
+    monkeypatch.setattr(brl, "_load_simple_score", lambda: None)
+
+    def _fake_battle(*, agent_a, agent_b, **kw):
+        return {"winner": "tie", "agent_winner": "good" if "good" in (agent_a, agent_b) else "tie"}
+
+    import src.scoring.pairwise_judge as pj
+    monkeypatch.setattr(pj, "battle", _fake_battle)
+
+    res = brl.build(report_dir=rdir, score_dir=sdir, word_budget=100, n_samples=1)
+
+    # storm appears in invalid_runs with a reason, NOT as a scored/gated agent.
+    inv_agents = {ir["agent"] for ir in res["invalid_runs"]}
+    assert inv_agents == {"storm"}
+    assert len(res["invalid_runs"]) == 2  # one per task
+    for ir in res["invalid_runs"]:
+        assert "empty" in ir["reason"].lower()
+
+    # storm is neither ranked, grounded, nor a battle participant.
+    assert "storm" not in res["agents"]
+    assert "storm" not in res["ranked_by_grounding"]
+    assert "storm" not in res["ranked_by_quality_elo_gated"]
+    assert res["summary"]["n_invalid_runs"] == 2
+    # The valid agent is unaffected.
+    assert res["agents"]["good"]["gated"] is False

@@ -159,6 +159,62 @@ def read_report_text(path: Path) -> str:
 
 
 # --------------------------------------------------------------------------- #
+# Invalid-capture detection (BUG C).
+#
+# Some runs do not produce a real report: STORM may write "(empty storm
+# output)", a runner may crash and emit "(runner error: ...)", or the captured
+# stdout is a Python traceback / a near-empty stub. Previously these were
+# scored as a real (low) number ~19 and polluted the leaderboard as if the
+# agent had genuinely written a weak report. They are CAPTURE FAILURES, not
+# weak reports, so we exclude them into a separate `invalid_runs` bucket
+# (distinct from `gated`): neither ranked nor counted as a real low score.
+# --------------------------------------------------------------------------- #
+MIN_REPORT_WORDS = 50
+
+_INVALID_PREFIXES = (
+    "(empty",          # "(empty storm output)"
+    "(runner error",   # "(runner error: ...)"
+    "(no article",     # "(no article produced)"
+)
+# Error markers various runners emit in lieu of a report.
+_INVALID_SUBSTRINGS = (
+    "(gpt-researcher produced empty output)",
+    "(gpt-researcher error:",
+    "(gpt-researcher produced no report",
+    "(gpt-researcher timeout",
+    "(gpt-researcher: missing venv",
+    "(gpt-researcher: strict-sandbox refused",
+    "(storm error:",
+    "(empty storm output)",
+)
+_TRACEBACK_MARKER = "Traceback (most recent call last):"
+
+
+def detect_invalid_report(text: str) -> str | None:
+    """Return a reason string if ``text`` is an invalid capture, else None.
+
+    Detects: empty/whitespace, ``(empty ...`` / ``(runner error ...`` /
+    ``(no article ...`` stubs, embedded Python tracebacks, known per-runner
+    error markers, and reports below ``MIN_REPORT_WORDS`` words.
+    """
+    s = (text or "").strip()
+    if not s:
+        return "empty_report"
+    low = s.lower()
+    for pref in _INVALID_PREFIXES:
+        if low.startswith(pref):
+            return f"capture_stub:{s[:60]}"
+    for sub in _INVALID_SUBSTRINGS:
+        if sub.lower() in low:
+            return f"runner_error:{sub.strip('(').rstrip(':')}"
+    if _TRACEBACK_MARKER in s:
+        return "python_traceback"
+    if word_count(s) < MIN_REPORT_WORDS:
+        return f"too_short:{word_count(s)}_words"
+    return None
+
+
+# --------------------------------------------------------------------------- #
 # QUALITY (pairwise) length control.
 # --------------------------------------------------------------------------- #
 def truncate_words(text: str, budget: int) -> str:
@@ -226,6 +282,22 @@ def build(
     reports = discover_reports(report_dir)
 
     skipped: list[dict[str, str]] = []
+
+    # ----- BUG C: drop invalid-capture (agent, task) reports -------------- #
+    # A run whose report is "(empty storm output)", "(runner error: ...)", a
+    # traceback, or a degenerate near-empty stub is a CAPTURE FAILURE, not a
+    # weak report. We remove it from `reports` so it is never grounded,
+    # battled, ranked, or counted as a real low score, and record it under
+    # `invalid_runs` with the reason.
+    invalid_runs: list[dict[str, str]] = []
+    for a in list(reports.keys()):
+        for task in list(reports[a].keys()):
+            reason = detect_invalid_report(read_report_text(reports[a][task]))
+            if reason is not None:
+                invalid_runs.append({"agent": a, "task": task, "reason": reason})
+                del reports[a][task]
+        if not reports[a]:
+            del reports[a]
 
     # Determine candidate agents.
     if agents_filter:
@@ -296,6 +368,7 @@ def build(
         "grounding_score_source": (
             "+".join(sorted(grounding_sources)) if grounding_sources else "n/a"
         ),
+        "n_invalid_runs": len(invalid_runs),
     }
 
     if dry_run:
@@ -306,6 +379,7 @@ def build(
             "summary": summary,
             "battle_plan": plan,
             "grounding_mean": {a: round(grounding_mean[a], 4) for a in included_agents},
+            "invalid_runs": invalid_runs,
         }
 
     # ----- QUALITY (pairwise, length-controlled) ---------------------- #
@@ -412,6 +486,7 @@ def build(
         "battle_log": battle_log,
         "n_battles": len(battles),
         "grounding_missing": grounding_missing,
+        "invalid_runs": invalid_runs,
     }
 
 
@@ -448,6 +523,11 @@ def _print_summary(result: dict) -> None:
             print(f"  - {sk['agent']}: {sk['reason']}")
     else:
         print("Agents skipped: (none)")
+    inv = result.get("invalid_runs") or []
+    if inv:
+        print(f"Invalid-capture runs excluded (NOT ranked, NOT a low score): {len(inv)}")
+        for ir in inv[:20]:
+            print(f"  - {ir['agent']}__{ir['task']}: {ir['reason']}")
     print(f"Tasks: {s['n_tasks']}   Reference: {s['reference']}")
     print(f"Battles planned: {s['n_battles_planned']}   Word budget: {s['word_budget']}")
     print(f"Grounding floor: {s['grounding_floor']}   Grounding source: {s['grounding_score_source']}")

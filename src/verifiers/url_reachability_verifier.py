@@ -52,6 +52,25 @@ def _is_sandbox_url(url: str, sandbox_hosts: set[str]) -> bool:
     return False
 
 
+def _kiwix_canonical_variant(url: str) -> str | None:
+    """Return the Kiwix-canonical form of ``url`` if it differs from ``url``.
+
+    Goldset matching canonicalises Kiwix aliases such as
+    ``localhost:8090/wiki/<id>`` to ``/content/wikipedia_en_all_nopic/A/<id>``,
+    but Kiwix serves only the ``/content/...`` form. A legitimate ``/wiki/<id>``
+    citation therefore 404s when probed raw. We retry this canonical variant on
+    a non-200 before declaring the URL unreachable. Returns ``None`` when
+    canonicalisation is a no-op (so URLs that already resolve are never
+    double-probed).
+    """
+    try:
+        from .citation_format import canonicalize_url
+    except Exception:
+        return None
+    canon = canonicalize_url(url)
+    return canon if canon and canon != url else None
+
+
 def _probe(url: str, timeout: float = 10.0, retries: int = 3) -> int:
     """Return the HTTP status code (0 on persistent network failure).
 
@@ -64,16 +83,32 @@ def _probe(url: str, timeout: float = 10.0, retries: int = 3) -> int:
         import requests
     except ImportError:
         return 0
+
+    def _status(target: str) -> int | None:
+        r = requests.get(
+            target, timeout=timeout, allow_redirects=True, stream=True,
+            headers={"User-Agent": "deep-reach-verifier/1.0"},
+        )
+        r.close()
+        return r.status_code
+
     backoff = 0.5
     last = 0
     for attempt in range(retries):
         try:
-            r = requests.get(
-                url, timeout=timeout, allow_redirects=True, stream=True,
-                headers={"User-Agent": "deep-reach-verifier/1.0"},
-            )
-            r.close()
-            return r.status_code
+            code = _status(url)
+            if code == 200:
+                return code
+            # Non-200 on the raw URL: a Kiwix /wiki/<id> citation only resolves
+            # under its canonical /content/... form. Retry that before
+            # reporting the raw status (which would wrongly look like 4xx
+            # fabrication).
+            variant = _kiwix_canonical_variant(url)
+            if variant is not None:
+                vcode = _status(variant)
+                if vcode == 200:
+                    return vcode
+            return code
         except Exception:
             last = 0
         import time

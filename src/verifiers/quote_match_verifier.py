@@ -61,24 +61,58 @@ def _claim_context(markdown: str, span_start: int, window: int = 200) -> str:
     return chunk.strip()
 
 
+def _kiwix_canonical_variant(url: str) -> str | None:
+    """Return the Kiwix-canonical form of ``url`` if it differs from ``url``.
+
+    Citation goldset matching canonicalises Kiwix aliases such as
+    ``localhost:8090/wiki/<id>`` to ``/content/wikipedia_en_all_nopic/A/<id>``.
+    Kiwix serves the ``/content/...`` form, so a legitimate ``/wiki/<id>``
+    citation 404s when probed raw and is wrongly scored unsupported. When the
+    raw fetch fails we retry this canonical variant before giving up. Returns
+    ``None`` when canonicalisation does not change the URL (so we never
+    double-probe a URL that already resolves on its raw form).
+    """
+    try:
+        from .citation_format import canonicalize_url
+    except Exception:
+        return None
+    canon = canonicalize_url(url)
+    return canon if canon and canon != url else None
+
+
 def _fetch(url: str, timeout: float = 8.0, retries: int = 2) -> str | None:
     try:
         import requests
         from bs4 import BeautifulSoup
     except ImportError:
         return None
+
+    def _get_text(target: str) -> str | None:
+        r = requests.get(
+            target, timeout=timeout, allow_redirects=True,
+            headers={"User-Agent": "deep-quote-match/1.0"},
+        )
+        if r.status_code != 200:
+            return None
+        soup = BeautifulSoup(r.text, "html.parser")
+        for tag in soup(["script", "style", "nav", "footer", "header", "noscript", "aside"]):
+            tag.decompose()
+        return re.sub(r"\s+", " ", soup.get_text(" ", strip=True))[:20000]
+
     for attempt in range(retries + 1):
         try:
-            r = requests.get(
-                url, timeout=timeout, allow_redirects=True,
-                headers={"User-Agent": "deep-quote-match/1.0"},
-            )
-            if r.status_code != 200:
-                return None
-            soup = BeautifulSoup(r.text, "html.parser")
-            for tag in soup(["script", "style", "nav", "footer", "header", "noscript", "aside"]):
-                tag.decompose()
-            return re.sub(r"\s+", " ", soup.get_text(" ", strip=True))[:20000]
+            text = _get_text(url)
+            if text is not None:
+                return text
+            # Raw URL returned non-200. Kiwix serves /wiki/<id> articles under
+            # the canonical /content/... path, so retry that form before
+            # declaring the citation unsupported.
+            variant = _kiwix_canonical_variant(url)
+            if variant is not None:
+                vtext = _get_text(variant)
+                if vtext is not None:
+                    return vtext
+            return None
         except Exception:
             if attempt == retries:
                 return None

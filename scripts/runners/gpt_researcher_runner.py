@@ -160,6 +160,40 @@ QUERY = {intent_repr}
 async def _go():
     r = GPTResearcher(query=QUERY, report_type="research_report", tone="objective")
     await r.conduct_research()
+    # Fairness fix (verify on a live sandbox): gpt-researcher's vector-store
+    # writer drops the verbatim retrieved URLs, so the LLM regenerates
+    # citations from its prior and invents sequential placeholders like
+    # /products/1. Other runners (camel) keep the raw URLs in context and
+    # cite them verbatim. Feed gpt-researcher the same real URL list so it
+    # cites real pages instead of fabricating. Defensive: if the API differs,
+    # this no-ops and behaviour is unchanged.
+    _urls = []
+    for _attr in ('visited_urls', 'research_sources', 'source_urls'):
+        try:
+            _v = getattr(r, _attr, None)
+            if callable(_v):
+                _v = _v()
+            if _v:
+                _urls = [u for u in (_v if not isinstance(_v, dict) else _v.keys()) if isinstance(u, str)]
+                if _urls:
+                    break
+        except Exception:
+            pass
+    if _urls:
+        _block = chr(10).join('- ' + u for u in sorted(set(_urls))[:120])
+        _appendix = (chr(10) + chr(10) + 'CITE ONLY FROM THESE VERBATIM RETRIEVED URLS '
+                     '(copy each exactly; do NOT invent, renumber, or guess URLs):'
+                     + chr(10) + _block)
+        try:
+            r.query = QUERY + _appendix
+        except Exception:
+            pass
+        try:
+            return await r.write_report(custom_prompt=_appendix)
+        except TypeError:
+            pass
+        except Exception:
+            pass
     return await r.write_report()
 
 try:

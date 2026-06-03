@@ -698,6 +698,22 @@ async def _run_storm_OLD(intent: str, model: str) -> str:
             k=5,
             include_raw_content=True,
         )
+        # BUG B fix: TavilySearchRM with a fake key would otherwise query the
+        # OPEN WEB (api.tavily.com) and get nothing, so STORM produced no
+        # article. Point its retrieval at the sandbox shim the same way
+        # scripts/runners/gpt_researcher_runner.py patches TavilySearch.base_url.
+        # TavilySearchRM holds a `tavily.TavilyClient` (the .__init__ patch
+        # above already redirects new clients), but we also override the
+        # already-constructed client's base URL defensively so a future
+        # knowledge_storm version that builds the client differently still
+        # routes to the shim and not the open web. TavilyClient appends
+        # "/search" to base_url itself, so we set the bare shim base here
+        # (matching the TavilyClient.__init__ patch above), mirroring how
+        # gpt_researcher_runner points TavilySearch.base_url at the shim.
+        for _attr in ("tavily_client", "client", "_client"):
+            _client = getattr(rm, _attr, None)
+            if _client is not None and hasattr(_client, "base_url"):
+                _client.base_url = shim
         runner = STORMWikiRunner(args, lm_config, rm)
         runner.run(
             topic=intent[:300],

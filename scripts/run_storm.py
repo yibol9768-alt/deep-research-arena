@@ -96,6 +96,15 @@ def _build_runner():
         k=5,
         include_raw_content=True,
     )
+    # BUG B fix: with a fake key TavilySearchRM would query api.tavily.com
+    # (the open web) and return nothing, so STORM never produced an article.
+    # Route its underlying TavilyClient at the sandbox shim (the TavilyClient
+    # __init__ patch above already does this for new clients; override the
+    # constructed client defensively too).
+    for _attr in ("tavily_client", "client", "_client"):
+        _client = getattr(rm, _attr, None)
+        if _client is not None and hasattr(_client, "base_url"):
+            _client.base_url = SHIM
     return STORMWikiRunner(args, lm_config, rm)
 
 
