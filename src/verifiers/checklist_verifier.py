@@ -152,6 +152,47 @@ def _parse(text: str, n_items: int) -> list[dict[str, Any]]:
     return out
 
 
+# Graded credit for the rubric-snapshot path: FULL=1.0, PARTIAL=0.5, NONE=0.0.
+_GRADE_CREDIT = {"FULL": 1.0, "PARTIAL": 0.5, "NONE": 0.0}
+
+
+def _parse_graded(text: str, n_items: int) -> list[dict[str, Any]]:
+    """Extract per-item FULL/PARTIAL/NONE verdicts for rubric-snapshot scoring.
+
+    Falls back to PASS/FAIL tokens (PASS->FULL, FAIL->NONE) so a judge that
+    emits binary verdicts still scores. Missing slots score NONE.
+    """
+    text = text or ""
+    out: list[dict[str, Any]] = [None] * n_items  # type: ignore[list-item]
+    for i in range(n_items):
+        pat = (
+            rf"(?:^|\n)\s*{i+1}[\.\)]\s*(FULL|PARTIAL|NONE|PASS|FAIL)\b"
+            rf"\s*[:.\-—)]?\s*(.*?)(?=\n\s*\d+[\.\)]|\nNOTES:|\Z)"
+        )
+        m = re.search(pat, text, re.S | re.I)
+        if m:
+            grade = m.group(1).upper()
+            if grade == "PASS":
+                grade = "FULL"
+            elif grade == "FAIL":
+                grade = "NONE"
+            out[i] = {
+                "index": i + 1,
+                "grade": grade,
+                "credit": _GRADE_CREDIT[grade],
+                "reason": m.group(2).strip().split("\n")[0][:120],
+            }
+    for i in range(n_items):
+        if out[i] is None:
+            out[i] = {
+                "index": i + 1,
+                "grade": "NONE",
+                "credit": 0.0,
+                "reason": "judge did not emit a verdict",
+            }
+    return out
+
+
 def _client():
     try:
         import anthropic  # type: ignore
@@ -207,6 +248,15 @@ class ChecklistVerifier:
         evidence: dict | None = None,
         **kwargs: Any,
     ) -> VerifierResult:
+        rubric_snapshot = kwargs.get("rubric_snapshot")
+        if isinstance(rubric_snapshot, dict) and rubric_snapshot.get("items"):
+            return self._verify_snapshot(
+                task_config=task_config,
+                answer=answer,
+                rubric_snapshot=rubric_snapshot,
+                evidence=evidence,
+            )
+
         all_lists = self._load()
         task_id = task_config.get("task_id", "")
         items = all_lists.get(task_id) or []
@@ -266,6 +316,90 @@ class ChecklistVerifier:
             details={
                 "passed_count": passed_count,
                 "total": len(items),
+                "per_item": per_item,
+                "n_samples": len(per_sample_verdicts),
+                "judge_model": judge_identity()["model"],
+                "judge_provider": judge_identity()["provider"],
+                "raw_judge_output": " ||| ".join(raw_outputs)[:1500],
+            },
+        )
+
+    def _verify_snapshot(
+        self,
+        *,
+        task_config: dict[str, Any],
+        answer: str,
+        rubric_snapshot: dict[str, Any],
+        evidence: dict | None = None,
+    ) -> VerifierResult:
+        """Score against a versioned rubric snapshot with graded credit.
+
+        Unlike the disk-checklist path (binary PASS/FAIL), the evolving-rubric
+        snapshot path grades each criterion FULL/PARTIAL/NONE and computes a
+        weight-normalised score. The active rubric store ``version`` is
+        propagated into ``details["version"]`` (as a string) so downstream
+        scoring can pin a reward to the exact rubric revision that produced it.
+        """
+        raw_items = rubric_snapshot.get("items") or []
+        criteria = [str(it.get("criterion", "")).strip() for it in raw_items]
+        weights = [float(it.get("weight", 1.0) or 0.0) for it in raw_items]
+        version = str(rubric_snapshot.get("version", ""))
+
+        prompt = _build_user_prompt(task_config.get("intent", ""), criteria, answer, evidence)
+
+        raw_outputs: list[str] = []
+        per_sample_verdicts: list[list[dict[str, Any]]] = []
+        for _ in range(max(1, self.n_samples)):
+            text, _err = call_judge(_SYSTEM, prompt, max_tokens=1500)
+            if text is None:
+                continue
+            raw_outputs.append(text)
+            per_sample_verdicts.append(_parse_graded(text, len(criteria)))
+
+        if not per_sample_verdicts:
+            return VerifierResult.fail("judge call failed: no usable samples", version=version)
+
+        # Per item, take the median credit across samples so a single noisy
+        # verdict cannot dominate the graded score.
+        per_item: list[dict[str, Any]] = []
+        numerator = 0.0
+        denominator = 0.0
+        for i in range(len(criteria)):
+            credits = sorted(
+                s[i]["credit"] for s in per_sample_verdicts if i < len(s)
+            )
+            mid = len(credits) // 2
+            if not credits:
+                credit = 0.0
+            elif len(credits) % 2:
+                credit = credits[mid]
+            else:
+                credit = (credits[mid - 1] + credits[mid]) / 2.0
+            reason = ""
+            for s in per_sample_verdicts:
+                if i < len(s) and s[i].get("reason"):
+                    reason = s[i]["reason"]
+                    break
+            w = weights[i]
+            numerator += credit * w
+            denominator += w
+            per_item.append({
+                "index": i + 1,
+                "criterion": criteria[i],
+                "weight": w,
+                "credit": credit,
+                "reason": reason,
+            })
+
+        weighted_score = round(numerator / denominator, 6) if denominator else 0.0
+
+        return VerifierResult(
+            score=weighted_score,
+            passed=weighted_score >= 0.7,
+            details={
+                "version": version,
+                "total": len(criteria),
+                "weighted_score": weighted_score,
                 "per_item": per_item,
                 "n_samples": len(per_sample_verdicts),
                 "judge_model": judge_identity()["model"],
