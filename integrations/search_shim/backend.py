@@ -189,7 +189,13 @@ def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
             summary = _grab("summary")[:600]
             tok_score = _score_reddit(query, title, summary)
             score = min(1.0, tok_score + bonus)
-            if score <= 0.0:
+            # Require GENUINE topical overlap. A hinted-forum bonus alone must
+            # not inject zero-overlap off-topic posts (e.g. r/headphones threads
+            # surfacing for a coffee query). The bonus only re-ranks posts that
+            # actually match the query; it never includes irrelevant ones. If a
+            # topic has no matching forum content in the corpus, return fewer
+            # reddit hits rather than off-topic noise.
+            if tok_score <= 0.0:
                 continue
             hits.append(SearchHit(
                 url=url, title=f"r/{forum}: {title}",
