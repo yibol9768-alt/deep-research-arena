@@ -12,6 +12,7 @@ const NAV = [
   { href: '/tasks', label: 'Tasks' },
   { href: '/pillars', label: 'Pillars' },
   { href: '/arena', label: 'Arena' },
+  { href: '/annotate', label: 'Annotate' },
   { href: '/insights', label: 'Insights' },
   { href: '/methodology', label: 'Methodology' },
   { href: '/sandbox', label: 'Sandbox' },
