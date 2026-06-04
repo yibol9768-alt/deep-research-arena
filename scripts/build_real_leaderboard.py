@@ -229,6 +229,31 @@ def load_score_json(path: Path) -> dict | None:
         return None
 
 
+def load_reference_manifest(manifest: str | Path | dict) -> dict[str, str]:
+    """Normalize a reference manifest into {task_id: reference_agent}.
+
+    Accepts either an already-loaded manifest dict (as written by
+    ``scripts/select_reference_reports.py``: {task: {agent, path, grounding}})
+    or a path to that JSON file. Returns a flat {task: agent} mapping used to
+    drive RACE-style reference-anchored battles. Malformed / agent-less entries
+    are dropped rather than crashing the build.
+    """
+    if isinstance(manifest, (str, Path)):
+        data = json.loads(Path(manifest).read_text(encoding="utf-8"))
+    else:
+        data = manifest
+    out: dict[str, str] = {}
+    for task, entry in (data or {}).items():
+        if isinstance(entry, dict):
+            agent = entry.get("agent")
+        else:
+            # Tolerate a flat {task: agent} shape as well.
+            agent = entry
+        if isinstance(agent, str) and agent:
+            out[str(task)] = agent
+    return out
+
+
 def read_report_text(path: Path) -> str:
     try:
         return Path(path).read_text(encoding="utf-8")
@@ -390,16 +415,39 @@ def build_battle_plan(
     agents: list[str],
     tasks: list[str],
     reference: str | None,
+    reference_by_task: dict[str, str] | None = None,
 ) -> list[dict[str, str]]:
     """List of {task, agent_a, agent_b} for agents that have a report on task.
 
-    Round-robin by default; if ``reference`` is given, every other agent on a
-    task battles only the reference (Arena-Hard style fixed baseline).
+    Three modes, in priority order:
+
+    * ``reference_by_task`` (RACE-style reference-anchored, eval problem #3):
+      a per-task mapping {task_id: reference_agent}. On each task every OTHER
+      agent battles that task's reference (Arena-Hard style fixed baseline).
+      The reference agent for a task is NEVER battled against itself, so it is
+      excluded from being scored against itself. Tasks whose reference has no
+      report present are skipped.
+    * ``reference`` (single fixed agent across all tasks): every other agent on
+      a task battles that one reference.
+    * neither (default): full round-robin between all present agents.
+
+    ``reference_by_task`` takes precedence over ``reference`` when both are set.
     """
     plan: list[dict[str, str]] = []
     for task in tasks:
         present = [a for a in agents if task in reports.get(a, {})]
-        if reference:
+        if reference_by_task is not None:
+            ref = reference_by_task.get(task)
+            # No reference for this task, or the reference report is not present
+            # in the battle scope: skip the task rather than invent a baseline.
+            if not ref or ref not in present:
+                continue
+            for a in present:
+                # Exclude the reference agent from being scored against itself.
+                if a == ref:
+                    continue
+                plan.append({"task": task, "agent_a": a, "agent_b": ref})
+        elif reference:
             if reference not in present:
                 continue
             for a in present:
@@ -423,6 +471,7 @@ def build(
     limit_agents: int | None = None,
     agents_filter: list[str] | None = None,
     reference: str | None = None,
+    reference_manifest: str | Path | dict | None = None,
     grounding_floor: float = DEFAULT_GROUNDING_FLOOR,
     word_budget: int = DEFAULT_WORD_BUDGET,
     model: str = DEFAULT_MODEL,
@@ -433,6 +482,15 @@ def build(
     judge_error_abort_fraction: float = JUDGE_ERROR_ABORT_FRACTION,
 ) -> dict[str, Any]:
     reports = discover_reports(report_dir)
+
+    # RACE-style reference-anchored mode (eval problem #3): when a per-task
+    # reference manifest is supplied, each NON-reference agent is judged pairwise
+    # AGAINST that task's reference report instead of round-robin. The flat
+    # {task: agent} mapping is built here; it takes precedence over a single
+    # fixed --reference agent.
+    reference_by_task: dict[str, str] | None = None
+    if reference_manifest is not None:
+        reference_by_task = load_reference_manifest(reference_manifest)
 
     skipped: list[dict[str, str]] = []
 
@@ -483,6 +541,25 @@ def build(
         skipped.append({"agent": reference, "reason": "reference has no reports; round-robin used"})
         reference = None
 
+    # Restrict the per-task reference manifest to (task, reference) pairs that
+    # are actually usable in this build: the task must be in scope and the
+    # reference agent must be an included agent (never fabricate a baseline).
+    reference_skipped_tasks: list[dict[str, str]] = []
+    if reference_by_task is not None:
+        usable: dict[str, str] = {}
+        included_set = set(included_agents)
+        task_set = set(all_tasks)
+        for task, ref in reference_by_task.items():
+            if task not in task_set:
+                reference_skipped_tasks.append({"task": task, "reason": "task not in scope"})
+            elif ref not in included_set:
+                reference_skipped_tasks.append(
+                    {"task": task, "reason": f"reference agent '{ref}' not included"}
+                )
+            else:
+                usable[task] = ref
+        reference_by_task = usable
+
     # ----- GROUNDING (deterministic) ----------------------------------- #
     grounding_vals: dict[str, list[float]] = defaultdict(list)
     grounding_missing: list[dict[str, str]] = []
@@ -514,7 +591,19 @@ def build(
     }
 
     # ----- Battle plan ------------------------------------------------- #
-    plan = build_battle_plan(reports, included_agents, all_tasks, reference)
+    plan = build_battle_plan(
+        reports, included_agents, all_tasks, reference, reference_by_task=reference_by_task
+    )
+
+    # Reference agents (RACE-style): the set of agents acting as a per-task
+    # reference. A reference is NOT scored against itself, so on tasks where it
+    # is the reference it accrues no win-rate; it can still be a non-reference
+    # contender on OTHER tasks.
+    reference_agents: set[str] = set(reference_by_task.values()) if reference_by_task else set()
+    quality_mode = (
+        "reference_manifest" if reference_by_task is not None
+        else ("reference_fixed" if reference else "round_robin")
+    )
 
     summary = {
         "agents_included": included_agents,
@@ -522,6 +611,10 @@ def build(
         "n_tasks": len(all_tasks),
         "n_battles_planned": len(plan),
         "reference": reference or "(round-robin)",
+        "quality_mode": quality_mode,
+        "reference_agents": sorted(reference_agents),
+        "reference_by_task": dict(reference_by_task) if reference_by_task is not None else None,
+        "reference_skipped_tasks": reference_skipped_tasks,
         "word_budget": word_budget,
         "grounding_floor": grounding_floor,
         "model": model,
@@ -609,6 +702,10 @@ def build(
             n_judge_errors += 1
         winner = res.get("agent_winner", "tie")
         battles.append({"agent_a": a, "agent_b": b, "winner": winner})
+        # In RACE-style reference mode agent_b is always this task's reference
+        # (build_battle_plan guarantees it), so record which side is the
+        # reference to make the per-agent win-rate-vs-reference auditable.
+        task_ref = reference_by_task.get(task) if reference_by_task is not None else None
         # (BUG B3.iii) persist verdicts_raw + any error so a degenerate run is
         # detectable from the saved JSON alone.
         battle_log.append({
@@ -616,6 +713,7 @@ def build(
             "agent_a": a,
             "agent_b": b,
             "winner": winner,
+            "reference": task_ref,
             "words_a": raw_words.get((a, task)),
             "words_b": raw_words.get((b, task)),
             "verdicts_raw": res.get("verdicts_raw"),
@@ -680,6 +778,44 @@ def build(
     # Headline fit (ungated-only battles, ungated agents).
     quality_ranked = _fit(ranked_battles, ungated_agents)
 
+    # ----- RACE-style win-rate vs reference (Arena-Hard) --------------- #
+    # Only meaningful in reference-manifest mode. Per agent, win-rate vs the
+    # per-task reference is (wins + 0.5 * ties) / decided battles, where a
+    # decided battle is one that was NOT a judge error. The reference agent is
+    # never scored against itself (build_battle_plan excludes it), so it has no
+    # win-rate from the tasks where it is the reference.
+    winrate_vs_reference: dict[str, float | None] = {}
+    winrate_counts: dict[str, dict[str, int]] = {}
+    if reference_by_task is not None:
+        # `wr_credit` is the Arena-Hard numerator (full win = 1.0, tie = 0.5);
+        # `wr_full_wins` counts ONLY decisive wins so the reported integer
+        # `wins` is not polluted by accumulated tie half-credit.
+        wr_credit: dict[str, float] = defaultdict(float)
+        wr_full_wins: dict[str, int] = defaultdict(int)
+        wr_decided: dict[str, int] = defaultdict(int)
+        for blog in battle_log:
+            if blog.get("judge_error"):
+                continue
+            a = blog["agent_a"]  # the non-reference contender
+            ref = blog.get("reference")
+            win = blog["winner"]
+            wr_decided[a] += 1
+            if win == a:
+                wr_credit[a] += 1.0
+                wr_full_wins[a] += 1
+            elif win == ref:
+                wr_credit[a] += 0.0
+            else:
+                # tie (or any non-decisive verdict): Arena-Hard half credit.
+                wr_credit[a] += 0.5
+        for a in included_agents:
+            dec = wr_decided.get(a, 0)
+            winrate_vs_reference[a] = (wr_credit[a] / dec) if dec else None
+            winrate_counts[a] = {
+                "decided": dec,
+                "wins": wr_full_wins.get(a, 0),  # decisive wins only (ties excluded)
+            }
+
     # ----- Assemble per-agent rows + GATE ----------------------------- #
     agent_rows: dict[str, dict[str, Any]] = {}
     n_battles_per_agent: dict[str, int] = defaultdict(int)
@@ -711,6 +847,17 @@ def build(
             "gated": bool(g < grounding_floor),
             "n_tasks": len(per_agent_tasks.get(a, set())),
             "n_battles": n_battles_per_agent.get(a, 0),
+            # RACE-style reference-anchored quality (None in round-robin mode).
+            # In reference mode this is the headline quality number per the
+            # redesign: win-rate vs the per-task reference report.
+            "winrate_vs_reference": (
+                round(winrate_vs_reference[a], 4)
+                if winrate_vs_reference.get(a) is not None else None
+            ),
+            "winrate_counts": winrate_counts.get(a) if reference_by_task is not None else None,
+            # True if this agent served as a reference on at least one task (and
+            # so was excluded from being scored against itself there).
+            "is_reference": bool(a in reference_agents),
         }
 
     # Ranked views. Headline ranking is over UNGATED agents, ordered by the
@@ -728,6 +875,18 @@ def build(
     )
     by_grounding = sorted(agent_rows.values(), key=lambda r: -r["grounding"])
 
+    # RACE-style headline ranking (reference mode only): UNGATED, non-reference
+    # agents that have a win-rate vs the reference, ordered by that win-rate.
+    by_winrate: list[dict] = []
+    if reference_by_task is not None:
+        by_winrate = sorted(
+            [
+                r for r in agent_rows.values()
+                if not r["gated"] and r.get("winrate_vs_reference") is not None
+            ],
+            key=lambda r: -r["winrate_vs_reference"],
+        )
+
     summary["n_judge_errors"] = n_judge_errors
     summary["judge_error_fraction"] = round(judge_error_fraction, 4)
     summary["n_battles_dropped_gated"] = n_battles_dropped_gated
@@ -737,10 +896,13 @@ def build(
         "synthetic_placeholder": False,
         "source": "real",
         "mode": "real",
+        "quality_mode": quality_mode,
         "summary": summary,
         "agents": agent_rows,
         "ranked_by_quality_elo_gated": [r["agent"] for r in by_quality],
         "ranked_by_grounding": [r["agent"] for r in by_grounding],
+        # RACE-style reference-anchored ranking (empty list in round-robin mode).
+        "ranked_by_winrate_vs_reference": [r["agent"] for r in by_winrate],
         "battle_log": battle_log,
         "n_battles": len(battles),
         # Headline Elo is fit on UNGATED battles only (BUG D); the full
@@ -763,6 +925,17 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--limit-agents", type=int, default=None)
     p.add_argument("--agents", type=str, default=None, help="comma-separated agent allowlist")
     p.add_argument("--reference", type=str, default=None, help="fixed reference agent for pairwise (default round-robin)")
+    p.add_argument(
+        "--reference-manifest",
+        type=str,
+        default=None,
+        help=(
+            "path to a per-task reference manifest "
+            "(data/reference_reports/manifest.json from select_reference_reports.py). "
+            "RACE-style: each non-reference agent is judged vs that task's reference; "
+            "per-agent quality is win-rate vs reference. Takes precedence over --reference."
+        ),
+    )
     p.add_argument("--grounding-floor", type=float, default=DEFAULT_GROUNDING_FLOOR)
     p.add_argument("--word-budget", type=int, default=DEFAULT_WORD_BUDGET)
     p.add_argument("--model", type=str, default=DEFAULT_MODEL)
@@ -804,6 +977,19 @@ def _print_summary(result: dict) -> None:
         for ir in inv[:20]:
             print(f"  - {ir['agent']}__{ir['task']}: {ir['reason']}")
     print(f"Tasks: {s['n_tasks']}   Reference: {s['reference']}")
+    qmode = s.get("quality_mode")
+    if qmode:
+        print(f"Quality mode: {qmode}")
+    if qmode == "reference_manifest":
+        print(f"Reference agents (per-task): {', '.join(s.get('reference_agents') or []) or '(none)'}")
+        rbt = s.get("reference_by_task") or {}
+        for task in sorted(rbt):
+            print(f"  - {task} -> {rbt[task]}")
+        rst = s.get("reference_skipped_tasks") or []
+        if rst:
+            print(f"Reference tasks skipped (NOT used): {len(rst)}")
+            for r in rst[:20]:
+                print(f"  - {r['task']}: {r['reason']}")
     print(f"Battles planned: {s['n_battles_planned']}   Word budget: {s['word_budget']}")
     print(f"Grounding floor: {s['grounding_floor']}   Grounding source: {s['grounding_score_source']}")
     print(f"Grounding formula: {s.get('composite_formula')}")
@@ -822,6 +1008,12 @@ def _print_summary(result: dict) -> None:
               f"Ranked (ungated) battles: {result.get('n_ranked_battles')}")
         print("Ranked by quality_elo (gated):", result.get("ranked_by_quality_elo_gated"))
         print("Ranked by grounding:", result.get("ranked_by_grounding"))
+        if result.get("quality_mode") == "reference_manifest":
+            print("Ranked by win-rate vs reference:", result.get("ranked_by_winrate_vs_reference"))
+            for a in result.get("ranked_by_winrate_vs_reference") or []:
+                row = result["agents"][a]
+                print(f"  - {a}: {row.get('winrate_vs_reference')} "
+                      f"({row.get('winrate_counts')})")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -835,6 +1027,7 @@ def main(argv: list[str] | None = None) -> int:
             limit_agents=args.limit_agents,
             agents_filter=agents_filter,
             reference=args.reference,
+            reference_manifest=args.reference_manifest,
             grounding_floor=args.grounding_floor,
             word_budget=args.word_budget,
             model=args.model,
