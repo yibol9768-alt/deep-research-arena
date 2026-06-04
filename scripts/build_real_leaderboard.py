@@ -261,7 +261,55 @@ def read_report_text(path: Path) -> str:
         return ""
 
 
-def _curated_recall_from_report(report_path: Path, task_id: str, k: int = 12) -> float | None:
+def _golden_path(task_id: str) -> Path:
+    """Resolve the golden JSON for ``task_id``, preferring the CLEANED set.
+
+    ``data/golden/deep_clean/`` holds the relevance-cleaned goldens (off-topic
+    must_cite_urls pruned; see docs/EVAL_SET_REMEDIATION.md). It is the canonical
+    source once present. The raw crawl in ``data/golden/deep/`` is preserved and
+    used as a fallback. Set ``USE_RAW_GOLDEN=1`` to force the raw set (for A/B).
+    """
+    clean = _REPO_ROOT / "data" / "golden" / "deep_clean" / f"{task_id}.json"
+    raw = _REPO_ROOT / "data" / "golden" / "deep" / f"{task_id}.json"
+    if os.environ.get("USE_RAW_GOLDEN") == "1":
+        return raw
+    return clean if clean.exists() else raw
+
+
+# Map a sandbox URL to its source bucket by port. The closed sandbox exposes
+# exactly three retrievable sources (see docs/EVAL_SET_REMEDIATION.md).
+_SOURCE_PORTS = {"7770": "shopping", "9999": "forum", "8090": "wiki"}
+
+
+def _source_of_url(url: str) -> str | None:
+    m = re.search(r"://[^/]*:(\d+)/", url or "")
+    return _SOURCE_PORTS.get(m.group(1)) if m else None
+
+
+def load_clean_manifest() -> dict[str, dict] | None:
+    """Load the cleaned-benchmark manifest ({task_id: {verdict, valid_sources}}).
+
+    Written by scripts/build_clean_benchmark_manifest.py from the remediation
+    doc. Returns the ``tasks`` mapping, or None if the manifest is absent or the
+    env opt-out ``IGNORE_CLEAN_MANIFEST=1`` is set (for A/B against the raw set).
+    """
+    if os.environ.get("IGNORE_CLEAN_MANIFEST") == "1":
+        return None
+    mpath = _REPO_ROOT / "data" / "golden" / "deep_clean" / "_manifest.json"
+    if not mpath.exists():
+        return None
+    try:
+        return (json.loads(mpath.read_text(encoding="utf-8")) or {}).get("tasks") or None
+    except Exception:
+        return None
+
+
+def _curated_recall_from_report(
+    report_path: Path,
+    task_id: str,
+    k: int = 12,
+    valid_sources: set[str] | None = None,
+) -> float | None:
     """Recompute must_cite_recall against the CURATED top-K golden set.
 
     Pure local set-intersection of the report's cited sandbox URLs with the
@@ -273,13 +321,18 @@ def _curated_recall_from_report(report_path: Path, task_id: str, k: int = 12) ->
         from src.verifiers.citation_format import canonicalize_url
     except Exception:
         return None
-    gpath = _REPO_ROOT / "data" / "golden" / "deep" / f"{task_id}.json"
+    gpath = _golden_path(task_id)
     if not gpath.exists():
         return None
     try:
-        import re
         golden = json.loads(gpath.read_text(encoding="utf-8"))
         mc = golden.get("must_cite_urls") or []
+        # Per-task source allow-list (eval-set remediation): only count cites
+        # whose source (shopping/forum/wiki, by port) is usable for this task.
+        # Forum-invalid tasks pass {shopping,wiki}; a system is not penalized for
+        # failing to cite forum threads that are genuinely absent for the topic.
+        if valid_sources is not None:
+            mc = [e for e in mc if _source_of_url(e.get("url", "")) in valid_sources]
         if not mc:
             return None
         text = read_report_text(report_path)
@@ -533,6 +586,23 @@ def build(
 
     # Determine tasks (union across included agents).
     all_tasks = sorted({t for a in included_agents for t in reports.get(a, {})})
+
+    # ----- Eval-set remediation: drop QUARANTINED tasks ------------------ #
+    # The cleaned-benchmark manifest marks tasks whose on-topic cites collapsed
+    # to wiki-only as "quarantine" (not cross-site testable). They are excluded
+    # from the canonical scored set entirely (docs/EVAL_SET_REMEDIATION.md).
+    clean_manifest = load_clean_manifest()
+    quarantined_tasks: list[str] = []
+    if clean_manifest is not None:
+        keep = []
+        for t in all_tasks:
+            verdict = (clean_manifest.get(t) or {}).get("verdict")
+            if verdict == "quarantine":
+                quarantined_tasks.append(t)
+            else:
+                keep.append(t)
+        all_tasks = keep
+
     if limit_tasks is not None:
         all_tasks = all_tasks[:limit_tasks]
 
@@ -577,7 +647,13 @@ def build(
             val, src = grounding_for(sj)
             # Prefer curated must-cite recall (recomputed locally from the report
             # + curated top-K golden) over the stale full-crawl recall in the JSON.
-            cr = _curated_recall_from_report(reports[a][task], task)
+            # Restrict must-cite to the task's usable sources (allow-list).
+            vs = None
+            if clean_manifest is not None:
+                allowed = (clean_manifest.get(task) or {}).get("valid_sources")
+                if allowed is not None:
+                    vs = set(allowed)
+            cr = _curated_recall_from_report(reports[a][task], task, valid_sources=vs)
             if cr is not None:
                 qm = float((sj.get("quote_match") or {}).get("score") or 0.0)
                 val = max(0.0, min(1.0, 0.5 * cr + 0.5 * qm))
@@ -609,6 +685,12 @@ def build(
         "agents_included": included_agents,
         "agents_skipped": skipped,
         "n_tasks": len(all_tasks),
+        # Eval-set remediation provenance (docs/EVAL_SET_REMEDIATION.md).
+        "golden_set": "deep_clean" if (_REPO_ROOT / "data" / "golden" / "deep_clean").exists()
+                      and os.environ.get("USE_RAW_GOLDEN") != "1" else "deep",
+        "clean_manifest_applied": clean_manifest is not None,
+        "quarantined_tasks": sorted(quarantined_tasks),
+        "n_quarantined": len(quarantined_tasks),
         "n_battles_planned": len(plan),
         "reference": reference or "(round-robin)",
         "quality_mode": quality_mode,

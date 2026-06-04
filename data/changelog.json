@@ -1,7 +1,36 @@
 {
   "_schema": "deep-research-arena-changelog/v1",
-  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse — this is what users read on /changelog.",
+  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
+    {
+      "version": "v3-2026-06-03b",
+      "date": "2026-06-03",
+      "title": "Eval-set remediation: cleaned goldens + per-task source allow-list",
+      "tags": [
+        "scoring",
+        "eval-set",
+        "grounding"
+      ],
+      "summary": "Re-audited every auto-built must-cite URL for genuine topical relevance and defined a cleaned canonical benchmark: off-topic keyword-collision cites are dropped, each task is scored only on the sources that have real on-topic content, and 25 tasks with no cross-site coverage are quarantined.",
+      "sections": [
+        {
+          "heading": "What changed",
+          "bullets": [
+            "62% of auto-built must-cite cites were off-topic token collisions (e.g. the coffee task pulled forum threads beans-or-no-beans-in-chili and magic-bean-water); these are removed in data/golden/deep_clean.",
+            "Scorer now reads the cleaned goldens and applies a per-task valid_sources allow-list; forum-invalid tasks score shopping+wiki only, so a system is not penalized for forum content that is genuinely absent for the topic.",
+            "Canonical clean benchmark is 75 scorable tasks (65 valid + 10 forum-invalid); 25 mostly-off-topic tasks are quarantined from scoring."
+          ]
+        },
+        {
+          "heading": "Why it is fairer",
+          "bullets": [
+            "Cleaning raises honest agents' grounding because they are now credited for citing genuinely relevant sources instead of measured against a top-K of keyword-collision junk.",
+            "Root cause is corpus coverage (the forum corpus is tech-heavy), not the goldens; seeding non-tech forum content to promote quarantined tasks back is logged as future work."
+          ]
+        }
+      ],
+      "links": []
+    },
     {
       "version": "v3-2026-06-03",
       "date": "2026-06-03",
@@ -107,7 +136,7 @@
           "heading": "Scoring",
           "bullets": [
             "New composite: composite_v3 = (0.5 + 0.5 × quote_match) × Σ w_d · score_d across 6 quality dims (coverage, depth, rigor, style, checklist, spec).",
-            "Soft-floor replaces the hard multiplicative gate — broken citations no longer zero out an entire report, but quote_match still scales the result.",
+            "Soft-floor replaces the hard multiplicative gate, so broken citations no longer zero out an entire report, but quote_match still scales the result.",
             "Three new LLM-judge verifiers (depth, rigor, style), each 5-point rubric with self-consistency (3× temp 0.3, median), CoT disabled.",
             "New ArenaEvaluator (src/eval/evaluator.py) exposes a callable reward function for downstream RL training loops."
           ]
@@ -115,7 +144,7 @@
         {
           "heading": "Separability",
           "bullets": [
-            "Current leaderboard separability measured at 62.86% — 2.14 pp below the 65% intermediate target.",
+            "Current leaderboard separability measured at 62.86%, 2.14 pp below the 65% intermediate target.",
             "20 adversarial tasks generated across 3 families (causal/debunking, synthesis-under-contradiction, long-tail recall) to stress the new dims.",
             "Top-pair densification (--strategy top-pair-densify) added to the battle runner; n=20 per top pair drops CI half-width from ~70 to ~25 Elo."
           ]
