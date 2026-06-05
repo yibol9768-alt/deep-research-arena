@@ -4,7 +4,7 @@
 Pipeline (the user's directive: the board must actually separate agents, with
 real signal, not manufactured spread):
   1. coverage filter: only rank agents scored on >= --min-tasks comparable tasks;
-  2. GATE (unchanged): eligible iff mean(0.5*curated_recall + 0.5*quote_match)
+  2. GATE: eligible iff mean(0.5*reachability + 0.5*quote_match) [proof-of-fetch fidelity]
      >= --floor; gated agents are shown as excluded, not ranked;
   3. QUALITY composite (deterministic, judge-independent, validated by the
      discrimination workflow): default REACH-PRES =
@@ -88,12 +88,13 @@ def main(argv: list[str] | None = None) -> int:
         else:
             task_filter = {t.strip() for t in args.tasks.split(",") if t.strip()}
 
-    # keep non-quarantine, "scored" rows (a real score JSON, not a missing-file zero)
-    def scored(r):
-        return any((r.get(k) or 0) > 0 for k in
-                   ("quote_match", "reachability", "citation_alignment", "presentation"))
+    # Keep every non-quarantine row. With UNIFORM coverage a row with
+    # reachability=0/quote=0 is a REAL score (the agent cited nothing reachable on
+    # that task), NOT a missing-data zero. Dropping it would let an agent that
+    # fabricates on half its tasks be scored only on its good half, inflating the
+    # mean. So no "scored()" filter: honest mean over all attempted tasks.
     rows = [r for r in rows
-            if (manifest.get(r["task"]) or {}).get("verdict") != "quarantine" and scored(r)
+            if (manifest.get(r["task"]) or {}).get("verdict") != "quarantine"
             and (task_filter is None or r["task"] in task_filter)]
 
     # global length residualization for presentation (so verbosity can't lift it)
@@ -104,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
     for r in rows:
         resid = float(r.get("presentation") or 0) - (a + b * float(r.get("word_count") or 0))
         r["_pres_lenadj"] = pres_mean + resid
-        r["_gate"] = 0.5 * float(r.get("curated_recall") or 0) + 0.5 * float(r.get("quote_match") or 0)
+        r["_gate"] = 0.5 * float(r.get("reachability") or 0) + 0.5 * float(r.get("quote_match") or 0)
         r["_quality"] = args.w_reach * float(r.get("reachability") or 0) + args.w_pres * r["_pres_lenadj"]
 
     by_agent: dict[str, list] = defaultdict(list)
@@ -147,7 +148,7 @@ def main(argv: list[str] | None = None) -> int:
         }
 
     out = {
-        "_schema_version": "v3-discriminative-composite-2026-06-04",
+        "_schema_version": "v3-2026-06-05-uniform-differentiated",
         "_dry_run": False,
         "synthetic_placeholder": False,
         "source": "real",
@@ -157,9 +158,9 @@ def main(argv: list[str] | None = None) -> int:
             f"{args.w_reach}*reachability + {args.w_pres}*presentation_lenadj, where "
             "presentation is length-residualized against word_count so verbosity "
             "cannot raise it. Validated by a discrimination workflow (reachability "
-            "is the strongest length-independent agent discriminator). GATE "
-            "(unchanged): rank only agents that clear mean(0.5*curated_recall + "
-            "0.5*quote_match) >= floor AND have enough comparable scored tasks; "
+            "is the strongest length-independent agent discriminator). GATE: rank only agents that clear mean(0.5*reachability + "
+            "0.5*quote_match) >= floor (proof-of-fetch fidelity) AND have enough "
+            "comparable scored tasks; "
             "fabricated/ungrounded reports are excluded, not ranked."
         ),
         "elo_v3_ci": elo_v3_ci,
