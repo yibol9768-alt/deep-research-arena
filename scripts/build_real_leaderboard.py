@@ -533,6 +533,8 @@ def build(
     bootstrap: bool = True,
     abort_on_judge_error: bool = True,
     judge_error_abort_fraction: float = JUDGE_ERROR_ABORT_FRACTION,
+    judges: list[str] | None = None,
+    battle_workers: int = 1,
 ) -> dict[str, Any]:
     reports = discover_reports(report_dir)
 
@@ -742,17 +744,49 @@ def build(
             text_cache[key] = truncate_words(full, word_budget)
         return text_cache[key]
 
-    def _run_battle(task: str, a: str, b: str) -> dict:
+    def _one_judge_battle(task: str, a: str, b: str, judge_model: str) -> dict:
         return _battle(
             task_intent=f"Deep research task: {task}",
             agent_a=a,
             answer_a=_report(a, task),
             agent_b=b,
             answer_b=_report(b, task),
-            model=model,
+            model=judge_model,
             dimension=None,
             n_samples=n_samples,
         )
+
+    def _run_battle(task: str, a: str, b: str) -> dict:
+        if not judges:
+            return _one_judge_battle(task, a, b, model)
+        # PoLL jury (arXiv 2404.18796): each juror judges independently
+        # (position-debiased internally); the battle winner is the agent with
+        # MORE juror votes; tie-abstentions do not count. Jurors run
+        # concurrently so battle latency = slowest juror.
+        from concurrent.futures import ThreadPoolExecutor as _TPE
+        with _TPE(max_workers=len(judges)) as ex:
+            per = dict(zip(judges, ex.map(lambda m: _one_judge_battle(task, a, b, m), judges)))
+        a_v = b_v = errs = 0
+        votes = {}
+        for m, r in per.items():
+            w = r.get("agent_winner", "tie")
+            votes[m] = {"winner": w, "verdicts_raw": r.get("verdicts_raw")}
+            if is_judge_error_result(r):
+                errs += 1
+            elif w == a:
+                a_v += 1
+            elif w == b:
+                b_v += 1
+        winner = a if a_v > b_v else b if b_v > a_v else "tie"
+        return {
+            "agent_winner": winner,
+            "winner": "a" if winner == a else "b" if winner == b else "tie",
+            "verdicts_raw": [v["winner"] for v in votes.values()],
+            "judge_votes": votes,
+            "jury": list(judges),
+            "error": "all jurors errored" if errs == len(judges) else None,
+            "judge_errors_partial": errs or None,
+        }
 
     # ----- (BUG B3.i) pre-flight judge SMOKE ------------------------- #
     # Run ONE real battle first. If the judge backend is down, that single
@@ -774,11 +808,30 @@ def build(
     battles: list[dict] = []
     battle_log: list[dict] = []
     n_judge_errors = 0
+    # Pre-compute battle results (optionally in parallel); aggregation below
+    # stays sequential and order-preserving.
+    _results: list[dict | None] = [None] * len(plan)
+    if smoke_result is not None and plan:
+        _results[0] = smoke_result
+    if battle_workers > 1:
+        from concurrent.futures import ThreadPoolExecutor as _BTPE, as_completed as _asc
+        with _BTPE(max_workers=battle_workers) as _bex:
+            _futs = {
+                _bex.submit(_run_battle, it["task"], it["agent_a"], it["agent_b"]): idx
+                for idx, it in enumerate(plan)
+                if _results[idx] is None
+            }
+            _done_n = 0
+            for _f in _asc(_futs):
+                _results[_futs[_f]] = _f.result()
+                _done_n += 1
+                if _done_n % 50 == 0:
+                    print(f"[battles] {_done_n}/{len(_futs)} done", flush=True)
     for i, item in enumerate(plan):
         task, a, b = item["task"], item["agent_a"], item["agent_b"]
         # Reuse the smoke result for the first battle instead of paying for it
         # twice.
-        res = smoke_result if (i == 0 and smoke_result is not None) else _run_battle(task, a, b)
+        res = _results[i] if _results[i] is not None else _run_battle(task, a, b)
         judge_errored = is_judge_error_result(res)
         if judge_errored:
             n_judge_errors += 1
@@ -1021,6 +1074,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--grounding-floor", type=float, default=DEFAULT_GROUNDING_FLOOR)
     p.add_argument("--word-budget", type=int, default=DEFAULT_WORD_BUDGET)
     p.add_argument("--model", type=str, default=DEFAULT_MODEL)
+    p.add_argument("--judges", type=str, default=None, help="comma-separated jury models (PoLL); overrides --model")
+    p.add_argument("--battle-workers", type=int, default=1, help="concurrent battles")
     p.add_argument("--n-samples", type=int, default=3)
     p.add_argument("--no-bootstrap", action="store_true")
     p.add_argument(
@@ -1118,6 +1173,8 @@ def main(argv: list[str] | None = None) -> int:
             bootstrap=not args.no_bootstrap,
             abort_on_judge_error=not args.no_judge_error_abort,
             judge_error_abort_fraction=args.judge_error_abort_fraction,
+            judges=[j.strip() for j in args.judges.split(",") if j.strip()] if args.judges else None,
+            battle_workers=args.battle_workers,
         )
     except JudgeErrorAbort as exc:
         print("=" * 64)

@@ -259,6 +259,7 @@ def battle(
                 m, task_intent, answer_a, answer_b,
                 dimension=dimension, evidence_a=evidence_a, evidence_b=evidence_b,
             )
+            v1 = v1.upper() if str(v1).upper() in ("A", "B", "TIE") else "TIE"
             all_v.append(v1)
             all_r.append(r1)
             if not swap_for_position_bias:
@@ -268,11 +269,13 @@ def battle(
                 m, task_intent, answer_b, answer_a,
                 dimension=dimension, evidence_a=evidence_b, evidence_b=evidence_a,
             )
+            v2_swapped = v2_swapped.upper() if str(v2_swapped).upper() in ("A", "B", "TIE") else "TIE"
             all_v.append(v2_swapped)
             all_r.append(r2)
             # Un-swap verdict 2: if judge said A under swap (= original B),
-            # then the real winner is B.
-            v2 = {"A": "B", "B": "A", "TIE": "TIE"}[v2_swapped]
+            # then the real winner is B. Unknown/error verdicts count as TIE
+            # instead of crashing the battle.
+            v2 = {"A": "B", "B": "A"}.get(v2_swapped, "TIE")
             round_finals.append(_combine(v1, v2))
 
         # Majority across rounds. Ties in the vote count fall back to TIE.

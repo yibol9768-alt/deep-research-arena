@@ -396,6 +396,15 @@ def _call_openai(
         or os.environ.get("OPENAI_BASE_URL") \
         or "https://api.deepseek.com"
     key = os.environ.get("JUDGE_API_KEY") or os.environ.get("OPENAI_API_KEY")
+    # Multi-provider routing for the judge JURY (PoLL, arXiv 2404.18796):
+    # qwen/glm/kimi/MiniMax jurors live on DashScope, deepseek on its own API.
+    # If a DashScope key is present and the model belongs there, route to it.
+    _low = model.lower()
+    if (_low.startswith(("qwen", "glm", "kimi", "minimax"))
+            and os.environ.get("DASHSCOPE_API_KEY")):
+        base = os.environ.get("DASHSCOPE_BASE_URL",
+                              "https://dashscope.aliyuncs.com/compatible-mode/v1")
+        key = os.environ["DASHSCOPE_API_KEY"]
     if not key:
         return None, "judge key missing (set JUDGE_API_KEY or OPENAI_API_KEY)"
     extra_body: dict = {}
@@ -417,6 +426,9 @@ def _call_openai(
     # shape as DeepSeek on its OpenAI-compatible endpoint.
     elif low_model.startswith("glm"):
         extra_body["thinking"] = {"type": "disabled"}
+    # qwen3 hybrids reject thinking in non-streaming calls; always disable.
+    elif low_model.startswith("qwen3"):
+        extra_body["enable_thinking"] = False
 
     timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "120"))
     try:
