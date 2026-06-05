@@ -89,6 +89,26 @@ def _shim_search(shim: str, query: str, max_results: int = 6) -> list[dict]:
         return []
 
 
+# The shim returns docker-internal hostnames (http://wiki:8080, http://reddit,
+# http://shop:8080). Reports must cite the canonical sandbox form
+# (localhost:8090/9999/7770) or grounding scores them zero. We canonicalize for
+# the SNIPPETS/citations but keep the internal form for the extract call (the
+# shim can only fetch internal names from inside its container).
+_HOST_MAP = [
+    (re.compile(r"^https?://wiki:8080"), "http://localhost:8090"),
+    (re.compile(r"^https?://reddit(?::\d+)?(?=/|$)"), "http://localhost:9999"),
+    (re.compile(r"^https?://shop(?::\d+)?(?=/|$)"), "http://localhost:7770"),
+    (re.compile(r"^https?://(?:shopping|magento|onestopmarket)(?::\d+)?(?=/|$)"), "http://localhost:7770"),
+]
+
+
+def _canon_url(u: str) -> str:
+    for pat, repl in _HOST_MAP:
+        if pat.match(u or ""):
+            return pat.sub(repl, u, count=1)
+    return u
+
+
 def _shim_extract(shim: str, url: str) -> str:
     try:
         d = _http_json(shim.rstrip("/") + "/extract", {"urls": [url]})
@@ -124,13 +144,15 @@ def run_agent(task_intent: str, shim: str, base_url: str, key: str, model: str,
     if not queries:
         queries = [task_intent[:80]]
 
-    # Steps 2-3: search + extract.
+    # Steps 2-3: search + extract. Cite the canonical localhost form; fetch via
+    # the shim's internal form.
     seen: dict[str, str] = {}
     for q in queries:
         for hit in _shim_search(shim, q):
-            url = hit.get("url") or ""
-            if url and url not in seen and len(seen) < k_pages:
-                seen[url] = _shim_extract(shim, url)
+            raw = hit.get("url") or ""
+            canon = _canon_url(raw)
+            if canon and canon not in seen and len(seen) < k_pages:
+                seen[canon] = _shim_extract(shim, raw)
 
     snippets = "\n\n".join(
         f"[{i+1}] {url}\n{(txt or '')[:1200]}" for i, (url, txt) in enumerate(seen.items())
@@ -138,9 +160,14 @@ def run_agent(task_intent: str, shim: str, base_url: str, key: str, model: str,
 
     # Step 4: write the cited report.
     w_sys = ("You are a deep-research agent. Write a thorough markdown research "
-             "report answering the task. Cite sources inline as [label](URL) using "
-             "ONLY the URLs from the provided sources. Every nontrivial claim needs "
-             "a citation. Do not invent URLs.")
+             "report answering the task. Cite sources inline as [label](URL), "
+             "copying each URL EXACTLY, character-for-character, from the provided "
+             "sources. Every valid URL starts with http://localhost:7770 (shopping), "
+             "http://localhost:9999 (forum) or http://localhost:8090 (wiki). NEVER "
+             "rewrite a URL to a public domain -- www.reddit.com, en.wikipedia.org, "
+             "amazon.com or any other invented host counts as fabrication and scores "
+             "zero. Cite ONLY the provided URLs; every nontrivial claim needs a "
+             "citation.")
     text2, u2 = _chat(base_url, key, model, [
         {"role": "system", "content": w_sys},
         {"role": "user", "content": f"TASK:\n{task_intent}\n\nSOURCES:\n{snippets}\n\nWrite the report now."},
