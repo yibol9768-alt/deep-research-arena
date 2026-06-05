@@ -26,8 +26,11 @@ import { PageHero, MetricCard } from '@/components/layout/metric-card'
 /* in try/catch and silently falls back to localStorage when the endpoint is   */
 /* absent or errors, so enabling it can never lose a label.                    */
 /* -------------------------------------------------------------------------- */
+/* POST to the Worker backend (functions in public/_worker.js) by default; if the
+ * backend is absent/unconfigured the call fails silently and localStorage + the
+ * JSONL export still work. Set NEXT_PUBLIC_ANNOTATE_POST=0 to force-disable.   */
 const ANNOTATE_POST_ENABLED =
-  process.env.NEXT_PUBLIC_ANNOTATE_POST === '1' || false
+  process.env.NEXT_PUBLIC_ANNOTATE_POST !== '0'
 const ANNOTATE_POST_URL = '/api/annotate'
 
 const PAIRS_URL = '/annotate-pairs.json'
@@ -49,6 +52,9 @@ interface Pair {
   words_b: number
   report_a: string
   report_b: string
+  intent_zh?: string
+  report_a_zh?: string
+  report_b_zh?: string
 }
 
 interface Bundle {
@@ -169,6 +175,44 @@ function Markdown({ source }: { source: string }) {
       continue
     }
 
+    // Fenced code block (``` ... ```).
+    if (/^\s*```/.test(line)) {
+      i++
+      const code: string[] = []
+      while (i < lines.length && !/^\s*```/.test(lines[i])) {
+        code.push(lines[i])
+        i++
+      }
+      if (i < lines.length) i++ // closing fence
+      blocks.push(
+        <pre
+          key={key++}
+          className="my-3 overflow-x-auto rounded-tab bg-surface-low p-3 font-mono text-xs leading-relaxed text-ink"
+        >
+          {code.join('\n')}
+        </pre>,
+      )
+      continue
+    }
+
+    // Blockquote (> ...), e.g. quoted forum posts.
+    if (/^\s*>\s?/.test(line)) {
+      const quote: string[] = []
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+        quote.push(lines[i].replace(/^\s*>\s?/, ''))
+        i++
+      }
+      blocks.push(
+        <blockquote
+          key={key++}
+          className="my-3 border-l-2 border-brand/40 pl-3 text-sm italic leading-relaxed text-muted"
+        >
+          {renderInline(quote.join(' '))}
+        </blockquote>,
+      )
+      continue
+    }
+
     // Horizontal rule.
     if (/^\s*(---|\*\*\*|___)\s*$/.test(line)) {
       blocks.push(<hr key={key++} className="my-5 border-hairline" />)
@@ -236,20 +280,54 @@ function Markdown({ source }: { source: string }) {
       continue
     }
 
-    // Table row (render as preformatted line so pipes stay legible).
+    // Table: header row, a |---|---| separator, then body rows -> real table
+    // (the reports are full of product-comparison tables; raw pipes are unreadable).
     if (/^\s*\|.*\|\s*$/.test(line)) {
       const rows: string[] = []
       while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) {
         rows.push(lines[i])
         i++
       }
+      const splitCells = (r: string) =>
+        r.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim())
+      const isSep = (r: string) => r.includes('-') && /^[\s:|-]+$/.test(r.replace(/\|/g, ''))
+      let header: string[] | null = null
+      let bodyStart = 0
+      if (rows.length >= 2 && isSep(rows[1])) {
+        header = splitCells(rows[0])
+        bodyStart = 2
+      }
+      const body = rows.slice(bodyStart).filter((r) => !isSep(r)).map(splitCells)
       blocks.push(
-        <pre
-          key={key++}
-          className="my-3 overflow-x-auto rounded-tab bg-surface-low p-3 font-mono text-xs leading-relaxed text-muted"
-        >
-          {rows.join('\n')}
-        </pre>,
+        <div key={key++} className="my-3 overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
+            {header ? (
+              <thead>
+                <tr>
+                  {header.map((c, ci) => (
+                    <th
+                      key={ci}
+                      className="border border-hairline bg-surface-low px-2 py-1 text-left font-semibold text-ink"
+                    >
+                      {renderInline(c)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            ) : null}
+            <tbody>
+              {body.map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((c, ci) => (
+                    <td key={ci} className="border border-hairline px-2 py-1 align-top text-muted">
+                      {renderInline(c)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
       )
       continue
     }
@@ -263,6 +341,8 @@ function Markdown({ source }: { source: string }) {
       !/^\s*[-*+]\s+/.test(lines[i]) &&
       !/^\s*\d+\.\s+/.test(lines[i]) &&
       !/^\s*\|.*\|\s*$/.test(lines[i]) &&
+      !/^\s*```/.test(lines[i]) &&
+      !/^\s*>\s?/.test(lines[i]) &&
       !/^\s*(---|\*\*\*|___)\s*$/.test(lines[i])
     ) {
       para.push(lines[i])
@@ -286,6 +366,7 @@ export default function AnnotatePage() {
   const [bundle, setBundle] = useState<Bundle | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
+  const [lang, setLang] = useState<'en' | 'zh'>('en')
   const [annotator, setAnnotator] = useState('')
   const [labels, setLabels] = useState<Record<string, Label>>({})
   const [posting, setPosting] = useState(false)
@@ -538,8 +619,26 @@ export default function AnnotatePage() {
                     <Check className="h-3 w-3" /> labeled {savedForCurrent.winner.toUpperCase()}
                   </span>
                 ) : null}
+                {current.report_a_zh ? (
+                  <div className="ml-auto inline-flex overflow-hidden rounded-md border border-hairline text-xs font-medium">
+                    <button
+                      type="button"
+                      onClick={() => setLang('en')}
+                      className={cn('px-2.5 py-1', lang === 'en' ? 'bg-ink text-white' : 'text-muted hover:text-ink')}
+                    >
+                      EN
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLang('zh')}
+                      className={cn('px-2.5 py-1', lang === 'zh' ? 'bg-ink text-white' : 'text-muted hover:text-ink')}
+                    >
+                      中文
+                    </button>
+                  </div>
+                ) : null}
               </div>
-              <h2 className="mt-3 font-serif text-h-sm leading-tight text-ink">{current.intent}</h2>
+              <h2 className="mt-3 font-serif text-h-sm leading-tight text-ink">{lang === 'zh' && current.intent_zh ? current.intent_zh : current.intent}</h2>
               <p className="mt-2 text-sm text-muted">
                 Two reports for this task are shown side by side. Reports may be truncated to keep the
                 page light; judge on what is shown.
@@ -552,14 +651,14 @@ export default function AnnotatePage() {
                 side="A"
                 agent={current.agent_a}
                 words={current.words_a}
-                report={current.report_a}
+                report={lang === 'zh' && current.report_a_zh ? current.report_a_zh : current.report_a}
                 selected={winner === 'a'}
               />
               <ReportColumn
                 side="B"
                 agent={current.agent_b}
                 words={current.words_b}
-                report={current.report_b}
+                report={lang === 'zh' && current.report_b_zh ? current.report_b_zh : current.report_b}
                 selected={winner === 'b'}
               />
             </div>
