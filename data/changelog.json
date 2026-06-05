@@ -3,6 +3,28 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v3-2026-06-05b",
+      "date": "2026-06-05",
+      "title": "Annotation: server-side collection backend + bilingual + rich rendering",
+      "tags": [
+        "annotation",
+        "backend",
+        "bilingual"
+      ],
+      "summary": "The /annotate page now stores human-preference labels server-side via a Cloudflare Worker + KV (no more manual JSONL export), supports an EN/中文 toggle, and renders report markdown (tables, code, blockquotes, links) properly.",
+      "sections": [
+        {
+          "heading": "What",
+          "bullets": [
+            "Backend: a Worker handles POST /api/annotate -> Cloudflare KV; labels are collected automatically (localStorage + JSONL export remain as a fallback).",
+            "Bilingual: all 48 report pairs translated to Simplified Chinese (DeepSeek), with an EN/中文 toggle; markdown and sandbox URLs preserved.",
+            "Rendering: report tables now render as real HTML tables (were raw pipe text), plus fenced code blocks and blockquotes."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
       "version": "v3-2026-06-05",
       "date": "2026-06-05",
       "title": "Human-annotation set refreshed for judge-alignment kappa",
