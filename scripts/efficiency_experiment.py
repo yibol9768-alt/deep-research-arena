@@ -35,6 +35,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "data" / "results" / "efficiency"
 REPORT_DIR = ROOT / "data" / "results" / "deep"
+TASKS_DIR = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep"
+
+
+def _load_intent(task: str) -> str:
+    """Real task intent (so qwen3 attempts the actual task, comparable to the
+    other frameworks + scorable against the per-task goldens). Falls back to a
+    generic instruction if the task JSON is missing."""
+    p = TASKS_DIR / f"{task}.json"
+    if p.exists():
+        try:
+            it = (json.loads(p.read_text(encoding="utf-8")).get("intent") or "").strip()
+            if it:
+                return it
+        except Exception:
+            pass
+    return (f"Produce a grounded comparative deep-research report for task {task} "
+            "using the sandbox sources (shopping, forum, wiki).")
 
 
 def _http_json(url: str, payload: dict, timeout: float = 60.0, headers: dict | None = None) -> dict:
@@ -146,6 +163,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--tasks", required=True, help="comma-separated task ids (dr_cross_deep_000X)")
     ap.add_argument("--shim", default=os.environ.get("SHIM_URL", "http://localhost:8081"))
     ap.add_argument("--out", default=str(OUT_DIR / "efficiency.json"))
+    ap.add_argument("--force", action="store_true", help="re-run even if the report already exists")
     args = ap.parse_args(argv)
 
     base_url = os.environ.get("DASHSCOPE_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1")
@@ -161,17 +179,19 @@ def main(argv: list[str] | None = None) -> int:
 
     rows = []
     for model in models:
+        safe = re.sub(r"[^a-z0-9.-]+", "-", model.lower())
         for task in tasks:
-            intent = (f"Produce a grounded comparative deep-research report for task {task} "
-                      "using the sandbox sources (shopping, forum, wiki).")
+            rp = REPORT_DIR / f"eff-{safe}__{task}_matrix.md"
+            if rp.exists() and rp.stat().st_size > 500 and not args.force:
+                print(f"[eff] {model} {task}: SKIP (exists)", flush=True)
+                continue
+            intent = _load_intent(task)
             try:
                 r = run_agent(intent, args.shim, base_url, key, model)
             except Exception as e:
                 print(f"[eff] {model} {task} FAILED: {type(e).__name__}: {e}", flush=True)
                 rows.append({"model": model, "task": task, "error": f"{type(e).__name__}: {e}"})
                 continue
-            safe = re.sub(r"[^a-z0-9.-]+", "-", model.lower())
-            rp = REPORT_DIR / f"eff-{safe}__{task}_matrix.md"
             rp.write_text(r.pop("report"), encoding="utf-8")
             r.update({"model": model, "task": task, "report_path": str(rp)})
             rows.append(r)
