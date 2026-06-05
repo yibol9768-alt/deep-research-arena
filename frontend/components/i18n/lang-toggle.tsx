@@ -25,6 +25,8 @@ export function LangToggle({ className = '' }: { className?: string }) {
     html.classList.toggle('i18n-zh', l === 'zh')
     html.classList.toggle('i18n-en', l === 'en')
     html.setAttribute('lang', l === 'zh' ? 'zh-CN' : 'en')
+    // notify same-tab listeners (e.g. /annotate content via useLang)
+    window.dispatchEvent(new Event('dra-lang-change'))
   }
 
   return (
