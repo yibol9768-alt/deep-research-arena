@@ -31,8 +31,17 @@ TASKS = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep"
 COMPETENT = ["deerflow", "camel-ai", "smolagents", "flowsearcher-ds", "ii-researcher"]
 FABRICATOR = ["gpt-researcher", "storm", "langchain-odr", "ldr"]
 TARGET = COMPETENT + FABRICATOR
-TRUNC = 8000
+TRUNC = 0  # 0 = no truncation (full reports); annotators judge the complete report
 MIN_WORDS = 120
+MIN_SANDBOX_CITES = 5  # a real attempt cites the sandbox; below this -> deflection/fabrication
+
+# Agent refusals / "I can't do this" deflections that are not real report attempts.
+_REFUSAL = re.compile(
+    r"(i cannot|i apologi|i'?m unable|i am unable|unable to access|i can provide a framework|"
+    r"as an ai language model|exceeds the reasonable scope|due to the enormous scope|"
+    r"due to the extensive complexity|cannot produce the|cannot compile the full)",
+    re.I,
+)
 
 
 def _read(md: Path) -> str:
@@ -43,9 +52,23 @@ def _read(md: Path) -> str:
 
 
 def _trunc(t: str) -> str:
-    if len(t) <= TRUNC:
+    if TRUNC <= 0 or len(t) <= TRUNC:
         return t
     return t[:TRUNC].rstrip() + "\n\n---\n\n_[truncated for annotation]_"
+
+
+def _sandbox_cites(t: str) -> int:
+    return len(re.findall(r"localhost:(?:7770|9999|8090)", t))
+
+
+def is_deflection(t: str) -> bool:
+    """True if the report is an agent refusal / fabricated skeleton rather than a
+    genuine attempt: a refusal phrase near the top, or too few sandbox citations."""
+    if _REFUSAL.search(t[:900]):
+        return True
+    if _sandbox_cites(t) < MIN_SANDBOX_CITES:
+        return True
+    return False
 
 
 def _intent(task_id: str) -> str:
@@ -65,7 +88,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", default=str(ROOT / "frontend" / "public" / "annotate-pairs.json"))
     ap.add_argument("--max-pairs", type=int, default=48)
     ap.add_argument("--manifest", default=str(ROOT / "data/golden/deep_clean/_manifest.json"))
+    ap.add_argument("--trunc", type=int, default=0, help="per-report char cap; 0 = full report")
+    ap.add_argument("--min-cites", type=int, default=5, help="min sandbox citations to count as a real attempt")
     args = ap.parse_args(argv)
+    global TRUNC, MIN_SANDBOX_CITES
+    TRUNC = args.trunc
+    MIN_SANDBOX_CITES = args.min_cites
 
     manifest = json.loads(Path(args.manifest).read_text())["tasks"]
     scorable = sorted(t for t, m in manifest.items() if m.get("verdict") != "quarantine")
@@ -73,6 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     # present(target) reports per task
     present: dict[str, dict[str, Path]] = {}
     words: dict[tuple, int] = {}
+    dropped_deflections: list[tuple] = []
     for md in glob.glob(str(REPORTS / "*__dr_cross_deep_*_matrix.md")):
         name = Path(md).name
         agent = name.split("__")[0]
@@ -81,6 +110,9 @@ def main(argv: list[str] | None = None) -> int:
             continue
         txt = _read(Path(md))
         if len(txt.split()) < MIN_WORDS:
+            continue
+        if is_deflection(txt):
+            dropped_deflections.append((agent, task))
             continue
         present.setdefault(task, {})[agent] = Path(md)
         words[(agent, task)] = len(txt.split())
@@ -137,6 +169,9 @@ def main(argv: list[str] | None = None) -> int:
         ac[p["agent_a"]] += 1; ac[p["agent_b"]] += 1
     print(f"wrote {args.out}: {len(pairs)} pairs across {len({p['task_id'] for p in pairs})} tasks")
     print("agent coverage:", dict(ac.most_common()))
+    print(f"trunc={TRUNC} (0=full); dropped {len(dropped_deflections)} deflection/low-citation reports")
+    from collections import Counter as _C
+    print("  dropped by agent:", dict(_C(a for a, _ in dropped_deflections).most_common()))
     return 0
 
 
