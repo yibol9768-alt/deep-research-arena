@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
+import { T } from '@/components/i18n/t'
 
 /**
  * QualityProfile renders a per-agent breakdown of the v3 raw quality pillars
@@ -21,8 +23,10 @@ export interface QualityProfileProps {
 }
 
 interface Row {
-  label: string
+  label: ReactNode
   value: number | undefined
+  /** Stable key for React lists (the label may be JSX). */
+  key: string
 }
 
 const SEGMENTS = 10
@@ -38,12 +42,12 @@ export function QualityProfile({
   urlVeracity,
 }: QualityProfileProps) {
   const rows: Row[] = [
-    { label: 'Depth', value: depth },
-    { label: 'Rigor', value: rigor },
-    { label: 'Style', value: style },
-    { label: 'Coverage', value: coverage },
-    { label: 'Checklist', value: checklist },
-    { label: 'URL Veracity', value: urlVeracity },
+    { key: 'depth', label: <T en="Depth" zh="深度" />, value: depth },
+    { key: 'rigor', label: <T en="Rigor" zh="严谨度" />, value: rigor },
+    { key: 'style', label: <T en="Style" zh="文风" />, value: style },
+    { key: 'coverage', label: <T en="Coverage" zh="覆盖度" />, value: coverage },
+    { key: 'checklist', label: <T en="Checklist" zh="清单通过" />, value: checklist },
+    { key: 'urlVeracity', label: <T en="URL Veracity" zh="URL 真实性" />, value: urlVeracity },
   ]
 
   const anyValue = rows.some((r) => typeof r.value === 'number')
@@ -53,26 +57,26 @@ export function QualityProfile({
     <section className="card p-6">
       <header className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="font-serif text-h-sm text-ink">Quality Profile</h2>
+          <h2 className="font-serif text-h-sm text-ink"><T en="Quality Profile" zh="质量画像" /></h2>
           <p className="mt-1 text-xs text-muted">
-            Raw per-pillar means on the v3 scoring rubric (0-1 scale).
+            <T en="Raw per-pillar means on the v3 scoring rubric (0-1 scale)." zh="基于 v3 评分细则的各维度原始均值（0-1 区间）。" />
           </p>
         </div>
         {synthetic ? (
           <span className="rounded-pill bg-warn/10 px-2 py-0.5 text-[11px] font-medium text-warn">
-            SYNTHETIC
+            <T en="SYNTHETIC" zh="合成数据" />
           </span>
         ) : null}
       </header>
 
       {!anyValue ? (
         <p className="py-4 text-sm text-muted">
-          Quality-pillar data is not available for this agent yet.
+          <T en="Quality-pillar data is not available for this agent yet." zh="该智能体暂无质量维度数据。" />
         </p>
       ) : (
         <ul className="hairline-t flex flex-col gap-3 pt-4">
           {rows.map((row) => (
-            <QualityRow key={row.label} label={row.label} value={row.value} accent={accent} />
+            <QualityRow key={row.key} label={row.label} value={row.value} accent={accent} />
           ))}
         </ul>
       )}
@@ -85,7 +89,7 @@ function QualityRow({
   value,
   accent,
 }: {
-  label: string
+  label: ReactNode
   value: number | undefined
   accent: string
 }) {

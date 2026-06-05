@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/cn'
+import { T } from '@/components/i18n/t'
 
 interface Item {
   id: string
   label: string
+  zh?: string
 }
 
 export function SectionNav({ items }: { items: Item[] }) {
@@ -30,7 +32,7 @@ export function SectionNav({ items }: { items: Item[] }) {
   return (
     <aside className="hidden w-56 shrink-0 lg:block">
       <div className="sticky top-24 flex flex-col gap-1 border-r border-hairline pr-6">
-        <h3 className="px-2 pb-3 text-caps uppercase tracking-wider text-muted">On this page</h3>
+        <h3 className="px-2 pb-3 text-caps uppercase tracking-wider text-muted"><T en="On this page" zh="本页目录" /></h3>
         {items.map((i) => (
           <a
             key={i.id}
@@ -46,7 +48,7 @@ export function SectionNav({ items }: { items: Item[] }) {
                 active === i.id ? 'bg-brand' : 'bg-hairline group-hover:bg-muted',
               )}
             />
-            <span className={cn(active === i.id ? 'font-medium' : '')}>{i.label}</span>
+            <span className={cn(active === i.id ? 'font-medium' : '')}><T en={i.label} zh={i.zh ?? i.label} /></span>
           </a>
         ))}
       </div>

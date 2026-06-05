@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
+import type { ReactNode } from 'react'
 import { agentMeta } from '@/lib/providers'
 import { fmt } from '@/lib/format'
 import type { RankedAgent } from '@/lib/data/types'
@@ -12,8 +13,8 @@ export interface PillarRow {
 }
 
 interface Props {
-  title: string
-  subtitle: string
+  title: ReactNode
+  subtitle: ReactNode
   /** Square color before the title */
   accentColor: string
   /** Pre-projected top-N rows (server should sort + project before passing) */

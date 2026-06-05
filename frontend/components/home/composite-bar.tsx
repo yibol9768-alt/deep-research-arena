@@ -1,11 +1,12 @@
 'use client'
 
 import { motion } from 'motion/react'
+import type { ReactNode } from 'react'
 import { agentMeta } from '@/lib/providers'
 import { fmt } from '@/lib/format'
 import type { RankedAgent } from '@/lib/data/types'
 
-export function CompositeBar({ agents, title, subtitle }: { agents: RankedAgent[]; title: string; subtitle: string }) {
+export function CompositeBar({ agents, title, subtitle }: { agents: RankedAgent[]; title: ReactNode; subtitle: ReactNode }) {
   const max = agents[0]?.elo ?? 1500
   const min = Math.min(...agents.map((a) => a.elo))
   const range = max - min || 1

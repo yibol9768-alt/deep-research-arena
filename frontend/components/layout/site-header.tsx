@@ -5,18 +5,20 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Search, Menu, X, Activity } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { T } from '@/components/i18n/t'
+import { LangToggle } from '@/components/i18n/lang-toggle'
 
 const NAV = [
-  { href: '/', label: 'Leaderboard' },
-  { href: '/agents', label: 'Agents' },
-  { href: '/tasks', label: 'Tasks' },
-  { href: '/pillars', label: 'Pillars' },
-  { href: '/arena', label: 'Arena' },
-  { href: '/annotate', label: 'Annotate' },
-  { href: '/insights', label: 'Insights' },
-  { href: '/methodology', label: 'Methodology' },
-  { href: '/sandbox', label: 'Sandbox' },
-  { href: '/changelog', label: 'Changelog' },
+  { href: '/', label: 'Leaderboard', zh: '排行榜' },
+  { href: '/agents', label: 'Agents', zh: '智能体' },
+  { href: '/tasks', label: 'Tasks', zh: '任务' },
+  { href: '/pillars', label: 'Pillars', zh: '评测维度' },
+  { href: '/arena', label: 'Arena', zh: '竞技场' },
+  { href: '/annotate', label: 'Annotate', zh: '标注' },
+  { href: '/insights', label: 'Insights', zh: '洞察' },
+  { href: '/methodology', label: 'Methodology', zh: '方法论' },
+  { href: '/sandbox', label: 'Sandbox', zh: '沙箱' },
+  { href: '/changelog', label: 'Changelog', zh: '更新日志' },
 ]
 
 export function SiteHeader() {
@@ -45,13 +47,14 @@ export function SiteHeader() {
                 isActive(item.href) ? 'font-medium text-ink' : 'text-muted hover:text-ink',
               )}
             >
-              {item.label}
+              <T en={item.label} zh={item.zh} />
             </Link>
           ))}
         </nav>
 
         {/* Right cluster */}
         <div className="flex items-center gap-2">
+          <LangToggle className="hidden md:inline-flex" />
           <button
             className="hidden h-9 w-9 items-center justify-center rounded-tab text-muted transition-colors hover:bg-surface-low hover:text-ink md:inline-flex"
             aria-label="Search"
@@ -67,7 +70,7 @@ export function SiteHeader() {
             GitHub
           </a>
           <a href="/contribute" className="hidden h-8 items-center rounded-tab bg-ink px-3 text-sm font-medium text-white hover:bg-ink-soft md:inline-flex">
-            Contribute
+            <T en="Contribute" zh="贡献" />
           </a>
           <button
             className="inline-flex h-9 w-9 items-center justify-center rounded-tab text-ink lg:hidden"
@@ -93,12 +96,13 @@ export function SiteHeader() {
                   isActive(item.href) ? 'bg-surface-mid font-medium text-ink' : 'text-muted hover:bg-surface-low hover:text-ink',
                 )}
               >
-                {item.label}
+                <T en={item.label} zh={item.zh} />
               </Link>
             ))}
             <div className="mt-2 flex items-center gap-2 px-3 pt-3 hairline-t">
-              <a href="/contribute" className="inline-flex h-8 flex-1 items-center justify-center rounded-tab bg-ink px-3 text-sm font-medium text-white">Contribute</a>
+              <a href="/contribute" className="inline-flex h-8 flex-1 items-center justify-center rounded-tab bg-ink px-3 text-sm font-medium text-white"><T en="Contribute" zh="贡献" /></a>
               <a href="https://github.com/yibol9768-alt/deep-research-arena" className="text-xs text-muted">GitHub</a>
+              <LangToggle />
             </div>
           </nav>
         </div>

@@ -39,7 +39,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     lastUpdated = undefined
   }
   return (
-    <html lang="en" className={`${inter.variable} ${instrument.variable}`}>
+    <html lang="en" className={`${inter.variable} ${instrument.variable} i18n-en`}>
+      <head>
+        {/* Apply the saved language before first paint (no flash). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var l=localStorage.getItem('dra-lang');var h=document.documentElement;if(l==='zh'){h.classList.remove('i18n-en');h.classList.add('i18n-zh');h.setAttribute('lang','zh-CN');}}catch(e){}})();",
+          }}
+        />
+      </head>
       <body className="flex min-h-screen flex-col">
         <SiteHeader />
         <main className="flex-1">{children}</main>

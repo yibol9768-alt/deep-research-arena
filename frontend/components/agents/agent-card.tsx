@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowUpRight, Swords } from 'lucide-react'
 import { agentMeta, AgentMeta } from '@/lib/providers'
 import { fmt } from '@/lib/format'
+import { T } from '@/components/i18n/t'
+import type { ReactNode } from 'react'
 import type { RankedAgent } from '@/lib/data/types'
 
 export function AgentCard({ agent, rank }: { agent: RankedAgent; rank: number }) {
@@ -53,13 +55,13 @@ export function AgentCard({ agent, rank }: { agent: RankedAgent; rank: number })
       </header>
 
       <p className="mt-1.5 inline-block rounded-pill bg-surface-mid px-2 py-0.5 text-[11px] font-medium text-muted">
-        Backbone · {meta.backbone}
+        <T en="Backbone" zh="主干模型" /> · {meta.backbone}
       </p>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
-        <Stat label="Composite Elo" value={fmt(agent.elo)} accent />
-        <Stat label="W / L / D" value={`${agent.wins}/${agent.losses}/${agent.draws}`} />
-        <Stat label="Win rate" value={`${(winRate * 100).toFixed(0)}%`} />
+        <Stat label={<T en="Composite Elo" zh="综合 Elo" />} value={fmt(agent.elo)} accent />
+        <Stat label={<T en="W / L / D" zh="胜 / 负 / 平" />} value={`${agent.wins}/${agent.losses}/${agent.draws}`} />
+        <Stat label={<T en="Win rate" zh="胜率" />} value={`${(winRate * 100).toFixed(0)}%`} />
       </div>
 
       {/* Mini pillar bars */}
@@ -82,7 +84,7 @@ export function AgentCard({ agent, rank }: { agent: RankedAgent; rank: number })
   )
 }
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function Stat({ label, value, accent }: { label: ReactNode; value: string; accent?: boolean }) {
   return (
     <div>
       <p className="label-caps">{label}</p>

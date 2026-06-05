@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* i18n: <T en zh/> renders both languages; show exactly one per the <html>
+   class set by LangToggle / the head script. Default (no class) = English. */
+[data-lang='zh'] {
+  display: none;
+}
+html.i18n-zh [data-lang='en'] {
+  display: none;
+}
+html.i18n-zh [data-lang='zh'] {
+  display: revert;
+}
+
 @layer base {
   :root {
     --bg: #FAFAF7;

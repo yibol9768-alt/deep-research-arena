@@ -1,15 +1,17 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Construction } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { T } from '@/components/i18n/t'
 
 interface Props {
-  eyebrow: string
-  title: string
-  intro: string
+  eyebrow: ReactNode
+  title: ReactNode
+  intro: ReactNode
   /** Bullet-list of what the page WILL contain when fully built */
-  upcoming: { label: string; description: string }[]
+  upcoming: { label: ReactNode; description: ReactNode }[]
   /** Where related complete content lives */
-  related?: { href: string; label: string }[]
+  related?: { href: string; label: ReactNode }[]
 }
 
 export function PageStub({ eyebrow, title, intro, upcoming, related = [] }: Props) {
@@ -20,7 +22,7 @@ export function PageStub({ eyebrow, title, intro, upcoming, related = [] }: Prop
           <span className="label-caps">{eyebrow}</span>
           <span className="rounded-pill bg-warn/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-warn">
             <Construction className="mr-1 inline h-3 w-3" />
-            Under construction
+            <T en="Under construction" zh="建设中" />
           </span>
         </div>
         <h1 className="mt-3 font-serif text-h-md md:text-display-lg leading-tight">{title}</h1>
@@ -30,7 +32,7 @@ export function PageStub({ eyebrow, title, intro, upcoming, related = [] }: Prop
       <div className="mt-10 grid grid-cols-1 gap-3 md:grid-cols-2">
         {upcoming.map((u, i) => (
           <article
-            key={u.label}
+            key={i}
             className={cn(
               'card p-5 transition-all hover:shadow-soft',
               i === 0 && 'border-brand/30 bg-brand/[0.03]',
@@ -44,7 +46,7 @@ export function PageStub({ eyebrow, title, intro, upcoming, related = [] }: Prop
 
       {related.length > 0 && (
         <div className="mt-12 border-t border-hairline pt-8">
-          <h2 className="text-caps uppercase tracking-wider text-muted">Already shipped</h2>
+          <h2 className="text-caps uppercase tracking-wider text-muted"><T en="Already shipped" zh="已上线" /></h2>
           <ul className="mt-4 flex flex-wrap gap-3">
             {related.map((r) => (
               <li key={r.href}>

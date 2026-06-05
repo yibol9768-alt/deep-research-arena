@@ -7,9 +7,9 @@ export function MetricCard({
   detail,
   className,
 }: {
-  label: string
+  label: ReactNode
   value: string
-  detail?: string
+  detail?: ReactNode
   className?: string
 }) {
   return (
@@ -27,9 +27,9 @@ export function PageHero({
   intro,
   children,
 }: {
-  eyebrow: string
-  title: string
-  intro: string
+  eyebrow: ReactNode
+  title: ReactNode
+  intro: ReactNode
   children?: ReactNode
 }) {
   return (

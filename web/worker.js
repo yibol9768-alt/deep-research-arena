@@ -1,18 +1,20 @@
 /**
- * DeepResearchArena Cloudflare Worker (static assets + annotation backend).
+ * DeepResearchArena Worker (Cloudflare Workers Static Assets + annotation backend).
  *
- * The site is a Worker-with-static-assets (wrangler.jsonc `assets`). This adds a
- * real backend so /annotate POSTs human-preference labels server-side (no manual
- * JSONL export). Everything else falls through to the static assets.
+ * This is a real Worker (NOT a Pages `_worker.js`): it lives OUTSIDE the assets
+ * directory (web/dist) and is referenced by web/dist/wrangler.jsonc as
+ * `main: "../worker.js"`. A file literally named `_worker.js` inside the assets
+ * dir is rejected by Wrangler ("Uploading a Pages _worker.js file as an asset"),
+ * which is why the worker is named worker.js and kept one level up.
  *
  *   POST /api/annotate            body = Label JSON -> stored in KV (ANNOTATIONS)
  *   GET  /api/annotate?token=...  admin: returns all labels (token == ADMIN_TOKEN)
  *   GET  /api/annotate/count      public: how many labels collected (no payload)
  *
- * Bindings required in wrangler.jsonc:
+ * Bindings (web/dist/wrangler.jsonc):
  *   - assets.binding   = "ASSETS"
  *   - kv_namespaces[]  = { binding: "ANNOTATIONS", id: <KV id> }
- *   - ADMIN_TOKEN      (secret) for the admin GET
+ *   - ADMIN_TOKEN      (optional secret) for the admin GET
  */
 const CORS = {
   'Access-Control-Allow-Origin': '*',

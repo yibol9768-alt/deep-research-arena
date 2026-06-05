@@ -3,10 +3,12 @@
 import { motion } from 'motion/react'
 import { ArrowRight, BookOpen, Github, Swords } from 'lucide-react'
 import Link from 'next/link'
+import { T } from '@/components/i18n/t'
 
 interface Stat {
   value: string
   label: string
+  zh?: string
 }
 
 interface Props {
@@ -34,15 +36,29 @@ export function Hero({ stats }: Props) {
           transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
           className="max-w-3xl"
         >
-          <span className="label-caps">2026 · v3.1 · NeurIPS draft</span>
+          <span className="label-caps">
+            <T en="2026 · v3.1 · NeurIPS draft" zh="2026 · v3.1 · NeurIPS 草稿" />
+          </span>
           <h1 className="mt-4 font-serif text-display text-balance leading-[1.05] tracking-tight">
-            The reproducible Elo benchmark for{' '}
-            <em className="not-italic text-brand">Deep Research</em> agents.
+            <T
+              en={
+                <>
+                  The reproducible Elo benchmark for{' '}
+                  <em className="not-italic text-brand">Deep Research</em> agents.
+                </>
+              }
+              zh={
+                <>
+                  面向 <em className="not-italic text-brand">Deep Research</em> 智能体的可复现 Elo 基准。
+                </>
+              }
+            />
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
-            Eight open-source frameworks battle on 107 sandbox tasks. Every cited URL is verified against the
-            backing database. Every score has a 95% bootstrap confidence interval. No drifting search,
-            no hand-judged rubrics, no inflated numbers.
+            <T
+              en="Eight open-source frameworks battle on 107 sandbox tasks. Every cited URL is verified against the backing database. Every score has a 95% bootstrap confidence interval. No drifting search, no hand-judged rubrics, no inflated numbers."
+              zh="八个开源框架在 107 个沙箱任务上对战。每个被引用的 URL 都会对照支撑数据库进行核验。每个分数都带有 95% 自助置信区间。没有漂移的搜索，没有手工评判的评分表，没有虚高的数字。"
+            />
           </p>
 
           {/* CTAs */}
@@ -51,7 +67,7 @@ export function Hero({ stats }: Props) {
               href="#leaderboard"
               className="group inline-flex h-11 items-center gap-2 rounded-tab bg-ink px-5 text-sm font-medium text-white transition-all duration-150 ease-smooth hover:bg-ink-soft"
             >
-              Explore leaderboard
+              <T en="Explore leaderboard" zh="浏览排行榜" />
               <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
             </Link>
             <Link
@@ -59,14 +75,14 @@ export function Hero({ stats }: Props) {
               className="inline-flex h-11 items-center gap-2 rounded-tab border border-hairline bg-white px-5 text-sm font-medium text-ink transition-all duration-150 hover:border-ink/30 hover:shadow-soft"
             >
               <Swords className="h-4 w-4" />
-              Try Live Arena
+              <T en="Try Live Arena" zh="试用实时竞技场" />
             </Link>
             <Link
               href="/methodology"
               className="inline-flex h-11 items-center gap-2 rounded-tab px-3 text-sm text-muted transition-colors hover:text-ink"
             >
               <BookOpen className="h-4 w-4" />
-              Read methodology
+              <T en="Read methodology" zh="阅读方法论" />
             </Link>
             <a
               href="https://github.com/"
@@ -96,7 +112,7 @@ export function Hero({ stats }: Props) {
               }}
               className="card p-5"
             >
-              <dt className="label-caps">{s.label}</dt>
+              <dt className="label-caps"><T en={s.label} zh={s.zh ?? s.label} /></dt>
               <dd className="mt-1 font-serif text-3xl tnum text-ink md:text-4xl">{s.value}</dd>
             </motion.div>
           ))}

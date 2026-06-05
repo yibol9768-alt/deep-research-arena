@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { agentMeta } from '@/lib/providers'
 import type { RankedAgent } from '@/lib/data/types'
+import { T } from '@/components/i18n/t'
 
 // Synthetic cost-per-run estimates (USD) until real data lands.
 const COST: Record<string, number> = {
@@ -27,20 +28,22 @@ export function QualityCostScatter({ agents }: { agents: RankedAgent[] }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="inline-block h-3 w-3 bg-brand-dark" />
-            <h3 className="font-serif text-lg leading-tight text-ink">Quality vs Cost</h3>
+            <h3 className="font-serif text-lg leading-tight text-ink"><T en="Quality vs Cost" zh="质量与成本" /></h3>
           </div>
           <span className="label-caps">DR Arena</span>
         </div>
-        <p className="mt-1 text-xs text-muted">Top-left quadrant indicates Pareto-optimal trade-off.</p>
+        <p className="mt-1 text-xs text-muted">
+          <T en="Top-left quadrant indicates Pareto-optimal trade-off." zh="左上象限表示帕累托最优的权衡。" />
+        </p>
       </header>
 
       <div className="relative ml-10 mt-6 h-[260px] border-b border-l border-hairline">
         {/* Axis labels */}
         <span className="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-[10px] text-muted whitespace-nowrap">
-          Composite Elo →
+          <T en="Composite Elo →" zh="综合 Elo →" />
         </span>
         <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-muted whitespace-nowrap">
-          Cost per run (USD) →
+          <T en="Cost per run (USD) →" zh="每次运行成本 (美元) →" />
         </span>
         {/* Pareto wash */}
         <div className="pareto-wash pointer-events-none absolute left-0 top-0 h-2/3 w-2/3 rounded-bl-[60%]" />
@@ -75,7 +78,10 @@ export function QualityCostScatter({ agents }: { agents: RankedAgent[] }) {
         })}
       </div>
       <p className="mt-8 text-[11px] text-muted">
-        ⓘ Cost estimates are illustrative; replace with measured values from <code>meta.cost_estimate</code> when wired.
+        <T
+          en={<>ⓘ Cost estimates are illustrative; replace with measured values from <code>meta.cost_estimate</code> when wired.</>}
+          zh={<>ⓘ 成本估算仅作示意；接入后请替换为来自 <code>meta.cost_estimate</code> 的实测值。</>}
+        />
       </p>
     </section>
   )

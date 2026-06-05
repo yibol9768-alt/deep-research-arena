@@ -1,5 +1,6 @@
 import { PageHero, MetricCard } from '@/components/layout/metric-card'
 import { loadChangelog } from '@/lib/data/changelog'
+import { T } from '@/components/i18n/t'
 
 export const dynamic = 'force-static'
 
@@ -17,21 +18,26 @@ export default function ChangelogPage() {
   return (
     <>
       <PageHero
-        eyebrow="Changelog"
-        title="What changed and when."
-        intro="Every meaningful update to the arena — scoring, tasks, sandbox enforcement, the site — lands here before it ships. Newest entries first."
+        eyebrow={<T en="Changelog" zh="更新日志" />}
+        title={<T en="What changed and when." zh="改了什么，什么时候改的。" />}
+        intro={
+          <T
+            en="Every meaningful update to the arena — scoring, tasks, sandbox enforcement, the site — lands here before it ships. Newest entries first."
+            zh="对竞技场的每一次有意义的更新，包括评分、任务、沙箱约束、网站，都会在上线前记录在这里。最新条目排在最前。"
+          />
+        }
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label="Releases" value={String(versionCount)} detail="logged updates" />
-          <MetricCard label="Latest" value={latestDate} detail={latest?.title ?? 'no entries yet'} />
-          <MetricCard label="Format" value="v1" detail="data/changelog.json" />
-          <MetricCard label="Source" value="GitHub" detail="yibol9768-alt/deep-research-arena" />
+          <MetricCard label={<T en="Releases" zh="发布版本" />} value={String(versionCount)} detail={<T en="logged updates" zh="已记录的更新" />} />
+          <MetricCard label={<T en="Latest" zh="最新" />} value={latestDate} detail={latest?.title ?? <T en="no entries yet" zh="暂无条目" />} />
+          <MetricCard label={<T en="Format" zh="格式" />} value="v1" detail="data/changelog.json" />
+          <MetricCard label={<T en="Source" zh="来源" />} value="GitHub" detail="yibol9768-alt/deep-research-arena" />
         </div>
       </PageHero>
 
       <section className="container space-y-12 pb-20">
         {entries.length === 0 ? (
-          <p className="text-muted">No entries yet.</p>
+          <p className="text-muted"><T en="No entries yet." zh="暂无条目。" /></p>
         ) : (
           entries.map((entry) => (
             <article key={entry.version} className="card p-6 md:p-8">

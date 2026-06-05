@@ -8,6 +8,7 @@ import { fmt, rankMedal } from '@/lib/format'
 import type { PerPillarElo, RankedAgent } from '@/lib/data/types'
 import { Swords } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { T } from '@/components/i18n/t'
 
 /**
  * Render order for the per-pillar sparkline. Picked to read left-to-right as
@@ -37,9 +38,9 @@ const PILLAR_LABEL: Record<keyof PerPillarElo, string> = {
 }
 
 const TABS = [
-  { key: 'composite', label: 'Composite Elo v2' },
-  { key: 'wins', label: 'Win count' },
-  { key: 'precision', label: 'CI precision' },
+  { key: 'composite', label: 'Composite Elo v2', zh: '综合 Elo v2' },
+  { key: 'wins', label: 'Win count', zh: '胜场数' },
+  { key: 'precision', label: 'CI precision', zh: '置信区间精度' },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -95,12 +96,15 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                   className="absolute inset-0 -z-0 rounded-tab bg-surface-mid"
                 />
               )}
-              <span className={cn('relative z-10', tab === t.key ? 'font-medium text-ink' : 'text-muted')}>{t.label}</span>
+              <span className={cn('relative z-10', tab === t.key ? 'font-medium text-ink' : 'text-muted')}><T en={t.label} zh={t.zh} /></span>
             </button>
           ))}
         </div>
         <span className="hidden text-xs text-muted md:block">
-          {sorted.length} agents · {sorted[0]?.n_battles ?? 0} battles each
+          <T
+            en={<>{sorted.length} agents · {sorted[0]?.n_battles ?? 0} battles each</>}
+            zh={<>{sorted.length} 个智能体 · 每个 {sorted[0]?.n_battles ?? 0} 场对战</>}
+          />
         </span>
       </header>
 
@@ -111,11 +115,11 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
           <thead className="hairline-b bg-surface-low">
             <tr className="text-[11px] uppercase tracking-wider text-muted">
               <th className="w-12 px-4 py-3 text-center">#</th>
-              <th className="px-4 py-3 font-medium">Agent / Backbone</th>
-              <th className="px-4 py-3 font-medium">Elo · 95% CI</th>
-              <th className="px-4 py-3 text-center font-medium">Battles</th>
-              <th className="px-4 py-3 text-center font-medium">W / L / D</th>
-              <th className="px-4 py-3 font-medium">Pillars</th>
+              <th className="px-4 py-3 font-medium"><T en="Agent / Backbone" zh="智能体 / 主干模型" /></th>
+              <th className="px-4 py-3 font-medium"><T en="Elo · 95% CI" zh="Elo · 95% 置信区间" /></th>
+              <th className="px-4 py-3 text-center font-medium"><T en="Battles" zh="对战" /></th>
+              <th className="px-4 py-3 text-center font-medium"><T en="W / L / D" zh="胜 / 负 / 平" /></th>
+              <th className="px-4 py-3 font-medium"><T en="Pillars" zh="维度" /></th>
               <th className="w-10 px-4 py-3" />
             </tr>
           </thead>
@@ -192,7 +196,10 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink">{meta.display}</p>
                   <p className="truncate text-xs text-muted">
-                    {meta.backbone} · {a.n_battles} battles
+                    <T
+                      en={<>{meta.backbone} · {a.n_battles} battles</>}
+                      zh={<>{meta.backbone} · {a.n_battles} 场对战</>}
+                    />
                   </p>
                 </div>
                 <div className="text-right">

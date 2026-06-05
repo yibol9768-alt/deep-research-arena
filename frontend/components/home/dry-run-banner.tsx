@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react'
+import { T } from '@/components/i18n/t'
 
 /**
  * DryRunBanner: a static, always-visible notice rendered at the top of the
@@ -24,14 +25,14 @@ export function DryRunBanner({
       <div className="container flex flex-wrap items-center gap-3 py-2.5 text-xs sm:text-sm">
         <AlertTriangle className="h-4 w-4 shrink-0 text-warn" aria-hidden />
         <span className="font-semibold uppercase tracking-wider text-warn">
-          DRY-RUN / SYNTHETIC DATA
+          <T en="DRY-RUN / SYNTHETIC DATA" zh="试运行 / 合成数据" />
         </span>
         <span className="text-ink/80">
-          v3 dry-run output, awaiting real benchmark runs.
+          <T en="v3 dry-run output, awaiting real benchmark runs." zh="v3 试运行输出，等待真实基准运行。" />
         </span>
         {schemaVersion ? (
           <span className="ml-auto rounded-pill bg-warn/15 px-2 py-0.5 text-[11px] font-medium text-warn tnum">
-            schema {schemaVersion}
+            <T en="schema" zh="模式" /> {schemaVersion}
           </span>
         ) : null}
       </div>

@@ -1,34 +1,38 @@
 import Link from 'next/link'
 import { Github, Twitter, Linkedin, MessageCircle } from 'lucide-react'
+import { T } from '@/components/i18n/t'
 
-const COLS: { title: string; links: { href: string; label: string }[] }[] = [
+const COLS: { title: string; titleZh: string; links: { href: string; label: string; zh: string }[] }[] = [
   {
     title: 'Explore',
+    titleZh: '探索',
     links: [
-      { href: '/', label: 'Leaderboard' },
-      { href: '/agents', label: 'Agents' },
-      { href: '/tasks', label: 'Tasks' },
-      { href: '/pillars', label: 'Pillars' },
-      { href: '/arena', label: 'Live Arena' },
+      { href: '/', label: 'Leaderboard', zh: '排行榜' },
+      { href: '/agents', label: 'Agents', zh: '智能体' },
+      { href: '/tasks', label: 'Tasks', zh: '任务' },
+      { href: '/pillars', label: 'Pillars', zh: '评测维度' },
+      { href: '/arena', label: 'Live Arena', zh: '实时竞技场' },
     ],
   },
   {
     title: 'Project',
+    titleZh: '项目',
     links: [
-      { href: '/methodology', label: 'Methodology' },
-      { href: '/sandbox', label: 'Sandbox' },
-      { href: '/insights', label: 'Findings' },
-      { href: '/about', label: 'About' },
-      { href: '/contribute', label: 'Contribute' },
+      { href: '/methodology', label: 'Methodology', zh: '方法论' },
+      { href: '/sandbox', label: 'Sandbox', zh: '沙箱' },
+      { href: '/insights', label: 'Findings', zh: '研究发现' },
+      { href: '/about', label: 'About', zh: '关于' },
+      { href: '/contribute', label: 'Contribute', zh: '贡献' },
     ],
   },
   {
     title: 'Resources',
+    titleZh: '资源',
     links: [
-      { href: '/methodology', label: 'Paper notes' },
-      { href: 'https://github.com/yibol9768-alt/deep-research-arena', label: 'GitHub' },
-      { href: '/api/leaderboard', label: 'API' },
-      { href: '/changelog', label: 'Changelog' },
+      { href: '/methodology', label: 'Paper notes', zh: '论文笔记' },
+      { href: 'https://github.com/yibol9768-alt/deep-research-arena', label: 'GitHub', zh: 'GitHub' },
+      { href: '/api/leaderboard', label: 'API', zh: 'API' },
+      { href: '/changelog', label: 'Changelog', zh: '更新日志' },
     ],
   },
 ]
@@ -44,7 +48,10 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
               Deep Research<br />Arena
             </h3>
             <p className="mt-4 max-w-sm text-sm text-brand-dark/80">
-              The first reproducible Elo benchmark for Deep Research agents. Open source. Open data. Open methodology.
+              <T
+                en="The first reproducible Elo benchmark for Deep Research agents. Open source. Open data. Open methodology."
+                zh="首个可复现的 Deep Research 智能体 Elo 评测基准。开源、开放数据、开放方法论。"
+              />
             </p>
             <form className="mt-6 flex w-full max-w-md gap-2 rounded-tab border border-brand-dark/20 bg-white/30 p-1.5 backdrop-blur-sm">
               <input
@@ -53,7 +60,7 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
                 className="flex-1 bg-transparent px-3 py-2 text-sm placeholder:text-brand-dark/60 focus:outline-none"
               />
               <button className="rounded-tab bg-brand-dark px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-brand-dark/90">
-                Subscribe
+                <T en="Subscribe" zh="订阅" />
               </button>
             </form>
           </div>
@@ -61,7 +68,7 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
           {/* Link columns */}
           {COLS.map((col) => (
             <div key={col.title} className="md:col-span-2">
-              <h4 className="text-caps uppercase tracking-wider text-brand-dark/70">{col.title}</h4>
+              <h4 className="text-caps uppercase tracking-wider text-brand-dark/70"><T en={col.title} zh={col.titleZh} /></h4>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
@@ -69,7 +76,7 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
                       href={l.href}
                       className="text-sm text-brand-dark/90 transition-colors hover:text-brand-dark hover:underline underline-offset-4"
                     >
-                      {l.label}
+                      <T en={l.label} zh={l.zh} />
                     </Link>
                   </li>
                 ))}
@@ -79,7 +86,7 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
 
           {/* Socials */}
           <div className="md:col-span-1">
-            <h4 className="text-caps uppercase tracking-wider text-brand-dark/70">Follow</h4>
+            <h4 className="text-caps uppercase tracking-wider text-brand-dark/70"><T en="Follow" zh="关注" /></h4>
             <div className="mt-4 flex gap-3">
               <a href="https://github.com/yibol9768-alt/deep-research-arena" aria-label="GitHub" className="text-brand-dark/80 hover:text-brand-dark"><Github className="h-4 w-4" /></a>
               <a href="#" aria-label="Twitter" className="text-brand-dark/80 hover:text-brand-dark"><Twitter className="h-4 w-4" /></a>
@@ -90,9 +97,9 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
         </div>
 
         <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-brand-dark/15 pt-6 text-xs text-brand-dark/70 md:flex-row md:items-center">
-          <p>© {new Date().getFullYear()} Deep Research Arena. Trademarks belong to their owners.</p>
+          <p>© {new Date().getFullYear()} Deep Research Arena. <T en="Trademarks belong to their owners." zh="商标归各自所有者所有。" /></p>
           <p className="tnum">
-            {lastUpdated ? <>Last leaderboard rebuild: <span className="font-medium text-brand-dark">{lastUpdated}</span></> : null}
+            {lastUpdated ? <><T en="Last leaderboard rebuild:" zh="上次排行榜重建:" /> <span className="font-medium text-brand-dark">{lastUpdated}</span></> : null}
           </p>
         </div>
       </div>
