@@ -287,6 +287,15 @@ def main() -> int:
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
+    # Serve cited sandbox pages from a frozen cache when DRA_SANDBOX_CACHE is set,
+    # so a bulk re-score does not hammer Magento (and is reproducible offline).
+    if os.environ.get("DRA_SANDBOX_CACHE"):
+        try:
+            from src.verifiers.sandbox_http_cache import install as _install_cache
+            _install_cache()
+        except Exception as _e:
+            print(f"[cache] install failed: {_e}", file=sys.stderr)
+
     task_path = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep" / f"{args.task}.json"
     task_cfg = json.loads(task_path.read_text())
 

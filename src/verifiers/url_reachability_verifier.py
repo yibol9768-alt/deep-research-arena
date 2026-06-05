@@ -121,13 +121,18 @@ class URLReachabilityVerifier:
     kind = "url_reachability"
 
     def __init__(self, max_workers: int = 4, max_urls: int = 200):
-        self.max_workers = max_workers
-        self.max_urls = max_urls
+        # Env overrides so a heavy batch re-score can throttle probe pressure on
+        # Magento PHP-FPM (which resets under concurrent load): DRA_REACH_WORKERS,
+        # DRA_REACH_MAXURLS, DRA_REACH_TIMEOUT, DRA_REACH_RETRIES.
+        self.max_workers = int(os.environ.get("DRA_REACH_WORKERS", max_workers))
+        self.max_urls = int(os.environ.get("DRA_REACH_MAXURLS", max_urls))
 
     def verify(self, *, task_config: dict[str, Any], answer: str = "", page: Any = None) -> VerifierResult:
         rcfg = task_config.get("url_reachability") or {}
         min_rate = float(rcfg.get("min_reachability_rate", 0.30))
-        probe_timeout = float(rcfg.get("probe_timeout_seconds", 6.0))
+        probe_timeout = float(os.environ.get("DRA_REACH_TIMEOUT")
+                              or rcfg.get("probe_timeout_seconds", 6.0))
+        retries = int(os.environ.get("DRA_REACH_RETRIES", "3"))
         sandbox_hosts: list[str] = task_config.get("sandbox_hosts") or (
             rcfg.get("sandbox_hosts") or ["localhost:7770", "localhost:9999", "localhost:8090"]
         )
@@ -152,7 +157,7 @@ class URLReachabilityVerifier:
 
         codes: dict[str, int] = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as ex:
-            futs = {ex.submit(_probe, u, probe_timeout): u for u in sample}
+            futs = {ex.submit(_probe, u, probe_timeout, retries): u for u in sample}
             for fut in concurrent.futures.as_completed(futs):
                 codes[futs[fut]] = fut.result()
 
