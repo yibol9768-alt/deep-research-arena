@@ -7,6 +7,24 @@ export const dynamic = 'force-static'
 
 const STORIES = [
   {
+    slug: 'judge-vs-grounding',
+    title: 'The judge crowns a fabricator: Elo #1 has 4% reachable citations',
+    titleZh: '判官把伪造者捧上榜首:Elo 第一名的引用只有 4% 真实可达',
+    kicker: '1553 battles',
+    kickerZh: '1553 场对战',
+    body: 'With every agent scored and no grounding gate, the pairwise LLM judge ranks GPT-Researcher #1 (Elo 1207) while only 4.3% of its citations resolve. The most grounded agents (camel-ai 60%, DeerFlow 60%) rank mid-table. The leaderboard now shows grounding next to Elo so the divergence is visible, not hidden.',
+    bodyZh: '在全员计分、不设接地门槛的情况下,成对 LLM 判官把 GPT-Researcher 排到第一(Elo 1207),而它的引用只有 4.3% 真实可达。接地最扎实的 camel-ai(60%)和 DeerFlow(60%)只排中游。排行榜现在把接地列放在 Elo 旁边,让这种分歧直接可见。',
+  },
+  {
+    slug: 'qwen3-cheap-baseline',
+    title: 'A $0.003-per-task qwen3 baseline lands mid-field on grounding',
+    titleZh: '每任务 0.003 美元的 qwen3 基线,接地分落在中游',
+    kicker: '$0.33 total',
+    kickerZh: '总共 $0.33',
+    body: 'qwen3-30b-a3b-instruct-2507 under a fixed minimal protocol (2 model calls, 8 sources) ran all 94 tasks for $0.33 total and reached grounding 0.24, tied with ii-researcher and above several full frameworks. Caveat: given only 8 real sources but pressure to cite dozens, it fabricated the remainder in valid URL format despite explicit instructions.',
+    bodyZh: 'qwen3-30b-a3b-instruct-2507 在固定极简协议下(2 次模型调用、8 个来源)跑完 94 个任务总花费 $0.33,接地 0.24,与 ii-researcher 持平并高于多个完整框架。注意:在只有 8 个真实来源却被要求引用几十条的压力下,它无视明确指令,按正确 URL 格式编造了其余引用。',
+  },
+  {
     slug: 'fluent-hallucination',
     title: 'Fluent hallucination beats naive judges',
     titleZh: '流畅的幻觉能骗过粗糙的评判',

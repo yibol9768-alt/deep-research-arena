@@ -70,9 +70,10 @@ def _chat(base_url: str, key: str, model: str, messages: list[dict],
     body = {"model": model, "messages": messages, "max_tokens": max_tokens}
     low = model.lower()
     # Disable reasoning for thinking-capable models so tokens are not wasted.
-    if low.startswith("glm") or "thinking" in low or low.startswith("qwen3"):
+    if low.startswith("glm") or "thinking" in low or low.startswith("qwen3") or low.startswith("deepseek-v4"):
         body["extra_body"] = {"thinking": {"type": "disabled"}}
         body["enable_thinking"] = False
+        body["thinking"] = {"type": "disabled"}
     d = _http_json(base_url.rstrip("/") + "/chat/completions", body, timeout=timeout,
                    headers={"Authorization": f"Bearer {key}"})
     ch = (d.get("choices") or [{}])[0].get("message", {})

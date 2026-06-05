@@ -3,6 +3,29 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v3-2026-06-05g",
+      "date": "2026-06-05",
+      "title": "Live leaderboard re-based: everyone-scored judge Elo + grounding column",
+      "tags": [
+        "leaderboard",
+        "scoring",
+        "results"
+      ],
+      "summary": "The leaderboard now ranks all 10 agents by pairwise LLM-judge Elo (1553 battles, no exclusion gate) with grounding shown as its own column, and a $0.003-per-task qwen3-30b-a3b baseline is published in Insights.",
+      "sections": [
+        {
+          "heading": "What changed",
+          "bullets": [
+            "Headline ranking = pairwise judge Elo (deepseek-v4-flash, round-robin, position-debiased, 1553 battles, 0 judge errors). Every agent gets a score; nobody is excluded.",
+            "New Grounding column (reachability / quote-verified citations, judge-free, scored from the frozen sandbox cache) sits next to Elo. The divergence is the headline finding: the Elo #1 agent has 4.3% reachable citations while the most grounded agents (60%) rank mid-table.",
+            "qwen3-30b-a3b-instruct-2507 minimal-protocol baseline: 94/94 tasks, $0.33 total (~$0.003/task), grounding 0.24 (mid-field). Honest caveat: with only 8 real sources provided it fabricated additional citations in valid URL format despite explicit instructions.",
+            "Next up: deepseek-v4-flash under the same protocol (running), then other model baselines."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
       "version": "v3-2026-06-05f",
       "date": "2026-06-05",
       "title": "Annotation set quality-audited (every report read)",

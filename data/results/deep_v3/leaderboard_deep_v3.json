@@ -1,93 +1,183 @@
 {
- "_schema_version": "v3-real-grounding-gated-2026-06-02",
+ "_schema_version": "v3-judge-elo-2026-06-05",
  "_dry_run": false,
  "synthetic_placeholder": false,
  "source": "real",
+ "composite_formula": "headline = pairwise LLM-judge Bradley-Terry Elo (deepseek-v4-flash, round-robin, position-debiased, 1553 battles, NO grounding gate -- every agent is scored). Grounding (reachability / quote-verified citations) is reported as its own column; the judge-vs-grounding divergence is the point.",
  "weights_v3": {
-  "grounding_gate_floor": 0.3
+  "judge_elo": 1.0
  },
- "composite_formula": "Two orthogonal numbers: GROUNDING = F1(citation precision with proof-of-fetch, must-cite recall); QUALITY = length-controlled pairwise win-rate vs peers, Bradley-Terry Elo with cross-family DeepSeek judge and position-swap. GATE: a report must clear the grounding floor to be ranked; fluent-but-ungrounded and fabricated-citation reports are excluded, not ranked.",
  "elo_v3_ci": {
   "camel-ai": {
-   "elo": 964.8,
-   "elo_lo": 910.5,
-   "elo_hi": 1022.8,
-   "elo_half_width": 56.1,
-   "n_battles": 40,
-   "wins": 6,
-   "losses": 11,
-   "draws": 23,
-   "grounding": 0.4261
+   "elo": 1095.7,
+   "elo_mean": 1095.7,
+   "elo_lo": 1070.2,
+   "elo_hi": 1117.5,
+   "elo_half_width": 23.7,
+   "n_battles": 315,
+   "wins": 73,
+   "losses": 73,
+   "draws": 169
   },
-  "claude-code": {
-   "elo": 1015.8,
-   "elo_lo": 934.3,
-   "elo_hi": 1100.9,
-   "elo_half_width": 83.3,
-   "n_battles": 19,
-   "wins": 4,
-   "losses": 3,
-   "draws": 12,
-   "grounding": 0.4886
+  "deerflow": {
+   "elo": 1043.1,
+   "elo_mean": 1043.1,
+   "elo_lo": 1017.0,
+   "elo_hi": 1064.1,
+   "elo_half_width": 23.6,
+   "n_battles": 426,
+   "wins": 86,
+   "losses": 156,
+   "draws": 184
+  },
+  "flowsearcher-ds": {
+   "elo": 1016.8,
+   "elo_mean": 1016.8,
+   "elo_lo": 980.6,
+   "elo_hi": 1048.1,
+   "elo_half_width": 33.8,
+   "n_battles": 231,
+   "wins": 41,
+   "losses": 95,
+   "draws": 95
+  },
+  "gpt-researcher": {
+   "elo": 1207.2,
+   "elo_mean": 1207.2,
+   "elo_lo": 1185.4,
+   "elo_hi": 1227.3,
+   "elo_half_width": 21.0,
+   "n_battles": 407,
+   "wins": 160,
+   "losses": 16,
+   "draws": 231
+  },
+  "ii-researcher": {
+   "elo": 1159.2,
+   "elo_mean": 1159.2,
+   "elo_lo": 1129.4,
+   "elo_hi": 1187.0,
+   "elo_half_width": 28.8,
+   "n_battles": 209,
+   "wins": 64,
+   "losses": 24,
+   "draws": 121
+  },
+  "langchain-odr": {
+   "elo": 1116.1,
+   "elo_mean": 1116.1,
+   "elo_lo": 1092.0,
+   "elo_hi": 1139.5,
+   "elo_half_width": 23.8,
+   "n_battles": 385,
+   "wins": 111,
+   "losses": 84,
+   "draws": 190
+  },
+  "ldr": {
+   "elo": 1066.4,
+   "elo_mean": 1066.4,
+   "elo_lo": 1042.5,
+   "elo_hi": 1089.9,
+   "elo_half_width": 23.7,
+   "n_battles": 426,
+   "wins": 87,
+   "losses": 125,
+   "draws": 214
+  },
+  "qx-agents": {
+   "elo": 139.2,
+   "elo_mean": 139.2,
+   "elo_lo": 76.4,
+   "elo_hi": 239.3,
+   "elo_half_width": 81.5,
+   "n_battles": 13,
+   "wins": 0,
+   "losses": 13,
+   "draws": 0
+  },
+  "smolagents": {
+   "elo": 1079.9,
+   "elo_mean": 1079.9,
+   "elo_lo": 1054.6,
+   "elo_hi": 1104.7,
+   "elo_half_width": 25.1,
+   "n_battles": 291,
+   "wins": 60,
+   "losses": 74,
+   "draws": 157
+  },
+  "storm": {
+   "elo": 1076.4,
+   "elo_mean": 1076.4,
+   "elo_lo": 1052.0,
+   "elo_hi": 1097.3,
+   "elo_half_width": 22.6,
+   "n_battles": 403,
+   "wins": 85,
+   "losses": 107,
+   "draws": 211
   }
  },
  "per_agent_profile": {
   "camel-ai": {
-   "coverage_pct": 42.6,
-   "reachability_pct": null,
-   "synthetic_placeholder": false,
-   "grounding": 0.4261
+   "reachability_pct": 60.0,
+   "url_veracity_pct": 50.1,
+   "synthetic_placeholder": false
   },
-  "claude-code": {
-   "coverage_pct": 48.9,
-   "reachability_pct": null,
-   "synthetic_placeholder": false,
-   "grounding": 0.4886
+  "deerflow": {
+   "reachability_pct": 60.2,
+   "url_veracity_pct": 48.2,
+   "synthetic_placeholder": false
+  },
+  "flowsearcher-ds": {
+   "reachability_pct": 45.6,
+   "url_veracity_pct": 42.5,
+   "synthetic_placeholder": false
   },
   "gpt-researcher": {
-   "coverage_pct": 0.1,
-   "reachability_pct": null,
-   "synthetic_placeholder": false,
-   "grounding": 0.0008
+   "reachability_pct": 4.3,
+   "url_veracity_pct": 2.2,
+   "synthetic_placeholder": false
+  },
+  "ii-researcher": {
+   "reachability_pct": 26.5,
+   "url_veracity_pct": 22.4,
+   "synthetic_placeholder": false
   },
   "langchain-odr": {
-   "coverage_pct": 0.1,
-   "reachability_pct": null,
-   "synthetic_placeholder": false,
-   "grounding": 0.0007
+   "reachability_pct": 35.8,
+   "url_veracity_pct": 24.7,
+   "synthetic_placeholder": false
+  },
+  "ldr": {
+   "reachability_pct": 1.9,
+   "url_veracity_pct": 23.6,
+   "synthetic_placeholder": false
+  },
+  "qx-agents": {
+   "reachability_pct": 2.6,
+   "url_veracity_pct": 0.0,
+   "synthetic_placeholder": false
   },
   "smolagents": {
-   "coverage_pct": 29.0,
-   "reachability_pct": null,
-   "synthetic_placeholder": false,
-   "grounding": 0.29
+   "reachability_pct": 37.2,
+   "url_veracity_pct": 41.3,
+   "synthetic_placeholder": false
+  },
+  "storm": {
+   "reachability_pct": 12.7,
+   "url_veracity_pct": 8.3,
+   "synthetic_placeholder": false
   }
  },
- "excluded_agents": [
-  {
-   "agent": "gpt-researcher",
-   "reason": "grounding 0.001 below truth-gate floor 0.3",
-   "grounding": 0.0008
-  },
-  {
-   "agent": "langchain-odr",
-   "reason": "grounding 0.001 below truth-gate floor 0.3",
-   "grounding": 0.0007
-  },
-  {
-   "agent": "smolagents",
-   "reason": "grounding 0.290 below truth-gate floor 0.3",
-   "grounding": 0.29
-  },
-  {
-   "agent": "opencode",
-   "reason": "no real reports on disk (was a synthetic placeholder)",
-   "grounding": null
-  }
- ],
- "human_alignment": {
-  "note": "Scoring redesigned (2026-06-02) to match the field consensus (DeepResearch Bench RACE+FACT, Arena-Hard, ALCE): separate grounding from quality, never reward citation volume, length-controlled pairwise judging. Full human-kappa validation pending a labeled preference set."
+ "n_runs": 1553,
+ "judge": {
+  "model": "deepseek-v4-flash",
+  "n_battles": 1553,
+  "judge_errors": 0,
+  "grounding_floor": 0.0,
+  "n_tasks": 74
  },
- "n_runs": 88,
- "source_file": "leaderboard_real_full.json"
+ "source_file": "data/results/real/leaderboard_judge_elo.json"
 }

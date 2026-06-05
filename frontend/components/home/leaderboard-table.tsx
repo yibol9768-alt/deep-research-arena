@@ -119,6 +119,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
               <th className="px-4 py-3 font-medium"><T en="Elo · 95% CI" zh="Elo · 95% 置信区间" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="Battles" zh="对战" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="W / L / D" zh="胜 / 负 / 平" /></th>
+              <th className="px-4 py-3 text-center font-medium"><T en="Grounding" zh="接地" /></th>
               <th className="px-4 py-3 font-medium"><T en="Pillars" zh="维度" /></th>
               <th className="w-10 px-4 py-3" />
             </tr>
@@ -161,8 +162,23 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                     <span className="ml-1 text-[11px] text-muted tnum">±{a.ci_half}</span>
                   </td>
                   <td className="px-4 py-3 text-center text-muted tnum">{a.n_battles}</td>
-                  <td className="px-4 py-3 text-center text-muted tnum">
-                    {a.wins} / {a.losses} / {a.draws}
+                  <td className="px-4 py-3 text-center tnum">
+                    {a.reachability_pct != null && a.url_veracity_pct != null ? (
+                      (() => {
+                        const gate = (a.reachability_pct! + a.url_veracity_pct!) / 2
+                        const tone = gate >= 40 ? 'text-good' : gate >= 15 ? 'text-warn' : 'text-bad'
+                        return (
+                          <span>
+                            <span className={`font-semibold ${tone}`}>{gate.toFixed(0)}%</span>
+                            <span className="ml-1 text-[10px] text-muted">
+                              R{a.reachability_pct!.toFixed(0)} · Q{a.url_veracity_pct!.toFixed(0)}
+                            </span>
+                          </span>
+                        )
+                      })()
+                    ) : (
+                      <span className="text-muted">n/a</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <PillarsSparkline color={meta.color} pillars={a.per_pillar} bounds={pillarBounds} />
