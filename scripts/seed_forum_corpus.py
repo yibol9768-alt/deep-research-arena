@@ -101,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
         fid_of[f] = max_fid
         cols = {"id": str(max_fid), "name": _q(f), "title": _q(f),
                 "normalized_name": _q(f.lower()), "created": "now()",
-                "featured": "false", "submission_count": "0"}
+                "featured": "false"}
         # fill any other NOT NULL col w/o default we did not set
         for col, dflt in f_cols.items():
             if col not in cols and dflt is None:
