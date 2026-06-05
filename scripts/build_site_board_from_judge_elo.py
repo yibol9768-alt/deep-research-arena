@@ -82,10 +82,12 @@ def main() -> int:
         "synthetic_placeholder": False,
         "source": "real",
         "composite_formula": (
-            "headline = pairwise LLM-judge Bradley-Terry Elo (deepseek-v4-flash, "
-            "round-robin, position-debiased, 1553 battles, NO grounding gate -- every "
-            "agent is scored). Grounding (reachability / quote-verified citations) is "
-            "reported as its own column; the judge-vs-grounding divergence is the point."
+            "headline = TRUTH-GATED Elo: pairwise LLM-judge Bradley-Terry Elo "
+            "(deepseek-v4-flash, round-robin, position-debiased, 1553 battles) scaled "
+            "by the grounding gate (mean of reachability% and quote-verified%). Every "
+            "agent is scored -- nobody is excluded -- but fluent fabrication cannot "
+            "top the board. Raw judge Elo and grounding are shown alongside; their "
+            "divergence (raw #1 has 4% reachable citations) is the headline finding."
         ),
         "weights_v3": {"judge_elo": 1.0},
         "elo_v3_ci": elo_ci,

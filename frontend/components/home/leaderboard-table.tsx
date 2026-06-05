@@ -38,7 +38,8 @@ const PILLAR_LABEL: Record<keyof PerPillarElo, string> = {
 }
 
 const TABS = [
-  { key: 'composite', label: 'Composite Elo v2', zh: '综合 Elo v2' },
+  { key: 'gated', label: 'Truth-gated Elo', zh: '真值门控 Elo' },
+  { key: 'judge', label: 'Judge Elo (raw)', zh: '裸判官 Elo' },
   { key: 'wins', label: 'Win count', zh: '胜场数' },
   { key: 'precision', label: 'CI precision', zh: '置信区间精度' },
 ] as const
@@ -46,13 +47,15 @@ const TABS = [
 type TabKey = (typeof TABS)[number]['key']
 
 export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
-  const [tab, setTab] = useState<TabKey>('composite')
+  const [tab, setTab] = useState<TabKey>('gated')
 
   const sorted = (() => {
     const arr = [...agents]
+    if (tab === 'judge') return arr.sort((a, b) => b.elo - a.elo)
     if (tab === 'wins') return arr.sort((a, b) => b.wins - a.wins)
     if (tab === 'precision') return arr.sort((a, b) => a.ci_half - b.ci_half)
-    return arr.sort((a, b) => b.elo - a.elo)
+    // default: truth-gated -- judge Elo scaled by the grounding gate
+    return arr.sort((a, b) => (b.gated_score ?? 0) - (a.gated_score ?? 0) || b.elo - a.elo)
   })()
 
   // Compute global per-pillar bounds for sparkline scaling, so bar heights are
@@ -116,7 +119,13 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
             <tr className="text-[11px] uppercase tracking-wider text-muted">
               <th className="w-12 px-4 py-3 text-center">#</th>
               <th className="px-4 py-3 font-medium"><T en="Agent / Backbone" zh="智能体 / 主干模型" /></th>
-              <th className="px-4 py-3 font-medium"><T en="Elo · 95% CI" zh="Elo · 95% 置信区间" /></th>
+              <th className="px-4 py-3 font-medium">
+                {tab === 'gated' ? (
+                  <T en="Score (Elo × gate)" zh="得分(Elo × 接地门)" />
+                ) : (
+                  <T en="Elo · 95% CI" zh="Elo · 95% 置信区间" />
+                )}
+              </th>
               <th className="px-4 py-3 text-center font-medium"><T en="Battles" zh="对战" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="W / L / D" zh="胜 / 负 / 平" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="Grounding" zh="接地" /></th>
@@ -158,8 +167,19 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="font-semibold text-ink tnum">{Math.round(a.elo)}</span>
-                    <span className="ml-1 text-[11px] text-muted tnum">±{a.ci_half}</span>
+                    {tab === 'gated' ? (
+                      <>
+                        <span className="font-semibold text-ink tnum">{a.gated_score ?? 0}</span>
+                        <span className="ml-1.5 text-[11px] text-muted tnum">
+                          <T en={<>judge {Math.round(a.elo)}</>} zh={<>判官 {Math.round(a.elo)}</>} />
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold text-ink tnum">{Math.round(a.elo)}</span>
+                        <span className="ml-1 text-[11px] text-muted tnum">±{a.ci_half}</span>
+                      </>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center text-muted tnum">{a.n_battles}</td>
                   <td className="px-4 py-3 text-center tnum">

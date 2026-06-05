@@ -207,7 +207,17 @@ export function rankedAgents(): RankedAgent[] {
       synthetic_placeholder: prof?.synthetic_placeholder,
     }
   })
-  rows.sort((a, b) => b.elo - a.elo)
+  // Truth-gated score: judge Elo scaled by the grounding gate. A fluent report
+  // only counts to the extent its citations are real -- this keeps every agent
+  // scored (no exclusion) while preventing a fabricator from topping the board.
+  for (const r of rows) {
+    const gate =
+      r.reachability_pct != null && r.url_veracity_pct != null
+        ? (r.reachability_pct + r.url_veracity_pct) / 200
+        : 0
+    r.gated_score = Math.round(r.elo * gate)
+  }
+  rows.sort((a, b) => (b.gated_score ?? 0) - (a.gated_score ?? 0) || b.elo - a.elo)
   rows.forEach((r, i) => {
     r.rank = i + 1
   })

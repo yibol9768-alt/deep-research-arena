@@ -51,6 +51,10 @@ export interface RankedAgent {
   synthetic_placeholder?: boolean
   /** True when this agent sits in a statistically significant adjacent-rank gap. */
   sig_vs_next?: boolean
+  /** Truth-gated score: judge Elo scaled by the grounding gate (mean of
+   *  reachability% and quote-verified% / 100). The DEFAULT ranking — quality
+   *  only counts to the extent the evidence is real. */
+  gated_score?: number
 }
 
 export interface PillarEloRow {
