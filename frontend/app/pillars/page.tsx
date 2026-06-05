@@ -70,7 +70,7 @@ export default function PillarsPage() {
         intro={<T en="Composite v3.1 is intentionally plural: citation reachability, evidence breadth, checklist coverage, LLM-judge quality, formatting integrity, and efficiency all pull rank in different directions." zh="综合分 v3.1 刻意采用多元设计：引用可达性、证据广度、清单覆盖度、LLM 评审质量、格式完整性与效率会从不同方向影响排名。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label={<T en="Pillars" zh="维度数" />} value="7" detail={<T en="weighted into composite v3.1" zh="加权计入综合分 v3.1" />} />
+          <MetricCard label={<T en="Pillars" zh="维度数" />} value="7" detail={<T en="signal taxonomy; the live headline uses grounding × judge Elo" zh="信号分类；当前主榜使用 接地 × 判官 Elo" />} />
           <MetricCard label={<T en="Verifier files" zh="验证器文件" />} value="29" detail={<T en="URL, markdown, judge, and task coverage checks" zh="URL、markdown、评审与任务覆盖度检查" />} />
           <MetricCard label={<T en="Bootstrap" zh="自助采样" />} value="1000" detail={<T en="resamples for 95% confidence intervals" zh="次重采样以得到 95% 置信区间" />} />
           <MetricCard label={<T en="Agents" zh="智能体" />} value={String(agents.length)} detail={<T en="ranked under the same scoring contract" zh="在同一评分契约下排名" />} />
@@ -81,7 +81,7 @@ export default function PillarsPage() {
         <div className="card p-6 lg:col-span-3">
           <span className="label-caps"><T en="Composite formula" zh="综合公式" /></span>
           <p className="mt-4 font-serif text-3xl leading-tight text-ink">
-            score = weighted pillars x grounding gate
+            score = judge Elo x grounding gate
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
@@ -91,7 +91,7 @@ export default function PillarsPage() {
           </p>
         </div>
         <div className="card p-6 lg:col-span-4">
-          <span className="label-caps"><T en="Live leaders by composite" zh="按综合得分的实时领先者" /></span>
+          <span className="label-caps"><T en="Live leaders by truth-gated score" zh="按真值门控得分的实时领先者" /></span>
           <div className="mt-5 space-y-3">
             {agents.slice(0, 5).map((agent) => {
               const meta = agentMeta(agent.id)

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Github, Twitter, Linkedin, MessageCircle } from 'lucide-react'
+import { Github } from 'lucide-react'
 import { T } from '@/components/i18n/t'
 
 const COLS: { title: string; titleZh: string; links: { href: string; label: string; zh: string }[] }[] = [
@@ -31,7 +31,6 @@ const COLS: { title: string; titleZh: string; links: { href: string; label: stri
     links: [
       { href: '/methodology', label: 'Paper notes', zh: '论文笔记' },
       { href: 'https://github.com/yibol9768-alt/deep-research-arena', label: 'GitHub', zh: 'GitHub' },
-      { href: '/api/leaderboard', label: 'API', zh: 'API' },
       { href: '/changelog', label: 'Changelog', zh: '更新日志' },
     ],
   },
@@ -53,16 +52,6 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
                 zh="首个可复现的 Deep Research 智能体 Elo 评测基准。开源、开放数据、开放方法论。"
               />
             </p>
-            <form className="mt-6 flex w-full max-w-md gap-2 rounded-tab border border-brand-dark/20 bg-white/30 p-1.5 backdrop-blur-sm">
-              <input
-                type="email"
-                placeholder="Subscribe to research updates"
-                className="flex-1 bg-transparent px-3 py-2 text-sm placeholder:text-brand-dark/60 focus:outline-none"
-              />
-              <button className="rounded-tab bg-brand-dark px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-brand-dark/90">
-                <T en="Subscribe" zh="订阅" />
-              </button>
-            </form>
           </div>
 
           {/* Link columns */}
@@ -89,9 +78,6 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
             <h4 className="text-caps uppercase tracking-wider text-brand-dark/70"><T en="Follow" zh="关注" /></h4>
             <div className="mt-4 flex gap-3">
               <a href="https://github.com/yibol9768-alt/deep-research-arena" aria-label="GitHub" className="text-brand-dark/80 hover:text-brand-dark"><Github className="h-4 w-4" /></a>
-              <a href="#" aria-label="Twitter" className="text-brand-dark/80 hover:text-brand-dark"><Twitter className="h-4 w-4" /></a>
-              <a href="#" aria-label="LinkedIn" className="text-brand-dark/80 hover:text-brand-dark"><Linkedin className="h-4 w-4" /></a>
-              <a href="#" aria-label="Discord" className="text-brand-dark/80 hover:text-brand-dark"><MessageCircle className="h-4 w-4" /></a>
             </div>
           </div>
         </div>

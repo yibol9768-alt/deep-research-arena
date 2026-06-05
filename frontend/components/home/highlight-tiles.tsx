@@ -14,8 +14,8 @@ interface Tile {
 
 const TILES: Tile[] = [
   {
-    title: 'Composite Elo',
-    titleZh: '综合 Elo',
+    title: 'Truth-gated leaders',
+    titleZh: '真值门控领跑者',
     ofWhich: 'composite',
     blurb: (top) => {
       const a = agentMeta(top[0].id)
@@ -25,15 +25,15 @@ const TILES: Tile[] = [
           en={
             <>
               <Inline color={a.color}>{a.display}</Inline>
-              <Tnum>{Math.round(top[0].elo)}</Tnum> and <Inline color={b.color}>{b.display}</Inline>
-              <Tnum>{Math.round(top[1].elo)}</Tnum> lead the global Bradley-Terry leaderboard.
+              <Tnum>{top[0].gated_score ?? 0}</Tnum> and <Inline color={b.color}>{b.display}</Inline>
+              <Tnum>{top[1].gated_score ?? 0}</Tnum> lead on truth-gated Elo (judge Elo × grounding gate).
             </>
           }
           zh={
             <>
               <Inline color={a.color}>{a.display}</Inline>
-              <Tnum>{Math.round(top[0].elo)}</Tnum> 与 <Inline color={b.color}>{b.display}</Inline>
-              <Tnum>{Math.round(top[1].elo)}</Tnum> 领跑全局 Bradley-Terry 排行榜。
+              <Tnum>{top[0].gated_score ?? 0}</Tnum> 与 <Inline color={b.color}>{b.display}</Inline>
+              <Tnum>{top[1].gated_score ?? 0}</Tnum> 领跑真值门控 Elo（判官 Elo × 接地门）。
             </>
           }
         />
@@ -66,34 +66,33 @@ const TILES: Tile[] = [
     },
   },
   {
-    title: 'Deepest reports',
-    titleZh: '最深入的报告',
+    title: 'Most grounded',
+    titleZh: '最扎实的接地',
     ofWhich: 'depth',
     blurb: (top) => {
-      // Find the top agent by depth_avg (v3 per-agent profile field).
-      const candidates = top.filter((a) => typeof a.depth_avg === 'number')
+      const candidates = top.filter((a) => typeof a.reachability_pct === 'number')
       if (candidates.length === 0) {
         return (
           <span className="text-muted">
-            <T en="Per-pillar depth scores not available in this build." zh="此构建版本中暂无分维度深度分数。" />
+            <T en="Grounding profile not available in this build." zh="此构建版本中暂无接地数据。" />
           </span>
         )
       }
-      const sorted = [...candidates].sort((a, b) => (b.depth_avg ?? 0) - (a.depth_avg ?? 0))
+      const sorted = [...candidates].sort((a, b) => (b.reachability_pct ?? 0) - (a.reachability_pct ?? 0))
       const a = agentMeta(sorted[0].id)
-      const depth = sorted[0].depth_avg ?? 0
+      const reach = sorted[0].reachability_pct ?? 0
       return (
         <T
           en={
             <>
-              <Inline color={a.color}>{a.display}</Inline> writes the deepest cross-source reports{' '}
-              (depth_avg <Tnum>{depth.toFixed(2)}</Tnum>) on the v3 scoring pillars.
+              <Inline color={a.color}>{a.display}</Inline> has the most real evidence:{' '}
+              <Tnum>{reach.toFixed(0)}%</Tnum> of its cited URLs actually resolve in the sandbox.
             </>
           }
           zh={
             <>
-              <Inline color={a.color}>{a.display}</Inline> 在 v3 评分维度上写出了最深入的跨来源报告{' '}
-              (depth_avg <Tnum>{depth.toFixed(2)}</Tnum>)。
+              <Inline color={a.color}>{a.display}</Inline> 的证据最真实：其引用的 URL 有{' '}
+              <Tnum>{reach.toFixed(0)}%</Tnum> 在沙箱中真实可达。
             </>
           }
         />
@@ -126,22 +125,21 @@ const TILES: Tile[] = [
     },
   },
   {
-    title: 'Reasoning models',
-    titleZh: '推理模型',
+    title: 'Judge vs grounding',
+    titleZh: '判官 vs 接地',
     ofWhich: 'risers',
     blurb: () => (
       <T
         en={
           <>
-            Reasoning-tuned variants (suffix <code className="rounded bg-surface-mid px-1 py-0.5 text-[11px]">-ds</code>)
-            are judged by a <em className="not-italic text-brand">different model family</em> per the
-            Wataoka 2024 dual-judge protocol.
+            The raw judge ranks a <em className="not-italic text-brand">4%-reachable</em> agent #1.
+            The truth gate exists precisely for this: quality only counts when the evidence is real.
           </>
         }
         zh={
           <>
-            经过推理微调的变体（后缀 <code className="rounded bg-surface-mid px-1 py-0.5 text-[11px]">-ds</code>）
-            依据 Wataoka 2024 双评审协议，由<em className="not-italic text-brand">不同的模型家族</em>进行评判。
+            裸判官把一个引用仅 <em className="not-italic text-brand">4% 可达</em> 的智能体排到第一。
+            真值门正是为此而生：质量只有在证据为真时才作数。
           </>
         }
       />
@@ -169,8 +167,8 @@ export function HighlightTiles({ top }: { top: RankedAgent[] }) {
         <h2 className="font-serif text-h-sm text-ink"><T en="Highlights" zh="亮点" /></h2>
         <span className="label-caps">
           <T
-            en={<>computed from {top[0]?.n_battles ?? 227} dual-judge battles</>}
-            zh={<>基于 {top[0]?.n_battles ?? 227} 场双评审对战计算</>}
+            en={<>computed from 1553 position-debiased judge battles</>}
+            zh={<>基于 1553 场位置去偏的判官对战计算</>}
           />
         </span>
       </div>

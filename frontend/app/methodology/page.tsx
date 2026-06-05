@@ -6,10 +6,10 @@ export const dynamic = 'force-static'
 const SECTIONS = [
   {
     id: 'composite',
-    title: 'Composite v3.1',
-    titleZh: '综合得分 v3.1',
-    body: 'Seven pillars are weighted into a single task score, then passed through a grounding gate so unsupported reports cannot win on fluency alone.',
-    bodyZh: '七个维度加权汇总为单一的任务得分，再经过接地门控，使缺乏支撑的报告无法仅凭文采取胜。',
+    title: 'Truth-gated Elo',
+    titleZh: '真值门控 Elo',
+    body: 'The headline score is the pairwise judge Elo multiplied by the grounding gate (mean of citation reachability and quote verification), so unsupported reports cannot win on fluency alone.',
+    bodyZh: '榜单主分 = 成对判官 Elo × 接地门（引用可达率与引文核实率的均值），缺乏支撑的报告无法仅凭文采取胜。',
   },
   {
     id: 'grounding-gate',
@@ -27,10 +27,10 @@ const SECTIONS = [
   },
   {
     id: 'dual-judge',
-    title: 'Dual judge design',
-    titleZh: '双评审设计',
-    body: 'The judging model family is separated from the tested agent family to reduce style preference and self-similarity bias.',
-    bodyZh: '将评审模型族与被测智能体族相分离，以减少风格偏好与自相似性偏差。',
+    title: 'Judge and its limits',
+    titleZh: '判官及其局限',
+    body: 'Current judge: deepseek-v4-flash, position-debiased (every battle is judged twice with sides swapped). Honest caveat: most agents also run on deepseek-v4-flash, so judge self-preference is a real risk -- which is exactly why the headline score is gated by the judge-free grounding check rather than trusting the judge alone. Multi-judge replication is on the roadmap.',
+    bodyZh: '当前判官：deepseek-v4-flash，位置去偏（每场对战交换位次判两遍）。如实说明：多数智能体同样运行在 deepseek-v4-flash 上，判官自偏好是真实风险 -- 这正是榜单主分要乘以不依赖判官的接地门、而不是单信判官的原因。多判官复核在路线图上。',
   },
   {
     id: 'intent-typology',
@@ -57,7 +57,7 @@ export default function MethodologyPage() {
         intro={<T en="Deep Research Arena avoids a single magic score. It stores the task, source pool, checklist, report, verifier outputs, pairwise outcome, and confidence interval as separate artifacts." zh="Deep Research Arena 不依赖单一的魔法分数。它将任务、来源池、核查清单、报告、验证器输出、两两对战结果与置信区间分别存为独立的产物。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label={<T en="Score pillars" zh="评分维度" />} value="7" detail={<T en="truth, evidence, structure, cost" zh="真实性、证据、结构、成本" />} />
+          <MetricCard label={<T en="Score axes" zh="评分轴" />} value="2" detail={<T en="grounding (judge-free) and judge Elo" zh="接地（不依赖判官）与判官 Elo" />} />
           <MetricCard label={<T en="Bootstrap" zh="自助重采样" />} value="1000" detail={<T en="confidence interval resamples" zh="置信区间重采样次数" />} />
           <MetricCard label={<T en="Intent classes" zh="意图类别" />} value="6" detail={<T en="task families with separate failure modes" zh="具有不同失败模式的任务族" />} />
           <MetricCard label={<T en="Audit trail" zh="审计轨迹" />} value="Full" detail={<T en="JSON, reports, and verifier outputs" zh="JSON、报告与验证器输出" />} />

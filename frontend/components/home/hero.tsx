@@ -56,8 +56,8 @@ export function Hero({ stats }: Props) {
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
             <T
-              en="Eight open-source frameworks battle on 107 sandbox tasks. Every cited URL is verified against the backing database. Every score has a 95% bootstrap confidence interval. No drifting search, no hand-judged rubrics, no inflated numbers."
-              zh="八个开源框架在 107 个沙箱任务上对战。每个被引用的 URL 都会对照支撑数据库进行核验。每个分数都带有 95% 自助置信区间。没有漂移的搜索，没有手工评判的评分表，没有虚高的数字。"
+              en="Ten open-source agents battle on 100 sandbox tasks. Every cited URL is fetched against the frozen sandbox; every quote is checked on the cited page. The headline score is judge Elo gated by that grounding, with 95% bootstrap confidence intervals. No drifting search, no inflated numbers."
+              zh="十个开源智能体在 100 个沙箱任务上对战。每个被引用的 URL 都按冻结沙箱实地抓取核验，每条引文都对照被引页面检查。榜单主分是经接地门控的判官 Elo，并带 95% 自助置信区间。没有漂移的搜索，没有虚高的数字。"
             />
           </p>
 
@@ -85,7 +85,7 @@ export function Hero({ stats }: Props) {
               <T en="Read methodology" zh="阅读方法论" />
             </Link>
             <a
-              href="https://github.com/"
+              href="https://github.com/yibol9768-alt/deep-research-arena"
               target="_blank"
               rel="noreferrer"
               className="inline-flex h-11 items-center gap-2 rounded-tab px-3 text-sm text-muted transition-colors hover:text-ink"

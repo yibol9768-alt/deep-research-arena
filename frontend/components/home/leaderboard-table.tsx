@@ -129,7 +129,6 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
               <th className="px-4 py-3 text-center font-medium"><T en="Battles" zh="对战" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="W / L / D" zh="胜 / 负 / 平" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="Grounding" zh="接地" /></th>
-              <th className="px-4 py-3 font-medium"><T en="Pillars" zh="维度" /></th>
               <th className="w-10 px-4 py-3" />
             </tr>
           </thead>
@@ -199,9 +198,6 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                     ) : (
                       <span className="text-muted">n/a</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <PillarsSparkline color={meta.color} pillars={a.per_pillar} bounds={pillarBounds} />
                   </td>
                   <td className="px-4 py-3">
                     <Link

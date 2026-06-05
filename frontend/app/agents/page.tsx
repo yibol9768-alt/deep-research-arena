@@ -57,8 +57,8 @@ export default function AgentsHubPage() {
         </h1>
         <p className="mt-3 text-base leading-relaxed text-muted md:text-lg">
           <T
-            en="Each agent runs the same 107 sandbox tasks through the same Tavily/Firecrawl shim. The only thing that changes is the framework's planning and citation strategy."
-            zh="每个智能体都通过同一套 Tavily/Firecrawl 代理层运行相同的 107 个沙箱任务。唯一变化的是框架的规划与引用策略。"
+            en="Each agent runs the same 100 sandbox tasks through the same search shim. The only thing that changes is the framework's planning and citation strategy."
+            zh="每个智能体都通过同一套搜索代理层运行相同的 100 个沙箱任务。唯一变化的是框架的规划与引用策略。"
           />
         </p>
       </header>
@@ -82,8 +82,8 @@ export default function AgentsHubPage() {
       {/* Footnote */}
       <p className="mt-10 text-xs text-muted">
         <T
-          en={`Showing ${filtered.length} of ${merged.length} agents · ranks computed from Composite Elo v2.`}
-          zh={`显示 ${merged.length} 个智能体中的 ${filtered.length} 个 · 排名依据综合 Elo v2 计算。`}
+          en={`Showing ${filtered.length} of ${merged.length} agents · ranks computed from truth-gated Elo (judge Elo × grounding gate).`}
+          zh={`显示 ${merged.length} 个智能体中的 ${filtered.length} 个 · 排名依据真值门控 Elo（判官 Elo × 接地门）计算。`}
         />
       </p>
 

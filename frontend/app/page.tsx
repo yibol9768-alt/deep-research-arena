@@ -3,7 +3,6 @@ import { rankedAgents, loadLeaderboard } from '@/lib/data/load-leaderboard'
 import { Hero } from '@/components/home/hero'
 import { HighlightTiles } from '@/components/home/highlight-tiles'
 import { CompositeBar } from '@/components/home/composite-bar'
-import { QualityCostScatter } from '@/components/home/quality-cost-scatter'
 import { LeaderboardTable } from '@/components/home/leaderboard-table'
 import { PillarBars } from '@/components/home/pillar-bars'
 import { SectionNav } from '@/components/home/section-nav'
@@ -17,33 +16,34 @@ export default function HomePage() {
   const lb = loadLeaderboard()
 
   const stats = [
-    { value: String(agents.length), label: 'Frameworks', zh: '框架' },
-    { value: '107', label: 'Sandbox tasks', zh: '沙箱任务' },
-    { value: String(lb.n_runs ?? agents.reduce((a, b) => a + b.n_battles, 0)), label: 'Battles', zh: '对战' },
-    { value: '7', label: 'Pillars', zh: '评测维度' },
+    { value: String(agents.length), label: 'Agents', zh: '智能体' },
+    { value: '100', label: 'Sandbox tasks', zh: '沙箱任务' },
+    { value: String(lb.n_runs ?? agents.reduce((a, b) => a + b.n_battles, 0)), label: 'Judge battles', zh: '判官对战' },
+    { value: '74', label: 'Judged tasks', zh: '入评任务' },
   ]
 
   const sections = [
     { id: 'highlights', label: 'Highlights', zh: '亮点' },
     { id: 'leaderboard', label: 'Leaderboard', zh: '排行榜' },
-    { id: 'composite', label: 'Composite Elo', zh: '综合 Elo' },
-    { id: 'pillars', label: 'Per-pillar', zh: '分维度' },
-    { id: 'tradeoff', label: 'Quality vs Cost', zh: '质量与成本' },
+    { id: 'composite', label: 'Judge Elo (raw)', zh: '裸判官 Elo' },
+    { id: 'pillars', label: 'Signals', zh: '评分信号' },
     { id: 'methodology-cta', label: 'Methodology', zh: '方法论' },
   ]
 
-  // Build synthetic per-pillar projections from win-rate, ci, etc., until pillar_elo is wired.
-  const byCitation = [...agents]
-    .map((a) => ({ id: a.id, value: (a.wins / a.n_battles) * 100 }))
+  // REAL per-agent signals (no synthetic projections): grounding from the
+  // judge-free cache pass, judge Elo from the Bradley-Terry fit, and the
+  // truth-gated headline score.
+  const byReach = [...agents]
+    .map((a) => ({ id: a.id, value: a.reachability_pct ?? 0 }))
     .sort((a, b) => b.value - a.value)
-  const byDepth = [...agents]
-    .map((a) => ({ id: a.id, value: a.elo - a.ci_half }))
-    .sort((a, b) => b.value - a.value)
-  const byEvidence = [...agents]
-    .map((a) => ({ id: a.id, value: ((a.wins + a.draws) / a.n_battles) * 100 }))
+  const byQuote = [...agents]
+    .map((a) => ({ id: a.id, value: a.url_veracity_pct ?? 0 }))
     .sort((a, b) => b.value - a.value)
   const byJudge = [...agents]
     .map((a) => ({ id: a.id, value: a.elo }))
+    .sort((a, b) => b.value - a.value)
+  const byGated = [...agents]
+    .map((a) => ({ id: a.id, value: a.gated_score ?? 0 }))
     .sort((a, b) => b.value - a.value)
 
   return (
@@ -66,21 +66,21 @@ export default function HomePage() {
             <SectionTitle
               id="leaderboard"
               title={<T en="Leaderboard" zh="排行榜" />}
-              caption={<T en={`${agents.length} agents · v3.1 composite scoring`} zh={`${agents.length} 个智能体 · v3.1 综合评分`} />}
+              caption={<T en={`${agents.length} agents · truth-gated Elo (judge Elo × grounding gate) · judge: deepseek-v4-flash`} zh={`${agents.length} 个智能体 · 真值门控 Elo（判官 Elo × 接地门）· 判官：deepseek-v4-flash`} />}
             />
             <LeaderboardTable agents={agents} />
           </div>
 
-          {/* Composite Elo bar */}
+          {/* Raw judge Elo bar */}
           <div>
             <SectionTitle
               id="composite"
-              title={<T en="Composite Elo" zh="综合 Elo" />}
-              caption={<T en="Bradley-Terry MLE · 1000-sample bootstrap · 95% CI" zh="Bradley-Terry 极大似然估计 · 1000 次自助采样 · 95% 置信区间" />}
+              title={<T en="Judge Elo (raw component)" zh="裸判官 Elo（组成部分）" />}
+              caption={<T en="Pairwise Bradley-Terry · position-debiased · bootstrap 95% CI · before the grounding gate" zh="成对 Bradley-Terry · 位置去偏 · 自助 95% 置信区间 · 未经接地门控" />}
             />
             <CompositeBar
               agents={agents}
-              title={<T en="Composite Elo (v3.1)" zh="综合 Elo (v3.1)" />}
+              title={<T en="Judge Elo (raw)" zh="裸判官 Elo" />}
               subtitle={
                 <T
                   en="Higher is better. The two | marks bracket each bar's 95% bootstrap confidence interval (not a rendering glitch) — wider spread means fewer battles, so the rank is less certain."
@@ -90,51 +90,41 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Per-pillar grid */}
+          {/* Real scoring signals */}
           <div>
             <SectionTitle
               id="pillars"
-              title={<T en="Per-pillar breakdown" zh="分维度拆解" />}
-              caption={<T en="Each pillar tells a different story; the leader rotates by metric" zh="每个维度都讲述不同的故事；领先者随指标而变" />}
+              title={<T en="Scoring signals" zh="评分信号" />}
+              caption={<T en="The two grounding signals (judge-free, scored against the frozen sandbox) and the two quality views" zh="两个接地信号（不依赖判官，按冻结沙箱核验）与两个质量视角" />}
             />
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <PillarBars
-                title={<T en="Citation alignment" zh="引用一致性" />}
-                subtitle={<T en="Are claims actually supported by cited URLs? · ALCE substring + NLI" zh="论断是否真的有所引用的 URL 支撑？· ALCE 子串匹配 + 自然语言推理" />}
+                title={<T en="Citation reachability" zh="引用可达率" />}
+                subtitle={<T en="Share of cited URLs that actually resolve in the sandbox" zh="所引用 URL 在沙箱中真实可达的比例" />}
                 accentColor="#7F4BF3"
-                rows={byCitation}
+                rows={byReach}
                 suffix="%"
               />
               <PillarBars
-                title={<T en="Analysis depth" zh="分析深度" />}
-                subtitle={<T en="Cross-source synthesis · LLM judge + structural heuristics" zh="跨来源综合 · LLM 评审 + 结构启发式" />}
-                accentColor="#cc785c"
-                rows={byDepth}
-              />
-              <PillarBars
-                title={<T en="Evidence density" zh="证据密度" />}
-                subtitle={<T en="Distinct sources cited per claim" zh="每个论断引用的不同来源数量" />}
+                title={<T en="Quote-verified citations" zh="引文核实率" />}
+                subtitle={<T en="Cited page actually contains the quoted evidence" zh="被引页面确实包含所引述的证据" />}
                 accentColor="#1c7ff8"
-                rows={byEvidence}
+                rows={byQuote}
                 suffix="%"
               />
               <PillarBars
-                title={<T en="LLM judge (RACE)" zh="LLM 评审 (RACE)" />}
-                subtitle={<T en="Comprehensiveness · Insight · Instruction-following · Readability" zh="全面性 · 洞察力 · 指令遵循 · 可读性" />}
-                accentColor="#34A853"
+                title={<T en="Judge Elo (raw)" zh="裸判官 Elo" />}
+                subtitle={<T en="Pairwise preference of the LLM judge (deepseek-v4-flash), blind to citation reality" zh="LLM 判官（deepseek-v4-flash）的成对偏好，看不见引用真假" />}
+                accentColor="#cc785c"
                 rows={byJudge}
               />
+              <PillarBars
+                title={<T en="Truth-gated score" zh="真值门控得分" />}
+                subtitle={<T en="Judge Elo × grounding gate — the headline ranking" zh="判官 Elo × 接地门，即榜单主排序" />}
+                accentColor="#34A853"
+                rows={byGated}
+              />
             </div>
-          </div>
-
-          {/* Quality vs Cost */}
-          <div>
-            <SectionTitle
-              id="tradeoff"
-              title={<T en="Quality vs Cost" zh="质量与成本" />}
-              caption={<T en="Pareto-optimal agents sit in the top-left wash" zh="帕累托最优的智能体位于左上方的浅色区域" />}
-            />
-            <QualityCostScatter agents={agents} />
           </div>
 
           {/* Methodology CTA */}
@@ -146,8 +136,8 @@ export default function HomePage() {
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
                   <T
-                    en="Composite v3.1 weights seven pillars, applies a multiplicative grounding gate, and feeds the per-task pairwise outcomes into a Bradley-Terry MLE with 1000-sample bootstrap CIs and a permutation rank significance test. Judge models are drawn from a different family than the agent under test (Wataoka 2024)."
-                    zh="综合 v3.1 对七个维度加权，施加一个乘性接地门控，并将每个任务的两两对战结果输入 Bradley-Terry 极大似然估计，配合 1000 次自助置信区间和置换排名显著性检验。评审模型与受测智能体来自不同的模型家族（Wataoka 2024）。"
+                    en="Two independent measurements: GROUNDING (judge-free -- every cited URL is fetched against the frozen sandbox and quotes are verified on the cited page) and QUALITY (1553 pairwise judge battles, position-debiased, Bradley-Terry with bootstrap 95% CIs; judge deepseek-v4-flash). The headline score multiplies judge Elo by the grounding gate, so fluent fabrication cannot top the board."
+                    zh="两个相互独立的测量：接地（不依赖判官 -- 每个被引用的 URL 都按冻结沙箱实地核验，引文逐条对照被引页面）与质量（1553 场成对判官对战，位置去偏，Bradley-Terry 拟合并给出自助 95% 置信区间；判官为 deepseek-v4-flash）。榜单主分 = 判官 Elo × 接地门，流畅的编造无法登顶。"
                   />
                 </p>
               </div>

@@ -3,6 +3,29 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v3-2026-06-05i",
+   "date": "2026-06-05",
+   "title": "Site-wide truth pass: real backbones, real signals, stale claims removed",
+   "tags": [
+    "frontend",
+    "data-quality",
+    "scoring"
+   ],
+   "summary": "Every page was audited against the actual run data: agent backbones now show the models really used, fabricated/synthetic charts were removed, and all stale method and count claims were corrected.",
+   "sections": [
+    {
+     "heading": "Corrections",
+     "bullets": [
+      "Backbones: every framework ran on deepseek-v4-flash except DeerFlow (qwen3.5-27b); the GLM-4.6/4.7 labels were configuration leftovers, not what the runs used.",
+      "Removed fabricated visuals: the Quality-vs-Cost scatter (hardcoded costs) and the synthetic per-pillar projections (win-rate dressed up as citation/depth scores) are gone; the Signals section now shows only real measurements (reachability, quote verification, judge Elo, truth-gated score).",
+      "Honest judge disclosure: single judge (deepseek-v4-flash), position-debiased; most agents share that backbone, so self-preference risk is stated openly and mitigated by the judge-free grounding gate. The prior dual-judge claim was removed.",
+      "Counts and labels fixed across pages: 10 agents (was 'Eight'), 100 tasks (was 107), 74 judged tasks, truth-gated Elo terminology (was 'Composite v3.1'/'RACE'), retired claude-code/opencode entries, dead links and placeholder socials removed."
+     ]
+    }
+   ],
+   "links": []
+  },
+  {
    "version": "v3-2026-06-05h",
    "date": "2026-06-05",
    "title": "Default ranking is now truth-gated Elo (fabrication cannot top the board)",
