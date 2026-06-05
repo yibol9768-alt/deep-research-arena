@@ -56,13 +56,20 @@ _SYSTEM = textwrap.dedent("""\
     the task explicitly required a specific format AND the report
     ignored it.
 
+    IMPORTANT -- position bias: the order of the two reports is random and
+    every battle is judged twice with sides swapped. Do NOT favor whichever
+    report happens to appear first. Compare the actual content.
+
     Output Chain-of-Thought reasoning (≤ 6 short bullet points), then a
     final verdict line that MUST match exactly one of:
         VERDICT: A
         VERDICT: B
         VERDICT: TIE
 
-    Use TIE only if the two are genuinely indistinguishable in quality.
+    You MUST pick A or B whenever you can find ANY meaningful difference
+    (coverage, evidence specificity, factual grounding, task compliance).
+    TIE is reserved for true indistinguishability; a lazy TIE is a wrong
+    answer.
 """)
 
 
@@ -186,8 +193,11 @@ def _judge_once(
     # is actually honored. Without an explicit model, call_judge silently
     # re-reads JUDGE_MODEL from the environment, which can differ from the
     # model `battle` resolved (and stamped) -> the stamped judge_model lies.
+    # With JUDGE_THINKING=1 the reasoning tokens share the output budget, so a
+    # 1500-token cap would starve the visible verdict. Give thinking runs room.
+    _mt = 6000 if os.environ.get("JUDGE_THINKING") == "1" else 1500
     text, err = call_judge(
-        _system_for_dimension(dimension), user, model=model, max_tokens=1500
+        _system_for_dimension(dimension), user, model=model, max_tokens=_mt
     )
     if text is None:
         return "tie", f"(judge error: {err})"

@@ -403,7 +403,10 @@ def _call_openai(
     # Case-insensitive: `JUDGE_MODEL=DeepSeek-V4-flash` would otherwise miss
     # the thinking-disabled flag and the model would hide the answer in
     # `reasoning_content`, breaking JSON parsing downstream.
-    if low_model.startswith("deepseek-v4"):
+    # JUDGE_THINKING=1 keeps reasoning ON (pairwise battles: the no-thinking
+    # judge showed ~50% pure position-bias draws; reasoning fixes that and the
+    # verdict extractor reads `content`, which still carries the final answer).
+    if low_model.startswith("deepseek-v4") and os.environ.get("JUDGE_THINKING") != "1":
         extra_body["thinking"] = {"type": "disabled"}
     # GLM-family models (glm-4.6, glm-5, glm-5.1, ...) default to emitting a
     # long chain-of-thought into `reasoning_content`. On a tight pairwise
