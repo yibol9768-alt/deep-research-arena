@@ -757,6 +757,38 @@ def build(
             n_samples=n_samples,
         )
 
+    # JURY_REDO_DEGRADED=1 turns the jury into a STRICT full-jury run: an
+    # errored juror is retried (not silently counted as a TIE), only battles
+    # where all jurors truly answered are committed to the checkpoint, and the
+    # run refuses to finalize while any battle still has an errored juror. This
+    # repairs the silent error->TIE bug that let a DashScope outage degrade
+    # ~84% of battles into single-judge verdicts wearing a 3-judge label.
+    _redo_degraded = os.environ.get("JURY_REDO_DEGRADED") == "1"
+    _juror_retries = int(os.environ.get("JURY_JUROR_RETRIES", "3")) if _redo_degraded else 0
+    # Minimum jurors that must carry a real verdict for a battle to count as a
+    # valid PoLL result. Default 2: a 2-of-3 majority is still PoLL, so a single
+    # juror timing out on a flaky network does NOT discard the battle. (The old
+    # `judge_errors_partial` flag was over-sensitive -- a juror that errored on
+    # one retry but still returned a verdict was wrongly marked degraded, which
+    # made re-judge thrash forever on a flaky box.)
+    _min_jurors = int(os.environ.get("JURY_MIN_VALID", "2"))
+
+    def _n_valid_jurors(res: dict) -> int:
+        votes = (res or {}).get("judge_votes") or {}
+        n = 0
+        for v in votes.values():
+            vr = v.get("verdicts_raw") or []
+            if any(x for x in vr):  # at least one non-empty verdict from this juror
+                n += 1
+        return n
+
+    def _is_degraded(res: dict) -> bool:
+        # Degraded only if too few jurors actually answered. A full judge error
+        # (no votes dict at all) also counts.
+        if is_judge_error_result(res) and not (res or {}).get("judge_votes"):
+            return True
+        return _n_valid_jurors(res) < _min_jurors
+
     def _run_battle(task: str, a: str, b: str) -> dict:
         if not judges:
             return _one_judge_battle(task, a, b, model)
@@ -765,8 +797,19 @@ def build(
         # MORE juror votes; tie-abstentions do not count. Jurors run
         # concurrently so battle latency = slowest juror.
         from concurrent.futures import ThreadPoolExecutor as _TPE
+        import time as _time
+
+        def _juror(m: str) -> dict:
+            r = _one_judge_battle(task, a, b, m)
+            attempt = 0
+            while _juror_retries and is_judge_error_result(r) and attempt < _juror_retries:
+                attempt += 1
+                _time.sleep(min(2.0, 0.5 * attempt))
+                r = _one_judge_battle(task, a, b, m)
+            return r
+
         with _TPE(max_workers=len(judges)) as ex:
-            per = dict(zip(judges, ex.map(lambda m: _one_judge_battle(task, a, b, m), judges)))
+            per = dict(zip(judges, ex.map(_juror, judges)))
         a_v = b_v = errs = 0
         votes = {}
         for m, r in per.items():
@@ -798,21 +841,36 @@ def build(
     _ckpt: dict[tuple, dict] = {}
     _ckpt_lock = _thr.Lock()
     if checkpoint_path and Path(checkpoint_path).exists():
+        _skipped_degraded = 0
         for _line in Path(checkpoint_path).read_text(encoding="utf-8").splitlines():
             try:
                 _r = json.loads(_line)
-                _ckpt[(_r["_task"], _r["_a"], _r["_b"])] = _r["res"]
+                _res = _r["res"]
+                _key = (_r["_task"], _r["_a"], _r["_b"])
+                # Under strict re-judge, a record with any errored juror is NOT
+                # a valid full-jury verdict: drop it so the battle is re-judged.
+                if _redo_degraded and _is_degraded(_res):
+                    _ckpt.pop(_key, None)
+                    _skipped_degraded += 1
+                    continue
+                _ckpt[_key] = _res
             except Exception:
                 continue
         if _ckpt:
-            print(f"[checkpoint] loaded {len(_ckpt)} completed battles from {checkpoint_path}", flush=True)
+            print(f"[checkpoint] loaded {len(_ckpt)} completed battles from {checkpoint_path}"
+                  + (f" (skipped {_skipped_degraded} degraded for re-judge)" if _skipped_degraded else ""),
+                  flush=True)
 
     def _run_battle_ckpt(task: str, a: str, b: str) -> dict:
         k = (task, a, b)
         if k in _ckpt:
             return _ckpt[k]
         res = _run_battle(task, a, b)
-        if checkpoint_path:
+        # Under strict re-judge, never persist a battle whose jurors errored;
+        # leave it unwritten so a later resume re-judges it once the backend
+        # recovers. Otherwise persist as before.
+        _persist = bool(checkpoint_path) and not (_redo_degraded and _is_degraded(res))
+        if _persist:
             with _ckpt_lock:
                 with open(checkpoint_path, "a", encoding="utf-8") as _f:
                     _f.write(json.dumps({"_task": task, "_a": a, "_b": b, "res": res}) + "\n")
@@ -900,6 +958,20 @@ def build(
             f"({n_judge_errors}/{len(battles)} battles errored). The board "
             "would collapse toward a flat ~1000 Elo; aborting. Fix the judge "
             "backend and retry.",
+            error_fraction=judge_error_fraction,
+        )
+
+    # ----- strict re-judge finalize gate ----------------------------- #
+    # Refuse to write a final board while ANY battle still has an errored juror
+    # (after per-juror retries). The unwritten battles stay in the plan but not
+    # in the checkpoint, so a resume re-judges exactly them; the board is only
+    # finalized once every battle is a true full-jury verdict.
+    if _redo_degraded and n_judge_errors > 0:
+        raise JudgeErrorAbort(
+            f"JURY_REDO_DEGRADED: {n_judge_errors}/{len(battles)} battle(s) still "
+            "have an errored juror after retries; refusing to finalize a board "
+            "with phantom-TIE votes. The unpersisted battles will be re-judged on "
+            "the next resume once the juror backend is healthy.",
             error_fraction=judge_error_fraction,
         )
 
