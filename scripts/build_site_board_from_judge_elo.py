@@ -19,14 +19,39 @@ from collections import defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "data" / "results" / "real" / "leaderboard_judge_elo.json"
+# Prefer the 3-judge PoLL jury board (build_real_leaderboard.py --judges ...);
+# fall back to the legacy single-judge board if the jury product is absent.
+_JURY = ROOT / "data" / "results" / "real" / "leaderboard_jury_elo.json"
+_SINGLE = ROOT / "data" / "results" / "real" / "leaderboard_judge_elo.json"
+SRC = _JURY if _JURY.exists() else _SINGLE
 GROUND = ROOT / "data" / "results" / "grounding_uniform2.json"
 OUT = ROOT / "data" / "results" / "deep_v3" / "leaderboard_deep_v3.json"
+
+
+def _jury_from_checkpoint(src: Path) -> list[str]:
+    """Read the actual juror names from the battle checkpoint sibling file, so
+    the board's methodology description is DERIVED from the run, never hardcoded
+    (hardcoding a judge claim is what produced the earlier false-judge-count)."""
+    ck = src.with_suffix(src.suffix + ".battles.jsonl")
+    if not ck.exists():
+        return []
+    try:
+        for line in ck.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            jury = ((json.loads(line).get("res") or {}).get("jury")) or []
+            if jury:
+                return list(jury)
+    except Exception:
+        return []
+    return []
 
 
 def main() -> int:
     board = json.loads(SRC.read_text(encoding="utf-8"))
     agents = board["agents"]
+    jurors = _jury_from_checkpoint(SRC)
 
     # W/L/D per agent from the battle log.
     wld = defaultdict(lambda: {"wins": 0, "losses": 0, "draws": 0})
@@ -83,18 +108,28 @@ def main() -> int:
         "source": "real",
         "composite_formula": (
             "headline = TRUTH-GATED Elo: pairwise LLM-judge Bradley-Terry Elo "
-            "(deepseek-v4-flash, round-robin, position-debiased, 1553 battles) scaled "
-            "by the grounding gate (mean of reachability% and quote-verified%). Every "
-            "agent is scored -- nobody is excluded -- but fluent fabrication cannot "
-            "top the board. Raw judge Elo and grounding are shown alongside; their "
-            "divergence (raw #1 has 4% reachable citations) is the headline finding."
+            + (
+                f"({len(jurors)}-judge PoLL jury [{', '.join(jurors)}], majority "
+                f"vote, position-debiased, {board.get('n_battles')} battles) "
+                if len(jurors) >= 2 else
+                f"({(board.get('summary') or {}).get('model')}, position-debiased, "
+                f"{board.get('n_battles')} battles) "
+            )
+            + "scaled by the grounding gate (mean of reachability% and "
+            "quote-verified%). Every agent is scored -- nobody is excluded -- but "
+            "fluent fabrication cannot top the board. Raw judge Elo and grounding "
+            "are shown alongside; their divergence (raw #1 has ~4% reachable "
+            "citations) is the headline finding."
         ),
+        "jury": jurors or None,
         "weights_v3": {"judge_elo": 1.0},
         "elo_v3_ci": elo_ci,
         "per_agent_profile": profile,
         "n_runs": board.get("n_ranked_battles"),
         "judge": {
-            "model": (board.get("summary") or {}).get("model"),
+            "model": (", ".join(jurors) if len(jurors) >= 2
+                      else (board.get("summary") or {}).get("model")),
+            "jurors": jurors or None,
             "n_battles": board.get("n_battles"),
             "judge_errors": board.get("n_judge_errors"),
             "grounding_floor": (board.get("summary") or {}).get("grounding_floor"),

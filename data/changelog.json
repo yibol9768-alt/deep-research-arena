@@ -3,6 +3,41 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v3-2026-06-06a",
+   "date": "2026-06-06",
+   "title": "Real 3-judge jury: all 1,553 battles rescored, silent error-to-TIE bug fixed",
+   "tags": [
+    "scoring",
+    "methodology"
+   ],
+   "summary": "The leaderboard is now decided by a 3-judge PoLL jury (deepseek-v4-flash, qwen3-max, glm-5) instead of a single judge. We found a bug that silently recorded an errored juror as a TIE, then re-judged every affected battle, so all 1,553 are now full 3-judge verdicts.",
+   "sections": [
+    {
+     "heading": "What changed",
+     "bullets": [
+      "Every pairwise battle is now a 3-judge majority vote (position-debiased), not a single judge; all 1,553 battles have all three jurors voting and 0 judge errors.",
+      "Jury tie rate fell from 50.6% (single judge, mostly position-lock) to 16.9%; 83.1% of battles are now decisive.",
+      "Per-judge decisiveness is balanced (deepseek 68%, glm 61%, qwen 50%); jurors' position-locks no longer overlap, so the majority resolves them."
+     ]
+    },
+    {
+     "heading": "Bug fixed",
+     "bullets": [
+      "An errored juror was being recorded as a TIE vote, so a mid-run provider outage had quietly turned ~1,270 battles into single-judge verdicts wearing a 3-judge label.",
+      "Now an errored juror is retried; a battle counts only when at least 2 jurors return a real verdict, and the board refuses to publish while any battle is below that floor."
+     ]
+    },
+    {
+     "heading": "Headline finding (now jury-backed)",
+     "bullets": [
+      "Raw judge Elo still ranks gpt-researcher #1, but it has only ~4% reachable citations, so the truth-gated headline ranks it 9th.",
+      "camel-ai (60% reachable, 50% quote-verified) leads the truth-gated board."
+     ]
+    }
+   ],
+   "links": []
+  },
+  {
    "version": "v3-2026-06-05j",
    "date": "2026-06-05",
    "title": "Raw judge Elo is now a forest plot (real separation visible)",

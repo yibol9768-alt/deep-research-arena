@@ -61,9 +61,12 @@ langchain-odr、ldr、storm、gpt-researcher、qx-agents,外加 **eff 极简脚�
    env:`JUDGE_THINKING=1 JUDGE_TIMEOUT_S=180 PAIRWISE_REPORT_CAP=30000
    --word-budget 4000`(全量 token)。
    - 每陪审员换位双判去偏;多数票定胜负;逐陪审员判定写入 battle_log。
-   - **必做前置:对战级 checkpoint**(每 50 场把 battle_log 增量落盘
-     `<out>.battles.partial.jsonl`,启动时加载并跳过已判对战)。暂停时 400/1552
-     的进度因无此机制而作废,不许再发生。
+   - **必做前置:对战级 checkpoint**(每场判完即落盘 `<out>.battles.jsonl`,
+     启动时加载并跳过已判对战)。暂停时 400/1552 的进度因无此机制而作废,
+     不许再发生。已实装并经两次 WSL 整机重启实战验证(零损失)。
+   - **降级网络档位**(WSL 刚重启后并发长连接易卡死,单发请求正常):
+     `JUDGE_TIMEOUT_S=45 --battle-workers 2`,看门狗卡顿阈值 4 分钟。
+     网络恢复稳定后可回到 `180 / 3 / 8 分钟`。
 3. **汇总**:`build_site_board_from_judge_elo.py` → 真值门控榜
    (gated = elo × gate,全员有分,裸判官为页签)。
 

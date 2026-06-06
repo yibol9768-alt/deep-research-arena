@@ -778,13 +778,17 @@ def build(
     _redo_contam = os.environ.get("JURY_REDO_CONTAMINATED") == "1"
 
     def _n_valid_jurors(res: dict) -> int:
-        votes = (res or {}).get("judge_votes") or {}
-        n = 0
-        for v in votes.values():
-            vr = v.get("verdicts_raw") or []
-            if any(x for x in vr):  # at least one non-empty verdict from this juror
-                n += 1
-        return n
+        # Count jurors that ACTUALLY ANSWERED. Critical subtlety: an errored
+        # juror emits error->TIE verdicts that look non-empty in verdicts_raw,
+        # so inspecting verdicts_raw over-counts (it cannot tell a real TIE from
+        # an error-induced one). The accurate per-juror error count is the
+        # recorded `judge_errors_partial` (set at battle time from
+        # is_judge_error_result per juror); valid jurors = jury size - errors.
+        res = res or {}
+        votes = res.get("judge_votes") or {}
+        n_jury = len(res.get("jury") or votes) or len(votes)
+        errs = res.get("judge_errors_partial") or 0
+        return max(0, n_jury - errs)
 
     def _is_degraded(res: dict) -> bool:
         # Degraded only if too few jurors actually answered. A full judge error
@@ -908,6 +912,7 @@ def build(
     battles: list[dict] = []
     battle_log: list[dict] = []
     n_judge_errors = 0
+    n_degraded = 0  # battles below the _min_jurors valid-juror floor (strict mode)
     # Pre-compute battle results (optionally in parallel); aggregation below
     # stays sequential and order-preserving.
     _results: list[dict | None] = [None] * len(plan)
@@ -935,6 +940,8 @@ def build(
         judge_errored = is_judge_error_result(res)
         if judge_errored:
             n_judge_errors += 1
+        if _redo_degraded and _is_degraded(res):
+            n_degraded += 1
         winner = res.get("agent_winner", "tie")
         battles.append({"agent_a": a, "agent_b": b, "winner": winner})
         # In RACE-style reference mode agent_b is always this task's reference
@@ -973,16 +980,21 @@ def build(
         )
 
     # ----- strict re-judge finalize gate ----------------------------- #
-    # Refuse to write a final board while ANY battle still has an errored juror
-    # (after per-juror retries). The unwritten battles stay in the plan but not
-    # in the checkpoint, so a resume re-judges exactly them; the board is only
-    # finalized once every battle is a true full-jury verdict.
-    if _redo_degraded and n_judge_errors > 0:
+    # Refuse to write a final board while ANY battle is below the valid-juror
+    # floor (default 2-of-3). This uses _is_degraded (jury size minus the
+    # ACCURATE judge_errors_partial count), NOT is_judge_error_result -- the
+    # latter is True only when ALL jurors fail, so a deepseek-only battle whose
+    # qwen/glm jurors errored into phantom TIEs would slip through as "clean".
+    # The unwritten battles stay in the plan but not the checkpoint, so a resume
+    # re-judges exactly them; the board is finalized only once every battle has
+    # >= _min_jurors real verdicts.
+    if _redo_degraded and n_degraded > 0:
         raise JudgeErrorAbort(
-            f"JURY_REDO_DEGRADED: {n_judge_errors}/{len(battles)} battle(s) still "
-            "have an errored juror after retries; refusing to finalize a board "
-            "with phantom-TIE votes. The unpersisted battles will be re-judged on "
-            "the next resume once the juror backend is healthy.",
+            f"JURY_REDO_DEGRADED: {n_degraded}/{len(battles)} battle(s) have fewer "
+            f"than {_min_jurors} jurors with a real verdict (phantom-TIE from "
+            "errored jurors); refusing to finalize a partially single-judge board. "
+            "The unpersisted battles will be re-judged on the next resume once the "
+            "juror backend is healthy.",
             error_fraction=judge_error_fraction,
         )
 
@@ -1140,6 +1152,17 @@ def build(
     summary["judge_error_fraction"] = round(judge_error_fraction, 4)
     summary["n_battles_dropped_gated"] = n_battles_dropped_gated
     summary["n_ranked_battles"] = len(ranked_battles)
+    # Jury-validity provenance: how many jurors backed each finalized battle.
+    if judges:
+        _vd: dict[int, int] = {}
+        for _r in _results:
+            if _r is None:
+                continue
+            _vd[_n_valid_jurors(_r)] = _vd.get(_n_valid_jurors(_r), 0) + 1
+        summary["jury_size"] = len(judges)
+        summary["min_valid_jurors"] = _min_jurors
+        summary["valid_juror_distribution"] = {str(k): v for k, v in sorted(_vd.items())}
+        summary["n_degraded_below_floor"] = n_degraded
 
     return {
         "synthetic_placeholder": False,
