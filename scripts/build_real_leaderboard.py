@@ -535,6 +535,7 @@ def build(
     judge_error_abort_fraction: float = JUDGE_ERROR_ABORT_FRACTION,
     judges: list[str] | None = None,
     battle_workers: int = 1,
+    checkpoint_path: Path | None = None,
 ) -> dict[str, Any]:
     reports = discover_reports(report_dir)
 
@@ -788,6 +789,36 @@ def build(
             "judge_errors_partial": errs or None,
         }
 
+    # ---- battle-level checkpoint (resumable long runs) ------------------- #
+    # Every completed battle is appended to <checkpoint_path> as one JSON line
+    # keyed by (task, agent_a, agent_b); on restart those battles are reused
+    # instead of re-paying the judges. Lesson learned: a 400-battle jury run
+    # was lost to a pause because this did not exist.
+    import threading as _thr
+    _ckpt: dict[tuple, dict] = {}
+    _ckpt_lock = _thr.Lock()
+    if checkpoint_path and Path(checkpoint_path).exists():
+        for _line in Path(checkpoint_path).read_text(encoding="utf-8").splitlines():
+            try:
+                _r = json.loads(_line)
+                _ckpt[(_r["_task"], _r["_a"], _r["_b"])] = _r["res"]
+            except Exception:
+                continue
+        if _ckpt:
+            print(f"[checkpoint] loaded {len(_ckpt)} completed battles from {checkpoint_path}", flush=True)
+
+    def _run_battle_ckpt(task: str, a: str, b: str) -> dict:
+        k = (task, a, b)
+        if k in _ckpt:
+            return _ckpt[k]
+        res = _run_battle(task, a, b)
+        if checkpoint_path:
+            with _ckpt_lock:
+                with open(checkpoint_path, "a", encoding="utf-8") as _f:
+                    _f.write(json.dumps({"_task": task, "_a": a, "_b": b, "res": res}) + "\n")
+                _ckpt[k] = res
+        return res
+
     # ----- (BUG B3.i) pre-flight judge SMOKE ------------------------- #
     # Run ONE real battle first. If the judge backend is down, that single
     # battle returns a judge error and we ABORT immediately with a clear
@@ -795,7 +826,7 @@ def build(
     smoke_result: dict | None = None
     if plan:
         s0 = plan[0]
-        smoke_result = _run_battle(s0["task"], s0["agent_a"], s0["agent_b"])
+        smoke_result = _run_battle_ckpt(s0["task"], s0["agent_a"], s0["agent_b"])
         if abort_on_judge_error and is_judge_error_result(smoke_result):
             raise JudgeErrorAbort(
                 "Judge SMOKE battle returned a judge error; aborting before "
@@ -817,7 +848,7 @@ def build(
         from concurrent.futures import ThreadPoolExecutor as _BTPE, as_completed as _asc
         with _BTPE(max_workers=battle_workers) as _bex:
             _futs = {
-                _bex.submit(_run_battle, it["task"], it["agent_a"], it["agent_b"]): idx
+                _bex.submit(_run_battle_ckpt, it["task"], it["agent_a"], it["agent_b"]): idx
                 for idx, it in enumerate(plan)
                 if _results[idx] is None
             }
@@ -831,7 +862,7 @@ def build(
         task, a, b = item["task"], item["agent_a"], item["agent_b"]
         # Reuse the smoke result for the first battle instead of paying for it
         # twice.
-        res = _results[i] if _results[i] is not None else _run_battle(task, a, b)
+        res = _results[i] if _results[i] is not None else _run_battle_ckpt(task, a, b)
         judge_errored = is_judge_error_result(res)
         if judge_errored:
             n_judge_errors += 1
@@ -1076,6 +1107,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--model", type=str, default=DEFAULT_MODEL)
     p.add_argument("--judges", type=str, default=None, help="comma-separated jury models (PoLL); overrides --model")
     p.add_argument("--battle-workers", type=int, default=1, help="concurrent battles")
+    p.add_argument("--no-checkpoint", action="store_true", help="disable battle-level checkpointing")
     p.add_argument("--n-samples", type=int, default=3)
     p.add_argument("--no-bootstrap", action="store_true")
     p.add_argument(
@@ -1175,6 +1207,7 @@ def main(argv: list[str] | None = None) -> int:
             judge_error_abort_fraction=args.judge_error_abort_fraction,
             judges=[j.strip() for j in args.judges.split(",") if j.strip()] if args.judges else None,
             battle_workers=args.battle_workers,
+            checkpoint_path=None if args.no_checkpoint else Path(args.out + ".battles.jsonl"),
         )
     except JudgeErrorAbort as exc:
         print("=" * 64)
