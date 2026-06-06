@@ -772,6 +772,10 @@ def build(
     # one retry but still returned a verdict was wrongly marked degraded, which
     # made re-judge thrash forever on a flaky box.)
     _min_jurors = int(os.environ.get("JURY_MIN_VALID", "2"))
+    # Converging contaminated re-judge: re-run battles flagged judge_errors_partial
+    # (error->TIE-contaminated from a flaky-network pass) ONCE, then mark _rejudged
+    # so a fresh blip can never re-trigger them -> guaranteed convergence.
+    _redo_contam = os.environ.get("JURY_REDO_CONTAMINATED") == "1"
 
     def _n_valid_jurors(res: dict) -> int:
         votes = (res or {}).get("judge_votes") or {}
@@ -853,6 +857,10 @@ def build(
                     _ckpt.pop(_key, None)
                     _skipped_degraded += 1
                     continue
+                if _redo_contam and _res.get("judge_errors_partial") and not _r.get("_rejudged"):
+                    _ckpt.pop(_key, None)
+                    _skipped_degraded += 1
+                    continue
                 _ckpt[_key] = _res
             except Exception:
                 continue
@@ -871,9 +879,12 @@ def build(
         # recovers. Otherwise persist as before.
         _persist = bool(checkpoint_path) and not (_redo_degraded and _is_degraded(res))
         if _persist:
+            _rec = {"_task": task, "_a": a, "_b": b, "res": res}
+            if _redo_contam:
+                _rec["_rejudged"] = True
             with _ckpt_lock:
                 with open(checkpoint_path, "a", encoding="utf-8") as _f:
-                    _f.write(json.dumps({"_task": task, "_a": a, "_b": b, "res": res}) + "\n")
+                    _f.write(json.dumps(_rec) + "\n")
                 _ckpt[k] = res
         return res
 
