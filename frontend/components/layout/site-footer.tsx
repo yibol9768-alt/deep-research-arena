@@ -31,6 +31,7 @@ const COLS: { title: string; titleZh: string; links: { href: string; label: stri
     links: [
       { href: '/methodology', label: 'Paper notes', zh: '论文笔记' },
       { href: 'https://github.com/yibol9768-alt/deep-research-arena', label: 'GitHub', zh: 'GitHub' },
+      { href: '/status', label: 'Live Status', zh: '实时状态' },
       { href: '/changelog', label: 'Changelog', zh: '更新日志' },
     ],
   },

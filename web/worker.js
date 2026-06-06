@@ -33,6 +33,28 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url)
 
+    // ---- live task status (box reporter -> KV -> /status page) ---------- //
+    if (url.pathname === '/api/status') {
+      if (request.method === 'OPTIONS') return new Response(null, { headers: CORS })
+      if (request.method === 'POST') {
+        const tok = request.headers.get('x-status-token') || url.searchParams.get('token')
+        if (!env.STATUS_TOKEN || tok !== env.STATUS_TOKEN) return json({ error: 'forbidden' }, 403)
+        let body
+        try { body = await request.json() } catch { return json({ error: 'bad json' }, 400) }
+        body._received = new Date().toISOString()
+        try { await env.ANNOTATIONS.put('status:latest', JSON.stringify(body)) } catch { return json({ error: 'store failed' }, 500) }
+        return json({ ok: true })
+      }
+      if (request.method === 'GET') {
+        if (!env.ANNOTATIONS) return json({ error: 'backend not configured' }, 503)
+        const v = await env.ANNOTATIONS.get('status:latest')
+        return v
+          ? new Response(v, { headers: { 'content-type': 'application/json', ...CORS } })
+          : json({ error: 'no status yet' }, 404)
+      }
+      return json({ error: 'method not allowed' }, 405)
+    }
+
     if (url.pathname === '/api/annotate' || url.pathname === '/api/annotate/count') {
       if (request.method === 'OPTIONS') return new Response(null, { headers: CORS })
 
