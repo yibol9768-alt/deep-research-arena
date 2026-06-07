@@ -3,6 +3,28 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v3-2026-06-06b",
+   "date": "2026-06-06",
+   "title": "Leaderboard refreshed with the clean 3-judge jury (draws 51% -> 17%)",
+   "tags": [
+    "leaderboard",
+    "scoring",
+    "judge"
+   ],
+   "summary": "The raw judge Elo is now from a 3-model jury (deepseek-v4-flash + qwen3-max + glm-5, thinking on, position-debiased) over all 1553 battles; the position-bias draw rate dropped from 51% to 17% and the truth-gated headline is unchanged (camel-ai #1, gpt-researcher #9).",
+   "sections": [
+    {
+     "heading": "What changed",
+     "bullets": [
+      "Old single no-thinking judge produced 51% draws -- almost all pure position-locking (it picked slot A in both swapped passes). The 3-juror jury with thinking + an anti-position prompt cuts that to 17%, and majority vote rescues the single-juror ties.",
+      "Headline stays truth-gated (judge Elo x grounding gate): camel-ai #1 by real evidence; the raw judge still ranks gpt-researcher / langchain-odr top, but at 5% / 2% reachable citations the gate sinks them to #9 / #5 -- the cautionary point of the benchmark.",
+      "Honest note: CI widened (+-25 -> +-51) because decisive battles carry more genuine disagreement than lazy ties; more bootstrap resamples can tighten it."
+     ]
+    }
+   ],
+   "links": []
+  },
+  {
    "version": "v3-2026-06-06a",
    "date": "2026-06-06",
    "title": "Real 3-judge jury: all 1,553 battles rescored, silent error-to-TIE bug fixed",
