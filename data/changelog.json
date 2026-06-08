@@ -1,463 +1,490 @@
 {
- "_schema": "deep-research-arena-changelog/v1",
- "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
- "entries": [
-  {
-   "version": "v3-2026-06-06b",
-   "date": "2026-06-06",
-   "title": "Leaderboard refreshed with the clean 3-judge jury (draws 51% -> 17%)",
-   "tags": [
-    "leaderboard",
-    "scoring",
-    "judge"
-   ],
-   "summary": "The raw judge Elo is now from a 3-model jury (deepseek-v4-flash + qwen3-max + glm-5, thinking on, position-debiased) over all 1553 battles; the position-bias draw rate dropped from 51% to 17% and the truth-gated headline is unchanged (camel-ai #1, gpt-researcher #9).",
-   "sections": [
+  "_schema": "deep-research-arena-changelog/v1",
+  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
+  "entries": [
     {
-     "heading": "What changed",
-     "bullets": [
-      "Old single no-thinking judge produced 51% draws -- almost all pure position-locking (it picked slot A in both swapped passes). The 3-juror jury with thinking + an anti-position prompt cuts that to 17%, and majority vote rescues the single-juror ties.",
-      "Headline stays truth-gated (judge Elo x grounding gate): camel-ai #1 by real evidence; the raw judge still ranks gpt-researcher / langchain-odr top, but at 5% / 2% reachable citations the gate sinks them to #9 / #5 -- the cautionary point of the benchmark.",
-      "Honest note: CI widened (+-25 -> +-51) because decisive battles carry more genuine disagreement than lazy ties; more bootstrap resamples can tighten it."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-06a",
-   "date": "2026-06-06",
-   "title": "Real 3-judge jury: all 1,553 battles rescored, silent error-to-TIE bug fixed",
-   "tags": [
-    "scoring",
-    "methodology"
-   ],
-   "summary": "The leaderboard is now decided by a 3-judge PoLL jury (deepseek-v4-flash, qwen3-max, glm-5) instead of a single judge. We found a bug that silently recorded an errored juror as a TIE, then re-judged every affected battle, so all 1,553 are now full 3-judge verdicts.",
-   "sections": [
-    {
-     "heading": "What changed",
-     "bullets": [
-      "Every pairwise battle is now a 3-judge majority vote (position-debiased), not a single judge; all 1,553 battles have all three jurors voting and 0 judge errors.",
-      "Jury tie rate fell from 50.6% (single judge, mostly position-lock) to 16.9%; 83.1% of battles are now decisive.",
-      "Per-judge decisiveness is balanced (deepseek 68%, glm 61%, qwen 50%); jurors' position-locks no longer overlap, so the majority resolves them."
-     ]
+      "version": "v3-2026-06-08",
+      "date": "2026-06-08",
+      "title": "Added claude-code and opencode to the leaderboard; uniform grounding refresh",
+      "summary": "Two agent CLIs (claude-code, opencode) join the board, and every agent's grounding (citation reachability + quote verification) was recomputed uniformly on a rebuilt sandbox cache.",
+      "tags": [
+        "leaderboard",
+        "grounding",
+        "agents"
+      ],
+      "sections": [
+        {
+          "heading": "New agents",
+          "bullets": [
+            "claude-code enters at #1 by judge Elo (1166) with 90% citation reachability and 87% quote verification.",
+            "opencode at #5 (1078) with the highest grounding on the board (94% reachable)."
+          ]
+        },
+        {
+          "heading": "Grounding refresh",
+          "bullets": [
+            "Reachability% and quote-verified% recomputed for all 12 agents from a freshly rebuilt sandbox cache (judge-free).",
+            "The judge-vs-grounding divergence is now visible: gpt-researcher ranks #2 by judge Elo but only 4% of its citations resolve."
+          ]
+        }
+      ]
     },
     {
-     "heading": "Bug fixed",
-     "bullets": [
-      "An errored juror was being recorded as a TIE vote, so a mid-run provider outage had quietly turned ~1,270 battles into single-judge verdicts wearing a 3-judge label.",
-      "Now an errored juror is retried; a battle counts only when at least 2 jurors return a real verdict, and the board refuses to publish while any battle is below that floor."
-     ]
+      "version": "v3-2026-06-06b",
+      "date": "2026-06-06",
+      "title": "Leaderboard refreshed with the clean 3-judge jury (draws 51% -> 17%)",
+      "tags": [
+        "leaderboard",
+        "scoring",
+        "judge"
+      ],
+      "summary": "The raw judge Elo is now from a 3-model jury (deepseek-v4-flash + qwen3-max + glm-5, thinking on, position-debiased) over all 1553 battles; the position-bias draw rate dropped from 51% to 17% and the truth-gated headline is unchanged (camel-ai #1, gpt-researcher #9).",
+      "sections": [
+        {
+          "heading": "What changed",
+          "bullets": [
+            "Old single no-thinking judge produced 51% draws -- almost all pure position-locking (it picked slot A in both swapped passes). The 3-juror jury with thinking + an anti-position prompt cuts that to 17%, and majority vote rescues the single-juror ties.",
+            "Headline stays truth-gated (judge Elo x grounding gate): camel-ai #1 by real evidence; the raw judge still ranks gpt-researcher / langchain-odr top, but at 5% / 2% reachable citations the gate sinks them to #9 / #5 -- the cautionary point of the benchmark.",
+            "Honest note: CI widened (+-25 -> +-51) because decisive battles carry more genuine disagreement than lazy ties; more bootstrap resamples can tighten it."
+          ]
+        }
+      ],
+      "links": []
     },
     {
-     "heading": "Headline finding (now jury-backed)",
-     "bullets": [
-      "Raw judge Elo still ranks gpt-researcher #1, but it has only ~4% reachable citations, so the truth-gated headline ranks it 9th.",
-      "camel-ai (60% reachable, 50% quote-verified) leads the truth-gated board."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05j",
-   "date": "2026-06-05",
-   "title": "Raw judge Elo is now a forest plot (real separation visible)",
-   "tags": [
-    "frontend",
-    "scoring"
-   ],
-   "summary": "The raw judge Elo chart was unreadable: a single 139-Elo outlier crushed the axis so the 1017-1207 main cluster looked identical. It is now a CI forest plot on a clipped axis; non-overlapping whiskers mean reliably separable agents.",
-   "sections": [
-    {
-     "heading": "Also",
-     "bullets": [
-      "The chart now sorts by raw judge Elo (the section it depicts) instead of inheriting the gated order.",
-      "Footnote states the judge's ~50% draw rate honestly; a judge-protocol fix for those draws is being validated (most draws turned out to be pure position bias, not true ties)."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05i",
-   "date": "2026-06-05",
-   "title": "Site-wide truth pass: real backbones, real signals, stale claims removed",
-   "tags": [
-    "frontend",
-    "data-quality",
-    "scoring"
-   ],
-   "summary": "Every page was audited against the actual run data: agent backbones now show the models really used, fabricated/synthetic charts were removed, and all stale method and count claims were corrected.",
-   "sections": [
-    {
-     "heading": "Corrections",
-     "bullets": [
-      "Backbones: every framework ran on deepseek-v4-flash except DeerFlow (qwen3.5-27b); the GLM-4.6/4.7 labels were configuration leftovers, not what the runs used.",
-      "Removed fabricated visuals: the Quality-vs-Cost scatter (hardcoded costs) and the synthetic per-pillar projections (win-rate dressed up as citation/depth scores) are gone; the Signals section now shows only real measurements (reachability, quote verification, judge Elo, truth-gated score).",
-      "Honest judge disclosure: single judge (deepseek-v4-flash), position-debiased; most agents share that backbone, so self-preference risk is stated openly and mitigated by the judge-free grounding gate. The prior dual-judge claim was removed.",
-      "Counts and labels fixed across pages: 10 agents (was 'Eight'), 100 tasks (was 107), 74 judged tasks, truth-gated Elo terminology (was 'Composite v3.1'/'RACE'), retired claude-code/opencode entries, dead links and placeholder socials removed."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05h",
-   "date": "2026-06-05",
-   "title": "Default ranking is now truth-gated Elo (fabrication cannot top the board)",
-   "tags": [
-    "leaderboard",
-    "scoring"
-   ],
-   "summary": "The headline ranking is now judge Elo scaled by the grounding gate, so every agent stays scored but fluent fabrication cannot rank #1; raw judge Elo remains available as a tab.",
-   "sections": [
-    {
-     "heading": "Why",
-     "bullets": [
-      "The raw pairwise judge ranked GPT-Researcher #1 (Elo 1207) despite only 4.3% reachable citations, which is precisely the failure mode this benchmark exists to expose. The default view now multiplies judge Elo by the grounding gate (mean of reachability% and quote-verified%): camel-ai leads, fabricators sink, nobody is excluded.",
-      "The 'Judge Elo (raw)' tab keeps the naive ranking one click away as evidence of judge-vs-grounding divergence."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05g",
-   "date": "2026-06-05",
-   "title": "Live leaderboard re-based: everyone-scored judge Elo + grounding column",
-   "tags": [
-    "leaderboard",
-    "scoring",
-    "results"
-   ],
-   "summary": "The leaderboard now ranks all 10 agents by pairwise LLM-judge Elo (1553 battles, no exclusion gate) with grounding shown as its own column, and a $0.003-per-task qwen3-30b-a3b baseline is published in Insights.",
-   "sections": [
-    {
-     "heading": "What changed",
-     "bullets": [
-      "Headline ranking = pairwise judge Elo (deepseek-v4-flash, round-robin, position-debiased, 1553 battles, 0 judge errors). Every agent gets a score; nobody is excluded.",
-      "New Grounding column (reachability / quote-verified citations, judge-free, scored from the frozen sandbox cache) sits next to Elo. The divergence is the headline finding: the Elo #1 agent has 4.3% reachable citations while the most grounded agents (60%) rank mid-table.",
-      "qwen3-30b-a3b-instruct-2507 minimal-protocol baseline: 94/94 tasks, $0.33 total (~$0.003/task), grounding 0.24 (mid-field). Honest caveat: with only 8 real sources provided it fabricated additional citations in valid URL format despite explicit instructions.",
-      "Next up: deepseek-v4-flash under the same protocol (running), then other model baselines."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05f",
-   "date": "2026-06-05",
-   "title": "Annotation set quality-audited (every report read)",
-   "tags": [
-    "annotation",
-    "data-quality"
-   ],
-   "summary": "Every report in the annotation set was read and graded; 11 unusable pairs were removed, leaving 37 pairs where at least one side is a solid, genuinely grounded report.",
-   "sections": [
-    {
-     "heading": "Audit",
-     "bullets": [
-      "All 96 reports graded solid / weak / non-attempt: 65 solid, 22 weak, 9 non-attempt.",
-      "Removed the 9 pairs containing a non-attempt (e.g. 'data availability assessment' writeups that admit no data was captured) and the 2 pairs where both reports were weak/fabricated. 37 pairs remain.",
-      "Reusable signal: many reports carry fabricated or placeholder citations (fake product/forum URLs) under real-looking structure, which the grounding gate is designed to catch."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05e",
-   "date": "2026-06-05",
-   "title": "Annotation pairs: full reports, junk removed, translation fixed",
-   "tags": [
-    "annotation",
-    "bilingual",
-    "data-quality"
-   ],
-   "summary": "Annotation report pairs now show the complete report (no truncation), drop agent refusals and fabricated reports, and fix a translation bug that turned task intents into garbage.",
-   "sections": [
-    {
-     "heading": "Fixes",
-     "bullets": [
-      "Full reports: the 8000-character truncation is gone; annotators see the complete report.",
-      "Junk removed: 138 agent-refusal / fabricated (no-real-citation) reports were dropped, so every pair is a genuine report vs a genuine report.",
-      "Translation fixed: the translator was following instructions embedded in the text (a task intent like 'cite 120 sources') instead of translating it, producing a fake skeleton with placeholder links. It now treats the text strictly as data and chunks long reports so nothing is cut. All 48 pairs are clean bilingual."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05d",
-   "date": "2026-06-05",
-   "title": "Annotation content follows the global language toggle",
-   "tags": [
-    "bilingual",
-    "annotation"
-   ],
-   "summary": "The header EN/中文 switch now also drives the /annotate report content (intent + both reports), and the whole annotation page is bilingual.",
-   "sections": [
-    {
-     "heading": "Fix",
-     "bullets": [
-      "Previously /annotate had its own separate language toggle, so switching the site to 中文 left the reports in English. The report content now reads the global language directly (one switch controls everything) and the duplicate toggle was removed.",
-      "The rest of the annotation UI (hero, instructions, winner / dimension / note controls, save and export) is now translated too."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05c",
-   "date": "2026-06-05",
-   "title": "Whole site is now bilingual (EN / 中文) + annotation backend live",
-   "tags": [
-    "bilingual",
-    "frontend",
-    "backend"
-   ],
-   "summary": "Every page now has an EN/中文 toggle in the header, and the annotation backend (Cloudflare Worker + KV) is actually live after fixing a failed build.",
-   "sections": [
-    {
-     "heading": "What",
-     "bullets": [
-      "Site-wide i18n: a header EN/中文 switch renders the whole site in English or Simplified Chinese (nav, footer, every page's hero, body, and stat cards). The choice persists and applies before first paint (no flash).",
-      "Annotation backend fixed and live: the prior deploy had failed (a reserved _worker.js filename was being uploaded as a static asset). The Worker now lives outside the assets directory and stores /annotate labels to KV server-side."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05b",
-   "date": "2026-06-05",
-   "title": "Annotation: server-side collection backend + bilingual + rich rendering",
-   "tags": [
-    "annotation",
-    "backend",
-    "bilingual"
-   ],
-   "summary": "The /annotate page now stores human-preference labels server-side via a Cloudflare Worker + KV (no more manual JSONL export), supports an EN/中文 toggle, and renders report markdown (tables, code, blockquotes, links) properly.",
-   "sections": [
-    {
-     "heading": "What",
-     "bullets": [
-      "Backend: a Worker handles POST /api/annotate -> Cloudflare KV; labels are collected automatically (localStorage + JSONL export remain as a fallback).",
-      "Bilingual: all 48 report pairs translated to Simplified Chinese (DeepSeek), with an EN/中文 toggle; markdown and sandbox URLs preserved.",
-      "Rendering: report tables now render as real HTML tables (were raw pipe text), plus fenced code blocks and blockquotes."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-05",
-   "date": "2026-06-05",
-   "title": "Human-annotation set refreshed for judge-alignment kappa",
-   "tags": [
-    "annotation",
-    "eval-validity",
-    "human-kappa"
-   ],
-   "summary": "Rebuilt the /annotate pair set to validate the current leaderboard: 48 report pairs across 48 distinct tasks among the ranked agents, so collected human preferences can be compared to the judge via Cohen's kappa.",
-   "sections": [
-    {
-     "heading": "What",
-     "bullets": [
-      "48 competent-vs-competent pairs (deerflow, camel-ai, smolagents, ii-researcher, flowsearcher-ds), one per task across 48 diverse tasks, balanced agent coverage.",
-      "These are the hard ranking calls (close pairs); fabricator-vs-competent calls are objective and covered by the deterministic grounding gate.",
-      "Annotate in the browser, then Export the JSONL; the labels feed scripts/compute_judge_human_kappa.py."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-03b",
-   "date": "2026-06-03",
-   "title": "Eval-set remediation: cleaned goldens + per-task source allow-list",
-   "tags": [
-    "scoring",
-    "eval-set",
-    "grounding"
-   ],
-   "summary": "Re-audited every auto-built must-cite URL for genuine topical relevance and defined a cleaned canonical benchmark: off-topic keyword-collision cites are dropped, each task is scored only on the sources that have real on-topic content, and 25 tasks with no cross-site coverage are quarantined.",
-   "sections": [
-    {
-     "heading": "What changed",
-     "bullets": [
-      "62% of auto-built must-cite cites were off-topic token collisions (e.g. the coffee task pulled forum threads beans-or-no-beans-in-chili and magic-bean-water); these are removed in data/golden/deep_clean.",
-      "Scorer now reads the cleaned goldens and applies a per-task valid_sources allow-list; forum-invalid tasks score shopping+wiki only, so a system is not penalized for forum content that is genuinely absent for the topic.",
-      "Canonical clean benchmark is 75 scorable tasks (65 valid + 10 forum-invalid); 25 mostly-off-topic tasks are quarantined from scoring."
-     ]
+      "version": "v3-2026-06-06a",
+      "date": "2026-06-06",
+      "title": "Real 3-judge jury: all 1,553 battles rescored, silent error-to-TIE bug fixed",
+      "tags": [
+        "scoring",
+        "methodology"
+      ],
+      "summary": "The leaderboard is now decided by a 3-judge PoLL jury (deepseek-v4-flash, qwen3-max, glm-5) instead of a single judge. We found a bug that silently recorded an errored juror as a TIE, then re-judged every affected battle, so all 1,553 are now full 3-judge verdicts.",
+      "sections": [
+        {
+          "heading": "What changed",
+          "bullets": [
+            "Every pairwise battle is now a 3-judge majority vote (position-debiased), not a single judge; all 1,553 battles have all three jurors voting and 0 judge errors.",
+            "Jury tie rate fell from 50.6% (single judge, mostly position-lock) to 16.9%; 83.1% of battles are now decisive.",
+            "Per-judge decisiveness is balanced (deepseek 68%, glm 61%, qwen 50%); jurors' position-locks no longer overlap, so the majority resolves them."
+          ]
+        },
+        {
+          "heading": "Bug fixed",
+          "bullets": [
+            "An errored juror was being recorded as a TIE vote, so a mid-run provider outage had quietly turned ~1,270 battles into single-judge verdicts wearing a 3-judge label.",
+            "Now an errored juror is retried; a battle counts only when at least 2 jurors return a real verdict, and the board refuses to publish while any battle is below that floor."
+          ]
+        },
+        {
+          "heading": "Headline finding (now jury-backed)",
+          "bullets": [
+            "Raw judge Elo still ranks gpt-researcher #1, but it has only ~4% reachable citations, so the truth-gated headline ranks it 9th.",
+            "camel-ai (60% reachable, 50% quote-verified) leads the truth-gated board."
+          ]
+        }
+      ],
+      "links": []
     },
     {
-     "heading": "Why it is fairer",
-     "bullets": [
-      "Cleaning raises honest agents' grounding because they are now credited for citing genuinely relevant sources instead of measured against a top-K of keyword-collision junk.",
-      "Root cause is corpus coverage (the forum corpus is tech-heavy), not the goldens; seeding non-tech forum content to promote quarantined tasks back is logged as future work."
-     ]
+      "version": "v3-2026-06-05j",
+      "date": "2026-06-05",
+      "title": "Raw judge Elo is now a forest plot (real separation visible)",
+      "tags": [
+        "frontend",
+        "scoring"
+      ],
+      "summary": "The raw judge Elo chart was unreadable: a single 139-Elo outlier crushed the axis so the 1017-1207 main cluster looked identical. It is now a CI forest plot on a clipped axis; non-overlapping whiskers mean reliably separable agents.",
+      "sections": [
+        {
+          "heading": "Also",
+          "bullets": [
+            "The chart now sorts by raw judge Elo (the section it depicts) instead of inheriting the gated order.",
+            "Footnote states the judge's ~50% draw rate honestly; a judge-protocol fix for those draws is being validated (most draws turned out to be pure position bias, not true ties)."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05i",
+      "date": "2026-06-05",
+      "title": "Site-wide truth pass: real backbones, real signals, stale claims removed",
+      "tags": [
+        "frontend",
+        "data-quality",
+        "scoring"
+      ],
+      "summary": "Every page was audited against the actual run data: agent backbones now show the models really used, fabricated/synthetic charts were removed, and all stale method and count claims were corrected.",
+      "sections": [
+        {
+          "heading": "Corrections",
+          "bullets": [
+            "Backbones: every framework ran on deepseek-v4-flash except DeerFlow (qwen3.5-27b); the GLM-4.6/4.7 labels were configuration leftovers, not what the runs used.",
+            "Removed fabricated visuals: the Quality-vs-Cost scatter (hardcoded costs) and the synthetic per-pillar projections (win-rate dressed up as citation/depth scores) are gone; the Signals section now shows only real measurements (reachability, quote verification, judge Elo, truth-gated score).",
+            "Honest judge disclosure: single judge (deepseek-v4-flash), position-debiased; most agents share that backbone, so self-preference risk is stated openly and mitigated by the judge-free grounding gate. The prior dual-judge claim was removed.",
+            "Counts and labels fixed across pages: 10 agents (was 'Eight'), 100 tasks (was 107), 74 judged tasks, truth-gated Elo terminology (was 'Composite v3.1'/'RACE'), retired claude-code/opencode entries, dead links and placeholder socials removed."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05h",
+      "date": "2026-06-05",
+      "title": "Default ranking is now truth-gated Elo (fabrication cannot top the board)",
+      "tags": [
+        "leaderboard",
+        "scoring"
+      ],
+      "summary": "The headline ranking is now judge Elo scaled by the grounding gate, so every agent stays scored but fluent fabrication cannot rank #1; raw judge Elo remains available as a tab.",
+      "sections": [
+        {
+          "heading": "Why",
+          "bullets": [
+            "The raw pairwise judge ranked GPT-Researcher #1 (Elo 1207) despite only 4.3% reachable citations, which is precisely the failure mode this benchmark exists to expose. The default view now multiplies judge Elo by the grounding gate (mean of reachability% and quote-verified%): camel-ai leads, fabricators sink, nobody is excluded.",
+            "The 'Judge Elo (raw)' tab keeps the naive ranking one click away as evidence of judge-vs-grounding divergence."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05g",
+      "date": "2026-06-05",
+      "title": "Live leaderboard re-based: everyone-scored judge Elo + grounding column",
+      "tags": [
+        "leaderboard",
+        "scoring",
+        "results"
+      ],
+      "summary": "The leaderboard now ranks all 10 agents by pairwise LLM-judge Elo (1553 battles, no exclusion gate) with grounding shown as its own column, and a $0.003-per-task qwen3-30b-a3b baseline is published in Insights.",
+      "sections": [
+        {
+          "heading": "What changed",
+          "bullets": [
+            "Headline ranking = pairwise judge Elo (deepseek-v4-flash, round-robin, position-debiased, 1553 battles, 0 judge errors). Every agent gets a score; nobody is excluded.",
+            "New Grounding column (reachability / quote-verified citations, judge-free, scored from the frozen sandbox cache) sits next to Elo. The divergence is the headline finding: the Elo #1 agent has 4.3% reachable citations while the most grounded agents (60%) rank mid-table.",
+            "qwen3-30b-a3b-instruct-2507 minimal-protocol baseline: 94/94 tasks, $0.33 total (~$0.003/task), grounding 0.24 (mid-field). Honest caveat: with only 8 real sources provided it fabricated additional citations in valid URL format despite explicit instructions.",
+            "Next up: deepseek-v4-flash under the same protocol (running), then other model baselines."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05f",
+      "date": "2026-06-05",
+      "title": "Annotation set quality-audited (every report read)",
+      "tags": [
+        "annotation",
+        "data-quality"
+      ],
+      "summary": "Every report in the annotation set was read and graded; 11 unusable pairs were removed, leaving 37 pairs where at least one side is a solid, genuinely grounded report.",
+      "sections": [
+        {
+          "heading": "Audit",
+          "bullets": [
+            "All 96 reports graded solid / weak / non-attempt: 65 solid, 22 weak, 9 non-attempt.",
+            "Removed the 9 pairs containing a non-attempt (e.g. 'data availability assessment' writeups that admit no data was captured) and the 2 pairs where both reports were weak/fabricated. 37 pairs remain.",
+            "Reusable signal: many reports carry fabricated or placeholder citations (fake product/forum URLs) under real-looking structure, which the grounding gate is designed to catch."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05e",
+      "date": "2026-06-05",
+      "title": "Annotation pairs: full reports, junk removed, translation fixed",
+      "tags": [
+        "annotation",
+        "bilingual",
+        "data-quality"
+      ],
+      "summary": "Annotation report pairs now show the complete report (no truncation), drop agent refusals and fabricated reports, and fix a translation bug that turned task intents into garbage.",
+      "sections": [
+        {
+          "heading": "Fixes",
+          "bullets": [
+            "Full reports: the 8000-character truncation is gone; annotators see the complete report.",
+            "Junk removed: 138 agent-refusal / fabricated (no-real-citation) reports were dropped, so every pair is a genuine report vs a genuine report.",
+            "Translation fixed: the translator was following instructions embedded in the text (a task intent like 'cite 120 sources') instead of translating it, producing a fake skeleton with placeholder links. It now treats the text strictly as data and chunks long reports so nothing is cut. All 48 pairs are clean bilingual."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05d",
+      "date": "2026-06-05",
+      "title": "Annotation content follows the global language toggle",
+      "tags": [
+        "bilingual",
+        "annotation"
+      ],
+      "summary": "The header EN/中文 switch now also drives the /annotate report content (intent + both reports), and the whole annotation page is bilingual.",
+      "sections": [
+        {
+          "heading": "Fix",
+          "bullets": [
+            "Previously /annotate had its own separate language toggle, so switching the site to 中文 left the reports in English. The report content now reads the global language directly (one switch controls everything) and the duplicate toggle was removed.",
+            "The rest of the annotation UI (hero, instructions, winner / dimension / note controls, save and export) is now translated too."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05c",
+      "date": "2026-06-05",
+      "title": "Whole site is now bilingual (EN / 中文) + annotation backend live",
+      "tags": [
+        "bilingual",
+        "frontend",
+        "backend"
+      ],
+      "summary": "Every page now has an EN/中文 toggle in the header, and the annotation backend (Cloudflare Worker + KV) is actually live after fixing a failed build.",
+      "sections": [
+        {
+          "heading": "What",
+          "bullets": [
+            "Site-wide i18n: a header EN/中文 switch renders the whole site in English or Simplified Chinese (nav, footer, every page's hero, body, and stat cards). The choice persists and applies before first paint (no flash).",
+            "Annotation backend fixed and live: the prior deploy had failed (a reserved _worker.js filename was being uploaded as a static asset). The Worker now lives outside the assets directory and stores /annotate labels to KV server-side."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05b",
+      "date": "2026-06-05",
+      "title": "Annotation: server-side collection backend + bilingual + rich rendering",
+      "tags": [
+        "annotation",
+        "backend",
+        "bilingual"
+      ],
+      "summary": "The /annotate page now stores human-preference labels server-side via a Cloudflare Worker + KV (no more manual JSONL export), supports an EN/中文 toggle, and renders report markdown (tables, code, blockquotes, links) properly.",
+      "sections": [
+        {
+          "heading": "What",
+          "bullets": [
+            "Backend: a Worker handles POST /api/annotate -> Cloudflare KV; labels are collected automatically (localStorage + JSONL export remain as a fallback).",
+            "Bilingual: all 48 report pairs translated to Simplified Chinese (DeepSeek), with an EN/中文 toggle; markdown and sandbox URLs preserved.",
+            "Rendering: report tables now render as real HTML tables (were raw pipe text), plus fenced code blocks and blockquotes."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-05",
+      "date": "2026-06-05",
+      "title": "Human-annotation set refreshed for judge-alignment kappa",
+      "tags": [
+        "annotation",
+        "eval-validity",
+        "human-kappa"
+      ],
+      "summary": "Rebuilt the /annotate pair set to validate the current leaderboard: 48 report pairs across 48 distinct tasks among the ranked agents, so collected human preferences can be compared to the judge via Cohen's kappa.",
+      "sections": [
+        {
+          "heading": "What",
+          "bullets": [
+            "48 competent-vs-competent pairs (deerflow, camel-ai, smolagents, ii-researcher, flowsearcher-ds), one per task across 48 diverse tasks, balanced agent coverage.",
+            "These are the hard ranking calls (close pairs); fabricator-vs-competent calls are objective and covered by the deterministic grounding gate.",
+            "Annotate in the browser, then Export the JSONL; the labels feed scripts/compute_judge_human_kappa.py."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-03b",
+      "date": "2026-06-03",
+      "title": "Eval-set remediation: cleaned goldens + per-task source allow-list",
+      "tags": [
+        "scoring",
+        "eval-set",
+        "grounding"
+      ],
+      "summary": "Re-audited every auto-built must-cite URL for genuine topical relevance and defined a cleaned canonical benchmark: off-topic keyword-collision cites are dropped, each task is scored only on the sources that have real on-topic content, and 25 tasks with no cross-site coverage are quarantined.",
+      "sections": [
+        {
+          "heading": "What changed",
+          "bullets": [
+            "62% of auto-built must-cite cites were off-topic token collisions (e.g. the coffee task pulled forum threads beans-or-no-beans-in-chili and magic-bean-water); these are removed in data/golden/deep_clean.",
+            "Scorer now reads the cleaned goldens and applies a per-task valid_sources allow-list; forum-invalid tasks score shopping+wiki only, so a system is not penalized for forum content that is genuinely absent for the topic.",
+            "Canonical clean benchmark is 75 scorable tasks (65 valid + 10 forum-invalid); 25 mostly-off-topic tasks are quarantined from scoring."
+          ]
+        },
+        {
+          "heading": "Why it is fairer",
+          "bullets": [
+            "Cleaning raises honest agents' grounding because they are now credited for citing genuinely relevant sources instead of measured against a top-K of keyword-collision junk.",
+            "Root cause is corpus coverage (the forum corpus is tech-heavy), not the goldens; seeding non-tech forum content to promote quarantined tasks back is logged as future work."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-03",
+      "date": "2026-06-03",
+      "title": "Human annotation page (/annotate)",
+      "tags": [
+        "frontend",
+        "eval-validity",
+        "annotation"
+      ],
+      "summary": "Added an in-site annotation page so humans can compare two agent reports per task and record a preference, producing labels to validate the judge against human kappa.",
+      "sections": [
+        {
+          "heading": "What",
+          "bullets": [
+            "New /annotate page in the existing design system: two reports side by side, pick winner (A/Tie/B), cite reason dimensions, optional note + annotator id.",
+            "Progress + labels persist in localStorage; export labels as JSONL in the data/human_prefs schema.",
+            "30 starter pairs across the headphones/electronics task family (corpus-covered)."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-02b",
+      "date": "2026-06-02",
+      "title": "Eval validity fixes: judge window, curated golden, invalid-run exclusion",
+      "tags": [
+        "scoring",
+        "eval-validity",
+        "grounding"
+      ],
+      "summary": "Fixed three measurement bugs found by a forensic audit, then re-scored: the pairwise judge no longer truncates long reports' conclusions, must-cite recall is scored against a curated key set instead of the whole crawl, and runner capture-failures are excluded instead of scored as real low scores.",
+      "sections": [
+        {
+          "heading": "Fixes",
+          "bullets": [
+            "Pairwise judge window raised 5000 to 12000 chars with head+conclusion truncation, so a long report's synthesis is visible to the ranking judge.",
+            "must-cite recall now scored against a curated top-12 key golden set (by weight/reviews), not the whole ~121-URL crawl that was structurally unreachable (old ceiling 0.28 vs a 0.45 gate).",
+            "Capture failures (empty/error/traceback reports, e.g. storm stubs) are excluded as invalid runs, not scored as a real low score.",
+            "Wikipedia /wiki/ citations are retried in canonical /content/ form before being judged unreachable."
+          ]
+        },
+        {
+          "heading": "Result after re-score",
+          "bullets": [
+            "Ranked (grounded): claude-code, camel-ai. Excluded: gpt-researcher and langchain-odr (fabricated/unresolvable citations), smolagents (borderline 0.29 grounding), opencode (no real data); storm runs were all invalid capture stubs.",
+            "Judge alignment re-validated on full reports: synthetic-gold discrimination 0.906, LLMBar agreement 0.817."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-06-02",
+      "date": "2026-06-02",
+      "title": "Real grounding-gated scoring (synthetic leaderboard removed)",
+      "tags": [
+        "scoring",
+        "leaderboard",
+        "fairness",
+        "grounding"
+      ],
+      "summary": "Replaced the placeholder leaderboard with real scores under a simpler, harder-to-game scheme: grounding and quality are scored separately, fluent-but-ungrounded and fabricated reports are gated out, and citation volume no longer inflates rank.",
+      "sections": [
+        {
+          "heading": "Why",
+          "bullets": [
+            "The previous public top ranks were synthetic placeholder data, not measured scores.",
+            "The real composite rewarded reachable-citation volume over grounding in the required facts, inflating long, heavily-cited reports."
+          ]
+        },
+        {
+          "heading": "What changed",
+          "bullets": [
+            "Grounding = F1 of citation precision (with proof-of-fetch) and must-cite recall; the volume terms (domain balance, cited-count gate) were removed.",
+            "Quality = length-controlled pairwise win-rate vs peers, Bradley-Terry Elo, judged cross-family by DeepSeek with position-swap.",
+            "Truth-gate: a report must clear a grounding floor to be ranked; ungrounded or fabricated reports are excluded with a stated reason.",
+            "Removed the hardcoded synthetic fallback that fabricated the top ranks."
+          ]
+        },
+        {
+          "heading": "Method basis",
+          "bullets": [
+            "Aligned with DeepResearch Bench (RACE and FACT), Arena-Hard, and ALCE: separate grounding from quality, and never reward verbosity or volume."
+          ]
+        }
+      ],
+      "links": []
+    },
+    {
+      "version": "v3-2026-05-21",
+      "date": "2026-05-21",
+      "title": "V3 Scoring Overhaul",
+      "tags": [
+        "scoring",
+        "leaderboard",
+        "sandbox",
+        "frontend"
+      ],
+      "summary": "Replaced the 3-dimension heuristic composite with a 6-dimension quality vector and a soft-floor truth gate, added 20 adversarial tasks to pull the top of the leaderboard apart, hardened the closed-book sandbox, and surfaced real per-pillar data on the site.",
+      "sections": [
+        {
+          "heading": "Scoring",
+          "bullets": [
+            "New composite: composite_v3 = (0.5 + 0.5 × quote_match) × Σ w_d · score_d across 6 quality dims (coverage, depth, rigor, style, checklist, spec).",
+            "Soft-floor replaces the hard multiplicative gate, so broken citations no longer zero out an entire report, but quote_match still scales the result.",
+            "Three new LLM-judge verifiers (depth, rigor, style), each 5-point rubric with self-consistency (3× temp 0.3, median), CoT disabled.",
+            "New ArenaEvaluator (src/eval/evaluator.py) exposes a callable reward function for downstream RL training loops."
+          ]
+        },
+        {
+          "heading": "Separability",
+          "bullets": [
+            "Current leaderboard separability measured at 62.86%, 2.14 pp below the 65% intermediate target.",
+            "20 adversarial tasks generated across 3 families (causal/debunking, synthesis-under-contradiction, long-tail recall) to stress the new dims.",
+            "Top-pair densification (--strategy top-pair-densify) added to the battle runner; n=20 per top pair drops CI half-width from ~70 to ~25 Elo."
+          ]
+        },
+        {
+          "heading": "Sandbox",
+          "bullets": [
+            "New --strict-sandbox flag enforces the closed-book contract at three layers: per-adapter tool allowlist, shim-level 403 gate on non-localhost URLs, and post-run domain audit.",
+            "Closed the ClaudeCode Bash-curl gap by replacing the disallowlist with --allowed-tools Bash(curl http://localhost*).",
+            "OpenCode now ships a per-run opencode.json with commands.allowed rather than relying on a soft prompt.",
+            "8 runners are strict-eligible end-to-end; 9 others remain best-effort via the shim and audit layers."
+          ]
+        },
+        {
+          "heading": "Human alignment",
+          "bullets": [
+            "Pairwise A/B preference collector lives at tools/human_pref_collector/ (vanilla HTML + 50-LOC stdlib server, keyboard shortcuts a/s/d).",
+            "Bradley-Terry weight fit via softmax reparameterization + L-BFGS-B (16 restarts); 5-fold CV refuses to publish weights worse than uniform baseline.",
+            "Targets Spearman ≥ 0.85 with humans on composite ranking once ≥ 200 preferences land."
+          ]
+        },
+        {
+          "heading": "Site",
+          "bullets": [
+            "Replaced the synthetic 7-bar sparkline with a real 8-dimension per-pillar sparkline (depth, rigor, style, coverage, checklist, spec, reachability, quote_match) with hover tooltips.",
+            "New Quality Profile card on each agent's detail page.",
+            "New “Deepest reports” highlight tile on the homepage.",
+            "Dry-run banner renders when the leaderboard data is synthetic so visitors are not misled by placeholder numbers.",
+            "Adjacent-pair statistical significance now marked with an asterisk on the leaderboard."
+          ]
+        }
+      ],
+      "links": [
+        {
+          "label": "Scoring spec",
+          "href": "/methodology"
+        },
+        {
+          "label": "Strict-sandbox contract",
+          "href": "/sandbox"
+        }
+      ]
     }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-03",
-   "date": "2026-06-03",
-   "title": "Human annotation page (/annotate)",
-   "tags": [
-    "frontend",
-    "eval-validity",
-    "annotation"
-   ],
-   "summary": "Added an in-site annotation page so humans can compare two agent reports per task and record a preference, producing labels to validate the judge against human kappa.",
-   "sections": [
-    {
-     "heading": "What",
-     "bullets": [
-      "New /annotate page in the existing design system: two reports side by side, pick winner (A/Tie/B), cite reason dimensions, optional note + annotator id.",
-      "Progress + labels persist in localStorage; export labels as JSONL in the data/human_prefs schema.",
-      "30 starter pairs across the headphones/electronics task family (corpus-covered)."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-02b",
-   "date": "2026-06-02",
-   "title": "Eval validity fixes: judge window, curated golden, invalid-run exclusion",
-   "tags": [
-    "scoring",
-    "eval-validity",
-    "grounding"
-   ],
-   "summary": "Fixed three measurement bugs found by a forensic audit, then re-scored: the pairwise judge no longer truncates long reports' conclusions, must-cite recall is scored against a curated key set instead of the whole crawl, and runner capture-failures are excluded instead of scored as real low scores.",
-   "sections": [
-    {
-     "heading": "Fixes",
-     "bullets": [
-      "Pairwise judge window raised 5000 to 12000 chars with head+conclusion truncation, so a long report's synthesis is visible to the ranking judge.",
-      "must-cite recall now scored against a curated top-12 key golden set (by weight/reviews), not the whole ~121-URL crawl that was structurally unreachable (old ceiling 0.28 vs a 0.45 gate).",
-      "Capture failures (empty/error/traceback reports, e.g. storm stubs) are excluded as invalid runs, not scored as a real low score.",
-      "Wikipedia /wiki/ citations are retried in canonical /content/ form before being judged unreachable."
-     ]
-    },
-    {
-     "heading": "Result after re-score",
-     "bullets": [
-      "Ranked (grounded): claude-code, camel-ai. Excluded: gpt-researcher and langchain-odr (fabricated/unresolvable citations), smolagents (borderline 0.29 grounding), opencode (no real data); storm runs were all invalid capture stubs.",
-      "Judge alignment re-validated on full reports: synthetic-gold discrimination 0.906, LLMBar agreement 0.817."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-06-02",
-   "date": "2026-06-02",
-   "title": "Real grounding-gated scoring (synthetic leaderboard removed)",
-   "tags": [
-    "scoring",
-    "leaderboard",
-    "fairness",
-    "grounding"
-   ],
-   "summary": "Replaced the placeholder leaderboard with real scores under a simpler, harder-to-game scheme: grounding and quality are scored separately, fluent-but-ungrounded and fabricated reports are gated out, and citation volume no longer inflates rank.",
-   "sections": [
-    {
-     "heading": "Why",
-     "bullets": [
-      "The previous public top ranks were synthetic placeholder data, not measured scores.",
-      "The real composite rewarded reachable-citation volume over grounding in the required facts, inflating long, heavily-cited reports."
-     ]
-    },
-    {
-     "heading": "What changed",
-     "bullets": [
-      "Grounding = F1 of citation precision (with proof-of-fetch) and must-cite recall; the volume terms (domain balance, cited-count gate) were removed.",
-      "Quality = length-controlled pairwise win-rate vs peers, Bradley-Terry Elo, judged cross-family by DeepSeek with position-swap.",
-      "Truth-gate: a report must clear a grounding floor to be ranked; ungrounded or fabricated reports are excluded with a stated reason.",
-      "Removed the hardcoded synthetic fallback that fabricated the top ranks."
-     ]
-    },
-    {
-     "heading": "Method basis",
-     "bullets": [
-      "Aligned with DeepResearch Bench (RACE and FACT), Arena-Hard, and ALCE: separate grounding from quality, and never reward verbosity or volume."
-     ]
-    }
-   ],
-   "links": []
-  },
-  {
-   "version": "v3-2026-05-21",
-   "date": "2026-05-21",
-   "title": "V3 Scoring Overhaul",
-   "tags": [
-    "scoring",
-    "leaderboard",
-    "sandbox",
-    "frontend"
-   ],
-   "summary": "Replaced the 3-dimension heuristic composite with a 6-dimension quality vector and a soft-floor truth gate, added 20 adversarial tasks to pull the top of the leaderboard apart, hardened the closed-book sandbox, and surfaced real per-pillar data on the site.",
-   "sections": [
-    {
-     "heading": "Scoring",
-     "bullets": [
-      "New composite: composite_v3 = (0.5 + 0.5 × quote_match) × Σ w_d · score_d across 6 quality dims (coverage, depth, rigor, style, checklist, spec).",
-      "Soft-floor replaces the hard multiplicative gate, so broken citations no longer zero out an entire report, but quote_match still scales the result.",
-      "Three new LLM-judge verifiers (depth, rigor, style), each 5-point rubric with self-consistency (3× temp 0.3, median), CoT disabled.",
-      "New ArenaEvaluator (src/eval/evaluator.py) exposes a callable reward function for downstream RL training loops."
-     ]
-    },
-    {
-     "heading": "Separability",
-     "bullets": [
-      "Current leaderboard separability measured at 62.86%, 2.14 pp below the 65% intermediate target.",
-      "20 adversarial tasks generated across 3 families (causal/debunking, synthesis-under-contradiction, long-tail recall) to stress the new dims.",
-      "Top-pair densification (--strategy top-pair-densify) added to the battle runner; n=20 per top pair drops CI half-width from ~70 to ~25 Elo."
-     ]
-    },
-    {
-     "heading": "Sandbox",
-     "bullets": [
-      "New --strict-sandbox flag enforces the closed-book contract at three layers: per-adapter tool allowlist, shim-level 403 gate on non-localhost URLs, and post-run domain audit.",
-      "Closed the ClaudeCode Bash-curl gap by replacing the disallowlist with --allowed-tools Bash(curl http://localhost*).",
-      "OpenCode now ships a per-run opencode.json with commands.allowed rather than relying on a soft prompt.",
-      "8 runners are strict-eligible end-to-end; 9 others remain best-effort via the shim and audit layers."
-     ]
-    },
-    {
-     "heading": "Human alignment",
-     "bullets": [
-      "Pairwise A/B preference collector lives at tools/human_pref_collector/ (vanilla HTML + 50-LOC stdlib server, keyboard shortcuts a/s/d).",
-      "Bradley-Terry weight fit via softmax reparameterization + L-BFGS-B (16 restarts); 5-fold CV refuses to publish weights worse than uniform baseline.",
-      "Targets Spearman ≥ 0.85 with humans on composite ranking once ≥ 200 preferences land."
-     ]
-    },
-    {
-     "heading": "Site",
-     "bullets": [
-      "Replaced the synthetic 7-bar sparkline with a real 8-dimension per-pillar sparkline (depth, rigor, style, coverage, checklist, spec, reachability, quote_match) with hover tooltips.",
-      "New Quality Profile card on each agent's detail page.",
-      "New “Deepest reports” highlight tile on the homepage.",
-      "Dry-run banner renders when the leaderboard data is synthetic so visitors are not misled by placeholder numbers.",
-      "Adjacent-pair statistical significance now marked with an asterisk on the leaderboard."
-     ]
-    }
-   ],
-   "links": [
-    {
-     "label": "Scoring spec",
-     "href": "/methodology"
-    },
-    {
-     "label": "Strict-sandbox contract",
-     "href": "/sandbox"
-    }
-   ]
-  }
- ]
+  ]
 }
