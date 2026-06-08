@@ -6,7 +6,7 @@ import { agentColor } from '@/lib/agent-color';
 import { cn, fmtNum } from '@/lib/utils';
 import type { LeaderboardData, AgentDrillData } from '@/lib/types';
 
-type SortKey = 'rank' | 'name' | 'elo' | 'coverage' | 'wins' | 'losses' | 'draws';
+type SortKey = 'rank' | 'name' | 'elo' | 'reach' | 'quote' | 'coverage' | 'wins' | 'losses' | 'draws';
 
 interface Row {
   rank: number;
@@ -19,6 +19,8 @@ interface Row {
   losses: number;
   draws: number;
   coverage: number;
+  reach: number | null;
+  quote: number | null;
   tiedAbove: boolean;
 }
 
@@ -42,6 +44,8 @@ export function LeaderboardTable({ data }: { data: LeaderboardData }) {
         losses: s.losses,
         draws: s.draws,
         coverage: data.pair_counts[agent] || 0,
+        reach: s.reachability_pct ?? null,
+        quote: s.url_veracity_pct ?? null,
         tiedAbove: tied,
       };
     });
@@ -65,6 +69,10 @@ export function LeaderboardTable({ data }: { data: LeaderboardData }) {
           return (a.elo - b.elo) * dir;
         case 'coverage':
           return (a.coverage - b.coverage) * dir;
+        case 'reach':
+          return ((a.reach ?? -1) - (b.reach ?? -1)) * dir;
+        case 'quote':
+          return ((a.quote ?? -1) - (b.quote ?? -1)) * dir;
         case 'wins':
           return (a.wins - b.wins) * dir;
         case 'losses':
@@ -115,6 +123,8 @@ export function LeaderboardTable({ data }: { data: LeaderboardData }) {
               <col style={{ minWidth: 200 }} />
               <col style={{ width: 86 }} />
               <col style={{ width: 240 }} className="hidden lg:table-column" />
+              <col style={{ width: 72 }} />
+              <col style={{ width: 72 }} />
               <col style={{ width: 140 }} />
               <col style={{ width: 56 }} className="hidden md:table-column" />
               <col style={{ width: 56 }} className="hidden md:table-column" />
@@ -126,6 +136,8 @@ export function LeaderboardTable({ data }: { data: LeaderboardData }) {
                 <Th k="name" cur={sortKey} dir={sortDir} onClick={clickSort}>Agent</Th>
                 <Th k="elo" cur={sortKey} dir={sortDir} onClick={clickSort} align="right">Elo</Th>
                 <th className="hidden lg:table-cell h-9 px-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">95% confidence interval</th>
+                <Th k="reach" cur={sortKey} dir={sortDir} onClick={clickSort} align="right">Reach%</Th>
+                <Th k="quote" cur={sortKey} dir={sortDir} onClick={clickSort} align="right">Quote%</Th>
                 <Th k="coverage" cur={sortKey} dir={sortDir} onClick={clickSort} align="right">Coverage</Th>
                 <Th k="wins" cur={sortKey} dir={sortDir} onClick={clickSort} align="right" hideMobile>W</Th>
                 <Th k="losses" cur={sortKey} dir={sortDir} onClick={clickSort} align="right" hideMobile>L</Th>
@@ -177,6 +189,8 @@ export function LeaderboardTable({ data }: { data: LeaderboardData }) {
                           [{Math.round(r.eloLo)}, {Math.round(r.eloHi)}] ±{Math.round(r.eloHalf)}
                         </div>
                       </td>
+                      <GroundCell v={r.reach} />
+                      <GroundCell v={r.quote} />
                       <td className="px-3 py-2.5 text-right align-middle">
                         <CoverageCell cov={r.coverage} target={data.n_tasks_target} pct={covPct} partial={covPartial} />
                       </td>
@@ -192,7 +206,7 @@ export function LeaderboardTable({ data }: { data: LeaderboardData }) {
                     </tr>
                     {open && (
                       <tr className="border-b">
-                        <td colSpan={8} className="bg-secondary/40 p-0">
+                        <td colSpan={10} className="bg-secondary/40 p-0">
                           <DrillDown agent={r.agent} data={drillData[r.agent]} />
                         </td>
                       </tr>
@@ -213,6 +227,17 @@ export function LeaderboardTable({ data }: { data: LeaderboardData }) {
         </div>
       </div>
     </section>
+  );
+}
+
+function GroundCell({ v }: { v: number | null }) {
+  if (v == null)
+    return <td className="px-3 py-2.5 text-right align-middle num-mono text-[12.5px] text-muted-foreground">—</td>;
+  const color = v >= 60 ? 'hsl(var(--ok))' : v >= 25 ? 'inherit' : 'hsl(var(--bad))';
+  return (
+    <td className="px-3 py-2.5 text-right align-middle num-mono text-[12.5px]" style={{ color }}>
+      {Math.round(v)}
+    </td>
   );
 }
 

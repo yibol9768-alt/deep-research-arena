@@ -6,6 +6,8 @@ export interface EloStats {
   wins: number;
   losses: number;
   draws: number;
+  reachability_pct?: number | null;
+  url_veracity_pct?: number | null;
 }
 
 export interface SigPair {

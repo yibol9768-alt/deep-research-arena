@@ -10,6 +10,7 @@ import { GITHUB_URL } from '@/lib/constants';
 const navItems = [
   { href: '/', label: 'Leaderboard', match: (p: string) => p === '/' },
   { href: '/v4/', label: 'v4', badge: 'NEW', match: (p: string) => p.startsWith('/v4') },
+  { href: '/models/', label: 'Models', badge: 'NEW', match: (p: string) => p.startsWith('/models') },
   { href: '/compare/', label: 'Compare', match: (p: string) => p.startsWith('/compare') },
   { href: '/how-it-works/', label: 'Methodology', match: (p: string) => p.startsWith('/how-it-works') },
   { href: '/about/', label: 'About', match: (p: string) => p.startsWith('/about') },

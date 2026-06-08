@@ -42,7 +42,7 @@ interface RawLeaderboardJson {
   kpis?: LeaderboardData['kpis'];
 }
 
-export function loadLeaderboard(): LeaderboardData {
+function loadBoard(filename: string): LeaderboardData {
   const empty: LeaderboardData = {
     n_runs: 0,
     n_agents: 0,
@@ -59,7 +59,7 @@ export function loadLeaderboard(): LeaderboardData {
     kpis: null,
   };
 
-  const lbPath = path.join(V3_DIR, 'leaderboard_deep.json');
+  const lbPath = path.join(V3_DIR, filename);
   const raw = readJsonOrNull<RawLeaderboardJson>(lbPath);
   if (!raw) return empty;
 
@@ -117,6 +117,14 @@ export function loadLeaderboard(): LeaderboardData {
     leaderboard_mtime: mtime,
     kpis,
   };
+}
+
+export function loadLeaderboard(): LeaderboardData {
+  return loadBoard('leaderboard_deep.json');
+}
+
+export function loadLeaderboardModels(): LeaderboardData {
+  return loadBoard('leaderboard_models.json');
 }
 
 export function listTaskIds(): string[] {
