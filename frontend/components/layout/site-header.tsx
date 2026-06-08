@@ -10,6 +10,7 @@ import { LangToggle } from '@/components/i18n/lang-toggle'
 
 const NAV = [
   { href: '/', label: 'Leaderboard', zh: '排行榜' },
+  { href: '/models', label: 'Models', zh: '模型榜' },
   { href: '/agents', label: 'Agents', zh: '智能体' },
   { href: '/tasks', label: 'Tasks', zh: '任务' },
   { href: '/pillars', label: 'Pillars', zh: '评测维度' },
