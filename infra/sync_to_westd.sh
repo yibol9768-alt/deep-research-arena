@@ -35,7 +35,7 @@ DIRS=(
 FILES=(
   "CONTRIBUTING.md"
   "CLAUDE.md"
-  "claude.md"
+  "CLAUDE.md"
 )
 
 EXCLUDES=(

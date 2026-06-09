@@ -8,7 +8,7 @@ Analyses:
 4. Per-agent dimension profiles (radar data)
 
 Reads existing score files (v2 era: url_cov, reach, quote, nli, spec, judge).
-Outputs: SCORING_ABLATION.md + scoring_ablation.json
+Outputs: docs/archive/SCORING_ABLATION.md + data/results/scoring_ablation.json
 
 Usage:
     python3 scripts/scoring_ablation.py
@@ -372,7 +372,7 @@ def main():
     lines.append("")
 
     # Write outputs
-    md_path = ROOT / "SCORING_ABLATION.md"
+    md_path = ROOT / "docs/archive" / "SCORING_ABLATION.md"
     md_path.write_text("\n".join(lines))
     print(f"Wrote {md_path}")
 
@@ -389,7 +389,7 @@ def main():
         "agent_profiles": agent_profiles,
         "v1_vs_v2_tau": tau_v1,
     }
-    json_path = ROOT / "scoring_ablation.json"
+    json_path = ROOT / "data/results" / "scoring_ablation.json"
     json_path.write_text(json.dumps(json_out, indent=2))
     print(f"Wrote {json_path}")
 

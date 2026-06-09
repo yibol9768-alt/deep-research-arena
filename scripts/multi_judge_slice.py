@@ -218,7 +218,7 @@ out = dict(
     pairwise_tau=tau,
     mean_v3_drift=mean_drift,
 )
-out_path = os.path.join(ROOT, "MULTI_JUDGE_SLICE_RESULTS.json")
+out_path = os.path.join(ROOT, "data/results", "MULTI_JUDGE_SLICE_RESULTS.json")
 json.dump(out, open(out_path, "w"), indent=2)
 print()
 print(f"Saved to {out_path}")

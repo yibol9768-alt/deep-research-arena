@@ -1,6 +1,6 @@
 # Claude Entry Point
 
-Use `claude.md` in this directory as the canonical maintenance guide.
+This is the canonical maintenance guide for the project (deploy + update rules).
 
 Key operational facts:
 
@@ -31,12 +31,13 @@ Workflow for any update:
    `v<MAJOR>-<YYYY-MM-DD>`. Keep summaries to 1-2 sentences and bullets terse.
 3. Rebuild: `cd frontend && npm run typecheck && npm run build`.
 4. Sync: `rsync -a --delete --exclude 'wrangler.jsonc' frontend/out/ web/dist/`
-   (then verify `web/dist/wrangler.jsonc` still exists; restore from
-   `claude.md` if rsync ate it).
+   (then verify `web/dist/wrangler.jsonc` still exists; restore from git
+   `git checkout -- web/dist/wrangler.jsonc` if rsync ate it).
 5. Commit the source/data change plus the regenerated `web/dist/`.
 6. Push to `main`. Cloudflare redeploys automatically.
 
-Skipping the changelog step is not acceptable, even for small fixes — the
+Skipping the changelog step is not acceptable, even for small fixes. The
 `/changelog` page is the user-facing record of every shipped change.
 
-See `claude.md` for the longer maintenance guide.
+For the broader project status and roadmap, see `docs/PROJECT_STATUS_2026-06-09.md`
+and `docs/FULL_PROJECT_ROADMAP.md`.
