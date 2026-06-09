@@ -28,8 +28,18 @@ Self-heal / sandbox ops:
 Board / repro build pipeline (reproduces the committed board JSONs):
 - `build_model_board.py` — builds `data/results/deep_v3/leaderboard_models_v3.json`
   from `data/results/real/leaderboard_jury_models.json.battles.jsonl` +
-  `grounding_uniform2.json`. Verified to rebuild the deployed model board
-  byte-identical (8 models, 24 tasks, 643 battles) on 2026-06-09.
+  `grounding_uniform2.json`. Verified 2026-06-09 to rebuild the deployed model
+  board with identical content (8 models, 24 tasks, 643 battles; same elo, CIs,
+  grounding, ranking).
+
+Note on reproducibility scope (2026-06-09): rebuilding from the committed sources
+reproduces every NUMERIC value (elo, bootstrap CIs, reachability/quote, ranking,
+n_battles) identically for both boards. The framework builder
+(`scripts/build_site_board_from_judge_elo.py`) differs from the committed
+`leaderboard_deep_v3.json` only in the `composite_formula` human-readable
+description string (the committed board carries a slightly newer wording), not in
+any score. So "rebuildable from the repo" means score-identical, not necessarily
+byte-identical.
 - `build_gated_boards.py`, `count_clean.py`, `run_grounding.sh` — gated-board
   assembly, jury clean-count verification, grounding cache+score runner.
 
