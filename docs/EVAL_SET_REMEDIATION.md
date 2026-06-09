@@ -34,7 +34,7 @@ On-topic fraction (cleaned on-topic cites / original auto-built must_cite):
 - Mean across all 100 tasks: 0.378
 - Median: 0.346
 - Range: 0.15 (worst) to 0.97 (best, `dr_cross_deep_0082`)
-- Aggregate: 5,121 on-topic cites kept out of 13,475 auto-built must_cite cites. 62% of auto-built cites were OFF-topic and dropped.
+- Aggregate: 5,121 on-topic cites kept out of 13,475 auto-built must_cite cites. 62% of auto-built cites were OFF-topic and dropped. (2026-06-09 复核: `data/golden/deep_clean/` 盘上 `must_cite_urls` 实为 5,132，比此处多 11，差额集中在任务 0001，属编写后的小幅更新，不影响 62% 结论。)
 - VALID subset mean on-topic fraction: 0.417 (cleaner than the full set, as expected).
 
 On-topic cites kept, by source (across all 100 tasks):

@@ -143,7 +143,8 @@ DeepResearchArena (DRA) 是一个面向 Deep-Research AI 智能体的评测基�
 ### Phase 0 — 沙箱稳定化 (任务 #38/#39，进行中)
 - **为什么**：box 不稳定是用户认定的头号风险，是其他一切的前置；购物站/论坛站这两个接地关键服务目前仍需手动启 Docker Desktop。
 - **阻塞项**：Docker Desktop 需手动启动；box 无法拉/重建重型 shopping/postmill 镜像 (docker.io 不通、ghcr.io 401)；binfmt interop 每次重启需重做。
-- **零阻塞可立即做的**：把 seed 折进 reset.sh bring-up；修 kiwix book 配置不一致 (compose 默认 `wikipedia_en_simple_all_maxi` vs shim/恢复路径 `wikipedia_en_all_nopic`，否则 wiki URL 可能 404 拖垮接地)；把 boot.sh/watchdog.sh/StackGuard 纳入版本控制；补 `infra/wiki-zim` 默认挂载目录 (现缺失会导致 wiki 起不来)。
+- **零阻塞可立即做的**：把 seed 折进 reset.sh bring-up；把 boot.sh/watchdog.sh/StackGuard 纳入版本控制 (**2026-06-09 已做**：38 个 box 脚本已入库 `infra/box/`，密钥已清除)；补 `infra/wiki-zim` 默认挂载目录 (现缺失会导致 wiki 起不来)。
+- **kiwix book 分歧 (2026-06-09 已核验box实情，待 owner 定夺，不宜单方改)**：box `dr_sandbox_wiki` 同时挂了 `wikipedia_en_all_nopic.zim` 与 `wikipedia_en_simple_all_maxi.zim` 两个 zim；my5090 评测 box 的 gateway 实际 `KIWIX_BOOK=wikipedia_en_all_nopic`，且 golden 是按 `all_nopic` 建的；而 `infra/sandbox.docker-compose.yml:88,127` 的默认是 `wikipedia_en_simple_all_maxi` (注释写 "westd uses ...")。即默认值是为 **westd** 环境设的，与 my5090 评测环境分歧。**风险**：在评测 box 上不带 `WIKI_ZIM_FILE`/`WIKI_KIWIX_BOOK` env 直接 `compose up` 会服务错的 wiki 语料 -> golden 的 wiki 引用 404 拖垮接地。**修法 (需 westd/my5090 owner 确认)**：把 compose 默认对齐到 `all_nopic`，或显式文档化评测 box 必须设 env override。这是跨环境配置决策，归 box-infra (Codex 域)，已精确标注不替改。
 
 ### Phase 1 — 语料扩展 + 重爬 golden (任务 #40，进行中)
 - **现状**：种子工具与数据已就绪并提交 (`data/corpus_seed/forum_threads.json` 300128 字节，254 条非技术贴，38 个论坛含 34 个净新论坛，映射到 25 个隔离任务 id；`scripts/seed_forum_corpus.py` 166 行幂等)。
