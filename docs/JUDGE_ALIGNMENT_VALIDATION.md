@@ -72,7 +72,13 @@ judge. Raising the per-report char budget (or using the existing
 `smart_truncate` head+tail helper for pairwise inputs too) would let the judge
 see conclusions and late-appearing claims.
 
----
+> Update (2026-06-09): the recommendation above was implemented. The pairwise
+> judge no longer uses the 5000-char head-only clip. `pairwise_judge` now reads
+> `PAIRWISE_REPORT_CAP` (default 12000) and applies head+tail truncation, so
+> conclusions and late claims are visible. The 0.906 / accuracy numbers in this
+> section are from the older 5000-char head-only window and should be re-run
+> under the 12000 head+tail cap before being cited as current. Section 1's table
+> is therefore historical, not the deployed judge's current behavior.
 
 ## 2. Grounding correlation (offline, deterministic)
 
