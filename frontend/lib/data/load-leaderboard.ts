@@ -89,6 +89,7 @@ interface NormalizedCache {
   perAgentProfile: Record<string, PerAgentProfile>
   rankSignificance: NonNullable<Leaderboard['rank_significance']>
   humanAlignment?: Leaderboard['human_alignment']
+  nRuns?: number
   permutation?: Leaderboard['permutation']
   dropStats?: Leaderboard['drop_stats']
   excludedAgents?: Leaderboard['excluded_agents']
@@ -131,6 +132,7 @@ function buildCache(): NormalizedCache {
       perAgentProfile: v3.per_agent_profile ?? {},
       rankSignificance: sigList,
       humanAlignment: v3.human_alignment,
+      nRuns: v3.n_runs,
       permutation: v3.permutation,
       dropStats: v3.drop_stats,
       excludedAgents: v3.excluded_agents,
@@ -249,7 +251,7 @@ export function leaderboardMtime(): string {
 
 export function loadLeaderboard(): Leaderboard {
   const c = getCache()
-  const n_runs = Object.values(c.elo).reduce((acc, e) => acc + (e.n_battles || 0), 0)
+  const n_runs = c.nRuns ?? Math.round(Object.values(c.elo).reduce((acc, e) => acc + (e.n_battles || 0), 0) / 2)
   return {
     n_runs,
     permutation: c.permutation,

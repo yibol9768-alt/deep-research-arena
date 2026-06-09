@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Search, Menu, X, Activity } from 'lucide-react'
+import { Menu, X, Activity } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { T } from '@/components/i18n/t'
 import { LangToggle } from '@/components/i18n/lang-toggle'
@@ -34,7 +34,7 @@ export function SiteHeader() {
         {/* Brand */}
         <Link href="/" className="flex shrink-0 items-center gap-2 rounded-pill bg-ink px-4 py-1.5 text-white">
           <Activity className="h-3.5 w-3.5" strokeWidth={2.5} />
-          <span className="text-sm font-medium tracking-tight">Deep Research Arena</span>
+          <span className="text-sm font-medium">Deep Research Arena</span>
         </Link>
 
         {/* Desktop nav */}
@@ -56,12 +56,6 @@ export function SiteHeader() {
         {/* Right cluster */}
         <div className="flex items-center gap-2">
           <LangToggle className="hidden md:inline-flex" />
-          <button
-            className="hidden h-9 w-9 items-center justify-center rounded-tab text-muted transition-colors hover:bg-surface-low hover:text-ink md:inline-flex"
-            aria-label="Search"
-          >
-            <Search className="h-4 w-4" />
-          </button>
           <a
             href="https://github.com/yibol9768-alt/deep-research-arena"
             target="_blank"

@@ -1,10 +1,7 @@
-'use client'
-
-import { motion } from 'motion/react'
 import Link from 'next/link'
 import { ArrowUpRight, Swords } from 'lucide-react'
 import { agentMeta, AgentMeta } from '@/lib/providers'
-import { fmt } from '@/lib/format'
+import { fmt, groundingGatePct, truthScore } from '@/lib/format'
 import { T } from '@/components/i18n/t'
 import type { ReactNode } from 'react'
 import type { RankedAgent } from '@/lib/data/types'
@@ -12,17 +9,16 @@ import type { RankedAgent } from '@/lib/data/types'
 export function AgentCard({ agent, rank }: { agent: RankedAgent; rank: number }) {
   const meta: AgentMeta = agentMeta(agent.id)
   const winRate = agent.wins / Math.max(1, agent.n_battles)
-  const heights = [60, 88, 70, 52, 80, 64, 92].map((v, i) => Math.max(20, v - ((i * 11) % 20)))
+  const gate = groundingGatePct(agent)
+  const score = truthScore(agent)
+  const bars = [
+    { label: 'Reach', value: agent.reachability_pct, color: '#7F4BF3' },
+    { label: 'Quote', value: agent.url_veracity_pct, color: '#1c7ff8' },
+    { label: 'Judge', value: Math.min(100, Math.max(0, (agent.elo / 1200) * 100)), color: meta.color },
+  ]
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 14 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
-      transition={{ type: 'spring', damping: 18, stiffness: 200 }}
-      whileHover={{ y: -3 }}
-      className="card relative overflow-hidden p-5 transition-shadow duration-200 hover:shadow-hover"
-    >
+    <article className="card relative overflow-hidden p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-hover">
       {/* brand-color accent stripe */}
       <span aria-hidden className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: meta.color }} />
 
@@ -59,28 +55,37 @@ export function AgentCard({ agent, rank }: { agent: RankedAgent; rank: number })
       </p>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
-        <Stat label={<T en="Composite Elo" zh="综合 Elo" />} value={fmt(agent.elo)} accent />
-        <Stat label={<T en="W / L / D" zh="胜 / 负 / 平" />} value={`${agent.wins}/${agent.losses}/${agent.draws}`} />
-        <Stat label={<T en="Win rate" zh="胜率" />} value={`${(winRate * 100).toFixed(0)}%`} />
+        <Stat label={<T en="Score" zh="主分" />} value={fmt(score)} accent />
+        <Stat label={<T en="Grounding" zh="接地" />} value={gate == null ? 'n/a' : `${gate.toFixed(0)}%`} />
+        <Stat label={<T en="Judge Elo" zh="判官 Elo" />} value={fmt(agent.elo)} />
       </div>
 
-      {/* Mini pillar bars */}
-      <div className="mt-5 flex h-10 items-end gap-1.5">
-        {heights.map((h, i) => (
-          <div
-            key={i}
-            className="flex-1 rounded-t-sm transition-colors"
-            style={{
-              height: `${h}%`,
-              backgroundColor: i === 3 ? meta.color : 'rgb(229,229,224)',
-              opacity: i === 3 ? 0.95 : 0.85,
-            }}
-          />
+      <div className="mt-5 space-y-2">
+        {bars.map((bar) => (
+          <div key={bar.label}>
+            <div className="mb-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-muted">
+              <span>{bar.label}</span>
+              <span className="tnum">{bar.value == null ? 'n/a' : `${Math.round(bar.value)}%`}</span>
+            </div>
+            <div className="h-1.5 rounded-pill bg-surface-mid">
+              <div
+                className="h-full rounded-pill"
+                style={{ width: `${Math.max(0, Math.min(100, bar.value ?? 0))}%`, backgroundColor: bar.color }}
+              />
+            </div>
+          </div>
         ))}
       </div>
 
-      {meta.blurb && <p className="mt-4 text-xs leading-relaxed text-muted">{meta.blurb}</p>}
-    </motion.article>
+      <p className="mt-4 text-xs leading-relaxed text-muted">
+        {meta.blurb ?? (
+          <T
+            en={`${agent.wins}/${agent.losses}/${agent.draws} W/L/D across ${agent.n_battles} agent-side records; win rate ${(winRate * 100).toFixed(0)}%.`}
+            zh={`${agent.n_battles} 条单边记录中胜/负/平为 ${agent.wins}/${agent.losses}/${agent.draws}；胜率 ${(winRate * 100).toFixed(0)}%。`}
+          />
+        )}
+      </p>
+    </article>
   )
 }
 

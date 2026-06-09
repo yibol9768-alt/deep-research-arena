@@ -14,6 +14,7 @@ export type ProviderKey =
   | 'minimax'
   | 'nvidia'
   | 'z'
+  | 'moonshot'
 
 export interface AgentMeta {
   /** Canonical agent id used in JSON files (e.g., 'react-qwen35plus') */
@@ -47,6 +48,7 @@ const PROVIDER_COLOR: Record<ProviderKey, string> = {
   minimax: '#EB3568',
   nvidia: '#76B900',
   z: '#6E5BFF',
+  moonshot: '#4D67FF',
 }
 
 export function providerColor(p: ProviderKey): string {
@@ -57,6 +59,25 @@ export function providerColor(p: ProviderKey): string {
 // eval box (2026-06-05): every framework ran on deepseek-v4-flash except
 // DeerFlow (qwen3.5-27b). Do not list aspirational/configured-but-unused models.
 const AGENTS: AgentMeta[] = [
+  {
+    id: 'claude-code',
+    display: 'Claude Code',
+    backbone: 'deepseek-v4-flash',
+    family: 'Code-as-Action',
+    provider: 'deepseek',
+    color: PROVIDER_COLOR.deepseek,
+    blurb: 'CLI coding-agent workflow adapted to the sandbox. Leads the truth-gated board because high judge Elo is paired with strong citation reachability.',
+  },
+  {
+    id: 'opencode',
+    display: 'OpenCode',
+    backbone: 'deepseek-v4-flash',
+    family: 'Code-as-Action',
+    provider: 'z',
+    color: PROVIDER_COLOR.z,
+    github: 'https://github.com/sst/opencode',
+    blurb: 'Terminal-native coding-agent workflow. The strongest grounding profile in the current snapshot, with more than 90% reachable citations.',
+  },
   {
     id: 'camel-ai',
     display: 'CAMEL-AI',
@@ -140,7 +161,7 @@ const AGENTS: AgentMeta[] = [
     provider: 'openai',
     color: PROVIDER_COLOR.openai,
     github: 'https://github.com/assafelovic/gpt-researcher',
-    blurb: 'RAG + report-writing pipeline. Tops the RAW judge Elo (1207) yet only 4% of its citations resolve -- the canonical fluent-fabrication case the truth gate exists for.',
+    blurb: 'RAG + report-writing pipeline. Strong raw judge Elo, but only 4% of cited URLs resolve in the sandbox, so the truth gate sharply lowers its public rank.',
   },
   {
     id: 'qx-agents',
@@ -153,11 +174,79 @@ const AGENTS: AgentMeta[] = [
   },
 ]
 
+const MODEL_META: Record<string, AgentMeta> = {
+  'glm-5': {
+    id: 'glm-5',
+    display: 'GLM-5',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'glm',
+    color: PROVIDER_COLOR.glm,
+  },
+  'kimi-k2.5': {
+    id: 'kimi-k2.5',
+    display: 'Kimi K2.5',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'moonshot',
+    color: PROVIDER_COLOR.moonshot,
+  },
+  'minimax-m2.5': {
+    id: 'minimax-m2.5',
+    display: 'MiniMax M2.5',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'minimax',
+    color: PROVIDER_COLOR.minimax,
+  },
+  'deepseek-v4-flash': {
+    id: 'deepseek-v4-flash',
+    display: 'DeepSeek V4 Flash',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'deepseek',
+    color: PROVIDER_COLOR.deepseek,
+  },
+  'qwen3-32b': {
+    id: 'qwen3-32b',
+    display: 'Qwen3 32B',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'qwen',
+    color: PROVIDER_COLOR.qwen,
+  },
+  'qwen-flash': {
+    id: 'qwen-flash',
+    display: 'Qwen Flash',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'qwen',
+    color: PROVIDER_COLOR.qwen,
+  },
+  'qwen3-max': {
+    id: 'qwen3-max',
+    display: 'Qwen3 Max',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'qwen',
+    color: PROVIDER_COLOR.qwen,
+  },
+  'qwen3-30b-a3b-instruct-2507': {
+    id: 'qwen3-30b-a3b-instruct-2507',
+    display: 'Qwen3 30B-A3B',
+    backbone: 'fixed DR scaffold',
+    family: 'ReAct',
+    provider: 'qwen',
+    color: PROVIDER_COLOR.qwen,
+  },
+}
+
 export const AGENT_INDEX: Record<string, AgentMeta> = Object.fromEntries(AGENTS.map((a) => [a.id, a]))
 
 export function agentMeta(id: string): AgentMeta {
   return (
-    AGENT_INDEX[id] ?? {
+    AGENT_INDEX[id] ??
+    MODEL_META[id] ?? {
       id,
       display: id,
       backbone: 'unknown',

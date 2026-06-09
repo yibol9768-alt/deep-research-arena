@@ -2,6 +2,7 @@ import { PageHero, MetricCard } from '@/components/layout/metric-card'
 import { loadLeaderboard, rankedAgents } from '@/lib/data/load-leaderboard'
 import { agentMeta } from '@/lib/providers'
 import { T } from '@/components/i18n/t'
+import { fmt, groundingGatePct, truthScore } from '@/lib/format'
 
 export const dynamic = 'force-static'
 
@@ -66,12 +67,12 @@ export default function PillarsPage() {
     <>
       <PageHero
         eyebrow={<T en="Scoring Pillars" zh="评分维度" />}
-        title={<T en="Seven verifier families decide the leaderboard, not one opaque judge score." zh="决定排行榜的是七类验证器家族，而非单一不透明的评审分数。" />}
-        intro={<T en="Composite v3.1 is intentionally plural: citation reachability, evidence breadth, checklist coverage, LLM-judge quality, formatting integrity, and efficiency all pull rank in different directions." zh="综合分 v3.1 刻意采用多元设计：引用可达性、证据广度、清单覆盖度、LLM 评审质量、格式完整性与效率会从不同方向影响排名。" />}
+        title={<T en="The public score separates judgment from evidence." zh="公开主分把评审质量与证据质量分开。" />}
+        intro={<T en="The live leaderboard is intentionally simple: judge Elo measures comparative report quality, while the grounding gate checks whether citations resolve and quotes match. The broader verifier taxonomy below shows where the scoring stack can expand." zh="当前公开榜单刻意保持简单：判官 Elo 衡量报告质量，接地门核验引用是否可达、引文是否匹配。下方的验证器分类展示评分体系可以继续扩展的方向。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label={<T en="Pillars" zh="维度数" />} value="7" detail={<T en="signal taxonomy; the live headline uses grounding × judge Elo" zh="信号分类；当前主榜使用 接地 × 判官 Elo" />} />
-          <MetricCard label={<T en="Verifier files" zh="验证器文件" />} value="29" detail={<T en="URL, markdown, judge, and task coverage checks" zh="URL、markdown、评审与任务覆盖度检查" />} />
+          <MetricCard label={<T en="Public axes" zh="公开轴" />} value="2" detail={<T en="judge Elo and grounding gate" zh="判官 Elo 与接地门" />} />
+          <MetricCard label={<T en="Verifier families" zh="验证器家族" />} value="7" detail={<T en="taxonomy for deeper audits" zh="用于深层审计的分类" />} />
           <MetricCard label={<T en="Bootstrap" zh="自助采样" />} value="1000" detail={<T en="resamples for 95% confidence intervals" zh="次重采样以得到 95% 置信区间" />} />
           <MetricCard label={<T en="Agents" zh="智能体" />} value={String(agents.length)} detail={<T en="ranked under the same scoring contract" zh="在同一评分契约下排名" />} />
         </div>
@@ -81,28 +82,31 @@ export default function PillarsPage() {
         <div className="card p-6 lg:col-span-3">
           <span className="label-caps"><T en="Composite formula" zh="综合公式" /></span>
           <p className="mt-4 font-serif text-3xl leading-tight text-ink">
-            score = judge Elo x grounding gate
+            score = judge Elo × grounding gate
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
-              en="The truth gate keeps fluent but unsupported reports from winning on style. Bradley-Terry then converts per-task pairwise outcomes into Elo with bootstrap confidence intervals."
-              zh="真值门控可阻止行文流畅却缺乏支撑的报告仅凭文采取胜。随后由 Bradley-Terry 将逐任务的两两对战结果转换为带有自助置信区间的 Elo。"
+              en="The gate is the mean of citation reachability and quote verification. Raw judge Elo remains visible, but it does not decide the public ranking by itself."
+              zh="接地门是引用可达率与引文核实率的均值。裸判官 Elo 仍然公开展示，但它不会单独决定公开排名。"
             />
           </p>
         </div>
         <div className="card p-6 lg:col-span-4">
-          <span className="label-caps"><T en="Live leaders by truth-gated score" zh="按真值门控得分的实时领先者" /></span>
+          <span className="label-caps"><T en="Leaders by public score" zh="按公开主分的领先者" /></span>
           <div className="mt-5 space-y-3">
             {agents.slice(0, 5).map((agent) => {
               const meta = agentMeta(agent.id)
+              const score = truthScore(agent)
+              const gate = groundingGatePct(agent)
+              const topScore = truthScore(agents[0])
               return (
                 <div key={agent.id}>
                   <div className="mb-1 flex items-center justify-between text-sm">
                     <span className="font-medium text-ink">{meta.display}</span>
-                    <span className="tnum text-muted">{agent.elo.toFixed(1)}</span>
+                    <span className="tnum text-muted">{fmt(score)}{gate == null ? '' : ` · gate ${gate.toFixed(0)}%`}</span>
                   </div>
                   <div className="h-2 rounded-pill bg-surface-mid">
-                    <div className="h-full rounded-pill" style={{ width: `${Math.min(100, (agent.elo / agents[0].elo) * 100)}%`, backgroundColor: meta.color }} />
+                    <div className="h-full rounded-pill" style={{ width: `${Math.min(100, (score / Math.max(1, topScore)) * 100)}%`, backgroundColor: meta.color }} />
                   </div>
                 </div>
               )

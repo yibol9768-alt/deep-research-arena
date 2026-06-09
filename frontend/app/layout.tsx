@@ -22,7 +22,7 @@ const instrument = Instrument_Serif({
 export const metadata: Metadata = {
   title: 'Deep Research Arena · Reproducible Elo benchmark for DR agents',
   description:
-    'Ten open-source Deep Research agents, 100 sandbox tasks, truth-gated Elo (judge Elo × grounding gate), 95% bootstrap CIs. Reproducible. Ground-truth verified.',
+    'Twelve open-source Deep Research agents, 100 sandbox tasks, truth-gated Elo, citation reachability, quote verification, and 95% bootstrap CIs.',
   metadataBase: new URL('https://deep-research-arena.local'),
   openGraph: {
     title: 'Deep Research Arena',

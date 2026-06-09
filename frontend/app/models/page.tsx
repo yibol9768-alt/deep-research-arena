@@ -26,7 +26,7 @@ export default function ModelsPage() {
   return (
     <>
       <div className="container pt-12">
-        <h1 className="text-[28px] font-semibold tracking-tight md:text-[34px]">
+        <h1 className="text-[28px] font-semibold md:text-[34px]">
           <T en="Deep-Research by Backbone LLM" zh="按基座大模型对比深度研究" />
         </h1>
         <p className="mt-3 max-w-3xl text-[15px] leading-relaxed opacity-80">

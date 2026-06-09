@@ -27,14 +27,26 @@ export interface Task {
 
 interface TaskJson {
   task_id: string
-  intent: string
+  intent: string | {
+    prompt?: string
+    fields?: { task_type?: string }
+    evidence_details?: Record<string, unknown>
+    specific_synthesis_requirements?: { task_type?: string }
+  }
   domain?: string
   intent_type?: string
   difficulty?: number | string
   expected_steps?: number | string
   sites?: string[]
   tier?: string
-  url_coverage?: { must_cite?: number; total?: number }
+  markdown_spec?: { min_citations?: number; min_pages_browsed?: number }
+  citation_policy?: { min_distinct_sources?: number; per_domain_minimum?: Record<string, number> }
+  url_coverage?: {
+    must_cite?: number
+    total?: number
+    min_unique_urls_cited?: number
+    min_unique_urls_browsed?: number
+  }
 }
 
 let _tasksCache: Task[] | null = null
@@ -66,6 +78,40 @@ function _firstLine(s: string): string {
   return line
 }
 
+function _prompt(j: TaskJson): string {
+  if (typeof j.intent === 'string') return j.intent
+  return j.intent?.prompt ?? ''
+}
+
+function _intentType(j: TaskJson): string {
+  const prompt = _prompt(j)
+  const raw =
+    j.intent_type ||
+    (typeof j.intent === 'object' ? j.intent.fields?.task_type || j.intent.specific_synthesis_requirements?.task_type : '') ||
+    prompt.match(/Intent type:\s*([A-Za-z/-]+)/i)?.[1] ||
+    ''
+  const text = `${raw} ${prompt}`.toLowerCase()
+  if (text.includes('market-intelligence') || text.includes('market intelligence')) return 'market-intelligence'
+  if (text.includes('comparison') || text.includes('compare')) return 'comparison'
+  if (text.includes('debunk') || text.includes('fact-check')) return 'debunking'
+  if (text.includes('causal') || text.includes('cause')) return 'causal'
+  if (text.includes('timeline') || text.includes('evolution')) return 'timeline'
+  if (text.includes('enumeration') || text.includes('catalog')) return 'enumeration'
+  if (text.includes('recommendation') || text.includes('choosing')) return 'recommendation'
+  return 'unknown'
+}
+
+function _requiredUrls(j: TaskJson): number {
+  return Number(
+    j.url_coverage?.must_cite ??
+      j.url_coverage?.total ??
+      j.url_coverage?.min_unique_urls_cited ??
+      j.citation_policy?.min_distinct_sources ??
+      j.markdown_spec?.min_citations ??
+      0,
+  )
+}
+
 export function loadTasks(): Task[] {
   if (_tasksCache) return _tasksCache
   if (!fs.existsSync(TASKS_DIR)) {
@@ -82,22 +128,23 @@ export function loadTasks(): Task[] {
     try {
       const j = JSON.parse(fs.readFileSync(path.join(TASKS_DIR, f), 'utf-8')) as TaskJson
       const id = j.task_id
-      const intent = j.intent ?? ''
+      const intent = _prompt(j)
       tasks.push({
         id,
         title: _firstLine(intent) || id,
         prompt: intent,
-        intentType: (j.intent_type || 'unknown').toLowerCase(),
+        intentType: _intentType(j),
         domain: j.domain || 'unknown',
         difficulty: Number(j.difficulty ?? 3),
         expectedSteps: Number(j.expected_steps ?? 15),
         sites: j.sites || ['shopping', 'reddit', 'wikipedia'],
         checklistItems: (checklists[id] || []).length,
-        requiredUrls: Number(j.url_coverage?.must_cite ?? j.url_coverage?.total ?? 0),
+        requiredUrls: _requiredUrls(j),
         tier: j.tier,
       })
-    } catch {
-      // Skip malformed entries silently — they shouldn't break the build.
+    } catch (error) {
+      // Keep the build resilient, but make skipped tasks visible in CI logs.
+      console.warn(`[tasks] skipped ${f}: ${error instanceof Error ? error.message : String(error)}`)
     }
   }
   _tasksCache = tasks

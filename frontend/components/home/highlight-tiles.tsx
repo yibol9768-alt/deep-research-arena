@@ -1,6 +1,3 @@
-'use client'
-
-import { motion } from 'motion/react'
 import { agentMeta } from '@/lib/providers'
 import type { RankedAgent } from '@/lib/data/types'
 import { T } from '@/components/i18n/t'
@@ -132,14 +129,14 @@ const TILES: Tile[] = [
       <T
         en={
           <>
-            The raw judge ranks a <em className="not-italic text-brand">4%-reachable</em> agent #1.
-            The truth gate exists precisely for this: quality only counts when the evidence is real.
+            A high raw judge score can still hide weak evidence. The public score keeps that visible by
+            multiplying judge preference by reachable, verified citations.
           </>
         }
         zh={
           <>
-            裸判官把一个引用仅 <em className="not-italic text-brand">4% 可达</em> 的智能体排到第一。
-            真值门正是为此而生：质量只有在证据为真时才作数。
+            高裸判官分仍可能掩盖薄弱证据。公开主分把这一点显式保留下来：
+            判官偏好必须乘以可达且可核验的引用。
           </>
         }
       />
@@ -167,33 +164,23 @@ export function HighlightTiles({ top }: { top: RankedAgent[] }) {
         <h2 className="font-serif text-h-sm text-ink"><T en="Highlights" zh="亮点" /></h2>
         <span className="label-caps">
           <T
-            en={<>computed from 1553 position-debiased judge battles</>}
-            zh={<>基于 1553 场位置去偏的判官对战计算</>}
+            en={<>computed from the current judge and grounding cache</>}
+            zh={<>基于当前判官与接地缓存计算</>}
           />
         </span>
       </div>
 
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: '-50px' }}
-        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07 } } }}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
-      >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {TILES.map((tile) => (
-          <motion.article
+          <article
             key={tile.title}
-            variants={{
-              hidden: { opacity: 0, y: 14 },
-              show: { opacity: 1, y: 0, transition: { type: 'spring', damping: 20, stiffness: 200 } },
-            }}
             className="card card-lift p-5"
           >
             <header className="hairline-b pb-2 text-sm font-medium text-ink"><T en={tile.title} zh={tile.titleZh} /></header>
             <p className="mt-3 text-sm leading-relaxed text-muted">{tile.blurb(top)}</p>
-          </motion.article>
+          </article>
         ))}
-      </motion.div>
+      </div>
     </section>
   )
 }

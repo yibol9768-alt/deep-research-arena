@@ -7,6 +7,7 @@ import { agentMeta, allAgents } from '@/lib/providers'
 import { MetricCard } from '@/components/layout/metric-card'
 import { QualityProfile } from '@/components/agents/quality-profile'
 import { T } from '@/components/i18n/t'
+import { fmt, groundingGatePct, truthScore } from '@/lib/format'
 
 export const dynamic = 'force-static'
 
@@ -19,8 +20,7 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
   const agent = rankedAgents().find((row) => row.id === params.id)
   if (!agent) notFound()
   const meta = agentMeta(agent.id)
-  const winRate = (agent.wins / Math.max(1, agent.n_battles)) * 100
-  const nonLoss = ((agent.wins + agent.draws) / Math.max(1, agent.n_battles)) * 100
+  const gate = groundingGatePct(agent)
 
   return (
     <div className="container py-12 md:py-16">
@@ -48,10 +48,10 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <MetricCard label={<T en="Composite Elo" zh="综合 Elo" />} value={agent.elo.toFixed(0)} detail={`95% CI ${agent.elo_lo.toFixed(0)}-${agent.elo_hi.toFixed(0)}`} />
+          <MetricCard label={<T en="Score" zh="主分" />} value={fmt(truthScore(agent))} detail={<T en="judge Elo × grounding gate" zh="判官 Elo × 接地门" />} />
+          <MetricCard label={<T en="Judge Elo" zh="判官 Elo" />} value={fmt(agent.elo)} detail={`95% CI ${agent.elo_lo.toFixed(0)}-${agent.elo_hi.toFixed(0)}`} />
           <MetricCard label={<T en="Battles" zh="对战数" />} value={String(agent.n_battles)} detail={<T en="pairwise outcomes" zh="两两对战结果" />} />
-          <MetricCard label={<T en="Win rate" zh="胜率" />} value={`${winRate.toFixed(0)}%`} detail={`${agent.wins} wins`} />
-          <MetricCard label={<T en="Non-loss" zh="不败率" />} value={`${nonLoss.toFixed(0)}%`} detail={`${agent.draws} draws retained`} />
+          <MetricCard label={<T en="Grounding" zh="接地" />} value={gate == null ? 'n/a' : `${gate.toFixed(0)}%`} detail={<T en="reachability + quote match" zh="可达率 + 引文核实率" />} />
         </div>
       </section>
 
@@ -68,8 +68,8 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
           <h2 className="font-serif text-h-sm text-ink"><T en="Interpretation" zh="解读" /></h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
-              en="This page is static and deploy-safe: it is generated from the same leaderboard JSON as the home table. Per-task report drill-down can be added without changing the URL contract."
-              zh="本页面为静态页面、可安全部署：它由与首页表格相同的排行榜 JSON 生成。可在不改变 URL 约定的前提下加入逐任务报告的下钻视图。"
+              en="This profile uses the same leaderboard snapshot as the main table. Treat rank, judge Elo, and grounding together: a high judge score is only useful when the cited evidence can be reopened."
+              zh="本档案使用与主表相同的排行榜快照。请同时查看排名、判官 Elo 与接地率：只有被引用证据能重新打开时，高判官分才有实际意义。"
             />
           </p>
         </div>

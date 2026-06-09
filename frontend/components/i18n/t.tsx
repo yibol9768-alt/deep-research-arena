@@ -14,8 +14,8 @@ import React from 'react'
 export function T({ en, zh }: { en: React.ReactNode; zh: React.ReactNode }) {
   return (
     <>
-      <span data-lang="en">{en}</span>
-      <span data-lang="zh">{zh}</span>
+      <span data-lang="en" lang="en">{en}</span>
+      <span data-lang="zh" lang="zh-CN">{zh}</span>
     </>
   )
 }

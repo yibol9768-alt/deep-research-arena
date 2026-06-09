@@ -1,6 +1,3 @@
-'use client'
-
-import { motion } from 'motion/react'
 import { ArrowRight, BookOpen, Github, Swords } from 'lucide-react'
 import Link from 'next/link'
 import { T } from '@/components/i18n/t'
@@ -23,23 +20,18 @@ export function Hero({ stats }: Props) {
         aria-hidden
         className="absolute inset-0 -z-10 opacity-50"
         style={{
-          backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(127,75,243,0.18) 1px, transparent 0)',
+          backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(110,91,255,0.14) 1px, transparent 0)',
           backgroundSize: '24px 24px',
           maskImage: 'radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent)',
         }}
       />
 
       <div className="container py-16 md:py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-          className="max-w-3xl"
-        >
+        <div className="max-w-3xl">
           <span className="label-caps">
             <T en="2026 · v3.1 · NeurIPS draft" zh="2026 · v3.1 · NeurIPS 草稿" />
           </span>
-          <h1 className="mt-4 font-serif text-display text-balance leading-[1.05] tracking-tight">
+          <h1 className="mt-4 font-serif text-display text-balance leading-[1.05]">
             <T
               en={
                 <>
@@ -56,8 +48,8 @@ export function Hero({ stats }: Props) {
           </h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
             <T
-              en="Ten open-source agents battle on 100 sandbox tasks. Every cited URL is fetched against the frozen sandbox; every quote is checked on the cited page. The headline score is judge Elo gated by that grounding, with 95% bootstrap confidence intervals. No drifting search, no inflated numbers."
-              zh="十个开源智能体在 100 个沙箱任务上对战。每个被引用的 URL 都按冻结沙箱实地抓取核验，每条引文都对照被引页面检查。榜单主分是经接地门控的判官 Elo，并带 95% 自助置信区间。没有漂移的搜索，没有虚高的数字。"
+              en="Twelve open-source research agents run against the same frozen sandbox. The board separates report quality from evidence quality: every cited URL is fetched, every quoted passage is checked, and the public score only rises when both hold up."
+              zh="十二个开源研究智能体在同一套冻结沙箱中运行。榜单把报告质量与证据质量分开：每个引用 URL 都会被抓取，每段引文都会被核对；只有两者都站得住，公开主分才会上升。"
             />
           </p>
 
@@ -75,7 +67,7 @@ export function Hero({ stats }: Props) {
               className="inline-flex h-11 items-center gap-2 rounded-tab border border-hairline bg-white px-5 text-sm font-medium text-ink transition-all duration-150 hover:border-ink/30 hover:shadow-soft"
             >
               <Swords className="h-4 w-4" />
-              <T en="Try Live Arena" zh="试用实时竞技场" />
+              <T en="Open Arena" zh="打开竞技场" />
             </Link>
             <Link
               href="/methodology"
@@ -94,29 +86,20 @@ export function Hero({ stats }: Props) {
               GitHub
             </a>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stat strip */}
-        <motion.dl
-          initial="hidden"
-          animate="show"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.2 } } }}
-          className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4"
-        >
+        <dl className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {stats.map((s) => (
-            <motion.div
+            <div
               key={s.label}
-              variants={{
-                hidden: { opacity: 0, y: 12 },
-                show: { opacity: 1, y: 0, transition: { type: 'spring', damping: 20, stiffness: 220 } },
-              }}
               className="card p-5"
             >
               <dt className="label-caps"><T en={s.label} zh={s.zh ?? s.label} /></dt>
               <dd className="mt-1 font-serif text-3xl tnum text-ink md:text-4xl">{s.value}</dd>
-            </motion.div>
+            </div>
           ))}
-        </motion.dl>
+        </dl>
       </div>
     </section>
   )

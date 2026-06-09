@@ -1,191 +1,137 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { Activity, RefreshCw } from 'lucide-react'
-import { PageHero } from '@/components/layout/metric-card'
+import { CheckCircle2, Clock3, Database, FileJson2 } from 'lucide-react'
+import { PageHero, MetricCard } from '@/components/layout/metric-card'
 import { T } from '@/components/i18n/t'
+import { leaderboardMtime, loadLeaderboard, rankedAgents } from '@/lib/data/load-leaderboard'
+import { taskStats } from '@/lib/data/tasks'
+import { fmt } from '@/lib/format'
 
 export const dynamic = 'force-static'
 
-interface TaskStatus {
-  name: string
-  nameZh?: string
-  kind?: string
-  progress?: number
-  total?: number
-  state: string
-  detail?: string
-}
+const CHECKS = [
+  {
+    label: 'Leaderboard snapshot',
+    labelZh: '排行榜快照',
+    detail: 'Deep v3 cache is present and ranked by truth-gated score.',
+    detailZh: 'Deep v3 缓存已就绪，并按真值门控主分排名。',
+  },
+  {
+    label: 'Task corpus',
+    labelZh: '任务语料',
+    detail: 'All 100 task JSON files and their audit checklists are discoverable at build time.',
+    detailZh: '100 个任务 JSON 与对应审核清单均可在构建时读取。',
+  },
+  {
+    label: 'Grounding fields',
+    labelZh: '接地字段',
+    detail: 'Reachability and quote-veracity fields are exposed on agent pages and tables.',
+    detailZh: '引用可达率与引文核实率已在智能体页和表格中展示。',
+  },
+]
 
-interface BoxStatus {
-  ts?: string
-  _received?: string
-  host?: string
-  tasks?: TaskStatus[]
-  sandbox?: Record<string, number | string>
-  sessions?: string[]
-  watchdog_heartbeat?: string
-  errors_tail?: string[]
-}
-
-const POLL_MS = 30_000
+const LIMITS = [
+  {
+    label: 'Static deploy',
+    labelZh: '静态部署',
+    detail: 'This site is exported as static files. It shows the latest committed snapshot, not a runtime worker dashboard.',
+    detailZh: '本站导出为静态文件，展示最近提交的快照，而不是运行时 worker 面板。',
+  },
+  {
+    label: 'Judge dependency',
+    labelZh: '判官依赖',
+    detail: 'Pairwise quality still depends on the current jury cache; grounding is kept separate to expose unsupported fluency.',
+    detailZh: '成对质量仍依赖当前陪审团缓存；接地分单独保留，用于暴露缺乏支撑的流畅回答。',
+  },
+  {
+    label: 'Model board scope',
+    labelZh: '模型榜范围',
+    detail: 'The model board uses a fixed minimal DR protocol and should not be read as a general chatbot benchmark.',
+    detailZh: '模型榜采用固定的最小 DR 协议，不应解读为通用聊天模型基准。',
+  },
+]
 
 export default function StatusPage() {
-  const [st, setSt] = useState<BoxStatus | null>(null)
-  const [err, setErr] = useState<string | null>(null)
-  const [fetchedAt, setFetchedAt] = useState<number>(0)
-
-  useEffect(() => {
-    let alive = true
-    const load = async () => {
-      try {
-        const r = await fetch('/api/status', { cache: 'no-store' })
-        if (!alive) return
-        if (!r.ok) {
-          setErr(r.status === 404 ? 'no-data' : `http-${r.status}`)
-          setSt(null)
-          return
-        }
-        setSt(await r.json())
-        setErr(null)
-        setFetchedAt(Date.now())
-      } catch {
-        if (alive) setErr('network')
-      }
-    }
-    load()
-    const t = setInterval(load, POLL_MS)
-    return () => {
-      alive = false
-      clearInterval(t)
-    }
-  }, [])
-
-  const ageMin = st?._received ? (Date.now() - new Date(st._received).getTime()) / 60000 : null
-  const stale = ageMin != null && ageMin > 5
+  const leaderboard = loadLeaderboard()
+  const agents = rankedAgents()
+  const stats = taskStats()
+  const lastUpdated = new Date(leaderboardMtime()).toLocaleDateString('en-US')
 
   return (
     <>
       <PageHero
-        eyebrow={<T en="Live Status" zh="实时状态" />}
-        title={<T en="What the eval box is doing right now." zh="评测机此刻在干什么。" />}
+        eyebrow={<T en="Benchmark Status" zh="基准状态" />}
+        title={<T en="Current public snapshot." zh="当前公开快照。" />}
         intro={
           <T
-            en="The box reports task progress, sandbox health, and watchdog heartbeat every minute. This page refreshes automatically every 30 seconds."
-            zh="评测机每分钟上报一次任务进度、沙箱健康与看门狗心跳。本页每 30 秒自动刷新。"
+            en="A compact health view for the data shipped with this static site: leaderboard cache, task corpus, grounding fields, and known limits."
+            zh="这里汇总静态站点随包发布的数据健康状态：排行榜缓存、任务语料、接地字段与已知边界。"
           />
         }
-      />
+      >
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <MetricCard label={<T en="Agents" zh="智能体" />} value={String(agents.length)} detail={<T en="ranked in the public board" zh="进入公开榜单" />} />
+          <MetricCard label={<T en="Tasks" zh="任务" />} value={String(stats.count)} detail={<T en="frozen sandbox prompts" zh="冻结沙盒提示" />} />
+          <MetricCard label={<T en="Battles" zh="对战" />} value={fmt(leaderboard.n_runs)} detail={<T en="pairwise judge decisions" zh="成对判官决策" />} />
+          <MetricCard label={<T en="Updated" zh="更新" />} value={lastUpdated} detail={<T en="leaderboard cache timestamp" zh="排行榜缓存时间戳" />} />
+        </div>
+      </PageHero>
 
-      <section className="container space-y-6 pb-16">
-        {/* freshness banner */}
-        <div className="card flex items-center gap-3 p-4 text-sm">
-          <Activity className={`h-4 w-4 ${stale || err ? 'text-bad' : 'text-good'}`} />
-          {err === 'no-data' ? (
-            <T en="No status reported yet (reporter or STATUS_TOKEN not configured)." zh="尚无上报数据（上报器或 STATUS_TOKEN 未配置）。" />
-          ) : err ? (
-            <T en="Could not reach the status API." zh="无法访问状态接口。" />
-          ) : stale ? (
-            <span className="text-bad">
-              <T
-                en={<>Last report {ageMin!.toFixed(0)} min ago. The box may be offline or the reporter died.</>}
-                zh={<>最后上报于 {ageMin!.toFixed(0)} 分钟前，评测机可能掉线或上报器挂了。</>}
-              />
-            </span>
-          ) : st ? (
-            <T
-              en={<>Live · last report {ageMin == null ? '?' : ageMin < 1 ? '<1' : ageMin.toFixed(0)} min ago from {st.host ?? 'box'}</>}
-              zh={<>在线 · 最后上报于 {ageMin == null ? '?' : ageMin < 1 ? '不到 1' : ageMin.toFixed(0)} 分钟前（{st.host ?? 'box'}）</>}
-            />
-          ) : (
-            <span className="inline-flex items-center gap-2 text-muted">
-              <RefreshCw className="h-3.5 w-3.5 animate-spin" /> <T en="Loading" zh="加载中" />
-            </span>
-          )}
+      <section className="container grid grid-cols-1 gap-5 lg:grid-cols-[1.05fr_.95fr]">
+        <div className="card p-6">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-good" />
+            <h2 className="font-serif text-h-sm text-ink"><T en="Published Checks" zh="已发布检查" /></h2>
+          </div>
+          <div className="mt-5 space-y-4">
+            {CHECKS.map((check) => (
+              <div key={check.label} className="rounded-tab border border-hairline bg-surface-low p-4">
+                <p className="text-sm font-medium text-ink"><T en={check.label} zh={check.labelZh} /></p>
+                <p className="mt-1 text-sm leading-relaxed text-muted"><T en={check.detail} zh={check.detailZh} /></p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* tasks */}
-        {st?.tasks?.length ? (
-          <div className="card p-6">
-            <h2 className="mb-4 font-serif text-h-sm text-ink"><T en="Tasks" zh="任务" /></h2>
-            <ul className="space-y-4">
-              {st.tasks.map((t) => {
-                const pct = t.total ? Math.min(100, Math.round(((t.progress ?? 0) / t.total) * 100)) : null
-                const tone =
-                  t.state === 'done' ? 'text-good' : t.state === 'running' ? 'text-brand' : 'text-bad'
-                return (
-                  <li key={t.name}>
-                    <div className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className="font-medium text-ink">
-                        {t.nameZh ? <T en={t.name} zh={t.nameZh} /> : t.name}
-                      </span>
-                      <span className={`text-xs font-semibold uppercase tracking-wider ${tone}`}>{t.state}</span>
-                    </div>
-                    {pct != null ? (
-                      <div className="mt-1.5 flex items-center gap-3">
-                        <div className="h-2 flex-1 overflow-hidden rounded-pill bg-surface-mid">
-                          <div
-                            className={`h-full rounded-pill ${t.state === 'done' ? 'bg-good' : 'bg-brand'}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <span className="w-28 text-right text-xs text-muted tnum">
-                          {t.progress}/{t.total} · {pct}%
-                        </span>
-                      </div>
-                    ) : null}
-                    {t.detail ? <p className="mt-1 text-xs text-muted">{t.detail}</p> : null}
-                  </li>
-                )
-              })}
-            </ul>
+        <div className="card p-6">
+          <div className="flex items-center gap-2">
+            <Clock3 className="h-4 w-4 text-brand" />
+            <h2 className="font-serif text-h-sm text-ink"><T en="Known Limits" zh="已知边界" /></h2>
           </div>
-        ) : null}
-
-        {/* sandbox + sessions */}
-        {st ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="card p-6">
-              <h2 className="mb-3 font-serif text-h-sm text-ink"><T en="Sandbox" zh="沙箱" /></h2>
-              <ul className="space-y-1.5 text-sm">
-                {Object.entries(st.sandbox ?? {}).map(([port, code]) => (
-                  <li key={port} className="flex justify-between">
-                    <span className="text-muted tnum">:{port}</span>
-                    <span className={String(code) === '200' || code === 'up' ? 'text-good' : 'text-bad'}>
-                      {String(code)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="card p-6">
-              <h2 className="mb-3 font-serif text-h-sm text-ink"><T en="Sessions / Watchdog" zh="会话 / 看门狗" /></h2>
-              <p className="text-sm text-muted">{(st.sessions ?? []).join(' · ') || '-'}</p>
-              {st.watchdog_heartbeat ? (
-                <p className="mt-2 text-xs text-muted">
-                  <T en="watchdog heartbeat:" zh="看门狗心跳：" /> <span className="tnum">{st.watchdog_heartbeat}</span>
-                </p>
-              ) : null}
-            </div>
+          <div className="mt-5 space-y-4">
+            {LIMITS.map((limit) => (
+              <div key={limit.label} className="rounded-tab border border-hairline bg-white p-4">
+                <p className="text-sm font-medium text-ink"><T en={limit.label} zh={limit.labelZh} /></p>
+                <p className="mt-1 text-sm leading-relaxed text-muted"><T en={limit.detail} zh={limit.detailZh} /></p>
+              </div>
+            ))}
           </div>
-        ) : null}
+        </div>
+      </section>
 
-        {/* recent errors */}
-        {st?.errors_tail?.length ? (
-          <div className="card p-6">
-            <h2 className="mb-3 font-serif text-h-sm text-ink"><T en="Recent errors" zh="近期错误" /></h2>
-            <pre className="overflow-x-auto rounded-tab bg-surface-low p-3 text-xs leading-relaxed text-muted">
-              {st.errors_tail.join('\n')}
-            </pre>
+      <section className="container mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="card flex gap-4 p-5">
+          <Database className="mt-1 h-5 w-5 text-brand" />
+          <div>
+            <h3 className="font-serif text-lg text-ink"><T en="Data contract" zh="数据契约" /></h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              <T
+                en="The public pages read from committed JSON artifacts. A rebuild changes the visible site only after the cache and static export are regenerated."
+                zh="公开页面读取已提交的 JSON 产物。只有重新生成缓存并导出静态站点后，页面才会显示新的结果。"
+              />
+            </p>
           </div>
-        ) : null}
-
-        <p className="text-xs text-muted">
-          <T
-            en={<>Fetched {fetchedAt ? new Date(fetchedAt).toLocaleTimeString() : '-'} · auto-refresh 30s</>}
-            zh={<>页面拉取于 {fetchedAt ? new Date(fetchedAt).toLocaleTimeString() : '-'} · 每 30 秒自动刷新</>}
-          />
-        </p>
+        </div>
+        <div className="card flex gap-4 p-5">
+          <FileJson2 className="mt-1 h-5 w-5 text-brand" />
+          <div>
+            <h3 className="font-serif text-lg text-ink"><T en="Audit trail" zh="审计链路" /></h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              <T
+                en="Each rank should trace back to a task, report, pairwise decision, bootstrap interval, and citation-verifier fields."
+                zh="每个排名都应能追溯到任务、报告、成对判官决策、自助采样区间与引用核验字段。"
+              />
+            </p>
+          </div>
+        </div>
       </section>
     </>
   )

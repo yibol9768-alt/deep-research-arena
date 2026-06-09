@@ -11,7 +11,7 @@ const COLS: { title: string; titleZh: string; links: { href: string; label: stri
       { href: '/agents', label: 'Agents', zh: '智能体' },
       { href: '/tasks', label: 'Tasks', zh: '任务' },
       { href: '/pillars', label: 'Pillars', zh: '评测维度' },
-      { href: '/arena', label: 'Live Arena', zh: '实时竞技场' },
+      { href: '/arena', label: 'Arena', zh: '竞技场' },
     ],
   },
   {
@@ -31,7 +31,7 @@ const COLS: { title: string; titleZh: string; links: { href: string; label: stri
     links: [
       { href: '/methodology', label: 'Paper notes', zh: '论文笔记' },
       { href: 'https://github.com/yibol9768-alt/deep-research-arena', label: 'GitHub', zh: 'GitHub' },
-      { href: '/status', label: 'Live Status', zh: '实时状态' },
+      { href: '/status', label: 'Benchmark Status', zh: '基准状态' },
       { href: '/changelog', label: 'Changelog', zh: '更新日志' },
     ],
   },
@@ -49,8 +49,8 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
             </h3>
             <p className="mt-4 max-w-sm text-sm text-brand-dark/80">
               <T
-                en="The first reproducible Elo benchmark for Deep Research agents. Open source. Open data. Open methodology."
-                zh="首个可复现的 Deep Research 智能体 Elo 评测基准。开源、开放数据、开放方法论。"
+                en="A reproducible benchmark for deep-research agents: frozen tasks, auditable reports, judge decisions, and citation checks."
+                zh="一项可复现的深度研究智能体基准：冻结任务、可审计报告、判官决策与引用核验。"
               />
             </p>
           </div>

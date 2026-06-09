@@ -13,10 +13,10 @@ const config: Config = {
       colors: {
         // canvas
         bg: '#FAFAF7',
-        surface: '#fdf7ff',
-        'surface-low': '#f8f2fa',
-        'surface-mid': '#f2ecf4',
-        'surface-high': '#ece6ee',
+        surface: '#FBFBFD',
+        'surface-low': '#F5F6F8',
+        'surface-mid': '#ECEFF3',
+        'surface-high': '#E2E6EA',
         white: '#ffffff',
 
         // ink
@@ -24,11 +24,11 @@ const config: Config = {
         'ink-soft': '#1d1b20',
         muted: '#494551',
         'muted-2': '#7a7582',
-        hairline: '#E8E8E4',
-        'outline-soft': '#cbc4d2',
+        hairline: '#E5E7EB',
+        'outline-soft': '#C8CDD4',
 
         // brand
-        brand: { DEFAULT: '#7F4BF3', dark: '#4f378a', soft: '#cfbcff', wash: '#e0d2ff', footer: '#C8A8FF' },
+        brand: { DEFAULT: '#6E5BFF', dark: '#24262B', soft: '#C7D2FE', wash: '#E8ECFF', footer: '#EEF0F3' },
 
         // semantic
         good: '#34A853',
@@ -66,8 +66,8 @@ const config: Config = {
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       fontSize: {
-        display: ['clamp(40px, 6vw, 64px)', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
-        'display-lg': ['48px', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '400' }],
+        display: ['clamp(40px, 6vw, 64px)', { lineHeight: '1.05', letterSpacing: '0', fontWeight: '400' }],
+        'display-lg': ['48px', { lineHeight: '1.1', letterSpacing: '0', fontWeight: '400' }],
         'h-md': ['32px', { lineHeight: '1.2', fontWeight: '400' }],
         'h-sm': ['24px', { lineHeight: '1.3', fontWeight: '400' }],
         caps: ['12px', { lineHeight: '1', letterSpacing: '0.05em', fontWeight: '600' }],
@@ -75,15 +75,15 @@ const config: Config = {
       },
       borderRadius: {
         DEFAULT: '0.5rem',
-        card: '14px',
+        card: '10px',
         pill: '9999px',
         tab: '8px',
       },
       boxShadow: {
         soft: '0 2px 8px rgba(11,11,15,.04)',
         lift: '0 1px 2px rgba(11,11,15,.04), 0 8px 24px -8px rgba(11,11,15,.08)',
-        hover: '0 2px 4px rgba(11,11,15,.06), 0 16px 40px -12px rgba(127,75,243,.25)',
-        ring: '0 0 0 4px rgba(127,75,243,.18)',
+        hover: '0 2px 4px rgba(11,11,15,.06), 0 16px 40px -12px rgba(110,91,255,.22)',
+        ring: '0 0 0 4px rgba(110,91,255,.16)',
       },
       transitionTimingFunction: {
         smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',

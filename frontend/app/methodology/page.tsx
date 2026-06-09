@@ -1,5 +1,6 @@
 import { PageHero, MetricCard } from '@/components/layout/metric-card'
 import { T } from '@/components/i18n/t'
+import { taskStats } from '@/lib/data/tasks'
 
 export const dynamic = 'force-static'
 
@@ -29,15 +30,15 @@ const SECTIONS = [
     id: 'dual-judge',
     title: 'Judge and its limits',
     titleZh: '判官及其局限',
-    body: 'Current jury: a 3-judge cross-family PoLL jury (deepseek-v4-flash, qwen3-max, glm-5; arXiv 2404.18796). Every battle is judged by all three, position-debiased (each side swapped), and decided by majority vote. The cross-family jury directly addresses judge self-preference (most agents run on deepseek-v4-flash), and the headline score is still gated by the judge-free grounding check. All 1,553 battles have all three jurors voting; the jury tie rate is 16.9% (down from 50.6% under a single judge).',
-    bodyZh: '当前判官：三判官跨家族 PoLL 陪审团（deepseek-v4-flash、qwen3-max、glm-5;arXiv 2404.18796）。每场对战由三家各自评判,位置去偏(交换位次),多数票定胜负。跨家族陪审团直接缓解判官自偏好(多数智能体运行在 deepseek-v4-flash 上),且榜单主分仍乘以不依赖判官的接地门。全部 1,553 场三判官皆投票;陪审团平局率 16.9%(单判官时为 50.6%)。',
+    body: 'Current judge cache: a 3-judge cross-family PoLL jury (deepseek-v4-flash, qwen3-max, glm-5; arXiv 2404.18796), position-debiased and aggregated by majority vote. The public score still passes through a judge-free grounding gate, so a report that reads well but cites weak evidence cannot win on judge preference alone.',
+    bodyZh: '当前判官缓存：三判官跨家族 PoLL 陪审团（deepseek-v4-flash、qwen3-max、glm-5；arXiv 2404.18796），做位置去偏并按多数票聚合。公开主分仍会经过不依赖判官的接地门，因此一份读起来不错但引用薄弱的报告不能只靠判官偏好取胜。',
   },
   {
     id: 'intent-typology',
     title: 'Intent typology',
     titleZh: '意图类型',
-    body: 'Tasks span recommendation, comparison, debunking, causal explanation, timeline, and enumeration. Each intent has task-specific checklists.',
-    bodyZh: '任务涵盖推荐、对比、辟谣、因果解释、时间线与枚举等类型。每种意图都配有针对具体任务的核查清单。',
+    body: 'Tasks span market intelligence, comparison, debunking, causal explanation, timeline, and enumeration. Each intent has task-specific checklists.',
+    bodyZh: '任务涵盖市场情报、对比、辟谣、因果解释、时间线与枚举等类型。每种意图都配有针对具体任务的核查清单。',
   },
   {
     id: 'ablation',
@@ -49,17 +50,19 @@ const SECTIONS = [
 ] as const
 
 export default function MethodologyPage() {
+  const stats = taskStats()
+
   return (
     <>
       <PageHero
         eyebrow={<T en="Methodology" zh="方法论" />}
-        title={<T en="A reproducible scoring stack for reports that cite, synthesize, and survive audit." zh="一套可复现的评分体系，用于评判会引用、能综合且经得起审计的报告。" />}
-        intro={<T en="Deep Research Arena avoids a single magic score. It stores the task, source pool, checklist, report, verifier outputs, pairwise outcome, and confidence interval as separate artifacts." zh="Deep Research Arena 不依赖单一的魔法分数。它将任务、来源池、核查清单、报告、验证器输出、两两对战结果与置信区间分别存为独立的产物。" />}
+        title={<T en="How the public score is computed." zh="公开主分如何计算。" />}
+        intro={<T en="Deep Research Arena keeps the audit trail explicit: task, source pool, checklist, report, grounding checks, pairwise judge outcome, and confidence interval are separate artifacts." zh="Deep Research Arena 明确保留审计链路：任务、来源池、核查清单、报告、接地核验、两两判官结果和置信区间分别作为独立产物保存。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Score axes" zh="评分轴" />} value="2" detail={<T en="grounding (judge-free) and judge Elo" zh="接地（不依赖判官）与判官 Elo" />} />
           <MetricCard label={<T en="Bootstrap" zh="自助重采样" />} value="1000" detail={<T en="confidence interval resamples" zh="置信区间重采样次数" />} />
-          <MetricCard label={<T en="Intent classes" zh="意图类别" />} value="6" detail={<T en="task families with separate failure modes" zh="具有不同失败模式的任务族" />} />
+          <MetricCard label={<T en="Intent families" zh="意图族" />} value={String(stats.intents)} detail={<T en="task families with separate failure modes" zh="具有不同失败模式的任务族" />} />
           <MetricCard label={<T en="Audit trail" zh="审计轨迹" />} value="Full" detail={<T en="JSON, reports, and verifier outputs" zh="JSON、报告与验证器输出" />} />
         </div>
       </PageHero>

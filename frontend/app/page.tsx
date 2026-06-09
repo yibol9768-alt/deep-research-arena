@@ -8,6 +8,7 @@ import { PillarBars } from '@/components/home/pillar-bars'
 import { SectionNav } from '@/components/home/section-nav'
 import { DryRunBanner } from '@/components/home/dry-run-banner'
 import { T } from '@/components/i18n/t'
+import { fmt } from '@/lib/format'
 
 export const dynamic = 'force-static'
 
@@ -17,9 +18,9 @@ export default function HomePage() {
 
   const stats = [
     { value: String(agents.length), label: 'Agents', zh: '智能体' },
-    { value: '100', label: 'Sandbox tasks', zh: '沙箱任务' },
-    { value: String(lb.n_runs ?? agents.reduce((a, b) => a + b.n_battles, 0)), label: 'Judge battles', zh: '判官对战' },
-    { value: '74', label: 'Judged tasks', zh: '入评任务' },
+    { value: '100', label: 'Task set', zh: '任务集' },
+    { value: fmt(lb.n_runs), label: 'Pairwise battles', zh: '两两对战' },
+    { value: '2', label: 'Grounding checks', zh: '接地核验' },
   ]
 
   const sections = [
@@ -136,8 +137,8 @@ export default function HomePage() {
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">
                   <T
-                    en="Two independent measurements: GROUNDING (judge-free -- every cited URL is fetched against the frozen sandbox and quotes are verified on the cited page) and QUALITY (1553 pairwise judge battles, position-debiased, Bradley-Terry with bootstrap 95% CIs; judge deepseek-v4-flash). The headline score multiplies judge Elo by the grounding gate, so fluent fabrication cannot top the board."
-                    zh="两个相互独立的测量：接地（不依赖判官 -- 每个被引用的 URL 都按冻结沙箱实地核验，引文逐条对照被引页面）与质量（1553 场成对判官对战，位置去偏，Bradley-Terry 拟合并给出自助 95% 置信区间；判官为 deepseek-v4-flash）。榜单主分 = 判官 Elo × 接地门，流畅的编造无法登顶。"
+                    en={`Two measurements are kept separate: grounding checks whether cited URLs resolve and whether quoted evidence appears on the cited page; judge Elo measures pairwise report quality across ${fmt(lb.n_runs)} battles with bootstrap confidence intervals. The public score multiplies the two, so unsupported polish cannot dominate the board.`}
+                    zh={`两个测量保持分离：接地核验检查引用 URL 是否可达、引文是否出现在被引页面；判官 Elo 通过 ${fmt(lb.n_runs)} 场两两对战衡量报告质量，并给出自助置信区间。公开主分将二者相乘，因此缺乏证据支撑的漂亮报告无法占据榜首。`}
                   />
                 </p>
               </div>

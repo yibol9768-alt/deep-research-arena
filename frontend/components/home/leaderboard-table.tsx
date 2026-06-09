@@ -1,10 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { agentMeta } from '@/lib/providers'
-import { fmt, rankMedal } from '@/lib/format'
+import { fmt, groundingGatePct, rankMedal, totalPairwiseBattles, truthScore } from '@/lib/format'
 import type { PerPillarElo, RankedAgent } from '@/lib/data/types'
 import { Swords } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -48,6 +48,7 @@ type TabKey = (typeof TABS)[number]['key']
 
 export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
   const [tab, setTab] = useState<TabKey>('gated')
+  const totalBattles = totalPairwiseBattles(agents)
 
   const sorted = (() => {
     const arr = [...agents]
@@ -105,8 +106,8 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
         </div>
         <span className="hidden text-xs text-muted md:block">
           <T
-            en={<>{sorted.length} agents · {sorted[0]?.n_battles ?? 0} battles each</>}
-            zh={<>{sorted.length} 个智能体 · 每个 {sorted[0]?.n_battles ?? 0} 场对战</>}
+            en={<>{sorted.length} rows · {fmt(totalBattles)} pairwise battles</>}
+            zh={<>{sorted.length} 行 · {fmt(totalBattles)} 场两两对战</>}
           />
         </span>
       </header>
@@ -123,9 +124,10 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                 {tab === 'gated' ? (
                   <T en="Score (Elo × gate)" zh="得分(Elo × 接地门)" />
                 ) : (
-                  <T en="Elo · 95% CI" zh="Elo · 95% 置信区间" />
+                  <T en="Selected metric" zh="当前指标" />
                 )}
               </th>
+              <th className="px-4 py-3 text-center font-medium"><T en="Judge Elo · 95% CI" zh="判官 Elo · 95% 置信区间" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="Battles" zh="对战" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="W / L / D" zh="胜 / 负 / 平" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="Grounding" zh="接地" /></th>
@@ -136,6 +138,8 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
             {sorted.map((a, i) => {
               const meta = agentMeta(a.id)
               const rank = i + 1
+              const gate = groundingGatePct(a)
+              const metric = selectedMetric(a, tab)
               return (
                 <motion.tr
                   key={a.id}
@@ -166,35 +170,25 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    {tab === 'gated' ? (
-                      <>
-                        <span className="font-semibold text-ink tnum">{a.gated_score ?? 0}</span>
-                        <span className="ml-1.5 text-[11px] text-muted tnum">
-                          <T en={<>judge {Math.round(a.elo)}</>} zh={<>判官 {Math.round(a.elo)}</>} />
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="font-semibold text-ink tnum">{Math.round(a.elo)}</span>
-                        <span className="ml-1 text-[11px] text-muted tnum">±{a.ci_half}</span>
-                      </>
-                    )}
+                    <span className="font-semibold text-ink tnum">{metric.value}</span>
+                    <span className="ml-1.5 text-[11px] text-muted">{metric.detail}</span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className="font-semibold text-ink tnum">{Math.round(a.elo)}</span>
+                    <span className="ml-1 text-[11px] text-muted tnum">±{a.ci_half}</span>
                   </td>
                   <td className="px-4 py-3 text-center text-muted tnum">{a.n_battles}</td>
                   <td className="px-4 py-3 text-center tnum">
-                    {a.reachability_pct != null && a.url_veracity_pct != null ? (
-                      (() => {
-                        const gate = (a.reachability_pct! + a.url_veracity_pct!) / 2
-                        const tone = gate >= 40 ? 'text-good' : gate >= 15 ? 'text-warn' : 'text-bad'
-                        return (
-                          <span>
-                            <span className={`font-semibold ${tone}`}>{gate.toFixed(0)}%</span>
-                            <span className="ml-1 text-[10px] text-muted">
-                              R{a.reachability_pct!.toFixed(0)} · Q{a.url_veracity_pct!.toFixed(0)}
-                            </span>
-                          </span>
-                        )
-                      })()
+                    <span>{a.wins} / {a.losses} / {a.draws}</span>
+                  </td>
+                  <td className="px-4 py-3 text-center tnum">
+                    {gate != null ? (
+                      <span>
+                        <span className={`font-semibold ${gate >= 40 ? 'text-good' : gate >= 15 ? 'text-warn' : 'text-bad'}`}>{gate.toFixed(0)}%</span>
+                        <span className="ml-1 text-[10px] text-muted">
+                          R{a.reachability_pct!.toFixed(0)} · Q{a.url_veracity_pct!.toFixed(0)}
+                        </span>
+                      </span>
                     ) : (
                       <span className="text-muted">n/a</span>
                     )}
@@ -202,7 +196,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                   <td className="px-4 py-3">
                     <Link
                       href={`/arena?a=${a.id}`}
-                      title="Challenge in Live Arena"
+                      title="Compare in Arena"
                       className="inline-flex h-8 w-8 items-center justify-center rounded-tab text-muted hover:bg-brand/10 hover:text-brand"
                     >
                       <Swords className="h-4 w-4" />
@@ -220,6 +214,8 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
         {sorted.map((a, i) => {
           const meta = agentMeta(a.id)
           const rank = i + 1
+          const gate = groundingGatePct(a)
+          const metric = selectedMetric(a, tab)
           return (
             <li key={a.id} className="hairline-b px-4 py-3.5 active:bg-surface-low">
               <Link href={`/agents/${a.id}`} className="flex items-center gap-3">
@@ -235,8 +231,10 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="tnum text-base font-semibold text-ink">{Math.round(a.elo)}</p>
-                  <p className="tnum text-[10px] text-muted">±{a.ci_half}</p>
+                  <p className="tnum text-base font-semibold text-ink">{metric.value}</p>
+                  <p className="tnum text-[10px] text-muted">
+                    {tab === 'gated' ? <>gate {gate == null ? 'n/a' : `${gate.toFixed(0)}%`}</> : metric.detail}
+                  </p>
                 </div>
               </Link>
             </li>
@@ -245,6 +243,13 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
       </ul>
     </section>
   )
+}
+
+function selectedMetric(agent: RankedAgent, tab: TabKey): { value: string; detail: ReactNode } {
+  if (tab === 'judge') return { value: fmt(agent.elo), detail: <>±{agent.ci_half}</> }
+  if (tab === 'wins') return { value: String(agent.wins), detail: <T en="wins" zh="胜场" /> }
+  if (tab === 'precision') return { value: `±${agent.ci_half}`, detail: <T en="CI half-width" zh="置信区间半宽" /> }
+  return { value: fmt(truthScore(agent)), detail: <T en={<>judge {fmt(agent.elo)}</>} zh={<>判官 {fmt(agent.elo)}</>} /> }
 }
 
 /**
