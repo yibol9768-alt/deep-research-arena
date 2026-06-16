@@ -1,5 +1,5 @@
 {
-  "schema_version": "deep-1.0.0",
+  "schema_version": "cw-1.0.0",
   "task_id": "dr_cross_deep_0003",
   "tier": "deep",
   "sites": [
@@ -7,18 +7,18 @@
     "reddit",
     "wikipedia"
   ],
-  "difficulty": 5,
+  "difficulty": {
+    "breadth": "high",
+    "depth": "deep",
+    "exploration": "high"
+  },
   "expected_steps": 80,
-  "intent": "Produce a Comparison report on three home-fitness equipment paths under a fixed $300 starter budget — (P1) Adjustable dumbbells + bench, (P2) Barbell + plate set + rack, (P3) Bodyweight + resistance bands + pull-up bar — across exactly 5 use cases: (UC1) muscle hypertrophy, (UC2) cardio + fat loss, (UC3) small-apartment friendliness, (UC4) injury rehab / mobility, (UC5) progression beyond 12 months.\n\nGround in >= 120 distinct sandbox URLs and cite >= 60 as markdown links. (A) `__SHOPPING__` >= 12 products per path with price + rating + review_count + feature_claim. (B) `__REDDIT__` >= 30 threads from /f/Fitness, /f/xxfitness, /f/bodyweightfitness, /f/homegym etc., classified as {praise, complaint, technical_question, comparison, purchase_advice}. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Strength training, Hypertrophy, Aerobic exercise, Calisthenics, Resistance band, Olympic weightlifting, Powerlifting, Range of motion, Progressive overload — plus >= 15 more.\n\nOutput a 3 x 5 decision matrix (path x use case), every cell rated {best / acceptable / poor} with >= 1 shopping URL + >= 1 reddit URL + >= 1 wiki URL as cited evidence. End with a 'when to pick which path' section: 3 short paragraphs each explaining which user profile picks P1/P2/P3, citing >= 5 reddit threads in support. Do NOT output a TOP-10 list — this is comparison, not ranking.\n\nFormat: every fact is a markdown link `[label](url)`. Sandbox-local URLs only. No fabrication. Begin directly with the comparison report.",
+  "intent": "I have about $300 to start working out at home and I'm torn between a few setups: adjustable dumbbells plus a bench, a barbell with plates, or a resistance/bodyweight-based path. Compare them on what actually matters, weigh in what people who've used each say, and tell me which gives the best results for the budget, with your reasoning.",
   "start_url": "__SHOPPING__/catalogsearch/result/?q=dumbbell",
   "storage_state": null,
   "require_login": false,
   "markdown_spec": {
-    "min_words": 3500,
-    "max_words": 8000,
-    "min_paragraphs": 25,
-    "min_citations": 60,
-    "min_pages_browsed": 120
+    "min_words": 400
   },
   "citation_policy": {
     "required_for": [
@@ -101,5 +101,16 @@
   "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
   "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
   "domain": "Consumer",
-  "intent_type": "Comparison"
+  "intent_type": "Comparison",
+  "intent_v1_legacy": "Produce a Comparison report on three home-fitness equipment paths under a fixed $300 starter budget — (P1) Adjustable dumbbells + bench, (P2) Barbell + plate set + rack, (P3) Bodyweight + resistance bands + pull-up bar — across exactly 5 use cases: (UC1) muscle hypertrophy, (UC2) cardio + fat loss, (UC3) small-apartment friendliness, (UC4) injury rehab / mobility, (UC5) progression beyond 12 months.\n\nGround in >= 120 distinct sandbox URLs and cite >= 60 as markdown links. (A) `__SHOPPING__` >= 12 products per path with price + rating + review_count + feature_claim. (B) `__REDDIT__` >= 30 threads from /f/Fitness, /f/xxfitness, /f/bodyweightfitness, /f/homegym etc., classified as {praise, complaint, technical_question, comparison, purchase_advice}. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Strength training, Hypertrophy, Aerobic exercise, Calisthenics, Resistance band, Olympic weightlifting, Powerlifting, Range of motion, Progressive overload — plus >= 15 more.\n\nOutput a 3 x 5 decision matrix (path x use case), every cell rated {best / acceptable / poor} with >= 1 shopping URL + >= 1 reddit URL + >= 1 wiki URL as cited evidence. End with a 'when to pick which path' section: 3 short paragraphs each explaining which user profile picks P1/P2/P3, citing >= 5 reddit threads in support. Do NOT output a TOP-10 list — this is comparison, not ranking.\n\nFormat: every fact is a markdown link `[label](url)`. Sandbox-local URLs only. No fabrication. Begin directly with the comparison report.",
+  "completeness": {
+    "golden_path": "data/golden/db/dr_cross_deep_0003.json",
+    "min_completeness": 0.0
+  },
+  "grounding": {
+    "k_star": 12,
+    "gamma": 1.0,
+    "min_grounding": 0.0
+  },
+  "rubric_path": "data/tasks/deep_research/cross_site_deep/rubrics_cw.json"
 }

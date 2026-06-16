@@ -2,6 +2,9 @@
 
 This is the canonical maintenance guide for the project (deploy + update rules).
 
+> Always respond to the user in Chinese (简体中文), regardless of the language of
+> the code, logs, or this document.
+
 Key operational facts:
 
 - Public site: `https://www.deepresearcharena.com/`

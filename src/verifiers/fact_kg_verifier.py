@@ -118,6 +118,26 @@ def _looks_numeric(s: str) -> bool:
 
 
 def _load_golden(task_id: str) -> list[dict]:
+    # Closed-world (CLOSED_WORLD_REDESIGN.md sec 6): prefer the DB-derived golden's
+    # fact_nuggets when present. These are clean (no keyword-collision noise) and
+    # carry an importance label; they map onto the (subject, predicate, object)
+    # shape _mention_score already uses, so recall becomes nugget coverage.
+    db_path = GOLDEN_DIR / "db" / f"{task_id}.json"
+    if db_path.exists():
+        try:
+            data = json.loads(db_path.read_text())
+            nuggets = data.get("fact_nuggets") if isinstance(data, dict) else None
+            rows = [
+                {"subject": n.get("subject", ""), "predicate": n.get("predicate", ""),
+                 "object": n.get("object", ""), "source_url": n.get("source_url", ""),
+                 "importance": n.get("importance", "useful")}
+                for n in (nuggets or []) if isinstance(n, dict)
+            ]
+            if rows:
+                return rows
+        except Exception:
+            pass
+
     # Oracle v2: intent-aware filtered oracle preferred when available.
     # Set ORACLE_VERSION=v1 to force the legacy top-N-per-category oracle.
     version = (os.environ.get("ORACLE_VERSION") or "v2").lower()
@@ -163,10 +183,16 @@ class FactKGVerifier:
                 details={"reason": f"no golden triples for {task_id}"},
             )
 
-        # --- RECALL ---
+        # --- RECALL (importance-weighted nugget coverage) ---
         matched, per_triple = _mention_score(golden, answer)
         total = len(golden)
-        recall = matched / total if total else 0.0
+        _w = {"vital": 1.0, "useful": 0.5}
+        wt_total = sum(_w.get(t.get("importance", "useful"), 0.5) for t in golden)
+        wt_matched = sum(
+            _w.get(golden[i].get("importance", "useful"), 0.5)
+            for i, d in enumerate(per_triple) if d.get("matched")
+        )
+        recall = (wt_matched / wt_total) if wt_total else 0.0
 
         # --- PRECISION (optional) ---
         precision = 1.0

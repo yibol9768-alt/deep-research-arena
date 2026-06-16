@@ -191,6 +191,22 @@ async def _forward(path: str, request: Request) -> Any:
         r = await client.post(url, json=body, headers=headers)
         if r.headers.get("content-type", "").startswith("application/json"):
             data = r.json()
+            # Opt-in token-usage accounting: set DSPROXY_USAGE_LOG to a path and
+            # every upstream call's usage is appended as one JSON line. Used to
+            # measure exact judge cost per task. No-op when the env is unset.
+            try:
+                _u = data.get("usage") if isinstance(data, dict) else None
+                _ulog = os.environ.get("DSPROXY_USAGE_LOG")
+                if _u and _ulog:
+                    with open(_ulog, "a") as _uf:
+                        _uf.write(json.dumps({
+                            "model": body.get("model"),
+                            "prompt_tokens": _u.get("prompt_tokens"),
+                            "completion_tokens": _u.get("completion_tokens"),
+                            "total_tokens": _u.get("total_tokens"),
+                        }) + "\n")
+            except Exception:
+                pass
             # Strip <think>...</think> from reasoning-model output so client
             # frameworks see a clean answer. Preserve the original (with
             # thinking) in `reasoning_content` so judge_client._call_openai

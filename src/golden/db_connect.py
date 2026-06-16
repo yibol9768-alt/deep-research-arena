@@ -25,8 +25,8 @@ from typing import Iterable
 
 
 SSH_HOST = os.environ.get("WESTD_SSH_HOST", "westd")
-MAGENTO_CONTAINER = "webarena_shopping"
-POSTMILL_CONTAINER = "webarena_reddit"
+MAGENTO_CONTAINER = "dr_sandbox_shopping"
+POSTMILL_CONTAINER = "dr_sandbox_reddit"
 # Magento credentials pulled from /var/www/magento2/app/etc/env.php.
 MAG_USER = "magentouser"
 MAG_PASS = "MyPassword"
@@ -141,7 +141,7 @@ class DBRunner:
             f'mysql -u {MAG_USER} -p{MAG_PASS} -s -N {MAG_DB}\n'
             'else\n'
             f'  exec docker exec -i {POSTMILL_CONTAINER} '
-            f"su - postgres -c \"psql -d {PG_DB} -t -A -F '|'\"\n"
+            f"psql -U postgres -d {PG_DB} -t -A -F '|'\n"
             'fi\n'
         )
         local_tmp = "/tmp/.db_runner_local.sh"

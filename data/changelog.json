@@ -3,6 +3,48 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v4-2026-06-16",
+      "date": "2026-06-16",
+      "title": "Closed-world redesign: decidable grounding and completeness from the sandbox DB",
+      "summary": "Scoring now leans on the frozen sandbox as a closed, queryable world, so grounding and completeness are decided against the database rather than estimated, and the deep-research questions are de-specified into natural user queries.",
+      "tags": [
+        "methodology",
+        "grounding",
+        "completeness",
+        "tasks"
+      ],
+      "sections": [
+        {
+          "heading": "Why it changes",
+          "bullets": [
+            "The frozen sandbox (shopping, reddit, wiki) is DB-complete, so we know the true facts and which URLs are real; grounding and completeness become decidable, not pooled estimates.",
+            "This is the moat over live-web benchmarks, where the relevant set is unknown and attribution must be guessed."
+          ]
+        },
+        {
+          "heading": "New grounding gate",
+          "bullets": [
+            "Dropped must-cite-URL recall (it barely separated honest from fabricated) for a claim-level gate: ReachRate^gamma times GroundF1@K (claim support, reachability, load-bearing precision, missing-citation penalty).",
+            "Dead cited URLs are now penalized instead of being silently dropped from the denominator."
+          ]
+        },
+        {
+          "heading": "Completeness and de-specified tasks",
+          "bullets": [
+            "New completeness@K metric: exact coverage of the top-K most important DB entities, derived by SQL enumeration rather than keyword scraping.",
+            "Task intents rewritten from over-specified scraping specs into natural research questions; quotas and section lists moved out of the prompt and into the answer key."
+          ]
+        },
+        {
+          "heading": "Result on the redesigned tasks",
+          "bullets": [
+            "Run end-to-end with a single self-hosted Qwen3-8B judge and zero paid API.",
+            "The two highest raw-quality agents are fluent fabricators and are gated out; the honest agent wins the truth-gated board and leads completeness@40."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v3-2026-06-08b",
       "date": "2026-06-08",
       "title": "New Backbone-LLM leaderboard (/models): same scaffold, different model",

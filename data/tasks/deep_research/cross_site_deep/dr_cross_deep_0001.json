@@ -1,5 +1,5 @@
 {
-  "schema_version": "deep-1.0.0",
+  "schema_version": "cw-1.0.0",
   "task_id": "dr_cross_deep_0001",
   "tier": "deep",
   "sites": [
@@ -7,18 +7,18 @@
     "reddit",
     "wikipedia"
   ],
-  "difficulty": 5,
+  "difficulty": {
+    "breadth": "high",
+    "depth": "deep",
+    "exploration": "medium"
+  },
   "expected_steps": 80,
-  "intent": "Produce a comprehensive market-intelligence report on Consumer-grade audio headphones, spanning THREE dimensions. The report must be grounded in AT LEAST 120 distinct source URLs drawn from the sandbox (shopping / reddit / wikipedia), and MUST cite at least 60 of them as markdown links.\n\n(A) PRODUCT LANDSCAPE — Enumerate Consumer-grade audio headphones products on the One Stop Market (`__SHOPPING__`) across every relevant search facet: keywords at minimum {headphones, earbuds, earphones, bluetooth headset, noise cancelling, wireless audio, gaming headset, over ear, in ear}. Target: ≥ 40 distinct product pages spanning ≥ 6 brands and ≥ 3 price tiers. For EACH product record: exact product_url, price, star rating, review_count, and every marketing feature-claim that appears on the page.\n\n(B) COMMUNITY SENTIMENT — Harvest ≥ 30 distinct Postmill threads (`__REDDIT__`) discussing Consumer-grade audio headphones across AT LEAST four sub-forums (e.g. /f/technology, /f/gadgets, /f/AskReddit, /f/headphones, /f/askscience, /f/LifeProTips, /f/personalfinance — any four that yield on-topic posts). For each thread record: thread_url, forum, score, comment_count, and a one-sentence summary of the top-voted take. Classify each thread into one of {praise, complaint, technical_question, comparison, purchase_advice}.\n\n(C) TECHNICAL GROUNDING — Using the English Wikipedia corpus served by Kiwix (`__WIKIPEDIA__`), locate ≥ 25 distinct Wikipedia articles that define OR explain the technical claims extracted from (A). Mandatory coverage for: {Active noise control, Noise-cancelling headphones, Bluetooth, AptX, LDAC (codec), Headphones, Loudspeaker, Lithium-ion battery, Wireless microphone} plus ≥ 15 more articles covering the specific feature claims found in (A). For each article record: article_url and a one-sentence extraction of the defining statement.\n\n(D) CROSS-SOURCE SYNTHESIS — The final report must include sections that:\n  1. List ≥ 5 product feature claims from (A) that either LACK Wikipedia backing or CONTRADICT it — each with the product URL, the wiki URL, and the specific contradiction.\n  2. Rank the brands found in (A) by aggregated Reddit sentiment, citing ≥ 2 reddit threads per brand as evidence.\n  3. Surface ≥ 3 divergences where a product's star rating is high (≥ 4.0) but Reddit sentiment is negative, OR vice versa — each divergence cited with product URL + ≥ 1 reddit URL.\n  4. Output a final TOP-10 list where each pick has (product URL + ≥ 2 reddit URL + ≥ 1 wiki URL) traceable evidence chain.\n\nFormatting rules: every factual claim is a markdown link `[label](url)`. Source URLs MUST be sandbox-local. Do not fabricate URLs — the URL must resolve on the sandbox. Answer starts with the final report in Markdown; no chain-of-thought.",
+  "intent": "I'm trying to get a clear, trustworthy picture of the consumer audio-headphone market before buying. Across what's actually available, what are the notable options at different price points, what do real users and communities say about the main brands, and where do product marketing claims fail to match the underlying technical reality? Pull it together into a grounded overview with a shortlist I can act on.",
   "start_url": "__SHOPPING__/catalogsearch/result/?q=headphones",
   "storage_state": null,
   "require_login": false,
   "markdown_spec": {
-    "min_words": 3500,
-    "max_words": 8000,
-    "min_paragraphs": 25,
-    "min_citations": 60,
-    "min_pages_browsed": 120
+    "min_words": 400
   },
   "citation_policy": {
     "required_for": [
@@ -87,5 +87,16 @@
   "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
   "author_notes": "Deep-tier task generated from configs/deep_topics/0001_audio_headphones.yaml. Golden: must=125, pool=739.",
   "domain": "Consumer",
-  "intent_type": "Market-Intelligence"
+  "intent_type": "Market-Intelligence",
+  "intent_v1_legacy": "Produce a comprehensive market-intelligence report on Consumer-grade audio headphones, spanning THREE dimensions. The report must be grounded in AT LEAST 120 distinct source URLs drawn from the sandbox (shopping / reddit / wikipedia), and MUST cite at least 60 of them as markdown links.\n\n(A) PRODUCT LANDSCAPE — Enumerate Consumer-grade audio headphones products on the One Stop Market (`__SHOPPING__`) across every relevant search facet: keywords at minimum {headphones, earbuds, earphones, bluetooth headset, noise cancelling, wireless audio, gaming headset, over ear, in ear}. Target: ≥ 40 distinct product pages spanning ≥ 6 brands and ≥ 3 price tiers. For EACH product record: exact product_url, price, star rating, review_count, and every marketing feature-claim that appears on the page.\n\n(B) COMMUNITY SENTIMENT — Harvest ≥ 30 distinct Postmill threads (`__REDDIT__`) discussing Consumer-grade audio headphones across AT LEAST four sub-forums (e.g. /f/technology, /f/gadgets, /f/AskReddit, /f/headphones, /f/askscience, /f/LifeProTips, /f/personalfinance — any four that yield on-topic posts). For each thread record: thread_url, forum, score, comment_count, and a one-sentence summary of the top-voted take. Classify each thread into one of {praise, complaint, technical_question, comparison, purchase_advice}.\n\n(C) TECHNICAL GROUNDING — Using the English Wikipedia corpus served by Kiwix (`__WIKIPEDIA__`), locate ≥ 25 distinct Wikipedia articles that define OR explain the technical claims extracted from (A). Mandatory coverage for: {Active noise control, Noise-cancelling headphones, Bluetooth, AptX, LDAC (codec), Headphones, Loudspeaker, Lithium-ion battery, Wireless microphone} plus ≥ 15 more articles covering the specific feature claims found in (A). For each article record: article_url and a one-sentence extraction of the defining statement.\n\n(D) CROSS-SOURCE SYNTHESIS — The final report must include sections that:\n  1. List ≥ 5 product feature claims from (A) that either LACK Wikipedia backing or CONTRADICT it — each with the product URL, the wiki URL, and the specific contradiction.\n  2. Rank the brands found in (A) by aggregated Reddit sentiment, citing ≥ 2 reddit threads per brand as evidence.\n  3. Surface ≥ 3 divergences where a product's star rating is high (≥ 4.0) but Reddit sentiment is negative, OR vice versa — each divergence cited with product URL + ≥ 1 reddit URL.\n  4. Output a final TOP-10 list where each pick has (product URL + ≥ 2 reddit URL + ≥ 1 wiki URL) traceable evidence chain.\n\nFormatting rules: every factual claim is a markdown link `[label](url)`. Source URLs MUST be sandbox-local. Do not fabricate URLs — the URL must resolve on the sandbox. Answer starts with the final report in Markdown; no chain-of-thought.",
+  "completeness": {
+    "golden_path": "data/golden/db/dr_cross_deep_0001.json",
+    "min_completeness": 0.0
+  },
+  "grounding": {
+    "k_star": 12,
+    "gamma": 1.0,
+    "min_grounding": 0.0
+  },
+  "rubric_path": "data/tasks/deep_research/cross_site_deep/rubrics_cw.json"
 }

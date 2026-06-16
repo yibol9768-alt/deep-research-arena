@@ -70,7 +70,9 @@ def _chat(base_url: str, key: str, model: str, messages: list[dict],
     body = {"model": model, "messages": messages, "max_tokens": max_tokens}
     low = model.lower()
     # Disable reasoning for thinking-capable models so tokens are not wasted.
-    if low.startswith("glm") or "thinking" in low or low.startswith("qwen3") or low.startswith("deepseek-v4"):
+    # NB: MiniMax rejects enable_thinking (HTTP 400) so it is intentionally excluded.
+    if (low.startswith("glm") or "thinking" in low or low.startswith("qwen3")
+            or low.startswith("deepseek-v4") or low.startswith("kimi")):
         body["extra_body"] = {"thinking": {"type": "disabled"}}
         body["enable_thinking"] = False
         body["thinking"] = {"type": "disabled"}
@@ -135,7 +137,7 @@ def run_agent(task_intent: str, shim: str, base_url: str, key: str, model: str,
     text, u = _chat(base_url, key, model, [
         {"role": "system", "content": q_sys},
         {"role": "user", "content": task_intent},
-    ], max_tokens=300)
+    ], max_tokens=300, timeout=420.0)
     calls += 1; tok_in += u["in"]; tok_out += u["out"]
     m = re.search(r"\[.*\]", text, re.S)
     try:
@@ -172,7 +174,7 @@ def run_agent(task_intent: str, shim: str, base_url: str, key: str, model: str,
     text2, u2 = _chat(base_url, key, model, [
         {"role": "system", "content": w_sys},
         {"role": "user", "content": f"TASK:\n{task_intent}\n\nSOURCES:\n{snippets}\n\nWrite the report now."},
-    ], max_tokens=4000)
+    ], max_tokens=4000, timeout=420.0)
     calls += 1; tok_in += u2["in"]; tok_out += u2["out"]
 
     cites = re.findall(r"\((https?://[^)\s]+)\)", text2)

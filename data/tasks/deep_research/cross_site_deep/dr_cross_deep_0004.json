@@ -1,5 +1,5 @@
 {
-  "schema_version": "deep-1.0.0",
+  "schema_version": "cw-1.0.0",
   "task_id": "dr_cross_deep_0004",
   "tier": "deep",
   "sites": [
@@ -7,18 +7,18 @@
     "reddit",
     "wikipedia"
   ],
-  "difficulty": 5,
+  "difficulty": {
+    "breadth": "high",
+    "depth": "deep",
+    "exploration": "high"
+  },
   "expected_steps": 80,
-  "intent": "Produce a Comparison report on three photography starter stacks under a fixed $800 first-year budget — (S1) Mirrorless body + 1 prime + 1 zoom, (S2) Used DSLR body + 2 primes + flash, (S3) Smartphone + lens-attachment kit + tripod (no dedicated camera body) — across exactly 5 use cases: (UC1) family/portrait indoor, (UC2) travel/landscape outdoor, (UC3) low-light event/concert, (UC4) social-media short-video, (UC5) growth path to professional within 18 months.\n\nGround in >= 120 sandbox URLs and cite >= 60. (A) `__SHOPPING__` >= 36 product pages spanning 3 stacks (>= 10 per stack incl. body + lens + accessory), price + rating + feature_claim. (B) `__REDDIT__` >= 30 threads from /f/photography, /f/AskPhotography, /f/photocritique, /f/M43, /f/MirrorlessCamera, /f/AnalogCommunity etc. — at least 4 forums. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Mirrorless camera, Digital single-lens reflex camera, Image sensor format, Crop factor, Aperture, Shutter speed, ISO, Depth of field, Bokeh, Computational photography, Exposure (photography) — plus >= 14 more.\n\nOutput a 3 x 5 taxonomy matrix (stack x use case) rated {strong / workable / weak} with cited evidence per cell. Add a '5 hidden costs the marketing claim hides' section — each cost is a contradiction between vendor feature claim (cited shopping URL) and reddit-reported reality (cited thread URL) backed by a Wikipedia definition (cited wiki URL). End with 'upgrade path each stack supports past month-12' — 3 paragraphs, >= 4 reddit threads each.\n\nFormat: markdown links only. Sandbox-local. No fabrication. Begin with comparison content.",
+  "intent": "I'm getting into photography with roughly $800 for my first year and I'm weighing a few starter routes: a new mirrorless body with a couple of lenses, a used DSLR kit, or another approach. Compare the realistic options, factor in what photographers actually recommend, and recommend the smartest way to start, with the reasoning and trade-offs.",
   "start_url": "__SHOPPING__/catalogsearch/result/?q=camera",
   "storage_state": null,
   "require_login": false,
   "markdown_spec": {
-    "min_words": 3500,
-    "max_words": 8000,
-    "min_paragraphs": 25,
-    "min_citations": 60,
-    "min_pages_browsed": 120
+    "min_words": 400
   },
   "citation_policy": {
     "required_for": [
@@ -106,5 +106,16 @@
   "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
   "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
   "domain": "Consumer",
-  "intent_type": "Comparison"
+  "intent_type": "Comparison",
+  "intent_v1_legacy": "Produce a Comparison report on three photography starter stacks under a fixed $800 first-year budget — (S1) Mirrorless body + 1 prime + 1 zoom, (S2) Used DSLR body + 2 primes + flash, (S3) Smartphone + lens-attachment kit + tripod (no dedicated camera body) — across exactly 5 use cases: (UC1) family/portrait indoor, (UC2) travel/landscape outdoor, (UC3) low-light event/concert, (UC4) social-media short-video, (UC5) growth path to professional within 18 months.\n\nGround in >= 120 sandbox URLs and cite >= 60. (A) `__SHOPPING__` >= 36 product pages spanning 3 stacks (>= 10 per stack incl. body + lens + accessory), price + rating + feature_claim. (B) `__REDDIT__` >= 30 threads from /f/photography, /f/AskPhotography, /f/photocritique, /f/M43, /f/MirrorlessCamera, /f/AnalogCommunity etc. — at least 4 forums. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Mirrorless camera, Digital single-lens reflex camera, Image sensor format, Crop factor, Aperture, Shutter speed, ISO, Depth of field, Bokeh, Computational photography, Exposure (photography) — plus >= 14 more.\n\nOutput a 3 x 5 taxonomy matrix (stack x use case) rated {strong / workable / weak} with cited evidence per cell. Add a '5 hidden costs the marketing claim hides' section — each cost is a contradiction between vendor feature claim (cited shopping URL) and reddit-reported reality (cited thread URL) backed by a Wikipedia definition (cited wiki URL). End with 'upgrade path each stack supports past month-12' — 3 paragraphs, >= 4 reddit threads each.\n\nFormat: markdown links only. Sandbox-local. No fabrication. Begin with comparison content.",
+  "completeness": {
+    "golden_path": "data/golden/db/dr_cross_deep_0004.json",
+    "min_completeness": 0.0
+  },
+  "grounding": {
+    "k_star": 12,
+    "gamma": 1.0,
+    "min_grounding": 0.0
+  },
+  "rubric_path": "data/tasks/deep_research/cross_site_deep/rubrics_cw.json"
 }

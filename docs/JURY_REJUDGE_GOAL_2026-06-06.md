@@ -1,5 +1,21 @@
 # GOAL: 陪审团重判到上线(长时运行,2026-06-06 起)
 
+## ✅ 已完成并上线(2026-06-06)
+
+全流程跑通,公开站点已更新验证。最终数据:
+- **1,553 场全部三判官有效投票**(`valid_juror_distribution {3:1553}`,0 判官错误)。
+- 陪审团平局率 **16.9%**(单判官时 50.6%),可决 83.1%(果断 27.7% + 多数 54.9%)。
+- 三判官果断均衡:deepseek 68% / glm 61% / qwen 50%。
+- 真值门控榜:camel-ai 第 1(可达 60%),gpt-researcher 原始判官 Elo 第 1 但可达仅 4% → 门控后第 9。
+- 修了两个 bug:(1) error→TIE 静默记票;(2) 外部改的 `_is_degraded` 用 verdicts_raw
+  计有效判官被 error-TIE 骗(改用 judge_errors_partial 准确计数,保留 2/3 多数有效的意图)。
+- 提交:`7e3ee35`(榜单+引擎+changelog)、`c977d2e`(methodology 页改三判官)。push origin main。
+- 站点验证:changelog 新条目、首页 gpt-researcher Elo 1179(旧 1207 已消失)、
+  methodology 页"3-judge cross-family PoLL jury"均已 live。
+- 残留(可选清理):box 上 `DRA_StackGuard` 计划任务每 5 分钟跑(保活,现已无活可保);
+  卸载 `schtasks /Delete /TN DRA_StackGuard /F`。污染榜备份 `*.CONTAMINATED.*.json` 留底。
+
+
 > 一句话:把"假三判官"修成"真三判官",重判被污染的对战,跑完质量门,
 > 汇总真值门控榜,上线 deep2researcharena.com。期间持续监控、自愈、续跑。
 

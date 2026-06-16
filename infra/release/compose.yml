@@ -1,0 +1,88 @@
+services:
+  shopping:
+    image: ${SANDBOX_SHOPPING_IMAGE:-shopping_final_0712:latest}
+    container_name: dr_sandbox_shopping
+    restart: unless-stopped
+    ports:
+      - "${SHOPPING_PORT:-7770}:80"
+    environment:
+      MAGENTO_BASE_URL: "http://localhost:7770"
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+
+  reddit:
+    image: ${SANDBOX_REDDIT_IMAGE:-postmill-populated-exposed-withimg:latest}
+    container_name: dr_sandbox_reddit
+    restart: unless-stopped
+    ports:
+      - "${REDDIT_PORT:-9999}:80"
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  wiki:
+    image: ${SANDBOX_WIKI_IMAGE:-ghcr.io/kiwix/kiwix-serve:latest}
+    container_name: dr_sandbox_wiki
+    restart: unless-stopped
+    ports:
+      - "${WIKI_PORT:-8090}:8080"
+    volumes:
+      - ${WIKI_ZIM_DIR:-./wiki}:/data:ro
+    command: ["/data/${WIKI_ZIM_FILE:-wikipedia_en_all_nopic.zim}"]
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  ds_proxy:
+    image: ${SANDBOX_DS_PROXY_IMAGE:-dr-bench-ds-proxy:latest}
+    container_name: dr_sandbox_ds_proxy
+    restart: unless-stopped
+    environment:
+      OPENAI_PROXY_UPSTREAM: "${DEEPSEEK_API_BASE:-https://api.deepseek.com}"
+      OPENAI_PROXY_KEY: "${DEEPSEEK_API_KEY:-}"
+      OPENAI_PROXY_EMB_KEY: "${DASHSCOPE_API_KEY:-}"
+    networks: [sandbox]
+    expose: ["8088"]
+
+  gateway:
+    image: ${SANDBOX_GATEWAY_IMAGE:-dr-bench-gateway:latest}
+    container_name: dr_sandbox_gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-8081}:8081"
+    environment:
+      SHIM_LLM_UPSTREAM: "http://ds_proxy:8088/v1"
+      SHOPPING: "http://shopping:80"
+      REDDIT: "http://reddit:80"
+      KIWIX: "http://wiki:8080"
+      KIWIX_BOOK: "${WIKI_KIWIX_BOOK:-wikipedia_en_all_nopic}"
+    depends_on:
+      shopping: { condition: service_healthy }
+      reddit: { condition: service_healthy }
+      wiki: { condition: service_healthy }
+      ds_proxy: { condition: service_started }
+    networks: [sandbox]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+networks:
+  sandbox:
+    driver: bridge
+
