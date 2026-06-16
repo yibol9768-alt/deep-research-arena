@@ -76,7 +76,10 @@ DEFAULT_WORD_BUDGET = 1500
 # term, NOT the F1(precision, recall) that src.scoring.simple_score.grounding_score
 # would compute. We surface the honest formula in the output JSON so a reader
 # is never misled into thinking an F1 was used.
-GROUNDING_COMPOSITE_FORMULA = "0.5 * curated_must_cite_recall + 0.5 * quote_match_score"
+GROUNDING_COMPOSITE_FORMULA = (
+    "ReachRate^gamma * GroundF1@K* (closed_world; CLOSED_WORLD_REDESIGN.md sec 7) "
+    "| legacy fallback: 0.5 * curated_must_cite_recall + 0.5 * quote_match_score"
+)
 GROUNDING_DESCRIPTION = (
     "Additive citation-fidelity + curated recall: "
     "0.5 * curated_must_cite_recall + 0.5 * quote_match_score. "
@@ -212,8 +215,32 @@ def _fallback_grounding(score_json: dict) -> float:
     return 0.5 * recall + 0.5 * qm
 
 
+def closed_world_grounding_from_json(score_json: dict) -> float | None:
+    """Read the closed-world grounding pillar (CLOSED_WORLD_REDESIGN.md section 7):
+    ReachRate**gamma * GroundF1@K*, written by GroundingVerifier. This is the
+    preferred, decidable headline. Returns None when the pillar is absent (legacy
+    score JSONs), so the old additive recall+quote blend stays the fallback.
+    """
+    g = score_json.get("grounding")
+    if not isinstance(g, dict):
+        return None
+    det = g.get("details") or {}
+    if "grounding" in det:
+        return float(det["grounding"])
+    if "score" in g:
+        return float(g["score"])
+    return None
+
+
 def grounding_for(score_json: dict) -> tuple[float, str]:
-    """Return (grounding in [0,1], source tag)."""
+    """Return (grounding in [0,1], source tag).
+
+    Preference: decidable closed-world grounding pillar (section 7) > single-dict
+    simple_score scorer > legacy additive must_cite_recall+quote_match blend.
+    """
+    cw = closed_world_grounding_from_json(score_json)
+    if cw is not None:
+        return max(0.0, min(1.0, cw)), "closed_world"
     fn = _load_simple_score()
     if fn is not None:
         val = _simple_score_from_json(fn, score_json)

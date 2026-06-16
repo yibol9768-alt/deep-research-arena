@@ -249,6 +249,11 @@ class ChecklistVerifier:
         **kwargs: Any,
     ) -> VerifierResult:
         rubric_snapshot = kwargs.get("rubric_snapshot")
+        # Closed-world (CLOSED_WORLD_REDESIGN.md sec 9): a task may point at a
+        # weighted per-task rubric on disk. Load it and route to the graded
+        # snapshot path so the binary disk-checklist behaviour is unaffected.
+        if not rubric_snapshot and task_config.get("rubric_path"):
+            rubric_snapshot = self._load_rubric_path(task_config)
         if isinstance(rubric_snapshot, dict) and rubric_snapshot.get("items"):
             return self._verify_snapshot(
                 task_config=task_config,
@@ -324,6 +329,18 @@ class ChecklistVerifier:
             },
         )
 
+    def _load_rubric_path(self, task_config: dict[str, Any]) -> dict | None:
+        """Load this task's weighted rubric {version, items:[{criterion,weight}]}
+        from task_config['rubric_path']. Returns None if absent/unreadable."""
+        try:
+            p = Path(task_config["rubric_path"])
+            if not p.is_absolute():
+                p = Path(__file__).resolve().parents[2] / p
+            data = json.loads(p.read_text())
+            return data.get(task_config.get("task_id", "")) or None
+        except Exception:
+            return None
+
     def _verify_snapshot(
         self,
         *,
@@ -382,7 +399,12 @@ class ChecklistVerifier:
                     break
             w = weights[i]
             numerator += credit * w
-            denominator += w
+            # RR/DRACO normalization (CLOSED_WORLD_REDESIGN.md sec 9): divide by
+            # the sum of POSITIVE weights only. Negative (penalty) criteria pull
+            # the numerator down when met, but must not enter the denominator
+            # (else a met penalty could push the score above 1.0).
+            if w > 0:
+                denominator += w
             per_item.append({
                 "index": i + 1,
                 "criterion": criteria[i],
@@ -391,7 +413,8 @@ class ChecklistVerifier:
                 "reason": reason,
             })
 
-        weighted_score = round(numerator / denominator, 6) if denominator else 0.0
+        weighted_score = (numerator / denominator) if denominator else 0.0
+        weighted_score = max(0.0, min(1.0, round(weighted_score, 6)))
 
         return VerifierResult(
             score=weighted_score,

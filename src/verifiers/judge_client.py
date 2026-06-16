@@ -427,8 +427,15 @@ def _call_openai(
     elif low_model.startswith("glm"):
         extra_body["thinking"] = {"type": "disabled"}
     # qwen3 hybrids reject thinking in non-streaming calls; always disable.
+    # A self-hosted vLLM OpenAI endpoint takes the Qwen3 thinking switch via
+    # chat_template_kwargs (a bare top-level enable_thinking is rejected as an
+    # unexpected body field and errors every call). DashScope's qwen takes a
+    # top-level enable_thinking, so send that too when routing to DashScope.
     elif low_model.startswith("qwen3"):
-        extra_body["enable_thinking"] = False
+        if os.environ.get("DASHSCOPE_API_KEY") and "dashscope" in base.lower():
+            extra_body["enable_thinking"] = False
+        else:
+            extra_body["chat_template_kwargs"] = {"enable_thinking": False}
 
     timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "120"))
     try:

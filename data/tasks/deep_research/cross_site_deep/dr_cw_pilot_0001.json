@@ -1,0 +1,20 @@
+{
+  "schema_version": "cw-1.0.0",
+  "task_id": "dr_cw_pilot_0001",
+  "tier": "deep",
+  "sites": ["shopping", "reddit", "wikipedia"],
+  "intent": "I'm trying to pick noise-cancelling headphones for commuting and working from home. Which options do people actually recommend, how do they compare on the things that matter (noise cancelling, battery, comfort, price), and where do the marketing claims not hold up against what is technically true? Give me a shortlist I can trust, and back it with what you found.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=headphones",
+  "require_login": false,
+  "difficulty": {"breadth": "high", "depth": "deep", "exploration": "medium"},
+  "markdown_spec": {"min_words": 400},
+  "completeness": {
+    "golden_path": "data/golden/db/dr_cw_pilot_0001.json",
+    "min_completeness": 0.0
+  },
+  "grounding": {"k_star": 12, "gamma": 1.0, "min_grounding": 0.0},
+  "rubric_path": "data/tasks/deep_research/cross_site_deep/rubrics_cw.json",
+  "author_notes": "Closed-world pilot (CLOSED_WORLD_REDESIGN.md sec 5). De-specified natural intent: NO min_words quota beyond a floor, NO min_citations / min_pages / per-domain / keyword lists / mandated sections. All requirements live in the DB-derived golden (relevant_set + fact_nuggets) and the weighted rubric, not the prompt. Difficulty is tagged on the (breadth, depth, exploration) axes instead.",
+  "domain": "Consumer",
+  "intent_type": "purchase-research"
+}

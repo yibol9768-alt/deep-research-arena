@@ -332,7 +332,7 @@ def main() -> int:
         print(f"  details: {json.dumps(qm_result.details, ensure_ascii=False)}")
     else:
         from src.verifiers.base import VerifierResult
-        qm_result = VerifierResult.fail("skipped", reason="SKIP_LAYER2=1")
+        qm_result = VerifierResult.fail("skipped", skip_reason="SKIP_LAYER2=1")
 
     if os.environ.get("SKIP_LAYER3", "0") != "1":
         nli_v = ClaimNLIVerifier(theta=0.80, max_calls=60, max_workers=3)
@@ -341,7 +341,7 @@ def main() -> int:
         print(f"  details: {json.dumps(nli_result.details, ensure_ascii=False)}")
     else:
         from src.verifiers.base import VerifierResult
-        nli_result = VerifierResult.fail("skipped", reason="SKIP_LAYER3=1")
+        nli_result = VerifierResult.fail("skipped", skip_reason="SKIP_LAYER3=1")
 
     spec_check = _markdown_spec_score(answer, task_cfg.get("markdown_spec", {}))
     print(f"\n[markdown_spec] {json.dumps(spec_check, ensure_ascii=False)}")
