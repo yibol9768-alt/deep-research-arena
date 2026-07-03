@@ -207,7 +207,7 @@ gate          = (reachability + quote_match) / 2   # in [0, 1]`}
           {/* References */}
           <article id="references" className="card scroll-mt-24 p-7">
             <span className="label-caps"><T en="References" zh="参考文献" /></span>
-            <h2 className="mt-3 font-serif text-h-sm text-ink"><T en="Where the protocol comes from" zh="协议出处" /></h2>
+            <h2 className="mt-3 font-serif text-h-sm text-ink"><T en="References" zh="参考文献" /></h2>
             <ul className="mt-4 space-y-3 text-sm leading-relaxed text-muted">
               <li>
                 <span className="font-medium text-ink">PoLL — Panel of LLM evaluators.</span>{' '}

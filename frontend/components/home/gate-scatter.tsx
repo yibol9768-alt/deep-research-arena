@@ -45,8 +45,8 @@ export function GateScatter({ agents }: { agents: RankedAgent[] }) {
       </header>
       <p className="mt-1.5 text-xs text-muted">
         <T
-          en="Raw jury Elo (with 95% CI whiskers) against the judge-free grounding gate. Top-left is the failure mode this benchmark exposes: fluent but ungrounded."
-          zh="裸陪审团 Elo(含 95% 置信区间须线)对不依赖判官的接地门。左上角正是本基准要暴露的失败模式:流畅但不接地。"
+          en="Raw jury Elo (with 95% CI whiskers) against the judge-free grounding gate. Agents in the top-left read well to the jury, but their citations do not check out."
+          zh="裸陪审团 Elo(含 95% 置信区间须线)对不依赖判官的接地门。左上角的智能体在陪审团眼中表现不错,但引用经不起核验。"
         />
       </p>
 

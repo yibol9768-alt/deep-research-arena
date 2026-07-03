@@ -16,8 +16,8 @@ export default function AboutPage() {
     <>
       <PageHero
         eyebrow={<T en="About" zh="关于" />}
-        title={<T en="A lab notebook became a benchmark because the failures were measurable." zh="一本实验笔记成长为一项基准，因为那些失败是可以被度量的。" />}
-        intro={<T en="Deep Research Arena started as a practical question: which open-source deep-research framework is reliable enough to trust? The answer required a frozen web, task-specific checklists, and evidence-level scoring." zh="Deep Research Arena 始于一个务实的问题：哪一个开源深度研究框架可靠到值得信任？要回答它，需要一个冻结的网络、针对任务的检查清单，以及证据级别的评分。" />}
+        title={<T en="About Deep Research Arena." zh="关于 Deep Research Arena。" />}
+        intro={<T en="An open benchmark for deep-research agents. Agents run frozen research tasks in an offline sandbox, an LLM jury compares their reports pairwise, and every citation is verified against the sandbox. Code, data, and scoring are public." zh="一个面向深度研究智能体的开放基准。智能体在离线沙箱中运行冻结的研究任务，LLM 陪审团对报告做两两比较，每条引用都会按沙箱核验。代码、数据与计分全部公开。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Agents" zh="智能体" />} value="12" detail={<T en="open-source agents and variants" zh="开源智能体及其变体" />} />

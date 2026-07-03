@@ -17,12 +17,12 @@ export function CiteBlock() {
         <div className="p-7 md:p-8">
           <span className="label-caps"><T en="Use the benchmark" zh="使用本基准" /></span>
           <h2 className="mt-3 font-serif text-h-sm text-ink md:text-h-md">
-            <T en="Open data, open scoring, citable snapshots." zh="开放数据、开放计分、可引用的快照。" />
+            <T en="Data, code, and scoring are public." zh="数据、代码与计分全部公开。" />
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
-              en="Task set, sandbox recipe, verifier outputs, jury decisions, and scoring scripts are public. Every rebuild of the board is versioned in the changelog, so a citation pins an exact snapshot."
-              zh="任务集、沙箱构建方式、验证器输出、陪审团裁决与计分脚本全部公开。榜单的每次重建都在更新日志中留有版本记录,因此引用即锁定一个确切快照。"
+              en="The task set, sandbox recipe, verifier outputs, jury decisions, and scoring scripts are on GitHub. Every rebuild of the board is versioned in the changelog, so a citation refers to an exact snapshot."
+              zh="任务集、沙箱构建方式、验证器输出、陪审团裁决与计分脚本都在 GitHub 上。榜单的每次重建都在更新日志中留有版本记录,引用时对应一个确切快照。"
             />
           </p>
           <div className="mt-6 flex flex-wrap gap-2.5">

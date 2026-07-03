@@ -67,7 +67,7 @@ export default function PillarsPage() {
     <>
       <PageHero
         eyebrow={<T en="Scoring Pillars" zh="评分维度" />}
-        title={<T en="The public score separates judgment from evidence." zh="公开主分把评审质量与证据质量分开。" />}
+        title={<T en="What the public score measures." zh="公开主分衡量什么。" />}
         intro={<T en="The live leaderboard is intentionally simple: judge Elo measures comparative report quality, while the grounding gate checks whether citations resolve and quotes match. The broader verifier taxonomy below shows where the scoring stack can expand." zh="当前公开榜单刻意保持简单：判官 Elo 衡量报告质量，接地门核验引用是否可达、引文是否匹配。下方的验证器分类展示评分体系可以继续扩展的方向。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -118,15 +118,9 @@ export default function PillarsPage() {
       <section className="container mt-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {PILLARS.map((pillar, i) => (
           <article key={pillar.name} className="card card-lift p-6">
-            <div className="flex items-center justify-between gap-3">
-              <span className="label-caps"><T en={`Pillar ${i + 1}`} zh={`维度 ${i + 1}`} /></span>
-              <span className="rounded-pill bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">{Math.round(pillar.weight * 100)}%</span>
-            </div>
-            <h2 className="mt-4 font-serif text-h-sm text-ink"><T en={pillar.name} zh={pillar.nameZh} /></h2>
+            <span className="label-caps"><T en={`Verifier family ${i + 1}`} zh={`验证器家族 ${i + 1}`} /></span>
+            <h2 className="mt-3 font-serif text-h-sm text-ink"><T en={pillar.name} zh={pillar.nameZh} /></h2>
             <p className="mt-2 text-sm leading-relaxed text-muted"><T en={pillar.description} zh={pillar.descriptionZh} /></p>
-            <div className="mt-5 h-2 rounded-pill bg-surface-mid">
-              <div className="h-full rounded-pill bg-brand" style={{ width: `${pillar.weight * 100 * 3.2}%` }} />
-            </div>
           </article>
         ))}
       </section>

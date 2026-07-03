@@ -535,7 +535,7 @@ export default function AnnotatePage() {
     <>
       <PageHero
         eyebrow={<T en="Human Annotation" zh="人工标注" />}
-        title={<T en="Compare two reports, record one preference." zh="对比两份报告,记录一次偏好。" />}
+        title={<T en="Blind A/B report annotation." zh="盲测 A/B 报告标注。" />}
         intro={
           <T
             en="Read both agent reports for a task, pick the stronger one (or a tie), and cite which dimensions drove the call. Verdicts become human-preference labels for judge-alignment kappa. Everything is saved in your browser; export to JSONL when you are done."

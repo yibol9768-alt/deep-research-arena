@@ -18,7 +18,7 @@ export default function ArenaPage({ searchParams }: { searchParams?: { a?: strin
     <>
       <PageHero
         eyebrow={<T en="Arena" zh="竞技场" />}
-        title={<T en="Compare two agents without hiding the uncertainty." zh="对比两个智能体，同时不掩盖不确定性。" />}
+        title={<T en="Compare two agents side by side." zh="并排对比两个智能体。" />}
         intro={<T en="Pick any two rows from the leaderboard and inspect the same public signals side by side: truth-gated score, raw judge Elo, grounding, and the global W/L/D record behind each estimate." zh="从榜单中任选两个条目，并排查看同一组公开信号：真值门控主分、裸判官 Elo、接地率，以及支撑每个估计的全局胜/负/平记录。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

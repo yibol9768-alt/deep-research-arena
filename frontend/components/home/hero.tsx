@@ -32,8 +32,8 @@ export function Hero({ stats, news }: Props) {
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
             <T
-              en="Open-source research agents run against the same frozen sandbox. Every cited URL is fetched, every quoted passage is checked — the public score only rises when the report and its evidence both hold up."
-              zh="开源研究智能体在同一套冻结沙箱中运行。每个引用 URL 都会被抓取、每段引文都会被核对 —— 只有报告与证据同时站得住,公开主分才会上升。"
+              en="Open-source research agents run the same frozen tasks in an offline sandbox. An LLM jury compares their reports pairwise, and every cited URL and quote is verified against the sandbox. The public score is judge Elo scaled by the verified-citation rate."
+              zh="开源研究智能体在离线沙箱中运行同一批冻结任务。LLM 陪审团对报告做两两比较,每条引用 URL 和引文都会按沙箱核验。公开主分 = 判官 Elo × 引用核验率。"
             />
           </p>
 

@@ -49,8 +49,8 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
             </h3>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
               <T
-                en="A reproducible benchmark for deep-research agents: frozen tasks, auditable reports, jury decisions, and judge-free citation checks. Fluency is not grounding."
-                zh="一项可复现的深度研究智能体基准：冻结任务、可审计报告、陪审团裁决与不依赖判官的引用核验。流畅不等于接地。"
+                en="A reproducible benchmark for deep-research agents: frozen tasks, auditable reports, jury decisions, and judge-free citation checks."
+                zh="一项可复现的深度研究智能体基准：冻结任务、可审计报告、陪审团裁决与不依赖判官的引用核验。"
               />
             </p>
             <div className="mt-5 flex gap-3">

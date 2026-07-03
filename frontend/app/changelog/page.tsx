@@ -19,7 +19,7 @@ export default function ChangelogPage() {
     <>
       <PageHero
         eyebrow={<T en="Changelog" zh="更新日志" />}
-        title={<T en="What changed and when." zh="改了什么，什么时候改的。" />}
+        title={<T en="Release history." zh="更新记录。" />}
         intro={
           <T
             en="Every meaningful update to the arena — scoring, tasks, sandbox enforcement, the site — lands here before it ships. Newest entries first."

@@ -28,8 +28,8 @@ export default function TasksPage() {
     <>
       <PageHero
         eyebrow={<T en="Tasks Explorer" zh="任务浏览器" />}
-        title={<T en={`${stats.count} sandbox-grounded research tasks, built to expose citation failure.`} zh={`${stats.count} 个基于沙盒的研究任务，专为暴露引用失败而设计。`} />}
-        intro={<T en="Each prompt fixes the same three-site sandbox, expected source coverage, and an audit checklist. The full task set is exposed here so results can be traced back to the exact research demand." zh="每个提示词都固定同一套三站点沙箱、来源覆盖要求和审计清单。这里展示完整任务集，便于把结果追溯到具体研究需求。" />}
+        title={<T en={`${stats.count} frozen research tasks.`} zh={`${stats.count} 个冻结研究任务。`} />}
+        intro={<T en="Each task fixes the same three-site sandbox, an expected source contract, and an audit checklist. The full set is public, so any leaderboard number can be traced back to the exact prompt and checklist behind it." zh="每个任务都固定同一套三站点沙箱、来源契约和审计清单。任务集全部公开,榜单上的任何数字都能追溯到背后的具体提示词与清单。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Tasks" zh="任务" />} value={String(stats.count)} detail={<T en="cross-site deep research prompts" zh="跨站点深度研究提示" />} />

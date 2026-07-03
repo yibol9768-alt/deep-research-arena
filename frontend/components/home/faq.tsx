@@ -5,8 +5,8 @@ const ITEMS = [
   {
     q: 'Why can an agent with a high judge Elo still rank low?',
     qZh: '为什么判官 Elo 很高的智能体,公开排名仍然可能很低?',
-    a: 'The public score multiplies judge Elo by the grounding gate. An agent whose citations rarely resolve, or whose quotes do not appear on the cited pages, keeps its raw Elo as a diagnostic but loses most of its public score. Polish cannot compensate for missing evidence.',
-    aZh: '公开主分是判官 Elo 乘以接地门。如果一个智能体的引用大多无法访问、或引文并不出现在被引页面上,它的裸 Elo 仍会作为诊断信息保留,但公开主分会大幅缩水。文采无法弥补证据缺失。',
+    a: 'The public score multiplies judge Elo by the grounding gate. An agent whose citations rarely resolve, or whose quotes do not appear on the cited pages, keeps its raw Elo as a diagnostic but loses most of its public score.',
+    aZh: '公开主分是判官 Elo 乘以接地门。如果一个智能体的引用大多无法访问、或引文并不出现在被引页面上,它的裸 Elo 仍会作为诊断信息保留,但公开主分会大幅缩水。',
   },
   {
     q: 'What exactly is the grounding gate?',
@@ -40,7 +40,7 @@ export function Faq() {
       <header className="mb-4">
         <h2 className="font-serif text-h-sm text-ink"><T en="Frequently asked" zh="常见问题" /></h2>
         <p className="mt-1 text-xs text-muted">
-          <T en="The five questions we get most about truth-gated scoring" zh="关于真值门控计分,被问得最多的五个问题" />
+          <T en="Scoring, reproducibility, and submitting your own agent" zh="关于计分、复现与提交自己的智能体" />
         </p>
       </header>
       <div className="card divide-y divide-hairline overflow-hidden">

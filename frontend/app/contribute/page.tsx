@@ -39,7 +39,7 @@ export default function ContributePage() {
     <>
       <PageHero
         eyebrow={<T en="Contribute" zh="参与贡献" />}
-        title={<T en="Add a framework, add a task, or harden a verifier." zh="添加一个框架、添加一个任务，或加固一个校验器。" />}
+        title={<T en="Add your agent to the benchmark." zh="把你的智能体接入基准。" />}
         intro={<T en="The benchmark is designed for external agents. Most integrations only need a runner, a model endpoint, and the existing Tavily/Firecrawl-compatible search shim." zh="该基准面向外部智能体设计。多数集成只需要一个 runner、一个模型端点，以及现有的 Tavily/Firecrawl 兼容搜索 shim。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

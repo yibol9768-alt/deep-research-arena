@@ -7,8 +7,8 @@ const STEPS = [
     icon: Server,
     title: 'Frozen sandbox',
     titleZh: '冻结沙箱',
-    body: 'Every agent browses the same offline corpus. Every fetch is logged, so "I read this page" is a checkable claim, not an anecdote.',
-    bodyZh: '所有智能体浏览同一套离线语料。每次抓取都有日志，"我读过这个页面"是可核查的声明，而非口说无凭。',
+    body: 'Every agent browses the same offline corpus of a shopping site, a forum, and an offline Wikipedia. Every fetch is logged.',
+    bodyZh: '所有智能体浏览同一套离线语料:购物站、论坛和离线维基百科。每次抓取都有日志。',
   },
   {
     icon: FileText,
@@ -43,7 +43,7 @@ export function PipelineBand() {
             <h2 className="font-serif text-h-sm text-ink"><T en="How it works" zh="评测流程" /></h2>
           </div>
           <p className="mt-1 text-xs text-muted">
-            <T en="One frozen world, four checkpoints — no exceptions" zh="一个冻结世界,四道关卡,没有例外" />
+            <T en="From task brief to public score in four steps" zh="从任务简报到公开主分的四个步骤" />
           </p>
         </div>
         <Link

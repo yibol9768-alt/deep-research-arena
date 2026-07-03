@@ -53,8 +53,8 @@ export default function SandboxPage() {
     <>
       <PageHero
         eyebrow={<T en="Sandbox" zh="沙箱" />}
-        title={<T en="A frozen mini-internet makes deep research reproducible." zh="一个冻结的迷你互联网让深度研究可复现。" />}
-        intro={<T en="Agents browse a controlled stack instead of the live web. That makes every task rerunnable, every source reachable, and every citation audit possible." zh="智能体浏览的是受控的栈，而非真实的互联网。这让每个任务都可重跑、每个来源都可访问、每条引用都可审计。" />}
+        title={<T en="The frozen sandbox." zh="冻结沙箱。" />}
+        intro={<T en="Agents browse a controlled offline stack instead of the live web: a shopping site, a forum, and an offline Wikipedia, behind Tavily/Firecrawl-compatible search endpoints. Every task is rerunnable and every citation can be re-opened by the verifiers." zh="智能体浏览的是受控的离线栈而非真实互联网：一个购物站、一个论坛和一份离线维基百科,通过兼容 Tavily/Firecrawl 的搜索接口访问。每个任务都可重跑,每条引用都能被验证器重新打开。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Containers" zh="容器" />} value="3+" detail={<T en="shopping, forum, wiki, plus shims" zh="购物、论坛、维基，外加垫片" />} />
