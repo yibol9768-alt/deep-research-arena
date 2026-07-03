@@ -9,7 +9,7 @@
   ],
   "difficulty": 5,
   "expected_steps": 80,
-  "intent": "Produce a Debunking / Fact-Check report auditing 5 specific marketing claims common on consumer cookware: (CL1) 'PFOA-free non-stick is safe at all temperatures', (CL2) 'Ceramic-coated pans last as long as PTFE pans', (CL3) 'Cast iron skillets contribute meaningful dietary iron', (CL4) 'Stainless steel is non-reactive with all foods', (CL5) 'Hard-anodized aluminum cannot leach into food'. For each claim, produce a verdict in {SUPPORTED, PARTIALLY_SUPPORTED, DEBUNKED} backed by triple evidence.\n\nGround in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 36 cookware product pages (cast iron, non-stick, ceramic-coated, stainless, hard-anodized) with their **verbatim marketing language** for the audited claim + price + rating. (B) `__REDDIT__` >= 30 threads from /f/Cooking, /f/AskCulinary, /f/castiron, /f/Cookware, /f/BuyItForLife, /f/Frugal — capturing real-world failure modes (peeling coating, rust, scratches, residue). (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Polytetrafluoroethylene, Perfluorooctanoic acid, Non-stick surface, Cast-iron cookware, Stainless steel, Anodizing, Aluminium toxicity, Maillard reaction, Heat capacity, Thermal conductivity — plus >= 15 more.\n\nOutput a 5-claim verdict table: each row = one claim, with columns (verdict, key supporting product URL with literal marketing quote, key reddit URL with user counter-evidence, key wiki URL with the underlying chemistry / physics, 1-paragraph reasoning). Add a 'safety risk rank' section: rank the 5 cookware materials by aggregate risk score derived from the 5 claim verdicts. End with a 'shopping rules' cheat-sheet (<= 8 bullet points), each rule cited with >= 1 wiki URL.\n\nFormat: markdown links only. Begin with the verdict table. No chain-of-thought.",
+  "intent": "The wireless earbuds I'm eyeing sit at nearly five stars with thousands of happy reviews, but the hobbyist crowd keeps repeating that all true wireless buds are basically disposable: the tiny batteries fade, one side starts dropping out, and by year two you're rebuying. Those are two totally different pictures and I don't know which to believe before I spend real money. Is the battery and connection decay a physical inevitability of the format or just a few loud horror stories? I'd love the honest verdict, plus which pair holds up best if I go ahead.",
   "start_url": "__SHOPPING__/catalogsearch/result/?q=cookware",
   "storage_state": null,
   "require_login": false,
@@ -104,6 +104,31 @@
   },
   "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
   "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
-  "domain": "Consumer",
-  "intent_type": "Debunking"
+  "domain": "headphones_audio",
+  "intent_type": "Debunking",
+  "intent_v1_legacy": "My non-stick pan started flaking and now I'm down a cookware rabbit hole, half terrified and half skeptical. The boxes all say things like 'PFOA-free is safe at any temperature', 'ceramic coating lasts as long as Teflon', 'cast iron adds real iron to your food', 'stainless never reacts with anything', and 'hard-anodized aluminum can't leach'. Are any of those actually true? I want to know the real chemistry behind each claim and how these pans fail for people in practice, whether any material is genuinely riskier, and a few plain rules to shop by so I stop getting suckered.",
+  "task_version": 2,
+  "tri_source": {
+    "cluster": "headphones_audio",
+    "category_ids": [
+      60,
+      222,
+      210,
+      242,
+      203,
+      219,
+      242
+    ],
+    "keyword_filter": null,
+    "forums": [
+      "headphones",
+      "technology"
+    ],
+    "wiki_topics": [
+      "Bluetooth",
+      "Headphones"
+    ],
+    "archetype": "community-vs-ratings",
+    "angle": "Wireless earbuds with near-perfect star ratings vs forum folklore about batteries dying and one bud desyncing within a year"
+  }
 }

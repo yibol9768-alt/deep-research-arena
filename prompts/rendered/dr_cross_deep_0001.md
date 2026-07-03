@@ -1,0 +1,24 @@
+## Sandbox preamble (identical for all agents)
+
+You have a search tool that reaches three sources, and nothing else is
+online:
+
+- an online store with product pages (names, prices, ratings, reviews),
+- a discussion forum with threads, comments, and vote counts,
+- an encyclopedia with reference articles.
+
+When you use a page, link to it inline so the reader can check it. Only cite a
+page if it genuinely backs what you say next to the link.
+
+## The request
+
+My headphones just died and I need new ones, but every time I look it's a wall of brands and buzzwords and I have no clue what's actually worth it. I'm on the bus a lot and work in a noisy office, so blocking out sound matters to me. Is the expensive stuff genuinely better or am I just paying for the logo? And do things like active noise cancelling and the fancy Bluetooth codecs really do what the ads say? Honestly I'd just love a few solid picks at different prices and the reasons behind them.
+
+## What they want back
+
+End with a shortlist you would actually act on.
+
+Write it for the person who asked, not as a data dump. Lead with the answer
+they came for, back each factual claim with the page it came from, and say
+plainly where the sources are thin or disagree. Make it as long as it needs to
+be and no longer.

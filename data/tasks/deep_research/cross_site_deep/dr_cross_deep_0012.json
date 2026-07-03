@@ -9,7 +9,7 @@
   ],
   "difficulty": 5,
   "expected_steps": 80,
-  "intent": "Produce an Enumeration / Catalog report cataloguing every smart-home wireless protocol present on commercial smart locks, cameras, and hubs, organised by security model and threat surface. The report is NOT a buying guide; it is a comprehensive taxonomy in which every protocol gets a security profile.\n\nGround in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 40 smart-home device pages (smart locks, IP cameras, hubs, smart plugs, motion sensors) covering at minimum these protocols: Wi-Fi (WPA2/WPA3), Z-Wave, Zigbee, Thread, Matter, Bluetooth Low Energy, Z-Wave Plus, Insteon, Lutron Clear Connect — cite product URL + protocol(s) it advertises + price. (B) `__REDDIT__` >= 30 threads from /f/homeautomation, /f/smarthome, /f/HomeKit, /f/homeassistant, /f/Hue, /f/AmazonEcho — discussions of pairing failures, security incidents, mesh-network reliability. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Wi-Fi Protected Access, Z-Wave, Zigbee, Thread (network protocol), Matter (standard), Bluetooth Low Energy, Mesh networking, Public-key cryptography, Internet of things, Pre-shared key — plus >= 15 more.\n\nOutput a protocol catalog table with columns: protocol name / band / mesh-or-not / pairing model / encryption used / known vulnerabilities (cited wiki) / typical product cost (cited shopping) / community reliability sentiment (cited reddit). Add a 'threat-model decision tree': starting from the user's choice between cloud-routed vs local-only vs hybrid, walk to recommended protocols — each node cited. End with '5 protocols / products to AVOID and why' — each w/ shopping URL + reddit URL + wiki URL of the failure mode.\n\nFormat: markdown links. Begin with the catalog table. No chain-of-thought.",
+  "intent": "Every gaming keyboard I look at advertises 8000Hz polling, optical switches with supposedly zero debounce delay, and full N-key rollover like they're life-changing. My friend insists that past a basic level none of it is humanly perceptible, yet buyer reviews are full of people swearing their aim got better the day the box arrived. Before I pay a premium for the spec-sheet flagship, I want to know which of these features are physically real advantages, which are placebo, and whether there's a sensibly priced board that already has the ones that genuinely matter.",
   "start_url": "__SHOPPING__/catalogsearch/result/?q=smart+lock",
   "storage_state": null,
   "require_login": false,
@@ -107,6 +107,25 @@
   },
   "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
   "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
-  "domain": "Consumer",
-  "intent_type": "Enumeration"
+  "domain": "mechanical_keyboards",
+  "intent_type": "Enumeration",
+  "intent_v1_legacy": "I'm slowly turning my house into a smart home, locks, cameras, a hub, plugs, but the protocol soup is doing my head in: Wi-Fi, Z-Wave, Zigbee, Thread, Matter, Bluetooth LE, and more. My real worry is security, this stuff controls my front door. Can you map out every wireless protocol these devices actually use and how each one handles pairing, encryption, and known weaknesses, plus how reliable people find them day to day? I care a lot about cloud versus local-only control. And please warn me about anything I should flat-out avoid.",
+  "task_version": 2,
+  "tri_source": {
+    "cluster": "mechanical_keyboards",
+    "category_ids": [
+      56
+    ],
+    "keyword_filter": "keyboard",
+    "forums": [
+      "mechanicalkeyboards",
+      "gaming"
+    ],
+    "wiki_topics": [
+      "Rollover (keyboard)",
+      "Keyboard technology"
+    ],
+    "archetype": "claim-check",
+    "angle": "Gaming spec-sheet claims (8000Hz polling, optical 'zero debounce', full N-key rollover): which are humanly perceptible vs marketing"
+  }
 }

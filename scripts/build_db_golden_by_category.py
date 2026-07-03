@@ -135,6 +135,10 @@ def main() -> int:
     ap.add_argument("--category-ids", help="comma-separated curated category ids "
                     "(the precise task scope; preferred over --heads). Descendants "
                     "are expanded automatically.")
+    ap.add_argument("--name-filter", help="regex; keep only products whose name "
+                    "matches (case-insensitive). For clusters whose store side "
+                    "is a broad category (e.g. keyboards inside Computers & "
+                    "Accessories 56).")
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -161,6 +165,12 @@ def main() -> int:
           + ", ".join(f"{name}({cid})" for cid, name in cats[:8])
           + (" ..." if len(cats) > 8 else ""))
     products = enumerate_by_category([c[0] for c in cats])
+    if args.name_filter:
+        import re as _re
+        rx = _re.compile(args.name_filter, _re.I)
+        before = len(products)
+        products = [pr for pr in products if rx.search(pr.get("name", ""))]
+        print(f"[name-filter] {args.name_filter!r}: {before} -> {len(products)}")
 
     bundle = {
         "task_id": args.task_id,

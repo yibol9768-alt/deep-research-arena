@@ -9,7 +9,7 @@
   ],
   "difficulty": 5,
   "expected_steps": 80,
-  "intent": "Produce a Causal Explanation report answering: 'Why does an electric vehicle's effective range typically drop 20-40% in cold-weather (sub-freezing) operation, and what physical, chemical, and behavioural factors compose that loss?' The report is NOT a buying guide; it must build a causal chain from first principles to road-tested numbers.\n\nGround in >= 120 sandbox URLs (>= 60 cited). (A) `__SHOPPING__` >= 30 EV-related products (Level 2 chargers, battery heaters / blankets, cold-weather accessories, replacement batteries) with marketing claims + price. (B) `__REDDIT__` >= 30 threads from /f/electricvehicles, /f/teslamotors, /f/cars, /f/BoltEV, /f/Volt — winter range reports, real-world MPGe drop logs, charging speed degradation reports. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Lithium-ion battery, Battery thermal management, Heat pump, Internal resistance, Electrolyte, Lithium plating, Regenerative braking, Cabin heater, Specific heat capacity, Arrhenius equation — plus >= 15 more.\n\nOutput a multi-layer causal diagram in markdown (indented bullet hierarchy, NOT graphviz) tracing 4 causal layers:\n- L1 chemistry: lithium-ion electrolyte conductivity drop, lithium plating risk, internal resistance increase (cite wiki).\n- L2 thermal: cabin heating energy budget, battery preconditioning, heat pump efficiency (cite wiki + shopping for heat-pump-equipped models).\n- L3 driver behaviour: HVAC settings, regen reduction in cold, route planning (cite reddit experience reports).\n- L4 measured impact: empirical % range drop reported by users (cite >= 8 reddit threads with explicit %).\n\nAdd a 'mitigation strategies ranked by % range recovered' table — each strategy cited with one shopping URL (product implementing it) + one reddit URL (user reporting the recovery). End with a 'what cars handle cold best' section ranking >= 3 EV models by aggregated reddit cold-weather sentiment, citing >= 3 reddit threads / model.\n\nFormat: markdown links only. Begin with the L1 layer. No chain-of-thought.",
+  "intent": "I'm about to buy my first serious pair of headphones and I refuse to spend money on technology I don't understand. Everyone my age just assumes wireless, but my dad insists a cable will always sound better and that Bluetooth 'crushes' the music. How did we get from headphone jacks to everything being wireless, what actually happens to the audio when it goes over Bluetooth, and is the cable crowd still right today? Once I get the story, I'd like to know whether current buyers regret going one way or the other, and which pair you'd start me on.",
   "start_url": "__SHOPPING__/catalogsearch/result/?q=ev+charger",
   "storage_state": null,
   "require_login": false,
@@ -101,6 +101,32 @@
   },
   "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
   "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
-  "domain": "Consumer",
-  "intent_type": "Causal"
+  "domain": "headphones_audio",
+  "intent_type": "Causal",
+  "intent_v1_legacy": "Last winter my EV's range fell off a cliff, easily a third gone on sub-freezing mornings, and the dealer just shrugged and said 'batteries hate cold'. That's not an answer. I want to actually understand it: what happens inside the lithium-ion cells, how much the cabin heater and preconditioning eat, what I'm doing wrong as a driver, and what percentage drops other owners really see. Then, honestly, what actually helps, heat pumps, battery blankets, whatever, ranked by how much range it wins back? And which EVs do owners say handle winter best?",
+  "task_version": 2,
+  "tri_source": {
+    "cluster": "headphones_audio",
+    "category_ids": [
+      60,
+      222,
+      210,
+      242,
+      203,
+      219,
+      242
+    ],
+    "keyword_filter": null,
+    "forums": [
+      "headphones",
+      "technology"
+    ],
+    "wiki_topics": [
+      "Bluetooth",
+      "Audio codec",
+      "Headphones"
+    ],
+    "archetype": "evolution/explainer",
+    "angle": "Understanding how Bluetooth audio evolved and why wired vs wireless sound differs, as homework before a first serious headphone purchase"
+  }
 }

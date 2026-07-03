@@ -13,7 +13,7 @@
     "exploration": "high"
   },
   "expected_steps": 80,
-  "intent": "I've got maybe $300 to set something up at home so I stop paying for a gym I never go to. I keep going back and forth between adjustable dumbbells with a bench, a barbell and rack, or just resistance bands and bodyweight stuff. I actually want to build some muscle, not buy something that turns into a coat rack. For a beginner on that budget, which way really makes the most sense, and what do people who've gone each route say about living with it? Tell me what you'd pick and why.",
+  "intent": "I've got about $250 saved and I keep flip-flopping. Half of me wants one properly good pair of noise cancelling over-ears for my loud open-plan office; the other half says get decent wireless earbuds and a rugged little speaker for camping trips this summer, since the same money could cover both. My worry is that splitting the budget means everything ends up mediocre, and I've heard the noise cancelling in small earbuds can't physically work as well as in big cups. Is that true? Walk me through the trade-off and end with what you'd actually buy with my $250.",
   "start_url": "__SHOPPING__/catalogsearch/result/?q=dumbbell",
   "storage_state": null,
   "require_login": false,
@@ -101,7 +101,7 @@
   },
   "coverage_checklist_path": "data/tasks/deep_research/cross_site_deep/checklists_deep.json",
   "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
-  "domain": "Consumer",
+  "domain": "headphones_audio",
   "intent_type": "Comparison",
   "intent_v1_legacy": "Produce a Comparison report on three home-fitness equipment paths under a fixed $300 starter budget — (P1) Adjustable dumbbells + bench, (P2) Barbell + plate set + rack, (P3) Bodyweight + resistance bands + pull-up bar — across exactly 5 use cases: (UC1) muscle hypertrophy, (UC2) cardio + fat loss, (UC3) small-apartment friendliness, (UC4) injury rehab / mobility, (UC5) progression beyond 12 months.\n\nGround in >= 120 distinct sandbox URLs and cite >= 60 as markdown links. (A) `__SHOPPING__` >= 12 products per path with price + rating + review_count + feature_claim. (B) `__REDDIT__` >= 30 threads from /f/Fitness, /f/xxfitness, /f/bodyweightfitness, /f/homegym etc., classified as {praise, complaint, technical_question, comparison, purchase_advice}. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Strength training, Hypertrophy, Aerobic exercise, Calisthenics, Resistance band, Olympic weightlifting, Powerlifting, Range of motion, Progressive overload — plus >= 15 more.\n\nOutput a 3 x 5 decision matrix (path x use case), every cell rated {best / acceptable / poor} with >= 1 shopping URL + >= 1 reddit URL + >= 1 wiki URL as cited evidence. End with a 'when to pick which path' section: 3 short paragraphs each explaining which user profile picks P1/P2/P3, citing >= 5 reddit threads in support. Do NOT output a TOP-10 list — this is comparison, not ranking.\n\nFormat: every fact is a markdown link `[label](url)`. Sandbox-local URLs only. No fabrication. Begin directly with the comparison report.",
   "completeness": {
@@ -115,5 +115,30 @@
   },
   "rubric_path": "data/tasks/deep_research/cross_site_deep/rubrics_cw.json",
   "answer_key_path": "data/golden/answer_keys/dr_cross_deep_0003.json",
-  "_quota_note": "url_coverage and synthesis_requirements quotas are deprecated as prompt-facing requirements; they migrated to the answer key spec axis (2026-07-03)"
+  "_quota_note": "url_coverage and synthesis_requirements quotas are deprecated as prompt-facing requirements; they migrated to the answer key spec axis (2026-07-03)",
+  "task_version": 2,
+  "tri_source": {
+    "cluster": "headphones_audio",
+    "category_ids": [
+      60,
+      222,
+      210,
+      242,
+      203,
+      219,
+      242
+    ],
+    "keyword_filter": null,
+    "forums": [
+      "headphones",
+      "technology"
+    ],
+    "wiki_topics": [
+      "Active noise control",
+      "Headphones",
+      "Loudspeaker"
+    ],
+    "archetype": "buying-dilemma",
+    "angle": "One $250 budget: a single good ANC over-ear for the office, or split it into earbuds plus a rugged portable speaker for camping"
+  }
 }
