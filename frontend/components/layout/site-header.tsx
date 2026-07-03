@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { Menu, X, Activity, ChevronDown } from 'lucide-react'
+import { Menu, X, Activity, ChevronDown, Github } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { T } from '@/components/i18n/t'
 import { LangToggle } from '@/components/i18n/lang-toggle'
@@ -47,19 +47,12 @@ export function SiteHeader() {
   }, [moreOpen])
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-night-line bg-night/90 text-white backdrop-blur-md">
-      <div className="container flex h-16 items-center justify-between gap-6">
-        {/* Brand */}
-        <Link href="/" className="group flex shrink-0 items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-gradient-to-br from-brand to-brand-glow shadow-[0_0_20px_rgba(110,91,255,0.45)]">
-            <Activity className="h-4 w-4 text-white" strokeWidth={2.5} />
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="text-[15px] font-semibold tracking-tight">Deep Research Arena</span>
-            <span className="mt-1 text-[10px] font-medium uppercase tracking-[0.14em] text-night-faint">
-              <T en="Truth-gated evaluation" zh="真值门控评测" />
-            </span>
-          </span>
+    <header className="sticky top-0 z-50 w-full border-b border-hairline bg-white/90 backdrop-blur-md">
+      <div className="container flex h-16 items-center justify-between gap-4">
+        {/* Brand: black pill, AA-style */}
+        <Link href="/" className="flex shrink-0 items-center gap-2 rounded-pill bg-ink px-4 py-2 text-white transition-colors hover:bg-ink-soft">
+          <Activity className="h-3.5 w-3.5" strokeWidth={2.5} />
+          <span className="text-sm font-semibold tracking-tight">Deep Research Arena</span>
         </Link>
 
         {/* Desktop nav */}
@@ -69,10 +62,10 @@ export function SiteHeader() {
               key={item.href}
               href={item.href}
               className={cn(
-                'relative rounded-pill px-3 py-1.5 text-sm transition-colors duration-150',
+                'rounded-pill px-3.5 py-2 text-sm transition-colors duration-150',
                 isActive(item.href)
-                  ? 'bg-white/10 font-medium text-white'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white',
+                  ? 'bg-surface-mid font-medium text-ink'
+                  : 'text-muted hover:bg-surface-low hover:text-ink',
               )}
             >
               <T en={item.label} zh={item.zh} />
@@ -83,17 +76,17 @@ export function SiteHeader() {
             <button
               onClick={() => setMoreOpen((v) => !v)}
               className={cn(
-                'flex items-center gap-1 rounded-pill px-3 py-1.5 text-sm transition-colors duration-150',
+                'flex items-center gap-1 rounded-pill px-3.5 py-2 text-sm transition-colors duration-150',
                 moreActive || moreOpen
-                  ? 'bg-white/10 font-medium text-white'
-                  : 'text-white/60 hover:bg-white/5 hover:text-white',
+                  ? 'bg-surface-mid font-medium text-ink'
+                  : 'text-muted hover:bg-surface-low hover:text-ink',
               )}
             >
               <T en="More" zh="更多" />
               <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', moreOpen && 'rotate-180')} />
             </button>
             {moreOpen && (
-              <div className="absolute left-1/2 top-full z-50 mt-2 w-48 -translate-x-1/2 rounded-xl border border-night-line bg-night-soft p-1.5 shadow-[0_24px_60px_-16px_rgba(0,0,0,0.8)]">
+              <div className="absolute left-1/2 top-full z-50 mt-2 w-48 -translate-x-1/2 rounded-xl border border-hairline bg-white p-1.5 shadow-lift">
                 {MORE.map((item) => (
                   <Link
                     key={item.href}
@@ -101,7 +94,7 @@ export function SiteHeader() {
                     onClick={() => setMoreOpen(false)}
                     className={cn(
                       'block rounded-lg px-3 py-2 text-sm transition-colors',
-                      isActive(item.href) ? 'bg-white/10 font-medium text-white' : 'text-white/65 hover:bg-white/5 hover:text-white',
+                      isActive(item.href) ? 'bg-surface-mid font-medium text-ink' : 'text-muted hover:bg-surface-low hover:text-ink',
                     )}
                   >
                     <T en={item.label} zh={item.zh} />
@@ -113,24 +106,25 @@ export function SiteHeader() {
         </nav>
 
         {/* Right cluster */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <LangToggle className="hidden md:inline-flex" />
           <a
             href="https://github.com/yibol9768-alt/deep-research-arena"
             target="_blank"
             rel="noreferrer"
-            className="hidden text-xs font-medium text-white/60 hover:text-white md:inline-flex"
+            aria-label="GitHub"
+            className="hidden h-9 w-9 items-center justify-center rounded-pill text-muted transition-colors hover:bg-surface-low hover:text-ink md:inline-flex"
           >
-            GitHub
+            <Github className="h-4 w-4" />
           </a>
           <a
             href="/contribute"
-            className="hidden h-8 items-center rounded-pill bg-white px-3.5 text-sm font-medium text-night transition-colors hover:bg-white/85 md:inline-flex"
+            className="hidden h-9 items-center rounded-pill bg-ink px-4 text-sm font-medium text-white transition-colors hover:bg-ink-soft md:inline-flex"
           >
             <T en="Contribute" zh="贡献" />
           </a>
           <button
-            className="inline-flex h-9 w-9 items-center justify-center rounded-tab text-white lg:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-tab text-ink lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -141,7 +135,7 @@ export function SiteHeader() {
 
       {/* Mobile drawer */}
       {open && (
-        <div className="border-t border-night-line bg-night/95 backdrop-blur-md lg:hidden">
+        <div className="border-t border-hairline bg-white/95 backdrop-blur-md lg:hidden">
           <nav className="container flex flex-col py-3">
             {[...NAV, ...MORE].map((item) => (
               <Link
@@ -150,25 +144,22 @@ export function SiteHeader() {
                 onClick={() => setOpen(false)}
                 className={cn(
                   'rounded-tab px-3 py-2.5 text-sm transition-colors',
-                  isActive(item.href) ? 'bg-white/10 font-medium text-white' : 'text-white/65 hover:bg-white/5 hover:text-white',
+                  isActive(item.href) ? 'bg-surface-mid font-medium text-ink' : 'text-muted hover:bg-surface-low hover:text-ink',
                 )}
               >
                 <T en={item.label} zh={item.zh} />
               </Link>
             ))}
-            <div className="mt-2 flex items-center gap-2 border-t border-night-line px-3 pt-3">
-              <a href="/contribute" className="inline-flex h-8 flex-1 items-center justify-center rounded-pill bg-white px-3 text-sm font-medium text-night">
+            <div className="mt-2 flex items-center gap-2 border-t border-hairline px-3 pt-3">
+              <a href="/contribute" className="inline-flex h-9 flex-1 items-center justify-center rounded-pill bg-ink px-3 text-sm font-medium text-white">
                 <T en="Contribute" zh="贡献" />
               </a>
-              <a href="https://github.com/yibol9768-alt/deep-research-arena" className="text-xs text-white/60">GitHub</a>
+              <a href="https://github.com/yibol9768-alt/deep-research-arena" aria-label="GitHub" className="p-2 text-muted"><Github className="h-4 w-4" /></a>
               <LangToggle />
             </div>
           </nav>
         </div>
       )}
-
-      {/* Live run indicator (1px breathing line) */}
-      <div className="night-divider-glow h-px w-full animate-breathe" />
     </header>
   )
 }

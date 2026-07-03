@@ -51,8 +51,8 @@ export function CiteBlock() {
             </Link>
           </div>
         </div>
-        <div className="flex items-center bg-night p-7 md:p-8">
-          <pre className="w-full overflow-x-auto rounded-xl border border-night-line bg-black/30 p-5 font-mono text-xs leading-relaxed text-night-mist">
+        <div className="flex items-center border-t border-hairline bg-surface-low p-7 md:border-l md:border-t-0 md:p-8">
+          <pre className="w-full overflow-x-auto rounded-xl border border-hairline bg-white p-5 font-mono text-xs leading-relaxed text-muted">
             {BIBTEX}
           </pre>
         </div>

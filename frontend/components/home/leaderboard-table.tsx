@@ -4,7 +4,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { motion } from 'motion/react'
 import Link from 'next/link'
 import { agentMeta } from '@/lib/providers'
-import { fmt, groundingGatePct, rankMedal, totalPairwiseBattles, truthScore } from '@/lib/format'
+import { fmt, groundingGatePct, totalPairwiseBattles, truthScore } from '@/lib/format'
 import type { PerPillarElo, RankedAgent } from '@/lib/data/types'
 import { Swords } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -148,8 +148,8 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                   className="hairline-b cursor-pointer transition-colors hover:bg-surface-low"
                   whileHover={{ backgroundColor: 'rgba(127,75,243,0.04)' }}
                 >
-                  <td className="px-4 py-3 text-center text-muted">
-                    <span className="tnum">{rank <= 3 ? rankMedal(rank) : rank}</span>
+                  <td className="px-4 py-3 text-center">
+                    <span className={cn('tnum', rank <= 3 ? 'font-semibold text-ink' : 'text-muted')}>{rank}</span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
@@ -219,7 +219,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
           return (
             <li key={a.id} className="hairline-b px-4 py-3.5 active:bg-surface-low">
               <Link href={`/agents/${a.id}`} className="flex items-center gap-3">
-                <span className="w-7 text-center text-sm tnum text-muted">{rank <= 3 ? rankMedal(rank) : rank}</span>
+                <span className={cn('w-7 text-center text-sm tnum', rank <= 3 ? 'font-semibold text-ink' : 'text-muted')}>{rank}</span>
                 <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: meta.color }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink">{meta.display}</p>

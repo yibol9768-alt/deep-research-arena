@@ -3,6 +3,56 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v4-2026-07-03",
+      "date": "2026-07-03",
+      "title": "Redesign to a clean analytics look: white theme, per-agent bar charts, and a fluency-vs-grounding scatter",
+      "summary": "The dark identity shipped on 2026-07-02 is replaced by a light, chart-first design in the style of professional AI analytics sites: white canvas, hairline cards, serif headlines, three per-agent vertical bar charts as the homepage highlights, and a judge-Elo-versus-grounding scatter with CI whiskers.",
+      "tags": [
+        "frontend",
+        "design"
+      ],
+      "sections": [
+        {
+          "heading": "Visual system",
+          "bullets": [
+            "White canvas with hairline-bordered cards and serif display headlines; the dark hero, glass card, and dark footer are removed (kept on branch backup/frontend-dark-2026-07-02).",
+            "Header: black pill wordmark, pill navigation with a More menu; light footer with the same columns.",
+            "Hero: serif headline plus a news rail fed by the three latest changelog entries, and a hairline stat strip (agents, tasks, battles, jurors, bootstrap)."
+          ]
+        },
+        {
+          "heading": "Charts",
+          "bullets": [
+            "Homepage highlights are now three vertical bar charts (truth-gated score, grounding gate, raw judge Elo) with one color per agent, value labels, and dotted gridlines — all computed from the loaded snapshot.",
+            "New scatter: raw jury Elo (95% CI whiskers) against the judge-free grounding gate; the top-left quadrant marks fluent-but-ungrounded agents.",
+            "Rank-shift slope chart, pipeline explainer, FAQ, and cite block are restyled to the light theme; leaderboard medals are replaced with plain bold ranks."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "v4-2026-07-02b",
+      "date": "2026-07-02",
+      "title": "Search-style human survey page (/survey) for kappa collection",
+      "summary": "A Google-Search-style pairwise annotation page: two anonymized reports rendered as search results with SERP-style citation lists and sandbox-verifiable badges. Adds a trust signal alongside the preference verdict for judge-vs-human and grounding-vs-human kappa.",
+      "tags": [
+        "frontend",
+        "human-eval",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "What it does",
+          "bullets": [
+            "Same pair source and backend as /annotate (annotate-pairs.json; POST falls back to localStorage + JSONL export).",
+            "Presentation order is stably randomized per pair and mapped back to canonical A/B on save.",
+            "Extra question: which result do you trust more (A / B / unsure), enabling a grounding-perception kappa.",
+            "Citations shown as a search-result list; sandbox URLs carry a verifiable badge, off-sandbox ones are flagged."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v4-2026-07-02",
       "date": "2026-07-02",
       "title": "Site redesign: institutional dark identity, rank-shift chart, and a real methodology walkthrough",

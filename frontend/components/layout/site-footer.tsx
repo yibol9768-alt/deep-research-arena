@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Github, Activity } from 'lucide-react'
+import { Github } from 'lucide-react'
 import { T } from '@/components/i18n/t'
 
 const COLS: { title: string; titleZh: string; links: { href: string; label: string; zh: string }[] }[] = [
@@ -39,32 +39,25 @@ const COLS: { title: string; titleZh: string; links: { href: string; label: stri
 
 export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
   return (
-    <footer className="section-night relative mt-24 overflow-hidden text-white">
-      {/* glow divider on top */}
-      <div className="night-divider-glow absolute inset-x-0 top-0 h-px" />
-      <div aria-hidden className="night-grid pointer-events-none absolute inset-0 opacity-60" />
-
-      <div className="container relative py-16">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-12">
+    <footer className="mt-24 border-t border-hairline bg-white">
+      <div className="container py-14">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
           {/* Brand */}
           <div className="md:col-span-5">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-gradient-to-br from-brand to-brand-glow">
-                <Activity className="h-4 w-4 text-white" strokeWidth={2.5} />
-              </span>
-              <span className="font-serif text-2xl">Deep Research Arena</span>
-            </div>
-            <p className="mt-5 max-w-sm text-sm leading-relaxed text-night-mist">
+            <h3 className="font-serif text-3xl leading-none text-ink">
+              Deep Research Arena
+            </h3>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
               <T
                 en="A reproducible benchmark for deep-research agents: frozen tasks, auditable reports, jury decisions, and judge-free citation checks. Fluency is not grounding."
                 zh="一项可复现的深度研究智能体基准：冻结任务、可审计报告、陪审团裁决与不依赖判官的引用核验。流畅不等于接地。"
               />
             </p>
-            <div className="mt-6 flex gap-3">
+            <div className="mt-5 flex gap-3">
               <a
                 href="https://github.com/yibol9768-alt/deep-research-arena"
                 aria-label="GitHub"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-night-line text-white/70 transition-colors hover:border-white/30 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-pill border border-hairline text-muted transition-colors hover:border-ink/30 hover:text-ink"
               >
                 <Github className="h-4 w-4" />
               </a>
@@ -74,15 +67,15 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
           {/* Link columns */}
           {COLS.map((col) => (
             <div key={col.title} className="md:col-span-2">
-              <h4 className="text-caps uppercase tracking-wider text-night-faint">
+              <h4 className="text-caps uppercase tracking-wider text-muted-2">
                 <T en={col.title} zh={col.titleZh} />
               </h4>
-              <ul className="mt-5 space-y-3">
+              <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.label}>
                     <Link
                       href={l.href}
-                      className="text-sm text-night-mist transition-colors hover:text-white"
+                      className="text-sm text-muted transition-colors hover:text-ink hover:underline underline-offset-4"
                     >
                       <T en={l.label} zh={l.zh} />
                     </Link>
@@ -93,13 +86,13 @@ export function SiteFooter({ lastUpdated }: { lastUpdated?: string }) {
           ))}
         </div>
 
-        <div className="mt-14 flex flex-col items-start justify-between gap-3 border-t border-night-line pt-6 text-xs text-night-faint md:flex-row md:items-center">
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-hairline pt-6 text-xs text-muted-2 md:flex-row md:items-center">
           <p>© {new Date().getFullYear()} Deep Research Arena. <T en="Trademarks belong to their owners." zh="商标归各自所有者所有。" /></p>
           <p className="tnum">
             {lastUpdated ? (
               <>
                 <T en="Last leaderboard rebuild:" zh="上次排行榜重建:" />{' '}
-                <span className="font-medium text-night-mist">{lastUpdated}</span>
+                <span className="font-medium text-muted">{lastUpdated}</span>
               </>
             ) : null}
           </p>

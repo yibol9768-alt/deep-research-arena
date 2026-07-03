@@ -11,34 +11,24 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // canvas
-        bg: '#FAFAF7',
-        surface: '#FBFBFD',
-        'surface-low': '#F5F6F8',
-        'surface-mid': '#ECEFF3',
+        // canvas — Artificial-Analysis-style clean white
+        bg: '#FFFFFF',
+        surface: '#FFFFFF',
+        'surface-low': '#F6F7F8',
+        'surface-mid': '#EDEFF2',
         'surface-high': '#E2E6EA',
         white: '#ffffff',
 
         // ink
-        ink: '#0B0B0F',
-        'ink-soft': '#1d1b20',
-        muted: '#494551',
-        'muted-2': '#7a7582',
+        ink: '#111318',
+        'ink-soft': '#24262B',
+        muted: '#565B66',
+        'muted-2': '#8A8F99',
         hairline: '#E5E7EB',
         'outline-soft': '#C8CDD4',
 
         // brand
-        brand: { DEFAULT: '#6E5BFF', dark: '#24262B', soft: '#C7D2FE', wash: '#E8ECFF', footer: '#EEF0F3', glow: '#9F8CFF' },
-
-        // dark "night" sections (hero, pipeline band, footer)
-        night: {
-          DEFAULT: '#0B0B12',
-          soft: '#12131C',
-          card: 'rgba(255,255,255,0.04)',
-          line: 'rgba(255,255,255,0.09)',
-          mist: 'rgba(235,235,245,0.62)',
-          faint: 'rgba(235,235,245,0.38)',
-        },
+        brand: { DEFAULT: '#6E5BFF', dark: '#24262B', soft: '#C7D2FE', wash: '#E8ECFF', footer: '#F6F7F8', glow: '#9F8CFF' },
 
         // semantic
         good: '#34A853',
@@ -85,14 +75,14 @@ const config: Config = {
       },
       borderRadius: {
         DEFAULT: '0.5rem',
-        card: '10px',
+        card: '12px',
         pill: '9999px',
         tab: '8px',
       },
       boxShadow: {
-        soft: '0 2px 8px rgba(11,11,15,.04)',
-        lift: '0 1px 2px rgba(11,11,15,.04), 0 8px 24px -8px rgba(11,11,15,.08)',
-        hover: '0 2px 4px rgba(11,11,15,.06), 0 16px 40px -12px rgba(110,91,255,.22)',
+        soft: '0 1px 2px rgba(17,19,24,.04)',
+        lift: '0 1px 2px rgba(17,19,24,.05), 0 6px 16px -8px rgba(17,19,24,.08)',
+        hover: '0 2px 4px rgba(17,19,24,.06), 0 12px 28px -12px rgba(17,19,24,.12)',
         ring: '0 0 0 4px rgba(110,91,255,.16)',
       },
       transitionTimingFunction: {

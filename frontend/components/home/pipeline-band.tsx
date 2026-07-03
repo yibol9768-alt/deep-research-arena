@@ -35,52 +35,51 @@ const STEPS = [
 
 export function PipelineBand() {
   return (
-    <section id="how-it-works" className="section-night relative overflow-hidden py-16 text-white md:py-20">
-      <div aria-hidden className="night-grid pointer-events-none absolute inset-0 opacity-70" />
-
-      <div className="container relative">
-        <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <span className="label-caps text-night-faint"><T en="How it works" zh="评测流程" /></span>
-            <h2 className="mt-3 max-w-xl font-serif text-h-md leading-tight md:text-display-lg">
-              <T en="One frozen world. Four checkpoints. No exceptions." zh="一个冻结世界,四道关卡,没有例外。" />
-            </h2>
+    <div id="how-it-works" className="scroll-mt-24">
+      <header className="mb-4 flex flex-col items-start justify-between gap-3 md:flex-row md:items-end">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <span className="aa-square" />
+            <h2 className="font-serif text-h-sm text-ink"><T en="How it works" zh="评测流程" /></h2>
           </div>
-          <Link
-            href="/methodology"
-            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-pill border border-night-line bg-white/5 px-4 text-sm font-medium text-white transition-colors hover:border-white/30 hover:bg-white/10"
-          >
-            <T en="Full methodology" zh="完整方法论" />
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <p className="mt-1 text-xs text-muted">
+            <T en="One frozen world, four checkpoints — no exceptions" zh="一个冻结世界,四道关卡,没有例外" />
+          </p>
         </div>
+        <Link
+          href="/methodology"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-pill border border-hairline bg-white px-4 text-sm font-medium text-ink transition-all hover:border-ink/30 hover:bg-surface-low"
+        >
+          <T en="Full methodology" zh="完整方法论" />
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </header>
 
-        <ol className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <li key={s.title} className="glass-card relative p-6">
-              <span className="absolute right-5 top-5 font-serif text-3xl text-white/10 tnum">0{i + 1}</span>
-              <s.icon className="h-5 w-5 text-brand-glow" strokeWidth={1.8} />
-              <h3 className="mt-4 text-base font-semibold tracking-tight">
-                <T en={s.title} zh={s.titleZh} />
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-night-mist">
-                <T en={s.body} zh={s.bodyZh} />
-              </p>
-            </li>
-          ))}
-        </ol>
+      <ol className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {STEPS.map((s, i) => (
+          <li key={s.title} className="card card-lift relative p-5">
+            <span className="absolute right-4 top-4 font-serif text-2xl text-hairline tnum">0{i + 1}</span>
+            <s.icon className="h-5 w-5 text-brand" strokeWidth={1.8} />
+            <h3 className="mt-3.5 text-sm font-semibold tracking-tight text-ink">
+              <T en={s.title} zh={s.titleZh} />
+            </h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted">
+              <T en={s.body} zh={s.bodyZh} />
+            </p>
+          </li>
+        ))}
+      </ol>
 
-        <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-night-line bg-black/25 px-5 py-4 font-mono text-xs text-night-mist md:text-sm">
-          <span className="text-night-faint"><T en="public score" zh="公开主分" /></span>
-          <span>=</span>
-          <span className="text-white">judge&nbsp;Elo</span>
-          <span>×</span>
-          <span className="text-white">(reachability&nbsp;+&nbsp;quote&nbsp;match)&nbsp;/&nbsp;2</span>
-          <span className="ml-auto hidden text-night-faint md:inline">
-            <T en="judge-free gate · computed against the frozen sandbox" zh="不依赖判官的门控 · 按冻结沙箱核验" />
-          </span>
-        </div>
+      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-card border border-hairline bg-surface-low px-5 py-3.5 font-mono text-xs text-muted md:text-sm">
+        <span className="text-muted-2"><T en="public score" zh="公开主分" /></span>
+        <span>=</span>
+        <span className="font-semibold text-ink">judge&nbsp;Elo</span>
+        <span>×</span>
+        <span className="font-semibold text-ink">(reachability&nbsp;+&nbsp;quote&nbsp;match)&nbsp;/&nbsp;2</span>
+        <span className="ml-auto hidden text-muted-2 md:inline">
+          <T en="judge-free gate · computed against the frozen sandbox" zh="不依赖判官的门控 · 按冻结沙箱核验" />
+        </span>
       </div>
-    </section>
+    </div>
   )
 }

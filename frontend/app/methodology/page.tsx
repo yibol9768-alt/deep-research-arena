@@ -39,7 +39,7 @@ interface Section {
 
 function Mono({ children }: { children: ReactNode }) {
   return (
-    <div className="mt-6 overflow-x-auto rounded-xl bg-night p-5 font-mono text-xs leading-relaxed text-night-mist md:text-[13px]">
+    <div className="mt-6 overflow-x-auto rounded-xl border border-hairline bg-surface-low p-5 font-mono text-xs leading-relaxed text-muted md:text-[13px]">
       {children}
     </div>
   )
@@ -112,7 +112,7 @@ gate          = (reachability + quote_match) / 2   # in [0, 1]`}
       artifact: (
         <Mono>
           P(i ≻ j) = 1 / (1 + 10<sup>(R_j − R_i)/400</sup>)
-          <span className="ml-4 text-night-faint">· MLE fit · 1,000 bootstrap resamples → 95% CI</span>
+          <span className="ml-4 text-muted-2">· MLE fit · 1,000 bootstrap resamples → 95% CI</span>
         </Mono>
       ),
     },
@@ -140,7 +140,7 @@ gate          = (reachability + quote_match) / 2   # in [0, 1]`}
       bodyZh: '每次剔除一个计分组件并重新拟合榜单,可以看出哪些控制真正改变结论。真值门控与引用门控是对抗流畅幻觉影响最大的控制项:一旦移除,捏造但流畅的报告就会爬上榜单。',
       artifact: (
         <Mono>
-          <span className="text-night-faint">ablation:</span> drop(component) → refit Bradley-Terry → compare orderings
+          <span className="text-muted-2">ablation:</span> drop(component) → refit Bradley-Terry → compare orderings
         </Mono>
       ),
     },
