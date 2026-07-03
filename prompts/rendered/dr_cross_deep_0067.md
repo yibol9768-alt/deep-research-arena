@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I'm finally buying my first cordless drill this weekend because I've got a fence gate hanging off one hinge. The cheap kits are half the price of the ones labeled brushless, and the salesman kept going on about picking a battery platform I'll "live with for years," which honestly spooked me. Does a brushless motor actually matter for someone fixing gates and hanging shelves, or is that money better saved? People who bought the budget kits seem happy in the reviews, but I keep hearing the regret comes two years later. Tell me what you'd put in the cart and why.
+Eight hours a day at my desk and my eyes are cooked by mid-afternoon, so I'm finally buying a real desk lamp instead of working under the ceiling bulb. The cheap LED ones are a fraction of the price of the fancy dimmable models that promise eye care and flicker-free light, and I can't tell if that's science or a sticker. Does dimming and color adjustment genuinely matter for eye strain, and do the touch controls on these survive daily use, or die in a year like reviewers sometimes grumble? Tell me what you'd park on your own desk.
 
 ## What they want back
 

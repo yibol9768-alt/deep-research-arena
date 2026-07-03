@@ -91,7 +91,7 @@ PRICE_CUE_WINDOW = 12
 # (G-F6). Longer alternatives first where prefixes collide.
 _UNIT_AFTER = re.compile(
     r"^\s*-?\s*(?:%|(?:grams?|hours?|hrs|inch(?:es)?|stars?|reviews?|days?"
-    r"|years?|khz|kbps|hz|mah|mm|cm|oz|lbs?|g)\b)", re.I)
+    r"|years?|khz|kbps|hz|mah|mm|cm|oz|lbs?|g|budgets?|total)\b)", re.I)
 
 # A rating claim requires the stars / out-of-5 cue (G-F15: single-digit values
 # are kept); an aspect qualifier between the number and the subject ("5 stars
@@ -309,6 +309,18 @@ def _cited_urls(md: str) -> list[str]:
 # Axis 1a: reachability
 # ---------------------------------------------------------------------------
 
+def _cache_entry(cache: dict, u: str):
+    """Cache lookup tolerant to key-normalization drift between the extractor
+    and the cache builder (trailing punctuation, localhost vs 127.0.0.1)."""
+    for k in (u, u.rstrip("`.,;:!?)"),
+              u.replace("127.0.0.1", "localhost"),
+              u.replace("localhost", "127.0.0.1")):
+        e = cache.get(k)
+        if e is not None:
+            return e
+    return None
+
+
 def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[float, dict]:
     """axis 1a: closed-world reachability.
 
@@ -333,9 +345,19 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
         # tallied separately so a full ZIM enumeration can retire the flag.
         ok = fab = nav = mismatch = 0
         unknown_cache_ok = unknown_cache_fab = unknown_uncached = 0
+        n_variant_dupes = 0
+        seen_canon: set[str] = set()
         reasons: dict[str, int] = {}
         for u in urls:
             d = registry.classify(u)
+            # one PAGE counts once: dedupe on the canonical form so case/
+            # host/prefix/query variants of a single real page cannot pad the
+            # numerator and launder fabricated citations (verify finding)
+            canon = d.get("canonical") or f"raw:{u}"
+            if canon in seen_canon:
+                n_variant_dupes += 1
+                continue
+            seen_canon.add(canon)
             reasons[d.get("reason", "?")] = reasons.get(d.get("reason", "?"), 0) + 1
             kind = d.get("kind")
             if kind == "search_nav":
@@ -349,7 +371,7 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
             elif inc is False or kind == "off_sandbox":
                 fab += 1
             else:  # unknown membership: resolve via cache
-                st = int((cache.get(u) or {}).get("status", -1))
+                st = int((_cache_entry(cache, u) or {}).get("status", -1))
                 if st == 200:
                     ok += 1
                     unknown_cache_ok += 1
@@ -370,6 +392,7 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
             "unknown_resolved_by_cache_ok": unknown_cache_ok,
             "unknown_resolved_by_cache_fab": unknown_cache_fab,
             "unknown_uncached_counted_fabricated": unknown_uncached,
+            "variant_duplicates_collapsed": n_variant_dupes,
         }
         return (ok / den if den else 0.0), det
 
@@ -486,6 +509,14 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
                 if (_is_numeric_tok(t) or (t not in STOPWORDS and t not in chrome))
                 and t not in slug_toks]
         if not kept:
+            # a cached-200 citation with ZERO non-boilerplate context is
+            # exactly "no proof of fetch": count it as checked-and-failed,
+            # else slug/stopword padding turns real-but-unread citations into
+            # skips and pof collapses to the one genuine citation (verify
+            # finding: 1 real + 5 padded scored 1.000)
+            checked += 1
+            per.append({"url": u[-60:], "cover": 0.0, "span": False,
+                        "ok": False, "reason": "empty_context"})
             continue
         if u not in page_cache:
             page_seq = _tokens(norm(strip_html(entry.get("text", ""))))  # FULL text (G-F4)
@@ -584,10 +615,29 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
     price_of, rating_of = _fact_indices(answer_key, generic)
     all_keys = price_of.keys() | rating_of.keys()
 
+    # url slug -> index key, for link-precedence binding (verify finding:
+    # official-title prose bound claim values to ANOTHER product via title
+    # tail tokens; the citation link IS the subject identity)
+    slug_key: dict[str, str] = {}
+    for e in answer_key.relevant_set:
+        if not getattr(e, "relevant", True):
+            continue
+        k = name_key(e.name, generic)
+        if k:
+            slug_key[e.url.rsplit("/", 1)[-1].removesuffix(".html").lower()] = k
+
     support = contra = unbound = untestable = skipped_aspect = 0
     per = []
     for sent in re.split(r"(?<=[.!?])\s+|\n", md):
-        low = norm(sent)
+        links = LINK_RE.findall(sent)
+        linked_keys = {slug_key[u.rstrip(".,;").rsplit("/", 1)[-1]
+                                .removesuffix(".html").lower()]
+                       for _lab, u in links
+                       if u.rstrip(".,;").rsplit("/", 1)[-1]
+                             .removesuffix(".html").lower() in slug_key}
+        forced_key = next(iter(linked_keys)) if len(linked_keys) == 1 else None
+        # strip URLs from the prose: slug tokens must not act as subjects
+        low = norm(BARE_URL_RE.sub(" ", LINK_RE.sub(lambda m: m.group(1), sent)))
         if not low:
             continue
         subs: dict[str, tuple] = {}
@@ -610,6 +660,8 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
             if "$" not in cue_win and not _PRICE_CUE.search(cue_win):
                 continue
             key, _span = _nearest_subject(subs, m.start())
+            if forced_key is not None:
+                key = forced_key   # the sentence cites exactly one entity
             if key is None:
                 unbound += 1
                 continue
@@ -630,6 +682,8 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
         # overall-rating claims
         for m in _RATING_CLAIM.finditer(low):
             key, span = _nearest_subject(subs, m.start())
+            if forced_key is not None and key is None:
+                key, span = forced_key, (m.start(), m.end())
             if key is None:
                 unbound += 1
                 continue
@@ -770,6 +824,24 @@ def _typed_value_in_window(win: str, n, alt_prices=()) -> bool:
             return False
         return any(_standalone_number(win, m.start(), m.end())
                    for m in re.finditer(re.escape(iv), win))
+    if n.predicate == "buyer_sentiment":
+        # object "57.0%/50rev": covered when the rating (as % or /5 scale) or
+        # the review count appears near the subject; the old literal-substring
+        # fallback demanded the internal token verbatim, which no natural
+        # report emits (verify finding: honest phrasing scored covered=0)
+        m = re.match(r"([\d.]+)%/(\d+)rev", str(n.object))
+        if not m:
+            return False
+        rat, cnt = float(m.group(1)), m.group(2)
+        for mm in _NUM_RE.finditer(win):
+            v = float(mm.group())
+            if abs(v - rat) <= 1.0 or abs(v - rat / 20.0) <= 0.1:
+                return True
+        return bool(re.search(rf"\b{cnt}\b", win))
+    if n.predicate == "concept_coverage":
+        # subject==concept; upstream _subject_discussed already established
+        # the concept is discussed near this window
+        return True
     obj = norm(str(n.object))
     return bool(obj) and obj in win
 

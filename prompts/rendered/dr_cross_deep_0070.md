@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I just inherited my grandfather's toolbox and half of it still works better than anything I've bought in the last decade, which got me thinking. I want to slowly build my own kit of hand tools that my kids could inherit, screwdrivers, a good hammer, that sort of thing, starting with a purchase this month. Is old-tool nostalgia real, like were the steels or the manufacturing genuinely different, or do some current makers still build to that standard? I keep reading conflicting stories about which brands quietly cheapened out. Point me at what actually survives thirty years of use.
+I still use the brass desk lamp my grandfather bought decades ago, and I'd like the lights I buy now to have that kind of life. Modern lamps seem to fight me on this: integrated LEDs you can't swap when they die, plastic joints, sealed drivers. When today's lamps fail, what actually goes first, and is a standard replaceable bulb socket still the single biggest thing to insist on? Which of the current lamps do long-term owners describe as genuinely solid rather than landfill-in-waiting? End with the one you'd expect my grandkids to argue over.
 
 ## What they want back
 

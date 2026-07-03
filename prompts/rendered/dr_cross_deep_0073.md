@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I live in a one-bedroom apartment with exactly one shelf to spare for tools, and my projects are flat-pack furniture, curtain rods, and the occasional loose cabinet hinge. Every guide I find assumes I have a garage and want the biggest eighteen-volt monster available. Friends say the compact lower-voltage tools are toys; other people say full-size drills are overkill that just eats closet space. Does the small stuff genuinely have enough power for apartment life, and does it hold up over years, or does everyone eventually upgrade anyway? What would you actually put on my one shelf?
+I read in bed every night and my current lamp apparently doubles as a stadium floodlight, my partner has started sleeping with a mask on. I want a bedside lamp that lets me read comfortably without lighting up the whole room or wiring my brain awake at midnight. Is the 'warm light before bed' advice real science or wellness fluff, and how low should a lamp actually dim to be useful at night? Do any of the stocked ones get praised by other night readers specifically? Pick me the lamp that saves both my book habit and my marriage.
 
 ## What they want back
 

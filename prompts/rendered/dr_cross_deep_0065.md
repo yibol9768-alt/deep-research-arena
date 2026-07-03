@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-Our new apartment has an induction cooktop and apparently half my pans won't even heat on it. Before I rebuy anything I want to actually understand what's going on: why a magnet sticking to the bottom matters, why some stainless pans work and others don't, and whether cast iron scratching the glass is a real fear or an old wives' tale. People who made this switch must have learned things the hard way. Once I get the physics, point me at the pans worth buying for induction and which of the popular ones to avoid.
+Our new apartment came with an induction cooktop and half my kitchen just became decorative. Before I rebuy anything I want to actually understand which metals work on induction and why, because some listings shout 'induction compatible' and others say nothing at all. For the everyday stuff I'm replacing first, a kettle for tea and a pressure cooker for beans, what should I look for in the base material so it genuinely heats, and have buyers been burned by 'compatible' labels that weren't? Then point me at what you'd rebuy first.
 
 ## What they want back
 

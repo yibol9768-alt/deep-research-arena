@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I've been living on instant coffee and I'm finally ready to make the real thing at home, but the whole coffee world is kind of intimidating and it all seems overpriced. I don't want to drop a fortune or end up with gear I never touch. What do I actually need to get started, which brewing method is hardest to mess up as a beginner, and what do people who really make coffee at home swear by versus what's just hype? End me with a specific starter kit I can just go buy.
+I've been living on instant coffee and I'm finally ready to make the real thing at home, but the coffee aisle is intimidating: single-origin bags that cost triple the supermarket blend, dark roasts that promise 'bold caffeine kick', whole-bean bags I'd need to figure out how to deal with, and one little stovetop espresso pot that claims cafe-quality without a machine. Which of the things people repeat about coffee are actually true, like whether dark roast really has more caffeine or beans really go stale in weeks? And what would you honestly start a beginner on from what's out there, without me buying gear I'll abandon by spring?
 
 ## What they want back
 

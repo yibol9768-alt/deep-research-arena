@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I'm setting up a workbench in my new garage and the store's own-brand wrenches and sockets cost a fraction of the famous names, with review scores that look great. My brother-in-law acts like I'm buying toys, says the metal is softer, the chrome peels, and they round off bolt heads. Is there a genuine difference in how cheap tools are forged and heat-treated, or did he just pay triple for a logo? Stripping a stuck bolt because the tool gave first would cost me real time. What do people who actually wrench with the budget stuff say after a few years, and what mix would you buy for my bench?
+The floor lamp I'm eyeing has thousands of glowing ratings and costs less than a takeout dinner, but the buy-it-for-life crowd insists modern lamps are disposable junk, all wobbly bases, brittle sockets and integrated LEDs you can't replace, and that only old heavy metal fixtures are worth owning. Those two pictures can't both be right. Is there something structurally different about how lamps are built now, and do the happy reviews just not cover year three? I want the honest reconciliation, then the lamp you'd buy if it had to last a decade.
 
 ## What they want back
 

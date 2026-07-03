@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I developed wrist tendinitis last year and my beloved cast-iron skillet has become a one-handed nightmare; I nearly dropped it draining bacon fat. I still want that hard sear and a pan that lasts, not another disposable coated thing. I keep hearing carbon steel is like cast iron but lighter, though I don't really know how it differs or if it needs the same babying. What do people with weak wrists or smaller hands actually end up cooking with long-term? Weigh my realistic options and tell me the specific pan you'd hand me, with actual weights if you can find them.
+My mugs are a graveyard of chipped freebies and my mother-in-law visits next month, so I'm finally buying a proper set. The bone-china tea sets cost several times what plain ceramic mugs do, and reviewers of both seem equally delighted. Is bone china actually a different, tougher, nicer material or just a posher word for the same fired clay? Do the expensive sets survive daily use and dishwashers, or do owners baby them in a cabinet? I'd love the honest cutoff: where does paying more stop mattering for someone who just drinks a lot of tea?
 
 ## What they want back
 

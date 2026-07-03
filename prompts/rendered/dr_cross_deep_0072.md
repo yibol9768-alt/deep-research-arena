@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-There's a barely-used cordless drill kit at my local pawn shop for a third of new price, but the styling looks close to a decade old and I can't tell whether that matters. Apparently batteries went from nickel to lithium and motors went brushless somewhere along the way, and older battery platforms get abandoned so spare packs dry up. How much of that progress is real engineering I'd feel in my hands, and how much is model-year shuffling? People who kept older kits running must know how they age. Level with me: grab the bargain, or put the money toward which new kit instead?
+Buying lamps made me realize I don't actually understand light bulbs anymore. I grew up with 60-watt bulbs, then the curly ones everyone hated, and now everything is LED and the boxes talk about lumens and kelvins instead of watts. Can you walk me through how we got here and what those numbers really mean, so I can stop guessing? Like why does one 'warm white' lamp feel cozy and another feels like a dentist's office? Once I get it, tell me what to actually look for so every room doesn't end up a different shade of wrong.
 
 ## What they want back
 

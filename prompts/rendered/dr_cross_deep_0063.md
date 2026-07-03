@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-For my thirtieth birthday I'm gifting myself the skillet I'll still be frying eggs in at eighty, the kind of pan people inherit. Cast iron devotees say theirs improves with age, stainless fans say theirs shrugs off everything, and I honestly don't understand what seasoning even is or why some pans become heirlooms while others hit the trash. My track record includes burnt-dry disasters and two house moves, so it has to forgive neglect. Of the pans actually for sale right now, which would go the distance, and what do people decades into theirs say about keeping it alive?
+My grandmother's stovetop pressure cooker outlived three of my nonstick pots, and now that mine died I want to buy the kind of thing my own kids might inherit. The stocked options seem to be hard-anodized aluminum or stainless-looking ones at very different prices, and I can't tell which construction actually survives decades of weekly beans and stews. What tends to fail on these things, gaskets, handles, the metal itself? Do the people who've cooked on one for ten-plus years favor a particular build? Give me the one you'd trust to still be working in 2046.
 
 ## What they want back
 

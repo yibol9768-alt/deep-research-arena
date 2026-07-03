@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-My partner and I finally have a real kitchen and I want one big pot for braises and sourdough, but I'm stuck. The enameled dutch ovens everyone drools over cost five times what a plain cast-iron one does, and I can't tell if the enamel actually changes how it cooks or just how it looks on a shelf. People who've owned both seem to have strong opinions about chipping and rust. We can stretch for the pricey one but only if it's genuinely different. What would you actually put on our counter, and why?
+We do a lot of park days and little-league weekends, and I'm sick of lukewarm coffee and melted ice by ten in the morning. I want one big insulated jug the family can live out of for years, but the price spread is absurd: the famous double-wall steel ones cost several times what the lookalikes do, and both sets of listings make the same 'keeps cold 24 hours' promises. Is the expensive vacuum insulation genuinely different or am I paying for a logo? What do people who've owned theirs for years say about dents, lids and seals? End with the jug you'd actually buy.
 
 ## What they want back
 

@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I've been comparing drills online and the numbers make no sense: a sixty-dollar drill claims more torque than one costing three times as much, and every battery seems to advertise a bigger amp-hour figure than last year. Either physics got cheap or someone's fudging the spec sheet. I'm ready to buy this month, but I want to understand what torque and amp-hours actually mean and whether these listed figures are measured the same way by everyone. Do owners find the big-number budget tools deliver, or do they wheeze under load? After the myth-busting, tell me which spec sheet you'd trust with my money.
+Half the lamps I shortlisted say 'dimmable' like it's a solved problem, but my last dimmable LED buzzed like a wasp and flickered whenever it was below half brightness. Renting means I can't rewire anything, so I need the lamp itself to get this right. What makes LED dimming go wrong technically, is it the lamp, the driver inside, or my wall switch, and can a lamp with its own built-in dimmer sidestep the whole mess? Which ones do buyers say dim smoothly and silently in practice? Name the one you'd trust in a quiet bedroom.
 
 ## What they want back
 

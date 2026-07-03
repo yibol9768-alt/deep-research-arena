@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I burned through three cheap drill bits yesterday trying to get through a steel bracket, so now I'm staring at bit sets that range from ten bucks to over a hundred. The expensive ones say cobalt or titanium coated and I genuinely can't tell if that's a different metal or just a gold-colored finish. For someone drilling mostly wood and the occasional metal bracket, where does spending more stop mattering? Reviews on the mid-price sets look great, but I've been fooled before. Explain what actually makes a bit stay sharp, then tell me which set you'd buy at which price.
+Furnishing our first unfurnished apartment and lamps are the line item I don't understand. A twenty-dollar table lamp and a hundred-fifty-dollar one look nearly identical in photos, and both light a room. Where does the extra money actually go, materials, the socket, the shade, the brightness, and at what price does a lamp stop getting meaningfully better for a normal living room? Are the expensive ones the thing reviewers stay happy with, or do the cheap ones quietly win? Give me the price point you'd stop at and the lamps to buy there.
 
 ## What they want back
 

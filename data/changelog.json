@@ -3,6 +3,36 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v7-2026-07-03",
+      "date": "2026-07-03",
+      "title": "Pre-experiment hardening: adversarial re-check closes 28 findings across tasks, keys and scorer",
+      "summary": "A five-way adversarial re-check of the v2 task set ran before any experiment. It found and we fixed: 15 questions asking for products the frozen store does not stock (re-anchored to measured inventory, including a tools-to-lighting cluster correction), a vitality-ranking flaw that let popular accessories outrank the actual subject, and five scorer exploits (canonical-variant padding, slug-context padding, subject misbinding, budget-number false claims, unmatched natural sentiment phrasing). All attack regressions now fail as designed.",
+      "tags": [
+        "methodology",
+        "scoring",
+        "tasks",
+        "audit"
+      ],
+      "sections": [
+        {
+          "heading": "Stock-grounded tasks",
+          "bullets": [
+            "Every intent's focal product verified against category enumeration; the 'tools' cluster was actually lamps in the corpus taxonomy and is now honestly a home-lighting cluster; kitchen questions target stocked goods (insulated drinkware, pressure cookers, bone china) instead of absent skillets.",
+            "Gaming cluster dropped a furniture category that polluted relevance with bar stools."
+          ]
+        },
+        {
+          "heading": "Scorer exploits closed",
+          "bullets": [
+            "Reachability dedupes citations by canonical page: URL-variant padding can no longer launder fabricated links (attack now scores 0.20, was 0.67).",
+            "Slug-only citation context counts as failed proof-of-fetch, not skipped (padding attack now 0.17, was 1.00).",
+            "Fact claims bind to the cited link's product; honest reports quoting official titles no longer get contradicted (fact axis 0.89, was 0.00).",
+            "Natural phrasing of buyer-sentiment facts now earns completeness credit; budget mentions no longer count as price claims."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v6-2026-07-03",
       "date": "2026-07-03",
       "title": "Task set v2: every task tri-source by construction, real-user questions, enumerated ground truth",

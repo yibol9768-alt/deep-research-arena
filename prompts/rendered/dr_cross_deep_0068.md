@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-I stripped the head of a stuck screw yesterday with a supposedly premium driver, and the tip came out visibly rounded, so the whole set is getting replaced. The packaging vocabulary is where I get lost: chrome vanadium, S2 steel, hardened tips, magnetic anti-slip coatings, lifetime warranties. Which of those genuinely change whether a tip bites and survives in a screw head, and which are just words on a blister pack? People who've used the expensive sets for years must know if the difference shows. I'd rather understand the metallurgy once than strip another screw. Which set would you actually grab?
+Every LED lamp listing brags about tens of thousands of hours, basically 'never replace this'. Meanwhile the one in my hallway died in eighteen months. Before I refit the whole apartment I want to know what those hour numbers actually mean: are they real measurements of the diodes, and if the diodes last, what's actually dying, the power electronics, the dimmer, the cheap housing? Do long-term reviews back the marketing anywhere? Give me the verdict on the lifespan claims and which lamps have the record to justify them.
 
 ## What they want back
 

@@ -12,7 +12,7 @@ page if it genuinely backs what you say next to the link.
 
 ## The request
 
-We just cleared out the garage and I promised the kids a proper games table, ping-pong or foosball, maybe one of those multi-game combos. Trouble is the garage is unheated and gets damp in winter, and I've heard horror stories about tabletops warping in a single season. Are the combo tables ever built to last, or is cheap board material under the paint the reason they die? What should the frame and playing surface actually be made of to survive humidity plus two rowdy boys? I'd rather spend around $600 once than replace it every couple of years.
+My kids found my old game discs in the basement and now they want 'a real console like when you were young'. Instead of dropping serious money on something new I'm tempted to grab a used last-generation machine, but I keep hearing horror stories: disc drives dying, controllers with worn sticks, power bricks failing. Between the older Xbox, PlayStation and Wii machines, which hardware has actually held up after all these years, what do people who still play theirs say breaks first, and which one would you hunt down for two kids who mostly want couch games together?
 
 ## What they want back
 

@@ -88,18 +88,40 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
             url=p["url"], name=p["name"], category="shopping_product",
             facts=facts, weight=round(pct(s["n_reviews"]) if s else 0.2, 3)))
 
-    # vitality ranking (T1): review volume x task-subject affinity. Membership
-    # stays category-based; this only orders the nugget pool so a gaming
-    # task's vital nuggets are consoles, not the cluster's bar stools.
+    # vitality ranking (T1, rebuilt after verify pass): subject affinity
+    # DOMINATES review volume, affinity tokens are regex-tokenized (punctuation
+    # no longer breaks matches) and IDF-weighted within the cluster (generic
+    # cluster words like "laptop" in electronics stop outranking the actual
+    # subject), and the pool is restricted to relevant_set members (a nugget
+    # must never demand a product the key's own relevance set excludes).
+    import math
+    import re as _re
+    member_slugs = {p["url"].rsplit("/", 1)[-1].removesuffix(".html")
+                    for p in products}
     it = _intent_tokens(spec.get("intent") or spec.get("angle") or "")
 
-    def _affinity(name: str) -> int:
-        toks = {w for w in name.lower().split() if len(w) > 3}
-        return len(toks & it)
+    def _name_toks(name: str) -> set:
+        return {t for t in _re.findall(r"[a-z][a-z']{3,}", (name or "").lower())
+                if t not in _INTENT_STOP}
 
-    ranked = sorted((s for s in sent.values() if s.get("n_reviews", 0) >= 3),
-                    key=lambda s: -(s["n_reviews"] * (1 + 2 * _affinity(s["name"]))))
+    pool0 = [s for s in sent.values()
+             if s.get("n_reviews", 0) >= 3 and s["url_key"] in member_slugs]
+    df: dict[str, int] = {}
+    for s0 in pool0:
+        for t in _name_toks(s0["name"]):
+            df[t] = df.get(t, 0) + 1
+    n_pool = max(len(pool0), 1)
+
+    def _affinity(name: str) -> float:
+        return sum(math.log(n_pool / (1 + df.get(t, 0)))
+                   for t in _name_toks(name) & it)
+
+    ranked = sorted(pool0, key=lambda s: (-_affinity(s["name"]),
+                                          -s["n_reviews"]))
     vital, useful = [], []
+    for s in ranked:
+        if s["name"].startswith("None/"):
+            s["name"] = s["name"][5:]
     for i, s in enumerate(ranked[:N_VITAL_SENT + N_USEFUL_SENT]):
         url = f"http://localhost:7770/{s['url_key']}.html"
         complaint = (s.get("complaint_terms") or [["", 0]])[0][0]
@@ -119,10 +141,11 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
             source_url=f"http://localhost:8090/content/wikipedia_en_all_nopic/A/{wt.replace(' ', '_')}",
             importance="vital"))
 
+    task_min_words = int(spec.get("min_words") or 300)
     reqs = [SpecRequirement(
         id="min_words", kind="min_words",
         description="Substantive report, not a one-liner",
-        params={"min": 300})]
+        params={"min": task_min_words})]
     arche = (spec.get("archetype") or "").lower()
     if any(k in arche for k in ("buying", "value", "durability", "bifl", "use-case")):
         reqs.append(SpecRequirement(
@@ -169,7 +192,8 @@ def main() -> int:
                                   "archetype": ts.get("archetype"),
                                   "angle": ts.get("angle"),
                                   "wiki_topics": ts.get("wiki_topics"),
-                                  "intent": t.get("intent", "")}
+                                  "intent": t.get("intent", ""),
+                                  "min_words": (t.get("markdown_spec") or {}).get("min_words")}
 
     KEYS_OUT.mkdir(parents=True, exist_ok=True)
     CHECK_OUT = ROOT / "data/golden/checklists"
