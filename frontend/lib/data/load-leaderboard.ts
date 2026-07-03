@@ -59,6 +59,7 @@ interface RankSignificance {
 interface V3FileShape {
   _schema_version?: string
   _dry_run?: boolean
+  jury?: string[]
   weights_v3?: Record<string, number>
   composite_formula?: string
   elo_v3_ci: Record<string, EloEntry>
@@ -82,6 +83,7 @@ interface V2FileShape {
 interface NormalizedCache {
   schemaVersion?: string
   isDryRun: boolean
+  jury: string[]
   weights?: Record<string, number>
   compositeFormula?: string
   elo: Record<string, EloEntry>
@@ -125,6 +127,7 @@ function buildCache(): NormalizedCache {
     return {
       schemaVersion: v3._schema_version,
       isDryRun: !!v3._dry_run,
+      jury: Array.isArray(v3.jury) ? v3.jury : [],
       weights: v3.weights_v3,
       compositeFormula: v3.composite_formula,
       elo: v3.elo_v3_ci,
@@ -146,6 +149,7 @@ function buildCache(): NormalizedCache {
   if (isV2Valid(v2)) {
     return {
       isDryRun: false,
+      jury: [],
       elo: v2.elo_v2_ci,
       pillarElo: {},
       perAgentProfile: {},
@@ -163,6 +167,7 @@ function buildCache(): NormalizedCache {
   // synthetic placeholder that misrepresented real standings, so it was removed.
   return {
     isDryRun: false,
+    jury: [],
     elo: {},
     pillarElo: {},
     perAgentProfile: {},
@@ -269,6 +274,11 @@ export function loadLeaderboard(): Leaderboard {
 /** Convenience accessor: true when the loaded leaderboard is the v3 dry-run. */
 export function isDryRun(): boolean {
   return getCache().isDryRun
+}
+
+/** Jury model names recorded in the leaderboard snapshot (empty when absent). */
+export function juryModels(): string[] {
+  return getCache().jury
 }
 
 /** Convenience accessor: schema version string when available. */

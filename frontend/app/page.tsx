@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { rankedAgents, loadLeaderboard } from '@/lib/data/load-leaderboard'
+import { rankedAgents, loadLeaderboard, juryModels } from '@/lib/data/load-leaderboard'
 import { Hero } from '@/components/home/hero'
 import { HighlightTiles } from '@/components/home/highlight-tiles'
 import { CompositeBar } from '@/components/home/composite-bar'
@@ -7,6 +7,10 @@ import { LeaderboardTable } from '@/components/home/leaderboard-table'
 import { PillarBars } from '@/components/home/pillar-bars'
 import { SectionNav } from '@/components/home/section-nav'
 import { DryRunBanner } from '@/components/home/dry-run-banner'
+import { RankShift } from '@/components/home/rank-shift'
+import { PipelineBand } from '@/components/home/pipeline-band'
+import { Faq } from '@/components/home/faq'
+import { CiteBlock } from '@/components/home/cite-block'
 import { T } from '@/components/i18n/t'
 import { fmt } from '@/lib/format'
 
@@ -15,20 +19,25 @@ export const dynamic = 'force-static'
 export default function HomePage() {
   const agents = rankedAgents()
   const lb = loadLeaderboard()
+  const jury = juryModels()
 
   const stats = [
     { value: String(agents.length), label: 'Agents', zh: '智能体' },
-    { value: '100', label: 'Task set', zh: '任务集' },
-    { value: fmt(lb.n_runs), label: 'Pairwise battles', zh: '两两对战' },
-    { value: '2', label: 'Grounding checks', zh: '接地核验' },
+    { value: '100', label: 'Frozen tasks', zh: '冻结任务' },
+    { value: fmt(lb.n_runs), label: 'Jury battles', zh: '陪审团对战' },
+    { value: String(jury.length || 3), label: 'Jurors', zh: '陪审员' },
+    { value: '1,000', label: 'Bootstrap resamples', zh: '自助重采样' },
   ]
 
   const sections = [
     { id: 'highlights', label: 'Highlights', zh: '亮点' },
     { id: 'leaderboard', label: 'Leaderboard', zh: '排行榜' },
+    { id: 'rankshift', label: 'What the gate changes', zh: '门控改变了什么' },
     { id: 'composite', label: 'Judge Elo (raw)', zh: '裸判官 Elo' },
     { id: 'pillars', label: 'Signals', zh: '评分信号' },
-    { id: 'methodology-cta', label: 'Methodology', zh: '方法论' },
+    { id: 'how-it-works', label: 'How it works', zh: '评测流程' },
+    { id: 'faq', label: 'FAQ', zh: '常见问题' },
+    { id: 'cite', label: 'Cite & reproduce', zh: '引用与复现' },
   ]
 
   // REAL per-agent signals (no synthetic projections): grounding from the
@@ -47,13 +56,15 @@ export default function HomePage() {
     .map((a) => ({ id: a.id, value: a.gated_score ?? 0 }))
     .sort((a, b) => b.value - a.value)
 
+  const juryLine = jury.length > 0 ? jury.join(' · ') : 'cross-family LLM jury'
+
   return (
     <>
       <DryRunBanner isDryRun={!!lb.is_dry_run} schemaVersion={lb.schema_version} />
-      <Hero stats={stats} />
+      <Hero stats={stats} top={agents} jury={jury} />
 
       <div id="highlights" className="container">
-        <div className="my-10 h-px w-full bg-hairline" />
+        <div className="my-12 h-px w-full bg-hairline" />
       </div>
       <HighlightTiles top={agents.slice(0, 4)} />
 
@@ -61,15 +72,35 @@ export default function HomePage() {
       <div className="container mt-16 flex flex-col gap-12 lg:flex-row">
         <SectionNav items={sections} />
 
-        <div className="min-w-0 flex-1 space-y-12">
+        <div className="min-w-0 flex-1 space-y-14">
           {/* Leaderboard table */}
           <div>
             <SectionTitle
               id="leaderboard"
               title={<T en="Leaderboard" zh="排行榜" />}
-              caption={<T en={`${agents.length} agents · truth-gated Elo (judge Elo × grounding gate) · judge: deepseek-v4-flash`} zh={`${agents.length} 个智能体 · 真值门控 Elo（判官 Elo × 接地门）· 判官：deepseek-v4-flash`} />}
+              caption={
+                <T
+                  en={`${agents.length} agents · truth-gated Elo (judge Elo × grounding gate) · jury: ${juryLine}`}
+                  zh={`${agents.length} 个智能体 · 真值门控 Elo（判官 Elo × 接地门）· 陪审团：${juryLine}`}
+                />
+              }
             />
             <LeaderboardTable agents={agents} />
+          </div>
+
+          {/* Raw vs gated rank movement */}
+          <div>
+            <SectionTitle
+              id="rankshift"
+              title={<T en="What the gate changes" zh="门控改变了什么" />}
+              caption={
+                <T
+                  en="Rank by jury preference alone, versus rank after evidence is checked — computed from the same snapshot"
+                  zh="仅凭陪审团偏好的排名,对比证据核验之后的排名 —— 均来自同一快照"
+                />
+              }
+            />
+            <RankShift agents={agents} />
           </div>
 
           {/* Raw judge Elo bar */}
@@ -115,7 +146,7 @@ export default function HomePage() {
               />
               <PillarBars
                 title={<T en="Judge Elo (raw)" zh="裸判官 Elo" />}
-                subtitle={<T en="Pairwise preference of the LLM judge (deepseek-v4-flash), blind to citation reality" zh="LLM 判官（deepseek-v4-flash）的成对偏好，看不见引用真假" />}
+                subtitle={<T en="Pairwise preference of the LLM jury, blind to citation reality" zh="LLM 陪审团的成对偏好，看不见引用真假" />}
                 accentColor="#cc785c"
                 rows={byJudge}
               />
@@ -127,30 +158,18 @@ export default function HomePage() {
               />
             </div>
           </div>
-
-          {/* Methodology CTA */}
-          <div id="methodology-cta" className="card p-8">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div className="max-w-xl">
-                <h3 className="font-serif text-h-sm text-ink">
-                  <T en="How are these scores computed?" zh="这些分数是如何计算的？" />
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted">
-                  <T
-                    en={`Two measurements are kept separate: grounding checks whether cited URLs resolve and whether quoted evidence appears on the cited page; judge Elo measures pairwise report quality across ${fmt(lb.n_runs)} battles with bootstrap confidence intervals. The public score multiplies the two, so unsupported polish cannot dominate the board.`}
-                    zh={`两个测量保持分离：接地核验检查引用 URL 是否可达、引文是否出现在被引页面；判官 Elo 通过 ${fmt(lb.n_runs)} 场两两对战衡量报告质量，并给出自助置信区间。公开主分将二者相乘，因此缺乏证据支撑的漂亮报告无法占据榜首。`}
-                  />
-                </p>
-              </div>
-              <a
-                href="/methodology"
-                className="inline-flex h-11 shrink-0 items-center gap-2 rounded-tab bg-ink px-5 text-sm font-medium text-white hover:bg-ink-soft"
-              >
-                <T en="Read the methodology →" zh="阅读方法论 →" />
-              </a>
-            </div>
-          </div>
         </div>
+      </div>
+
+      {/* Full-bleed pipeline explainer */}
+      <div className="mt-20">
+        <PipelineBand />
+      </div>
+
+      {/* FAQ + cite */}
+      <div className="container mt-20 space-y-14">
+        <Faq />
+        <CiteBlock />
       </div>
     </>
   )

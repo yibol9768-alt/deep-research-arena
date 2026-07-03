@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: 'Deep Research Arena · Reproducible Elo benchmark for DR agents',
   description:
     'Twelve open-source Deep Research agents, 100 sandbox tasks, truth-gated Elo, citation reachability, quote verification, and 95% bootstrap CIs.',
-  metadataBase: new URL('https://deep-research-arena.local'),
+  metadataBase: new URL('https://www.deepresearcharena.com'),
   openGraph: {
     title: 'Deep Research Arena',
     description: 'The reproducible Elo benchmark for Deep Research agents.',

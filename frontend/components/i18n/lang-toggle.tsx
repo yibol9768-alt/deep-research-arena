@@ -36,7 +36,7 @@ export function LangToggle({ className = '' }: { className?: string }) {
       aria-label="Switch language"
       title={lang === 'en' ? 'Switch to 中文' : 'Switch to English'}
       className={
-        'inline-flex h-8 items-center justify-center rounded-tab border border-hairline px-2.5 text-xs font-medium text-muted transition-colors hover:bg-surface-low hover:text-ink ' +
+        'inline-flex h-8 items-center justify-center rounded-pill border border-night-line px-2.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white ' +
         className
       }
     >

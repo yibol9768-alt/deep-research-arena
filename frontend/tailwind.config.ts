@@ -28,7 +28,17 @@ const config: Config = {
         'outline-soft': '#C8CDD4',
 
         // brand
-        brand: { DEFAULT: '#6E5BFF', dark: '#24262B', soft: '#C7D2FE', wash: '#E8ECFF', footer: '#EEF0F3' },
+        brand: { DEFAULT: '#6E5BFF', dark: '#24262B', soft: '#C7D2FE', wash: '#E8ECFF', footer: '#EEF0F3', glow: '#9F8CFF' },
+
+        // dark "night" sections (hero, pipeline band, footer)
+        night: {
+          DEFAULT: '#0B0B12',
+          soft: '#12131C',
+          card: 'rgba(255,255,255,0.04)',
+          line: 'rgba(255,255,255,0.09)',
+          mist: 'rgba(235,235,245,0.62)',
+          faint: 'rgba(235,235,245,0.38)',
+        },
 
         // semantic
         good: '#34A853',
