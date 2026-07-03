@@ -177,6 +177,11 @@ def main() -> int:
     ap.add_argument("--out", type=Path,
                     default=ROOT / "data" / "golden" / "url_registry.json")
     ap.add_argument("--kiwix-book", default=DEFAULT_KIWIX_BOOK)
+    ap.add_argument("--wiki-bloom", type=Path, default=None,
+                    help="WBLOOM1 file from the full ZIM enumeration; when "
+                         "given, meta.wiki_bloom_file points at it (relative "
+                         "to --out) and wiki membership becomes exact-reject "
+                         "(no false negatives, FPR ~0.5%%)")
     args = ap.parse_args()
 
     for p in (args.products_tsv, args.submissions_tsv, args.wiki_list):
@@ -208,6 +213,7 @@ def main() -> int:
         "products": products,
         "submissions": submissions,
         "wiki": wiki,
+        "meta": {},
         "stats": {
             "n_products": len(products),
             "n_submissions": len(submissions),
@@ -216,6 +222,25 @@ def main() -> int:
             **{k: v for k, v in stats.items() if v},
         },
     }
+
+    if args.wiki_bloom:
+        from src.eval.url_registry import WikiBloom
+        wb = WikiBloom.load(args.wiki_bloom)
+        if wb is None:
+            print(f"! --wiki-bloom {args.wiki_bloom} unreadable/bad magic",
+                  file=sys.stderr)
+            return 2
+        try:
+            rel = args.wiki_bloom.resolve().relative_to(args.out.resolve().parent)
+        except ValueError:
+            rel = args.wiki_bloom
+        registry["meta"] = {
+            "wiki_bloom_file": str(rel),
+            "wiki_bloom_keys": wb.n_keys,
+            "wiki_bloom_fpr_design": 0.005,
+            "note": "wiki membership: bloom miss = certainly absent (no false "
+                    "negatives); hit accepted with ~0.5% FPR",
+        }
 
     # Self-check: the artifact must round-trip through UrlRegistry and answer
     # membership for one sample of each source before it is trusted on disk.

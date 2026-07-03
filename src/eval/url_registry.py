@@ -61,6 +61,54 @@ DEFAULT_REGISTRY_PATH = (
     Path(__file__).resolve().parents[2] / "data" / "golden" / "url_registry.json"
 )
 
+
+class WikiBloom:
+    """Bloom filter over the FULL ZIM path enumeration (articles + redirect
+    titles). Properties that make it safe as a membership oracle here:
+
+      * NO false negatives: a miss is a certain absence -> marking the
+        citation fabricated is exact;
+      * false positives ~0.5% (sized at build time): a fabricated wiki title
+        has a 0.5% chance of slipping through as reachable. Direction-safe:
+        honest citations are never penalized.
+
+    File format WBLOOM1: 8-byte magic, <QQI (m_bits, n_keys, k), bitarray.
+    Built by the box-side enumerator (scripts note in data/golden/README);
+    keys are raw ZIM paths, case-sensitive, underscores not spaces.
+    """
+
+    MAGIC = b"WBLOOM1\x00"
+
+    def __init__(self, m_bits: int, n_keys: int, k: int, bits: bytes):
+        self.m_bits, self.n_keys, self.k, self.bits = m_bits, n_keys, k, bits
+
+    @classmethod
+    def load(cls, path) -> "WikiBloom | None":
+        import struct
+        p = Path(path)
+        if not p.exists():
+            return None
+        with open(p, "rb") as f:
+            if f.read(8) != cls.MAGIC:
+                return None
+            m_bits, n_keys, k = struct.unpack("<QQI", f.read(20))
+            bits = f.read()
+        if len(bits) * 8 < m_bits:
+            return None
+        return cls(m_bits, n_keys, k, bits)
+
+    def __contains__(self, article_id: str) -> bool:
+        import hashlib
+        d = hashlib.sha256(article_id.encode("utf-8")).digest()
+        h1 = int.from_bytes(d[:8], "big")
+        h2 = int.from_bytes(d[8:16], "big") | 1
+        for j in range(self.k):
+            idx = (h1 + j * h2) % self.m_bits
+            if not (self.bits[idx >> 3] >> (idx & 7)) & 1:
+                return False
+        return True
+
+
 # Kiwix book used in the canonical /content/<book>/A/<id> form.
 DEFAULT_KIWIX_BOOK = "wikipedia_en_all_nopic"
 
@@ -140,6 +188,9 @@ class UrlRegistry:
         # wiki articles become None (callers fall back to the page cache)
         # until a full ZIM article enumeration upgrades this to True.
         self.wiki_complete = bool(wiki_complete)
+        # full-enumeration Bloom filter (see WikiBloom); presence supersedes
+        # the wiki_complete tri-state: miss = certainly fabricated
+        self.wiki_bloom: "WikiBloom | None" = None
         self.kiwix_book = kiwix_book or DEFAULT_KIWIX_BOOK
 
         self.products: set[str] = {p for p in (products or ()) if p}
@@ -192,7 +243,11 @@ class UrlRegistry:
             return cls(loaded=False)
         with open(p, encoding="utf-8") as f:
             data = json.load(f)
-        return cls.from_dict(data)
+        reg = cls.from_dict(data)
+        bf = (data.get("meta") or {}).get("wiki_bloom_file")
+        if bf:
+            reg.wiki_bloom = WikiBloom.load(p.parent / bf)
+        return reg
 
     # ------------------------------------------------------------------
     # Small helpers
@@ -462,6 +517,13 @@ class UrlRegistry:
             # registry's original case: it is the only fetchable spelling.
             return _result(url, KIND_CONTENT, canon(stored), True,
                            "case_corrected", host_role=role)
+        if self.wiki_bloom is not None:
+            if article in self.wiki_bloom:
+                # full-enumeration hit (FPR ~0.5%, no false negatives)
+                return _result(url, KIND_CONTENT, canon(article), True,
+                               "article_in_bloom", host_role=role)
+            return _result(url, KIND_CONTENT, canon(article), False,
+                           "unknown_article", host_role=role)
         if not self.wiki_complete:
             # partial wiki enumeration (v1): unknown is UNKNOWN, not fake
             return _result(url, KIND_CONTENT, canon(article), None,
