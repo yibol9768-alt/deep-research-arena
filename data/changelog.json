@@ -3,6 +3,42 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v5-2026-07-03",
+      "date": "2026-07-03",
+      "title": "Decidable scoring stack v2: URL-registry reachability, rebuilt verifiers, and a statistical honesty pass",
+      "summary": "A five-way adversarial self-audit (~55 findings) drove a rebuild of the scoring methodology. Reachability is now closed-world set membership (zero HTTP), the scorer composition is a continuous verified gate, and every headline correlation now carries bootstrap CIs and permutation tests. The public boards remain on the v1 metric until the jury re-judge lands.",
+      "tags": [
+        "methodology",
+        "scoring",
+        "audit"
+      ],
+      "sections": [
+        {
+          "heading": "Grounding, rebuilt",
+          "bullets": [
+            "URL registry (232k enumerated URLs: products, forum submissions, wiki articles): a citation is reachable iff its canonical form is in the corpus. Search pages, dead-port tricks, redirect laundering and off-sandbox links are all handled by construction.",
+            "Fixed a shipped bug that lowercased Kiwix article ids (case-sensitive server), which had been mis-scoring real Wikipedia citations as fabricated.",
+            "Proof-of-fetch hardened: link labels, URL slug tokens, stopwords and page chrome no longer count; requires a contiguous span match over full page text."
+          ]
+        },
+        {
+          "heading": "Scorer composition v2",
+          "bullets": [
+            "truth = reach^gamma x quality(fact, proof-of-fetch, completeness, spec); the fabricator-cannot-top property is now a checked theorem (scripts/verify_gate_theorem.py), and gamma=1.5 has an empirical justification.",
+            "fact-support scores zero when a report asserts no checkable facts (silence is no longer perfect precision); completeness is saturating recall@K over an importance-ranked vital pool instead of raw catalog recall.",
+            "Presentation (LLM jury) is reported as a separate column and can only break ties; it is never multiplied into truth."
+          ]
+        },
+        {
+          "heading": "Statistical honesty",
+          "bullets": [
+            "Two-level bootstrap (battles -> Bradley-Terry refit -> per-task grounding) for the Elo-vs-grounding correlations: neither board's coefficient is distinguishable from zero by permutation test; the stable evidence is the inversion pattern (top-ranked by judges, bottom on grounding), which holds rank in 70-79 percent of replicates.",
+            "Review-to-product attachment audited and confirmed (66x topical separation; summary ratings match attached votes), validating in-store reviews as an aligned sentiment source."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v4-2026-07-03b",
       "date": "2026-07-03",
       "title": "Copy and subpage layout cleanup",

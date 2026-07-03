@@ -247,7 +247,7 @@ class FactKGVerifier:
                         else:
                             unverifiable += 1
                 decidable = verified + wrong
-                precision = (verified / decidable) if decidable > 0 else 1.0
+                precision = (verified / decidable) if decidable > 0 else 0.0  # M-C3: zero decidable claims is not perfect precision
 
         # --- F1 ---
         if precision + recall > 0:

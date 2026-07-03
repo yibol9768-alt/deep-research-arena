@@ -21,33 +21,40 @@ TASK_DIR = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep"
 # and necessary, not dictated; no min-URL / keyword-list / mandated-section quotas.
 INTENTS = {
     "dr_cross_deep_0001": (
-        "I'm trying to get a clear, trustworthy picture of the consumer "
-        "audio-headphone market before buying. Across what's actually available, "
-        "what are the notable options at different price points, what do real users "
-        "and communities say about the main brands, and where do product marketing "
-        "claims fail to match the underlying technical reality? Pull it together "
-        "into a grounded overview with a shortlist I can act on."
+        "My headphones just died and I need new ones, but every time I look it's a "
+        "wall of brands and buzzwords and I have no clue what's actually worth it. "
+        "I'm on the bus a lot and work in a noisy office, so blocking out sound "
+        "matters to me. Is the expensive stuff genuinely better or am I just paying "
+        "for the logo? And do things like active noise cancelling and the fancy "
+        "Bluetooth codecs really do what the ads say? Honestly I'd just love a few "
+        "solid picks at different prices and the reasons behind them."
     ),
     "dr_cross_deep_0002": (
-        "I want to set up home coffee brewing and need an honest lay of the land. "
-        "What brewing gear is actually worth it across budgets, what do enthusiasts "
-        "genuinely recommend versus marketing hype, and how do the main brewing "
-        "methods really differ in practice? Give me a grounded guide that ends in a "
-        "sensible starter setup."
+        "I've been living on instant coffee and I'm finally ready to make the real "
+        "thing at home, but the whole coffee world is kind of intimidating and it "
+        "all seems overpriced. I don't want to drop a fortune or end up with gear I "
+        "never touch. What do I actually need to get started, which brewing method "
+        "is hardest to mess up as a beginner, and what do people who really make "
+        "coffee at home swear by versus what's just hype? End me with a specific "
+        "starter kit I can just go buy."
     ),
     "dr_cross_deep_0003": (
-        "I have about $300 to start working out at home and I'm torn between a few "
-        "setups: adjustable dumbbells plus a bench, a barbell with plates, or a "
-        "resistance/bodyweight-based path. Compare them on what actually matters, "
-        "weigh in what people who've used each say, and tell me which gives the best "
-        "results for the budget, with your reasoning."
+        "I've got maybe $300 to set something up at home so I stop paying for a gym "
+        "I never go to. I keep going back and forth between adjustable dumbbells "
+        "with a bench, a barbell and rack, or just resistance bands and bodyweight "
+        "stuff. I actually want to build some muscle, not buy something that turns "
+        "into a coat rack. For a beginner on that budget, which way really makes the "
+        "most sense, and what do people who've gone each route say about living with "
+        "it? Tell me what you'd pick and why."
     ),
     "dr_cross_deep_0004": (
-        "I'm getting into photography with roughly $800 for my first year and I'm "
-        "weighing a few starter routes: a new mirrorless body with a couple of "
-        "lenses, a used DSLR kit, or another approach. Compare the realistic options, "
-        "factor in what photographers actually recommend, and recommend the smartest "
-        "way to start, with the reasoning and trade-offs."
+        "I want to get seriously into photography this year and I've got around $800 "
+        "for my first setup. I'm stuck between a new mirrorless camera with a lens or "
+        "two, hunting for a used DSLR kit to save money, or something else entirely. "
+        "I really don't want to outgrow it in three months or blow the budget on the "
+        "wrong thing. What are my realistic options, what do actual photographers "
+        "tell beginners, and what would you do with $800? Lay out the trade-offs for "
+        "me."
     ),
 }
 

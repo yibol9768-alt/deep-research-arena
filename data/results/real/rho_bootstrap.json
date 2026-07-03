@@ -1,0 +1,495 @@
+{
+  "generated": "2026-07-02",
+  "script": "scripts/bootstrap_rho_ci.py",
+  "registry_findings": [
+    "S1",
+    "S2",
+    "S3",
+    "S7",
+    "S8",
+    "S10",
+    "S11"
+  ],
+  "config": {
+    "boot_replicates": 2000,
+    "bt_iters_bootstrap": 60,
+    "bt_iters_point": 200,
+    "mc_perm_iters": 10000,
+    "exact_perm_limit": 50000,
+    "seed": 20260702,
+    "min_tasks_for_grounding_resample": 3,
+    "grounding_def": "(reach + quote) / 2, per task where available",
+    "gated_def": "elo * grounding_pct / 100 (== elo * grounding_fraction)"
+  },
+  "boards": {
+    "framework": {
+      "n_agents": 10,
+      "n_battles": 1553,
+      "n_tasks": 70,
+      "battle_filtering": {
+        "n_raw_lines": 3885,
+        "n_error_dropped": 0,
+        "n_after_dedupe": 2615,
+        "n_excluded_degraded": 1062,
+        "n_battles": 1553,
+        "n_tasks": 70
+      },
+      "agents": {
+        "camel-ai": {
+          "elo_point": 1016.2,
+          "grounding_point": 0.8979,
+          "n_grounding_tasks": 4,
+          "point_rank": 4
+        },
+        "deerflow": {
+          "elo_point": 984.7,
+          "grounding_point": 0.542,
+          "n_grounding_tasks": 51,
+          "point_rank": 6
+        },
+        "flowsearcher-ds": {
+          "elo_point": 898.6,
+          "grounding_point": 0.243,
+          "n_grounding_tasks": 53,
+          "point_rank": 9
+        },
+        "gpt-researcher": {
+          "elo_point": 1123.0,
+          "grounding_point": 0.0165,
+          "n_grounding_tasks": 13,
+          "point_rank": 1
+        },
+        "ii-researcher": {
+          "elo_point": 1051.8,
+          "grounding_point": 0.4143,
+          "n_grounding_tasks": 53,
+          "point_rank": 3
+        },
+        "langchain-odr": {
+          "elo_point": 1104.0,
+          "grounding_point": 0.0404,
+          "n_grounding_tasks": 56,
+          "point_rank": 2
+        },
+        "ldr": {
+          "elo_point": 910.5,
+          "grounding_point": 0.0934,
+          "n_grounding_tasks": 51,
+          "point_rank": 8
+        },
+        "qx-agents": {
+          "elo_point": 423.7,
+          "grounding_point": 0.0109,
+          "n_grounding_tasks": 46,
+          "point_rank": 10
+        },
+        "smolagents": {
+          "elo_point": 996.6,
+          "grounding_point": 0.5979,
+          "n_grounding_tasks": 55,
+          "point_rank": 5
+        },
+        "storm": {
+          "elo_point": 916.2,
+          "grounding_point": 0.4949,
+          "n_grounding_tasks": 9,
+          "point_rank": 7
+        }
+      },
+      "rho_point": 0.0909,
+      "rho_ci95": [
+        -0.1273,
+        0.1636
+      ],
+      "rho_boot_mean": 0.0401,
+      "rho_perm_p": 0.8114,
+      "rho_perm_method": "monte_carlo_10000_perms",
+      "loo_rho": {
+        "camel-ai": 0.0667,
+        "deerflow": 0.0167,
+        "flowsearcher-ds": -0.0167,
+        "gpt-researcher": 0.3667,
+        "ii-researcher": 0.1667,
+        "langchain-odr": 0.35,
+        "ldr": 0.0167,
+        "qx-agents": -0.25,
+        "smolagents": 0.0667,
+        "storm": 0.0667
+      },
+      "loo_range": [
+        -0.25,
+        0.3667
+      ],
+      "tau_point": 0.1111,
+      "tau_ci95": [
+        -0.0222,
+        0.2444
+      ],
+      "grounding_not_resampled": [],
+      "rank_stability": {
+        "rank1_is_highest_elo": true,
+        "top3_diag": [
+          {
+            "agent": "gpt-researcher",
+            "point_rank": 1,
+            "p_at_point_rank": 0.791,
+            "p_in_top3": 1.0
+          },
+          {
+            "agent": "langchain-odr",
+            "point_rank": 2,
+            "p_at_point_rank": 0.769,
+            "p_in_top3": 1.0
+          },
+          {
+            "agent": "ii-researcher",
+            "point_rank": 3,
+            "p_at_point_rank": 0.874,
+            "p_in_top3": 0.8995
+          }
+        ],
+        "matrix": {
+          "camel-ai": [
+            0.0,
+            0.0,
+            0.0835,
+            0.687,
+            0.18,
+            0.0495,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "deerflow": [
+            0.0,
+            0.0,
+            0.003,
+            0.0595,
+            0.3065,
+            0.6305,
+            0.0005,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "flowsearcher-ds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.001,
+            0.1665,
+            0.2255,
+            0.607,
+            0.0
+          ],
+          "gpt-researcher": [
+            0.791,
+            0.2055,
+            0.0035,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "ii-researcher": [
+            0.0,
+            0.0255,
+            0.874,
+            0.085,
+            0.0135,
+            0.002,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "langchain-odr": [
+            0.209,
+            0.769,
+            0.022,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "ldr": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0005,
+            0.3225,
+            0.434,
+            0.243,
+            0.0
+          ],
+          "qx-agents": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "smolagents": [
+            0.0,
+            0.0,
+            0.014,
+            0.1685,
+            0.5,
+            0.3165,
+            0.001,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "storm": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5095,
+            0.3405,
+            0.15,
+            0.0
+          ]
+        }
+      },
+      "caveats": [
+        "battles involving claude-code / opencode excluded (degraded rounds); dedupe key (task, sorted pair) keeping the LAST rerun.",
+        "tau compares the raw Elo ranking with gated = elo*grounding/100, a deterministic transform of the same two inputs; it is descriptive reordering evidence, not an independent finding (registry S8).",
+        "the bootstrap CI captures measurement noise conditional on this fixed set of systems; it is NOT a test against zero. Use rho_perm_p for that: a CI away from zero with a large permutation p means the measured association is stable but indistinguishable from label exchangeability at this n (registry S1).",
+        "per-task grounding coverage is uneven (min 4, max 56 tasks per agent); agents with few tasks contribute noisier grounding resamples (registry S10)."
+      ]
+    },
+    "backbone": {
+      "n_agents": 8,
+      "n_battles": 643,
+      "n_tasks": 24,
+      "battle_filtering": {
+        "n_raw_lines": 813,
+        "n_error_dropped": 170,
+        "n_after_dedupe": 643,
+        "n_excluded_degraded": 0,
+        "n_battles": 643,
+        "n_tasks": 24
+      },
+      "agents": {
+        "eff-deepseek-v4-flash": {
+          "elo_point": 1120.1,
+          "grounding_point": 0.2665,
+          "n_grounding_tasks": 0,
+          "point_rank": 2
+        },
+        "eff-glm-5": {
+          "elo_point": 977.0,
+          "grounding_point": 0.588,
+          "n_grounding_tasks": 0,
+          "point_rank": 3
+        },
+        "eff-kimi-k2.5": {
+          "elo_point": 964.9,
+          "grounding_point": 0.561,
+          "n_grounding_tasks": 0,
+          "point_rank": 4
+        },
+        "eff-minimax-m2.5": {
+          "elo_point": 873.4,
+          "grounding_point": 0.458,
+          "n_grounding_tasks": 0,
+          "point_rank": 7
+        },
+        "eff-qwen-flash": {
+          "elo_point": 892.5,
+          "grounding_point": 0.268,
+          "n_grounding_tasks": 0,
+          "point_rank": 6
+        },
+        "eff-qwen3-30b-a3b-instruct-2507": {
+          "elo_point": 957.6,
+          "grounding_point": 0.236,
+          "n_grounding_tasks": 0,
+          "point_rank": 5
+        },
+        "eff-qwen3-32b": {
+          "elo_point": 786.6,
+          "grounding_point": 0.3685,
+          "n_grounding_tasks": 0,
+          "point_rank": 8
+        },
+        "eff-qwen3-max": {
+          "elo_point": 1138.0,
+          "grounding_point": 0.208,
+          "n_grounding_tasks": 0,
+          "point_rank": 1
+        }
+      },
+      "rho_point": -0.3095,
+      "rho_ci95": [
+        -0.5952,
+        -0.2143
+      ],
+      "rho_boot_mean": -0.3775,
+      "rho_perm_p": 0.4618,
+      "rho_perm_method": "exact_40320_perms",
+      "loo_rho": {
+        "eff-deepseek-v4-flash": -0.2143,
+        "eff-glm-5": -0.5357,
+        "eff-kimi-k2.5": -0.5357,
+        "eff-minimax-m2.5": -0.3214,
+        "eff-qwen-flash": -0.2857,
+        "eff-qwen3-30b-a3b-instruct-2507": -0.3929,
+        "eff-qwen3-32b": -0.3424,
+        "eff-qwen3-max": 0.0357
+      },
+      "loo_range": [
+        -0.5357,
+        0.0357
+      ],
+      "tau_point": 0.0,
+      "tau_ci95": [
+        -0.2143,
+        0.1429
+      ],
+      "grounding_not_resampled": [
+        "eff-deepseek-v4-flash",
+        "eff-glm-5",
+        "eff-kimi-k2.5",
+        "eff-minimax-m2.5",
+        "eff-qwen-flash",
+        "eff-qwen3-30b-a3b-instruct-2507",
+        "eff-qwen3-32b",
+        "eff-qwen3-max"
+      ],
+      "rank_stability": {
+        "rank1_is_highest_elo": true,
+        "top3_diag": [
+          {
+            "agent": "eff-qwen3-max",
+            "point_rank": 1,
+            "p_at_point_rank": 0.7045,
+            "p_in_top3": 1.0
+          },
+          {
+            "agent": "eff-deepseek-v4-flash",
+            "point_rank": 2,
+            "p_at_point_rank": 0.7045,
+            "p_in_top3": 1.0
+          },
+          {
+            "agent": "eff-glm-5",
+            "point_rank": 3,
+            "p_at_point_rank": 0.54,
+            "p_in_top3": 0.54
+          }
+        ],
+        "matrix": {
+          "eff-deepseek-v4-flash": [
+            0.2955,
+            0.7045,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "eff-glm-5": [
+            0.0,
+            0.0,
+            0.54,
+            0.2915,
+            0.1645,
+            0.004,
+            0.0,
+            0.0
+          ],
+          "eff-kimi-k2.5": [
+            0.0,
+            0.0,
+            0.2895,
+            0.371,
+            0.3295,
+            0.01,
+            0.0,
+            0.0
+          ],
+          "eff-minimax-m2.5": [
+            0.0,
+            0.0,
+            0.0,
+            0.001,
+            0.0055,
+            0.268,
+            0.721,
+            0.0045
+          ],
+          "eff-qwen-flash": [
+            0.0,
+            0.0,
+            0.0,
+            0.004,
+            0.027,
+            0.6955,
+            0.2725,
+            0.001
+          ],
+          "eff-qwen3-30b-a3b-instruct-2507": [
+            0.0,
+            0.0,
+            0.1705,
+            0.3325,
+            0.4735,
+            0.0225,
+            0.001,
+            0.0
+          ],
+          "eff-qwen3-32b": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0055,
+            0.9945
+          ],
+          "eff-qwen3-max": [
+            0.7045,
+            0.2955,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "caveats": [
+        "backbone battles derived from leaderboard_jury_models.json.battles.jsonl with judge-error battles dropped (170 of 813 raw), matching the published clean-battle board.",
+        "no per-task grounding exists for the backbone board: grounding is fixed at the leaderboard_models_v3 aggregate, so the CI reflects Elo (battle) resampling only and UNDERCOUNTS total uncertainty.",
+        "grounding_not_resampled agents (eff-deepseek-v4-flash, eff-glm-5, eff-kimi-k2.5, eff-minimax-m2.5, eff-qwen-flash, eff-qwen3-30b-a3b-instruct-2507, eff-qwen3-32b, eff-qwen3-max) keep a fixed aggregate grounding inside the bootstrap, so the reported CIs UNDERCOUNT their grounding uncertainty.",
+        "agents eff-deepseek-v4-flash, eff-glm-5, eff-kimi-k2.5, eff-minimax-m2.5, eff-qwen-flash, eff-qwen3-30b-a3b-instruct-2507, eff-qwen3-32b, eff-qwen3-max had no per-task grounding; used per_agent_profile aggregate fallback.",
+        "tau compares the raw Elo ranking with gated = elo*grounding/100, a deterministic transform of the same two inputs; it is descriptive reordering evidence, not an independent finding (registry S8).",
+        "the bootstrap CI captures measurement noise conditional on this fixed set of systems; it is NOT a test against zero. Use rho_perm_p for that: a CI away from zero with a large permutation p means the measured association is stable but indistinguishable from label exchangeability at this n (registry S1)."
+      ]
+    }
+  }
+}

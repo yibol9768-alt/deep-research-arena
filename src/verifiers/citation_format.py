@@ -75,22 +75,22 @@ def _kiwix_normalize_path(path: str) -> str:
         /nojs/eng%20wikipedia/A/Microplastics
         /kiwix/content/wikipedia_en_all_maxi/A/Microplastics
 
-    Article id is lowercased so case typos (calisthenics vs Calisthenics)
-    don't cost the agent a match. Wikipedia article slugs are conventionally
-    case-sensitive, but agents often emit them lowercased, and our sandbox
-    is small enough that real same-name-different-case collisions don't
-    occur. Without normalisation, an agent that fetched the same article
-    via a different prefix records 0 must_cite hits even though it cited
-    the right page — a real fairness bug observed on 13 historical pairs.
+    The article id keeps its ORIGINAL CASE (audit G-F3). kiwix-serve is
+    case-sensitive, and the canonical form doubles as the probe/fetch
+    fallback (url_reachability retries it on a non-200), so the historical
+    ``.lower()`` here turned real wiki citations into 404s and recorded
+    honest agents as fabricators. Case-insensitive comparison is still
+    available, but only through the clearly named ``fuzzy_url_key()``
+    helper, never in the canonical/probe form.
     """
     # /A/<id>  (Kiwix article namespace)
     idx = path.rfind("/A/")
     if idx != -1:
-        return f"/content/wikipedia_en_all_nopic/A/{path[idx + 3:].lower()}"
+        return f"/content/wikipedia_en_all_nopic/A/{path[idx + 3:]}"
     # /wiki/<id>  (legacy Wikipedia path used by some Kiwix configs)
     idx = path.rfind("/wiki/")
     if idx != -1:
-        return f"/content/wikipedia_en_all_nopic/A/{path[idx + 6:].lower()}"
+        return f"/content/wikipedia_en_all_nopic/A/{path[idx + 6:]}"
     return path
 
 
@@ -129,6 +129,19 @@ def canonicalize_url(url: str) -> str:
         return urlunparse((p.scheme.lower() or "http", netloc, path, "", qs, ""))
     except Exception:
         return s.lower()
+
+
+def fuzzy_url_key(url: str) -> str:
+    """Lowercased canonical form for FUZZY comparison ONLY.
+
+    Use for tolerant set matching (e.g. goldset membership where an agent's
+    case typo, calisthenics vs Calisthenics, should not cost the match; the
+    sandbox is small enough that same-name-different-case collisions do not
+    occur). NEVER use this as a probe/fetch URL or as an HTTP-cache key:
+    kiwix-serve article ids are case-sensitive (audit G-F3), and probing the
+    lowercased form 404s real citations, recording them as fabricated.
+    """
+    return canonicalize_url(url).lower()
 
 
 def strip_url_trail(url: str) -> str:

@@ -1,4 +1,9 @@
-"""CompletenessVerifier (CLOSED_WORLD_REDESIGN.md section 8).
+"""DEPRECATED (2026-07-03, registry T2): the single completeness
+implementation is src/eval/decidable_scorer.score_completeness (saturating
+recall over the ranked vital pool). This legacy top-40 verifier remains only
+for reproducing historical v1 boards and MUST NOT be used for new scoring.
+
+CompletenessVerifier (CLOSED_WORLD_REDESIGN.md section 8).
 
 The closed-world superpower: because the sandbox is a closed, queryable world, the
 golden's ``relevant_set`` is the COMPLETE set of entities that satisfy the task's
