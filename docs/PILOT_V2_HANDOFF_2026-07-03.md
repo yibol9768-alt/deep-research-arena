@@ -105,6 +105,43 @@ cd /opt/deep_reserch/data/results/deep && tar czf /tmp/pilot_reports.tgz *_pilot
 #    (工作站) ssh my5090 "wsl -d Ubuntu -- cat /tmp/pilot_reports.tgz" > ... && gzip -t 验证
 ```
 
+## 5b. 【新增硬要求 2026-07-04】全量前必须上 token 记账(性价比轴的数据源)
+
+用户拍板:榜要加"整次运行 token × 单价 = 钱"的性价比维度(AA 式)。
+**这个数据只能在跑的当时采,#39 全量开跑前必须部署,否则永久缺失。**
+试点期间就装上,顺带验证链路。
+
+1. 部署带记账的代理到箱上(在 vLLM 前面,替代直连):
+
+```bash
+# 工作站侧:scp integrations/ds_proxy/app.py 到箱 /root/pilot_v2/ds_proxy_app.py
+# 箱侧(WSL):
+DSPROXY_USAGE_LOG=/mnt/c/Users/liuyibo/tri41/usage_v2.jsonl \
+OPENAI_PROXY_UPSTREAM=http://localhost:8001/v1 \
+OPENAI_PROXY_THINKING_DISABLED=0 \
+tmux new -d -s dsproxy 'cd /root/pilot_v2 && uvicorn ds_proxy_app:app --host 0.0.0.0 --port 8089'
+# 注意:日志放 /mnt/c(持久),不放 /tmp;端口 8089 避开 docker 版 8088
+```
+
+2. runner 改指代理:`pilot_oneagent.sh` 里 `DS_PROXY_URL=http://localhost:8089/v1`
+   (原来直连 :8001 会绕过记账)。
+3. runner 每次 run 前后打标记(加进 pilot_oneagent.sh 的首尾):
+
+```bash
+RUN_ID="${AGENT}__${TASK_ID}__${BACKBONE}"
+curl -s -XPOST localhost:8089/_mark -H 'Content-Type: application/json' \
+  -d "{\"run_id\":\"$RUN_ID\",\"phase\":\"start\",\"agent\":\"$AGENT\",\"task_id\":\"$TASK_ID\",\"backbone\":\"$BACKBONE\"}" >/dev/null
+# ... 跑框架 ...
+curl -s -XPOST localhost:8089/_mark -d "{\"run_id\":\"$RUN_ID\",\"phase\":\"end\"}" >/dev/null
+```
+
+4. 验收:跑完一个 run 后
+   `python3 scripts/aggregate_run_costs.py --log usage_v2.jsonl` 应显示该
+   run_id 的 calls/tokens(价格表 data/model_prices.json,本地模型价待填,
+   只报 token 不编钱)。流式请求也会被记(代理自动注入
+   stream_options.include_usage);若某框架的 usage_missing 比例高,记录下来。
+5. 全量结束把 usage_v2.jsonl 一并拉回工作站(几 MB,gzip+sha 套路)。
+
 ## 6. 评分与出榜(工作站侧,全部就绪)
 
 ```bash

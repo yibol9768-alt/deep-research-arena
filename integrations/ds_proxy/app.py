@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from typing import Any
 
 import httpx
@@ -101,7 +102,71 @@ EMB_UPSTREAM = os.environ.get(
 EMB_UPSTREAM_KEY = os.environ.get("OPENAI_PROXY_EMB_KEY", "")
 EMB_FORCE_MODEL = os.environ.get("OPENAI_PROXY_EMB_MODEL", "text-embedding-v4")
 
+# ---------------------------------------------------------------------------
+# Whole-run token accounting (cost-per-score feature).
+#
+# Set DSPROXY_USAGE_LOG to a path and EVERY upstream call's usage is appended
+# as one JSON line with a timestamp — including STREAMING calls: the proxy
+# injects `stream_options: {"include_usage": true}` (opt out with
+# DSPROXY_STREAM_USAGE=0) and scans the SSE tail for the usage chunk while
+# piping it through untouched.
+#
+# Run attribution: agent frameworks cannot be asked to tag their requests, so
+# the runner brackets each run with POST /_mark {"run_id": ..., "phase":
+# "start"|"end", ...}; marks land in the same JSONL and the aggregator
+# (scripts/aggregate_run_costs.py) slices the serial timeline into runs.
+# ---------------------------------------------------------------------------
+USAGE_LOG = os.environ.get("DSPROXY_USAGE_LOG", "")
+STREAM_USAGE = os.environ.get("DSPROXY_STREAM_USAGE", "1") != "0"
+
+
+def _usage_write(record: dict) -> None:
+    if not USAGE_LOG:
+        return
+    try:
+        record.setdefault("ts", round(time.time(), 3))
+        with open(USAGE_LOG, "a") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
+_SSE_DATA_RE = re.compile(rb"^data:\s*(\{.*\})\s*$")
+
+
+def _scan_sse_usage(lines: list[bytes]) -> dict | None:
+    """Find the final usage object in SSE data lines (vLLM/OpenAI emit it in
+    the last chunk when stream_options.include_usage is set)."""
+    usage = None
+    for ln in lines:
+        if b'"usage"' not in ln:
+            continue
+        m = _SSE_DATA_RE.match(ln.strip())
+        if not m:
+            continue
+        try:
+            obj = json.loads(m.group(1))
+        except Exception:
+            continue
+        if isinstance(obj, dict) and isinstance(obj.get("usage"), dict):
+            usage = obj["usage"]
+    return usage
+
+
 app = FastAPI(title="deepseek-v4 thinking-inject proxy")
+
+
+@app.post("/_mark")
+async def usage_mark(request: Request):
+    """Append a run boundary marker to the usage log. Body is free-form JSON;
+    conventional fields: run_id, phase ('start'|'end'), agent, task_id,
+    backbone. No-op (but still 200) when DSPROXY_USAGE_LOG is unset."""
+    try:
+        body = json.loads(await request.body() or b"{}")
+    except Exception:
+        body = {}
+    _usage_write({"mark": True, **({k: v for k, v in body.items()} if isinstance(body, dict) else {})})
+    return {"ok": True, "logging": bool(USAGE_LOG)}
 
 
 def _needs_thinking_off(model: str) -> bool:
@@ -169,17 +234,46 @@ async def _forward(path: str, request: Request) -> Any:
     timeout = httpx.Timeout(connect=15.0, read=180.0, write=30.0, pool=10.0)
 
     if stream:
+        # Ask the upstream to append the usage chunk to the stream so whole-run
+        # token accounting also covers streaming frameworks. The extra final
+        # chunk (empty choices + usage) is OpenAI-spec and piped through as-is.
+        if USAGE_LOG and STREAM_USAGE and "stream_options" not in body:
+            body["stream_options"] = {"include_usage": True}
         client = httpx.AsyncClient(timeout=timeout)
         req = client.build_request("POST", url, json=body, headers=headers)
         upstream_resp = await client.send(req, stream=True)
+        req_model = body.get("model")
 
         async def _stream():
+            tail = b""
+            sse_lines: list[bytes] = []
             try:
                 async for chunk in upstream_resp.aiter_raw():
                     yield chunk
+                    if USAGE_LOG:
+                        tail += chunk
+                        *done, tail = tail.split(b"\n")
+                        sse_lines.extend(ln for ln in done if b'"usage"' in ln)
+                        if len(tail) > 262144:  # never buffer unbounded
+                            tail = tail[-262144:]
             finally:
                 await upstream_resp.aclose()
                 await client.aclose()
+                if USAGE_LOG:
+                    if tail.strip():
+                        sse_lines.append(tail)
+                    usage = _scan_sse_usage(sse_lines)
+                    if usage:
+                        _usage_write({
+                            "model": req_model,
+                            "stream": True,
+                            "prompt_tokens": usage.get("prompt_tokens"),
+                            "completion_tokens": usage.get("completion_tokens"),
+                            "total_tokens": usage.get("total_tokens"),
+                        })
+                    else:
+                        _usage_write({"model": req_model, "stream": True,
+                                      "usage_missing": True})
 
         return StreamingResponse(
             _stream(),
@@ -191,22 +285,16 @@ async def _forward(path: str, request: Request) -> Any:
         r = await client.post(url, json=body, headers=headers)
         if r.headers.get("content-type", "").startswith("application/json"):
             data = r.json()
-            # Opt-in token-usage accounting: set DSPROXY_USAGE_LOG to a path and
-            # every upstream call's usage is appended as one JSON line. Used to
-            # measure exact judge cost per task. No-op when the env is unset.
-            try:
-                _u = data.get("usage") if isinstance(data, dict) else None
-                _ulog = os.environ.get("DSPROXY_USAGE_LOG")
-                if _u and _ulog:
-                    with open(_ulog, "a") as _uf:
-                        _uf.write(json.dumps({
-                            "model": body.get("model"),
-                            "prompt_tokens": _u.get("prompt_tokens"),
-                            "completion_tokens": _u.get("completion_tokens"),
-                            "total_tokens": _u.get("total_tokens"),
-                        }) + "\n")
-            except Exception:
-                pass
+            # Whole-run token accounting (see header). No-op when unset.
+            _u = data.get("usage") if isinstance(data, dict) else None
+            if _u:
+                _usage_write({
+                    "model": body.get("model"),
+                    "stream": False,
+                    "prompt_tokens": _u.get("prompt_tokens"),
+                    "completion_tokens": _u.get("completion_tokens"),
+                    "total_tokens": _u.get("total_tokens"),
+                })
             # Strip <think>...</think> from reasoning-model output so client
             # frameworks see a clean answer. Preserve the original (with
             # thinking) in `reasoning_content` so judge_client._call_openai

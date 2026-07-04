@@ -1,0 +1,52 @@
+{
+  "_readme": [
+    "Per-million-token prices used by scripts/aggregate_run_costs.py to turn",
+    "whole-run token counts into money (the cost-per-score axis).",
+    "HONESTY RULE: only verified prices go here, with their source. A model",
+    "with null prices still gets full token accounting; its cost column stays",
+    "empty rather than invented. Local GPU models are priced by the official",
+    "hosted list price of the SAME model where one exists (AA convention),",
+    "never by a guessed equivalent. Fill nulls from the provider price page",
+    "and record the URL + date in `source` before publishing any cost chart."
+  ],
+  "prices": {
+    "deepseek-v4-flash": {
+      "input_per_mtok": 1.0,
+      "output_per_mtok": 2.0,
+      "currency": "CNY",
+      "source": "DashScope bailian price sheet as used for the DRA judge account, 2026-06 (verified against our own billing)",
+      "note": "judge + several agent runs route through this slug"
+    },
+    "qwen3.6-27b-awq": {
+      "input_per_mtok": null,
+      "output_per_mtok": null,
+      "currency": "CNY",
+      "source": "",
+      "note": "local vLLM on my5090; fill with official DashScope qwen3.6 list price (same model tier) before publishing"
+    },
+    "qwen3-14b": {
+      "input_per_mtok": null,
+      "output_per_mtok": null,
+      "currency": "CNY",
+      "source": "",
+      "note": "local vLLM; fill with official DashScope qwen3-14b list price"
+    },
+    "qwen3-8b": {
+      "input_per_mtok": null,
+      "output_per_mtok": null,
+      "currency": "CNY",
+      "source": "",
+      "note": "local vLLM; fill with official DashScope qwen3-8b list price"
+    },
+    "llama3.1-8b": {
+      "input_per_mtok": null,
+      "output_per_mtok": null,
+      "currency": "USD",
+      "source": "",
+      "note": "planned matrix backbone (todo #6); fill with a major provider's list price and cite it"
+    }
+  },
+  "aliases": {
+    "deepseek-chat": "deepseek-v4-flash"
+  }
+}
