@@ -7,7 +7,8 @@ marketing-vs-review tension ("immersive noise cancelling" vs "ANC weak at
 high frequencies") is a nuance, not a decidable contradiction. This builder
 therefore handles ONLY the reliably decidable kind: a product's marketing
 text claims a unit-typed number (battery hours, driver mm, Bluetooth
-version, bitrate kbps, impedance ohm, weight g, ANC dB) that conflicts with
+version, bitrate kbps, impedance ohm, weight g, ANC dB, lumens, mAh,
+watts, megapixels, refresh Hz, color-temperature K) that conflicts with
 a wiki/DB numeric reference for the same product or technology beyond a
 typed tolerance.
 
@@ -90,7 +91,7 @@ KINDS = (
         rel_tolerance=0.15,
         patterns=(
             r"(?:battery(?:\s+life)?|playtime|play\s*time|playback|"
-            r"listening(?:\s+time)?)\W{0,3}(?:of|up\s+to|:)?\s*"
+            r"listening(?:\s+time)?)\W{0,3}(?:(?:of|up\s+to|:|is|lasts?)\s*){0,3}"
             r"(\d+(?:\.\d+)?)\s*(?:hours?|hrs?)\b",
             r"(\d+(?:\.\d+)?)[\s-]*(?:hours?|hrs?)[\s-]+(?:of\s+)?"
             r"(?:battery|playtime|play\s*time|playback|listening)",
@@ -111,7 +112,12 @@ KINDS = (
         rel_tolerance=0.0,  # the version ladder is exact; any value above
         # the latest released version is impossible
         patterns=(
-            r"bluetooth\s*(?:v|version\s*)?(\d+(?:\.\d+)?)\b",
+            # a version is a DOTTED number ("Bluetooth 5.3") or explicitly
+            # marked ("Bluetooth V5"); a bare integer after the word is a
+            # model number, an inch size, a wattage, or a range in feet
+            # (all observed in the corpus) and must not match
+            r"bluetooth\s*(?:v|version\s*)?(\d\.\d)\b",
+            r"bluetooth\s+(?:v|version)\s*(\d+(?:\.\d+)?)\b",
         ),
     ),
     QuantityKind(
@@ -127,7 +133,10 @@ KINDS = (
         unit_aliases=("ohm", "ohms", "Ω"),
         rel_tolerance=0.15,
         patterns=(
-            r"(\d+(?:\.\d+)?)\s*(?:ohms?|Ω)\b",
+            # "ohm" spelled out only: under IGNORECASE the Ω sign also
+            # matches lowercase omega in chemistry prose (verified on the
+            # frozen Nylon article), so the sign is not accepted
+            r"(\d+(?:\.\d+)?)\s*ohms?\b",
         ),
     ),
     QuantityKind(
@@ -146,10 +155,83 @@ KINDS = (
         unit_aliases=("db", "dB", "decibel", "decibels"),
         rel_tolerance=0.10,
         patterns=(
-            r"(?:\banc\b|noise|cancell\w*|attenuat\w*)"
+            # bare "noise" is not enough context: "Signal Noise Ratio (SNR):
+            # 120dB" is not an attenuation claim (observed in the corpus)
+            r"(?:\banc\b|noise[\s-]+cancell\w*|cancell\w*|attenuat\w*|"
+            r"noise[\s-]+reduc\w*)"
             r".{0,40}?(\d+(?:\.\d+)?)\s*dB\b",
             r"(\d+(?:\.\d+)?)\s*dB\b\s*(?:of\s+)?"
             r"(?:noise|anc|attenuation|cancellation|reduction)",
+        ),
+    ),
+    # --- cross-cluster kinds (tri-source task set v2, 13 clusters) ---
+    QuantityKind(
+        kind="lumens", unit="lm",
+        unit_aliases=("lm", "lumen", "lumens"),
+        rel_tolerance=0.20,
+        patterns=(
+            # the unit word itself is unambiguous; bare "lm" is not accepted
+            # without a digit right before it; "683 lm/W" is an efficacy,
+            # not a light output, and must not match
+            r"(\d{1,3}(?:,\d{3})+|\d{2,6}(?:\.\d+)?)\s*(?:lumens?|lm)\b"
+            r"(?!\s*(?:/|per\b))",
+        ),
+    ),
+    QuantityKind(
+        kind="battery_mah", unit="mAh",
+        unit_aliases=("mah", "mAh", "milliampere-hour"),
+        rel_tolerance=0.15,
+        patterns=(
+            # thousands separators are common ("10,000mAh"); without the
+            # comma alternative the pattern would capture the tail "000"
+            # "1200 mAh/g" is a per-mass rate, not a capacity
+            r"(\d{1,3}(?:,\d{3})+|\d{3,6})\s*mAh\b(?!\s*(?:/|per\b))",
+        ),
+    ),
+    QuantityKind(
+        kind="power_watts", unit="W",
+        unit_aliases=("w", "W", "watt", "watts"),
+        rel_tolerance=0.20,
+        patterns=(
+            # context-required: bare "10 W" (a width, a size code) must not
+            # become a power claim
+            r"(?:power|motor|output|heating|brew\w*|bulb|lamp|speaker|"
+            r"amplifier|charg\w*)\W{0,30}?(\d+(?:\.\d+)?)\s*(?:watts?|W)\b",
+            r"(\d+(?:\.\d+)?)[\s-]*(?:watts?|W)\b[\s-]*(?:of\s+)?"
+            r"(?:power|motor|output|heating|charging)",
+        ),
+    ),
+    QuantityKind(
+        kind="megapixels", unit="MP",
+        unit_aliases=("mp", "MP", "megapixel", "megapixels"),
+        rel_tolerance=0.10,
+        patterns=(
+            # \b after MP cannot match inside "MP3"/"MP4" (digit follows)
+            r"(\d+(?:\.\d+)?)\s*(?:megapixels?|MP)\b",
+        ),
+    ),
+    QuantityKind(
+        kind="refresh_hz", unit="Hz",
+        unit_aliases=("hz", "Hz", "hertz"),
+        rel_tolerance=0.10,
+        patterns=(
+            # context-required: audio frequency-response text ("20 Hz-20 kHz")
+            # must not become a display refresh-rate claim
+            r"(?:refresh(?:\s+rate)?|display|screen|monitor|panel)"
+            r".{0,40}?(\d{2,4})\s*Hz\b",
+            r"(\d{2,4})\s*Hz\b\s*(?:refresh|display|screen|monitor|panel)",
+        ),
+    ),
+    QuantityKind(
+        kind="color_temp_k", unit="K",
+        unit_aliases=("k", "K", "kelvin"),
+        rel_tolerance=0.15,
+        patterns=(
+            # context-required and 3-5 digits: "4K" resolution and "24k gold"
+            # must not become a color-temperature claim
+            r"(?:color\s+temperature|white|warm|cool|daylight|kelvin)"
+            r".{0,40}?(\d{3,5})\s*K\b",
+            r"(\d{3,5})\s*K\b\s*(?:color|white|warm|cool|daylight)",
         ),
     ),
 )
@@ -191,7 +273,7 @@ def extract_claims(product: dict) -> list[Claim]:
         for pat in qk.patterns:
             for m in re.finditer(pat, text, re.IGNORECASE):
                 try:
-                    value = float(m.group(1))
+                    value = float(m.group(1).replace(",", ""))
                 except ValueError:
                     continue
                 key = (qk.kind, value)
@@ -211,6 +293,10 @@ def extract_claims(product: dict) -> list[Claim]:
 def topic_anchored(topic: str, product: dict) -> bool:
     """The wiki fact applies to this product only if the topic is actually
     talked about on the page (same product/technology requirement)."""
+    if "anchored_topics" in product:
+        # precomputed on the corpus host (same tokenizer, full page text);
+        # used when the full description does not travel with the product
+        return topic in product["anchored_topics"]
     text = f"{product.get('name', '')} {product.get('description', '')}".lower()
     tokens = [t for t in re.split(r"[^a-z0-9]+", (topic or "").lower())
               if len(t) >= 4 and t not in _STOPWORDS]
@@ -224,13 +310,20 @@ def topic_anchored(topic: str, product: dict) -> bool:
 # ---------------------------------------------------------------------------
 
 def build_candidates(task_id: str, products: list[dict],
-                     wiki_facts: list[dict]) -> dict:
+                     wiki_facts: list[dict],
+                     claims: list[Claim] | None = None) -> dict:
     """Cross every extracted claim with every unit-compatible, topic-anchored
-    wiki reference; flag only value conflicts beyond the typed tolerance."""
+    wiki reference; flag only value conflicts beyond the typed tolerance.
+
+    ``claims`` may inject claims pre-extracted on the corpus host (same
+    extract_claims code); None means extract here from the product texts."""
     products_by_url = {p.get("url", ""): p for p in products}
-    all_claims: list[Claim] = []
-    for p in products:
-        all_claims.extend(extract_claims(p))
+    if claims is not None:
+        all_claims = list(claims)
+    else:
+        all_claims = []
+        for p in products:
+            all_claims.extend(extract_claims(p))
 
     candidates = []
     for fact in wiki_facts:
@@ -286,20 +379,58 @@ def build_candidates(task_id: str, products: list[dict],
     }
 
 
+REF_VERDICTS = ["VALID_CEILING", "NOT_A_CEILING"]
+
+
+def _reference_key(c: dict) -> str:
+    return f"{c['reference_topic']}|{c['kind']}|{c['reference_value']}"
+
+
 def adjudication_template(candidates_doc: dict) -> dict:
+    """Two-stage form: screen the (few) references first, then the entries.
+
+    A reference marked NOT_A_CEILING voids every candidate built on it in
+    one stroke; those entries may then stay empty. This caps the human cost
+    of an auto-extracted reference that carries ceiling language without
+    ceiling semantics (a product example, a metric of a different thing)."""
+    refs = {}
+    for c in candidates_doc["candidates"]:
+        key = _reference_key(c)
+        if key not in refs:
+            refs[key] = {
+                "reference_key": key,
+                "reference_topic": c["reference_topic"],
+                "kind": c["kind"],
+                "reference_value": c["reference_value"],
+                "reference_fact_text": c["reference_fact_text"],
+                "reference_url": c["reference_url"],
+                "n_candidates": 0,
+                "reference_verdict": "",
+                "note": "",
+            }
+        refs[key]["n_candidates"] += 1
     return {
         "task_id": candidates_doc["task_id"],
         "instructions": (
-            "Fill `verdict` for EVERY entry with one of allowed_verdicts, "
-            "put your name in `adjudicator`, and explain in `note`. "
-            "SUPPORTED_CONFLICT = the marketing number really conflicts with "
-            "the reference; NOT_A_CONFLICT = extraction or matching error; "
-            "NUANCE = real tension but not a decidable numeric conflict "
-            "(these never become gold)."
+            "STAGE 1: for every entry in `references`, set "
+            "`reference_verdict` to VALID_CEILING (the cited sentence "
+            "really states a technology upper bound) or NOT_A_CEILING "
+            "(a product example, a different quantity, or otherwise not a "
+            "ceiling). Candidates of a NOT_A_CEILING reference are void and "
+            "their entries may stay empty. "
+            "STAGE 2: fill `verdict` for every remaining entry with one of "
+            "allowed_verdicts, put your name in `adjudicator`, and explain "
+            "in `note`. SUPPORTED_CONFLICT = the marketing number really "
+            "conflicts with the reference; NOT_A_CONFLICT = extraction or "
+            "matching error; NUANCE = real tension but not a decidable "
+            "numeric conflict (these never become gold)."
         ),
         "allowed_verdicts": ALLOWED_VERDICTS,
+        "allowed_reference_verdicts": REF_VERDICTS,
+        "references": sorted(refs.values(), key=lambda r: r["reference_key"]),
         "entries": [
-            {"candidate_id": c["candidate_id"], "verdict": "",
+            {"candidate_id": c["candidate_id"],
+             "reference_key": _reference_key(c), "verdict": "",
              "adjudicator": "", "note": ""}
             for c in candidates_doc["candidates"]
         ],
@@ -332,8 +463,27 @@ def promote(task_id: str, out_dir: Path, adjudication_path: Path) -> int:
     adj = json.loads(adjudication_path.read_text())
 
     gold, counts = [], {"SUPPORTED_CONFLICT": 0, "NOT_A_CONFLICT": 0,
-                        "NUANCE": 0, "unadjudicated": 0}
+                        "NUANCE": 0, "unadjudicated": 0,
+                        "reference_rejected": 0}
     problems = []
+
+    # Stage 1: every reference must be screened; NOT_A_CEILING voids its
+    # candidates wholesale (their entries may stay empty).
+    rejected_refs = set()
+    for ref in adj.get("references", []):
+        rv = (ref.get("reference_verdict") or "").strip()
+        key = ref.get("reference_key", "")
+        if rv not in REF_VERDICTS:
+            problems.append(f"reference {key!r}: verdict {rv!r} "
+                            f"(must be one of {REF_VERDICTS})")
+        elif rv == "NOT_A_CEILING":
+            rejected_refs.add(key)
+    screened = {r.get("reference_key", "") for r in adj.get("references", [])}
+    used = {_reference_key(c) for c in cand_doc["candidates"]}
+    for key in sorted(used - screened):
+        problems.append(f"reference {key!r} used by candidates but missing "
+                        "from the adjudication file's references section")
+
     seen_ids = set()
     for entry in adj.get("entries", []):
         cid = entry.get("candidate_id", "")
@@ -345,6 +495,12 @@ def promote(task_id: str, out_dir: Path, adjudication_path: Path) -> int:
         seen_ids.add(cid)
         if cid not in by_id:
             problems.append(f"unknown candidate_id {cid!r}")
+            continue
+        if _reference_key(by_id[cid]) in rejected_refs:
+            counts["reference_rejected"] += 1
+            if (entry.get("verdict") or "").strip() == "SUPPORTED_CONFLICT":
+                problems.append(f"{cid}: SUPPORTED_CONFLICT on a "
+                                "NOT_A_CEILING reference")
             continue
         verdict = (entry.get("verdict") or "").strip()
         if not verdict:
@@ -382,6 +538,7 @@ def promote(task_id: str, out_dir: Path, adjudication_path: Path) -> int:
         if cand_path.is_relative_to(ROOT) else str(cand_path),
         "adjudication_file": str(adjudication_path),
         "counts": counts,
+        "rejected_references": sorted(rejected_refs),
         "gold_contradictions": gold,
     }
     gold_path = out_dir / f"{task_id}.gold.json"
@@ -483,6 +640,46 @@ def run_demo(out_dir: Path | None) -> int:
     for label, passed in checks:
         print(f"  [{'PASS' if passed else 'FAIL'}] {label}")
         ok = ok and passed
+
+    # exercise the full template -> adjudication -> promotion protocol in a
+    # throwaway directory, both the accept and the reference-reject path
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        tmp = Path(td)
+        write_outputs(tmp, doc)
+        template = adjudication_template(doc)
+
+        adj_ok = json.loads(json.dumps(template))
+        for r in adj_ok["references"]:
+            r["reference_verdict"] = "VALID_CEILING"
+        for e in adj_ok["entries"]:
+            e.update(verdict="SUPPORTED_CONFLICT", adjudicator="demo-fixture",
+                     note="fixture accept path")
+        p_ok = tmp / "adj_ok.json"
+        p_ok.write_text(json.dumps(adj_ok))
+        rc_accept = promote(DEMO_TASK_ID, tmp, p_ok)
+        gold_n = len(json.loads((tmp / f"{DEMO_TASK_ID}.gold.json")
+                                .read_text())["gold_contradictions"])
+
+        adj_rej = json.loads(json.dumps(template))
+        for r in adj_rej["references"]:
+            r["reference_verdict"] = "NOT_A_CEILING"
+        # entries stay empty: a rejected reference voids them wholesale
+        p_rej = tmp / "adj_rej.json"
+        p_rej.write_text(json.dumps(adj_rej))
+        rc_reject = promote(DEMO_TASK_ID, tmp, p_rej)
+        gold_rej_n = len(json.loads((tmp / f"{DEMO_TASK_ID}.gold.json")
+                                    .read_text())["gold_contradictions"])
+
+        protocol_checks = [
+            ("promotion accepts a fully adjudicated file",
+             rc_accept == 0 and gold_n == 1),
+            ("NOT_A_CEILING voids candidates without per-entry verdicts",
+             rc_reject == 0 and gold_rej_n == 0),
+        ]
+        for label, passed in protocol_checks:
+            print(f"  [{'PASS' if passed else 'FAIL'}] {label}")
+            ok = ok and passed
 
     if out_dir is not None:
         cand_path, adj_path = write_outputs(out_dir, doc)

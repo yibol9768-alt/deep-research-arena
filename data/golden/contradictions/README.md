@@ -22,20 +22,44 @@ cancelling" vs "ANC weak at high frequencies") is a nuance, not a decidable
 contradiction, and is out of scope here (it belongs to the subjective
 rubric). The builder only extracts unit-typed numeric claims (battery
 hours, driver mm, Bluetooth version, bitrate kbps, impedance ohm, weight g,
-ANC dB) and flags a candidate only when a marketing value conflicts with a
+ANC dB, lumens, mAh, watts, megapixels, refresh Hz, color-temperature K)
+and flags a candidate only when a marketing value conflicts with a
 wiki/DB numeric reference for the same product or technology beyond a typed
 tolerance.
 
+## Cluster-level operation (task set v2)
+
+Candidates are generated ONE FILE PER CLUSTER (pseudo task id
+`cluster_<name>`), not per task: tasks in a cluster share products and
+anchor articles, so per-task files would hand the adjudicator the same
+conflict up to 8 times. Each candidates file records `applies_to_tasks`
+(the cluster's v2 task ids); at promotion time adjudicated gold is
+distributed to every listed task whose relevant set holds the product.
+
+Reference facts come from `wiki_numeric_facts.json`, extracted from the
+frozen kiwix anchor articles by `scripts/extract_wiki_numeric_facts.py`
+using the builder's own claim patterns; per (article, kind) the MAXIMUM
+value in the article is the reference (technology upper bound). Because an
+auto-extracted reference can be too low (not actually a ceiling), the batch
+driver drops whole references that flag an implausible share of a cluster's
+claims (`BATCH_REPORT.json` records every drop); references are never
+edited, only kept or dropped.
+
 ## Pipeline (three stages, no shortcuts)
 
-1. **Builder** (`scripts/build_gold_contradictions.py`): reads local
-   products/wiki-facts JSON, emits `<task_id>.candidates.json` plus
-   `<task_id>.adjudication.template.json`. Every candidate carries
+1. **Builder** (`scripts/build_gold_contradictions.py` single task, or
+   `scripts/build_contradiction_candidates_batch.py` for all 13 clusters):
+   reads local products/wiki-facts JSON, emits `<id>.candidates.json` plus
+   `<id>.adjudication.template.json`. Every candidate carries
    `status: "candidate_needs_human_adjudication"`. The builder never
    emits gold, by design.
-2. **Human adjudication**: a person copies the template to
-   `<task_id>.adjudication.json` and fills, for every entry:
-   `candidate_id`, `verdict` (one of `SUPPORTED_CONFLICT`,
+2. **Human adjudication** (two stages, template copied to
+   `<id>.adjudication.json`): STAGE 1 screens every `references` entry
+   as `VALID_CEILING` or `NOT_A_CEILING`; candidates of a rejected
+   reference are void wholesale and their entries may stay empty (this
+   caps the cost of an auto-extracted reference that carries ceiling
+   language without ceiling semantics). STAGE 2 fills, for every
+   remaining entry: `verdict` (one of `SUPPORTED_CONFLICT`,
    `NOT_A_CONFLICT`, `NUANCE`), `adjudicator`, `note`. Partial
    adjudication is rejected at promotion time.
 3. **Promotion** (`--promote`): only entries with
