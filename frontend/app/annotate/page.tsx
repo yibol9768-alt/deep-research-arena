@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import Link from 'next/link'
 import {
   Check,
   ChevronLeft,
@@ -537,10 +538,16 @@ export default function AnnotatePage() {
         eyebrow={<T en="Human Annotation" zh="人工标注" />}
         title={<T en="Blind A/B report annotation." zh="盲测 A/B 报告标注。" />}
         intro={
-          <T
-            en="Read both agent reports for a task, pick the stronger one (or a tie), and cite which dimensions drove the call. Verdicts become human-preference labels for judge-alignment kappa. Everything is saved in your browser; export to JSONL when you are done."
-            zh="阅读某个任务的两份智能体报告,选出更强的一份(或判平),并标注是哪些维度决定了你的判断。这些判定将作为人类偏好标签,用于评判一致性 kappa。所有数据都保存在你的浏览器中;标完后可导出为 JSONL。"
-          />
+          <>
+            <T
+              en="Read both agent reports for a task, pick the stronger one (or a tie), and cite which dimensions drove the call. Verdicts become human-preference labels for the judge-vs-human agreement study; kappa collection is in progress, no value yet. Everything is saved in your browser; export to JSONL when you are done. For a search-result view that also records which report you trust more, use the companion "
+              zh="阅读某个任务的两份智能体报告,选出更强的一份(或判平),并标注是哪些维度决定了你的判断。这些判定将作为人类偏好标签,用于评判-人类一致性研究;kappa 仍在收集中,暂无数值。所有数据都保存在你的浏览器中;标完后可导出为 JSONL。想用同时记录“更信任哪份”的搜索结果视图,请前往配套的"
+            />
+            <Link href="/survey" className="text-brand underline underline-offset-2 hover:decoration-brand">
+              <T en="Survey page" zh="人评问卷" />
+            </Link>
+            <T en="." zh="页面。" />
+          </>
         }
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

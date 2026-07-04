@@ -8,22 +8,22 @@ const SYSTEMS = [
     name: 'Magento shopping',
     nameZh: 'Magento 购物',
     port: ':7770',
-    body: 'Product pages, prices, ratings, reviews, and marketing claims for evidence-heavy recommendation tasks.',
-    bodyZh: '商品页面、价格、评分、评论与营销说辞，用于证据密集型的推荐类任务。',
+    body: '104,368 enumerated product pages with prices, ratings, reviews, and marketing claims for evidence-heavy recommendation tasks.',
+    bodyZh: '104,368 个已枚举的商品页，含价格、评分、评论与营销说辞，用于证据密集型推荐任务。',
   },
   {
     name: 'Postmill forum',
     nameZh: 'Postmill 论坛',
     port: ':9999',
-    body: 'Threaded community discussions with scores, comments, sub-forums, and sentiment signals.',
-    bodyZh: '带有评分、评论、子版块与情绪信号的串式社区讨论。',
+    body: '127,391 forum submissions across 95 forums, each post carrying a canonical forum name, with scores, comments, and sentiment signals.',
+    bodyZh: '95 个论坛、127,391 条帖子，每帖带规范论坛名，含评分、评论与情绪信号。',
   },
   {
     name: 'Kiwix Wikipedia',
     nameZh: 'Kiwix 维基百科',
     port: ':8090',
-    body: 'Offline encyclopedia pages used to check definitions, timelines, and technical background.',
-    bodyZh: '离线百科页面，用于核对定义、时间线与技术背景。',
+    body: 'Offline encyclopedia pages for definitions and background. All 19,039,589 citable ZIM paths are enumerated in a 27MB Bloom filter (0.30% false-positive rate, no false negatives), so a cited article that does not exist is a decidable fabrication.',
+    bodyZh: '离线百科页面，用于核对定义与技术背景。ZIM 全量枚举出的 19,039,589 条可引用路径收录在 27MB Bloom filter 中（假阳性率 0.30%，无假阴性），因此引用一篇不存在的文章即为可判定的编造。',
   },
   {
     name: 'Search shim',
@@ -54,13 +54,13 @@ export default function SandboxPage() {
       <PageHero
         eyebrow={<T en="Sandbox" zh="沙箱" />}
         title={<T en="The frozen sandbox." zh="冻结沙箱。" />}
-        intro={<T en="Agents browse a controlled offline stack instead of the live web: a shopping site, a forum, and an offline Wikipedia, behind Tavily/Firecrawl-compatible search endpoints. Every task is rerunnable and every citation can be re-opened by the verifiers." zh="智能体浏览的是受控的离线栈而非真实互联网：一个购物站、一个论坛和一份离线维基百科,通过兼容 Tavily/Firecrawl 的搜索接口访问。每个任务都可重跑,每条引用都能被验证器重新打开。" />}
+        intro={<T en="Agents browse a controlled offline stack instead of the live web: a shopping site, a forum, and an offline Wikipedia, behind Tavily/Firecrawl-compatible search endpoints. Every task is rerunnable, and whether a cited page exists is decided by membership in an enumerated URL registry, with zero network requests." zh="智能体浏览的是受控的离线栈而非真实互联网：一个购物站、一个论坛和一份离线维基百科，通过兼容 Tavily/Firecrawl 的搜索接口访问。每个任务都可重跑；一条引用的页面是否存在，由它是否属于已枚举的 URL 注册表来判定，全程不发任何网络请求。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label={<T en="Containers" zh="容器" />} value="3+" detail={<T en="shopping, forum, wiki, plus shims" zh="购物、论坛、维基，外加垫片" />} />
-          <MetricCard label={<T en="Sites" zh="站点" />} value="3" detail={<T en="cross-site evidence by design" zh="设计上即需跨站点取证" />} />
-          <MetricCard label={<T en="API shape" zh="API 形态" />} value="OpenAI" detail={<T en="compatible model backend" zh="兼容的模型后端" />} />
-          <MetricCard label={<T en="Search" zh="搜索" />} value="Tavily" detail={<T en="drop-in shim contract" zh="即插即用的垫片契约" />} />
+          <MetricCard label={<T en="Products" zh="商品页" />} value="104,368" detail={<T en="enumerated product pages" zh="已枚举的商品页" />} />
+          <MetricCard label={<T en="Forum posts" zh="论坛帖" />} value="127,391" detail={<T en="across 95 forums" zh="分布于 95 个论坛" />} />
+          <MetricCard label={<T en="Wiki paths" zh="维基路径" />} value="19M+" detail={<T en="full ZIM in a 27MB Bloom filter" zh="ZIM 全量枚举，27MB Bloom filter" />} />
+          <MetricCard label={<T en="Reachability" zh="可达性" />} value="0 HTTP" detail={<T en="citations checked as set membership" zh="引用以集合成员查询判定" />} />
         </div>
       </PageHero>
 
@@ -88,8 +88,8 @@ export default function SandboxPage() {
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
-              en="Live pages drift, search results personalize, and citations disappear. The sandbox trades breadth for auditability: each agent sees the same world, and each verifier can re-open the cited evidence."
-              zh="真实页面会漂移变化，搜索结果会因人而异，引用也会失效消失。沙箱以广度换取可审计性：每个智能体面对同一个世界，每个校验器都能重新打开被引用的证据。"
+              en="Live pages drift, search results personalize, and citations disappear. The sandbox trades breadth for auditability: every agent sees the same frozen world, and a citation either belongs to the enumerated URL registry or it does not, decided without a single network request."
+              zh="真实页面会漂移，搜索结果因人而异，引用也会失效。沙箱以广度换取可审计性：每个智能体面对同一个冻结世界，一条引用要么属于已枚举的 URL 注册表，要么不属于，判定过程不发任何网络请求。"
             />
           </p>
         </div>

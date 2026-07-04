@@ -22,6 +22,7 @@ const MORE = [
   { href: '/pillars', label: 'Pillars', zh: '评测维度' },
   { href: '/sandbox', label: 'Sandbox', zh: '沙箱' },
   { href: '/annotate', label: 'Annotate', zh: '标注' },
+  { href: '/survey', label: 'Survey', zh: '人评问卷' },
   { href: '/status', label: 'Status', zh: '基准状态' },
   { href: '/changelog', label: 'Changelog', zh: '更新日志' },
   { href: '/about', label: 'About', zh: '关于' },

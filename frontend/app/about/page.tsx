@@ -9,6 +9,8 @@ const TIMELINE = [
   ['2026-04-27', 'Deep task expansion and Elo plan', '深度任务扩展与 Elo 方案'],
   ['2026-05-06', 'Review pass and analysis artifacts', '复审与分析产出'],
   ['2026-05-13', 'Public frontend and reproducible snapshot', '公开前端与可复现快照'],
+  ['2026-07-03', 'Scorer hardening and decidable five-axis scoring (protocol v2)', '评分器加固与可判定五轴计分（协议 v2）'],
+  ['2026-07-03', 'Contradiction candidates and human-eval channels', '矛盾候选与人评通道'],
 ]
 
 export default function AboutPage() {
@@ -17,7 +19,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow={<T en="About" zh="关于" />}
         title={<T en="About Deep Research Arena." zh="关于 Deep Research Arena。" />}
-        intro={<T en="An open benchmark for deep-research agents. Agents run frozen research tasks in an offline sandbox, an LLM jury compares their reports pairwise, and every citation is verified against the sandbox. Code, data, and scoring are public." zh="一个面向深度研究智能体的开放基准。智能体在离线沙箱中运行冻结的研究任务，LLM 陪审团对报告做两两比较，每条引用都会按沙箱核验。代码、数据与计分全部公开。" />}
+        intro={<T en="An open benchmark for deep-research agents. Agents run frozen research tasks in an offline sandbox, an LLM jury compares their reports pairwise, and every citation is verified against the sandbox. Code, data, and scoring are public. Scoring is moving to a decidable five-axis protocol (reachability gate over fact-support, proof-of-fetch, completeness, and spec, with presentation only as a tie-breaker); the public board still shows the v1 truth-gated Elo while protocol v2 rolls out." zh="一个面向深度研究智能体的开放基准。智能体在离线沙箱中运行冻结的研究任务，LLM 陪审团对报告做两两比较，每条引用都会按沙箱核验。代码、数据与计分全部公开。计分正在转向可判定的五轴协议（可达性硬门叠加事实支撑、取证、完整性与规范四轴，呈现质量仅用于平局裁决）；在协议 v2 切换完成前，公开榜仍展示 v1 真值门控 Elo。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Agents" zh="智能体" />} value="12" detail={<T en="open-source agents and variants" zh="开源智能体及其变体" />} />
@@ -54,7 +56,7 @@ export default function AboutPage() {
           <h2 className="font-serif text-h-sm text-ink"><T en="Timeline" zh="时间线" /></h2>
           <div className="mt-6 space-y-4">
             {TIMELINE.map(([date, event, eventZh]) => (
-              <div key={date} className="flex gap-4 border-l border-hairline pl-4">
+              <div key={event} className="flex gap-4 border-l border-hairline pl-4">
                 <span className="w-28 shrink-0 font-mono text-xs text-brand">{date}</span>
                 <p className="text-sm text-muted"><T en={event} zh={eventZh} /></p>
               </div>

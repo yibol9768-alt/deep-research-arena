@@ -11,8 +11,14 @@ const ITEMS = [
   {
     q: 'What exactly is the grounding gate?',
     qZh: '接地门到底是什么?',
-    a: 'Two judge-free checks, scored against the frozen sandbox: citation reachability (does the cited URL actually resolve?) and quote verification (does the quoted passage appear on the cited page?). The gate is the mean of the two, expressed as a share between 0 and 1.',
-    aZh: '两项不依赖判官、按冻结沙箱核验的检查:引用可达率(被引 URL 是否真实可访问)与引文核实率(引述的段落是否真的出现在被引页面上)。接地门取两者的均值,取值范围 0 到 1。',
+    a: 'Two judge-free checks, scored against the frozen sandbox: citation reachability (is the cited URL present in the frozen page registry?) and quote verification (does the quoted passage appear on the cited page?). The gate is the mean of the two, expressed as a share between 0 and 1.',
+    aZh: '两项不依赖判官、按冻结沙箱核验的检查:引用可达率(被引 URL 是否存在于冻结页面注册表中)与引文核实率(引述的段落是否真的出现在被引页面上)。接地门取两者的均值,取值范围 0 到 1。',
+  },
+  {
+    q: 'Is this the final scoring protocol?',
+    qZh: '这是最终的评分口径吗?',
+    a: 'The public board here is the v1 diagnostic protocol: judge Elo scaled by the two-part grounding gate. A richer v2 protocol, a five-axis decidable score plus a separate presentation-quality tie-break, is implemented and rolling out; it replaces the public board only after a full v2 run, and no v2 numbers are shown until then.',
+    aZh: '当前公开榜是 v1 诊断口径:判官 Elo 乘以两项接地门。更完整的 v2 口径(五轴可判定得分,外加独立的呈现质量平局裁决)代码已就绪、正在推进;它要等 v2 全量首跑之后才会替换公开榜,在此之前不展示任何 v2 数字。',
   },
   {
     q: 'Why a frozen sandbox instead of the live web?',

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { PageHero, MetricCard } from '@/components/layout/metric-card'
 import { T } from '@/components/i18n/t'
-import { taskStats } from '@/lib/data/tasks'
 import { juryModels } from '@/lib/data/load-leaderboard'
 
 export const dynamic = 'force-static'
@@ -11,10 +10,10 @@ const PIPELINE = [
   { en: 'Task brief', zh: '任务简报' },
   { en: 'Sandbox run', zh: '沙箱运行' },
   { en: 'Report + citations', zh: '报告 + 引用' },
-  { en: 'Grounding verifiers', zh: '接地验证器' },
-  { en: 'Jury battles', zh: '陪审团对战' },
-  { en: 'Bradley-Terry fit', zh: 'Bradley-Terry 拟合' },
-  { en: 'Truth gate', zh: '真值门控' },
+  { en: 'Registry reachability', zh: '注册表可达性' },
+  { en: 'Quality axes', zh: '质量轴' },
+  { en: 'Composed truth', zh: '复合 truth' },
+  { en: 'Presentation tie-break', zh: '呈现平局裁决' },
   { en: 'Leaderboard', zh: '排行榜' },
 ] as const
 
@@ -25,6 +24,7 @@ const INTENTS = [
   { en: 'Causal explanation', zh: '因果解释' },
   { en: 'Timeline', zh: '时间线' },
   { en: 'Enumeration', zh: '枚举' },
+  { en: 'Recommendation', zh: '推荐' },
 ] as const
 
 interface Section {
@@ -46,50 +46,47 @@ function Mono({ children }: { children: ReactNode }) {
 }
 
 export default function MethodologyPage() {
-  const stats = taskStats()
   const jury = juryModels()
   const juryLine = jury.length > 0 ? jury.join(' · ') : 'cross-family LLM jury'
 
   const SECTIONS: Section[] = [
     {
       id: 'composite',
-      title: 'Truth-gated Elo',
-      titleZh: '真值门控 Elo',
-      body: 'The headline score is the pairwise judge Elo multiplied by the grounding gate (mean of citation reachability and quote verification), so unsupported reports cannot win on fluency alone. Raw judge Elo stays visible as a diagnostic tab; the gate decides the public order.',
-      bodyZh: '榜单主分 = 成对判官 Elo × 接地门（引用可达率与引文核实率的均值），缺乏支撑的报告无法仅凭文采取胜。裸判官 Elo 作为诊断视图保留,公开排序由门控决定。',
+      title: 'Composed truth score',
+      titleZh: '复合 truth 分',
+      body: 'The v2 headline is a deterministic composite: truth = reachability^γ × (0.35 fact-support + 0.25 proof-of-fetch + 0.30 completeness + 0.10 spec), γ = 1.5. Reachability is an unfloored hard gate, so a fabricated citation collapses the whole score; the four quality axes each carry an ε = 0.05 floor. No LLM judge enters this number.',
+      bodyZh: 'v2 主分是确定性的复合值:truth = 可达性^γ ×（0.35 事实支撑 + 0.25 抓取证明 + 0.30 完整度 + 0.10 规格）,γ = 1.5。可达性是无地板的硬门,编造引用会直接压垮总分;四个质量轴各有 ε = 0.05 地板。该数值不经过任何 LLM 判官。',
       artifact: (
         <Mono>
-          <span className="text-white">public_score</span> = round( judge_elo × (reachability_pct + quote_match_pct) / 200 )
+          <span className="text-white">truth</span> = reachability<sup>1.5</sup> × ( 0.35·fact_support + 0.25·proof_of_fetch + 0.30·completeness + 0.10·spec )
         </Mono>
       ),
     },
     {
       id: 'grounding-gate',
-      title: 'Grounding gate',
-      titleZh: '接地门控',
-      body: 'The gate is judge-free. Every markdown-linked URL in a report is re-fetched inside the frozen sandbox; a citation only counts as evidence if the page resolves, and a quote only counts if the quoted passage appears on that page. Missing or fabricated citations reduce the effective score multiplicatively.',
-      bodyZh: '门控不依赖判官。报告中每个以 markdown 链接呈现的 URL 都会在冻结沙箱内被重新抓取;页面可达,引用才算证据;引述段落出现在该页面上,引文才算核实。缺失或捏造的引用会以乘性方式降低有效得分。',
+      title: 'Registry reachability',
+      titleZh: '注册表可达性',
+      body: 'Reachability is a closed-world set-membership test, not a network fetch. Every cited URL is canonicalized and checked against an enumerated registry of 232k corpus pages (products, forum submissions, and Bloom-filtered encyclopedia paths); a citation is reachable iff its canonical form is in the corpus, so search pages, redirect laundering, and off-sandbox links all fail by construction with zero HTTP requests.',
+      bodyZh: '可达性是闭世界的集合成员判定,而非网络抓取。每个被引 URL 先规范化,再对一个枚举好的 232k 条语料页注册表（商品、论坛帖、以及经 Bloom filter 覆盖的百科路径）做成员查询;引用的规范形式在语料中才算可达,搜索页、重定向洗链、越沙箱链接都因构造而判失败,全程零 HTTP。',
       artifact: (
         <Mono>
           <pre className="whitespace-pre">
-{`for (url, quote) in report.citations:
-    page      = sandbox.fetch(url)        # frozen corpus, every fetch logged
-    reachable = page is not None
-    verified  = reachable and quote in page.text
+{`for url in report.citations:
+    key       = canonicalize(url)        # dedup variants, drop tracking
+    reachable = key in registry          # 232k enumerated + Bloom wiki, zero HTTP
 
-reachability  = mean(reachable)
-quote_match   = mean(verified)
-gate          = (reachability + quote_match) / 2   # in [0, 1]`}
+reachability = mean(reachable)           # unfloored hard gate
+# passage / quote checks now feed the proof-of-fetch axis`}
           </pre>
         </Mono>
       ),
     },
     {
       id: 'jury',
-      title: 'Jury battles',
-      titleZh: '陪审团对战',
-      body: 'Reports meet in anonymized A/B battles per task. A cross-family PoLL jury (arXiv 2404.18796) votes on each pair; positions are swapped to cancel order bias and the majority decides. Because the grounding gate is computed without any judge, jury taste alone can never rank an ungrounded report first.',
-      bodyZh: '报告按任务进行匿名 A/B 对战。跨模型家族的 PoLL 陪审团(arXiv 2404.18796)对每一对报告投票;交换位置以抵消顺序偏置,多数票裁决。由于接地门的计算完全不经过判官,仅凭陪审团口味无法让缺乏证据的报告登顶。',
+      title: 'Presentation panel',
+      titleZh: '呈现质量面板',
+      body: 'A cross-family PoLL jury (arXiv 2404.18796) scores presentation quality in anonymized A/B pairs with position swaps. Presentation is reported as its own column and may only break ties between reports the decidable truth score cannot separate; it can never override the truth ranking.',
+      bodyZh: '跨家族 PoLL 陪审团(arXiv 2404.18796)在匿名 A/B 对（含位置交换）中为呈现质量打分。呈现质量作为独立列展示,仅用于对可判定 truth 分无法区分的报告做平局裁决,永远不能推翻 truth 排序。',
       artifact: (
         <div className="mt-6 flex flex-wrap items-center gap-2">
           {(jury.length > 0 ? jury : ['juror A', 'juror B', 'juror C']).map((j) => (
@@ -98,21 +95,21 @@ gate          = (reachability + quote_match) / 2   # in [0, 1]`}
             </span>
           ))}
           <span className="text-xs text-muted">
-            <T en="· anonymized A/B · position swap · majority vote" zh="· 匿名 A/B · 位置交换 · 多数票" />
+            <T en="· anonymized A/B · position swap · tie-break only" zh="· 匿名 A/B · 位置交换 · 仅平局裁决" />
           </span>
         </div>
       ),
     },
     {
       id: 'bradley-terry',
-      title: 'Bradley-Terry Elo + bootstrap CI',
-      titleZh: 'Bradley-Terry Elo 与自助置信区间',
-      body: 'Per-task jury outcomes become pairwise battles. Maximum-likelihood estimation under the Bradley-Terry model turns win/loss records into agent strengths on an Elo scale, and resampling battles 1,000 times yields a 95% confidence interval per agent. Wide intervals mean fewer battles and a less certain rank.',
-      bodyZh: '逐任务的陪审团结果转化为两两对战。在 Bradley-Terry 模型下用极大似然估计把胜负记录变成 Elo 尺度上的强度,并对对战重采样 1,000 次,给出每个智能体的 95% 置信区间。区间越宽,对战越少,排名越不确定。',
+      title: 'Presentation Elo + bootstrap',
+      titleZh: '呈现列 Elo 与自助重采样',
+      body: 'Within the presentation column, anonymized A/B outcomes are fit with Bradley-Terry to an Elo scale for tie-breaking only. Separately, a two-level bootstrap (battles → refit → per-task grounding) is used to test the honesty of the judge-vs-grounding correlation, not to rank the board.',
+      bodyZh: '在呈现质量列内部,匿名 A/B 结果用 Bradley-Terry 拟合到 Elo 尺度,仅用于平局裁决。另外,两级自助重采样（对战 → 重拟合 → 逐任务接地）用于检验判官分与接地分相关性的诚实性,而非用于排榜。',
       artifact: (
         <Mono>
           P(i ≻ j) = 1 / (1 + 10<sup>(R_j − R_i)/400</sup>)
-          <span className="ml-4 text-muted-2">· MLE fit · 1,000 bootstrap resamples → 95% CI</span>
+          <span className="ml-4 text-muted-2">· MLE fit (presentation) · two-level bootstrap → correlation honesty</span>
         </Mono>
       ),
     },
@@ -120,8 +117,8 @@ gate          = (reachability + quote_match) / 2   # in [0, 1]`}
       id: 'intent-typology',
       title: 'Intent typology',
       titleZh: '意图类型',
-      body: 'Tasks span six intent families, each with its own failure modes and task-specific checklists. A leaderboard built on one intent family would reward one research style; mixing them keeps the ranking honest across genres.',
-      bodyZh: '任务涵盖六个意图族,每族有各自的失败模式与针对性核查清单。只用一种意图构建榜单会偏向单一研究风格;混合意图让排名在不同题型间保持公平。',
+      body: 'The 100 v2 tasks are built from 7 real-question archetypes across 13 tri-source topic clusters (store category + active forum community + encyclopedia article). Coverage quotas are removed from the prompts and compiled into a hidden spec axis; 3,373 typed, decidable checklist items are generated from corpus answer keys with zero manual annotation.',
+      bodyZh: '100 道 v2 任务由 7 种真实提问原型、覆盖 13 个三源主题簇（商店类目 + 活跃论坛社区 + 百科文章）构成。覆盖配额已移出题面,编译进隐藏的 spec 轴;3,373 条带类型的可判定核查项由语料答案键生成,零人工标注。',
       artifact: (
         <div className="mt-6 flex flex-wrap gap-2">
           {INTENTS.map((it) => (
@@ -136,11 +133,11 @@ gate          = (reachability + quote_match) / 2   # in [0, 1]`}
       id: 'ablation',
       title: 'Ablation protocol',
       titleZh: '消融协议',
-      body: 'Dropping one scoring component at a time and re-fitting the board reveals which controls actually change conclusions. The truth and citation gates are the highest-impact controls against fluent hallucination: remove them and fabricated-but-fluent reports climb the board.',
-      bodyZh: '每次剔除一个计分组件并重新拟合榜单,可以看出哪些控制真正改变结论。真值门控与引用门控是对抗流畅幻觉影响最大的控制项:一旦移除,捏造但流畅的报告就会爬上榜单。',
+      body: 'Dropping one scoring component at a time and re-fitting the board reveals which controls actually change conclusions. The unfloored reachability gate is the highest-impact control against fluent hallucination: because truth = reachability^1.5 × quality, a report that cites unreachable pages is driven toward zero regardless of fluency (the fabricator-cannot-top property is a checked theorem, verify_gate_theorem.py). Drop the gate and fabricated-but-fluent reports climb.',
+      bodyZh: '每次剔除一个计分组件并重新拟合榜单,可以看出哪些控制真正改变结论。无地板的可达性硬门是对抗流畅幻觉影响最大的控制项:由于 truth = 可达性^1.5 × 质量,引用不可达页面的报告无论多流畅都会被压向零（编造者无法登顶已是可验证定理,verify_gate_theorem.py）。移除该门,捏造但流畅的报告便会上爬。',
       artifact: (
         <Mono>
-          <span className="text-muted-2">ablation:</span> drop(component) → refit Bradley-Terry → compare orderings
+          <span className="text-muted-2">ablation:</span> drop(axis) → recompose truth → compare orderings
         </Mono>
       ),
     },
@@ -151,13 +148,23 @@ gate          = (reachability + quote_match) / 2   # in [0, 1]`}
       <PageHero
         eyebrow={<T en="Methodology" zh="方法论" />}
         title={<T en="How the public score is computed." zh="公开主分如何计算。" />}
-        intro={<T en="Deep Research Arena keeps the audit trail explicit: task, source pool, checklist, report, grounding checks, pairwise jury outcome, and confidence interval are separate artifacts." zh="Deep Research Arena 明确保留审计链路：任务、来源池、核查清单、报告、接地核验、两两陪审结果和置信区间分别作为独立产物保存。" />}
+        intro={<T en="Deep Research Arena keeps the audit trail explicit: task brief, tri-source corpus, typed decidable checklist, report with citations, registry reachability and the four quality axes, the composed truth score, and a separate presentation column are each kept as distinct artifacts." zh="Deep Research Arena 明确保留审计链路：任务简报、三源语料、带类型的可判定核查清单、带引用的报告、注册表可达性与四个质量轴、复合出的 truth 分,以及独立的呈现质量列,分别作为独立产物保存。" />}
       >
+        <div className="mb-6 rounded-xl border border-hairline bg-surface-low p-4">
+          <span className="label-caps text-ink"><T en="Protocol v2 · boards still v1" zh="协议 v2 · 榜单仍为 v1" /></span>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            <T
+              en="The scoring stack described here is protocol v2 (five decidable axes, registry reachability). The public boards you see today are still the v1 diagnostic metric; they switch to the v2 truth board after the first full v2 run."
+              zh="本页描述的是 v2 协议（五个可判定轴、注册表可达性）。当前公开榜仍采用 v1 诊断口径,将在 v2 全量首跑后切换到 v2 真值榜。"
+            />
+          </p>
+        </div>
+
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label={<T en="Score axes" zh="评分轴" />} value="2" detail={<T en="grounding (judge-free) and judge Elo" zh="接地（不依赖判官）与判官 Elo" />} />
-          <MetricCard label={<T en="Jurors" zh="陪审员" />} value={String(jury.length || 3)} detail={<T en="cross-family PoLL jury, majority vote" zh="跨家族 PoLL 陪审团,多数票" />} />
-          <MetricCard label={<T en="Bootstrap" zh="自助重采样" />} value="1,000" detail={<T en="confidence interval resamples" zh="置信区间重采样次数" />} />
-          <MetricCard label={<T en="Intent families" zh="意图族" />} value={String(stats.intents)} detail={<T en="task families with separate failure modes" zh="具有不同失败模式的任务族" />} />
+          <MetricCard label={<T en="Score axes" zh="评分轴" />} value="5" detail={<T en="reachability gate + fact, proof-of-fetch, completeness, spec" zh="可达性硬门 + 事实、抓取证明、完整度、规格" />} />
+          <MetricCard label={<T en="Presentation panel" zh="呈现质量面板" />} value={String(jury.length || 3)} detail={<T en="cross-family PoLL jury, tie-break only" zh="跨家族 PoLL 陪审团,仅平局裁决" />} />
+          <MetricCard label={<T en="Bootstrap" zh="自助重采样" />} value="1,000" detail={<T en="two-level, Elo-vs-grounding honesty" zh="两级,判官-接地相关性检验" />} />
+          <MetricCard label={<T en="Archetypes" zh="提问原型" />} value="7" detail={<T en="real-question archetypes across 13 clusters" zh="真实提问原型,覆盖 13 个三源簇" />} />
         </div>
 
         {/* Pipeline strip */}

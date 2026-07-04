@@ -28,8 +28,8 @@ const STEPS = [
     icon: ShieldCheck,
     title: 'Truth gate',
     titleZh: '真值门控',
-    body: 'Independently of the jury, every cited URL is re-fetched and every quote is matched against the cited page. Elo × gate = the public score.',
-    bodyZh: '在陪审团之外，每个引用 URL 都被重新抓取，每段引文都与被引页面比对。Elo × 接地门 = 公开主分。',
+    body: 'Independently of the jury, every cited URL is checked for membership in the frozen page registry (no network fetch), and every quote is matched against the archived page. Elo × gate = the public score.',
+    bodyZh: '在陪审团之外，每个引用 URL 都在冻结页面注册表中做成员查询（不发任何网络请求），每段引文都与归档页面比对。Elo × 接地门 = 公开主分。',
   },
 ] as const
 

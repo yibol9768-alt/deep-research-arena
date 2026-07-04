@@ -15,6 +15,7 @@
 /* -------------------------------------------------------------------------- */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import {
   AlertCircle,
   Check,
@@ -474,6 +475,20 @@ export default function SurveyPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-40 pt-8">
+      {/* 简介: 两个 kappa 收集 + 配套 /annotate 交叉链接 */}
+      <div className="mx-auto mb-6 max-w-3xl">
+        <p className="text-sm leading-relaxed text-muted">
+          <T
+            en="Pick the stronger of two research reports and say which one you trust more. Your answers feed two agreement studies, judge-vs-human and grounding-vs-human. Kappa collection is in progress and no value is reported yet. Prefer a plain side-by-side view? Use the companion "
+            zh="从两份调研报告中选出更强的一份，并标注你更信任哪一份。你的判断用于两项一致性研究：评判-人类 与 接地-人类。kappa 仍在收集中，暂不公布数值。想要朴素的并排视图？可前往配套的"
+          />
+          <Link href="/annotate" className="text-brand underline underline-offset-2 hover:decoration-brand">
+            <T en="Annotate page" zh="标注" />
+          </Link>
+          <T en="." zh="页面。" />
+        </p>
+      </div>
+
       {/* 搜索框头部 (Google 形态) */}
       <div className="mx-auto max-w-3xl">
         <div className="flex items-start gap-3 rounded-[24px] border border-hairline bg-white px-5 py-3 shadow-soft">
