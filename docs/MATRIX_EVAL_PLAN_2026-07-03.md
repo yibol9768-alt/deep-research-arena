@@ -25,10 +25,16 @@
 (K=4)**。判据 = truth_macro 排序(不是判官 Elo)。
 
 ### 阶段 B:top-K 框架 × M 底模 × 任务子集
-- **任务子集**:优先用 `rl_small`(10 题,已验证以 21% 成本复现全榜排序,
-  bootstrap ρ=0.95)。但 rl_small 是在 v1 任务集上选的——需先在 v2 上
-  重跑子集选择(`scripts/select_rl_subset.py`,输入换 v2 全量结果),
-  不行就退回 13 簇代表题(每簇 1 题)。
+- **任务子集**:用 `eval_small_v2`(**2026-07-06 已转正**,脚本
+  `scripts/select_eval_subset_v2.py`,产物
+  `data/tasks/deep_research/eval_small_v2/manifest.json`)。两阶段:
+  ①当前 = 临时分层版(13 簇各 1 题、题型多样、优先带 gold 矛盾的题,
+  manifest 带 provisional 标记,只用于冒烟/低成本迭代,**不得引用为
+  "复现全榜"**);②#39 全量出数后跑
+  `--board <truth_board_v2.json>`:贪心选题最大化 Spearman + **agent
+  对半 held-out 验证**(v1 rl_small 缺的这一步)+ 任务 bootstrap CI +
+  簇覆盖硬约束;只有 holdout ρ 过 0.95 的 manifest 才可被论文/矩阵引用。
+  旧 rl_small(v1 任务集上选的 10 题)作废。
 - **底模池 M(全本地,my5090 单卡串行)**:
 
 | 底模 | 状态 | 定位 |
