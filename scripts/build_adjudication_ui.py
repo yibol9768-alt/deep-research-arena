@@ -53,6 +53,12 @@ def load_article(articles_dir: Path, topic: str) -> str:
 
 def build_payload(base_dir: Path) -> dict:
     articles_dir = base_dir / "wiki_articles"
+    trans_path = base_dir / "translations_zh.json"
+    trans = (json.loads(trans_path.read_text()) if trans_path.exists()
+             else {})
+    t_refs = trans.get("references", {})
+    t_snips = trans.get("snippets", {})
+    t_names = trans.get("names", {})
     clusters, refs = [], {}
     for path in sorted(glob.glob(str(base_dir / "cluster_*.candidates.json"))):
         doc = json.loads(Path(path).read_text())
@@ -73,6 +79,8 @@ def build_payload(base_dir: Path) -> dict:
                     "n_candidates": 0,
                     "article_text": load_article(
                         articles_dir, c["reference_topic"]),
+                    "fact_zh": t_refs.get(key, {}).get("fact_zh", ""),
+                    "context_zh": t_refs.get(key, {}).get("context_zh", ""),
                 }
             refs[key]["n_candidates"] += 1
             if tid not in refs[key]["clusters"]:
@@ -86,6 +94,8 @@ def build_payload(base_dir: Path) -> dict:
                 "unit": c.get("unit", ""),
                 "claim_snippet": c["claim_snippet"],
                 "relative_excess": c.get("relative_excess"),
+                "name_zh": t_names.get(c["product_name"], ""),
+                "snippet_zh": t_snips.get(c["claim_snippet"], ""),
             })
         clusters.append({"task_id": tid, "entries": entries})
     missing = [r["reference_topic"] for r in refs.values()
@@ -156,6 +166,10 @@ HTML_TEMPLATE = """<!doctype html>
   .articlebox { max-height: 420px; overflow: auto; white-space: pre-wrap;
          background: #fafafa; border: 1px solid #e5e7eb; border-radius: 6px;
          padding: 12px; font-size: 13px; margin-top: 6px; }
+  .zh { font-size: 13px; color: #475569; background: #f8fafc;
+         border-left: 3px solid #94a3b8; border-radius: 0 6px 6px 0;
+         padding: 6px 10px; margin: 6px 0; }
+  .zhname { font-size: 13px; color: #475569; font-weight: 400; margin: 2px 0 4px; }
   .hint { font-size: 13px; color: #374151; background: #eff6ff;
          border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
   .bulk { font-size: 12px; }
@@ -240,6 +254,8 @@ function render() {
       <div class="meta">影响 ${r.n_candidates} 条候选（${r.clusters.join(', ')}）
         · 原地址 ${esc(r.reference_url)}（仅沙箱内可达,原文已嵌入下方）</div>
       <div class="facttext">…${hlNum(r.reference_fact_text, r.reference_value)}…</div>
+      ${r.fact_zh ? `<div class="zh">【中文】${hlNum(r.fact_zh, r.reference_value)}</div>` : ''}
+      ${r.context_zh ? `<div class="zh">${esc(r.context_zh)}</div>` : ''}
       <div class="btns">
         <button class="v-ok ${st.verdict==='VALID_CEILING'?'sel':''}"
           onclick="setRef('${esc(r.reference_key)}','VALID_CEILING')">✅ 是技术上限</button>
@@ -276,8 +292,10 @@ function render() {
         const dis = rv !== 'VALID_CEILING' ? 'disabled' : '';
         return `<div class="card ${st.verdict ? 'done' : ''}">
           <h3>${esc(e.product_name)}</h3>
+          ${e.name_zh ? `<div class="zhname">${esc(e.name_zh)}</div>` : ''}
           <div class="meta">${esc(e.candidate_id)} · 商品页 ${esc(e.product_url)}（仅沙箱内可达）</div>
           <div class="snippet">…${hlNum(e.claim_snippet, e.claim_value)}…</div>
+          ${e.snippet_zh ? `<div class="zh">【中文】${hlNum(e.snippet_zh, e.claim_value)}</div>` : ''}
           <div class="vs">
             <span>文案宣称:<span class="n claimn">${e.claim_value} ${esc(e.unit)}</span></span>
             <span>维基上限:<span class="n refn">${DATA.references.find(r=>r.reference_key===key).reference_value} ${esc(e.unit)}</span></span>
