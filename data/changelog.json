@@ -3,6 +3,27 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v10-2026-07-06",
+   "date": "2026-07-06",
+   "title": "Scorer fix: kiwix no-namespace citations no longer count as fabrication",
+   "summary": "The URL registry only recognized /A/ and /wiki/ article shapes; agents citing the canonical no-namespace /content/<book>/<article> path (which the sandbox serves directly, the /A/ form 302-redirects onto it) were scored as fabricators. The registry now resolves that shape; grounding-reach numbers computed before this fix under-scored wiki citations.",
+   "tags": [
+    "scoring",
+    "grounding",
+    "bugfix"
+   ],
+   "sections": [
+    {
+     "heading": "Details",
+     "bullets": [
+      "Verified against the sandbox: /content/wikipedia_en_all_nopic/<article> returns 200 directly; /A/<article> is a 302 redirect onto it",
+      "url_registry._classify_wiki now extracts the article id from /content/<book>/<article> and canonicalizes as before; nav-segment guard extended to the new shape",
+      "Self-test extended (19/19) and 82 registry/grounding tests pass; discovered while scoring the Qwen3-8B partial run offline"
+     ]
+    }
+   ]
+  },
+  {
    "version": "v9-2026-07-06",
    "date": "2026-07-06",
    "title": "Contradiction pillar goes live: 11 adjudicated intra-page conflicts on 24 tasks",

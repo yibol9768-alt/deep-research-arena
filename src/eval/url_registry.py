@@ -468,6 +468,14 @@ class UrlRegistry:
         # marker are checked, so an article literally titled "Search"
         # (/A/Search) cannot trip it.
         marker = max(path.rfind("/A/"), path.rfind("/wiki/"))
+        if marker == -1:
+            # No-namespace shape /content/<book>/<id>: kiwix-serve delivers
+            # articles at this path directly (the /A/ form is a 302 onto it,
+            # verified against the sandbox), so the article tail starts after
+            # the book segment.
+            cidx = path.rfind("/content/")
+            if cidx != -1:
+                marker = path.find("/", cidx + len("/content/"))
         lead = path[:marker] if marker != -1 else path
         lead_segs = [x for x in lead.split("/") if x]
         if any(x.lower() in _WIKI_NAV_SEGMENTS for x in lead_segs) or (
@@ -488,6 +496,13 @@ class UrlRegistry:
             idx = path.rfind("/wiki/")
             if idx != -1:
                 article = path[idx + 6:]
+            else:
+                cidx = path.rfind("/content/")
+                if cidx != -1:
+                    rest = path[cidx + len("/content/"):]
+                    book, _, aid = rest.partition("/")
+                    if book and aid:
+                        article = aid
         if article is None:
             return _result(url, KIND_CONTENT, None,
                            None if not self.loaded else False,
@@ -670,6 +685,14 @@ def _smoke() -> int:
         r["in_corpus"] is True
         and r["canonical"]
         == "http://localhost:8090/content/wikipedia_en_all_nopic/A/Noise-cancelling_headphones",
+        r,
+    )
+    r = reg.classify("http://localhost:8090/content/wikipedia_en_all_nopic/Bluetooth")
+    check(
+        "kiwix no-namespace content shape resolves",
+        r["in_corpus"] is True
+        and r["canonical"]
+        == "http://localhost:8090/content/wikipedia_en_all_nopic/A/Bluetooth",
         r,
     )
     r = reg.classify("http://localhost:8090/viewer#nonsense")  # fragment + nav
