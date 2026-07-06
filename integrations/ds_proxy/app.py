@@ -171,9 +171,12 @@ async def usage_mark(request: Request):
 
 # model prefixes that accept the `thinking: {"type": "disabled"}` body knob
 # (DeepSeek v4 and Zhipu GLM share the format); extend via env, comma-sep.
+# (GLM full run 2026-07-06: thinking stays ON per user decision, so glm- is
+# NOT in the default; pair it with OPENAI_PROXY_MIN_MAX_TOKENS so framework
+# max_tokens budgets don't get eaten by the CoT before the answer lands.)
 THINKING_OFF_PREFIXES = tuple(
     p.strip() for p in os.environ.get(
-        "OPENAI_PROXY_THINKING_OFF_PREFIXES", "deepseek-v4,glm-").split(",")
+        "OPENAI_PROXY_THINKING_OFF_PREFIXES", "deepseek-v4").split(",")
     if p.strip())
 
 
