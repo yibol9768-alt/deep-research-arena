@@ -1,6 +1,23 @@
 # 矛盾候选人工裁决指南(#17 人评批次的一部分)
 
-## 你要做什么
+## 推荐方式:直接用 HTML 界面(不用手改 JSON)
+
+**双击打开本目录的 `adjudication_ui.html`**(任何浏览器,无需联网、无需
+localhost)。所有要看的原文都已内嵌:3 篇冻结维基文章全文(高亮上限句)、
+95 条候选的商品文案片段(高亮宣称数字)。两步点完(第 1 步 3 条引用甄别、
+第 2 步剩余候选逐条判),填上名字,点右下角**导出裁决 JSON**,把下载的
+`contradiction_adjudication_export.json` 发回即可;进度自动存在浏览器里,
+中途关掉不丢。收到导出文件后由我运行:
+
+```bash
+python3 scripts/apply_adjudication_export.py \
+    --export contradiction_adjudication_export.json --promote
+```
+
+(界面由 `scripts/build_adjudication_ui.py` 从候选 JSON 生成;下面的
+手工流程仅作备份说明,两条路等价。)
+
+## 你要做什么(手工 JSON 流程,可跳过)
 
 13 个簇各有一份 `cluster_<簇名>.candidates.json`(机器标出的"营销数字
 疑似超出技术上限"候选)和一份 `cluster_<簇名>.adjudication.template.json`
