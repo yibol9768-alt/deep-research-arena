@@ -143,12 +143,12 @@ export default function PillarsPage() {
 
       <section className="container mt-10">
         <div className="card p-6">
-          <span className="label-caps"><T en="Contradiction pillar (candidates only)" zh="矛盾支柱（仅候选）" /></span>
-          <h2 className="mt-3 font-serif text-h-sm text-ink"><T en="Marketing numbers versus a frozen wiki ceiling" zh="营销数字对比冻结 wiki 上限" /></h2>
+          <span className="label-caps"><T en="Contradiction pillar (adjudicated)" zh="矛盾支柱（已裁决）" /></span>
+          <h2 className="mt-3 font-serif text-h-sm text-ink"><T en="Adjudicated numeric conflicts in the frozen corpus" zh="冻结语料中经裁决的数值矛盾" /></h2>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             <T
-              en="95 candidates across 13 clusters compare marketing numbers against frozen wiki ceiling references. A two-stage human adjudication protocol governs promotion; adjudicated gold is currently 0, so this pillar does not yet affect scores."
-              zh="13 个簇上的 95 个候选，将营销数字与冻结 wiki 上限参考对比。两阶段人工裁决协议决定晋升；当前已裁决的 gold 为 0，该支柱暂不影响得分。"
+              en="Round 1 (marketing numbers vs frozen-wiki ceilings): 95 candidates; human adjudication rejected all 3 auto-extracted ceiling references, so gold = 0, an informative negative. Round 2 (intra-page self-contradictions, e.g. one page stating two Bluetooth versions): 90 mined candidates, a local 8B prescreen flagged 23, strong-model adjudication confirmed 11, now attached to 24 tasks as semi-decidable checks. Nothing machine-mined is promoted unreviewed; per-entry rationales ship with the adjudication files."
+              zh="第一轮（营销数字对比冻结 wiki 上限）：95 个候选，人工裁决否决了全部 3 条自动抽取的上限引用，gold = 0，是有信息量的阴性结果。第二轮（页内自相矛盾，如同一页面写出两个蓝牙版本）：挖出 90 个候选，本地 8B 初筛标记 23 条，强模型逐条裁决确认 11 条，现已挂接到 24 个任务作为半可判定检查项。机器挖掘的内容一律不经复核不晋升；裁决文件附逐条理由。"
             />
           </p>
         </div>

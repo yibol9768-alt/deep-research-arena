@@ -16,8 +16,11 @@ assembles an AnswerKey from the cluster's box-derived data:
                    buying-dilemma/value-question -> shortlist section;
                    claim-check/community-vs-ratings -> verdict-style section;
                    all -> min_words 300 (a report, not a one-liner);
-  gold_contradictions / decidable_verdicts stay EMPTY pending human
-                   adjudication (registry T4: never auto-populated).
+  gold_contradictions = ADJUDICATED gold only, attached from
+                   data/golden/contradictions/*.gold.json by cluster match
+                   (registry T4 honesty contract: the builder itself never
+                   invents gold; it only reads what the adjudication
+                   pipeline promoted). decidable_verdicts stay EMPTY.
 
 Deterministic and offline: no model, no HTTP. Rerunnable any time the cluster
 dumps refresh.
@@ -41,6 +44,44 @@ from src.eval.checklist_gen import generate as gen_checklist  # noqa: E402
 
 TRI = ROOT / "data/golden/tri_source"
 KEYS_OUT = ROOT / "data/golden/answer_keys"
+CONTRA_DIR = ROOT / "data/golden/contradictions"
+
+
+def load_adjudicated_gold() -> dict[str, list]:
+    """cluster -> adjudicated gold contradiction entries (checklist-ready).
+
+    Reads every *.gold.json the adjudication pipeline promoted. Entries
+    carry a human/strong-model verdict already; this function only
+    reshapes them (summary + provenance) and never adds candidates."""
+    by_cluster: dict[str, list] = {}
+    for path in sorted(CONTRA_DIR.glob("*.gold.json")):
+        doc = json.loads(path.read_text())
+        for it in doc.get("gold_contradictions", []):
+            vals = it.get("values")
+            if vals:  # intra-page self-contradiction
+                shown = " vs ".join(f"{v['value']}" for v in vals)
+                summary = (f"the product page for '{it['product_name']}' "
+                           f"contradicts itself on {it['kind']}: "
+                           f"{shown} {it.get('unit', '')}".rstrip())
+            else:     # cross-source (marketing vs encyclopedia) shape
+                summary = (f"'{it['product_name']}' claims "
+                           f"{it.get('claim_value')} {it.get('unit', '')} "
+                           f"vs reference {it.get('reference_value')} "
+                           f"({it.get('reference_topic')})")
+            entry = {"summary": summary,
+                     "kind": it.get("kind"),
+                     "unit": it.get("unit"),
+                     "product_url": it.get("product_url"),
+                     "product_name": it.get("product_name"),
+                     "values": vals,
+                     "candidate_id": it.get("candidate_id"),
+                     "adjudicator": it.get("adjudicator"),
+                     "source_gold_file": path.name}
+            clusters = it.get("clusters") or [it.get("cluster")]
+            for cl in clusters:
+                if cl:
+                    by_cluster.setdefault(cl, []).append(entry)
+    return by_cluster
 
 N_VITAL_SENT = 12      # top sentiment products as vital nuggets
 N_USEFUL_SENT = 20     # next tier as useful
@@ -199,6 +240,8 @@ def main() -> int:
     CHECK_OUT = ROOT / "data/golden/checklists"
     CHECK_OUT.mkdir(parents=True, exist_ok=True)
     cache: dict[str, tuple] = {}
+    gold_by_cluster = load_adjudicated_gold()
+    n_gold_attached = 0
     n = 0
     for tid, spec in sorted(specs.items()):
         cl = spec["cluster"]
@@ -206,6 +249,8 @@ def main() -> int:
             cache[cl] = load_cluster(cl)
         products, sent = cache[cl]
         ak = build_key(tid, spec, products, sent)
+        ak.gold_contradictions = gold_by_cluster.get(cl, [])
+        n_gold_attached += len(ak.gold_contradictions)
         ak.save(KEYS_OUT / f"{tid}.json")
         items = gen_checklist(ak)
         (CHECK_OUT / f"{tid}.json").write_text(json.dumps(
@@ -213,7 +258,8 @@ def main() -> int:
              "items": [i.__dict__ if hasattr(i, "__dict__") else i for i in items]},
             ensure_ascii=False, indent=1) + "\n")
         n += 1
-    print(f"built {n} answer keys -> {KEYS_OUT} (+ checklists -> {CHECK_OUT})")
+    print(f"built {n} answer keys -> {KEYS_OUT} (+ checklists -> {CHECK_OUT}); "
+          f"{n_gold_attached} adjudicated gold-contradiction attachments")
     return 0
 
 
