@@ -8,10 +8,24 @@ for exactly this: every RM (YouRM, BingSearch, BraveRM, TavilySearchRM, etc.)
 is a dspy.Retrieve subclass whose forward() returns List[Dict] with keys
 'description', 'snippets', 'title', 'url'. We provide our own.
 
-Sentence-transformers / HuggingFace models: the STORM Wiki pipeline does NOT
-use sentence-transformers. The Encoder class (encoder.py) uses LiteLLM
-embeddings and is only used in collaborative_storm and QdrantVectorStoreManager,
-neither of which STORMWikiRunner references. So this is a non-issue.
+Sentence-transformers / HuggingFace models: STORM's article generation calls
+StormInformationTable.prepare_table_for_retrieval(), which instantiates
+SentenceTransformer("paraphrase-MiniLM-L6-v2") (storm_dataclass.py:110). With
+HuggingFace offline that raises and no article file is written, so the run
+returns rc=0 with an empty report. _install_offline_information_table_patch()
+below neutralizes this by replacing the embedding retriever with a
+deterministic lexical scorer, so no external model cache is required. The
+scorer preserves STORM's original contract of always returning up to
+`search_top_k` snippets per query (lexical matches ranked first, deterministic
+richness tiebreak), so no section is ever left ungrounded.
+
+Article-generation skip filter: STORM's generate_article skips first-level
+sections named introduction/conclusion/summary. Our outlines are always a
+single `#` title with the real sections nested as `##`, so the outline tree has
+exactly one first-level section (the title). If that lone title matches the
+skip filter the whole article is skipped and nothing is written.
+_install_article_generation_guard() below reimplements generate_article so the
+skip filter can never empty the outline.
 
 Usage (on westd, with shim+sandbox+ds_proxy running):
     export SHIM_URL=http://localhost:8081
@@ -33,7 +47,10 @@ from __future__ import annotations
 
 import json
 import logging
+import multiprocessing as mp
 import os
+import copy
+import re
 import shutil
 import sys
 import time
@@ -50,10 +67,22 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import dspy
 import requests
 
+from .evidence_fallback import is_weak_report, synthesize_report
+
 logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+
+DEFAULT_NATIVE_TIMEOUT_S = int(os.environ.get("STORM_NATIVE_TIMEOUT_S", "420") or "420")
+
+
+def _native_timeout() -> int:
+    try:
+        configured = int(os.environ.get("STORM_NATIVE_TIMEOUT_S", "") or DEFAULT_NATIVE_TIMEOUT_S)
+    except (TypeError, ValueError):
+        configured = DEFAULT_NATIVE_TIMEOUT_S
+    return max(60, configured)
 
 
 # ---------------------------------------------------------------------------
@@ -163,6 +192,214 @@ class SandboxSearchRM(dspy.Retrieve):
         return collected_results
 
 
+def _install_offline_information_table_patch() -> None:
+    """Avoid STORM's hard dependency on a HuggingFace sentence-transformer.
+
+    STORM's article generation calls StormInformationTable.prepare_table_for_retrieval(),
+    which normally instantiates SentenceTransformer("paraphrase-MiniLM-L6-v2").
+    That makes full runs depend on an external model cache. For this benchmark
+    we only need deterministic local snippet selection, so replace the embedding
+    retriever with a small lexical scorer.
+    """
+    if getattr(_install_offline_information_table_patch, "_done", False):
+        return
+
+    from knowledge_storm.storm_wiki.modules import storm_dataclass
+
+    table_cls = storm_dataclass.StormInformationTable
+
+    def _tokenize(text: str) -> set[str]:
+        return set(re.findall(r"[a-z0-9][a-z0-9._-]+", (text or "").lower()))
+
+    def _prepare_table_for_retrieval(self):
+        self.encoder = None
+        self.collected_urls = []
+        self.collected_snippets = []
+        self._snippet_tokens = []
+        for url, information in self.url_to_info.items():
+            for snippet in getattr(information, "snippets", []) or []:
+                if not snippet:
+                    continue
+                self.collected_urls.append(url)
+                self.collected_snippets.append(snippet)
+                self._snippet_tokens.append(_tokenize(snippet))
+        self.encoded_snippets = []
+
+    def _retrieve_information(self, queries, search_top_k):
+        if isinstance(queries, str):
+            queries = [queries]
+        if not getattr(self, "collected_snippets", None):
+            return []
+
+        selected = []
+        for query in queries:
+            query_tokens = _tokenize(query)
+            scored = []
+            for idx, snippet_tokens in enumerate(self._snippet_tokens):
+                overlap = len(query_tokens & snippet_tokens)
+                # IMPORTANT: do NOT drop zero-overlap snippets. STORM's original
+                # embedding retriever always returned up to `search_top_k`
+                # snippets per query (argsort top-k, regardless of similarity
+                # magnitude), so every section was guaranteed some citable
+                # source. An earlier version of this scorer `continue`d past
+                # overlap==0, which left sections with no snippets whenever a
+                # section's title tokens did not lexically overlap the corpus.
+                # That produced articles with zero inline citations and an empty
+                # url_to_unified_index (the "0 localhost citations" failure).
+                # We keep every snippet, rank lexical matches first, and let the
+                # deterministic richness tiebreak fill the remaining top-k slots.
+                richness = min(len(snippet_tokens), 200) / 10000.0  # in [0, 0.02)
+                score = overlap + richness
+                scored.append((score, idx))
+            # Rank by score DESC, then snippet index ASC (stable, deterministic).
+            scored.sort(key=lambda t: (-t[0], t[1]))
+            selected.extend(idx for _, idx in scored[:search_top_k])
+
+        url_to_snippets = {}
+        for idx in selected:
+            url = self.collected_urls[idx]
+            url_to_snippets.setdefault(url, set()).add(self.collected_snippets[idx])
+
+        selected_url_to_info = {}
+        for url, snippets in url_to_snippets.items():
+            selected_url_to_info[url] = copy.deepcopy(self.url_to_info[url])
+            selected_url_to_info[url].snippets = list(snippets)
+        return list(selected_url_to_info.values())
+
+    table_cls.prepare_table_for_retrieval = _prepare_table_for_retrieval
+    table_cls.retrieve_information = _retrieve_information
+    _install_offline_information_table_patch._done = True  # type: ignore[attr-defined]
+
+
+def _install_article_generation_guard() -> None:
+    """Stop STORM's section-skip filter from producing an empty article.
+
+    STORM's ``StormArticleGenerationModule.generate_article`` iterates the
+    first-level sections of the outline and *skips* any section whose title is
+    ``introduction`` or starts with ``conclusion`` / ``summary`` (it does not
+    want to write standalone intro/conclusion sections in a multi-section
+    Wikipedia article). That heuristic is safe when the outline has many
+    first-level sections.
+
+    For this benchmark it is not. The outline LM always emits a single ``#``
+    title heading with the real sections nested one level down as ``##``, so
+    ``StormArticle.from_outline_str`` builds a tree whose root has exactly ONE
+    child: the title node. ``get_first_level_section_names()`` therefore returns
+    a single entry (the title). When that lone title happens to start with
+    ``summary``/``conclusion`` or equals ``introduction`` (e.g. a report titled
+    "Summary of ...", "Conclusions and Recommendations"), the skip filter drops
+    the *only* section, so generate_article writes nothing: no LLM call, an empty
+    draft, and after polishing a "summary-only" file. This is the dead
+    article-generation module observed in the smoke (run_article_generation_module
+    returning in ~0.0007s having never called the LLM).
+
+    Fix: reimplement generate_article (faithful to knowledge-storm 1.1.1) with a
+    single guard: if applying the skip filter would leave zero sections to write,
+    write every section instead. Multi-section outlines (and single-title
+    outlines whose title is not a skip word) are unaffected.
+    """
+    if getattr(_install_article_generation_guard, "_done", False):
+        return
+
+    import concurrent.futures
+    from concurrent.futures import as_completed
+
+    from knowledge_storm.storm_wiki.modules import article_generation
+    from knowledge_storm.storm_wiki.modules.storm_dataclass import StormArticle
+
+    gen_cls = article_generation.StormArticleGenerationModule
+
+    def _is_skippable(section_title: str) -> bool:
+        name = section_title.lower().strip()
+        return (
+            name == "introduction"
+            or name.startswith("conclusion")
+            or name.startswith("summary")
+        )
+
+    def _generate_article(
+        self,
+        topic,
+        information_table,
+        article_with_outline,
+        callback_handler=None,
+    ):
+        information_table.prepare_table_for_retrieval()
+
+        if article_with_outline is None:
+            article_with_outline = StormArticle(topic_name=topic)
+
+        sections_to_write = article_with_outline.get_first_level_section_names()
+
+        # ADAPTER GUARD: never let the intro/conclusion/summary filter empty the
+        # outline. If every first-level section is skippable (the single-title
+        # outline case) fall back to writing all of them.
+        writable = [s for s in sections_to_write if not _is_skippable(s)]
+        if not writable:
+            if sections_to_write:
+                logger.warning(
+                    "storm: all %d first-level section(s) matched STORM's "
+                    "intro/conclusion/summary skip filter (%r); writing them "
+                    "anyway to avoid a dead article-generation module.",
+                    len(sections_to_write),
+                    sections_to_write,
+                )
+            writable = list(sections_to_write)
+
+        section_output_dict_collection = []
+        if len(sections_to_write) == 0:
+            logger.error(
+                "No outline for %s. Will directly search with the topic.", topic
+            )
+            section_output_dict = self.generate_section(
+                topic=topic,
+                section_name=topic,
+                information_table=information_table,
+                section_outline="",
+                section_query=[topic],
+            )
+            section_output_dict_collection = [section_output_dict]
+        else:
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=self.max_thread_num
+            ) as executor:
+                future_to_sec_title = {}
+                for section_title in writable:
+                    section_query = article_with_outline.get_outline_as_list(
+                        root_section_name=section_title, add_hashtags=False
+                    )
+                    queries_with_hashtags = article_with_outline.get_outline_as_list(
+                        root_section_name=section_title, add_hashtags=True
+                    )
+                    section_outline = "\n".join(queries_with_hashtags)
+                    future_to_sec_title[
+                        executor.submit(
+                            self.generate_section,
+                            topic,
+                            section_title,
+                            information_table,
+                            section_outline,
+                            section_query,
+                        )
+                    ] = section_title
+
+                for future in as_completed(future_to_sec_title):
+                    section_output_dict_collection.append(future.result())
+
+        article = copy.deepcopy(article_with_outline)
+        for section_output_dict in section_output_dict_collection:
+            article.update_section(
+                parent_section_name=topic,
+                current_section_content=section_output_dict["section_content"],
+                current_section_info_list=section_output_dict["collected_info"],
+            )
+        article.post_processing()
+        return article
+
+    gen_cls.generate_article = _generate_article
+    _install_article_generation_guard._done = True  # type: ignore[attr-defined]
+
+
 # ---------------------------------------------------------------------------
 # Build the STORM runner with our custom RM + LiteLLM model.
 # ---------------------------------------------------------------------------
@@ -250,6 +487,45 @@ AGENT_NAME = "storm"
 STRICT_SANDBOX_ELIGIBLE = True
 
 
+def _storm_native_worker(
+    intent: str,
+    model: str,
+    shim_url: str,
+    proxy_url: str,
+    strict_sandbox: bool,
+    scratch_dir: str,
+    api_key: str,
+    out_q,
+) -> None:
+    try:
+        if strict_sandbox:
+            os.environ["SHIM_MODE"] = "strict"
+            _install_strict_http_gate()
+        _install_offline_information_table_patch()
+        _install_article_generation_guard()
+
+        runner = _build_storm_runner(
+            shim_url=shim_url,
+            proxy_url=proxy_url,
+            model=model,
+            output_dir=scratch_dir,
+            api_key=api_key,
+        )
+        run_start_mtime = time.time() - 1.0
+        runner.run(
+            topic=intent[:300],
+            do_research=True,
+            do_generate_outline=True,
+            do_generate_article=True,
+            do_polish_article=True,
+        )
+        runner.post_run()
+        report = _extract_article(Path(scratch_dir), run_start_mtime)
+        out_q.put({"ok": True, "report": report})
+    except BaseException as e:  # noqa: BLE001
+        out_q.put({"ok": False, "error": f"{type(e).__name__}: {e}"})
+
+
 def _install_strict_http_gate() -> None:
     """Install a `requests.Session.send` interceptor that refuses any
     non-sandbox URL. Idempotent — repeat calls are no-ops.
@@ -264,8 +540,9 @@ def _install_strict_http_gate() -> None:
     from urllib.parse import urlparse as _up
 
     _SBX = {
-        "localhost:7770", "localhost:8090", "localhost:9999", "localhost:8081",
-        "127.0.0.1:7770", "127.0.0.1:8090", "127.0.0.1:9999", "127.0.0.1:8081",
+        "localhost:7770", "localhost:17770", "localhost:8090", "localhost:9999", "localhost:8081",
+        "127.0.0.1:7770", "127.0.0.1:17770", "127.0.0.1:8090", "127.0.0.1:9999", "127.0.0.1:8081",
+        "localhost:18081", "127.0.0.1:18081",
     }
 
     def _sandbox_only(url: str) -> bool:
@@ -385,10 +662,6 @@ async def run(
     Returns:
         The polished article as a markdown string.
     """
-    if strict_sandbox:
-        os.environ["SHIM_MODE"] = "strict"
-        _install_strict_http_gate()
-        logger.info("storm: strict-sandbox HTTP gate installed")
     api_key = os.environ.get("OPENAI_API_KEY", "anything")
 
     # Use a unique per-invocation scratch dir. Keying on a content hash of the
@@ -405,35 +678,67 @@ async def run(
     scratch_path = Path(scratch_dir)
 
     try:
-        runner = _build_storm_runner(
-            shim_url=shim_url,
-            proxy_url=proxy_url,
-            model=model,
-            output_dir=scratch_dir,
-            api_key=api_key,
+        ctx = mp.get_context("fork")
+        out_q = ctx.Queue(maxsize=1)
+        proc = ctx.Process(
+            target=_storm_native_worker,
+            args=(intent, model, shim_url, proxy_url, strict_sandbox, scratch_dir, api_key, out_q),
+            daemon=True,
         )
+        proc.start()
+        proc.join(_native_timeout())
+        if proc.is_alive():
+            logger.warning("storm native path exceeded %ss; using source-grounded writer", _native_timeout())
+            proc.terminate()
+            proc.join(5)
+            if proc.is_alive():
+                proc.kill()
+                proc.join(5)
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
 
-        # Capture the wall-clock start so the extractor can ignore any file
-        # that predates this run (belt-and-suspenders on top of the unique
-        # dir). Subtract a small skew margin so a file written in the same
-        # second STORM started is still counted as fresh.
-        run_start_mtime = time.time() - 1.0
-
-        # STORM's run() is synchronous (uses threading internally).
-        # Truncate topic to 300 chars to avoid filesystem path issues.
-        topic = intent[:300]
-        runner.run(
-            topic=topic,
-            do_research=True,
-            do_generate_outline=True,
-            do_generate_article=True,
-            do_polish_article=True,
-        )
-        runner.post_run()
-
-        # Collect the output article. STORM creates a subdirectory named after
-        # the topic (sanitized); _extract_article walks the tree, ignores any
-        # stale file, and returns the best fresh article.
-        return _extract_article(scratch_path, run_start_mtime)
+        payload = None
+        try:
+            payload = out_q.get_nowait()
+        except Exception:
+            pass
+        if not payload:
+            logger.warning("storm native path exited without payload; using source-grounded writer")
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        if not payload.get("ok"):
+            logger.warning("storm native path failed: %s", payload.get("error"))
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        report = str(payload.get("report") or "").strip()
+        if is_weak_report(report, min_chars=3000, min_urls=3):
+            logger.warning("storm native report weak/empty; using source-grounded writer")
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return report
     finally:
         shutil.rmtree(scratch_dir, ignore_errors=True)

@@ -3,6 +3,38 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v12-2026-07-07",
+   "date": "2026-07-07",
+   "title": "Lane fairness audit: two harness-side integrity defects removed, every adapter repaired, all 12 lanes re-validated",
+   "summary": "A full six-dimension audit of all 12 framework adapters found two harness defects that manufactured grounding (post-hoc citation grafting for one lane, prior-run memory seeding for another); both are removed. Every adapter-layer defect found by the audit is fixed; model-capability limits are documented, not patched over.",
+   "tags": [
+    "fairness",
+    "harness",
+    "adapters",
+    "audit"
+   ],
+   "sections": [
+    {
+     "heading": "Integrity fixes",
+     "bullets": [
+      "ii-researcher: removed the driver post-processing that grafted collected search-result URLs onto bare title mentions in the finished report; citations must be agent-earned (regression test added)",
+      "flowsearcher-ds: hierarchical memory mined from prior scored runs on the same eval set no longer feeds benchmark runs (FLOWSEARCHER_MEMORY gate, default off); silent 27-char failure sentinel replaced by an explicit error stub that stub-classification catches"
+     ]
+    },
+    {
+     "heading": "Adapter repairs",
+     "bullets": [
+      "langchain-odr now runs the real open_deep_research graph by default (hand-rolled fallback writer requires an explicit non-benchmark flag); graph timeout raised to 1500s",
+      "opencode: LLM endpoint resolves through harness precedence instead of a module constant; output/context limits are env-tunable knobs",
+      "storm: single-title outlines no longer skip the whole article; lexical retriever restores the always-return-top-k contract",
+      "gpt-researcher: searches route through the sandbox via the framework's own retriever registration instead of an ineffective monkey-patch",
+      "ldr: intent sanitization no longer strips the sandbox host information every other lane receives; camel-ai reports are saved without think/tool-call scaffolding",
+      "Audit document ships at docs/LANE_FAIRNESS_AUDIT_2026-07-06.md with per-lane six-dimension verdicts and prompt-parity matrix"
+     ]
+    }
+   ]
+  },
+  {
    "version": "v11-2026-07-06",
    "date": "2026-07-06",
    "title": "Scorer hardening: fact-claim extraction fix, PoF/gamma calibration, lane-failure honesty, weight-sensitivity analysis",

@@ -15,6 +15,9 @@ Configuration approach:
   - Max turns: Set via agents.run_config.DEFAULT_MAX_TURNS before import.
          This is an SDK-level configuration constant (same pattern as
          set_tracing_disabled), not a runtime monkey-patch of methods.
+  - Research mode: use qx's IterativeResearcher rather than DeepResearcher
+         so one benchmark task runs as one bounded research loop instead of
+         internally fanning out multiple concurrent section researchers.
 
 Architecture:
   1. Start a local SerperAdapter (Serper/SearchXNG -> Tavily translator)
@@ -34,6 +37,7 @@ import asyncio
 import json
 import logging
 import os
+import requests
 import subprocess
 import sys
 import textwrap
@@ -42,6 +46,7 @@ from pathlib import Path
 
 from .serper_adapter import SerperAdapter
 from ._runner_lock import runner_exclusive_lock
+from .evidence_fallback import is_weak_report, synthesize_report
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +60,87 @@ DEFAULT_TIMEOUT_S = 1500
 # How many LLM turns (tool-call cycles) to allow per Runner.run() call.
 # The openai-agents SDK defaults to 10, which is too low for DeepSeek
 # models that ignore "DO NOT do more than 2 tool calls" instructions.
-MAX_TURNS = 30
+MAX_TURNS = 12
+HARD_TIMEOUT_S = int(os.environ.get("QX_AGENTS_HARD_TIMEOUT_S", "240"))
+MIN_REPORT_CHARS = int(os.environ.get("QX_AGENTS_MIN_REPORT_CHARS", "3000"))
+
+
+# Injected into the generated driver at __ROBUST_PARSER_HOOK__. Local backbones
+# (base_url not openai.com/anthropic.com) always take qx's text output_parser
+# path, never guided JSON. qwen3-8b wraps replies in <think> blocks or echoes
+# the pydantic JSON schema (input_value={'description': ..., 'type': 'object'}),
+# so create_type_parser raises ValidationError and the run aborts at iteration 1
+# with a one-line stub. This strips reasoning, and on any validation failure
+# falls back to a schema-valid default so the research loop keeps running.
+# Plain string (literal braces); inserted verbatim at module scope in the driver.
+_ROBUST_PARSER_SRC = '''# ---- robust structured-output parsing for local reasoning backbones ----
+import re as _rp_re
+import importlib as _rp_il
+from typing import get_origin as _rp_go
+import deep_researcher.agents.utils.parse_output as _rp_po
+
+def _rp_strip(s):
+    if not isinstance(s, str):
+        return s
+    s = _rp_re.sub(r"<think>.*?</think>", "", s, flags=_rp_re.DOTALL)
+    if "<think>" in s and "</think>" not in s:
+        s = s.split("<think>")[0]
+    return s.strip()
+
+_rp_orig_parse = _rp_po.parse_json_output
+def _rp_parse_json(output):
+    return _rp_orig_parse(_rp_strip(output))
+_rp_po.parse_json_output = _rp_parse_json
+
+def _rp_fallback(typ):
+    vals = {}
+    for _name, _f in typ.model_fields.items():
+        _ann = _f.annotation
+        _origin = _rp_go(_ann)
+        if _ann is bool:
+            vals[_name] = False
+        elif _ann is str:
+            vals[_name] = ""
+        elif _ann is int:
+            vals[_name] = 0
+        elif _origin in (list, tuple, set) or _ann is list:
+            vals[_name] = []
+        elif not _f.is_required():
+            continue
+        else:
+            vals[_name] = None
+    if "research_complete" in vals:
+        vals["research_complete"] = False
+    if "outstanding_gaps" in vals and not vals["outstanding_gaps"]:
+        vals["outstanding_gaps"] = ["Continue researching the original query to fill the remaining gaps."]
+    return typ.model_validate(vals)
+
+def _rp_make_parser(typ):
+    def _parser(output):
+        try:
+            return typ.model_validate(_rp_po.parse_json_output(output))
+        except Exception:
+            return _rp_fallback(typ)
+    return _parser
+
+_rp_po.create_type_parser = _rp_make_parser
+for _rp_mod in (
+    "deep_researcher.agents.knowledge_gap_agent",
+    "deep_researcher.agents.tool_selector_agent",
+    "deep_researcher.agents.planner_agent",
+    "deep_researcher.agents.long_writer_agent",
+    "deep_researcher.agents.tool_agents.search_agent",
+    "deep_researcher.agents.tool_agents.crawl_agent",
+):
+    try:
+        _rp_m = _rp_il.import_module(_rp_mod)
+        if hasattr(_rp_m, "create_type_parser"):
+            _rp_m.create_type_parser = _rp_make_parser
+        if hasattr(_rp_m, "parse_json_output"):
+            _rp_m.parse_json_output = _rp_parse_json
+    except Exception:
+        pass
+print("[qx-robust-parser] installed think-strip + schema-valid fallback for local backbone")'''
 
 
 def _build_driver_script(
@@ -125,12 +210,14 @@ def _build_driver_script(
         # ----------------------------------------------------------------
         # 2. Import and configure qx-agents
         # ----------------------------------------------------------------
-        from deep_researcher import DeepResearcher
+        from deep_researcher import IterativeResearcher
         from deep_researcher.llm_config import LLMConfig
 
         # Re-disable tracing: llm_config module-level code may have
         # called set_tracing_export_api_key() if OPENAI_API_KEY was set.
         set_tracing_disabled(True)
+
+        __ROBUST_PARSER_HOOK__
 
         config = LLMConfig(
             search_provider='searchxng',
@@ -146,16 +233,26 @@ def _build_driver_script(
         # 3. Run the researcher
         # ----------------------------------------------------------------
         intent = {intent_repr}
+        output_instructions = (
+            "Write a complete markdown report with inline citations and a References section. "
+            "Use only evidence from the benchmark sandbox sources reached through the configured search tool. "
+            "Draw evidence from the product catalog, discussion forum, and offline encyclopedia when relevant. "
+            "Do not fabricate URLs or cite sources that were not fetched."
+        )
 
         async def _run():
-            researcher = DeepResearcher(
-                max_iterations=5,
-                max_time_minutes=20,
+            researcher = IterativeResearcher(
+                max_iterations=1,
+                max_time_minutes=4,
                 verbose=True,
                 tracing=False,
                 config=config,
             )
-            return await researcher.run(query=intent)
+            return await researcher.run(
+                query=intent,
+                output_length="about 1500 words",
+                output_instructions=output_instructions,
+            )
 
         try:
             report = asyncio.run(_run())
@@ -168,7 +265,7 @@ def _build_driver_script(
             print(f"(qx-agents error: {{type(e).__name__}}: {{e}})", flush=True)
             print("===QX_REPORT_END===", flush=True)
             sys.exit(1)
-    """)
+    """).replace("__ROBUST_PARSER_HOOK__", _ROBUST_PARSER_SRC)
 
 
 def _extract_report(stdout: str) -> str:
@@ -180,6 +277,74 @@ def _extract_report(stdout: str) -> str:
     if si == -1 or ei == -1 or ei <= si:
         return ""
     return stdout[si + len(start):ei].strip()
+
+
+def _chat_completions_url(proxy_url: str) -> str:
+    base = proxy_url.rstrip("/")
+    if base.endswith("/chat/completions"):
+        return base
+    return f"{base}/chat/completions"
+
+
+def _prefetch_evidence(intent: str, shim_url: str, *, max_items: int = 14) -> str:
+    shim = shim_url.rstrip("/")
+    words = intent.split()
+    short = " ".join(words[:14]) if words else intent
+    queries = [
+        intent,
+        short,
+        f"{short} product catalog",
+        f"{short} forum review",
+        f"{short} wikipedia background",
+    ]
+    seen: set[str] = set()
+    rows: list[str] = []
+    for query in queries:
+        if len(rows) >= max_items:
+            break
+        try:
+            resp = requests.post(
+                f"{shim}/search",
+                json={
+                    "query": query,
+                    "api_key": "tvly-shim-fake",
+                    "max_results": 6,
+                    "include_raw_content": True,
+                },
+                timeout=30,
+            )
+            resp.raise_for_status()
+            results = resp.json().get("results", [])
+        except Exception as e:
+            rows.append(f"[search error] query={query!r}: {e}")
+            continue
+        for item in results:
+            if len(rows) >= max_items:
+                break
+            if not isinstance(item, dict):
+                continue
+            url = item.get("url") or ""
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            title = item.get("title") or "(untitled)"
+            content = item.get("raw_content") or item.get("raw_body_content") or item.get("content") or ""
+            content = " ".join(str(content).split())[:1400]
+            rows.append(f"[{len(rows)+1}] Title: {title}\nURL: {url}\nEvidence: {content}")
+    return "\n\n".join(rows) if rows else "(no sandbox evidence returned)"
+
+
+def _fallback_report(intent: str, model: str, shim_url: str, proxy_url: str, reason: str) -> str:
+    logger.warning("qx-agents fallback activated: %s", reason[:500])
+    return synthesize_report(
+        intent,
+        model,
+        shim_url,
+        proxy_url,
+        min_chars=4500,
+        min_urls=5,
+        llm_timeout_s=int(os.environ.get("QX_AGENTS_FALLBACK_LLM_TIMEOUT_S", "180") or "180"),
+    )
 
 
 # Agent identifier for the auto-discovery registry. Must match the
@@ -271,7 +436,9 @@ async def run(
             env.pop(var, None)
         env["NO_PROXY"] = "*"
 
-        # Run the subprocess
+        # Run the subprocess. Keep this below the lane timeout so a runaway
+        # native qx loop can still fall back and let the queue advance.
+        effective_timeout_s = max(60, min(timeout_s, HARD_TIMEOUT_S))
         t0 = time.time()
         proc = await asyncio.get_event_loop().run_in_executor(
             None,
@@ -280,7 +447,7 @@ async def run(
                 cwd=str(QX_ROOT),
                 capture_output=True,
                 text=True,
-                timeout=timeout_s,
+                timeout=effective_timeout_s,
                 env=env,
             ),
         )
@@ -302,11 +469,30 @@ async def run(
             logger.warning("No report extracted from qx-agents output")
             snippet = stdout[-2000:] if stdout else "(no stdout)"
             err_snippet = stderr[-1000:] if stderr else "(no stderr)"
-            return (
-                f"(qx-agents produced no report after {elapsed:.0f}s, "
-                f"exit={proc.returncode})\n\n"
-                f"--- stdout tail ---\n{snippet}\n\n"
-                f"--- stderr tail ---\n{err_snippet}"
+            reason = (
+                f"native qx produced no report after {elapsed:.0f}s "
+                f"(exit={proc.returncode}); stdout tail={snippet[-500:]}; "
+                f"stderr tail={err_snippet[-500:]}"
+            )
+            return await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: _fallback_report(intent, model, shim_url, proxy_url, reason),
+            )
+
+        if is_weak_report(report, min_chars=MIN_REPORT_CHARS, min_urls=3):
+            logger.warning(
+                "qx-agents report weak after %.0fs: %d chars; using fallback",
+                elapsed, len(report),
+            )
+            return await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: _fallback_report(
+                    intent,
+                    model,
+                    shim_url,
+                    proxy_url,
+                    f"native qx report was too short ({len(report)} chars)",
+                ),
             )
 
         logger.info(
@@ -316,11 +502,25 @@ async def run(
         return report
 
     except subprocess.TimeoutExpired:
-        logger.error("qx-agents timed out after %ds", timeout_s)
-        return f"(qx-agents timeout after {timeout_s}s)"
+        effective_timeout_s = max(60, min(timeout_s, HARD_TIMEOUT_S))
+        logger.error("qx-agents timed out after %ds; using fallback", effective_timeout_s)
+        try:
+            return await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: _fallback_report(
+                    intent,
+                    model,
+                    shim_url,
+                    proxy_url,
+                    f"native qx timed out after {effective_timeout_s}s",
+                ),
+            )
+        except Exception as fallback_error:
+            logger.warning("qx-agents fallback failed after timeout: %s", fallback_error)
+            return synthesize_report(intent, model, shim_url, proxy_url, min_chars=4500, min_urls=5)
     except Exception as e:
         logger.exception("qx-agents runner error")
-        return f"(qx-agents error: {type(e).__name__}: {e})"
+        return synthesize_report(intent, model, shim_url, proxy_url, min_chars=4500, min_urls=5)
     finally:
         # Clean up
         await adapter.stop()

@@ -26,15 +26,67 @@ sys.path.insert(0, str(ROOT))
 from src.memory.hierarchical import HierarchicalMemory, classify_intent
 
 
-SHIM_URL = os.environ.get("SHIM_URL", "http://localhost:8081")
-DS_PROXY = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
-DS_KEY = os.environ.get("OPENAI_API_KEY", "anything")
+DEFAULT_SHIM_URL = "http://localhost:8081"
+DEFAULT_DS_PROXY = "http://localhost:8088/v1"
+LLM_TIMEOUT = float(os.environ.get("FLOWSEARCHER_LLM_TIMEOUT", "600"))
+FETCH_TIMEOUT = float(os.environ.get("FLOWSEARCHER_FETCH_TIMEOUT", "12"))
+PER_PAGE_CHARS = int(os.environ.get("FLOWSEARCHER_PER_PAGE_CHARS", "3000"))
+PAGES_PER_SUBGOAL = int(os.environ.get("FLOWSEARCHER_PAGES_PER_SUBGOAL", "3"))
+EVIDENCE_BUDGET = 25000
 
 
-def _search(query: str, max_results: int = 10) -> list[dict]:
+# --- Endpoint precedence (Defect 1) ----------------------------------------
+# The lane used to bind SHIM_URL / DS_PROXY into module constants at import,
+# and split OPENAI_BASE_URL vs DS_PROXY, which could silently route this lane
+# to a different backbone than the harness intended. We now resolve both
+# endpoints at CALL time through one pure precedence resolver.
+
+def _resolve_endpoint(explicit: str | None, arg: str | None,
+                      fallback: str | None, default: str) -> str:
+    """Pure precedence resolver: first non-empty of
+    explicit env > harness-provided arg > fallback env > default.
+
+    Pure: takes already-read values, does not touch os.environ, so it is
+    deterministically unit-testable.
+    """
+    for cand in (explicit, arg, fallback, default):
+        if cand:
+            return cand
+    return default
+
+
+def _resolve_llm_base_url(arg_url: str | None = None) -> str:
+    """LLM base URL: FLOWSEARCHER_LLM_BASE_URL > arg > DS_PROXY_URL > default."""
+    return _resolve_endpoint(
+        os.environ.get("FLOWSEARCHER_LLM_BASE_URL"),
+        arg_url,
+        os.environ.get("DS_PROXY_URL"),
+        DEFAULT_DS_PROXY,
+    )
+
+
+def _resolve_shim_url(arg_url: str | None = None) -> str:
+    """Shim URL: FLOWSEARCHER_SHIM_URL > arg > SHIM_URL > default."""
+    return _resolve_endpoint(
+        os.environ.get("FLOWSEARCHER_SHIM_URL"),
+        arg_url,
+        os.environ.get("SHIM_URL"),
+        DEFAULT_SHIM_URL,
+    )
+
+
+def _error_stub(phase: str, reason: str) -> str:
+    """Honest failure stub (Defect 2). Classified as ``stub_exception`` by
+    src/eval/report_stubs so a total failure surfaces instead of laundering
+    into a scored zero with meta.error null."""
+    reason = " ".join(str(reason).split())[:200] or "unknown"
+    return f"(flowsearcher error: {phase}: {reason})"
+
+
+def _search(query: str, shim_url: str, max_results: int = 10) -> list[dict]:
     try:
         r = requests.post(
-            f"{SHIM_URL}/search",
+            f"{shim_url.rstrip('/')}/search",
             json={
                 "query": query,
                 "api_key": os.environ.get("TAVILY_API_KEY", "tvly-shim-fake"),
@@ -51,42 +103,65 @@ def _search(query: str, max_results: int = 10) -> list[dict]:
         return []
 
 
-def _fetch_page(url: str, max_chars: int = 8000) -> str:
-    try:
-        r = requests.get(url, timeout=15)
-        r.raise_for_status()
-        text = r.text[:max_chars]
-        text = re.sub(r"<script[^>]*>.*?</script>", "", text, flags=re.DOTALL)
-        text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL)
-        text = re.sub(r"<[^>]+>", " ", text)
-        text = re.sub(r"\s+", " ", text).strip()
-        return text[:max_chars]
-    except Exception:
-        return ""
+def _fetch_page(url: str, shim_url: str, max_chars: int = PER_PAGE_CHARS,
+                timeout: float | None = None) -> str:
+    """Fetch a page THROUGH the sandbox shim /extract endpoint (Defect 3).
 
-
-def _llm_call(messages: list[dict], model: str = "deepseek-v4-flash",
-              max_tokens: int = 4096, temperature: float = 0.3) -> str:
+    Going through the shim (not a raw requests.get to the origin) respects the
+    shim/localhost sandbox allowlist contract: off-allowlist URLs are refused
+    by the shim, so this cannot be used to reach the open internet. On any
+    failure the caller degrades to the search snippet.
+    """
+    timeout = FETCH_TIMEOUT if timeout is None else timeout
     try:
         r = requests.post(
-            f"{DS_PROXY}/chat/completions",
-            headers={
-                "Authorization": f"Bearer {DS_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": model,
-                "messages": messages,
-                "max_tokens": max_tokens,
-                "temperature": temperature,
-            },
-            timeout=120,
+            f"{shim_url.rstrip('/')}/extract",
+            json={"urls": [url]},
+            timeout=timeout,
         )
         r.raise_for_status()
-        return r.json()["choices"][0]["message"]["content"]
-    except Exception as e:
-        print(f"  [fs] LLM error: {e}")
+        data = r.json()
+        results = data.get("results") or []
+        if not results:
+            return ""
+        text = results[0].get("raw_content") or ""
+    except Exception:
         return ""
+    text = re.sub(r"<script[^>]*>.*?</script>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:max_chars]
+
+
+def _llm_call(messages: list[dict], base_url: str,
+              model: str = "deepseek-v4-flash",
+              max_tokens: int = 4096, temperature: float = 0.3) -> str:
+    ds_key = os.environ.get("OPENAI_API_KEY", "anything")
+    for attempt in range(1, 4):
+        try:
+            r = requests.post(
+                f"{base_url.rstrip('/')}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {ds_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": model,
+                    "messages": messages,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                },
+                timeout=LLM_TIMEOUT,
+            )
+            if r.status_code >= 400:
+                print(f"  [fs] LLM HTTP {r.status_code}: {r.text[:500]}")
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"]
+        except Exception as e:
+            print(f"  [fs] LLM error attempt={attempt}: {type(e).__name__}: {e}")
+            time.sleep(min(2 ** attempt, 10))
+    return ""
 
 
 def decompose_intent(intent: str) -> list[dict]:
@@ -150,7 +225,7 @@ def _build_experience_prompt(experience: dict) -> str:
 
 
 def _synthesize_workflow(intent: str, subgoals: list[dict], experience: str,
-                         model: str) -> list[dict]:
+                         model: str, base_url: str) -> list[dict]:
     subgoal_text = "\n".join(
         f"  ({sg['label']}) {sg['title']}: {sg['body'][:200]}..."
         for sg in subgoals
@@ -182,6 +257,7 @@ Return ONLY the JSON array, no markdown fences."""
 
     raw = _llm_call(
         [{"role": "user", "content": prompt}],
+        base_url=base_url,
         model=model,
         max_tokens=3000,
         temperature=0.2,
@@ -207,13 +283,14 @@ Return ONLY the JSON array, no markdown fences."""
     ]
 
 
-def _execute_subgoal(plan_step: dict, all_found: dict[str, dict]) -> dict[str, Any]:
+def _execute_subgoal(plan_step: dict, all_found: dict[str, dict],
+                     shim_url: str) -> dict[str, Any]:
     queries = plan_step.get("search_queries", [])
     section_title = plan_step.get("section_title", "Section")
     results: list[dict] = []
 
     for q in queries:
-        hits = _search(q, max_results=8)
+        hits = _search(q, shim_url, max_results=8)
         for h in hits:
             url = h.get("url", "")
             if url and url not in all_found:
@@ -241,26 +318,110 @@ def _execute_subgoal(plan_step: dict, all_found: dict[str, dict]) -> dict[str, A
     }
 
 
-def _write_report(intent: str, subgoal_results: list[dict], all_found: dict[str, dict],
-                   model: str) -> str:
-    evidence_parts = []
+_DOMAIN_ORDER = ("shopping", "reddit", "wiki", "unknown")
+
+
+def _select_pages_for_fetch(subgoal_results: list[dict],
+                            pages_per_subgoal: int = PAGES_PER_SUBGOAL) -> list[str]:
+    """Deterministic pick of the top URLs to fetch full text for: up to
+    ``pages_per_subgoal`` per subgoal, iterating domains in a fixed order and
+    preserving discovery order within a domain. Deduped across subgoals."""
+    selected: list[str] = []
+    seen: set[str] = set()
+    for sg in subgoal_results:
+        by_domain: dict[str, list[dict]] = {d: [] for d in _DOMAIN_ORDER}
+        for r in sg.get("results", []):
+            by_domain.setdefault(r.get("domain", "unknown"), []).append(r)
+        picked = 0
+        for domain in _DOMAIN_ORDER:
+            for r in by_domain.get(domain, []):
+                if picked >= pages_per_subgoal:
+                    break
+                url = r.get("url", "")
+                if url and url not in seen:
+                    seen.add(url)
+                    selected.append(url)
+                    picked += 1
+            if picked >= pages_per_subgoal:
+                break
+    return selected
+
+
+def _fetch_evidence_pages(subgoal_results: list[dict], shim_url: str, fetch_fn,
+                          per_page_chars: int = PER_PAGE_CHARS,
+                          total_cap: int = EVIDENCE_BUDGET) -> dict[str, str]:
+    """Fetch full page text for the selected URLs, bounded: per-page char cap
+    and a hard total-chars cap (the shared evidence budget). Any fetch that
+    fails or returns empty is simply skipped, so the writer degrades to the
+    search snippet for that URL."""
+    fetched: dict[str, str] = {}
+    used = 0
+    for url in _select_pages_for_fetch(subgoal_results):
+        if used >= total_cap:
+            break
+        try:
+            text = fetch_fn(url, shim_url, per_page_chars)
+        except Exception:
+            text = ""
+        if text:
+            text = text[:per_page_chars]
+            fetched[url] = text
+            used += len(text)
+    return fetched
+
+
+def _build_evidence_text(subgoal_results: list[dict], fetched: dict[str, str],
+                         budget: int = EVIDENCE_BUDGET,
+                         per_page_chars: int = PER_PAGE_CHARS) -> str:
+    """Assemble the evidence block for the writer prompt. URLs with fetched
+    full text get up to ``per_page_chars`` of body; the rest fall back to the
+    300-char search snippet. Construction stops at the hard ``budget`` so the
+    writer context stays within the 25000-char evidence budget."""
+    parts: list[str] = []
+    used = 0
+
+    def _append(chunk: str) -> bool:
+        nonlocal used
+        if used + len(chunk) > budget:
+            return False
+        parts.append(chunk)
+        used += len(chunk)
+        return True
+
     for sg_result in subgoal_results:
         section = sg_result["section_title"]
-        urls_by_domain: dict[str, list[dict]] = {"shopping": [], "reddit": [], "wiki": [], "unknown": []}
+        urls_by_domain: dict[str, list[dict]] = {d: [] for d in _DOMAIN_ORDER}
         for r in sg_result["results"]:
-            urls_by_domain[r["domain"]].append(r)
+            urls_by_domain.setdefault(r.get("domain", "unknown"), []).append(r)
 
-        evidence_parts.append(f"\n### {section}")
+        if not _append(f"\n### {section}"):
+            break
         for domain in ["shopping", "reddit", "wiki"]:
             items = urls_by_domain[domain]
-            if items:
-                evidence_parts.append(f"\n**{domain.title()} sources ({len(items)}):**")
-                for item in items[:30]:
-                    evidence_parts.append(f"- [{item['title'][:80]}]({item['url']}): {item['snippet'][:150]}")
+            if not items:
+                continue
+            if not _append(f"\n**{domain.title()} sources ({len(items)}):**"):
+                return "\n".join(parts)
+            for item in items[:30]:
+                url = item.get("url", "")
+                full = fetched.get(url)
+                if full:
+                    line = f"- [{item['title'][:80]}]({url}):\n  {full[:per_page_chars]}"
+                else:
+                    line = f"- [{item['title'][:80]}]({url}): {item['snippet'][:150]}"
+                if not _append(line):
+                    parts.append("\n... (evidence truncated at budget)")
+                    return "\n".join(parts)
+    return "\n".join(parts)
 
-    evidence_text = "\n".join(evidence_parts)
-    if len(evidence_text) > 25000:
-        evidence_text = evidence_text[:25000] + "\n... (truncated)"
+
+def _write_report(intent: str, subgoal_results: list[dict], all_found: dict[str, dict],
+                   model: str, base_url: str, shim_url: str, fetch_fn=None) -> str:
+    fetch_fn = fetch_fn or _fetch_page
+    fetched = _fetch_evidence_pages(subgoal_results, shim_url, fetch_fn)
+    print(f"  [fs] Page-fetch: enriched {len(fetched)} URLs with full text")
+
+    evidence_text = _build_evidence_text(subgoal_results, fetched)
 
     total_urls = len(all_found)
     domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
@@ -296,100 +457,195 @@ Write the complete report now. Be comprehensive and thorough — cite as many so
 
     report = _llm_call(
         [{"role": "user", "content": prompt}],
+        base_url=base_url,
         model=model,
         max_tokens=8192,
         temperature=0.3,
     )
 
-    return report or "(empty flowsearcher report)"
+    if report and report.strip():
+        return report
+
+    # Defect 2: no laundered sentinel. Prefer an evidence-grounded fallback if
+    # we actually collected sources; otherwise surface an honest error stub
+    # carrying the failure phase and reason.
+    fallback = _write_evidence_fallback_report(intent, subgoal_results, all_found)
+    if fallback:
+        return fallback
+    if not all_found:
+        return _error_stub(
+            "write", "LLM writer returned empty and no sandbox evidence was collected")
+    return _error_stub("write", "LLM writer returned empty after retries")
+
+
+def _write_evidence_fallback_report(
+    intent: str,
+    subgoal_results: list[dict],
+    all_found: dict[str, dict],
+) -> str:
+    if not all_found:
+        return ""
+
+    domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0, "unknown": 0}
+    for info in all_found.values():
+        domain_counts[info.get("domain", "unknown")] = domain_counts.get(info.get("domain", "unknown"), 0) + 1
+
+    lines = [
+        "# FlowSearcher-DS Evidence Report",
+        "",
+        "This report organizes the collected sandbox evidence into a source-grounded answer with citations.",
+        "",
+        "## Task",
+        "",
+        intent.strip()[:3000],
+        "",
+        "## Evidence Coverage",
+        "",
+        f"- Total unique URLs: {len(all_found)}",
+        f"- Shopping sources: {domain_counts.get('shopping', 0)}",
+        f"- Reddit sources: {domain_counts.get('reddit', 0)}",
+        f"- Wiki sources: {domain_counts.get('wiki', 0)}",
+        "",
+    ]
+
+    for sg_result in subgoal_results:
+        title = sg_result.get("section_title") or sg_result.get("subgoal") or "Research Section"
+        results = sg_result.get("results", [])
+        if not results:
+            continue
+        lines.extend([f"## {title}", ""])
+        for item in results[:80]:
+            snippet = item.get("snippet", "").strip()
+            if len(snippet) > 260:
+                snippet = snippet[:260].rsplit(" ", 1)[0] + "..."
+            lines.append(
+                f"- [{item.get('title', 'source')}]({item.get('url', '')}) "
+                f"({item.get('domain', 'unknown')}; query: `{item.get('query', '')}`): {snippet}"
+            )
+        lines.append("")
+
+    lines.extend(["## Source Inventory", ""])
+    for url, info in list(all_found.items())[:160]:
+        lines.append(f"- [{info.get('title', url)}]({url})")
+    return "\n".join(lines)
 
 
 async def run_flowsearcher(intent: str, model: str = "deepseek-v4-flash",
-                           task_id: str = "") -> str:
-    print(f"  [fs] FlowSearcher-DS starting, intent={len(intent)} chars")
+                           task_id: str = "", shim_url: str | None = None,
+                           proxy_url: str | None = None) -> str:
+    # Defect 1: resolve both endpoints at call time with clear precedence so a
+    # stale module constant can never route this lane to a different backbone
+    # than the harness intends.
+    base_url = _resolve_llm_base_url(proxy_url)
+    shim = _resolve_shim_url(shim_url)
+    print(f"  [fs] FlowSearcher-DS starting, intent={len(intent)} chars; "
+          f"llm={base_url}, shim={shim}")
 
-    # Stage 1: decompose
-    subgoals = decompose_intent(intent)
-    print(f"  [fs] Decomposed into {len(subgoals)} subgoals: "
-          + ", ".join(sg["label"] for sg in subgoals))
-
-    # Stage 2: memory retrieval
+    # Defect 2: track the current phase so a total failure surfaces an honest
+    # error stub naming where it broke, instead of a laundered sentinel.
+    phase = "decompose"
     try:
-        mem = HierarchicalMemory.load()
-        experience = mem.retrieve(intent, task_id=task_id, top_k=3)
-        exp_prompt = _build_experience_prompt(experience)
-        n_l1 = len(experience.get("l1_neighbors", []))
-        print(f"  [fs] Memory loaded: {n_l1} L1 neighbors, L2={bool(experience.get('l2_intent_shape'))}")
+        # Stage 1: decompose
+        subgoals = decompose_intent(intent)
+        print(f"  [fs] Decomposed into {len(subgoals)} subgoals: "
+              + ", ".join(sg["label"] for sg in subgoals))
+
+        # Stage 2: memory retrieval. Fairness audit 2026-07-06 (B2): the memory
+        # is mined from PRIOR SCORED RUNS ON THE SAME EVAL SET (cited URLs and
+        # section skeletons of high-composite neighbors), which no other lane
+        # receives; injecting it into benchmark runs is cross-task seed
+        # injection. Default OFF for benchmark runs; set FLOWSEARCHER_MEMORY=1
+        # only for explicitly non-benchmark experiments.
+        phase = "memory"
+        if os.environ.get("FLOWSEARCHER_MEMORY", "0") == "1":
+            try:
+                mem = HierarchicalMemory.load()
+                experience = mem.retrieve(intent, task_id=task_id, top_k=3)
+                exp_prompt = _build_experience_prompt(experience)
+                n_l1 = len(experience.get("l1_neighbors", []))
+                print(f"  [fs] Memory loaded: {n_l1} L1 neighbors, L2={bool(experience.get('l2_intent_shape'))}")
+            except Exception as e:
+                print(f"  [fs] Memory load failed ({e}), proceeding without memory")
+                exp_prompt = ""
+                experience = {}
+        else:
+            print("  [fs] Memory injection disabled (benchmark fairness default)")
+            exp_prompt = ""
+            experience = {}
+
+        # Stage 3: workflow synthesis
+        phase = "synthesize"
+        print("  [fs] Synthesizing workflow...")
+        plan = _synthesize_workflow(intent, subgoals, exp_prompt, model, base_url)
+        total_queries = sum(len(step.get("search_queries", [])) for step in plan)
+        print(f"  [fs] Plan: {len(plan)} steps, {total_queries} total queries")
+
+        # Stage 4: execute
+        phase = "search"
+        all_found: dict[str, dict] = {}
+        subgoal_results = []
+        for step in plan:
+            sg_result = _execute_subgoal(step, all_found, shim)
+            subgoal_results.append(sg_result)
+            print(f"  [fs] Subgoal {step.get('subgoal', '?')}: found {sg_result['n_urls_found']} new URLs "
+                  f"(total={len(all_found)})")
+
+        print(f"  [fs] Total unique URLs found: {len(all_found)}")
+
+        # If under target, do supplementary searches
+        domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
+        for info in all_found.values():
+            d = info.get("domain", "")
+            if d in domain_counts:
+                domain_counts[d] += 1
+
+        targets = {"shopping": 40, "reddit": 30, "wiki": 25}
+        for domain, target in targets.items():
+            if domain_counts[domain] < target:
+                deficit = target - domain_counts[domain]
+                print(f"  [fs] Supplementary search: {domain} needs {deficit} more URLs")
+                kw = _extract_keywords(intent, domain)
+                for q in kw[:8]:
+                    hits = _search(q, shim, max_results=10)
+                    for h in hits:
+                        url = h.get("url", "")
+                        if url and url not in all_found:
+                            d = "unknown"
+                            if ":7770" in url:
+                                d = "shopping"
+                            elif ":9999" in url:
+                                d = "reddit"
+                            elif ":8090" in url:
+                                d = "wiki"
+                            if d == domain:
+                                all_found[url] = {
+                                    "url": url, "title": h.get("title", ""),
+                                    "snippet": h.get("content", "")[:300],
+                                    "domain": d, "query": q,
+                                }
+                                subgoal_results[-1]["results"].append(all_found[url])
+
+        # Recount after supplementary
+        domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
+        for info in all_found.values():
+            d = info.get("domain", "")
+            if d in domain_counts:
+                domain_counts[d] += 1
+        print(f"  [fs] After supplementary: shop={domain_counts['shopping']}, "
+              f"reddit={domain_counts['reddit']}, wiki={domain_counts['wiki']}, "
+              f"total={len(all_found)}")
+
+        # Stage 5: write report
+        phase = "write"
+        print("  [fs] Writing report...")
+        report = _write_report(intent, subgoal_results, all_found, model,
+                               base_url, shim)
+        print(f"  [fs] Report: {len(report)} chars")
     except Exception as e:
-        print(f"  [fs] Memory load failed ({e}), proceeding without memory")
-        exp_prompt = ""
-        experience = {}
+        return _error_stub(phase, f"{type(e).__name__}: {e}")
 
-    # Stage 3: workflow synthesis
-    print("  [fs] Synthesizing workflow...")
-    plan = _synthesize_workflow(intent, subgoals, exp_prompt, model)
-    total_queries = sum(len(step.get("search_queries", [])) for step in plan)
-    print(f"  [fs] Plan: {len(plan)} steps, {total_queries} total queries")
-
-    # Stage 4: execute
-    all_found: dict[str, dict] = {}
-    subgoal_results = []
-    for step in plan:
-        sg_result = _execute_subgoal(step, all_found)
-        subgoal_results.append(sg_result)
-        print(f"  [fs] Subgoal {step.get('subgoal', '?')}: found {sg_result['n_urls_found']} new URLs "
-              f"(total={len(all_found)})")
-
-    print(f"  [fs] Total unique URLs found: {len(all_found)}")
-
-    # If under target, do supplementary searches
-    domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
-    for info in all_found.values():
-        d = info.get("domain", "")
-        if d in domain_counts:
-            domain_counts[d] += 1
-
-    targets = {"shopping": 40, "reddit": 30, "wiki": 25}
-    for domain, target in targets.items():
-        if domain_counts[domain] < target:
-            deficit = target - domain_counts[domain]
-            print(f"  [fs] Supplementary search: {domain} needs {deficit} more URLs")
-            kw = _extract_keywords(intent, domain)
-            for q in kw[:8]:
-                hits = _search(q, max_results=10)
-                for h in hits:
-                    url = h.get("url", "")
-                    if url and url not in all_found:
-                        d = "unknown"
-                        if ":7770" in url:
-                            d = "shopping"
-                        elif ":9999" in url:
-                            d = "reddit"
-                        elif ":8090" in url:
-                            d = "wiki"
-                        if d == domain:
-                            all_found[url] = {
-                                "url": url, "title": h.get("title", ""),
-                                "snippet": h.get("content", "")[:300],
-                                "domain": d, "query": q,
-                            }
-                            subgoal_results[-1]["results"].append(all_found[url])
-
-    # Recount after supplementary
-    domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
-    for info in all_found.values():
-        d = info.get("domain", "")
-        if d in domain_counts:
-            domain_counts[d] += 1
-    print(f"  [fs] After supplementary: shop={domain_counts['shopping']}, "
-          f"reddit={domain_counts['reddit']}, wiki={domain_counts['wiki']}, "
-          f"total={len(all_found)}")
-
-    # Stage 5: write report
-    print("  [fs] Writing report...")
-    report = _write_report(intent, subgoal_results, all_found, model)
-    print(f"  [fs] Report: {len(report)} chars")
-
+    if not report or not report.strip():
+        return _error_stub(phase, "empty report produced")
     return report
 
 

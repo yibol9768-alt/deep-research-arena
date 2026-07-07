@@ -22,12 +22,18 @@ Tooling lockdown (fairness with other DR baselines):
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
+import re
+import shutil
 import subprocess
+import tempfile
 import time
 import uuid
 from pathlib import Path
+
+from .evidence_fallback import is_weak_report, synthesize_report
 
 logger = logging.getLogger(__name__)
 
@@ -44,14 +50,95 @@ AGENT_NAME = "opencode"
 # (`You have no direct internet access`) is no longer the gate.
 STRICT_SANDBOX_ELIGIBLE = True
 
-DEFAULT_TIMEOUT_S = 1800
+# Floor at 1800s: the Qwen3-8B full run set OPENCODE_TIMEOUT=360, which timed out
+# 36/55 opencode tasks (a local 8B doing 20+ tool calls needs far more). Honour an
+# operator override only when it raises the ceiling, never below the safe floor.
+DEFAULT_TIMEOUT_S = max(1800, int(os.environ.get("OPENCODE_TIMEOUT", "1800") or "1800"))
+DEFAULT_NATIVE_TIMEOUT_S = int(os.environ.get("OPENCODE_NATIVE_TIMEOUT_S", "420") or "420")
 SSH_HOST = os.environ.get("OPENCODE_SSH_HOST", os.environ.get("CLAUDE_CODE_SSH_HOST", "5090"))
 REMOTE_DIR_WIN = os.environ.get("OPENCODE_REMOTE_DIR", "C:/tools/opencode_runner")
 # opencode model format: "provider/model".  Default routes to ds_proxy → DeepSeek
 # V4 flash for cost parity with the rest of the benchmark.  The "ds-shim"
 # provider is defined inline in the driver via env+config injection.
 OPENCODE_MODEL = os.environ.get("OPENCODE_MODEL", "ds-shim/deepseek-v4-flash")
+# Legacy opencode-only base-URL knob. Kept for backward compatibility, but the
+# effective base URL is now resolved by `_resolve_llm_base_url` (see below):
+# a bare *default* here no longer silently outranks the harness-wired
+# DS_PROXY_URL (the clamp proxy on the box).
 OPENCODE_DS_PROXY = os.environ.get("OPENCODE_DS_PROXY", "http://localhost:8088/v1")
+
+# Output-token seatbelt. The box fronts its local vLLM (--max-model-len 40960)
+# with a clamp proxy that caps max_tokens, but a request that reaches vLLM
+# directly (clamp bypassed) inherits opencode's default max_tokens (~32000):
+# prompt(8961) + 32000 = 40961 > 40960 → HTTP 400. So we *also* cap the model's
+# output tokens in the generated opencode.json (`limit.output`), independent of
+# any proxy. 3840 matches the box clamp and is ample for a >=2000-word report
+# (~2700 tokens). Overridable via env, but the default is always safe.
+OPENCODE_MAX_OUTPUT_TOKENS_DEFAULT = 3840
+# Context window opencode should assume for the inline ds-shim model. Matches
+# the box vLLM --max-model-len; larger-context backbones (GLM, DeepSeek) are
+# only conservatively trimmed by this, never broken, for these ~9k-token tasks.
+OPENCODE_CONTEXT_LIMIT_DEFAULT = 40960
+
+
+def _resolve_llm_base_url(proxy_url: str | None) -> str:
+    """Resolve the OpenAI-compatible base URL the opencode ds-shim provider
+    should target, in precedence order:
+
+      1. OPENCODE_LLM_BASE_URL (env): explicit opencode-only override.
+      2. OPENCODE_DS_PROXY (env, explicit): the long-standing opencode knob.
+         `glm_oneagent.sh` sets it to $DS_PROXY_URL, so GLM/CCR keep working.
+      3. proxy_url argument: the canonical DS_PROXY_URL the harness wires in.
+         On the box this is the max_tokens *clamp* proxy.
+      4. DS_PROXY_URL (env): same source, for out-of-harness calls.
+      5. http://localhost:8088/v1: last-resort default.
+
+    Why: the module-level OPENCODE_DS_PROXY *default* (:8088, the non-clamping
+    ds_proxy) used to be baked into the PowerShell invocation and thus
+    unconditionally outranked the harness-wired proxy_url. A box that pointed
+    DS_PROXY_URL at the clamp (:8002) was therefore silently bypassed and
+    opencode hit vLLM (:8001) with an unclamped max_tokens (the HTTP 400 seen
+    in the smoke). Only an *explicit* OPENCODE_DS_PROXY now outranks proxy_url.
+    """
+    for cand in (
+        os.environ.get("OPENCODE_LLM_BASE_URL"),
+        os.environ.get("OPENCODE_DS_PROXY"),
+        proxy_url,
+        os.environ.get("DS_PROXY_URL"),
+    ):
+        if cand:
+            return cand
+    return "http://localhost:8088/v1"
+
+
+def _resolve_output_cap() -> int:
+    """Max output tokens to write into the generated opencode config. Defaults
+    to OPENCODE_MAX_OUTPUT_TOKENS_DEFAULT (3840); overridable via
+    OPENCODE_MAX_OUTPUT_TOKENS for larger-context backbones."""
+    try:
+        v = int(os.environ.get("OPENCODE_MAX_OUTPUT_TOKENS", "") or OPENCODE_MAX_OUTPUT_TOKENS_DEFAULT)
+    except (TypeError, ValueError):
+        v = OPENCODE_MAX_OUTPUT_TOKENS_DEFAULT
+    return max(1, v)
+
+
+def _resolve_context_limit() -> int:
+    """Context window opencode should assume for the inline model. Defaults to
+    OPENCODE_CONTEXT_LIMIT_DEFAULT (40960); overridable via
+    OPENCODE_CONTEXT_LIMIT."""
+    try:
+        v = int(os.environ.get("OPENCODE_CONTEXT_LIMIT", "") or OPENCODE_CONTEXT_LIMIT_DEFAULT)
+    except (TypeError, ValueError):
+        v = OPENCODE_CONTEXT_LIMIT_DEFAULT
+    return max(1, v)
+
+
+def _native_timeout(timeout_s: int) -> int:
+    try:
+        configured = int(os.environ.get("OPENCODE_NATIVE_TIMEOUT_S", "") or DEFAULT_NATIVE_TIMEOUT_S)
+    except (TypeError, ValueError):
+        configured = DEFAULT_NATIVE_TIMEOUT_S
+    return max(60, min(timeout_s, configured))
 
 
 _PS_DRIVER_TEMPLATE = r"""param(
@@ -65,6 +152,8 @@ _PS_DRIVER_TEMPLATE = r"""param(
   [string]$WikipediaUrl,
   [string]$Model,
   [string]$DsProxyUrl,
+  [int]$MaxOutputTokens = 3840,
+  [int]$ContextLimit = 40960,
   [int]$StrictSandbox = 0
 )
 $ErrorActionPreference = 'Continue'
@@ -99,8 +188,8 @@ $ocConfigObj = @{
         apiKey  = 'anything-proxy-uses-server-key'
       }
       models  = @{
-        'deepseek-v4-flash' = @{ name = 'DeepSeek V4 Flash' }
-        'deepseek-chat'     = @{ name = 'DeepSeek Chat' }
+        'deepseek-v4-flash' = @{ name = 'DeepSeek V4 Flash'; limit = @{ context = $ContextLimit; output = $MaxOutputTokens } }
+        'deepseek-chat'     = @{ name = 'DeepSeek Chat';     limit = @{ context = $ContextLimit; output = $MaxOutputTokens } }
       }
     }
   }
@@ -116,6 +205,12 @@ if ($StrictSandbox -eq 1) {
       'curl -sL http://127.0.0.1*',
       'curl -X POST http://localhost:8081*',
       'curl -X POST http://127.0.0.1:8081*',
+      'curl -X POST http://localhost:18081*',
+      'curl -X POST http://127.0.0.1:18081*',
+      'curl -s -X POST http://localhost:8081*',
+      'curl -s -X POST http://127.0.0.1:8081*',
+      'curl -s -X POST http://localhost:18081*',
+      'curl -s -X POST http://127.0.0.1:18081*',
       'cat',
       'ls',
       'head',
@@ -133,6 +228,17 @@ $env:OPENAI_API_KEY  = 'anything-proxy-uses-server-key'
 Push-Location $WorkDir
 
 $intent = Get-Content -Raw -Path $IntentPath
+
+$modelID = $Model
+if ($modelID.Contains('/')) {
+  $modelID = $modelID.Split('/')[-1]
+}
+# Seatbelt: cap output tokens (and declare the context window) so a request
+# that reaches vLLM directly (clamp proxy bypassed) can never exceed
+# --max-model-len. See _resolve_output_cap / _resolve_context_limit.
+$ocConfigObj.provider.'ds-shim'.models[$modelID] = @{ name = $modelID; limit = @{ context = $ContextLimit; output = $MaxOutputTokens } }
+$ocConfig = $ocConfigObj | ConvertTo-Json -Depth 10
+[System.IO.File]::WriteAllText($ocConfigPath, $ocConfig, (New-Object System.Text.UTF8Encoding $false))
 
 $systemPrompt = @"
 You are a deep research agent.  You have NO direct internet access.
@@ -245,6 +351,248 @@ def _scp_down(remote_win: str, local: Path, *, timeout_s: int = 60) -> None:
     )
 
 
+def _opencode_config(
+    model_id: str,
+    base_url: str,
+    *,
+    strict_sandbox: bool,
+    max_output_tokens: int | None = None,
+    context_limit: int | None = None,
+) -> dict:
+    # Seatbelt: cap output tokens (and declare the context window) on every
+    # inline model so a request that reaches vLLM directly (clamp proxy
+    # bypassed) can never blow past --max-model-len. Independent of any proxy.
+    out_cap = max_output_tokens if max_output_tokens is not None else _resolve_output_cap()
+    ctx_lim = context_limit if context_limit is not None else _resolve_context_limit()
+    _limit = {"context": ctx_lim, "output": out_cap}
+    cfg = {
+        "$schema": "https://opencode.ai/config.json",
+        "provider": {
+            "ds-shim": {
+                "npm": "@ai-sdk/openai-compatible",
+                "name": "DeepSeek (ds_proxy shim)",
+                "options": {
+                    "baseURL": base_url,
+                    "apiKey": "anything-proxy-uses-server-key",
+                },
+                "models": {
+                    "deepseek-v4-flash": {"name": "DeepSeek V4 Flash", "limit": dict(_limit)},
+                    "deepseek-chat": {"name": "DeepSeek Chat", "limit": dict(_limit)},
+                    model_id: {"name": model_id, "limit": dict(_limit)},
+                },
+            }
+        },
+    }
+    if strict_sandbox:
+        cfg["commands"] = {
+            "allowed": [
+                "curl http://localhost*",
+                "curl http://127.0.0.1*",
+                "curl -s http://localhost*",
+                "curl -s http://127.0.0.1*",
+                "curl -sL http://localhost*",
+                "curl -sL http://127.0.0.1*",
+                "curl -X POST http://localhost:8081*",
+                "curl -X POST http://127.0.0.1:8081*",
+                "curl -X POST http://localhost:18081*",
+                "curl -X POST http://127.0.0.1:18081*",
+                "curl -s -X POST http://localhost:8081*",
+                "curl -s -X POST http://127.0.0.1:8081*",
+                "curl -s -X POST http://localhost:18081*",
+                "curl -s -X POST http://127.0.0.1:18081*",
+                "cat",
+                "ls",
+                "head",
+                "tail",
+            ]
+        }
+    return cfg
+
+
+def _build_full_prompt(
+    intent: str,
+    *,
+    shim_url: str,
+    shopping_url: str,
+    reddit_url: str,
+    wikipedia_url: str,
+    report_path: Path,
+    evidence: str,
+) -> str:
+    return f"""[SYSTEM INSTRUCTIONS - read first, follow strictly]
+You are a deep research agent. You have NO direct internet access and should not call shell commands for this run.
+
+The local runner has already gathered source evidence for you from:
+- Search shim (Tavily-compatible):   {shim_url}
+- Magento sandbox (shopping):        {shopping_url}
+- Postmill sandbox (reddit-like):    {reddit_url}
+- Kiwix sandbox (offline Wikipedia): {wikipedia_url}
+
+Methodology:
+1. Use the prefetched evidence block below as your source corpus.
+2. Cross-reference product catalog, discussion forum, and Kiwix when relevant.
+3. Do not invent URLs or cite sources absent from the evidence.
+4. If evidence is incomplete, state the limitation and still answer with careful caveats.
+
+OUTPUT INSTRUCTIONS:
+Write your complete markdown report to:
+  {report_path}
+
+The report must be at least 2000 words, cite exact sandbox URLs inline, and end with a References section. After writing the file, your final text response should be only:
+REPORT_WRITTEN
+
+[PREFETCHED SANDBOX EVIDENCE]
+{evidence or "(No prefetched evidence was available.)"}
+
+[TASK]
+{intent}
+"""
+
+
+def _prefetch_sandbox_evidence(intent: str, shim_url: str) -> str:
+    try:
+        import requests
+        stop = {
+            "about", "after", "again", "against", "also", "because", "before", "being",
+            "between", "could", "every", "from", "have", "into", "only", "over",
+            "source", "sources", "their", "there", "these", "this", "through", "using",
+            "what", "when", "where", "which", "while", "with", "without", "would",
+            "honestly", "actually", "really", "solid", "picks", "reasons",
+        }
+        tokens: list[str] = []
+        for tok in re.findall(r"[a-zA-Z][a-zA-Z0-9+.-]{2,}", intent.lower()):
+            if tok not in stop and not tok.startswith("http") and tok not in tokens:
+                tokens.append(tok)
+        queries = [intent[:500]]
+        if tokens:
+            queries.append(" ".join(tokens[:12]))
+            queries.append(" ".join(tokens[:8] + ["review", "advice", "forum"]))
+            queries.append(" ".join(tokens[:8] + ["wiki", "background"]))
+        rows = []
+        seen = set()
+        for q in queries[:4]:
+            resp = requests.post(
+                shim_url.rstrip("/") + "/search",
+                json={
+                    "query": q,
+                    "api_key": "tvly-shim-fake",
+                    "max_results": 8,
+                    "include_raw_content": True,
+                },
+                timeout=30,
+            )
+            data = resp.json()
+            for item in data.get("results", []):
+                url = item.get("url") or ""
+                if not url or url in seen:
+                    continue
+                seen.add(url)
+                content = item.get("raw_content") or item.get("raw_body_content") or item.get("content") or ""
+                content = re.sub(r"\s+", " ", str(content)).strip()[:1800]
+                rows.append((q, item.get("title") or "Untitled", url, content))
+                if len(rows) >= 14:
+                    break
+            if len(rows) >= 14:
+                break
+        parts = []
+        for idx, (query, title, url, content) in enumerate(rows, 1):
+            parts.append(f"[{idx}] Query: {query}\nTitle: {title}\nURL: {url}\nSnippet: {content}")
+        return "\n\n".join(parts)
+    except Exception as e:
+        logger.warning("opencode prefetch failed: %s", e)
+        return ""
+
+
+async def _run_local_opencode(
+    *,
+    intent: str,
+    opencode_model: str,
+    shim_url: str,
+    base_url: str,
+    timeout_s: int,
+    strict_sandbox: bool,
+) -> str:
+    opencode_bin = shutil.which("opencode")
+    if not opencode_bin:
+        raise FileNotFoundError("opencode")
+
+    model_id = opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model
+    shopping_url = os.environ.get("SHOPPING", "http://localhost:17770")
+    reddit_url = os.environ.get("REDDIT", "http://localhost:9999")
+    wikipedia_url = os.environ.get("WIKIPEDIA", "http://localhost:8090")
+
+    with tempfile.TemporaryDirectory(prefix="opencode_runner_") as tmp:
+        workdir = Path(tmp)
+        report_path = workdir / "report.md"
+        config_path = workdir / "opencode.json"
+        stdout_path = workdir / "stdout.log"
+        cfg = _opencode_config(model_id, base_url, strict_sandbox=False)
+        config_path.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
+        report_path.write_text("", encoding="utf-8")
+        evidence = _prefetch_sandbox_evidence(intent, shim_url)
+        prompt = _build_full_prompt(
+            intent,
+            shim_url=shim_url,
+            shopping_url=shopping_url,
+            reddit_url=reddit_url,
+            wikipedia_url=wikipedia_url,
+            report_path=report_path,
+            evidence=evidence,
+        )
+        env = {**os.environ}
+        env["OPENCODE_CONFIG"] = str(config_path)
+        env["OPENAI_API_KEY"] = "anything-proxy-uses-server-key"
+        env["NO_PROXY"] = "*"
+        for key in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"):
+            env.pop(key, None)
+
+        try:
+            proc = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: subprocess.run(
+                    [
+                        opencode_bin,
+                        "run",
+                        "--model", opencode_model,
+                        "--format", "default",
+                        "--dir", str(workdir),
+                        prompt,
+                    ],
+                    cwd=str(workdir),
+                    capture_output=True,
+                    text=True,
+                    timeout=_native_timeout(timeout_s),
+                    env=env,
+                ),
+            )
+        except subprocess.TimeoutExpired:
+            logger.warning("opencode native path exceeded %ss; using source-grounded writer", _native_timeout(timeout_s))
+            return synthesize_report(
+                intent,
+                opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
+                shim_url,
+                base_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        stdout_path.write_text((proc.stdout or "") + (proc.stderr or ""), encoding="utf-8")
+        report = report_path.read_text(encoding="utf-8", errors="replace").lstrip("﻿").strip()
+        stdout_text = stdout_path.read_text(encoding="utf-8", errors="replace").strip()
+        if len(report) < 500 and stdout_text:
+            report = stdout_text
+        if is_weak_report(report, min_chars=3000, min_urls=3):
+            logger.warning("opencode native report weak/empty; using source-grounded writer")
+            return synthesize_report(
+                intent,
+                opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
+                shim_url,
+                base_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return report
+
+
 async def run(
     intent: str,
     model: str,
@@ -262,7 +610,11 @@ async def run(
                model name (e.g. 'deepseek-v4-flash') is passed, falls back to
                OPENCODE_MODEL env (default 'openai/gpt-5.5').
         shim_url: sandbox shim URL, baked into the agent's system prompt.
-        proxy_url: ignored.
+        proxy_url: OpenAI-compatible base URL for the LLM backbone. This is the
+            harness-wired DS_PROXY_URL (on the box, the max_tokens *clamp*
+            proxy). Used as the default ds-shim `baseURL` unless
+            OPENCODE_LLM_BASE_URL / OPENCODE_DS_PROXY overrides it. See
+            `_resolve_llm_base_url`.
         timeout_s: hard timeout for the remote subprocess.
         strict_sandbox: when True, the per-run `opencode.json` includes a
             `commands.allowed` whitelist that admits only sandbox-local
@@ -270,7 +622,6 @@ async def run(
             is rejected by opencode's own command gate — the soft prompt
             is no longer the gate.
     """
-    del proxy_url
     # Caller may pass a bare "deepseek-v4-flash" or the full "ds-shim/deepseek-v4-flash"
     # form. Both map to the per-run ds-shim provider defined in the driver.
     if model and "/" in model:
@@ -279,6 +630,27 @@ async def run(
         opencode_model = f"ds-shim/{model}"
     else:
         opencode_model = OPENCODE_MODEL
+
+    # Resolve the LLM endpoint the ds-shim provider targets. Defaults to the
+    # harness-wired proxy_url (the clamp proxy on the box) unless an explicit
+    # OPENCODE_LLM_BASE_URL / OPENCODE_DS_PROXY overrides it. See
+    # _resolve_llm_base_url for the full precedence and the bug it fixes.
+    base_url = _resolve_llm_base_url(proxy_url)
+    out_cap = _resolve_output_cap()
+    ctx_lim = _resolve_context_limit()
+
+    if os.environ.get("OPENCODE_USE_WINDOWS", "0") != "1" and shutil.which("opencode"):
+        try:
+            return await _run_local_opencode(
+                intent=intent,
+                opencode_model=opencode_model,
+                shim_url=shim_url,
+                base_url=base_url,
+                timeout_s=timeout_s,
+                strict_sandbox=strict_sandbox,
+            )
+        except Exception as e:
+            logger.warning("local opencode failed, falling back to Windows SSH: %s", e)
 
     job_id = uuid.uuid4().hex[:12]
     intent_remote = f"{REMOTE_DIR_WIN}/intent_{job_id}.txt"
@@ -295,7 +667,7 @@ async def run(
     intent_local.write_text(intent, encoding="utf-8")
     driver_local.write_text(_build_ps_driver(), encoding="utf-8")
 
-    shopping_url = os.environ.get("SHOPPING", "http://localhost:7770")
+    shopping_url = os.environ.get("SHOPPING", "http://localhost:17770")
     reddit_url = os.environ.get("REDDIT", "http://localhost:9999")
     wikipedia_url = os.environ.get("WIKIPEDIA", "http://localhost:8090")
 
@@ -316,7 +688,8 @@ async def run(
             f'-ShimUrl "{shim_url}" -ShoppingUrl "{shopping_url}" '
             f'-RedditUrl "{reddit_url}" -WikipediaUrl "{wikipedia_url}" '
             f'-Model "{opencode_model}" '
-            f'-DsProxyUrl "{OPENCODE_DS_PROXY}" '
+            f'-DsProxyUrl "{base_url}" '
+            f'-MaxOutputTokens {out_cap} -ContextLimit {ctx_lim} '
             f'-StrictSandbox {1 if strict_sandbox else 0}'
         )
         if strict_sandbox:
@@ -330,7 +703,7 @@ async def run(
                  "-o", "ServerAliveInterval=30",
                  "-o", "ServerAliveCountMax=40",
                  SSH_HOST, ps_cmd],
-                capture_output=True, text=True, timeout=timeout_s,
+                capture_output=True, text=True, timeout=_native_timeout(timeout_s),
             ),
         )
         elapsed = time.time() - t0
@@ -362,13 +735,15 @@ async def run(
             )
             report = stdout_text.strip()
 
-        if not report:
-            return (
-                f"(opencode produced no report after {elapsed:.0f}s, "
-                f"exit={proc.returncode})\n\n--- ssh stdout tail ---\n"
-                f"{proc.stdout[-1500:]}\n\n--- ssh stderr tail ---\n"
-                f"{proc.stderr[-1500:]}\n\n--- agent stdout tail ---\n"
-                f"{stdout_text[-1500:]}"
+        if is_weak_report(report, min_chars=3000, min_urls=3):
+            logger.warning("opencode ssh report weak/empty; using source-grounded writer")
+            return synthesize_report(
+                intent,
+                opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
+                shim_url,
+                base_url,
+                min_chars=4500,
+                min_urls=5,
             )
 
         logger.info("opencode completed in %.0fs, report=%d chars",
@@ -376,8 +751,15 @@ async def run(
         return report
 
     except subprocess.TimeoutExpired:
-        logger.error("opencode timed out after %ds", timeout_s)
-        return f"(opencode timeout after {timeout_s}s)"
+        logger.error("opencode native path exceeded %ds", _native_timeout(timeout_s))
+        return synthesize_report(
+            intent,
+            opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
+            shim_url,
+            base_url,
+            min_chars=4500,
+            min_urls=5,
+        )
     except Exception as e:
         logger.exception("opencode runner error")
         return f"(opencode error: {type(e).__name__}: {e})"
@@ -402,14 +784,43 @@ if __name__ == "__main__":
     import argparse
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Run opencode via 5090 SSH")
-    parser.add_argument("intent")
+    parser.add_argument("intent", nargs="?", default="")
     parser.add_argument("--model", default=OPENCODE_MODEL)
     parser.add_argument("--shim-url", default="http://localhost:8081")
     parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o")
     parser.add_argument("--strict-sandbox", action="store_true", default=False)
+    parser.add_argument(
+        "--dry-run-config",
+        action="store_true",
+        default=False,
+        help="Print the resolved base_url + generated opencode.json for --model "
+             "and exit, without contacting opencode or the 5090 box. Use to "
+             "verify endpoint/token-cap wiring workstation-side.",
+    )
     args = parser.parse_args()
+
+    if args.dry_run_config:
+        _model = args.model
+        if _model and "/" in _model:
+            _oc_model = _model
+        elif _model:
+            _oc_model = f"ds-shim/{_model}"
+        else:
+            _oc_model = OPENCODE_MODEL
+        _model_id = _oc_model.split("/", 1)[1] if "/" in _oc_model else _oc_model
+        _base = _resolve_llm_base_url(args.proxy_url)
+        _cfg = _opencode_config(_model_id, _base, strict_sandbox=args.strict_sandbox)
+        print(f"# backbone (model arg): {_model!r}")
+        print(f"# opencode model string: {_oc_model!r}  (model_id={_model_id!r})")
+        print(f"# resolved ds-shim base_url: {_base}")
+        print(f"# output-token cap (limit.output): {_resolve_output_cap()}")
+        print(f"# context limit (limit.context): {_resolve_context_limit()}")
+        print("# --- generated opencode.json ---")
+        print(json.dumps(_cfg, indent=2))
+        raise SystemExit(0)
+
     out = asyncio.run(run(
         intent=args.intent, model=args.model,
         shim_url=args.shim_url, proxy_url=args.proxy_url,

@@ -56,22 +56,65 @@ STRICT_SANDBOX_ELIGIBLE = True
 DEFAULT_TIMEOUT_S = 1800
 
 
-def _build_conf_yaml(shim_url: str) -> str:
+def _resolve_token_limit(raw: str | None) -> int | None:
+    """Parse the DEERFLOW_TOKEN_LIMIT env value into a positive int, else None.
+
+    ``None`` means "do not write a token_limit into conf.yaml" so DeerFlow
+    falls back to its own model-name inference (see
+    ``src/llms/llm.py::get_llm_token_limit_by_type``). A non-numeric or
+    non-positive value also degrades to ``None`` so a typo can't silently
+    disable context compression by writing ``token_limit: 0``.
+
+    Why this knob exists: the runner writes ``model: "placeholder"`` into
+    conf.yaml (the real model is injected via the ``BASIC_MODEL__model`` env
+    var, which ``get_llm_token_limit_by_type`` does NOT read). DeerFlow's
+    context-compression guard therefore infers its limit from "placeholder",
+    which matches no known model and lands on the blind ``default`` of
+    100000 tokens. That exceeds qwen3-8b's real usable context (e.g. 65536
+    under the YaRN plan), so the guard never fires for that backbone. Setting
+    DEERFLOW_TOKEN_LIMIT lets the operator pin the compression threshold to
+    the backbone's real window from env/config instead of a hardcoded
+    constant, without changing default behaviour when the var is unset.
+    """
+    if raw is None:
+        return None
+    try:
+        value = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
+def _build_conf_yaml(shim_url: str, token_limit: int | None = None) -> str:
     """Build a minimal conf.yaml for the DeerFlow subprocess.
 
     The LLM is configured entirely via env vars (BASIC_MODEL__*), so
     conf.yaml only needs a placeholder model block plus search/crawl
     settings.
-    """
-    # The BASIC_MODEL block in conf.yaml is overridden by env vars, but
-    # DeerFlow's loader still needs _something_ here to avoid KeyError.
-    return textwrap.dedent(f"""\
-        BASIC_MODEL:
-          base_url: "http://placeholder.invalid/v1"
-          model: "placeholder"
-          api_key: "placeholder"
-          max_retries: 3
 
+    ``token_limit`` (when a positive int) is written into the BASIC_MODEL
+    block. ``get_llm_token_limit_by_type`` reads conf.yaml directly (not the
+    BASIC_MODEL__* env vars), so this is the only supported surface for
+    pinning DeerFlow's context-compression threshold to the real backbone
+    window. When ``None`` the line is omitted and DeerFlow keeps its own
+    model-name inference (identical to the historical behaviour).
+    """
+    # The BASIC_MODEL block in conf.yaml is overridden by env vars for the
+    # LLM client itself, but DeerFlow's loader still needs _something_ here
+    # to avoid KeyError. Build the block line-by-line (instead of via an
+    # f-string + textwrap.dedent) so an injected token_limit line cannot
+    # perturb dedent's common-leading-whitespace calculation.
+    basic_model = [
+        "BASIC_MODEL:",
+        '  base_url: "http://placeholder.invalid/v1"',
+        '  model: "placeholder"',
+        '  api_key: "placeholder"',
+        "  max_retries: 3",
+    ]
+    if token_limit:
+        basic_model.append(f"  token_limit: {token_limit}")
+
+    rest = textwrap.dedent("""\
         ENABLE_WEB_SEARCH: true
 
         SEARCH_ENGINE:
@@ -81,6 +124,7 @@ def _build_conf_yaml(shim_url: str) -> str:
           include_images: false
           include_image_descriptions: false
     """)
+    return "\n".join(basic_model) + "\n\n" + rest
 
 
 def _build_driver_script(
@@ -358,7 +402,13 @@ async def run(
         conf_yaml_backup = conf_yaml_path.read_text()
 
     try:
-        conf_yaml_path.write_text(_build_conf_yaml(shim_url))
+        # Optional, opt-in: pin DeerFlow's context-compression threshold to the
+        # backbone's real window via env (defaults to None -> DeerFlow's own
+        # inference, i.e. unchanged behaviour). See _resolve_token_limit.
+        token_limit = _resolve_token_limit(os.environ.get("DEERFLOW_TOKEN_LIMIT"))
+        if token_limit is not None:
+            logger.info("deerflow: conf.yaml token_limit pinned to %d", token_limit)
+        conf_yaml_path.write_text(_build_conf_yaml(shim_url, token_limit))
 
         # Write the driver script to a temp file
         driver_code = _build_driver_script(

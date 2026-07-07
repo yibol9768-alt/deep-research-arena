@@ -8,8 +8,19 @@ venv (.venv-camel) runs langchain 1.x for langchain-odr, so gpt-researcher
 needs its own isolated environment.
 
 Configuration approach:
-  - Patch ``gpt_researcher.retrievers.tavily.tavily_search.TavilySearch.__init__``
-    inside the subprocess to set ``self.base_url = f"{shim_url}/search"``.
+  - Sandbox search wiring (the reach-0 root fix). We do NOT monkey-patch the
+    real ``TavilySearch.__init__`` any more. gpt-researcher resolves its
+    retriever class lazily inside ``GPTResearcher.__init__`` via
+    ``get_retrievers -> get_retriever("tavily")``, which runs a *late*
+    ``from gpt_researcher.retrievers import TavilySearch`` at construction time.
+    We therefore BIND a self-contained shim-backed retriever class onto that
+    exact name (in both ``gpt_researcher.retrievers`` and the
+    ``...tavily.tavily_search`` submodule) BEFORE ``GPTResearcher()`` is built,
+    so every search gpt-researcher issues (the planning search and every
+    sub-query search alike) goes through the sandbox shim. This removes all
+    dependence on the real retriever's private ``self.base_url`` attribute and
+    request payload, which is why the old ``__init__`` patch was fragile (see
+    ``_build_shim_retriever_block``).
   - Set OPENAI_BASE_URL/OPENAI_API_KEY pointing at our ds_proxy.
   - Set FAST_LLM/SMART_LLM/STRATEGIC_LLM/RETRIEVER/EMBEDDING env vars so
     gpt-researcher reads our proxy instead of real OpenAI.
@@ -25,6 +36,21 @@ Pipeline:
     sources (shopping / reddit / wikipedia).
   - Launch subprocess in .venv-gptr, run conduct_research + write_report.
   - Report is emitted between sentinels and extracted by the parent.
+
+Why the old wiring missed (mechanism of the reach-0 bug):
+  gpt-researcher 0.12.3's ``TavilySearch.search()`` wraps the whole request in
+  ``try/except Exception`` and returns ``[]`` on ANY failure (see the vendored
+  source: retrievers/tavily/tavily_search.py). The previous adapter only
+  reassigned ``self.base_url`` after ``__init__``; that is an internal detail
+  of one code path, and any mismatch (a version whose retriever uses the
+  ``tavily`` SDK client instead of ``self.base_url``, a payload the shim
+  rejects, a bind that lands after the class reference is captured) makes
+  ``search()`` silently return zero sources. With zero retrieved sources the
+  report writer falls back to the model's parametric prior and emits fluent but
+  ungrounded public ``en.wikipedia.org`` citations (the archived 1294-public /
+  1-localhost partial run). The fix replaces the whole retriever class so the
+  request shape and endpoint are ours, and binds it at the name gpt-researcher
+  actually imports, so the failure can no longer be silent.
 """
 from __future__ import annotations
 
@@ -55,23 +81,146 @@ DEFAULT_TIMEOUT_S = 1800
 _REPORT_START = "===GPTR_REPORT_START==="
 _REPORT_END = "===GPTR_REPORT_END==="
 
+# Grounding diagnostic marker. The driver prints one line with this prefix to
+# stdout (OUTSIDE the report sentinels) reporting how many URLs the retriever
+# actually returned and how many were localhost/sandbox origins. This is what
+# makes the "reach 0" failure self-revealing on the next live run without
+# guessing: retrieved=0 -> the bound _ShimTavilyRetriever fed the model no
+# sources (shim down or every search errored — look for "[gptr-shim] ...
+# FAILED" on stderr); retrieved>0 but localhost=0 -> real web leaked past the
+# sandbox; localhost>0 -> the shim path works and sandbox URLs reached the
+# writer.
+_DIAG_MARK = "===GPTR_DIAG==="
+
 # Agent identifier for the auto-discovery registry.
 AGENT_NAME = "gpt-researcher"
 
 # Workstream C — strict-sandbox eligibility.
-# gpt-researcher honours RETRIEVER + TAVILY base-URL patches. Under
-# strict_sandbox=True we force RETRIEVER=tavily, point its base URL at the
-# shim, and fail-fast if a real TAVILY_API_KEY is leaking through the
-# environment (which would route to api.tavily.com under any code path we
-# don't monkey-patch). The shim itself runs in strict mode in this
-# scenario, so even if the patch fell through to real Tavily the gate at
-# the shim would still drop the response.
+# gpt-researcher resolves its retriever by the RETRIEVER name; we bind a
+# shim-backed class onto that name (see _build_shim_retriever_block) so the
+# retriever cannot reach the real web at all. Under strict_sandbox=True we keep
+# RETRIEVER=tavily, and additionally fail-fast if a real TAVILY_API_KEY is
+# leaking through the environment. Our retriever never reads that key, but the
+# check is a defence-in-depth tripwire against a future code path that imports
+# the real tavily client directly. The shim itself also runs in strict mode in
+# this scenario, so any leaked request that still reached it is gated there.
 STRICT_SANDBOX_ELIGIBLE = True
 
 # Real Tavily keys start with `tvly-` followed by alphanumeric content;
 # our fake sandbox key is `tvly-shim-fake`. Anything matching the prefix
 # but NOT our sentinel is treated as a real key and refused under strict.
 _FAKE_TAVILY_KEY = "tvly-shim-fake"
+
+
+def _enhance_intent(intent: str) -> str:
+    """Append grounding-neutral citation guidance to the shared task prompt.
+
+    Fairness (open issue #19, seed-injection). Earlier revisions of this block
+    seeded answers in two ways that a non-grounded model can exploit without
+    ever retrieving anything:
+
+      1. A literal example URL ``[Active noise control](http://localhost:8090/...)``
+         which the model copied verbatim into its report as a fabricated
+         citation (see archived dr_cross_deep_0023.md, the ONLY localhost URL
+         across all 55 reports — it is this example, not a retrieved source).
+      2. The exact per-domain citation counts the scorer checks for
+         ("at least 15 Wikipedia ... shopping ... reddit"), i.e. teaching to
+         the test and asymmetric vs the shared prompt other lanes receive.
+
+    Neither helped grounding (url_reachability stayed 0). Both are adapter-
+    injected, not part of the gpt-researcher framework, so removing them is the
+    correct fairness direction. We keep only guidance that pushes toward
+    grounding on *retrieved* sources and away from fabrication.
+    """
+    return (
+        intent + "\n\n"
+        "CITATION REQUIREMENTS:\n"
+        "- Cite the sources you actually retrieved via the search tool as "
+        "markdown links `[label](url)`.\n"
+        "- Copy each retrieved URL verbatim; do NOT invent, guess, or renumber "
+        "URLs, and do not cite pages you did not retrieve.\n"
+        "- Support every factual claim with a citation to a retrieved source."
+    )
+
+
+def _build_shim_retriever_block(shim_url: str) -> str:
+    """Return the driver code that defines and BINDS the sandbox retriever.
+
+    This is the reach-0 root fix. Instead of monkey-patching the real
+    ``TavilySearch.__init__`` (which only redirected ``self.base_url`` and
+    silently no-ops if the retriever's request path ever changes), we:
+
+      1. Define ``_ShimTavilyRetriever`` with the exact public contract
+         gpt-researcher expects from a retriever class:
+             __init__(query, headers=None, topic="general", query_domains=None)
+             search(max_results=10) -> [{"href": url, "body": text}, ...]
+         It POSTs every query to the sandbox shim's Tavily-compatible
+         ``/search`` and returns ONLY the URLs the shim serves. There is no
+         fallback to the real web.
+      2. Bind that class onto ``gpt_researcher.retrievers.TavilySearch`` AND
+         ``gpt_researcher.retrievers.tavily.tavily_search.TavilySearch`` BEFORE
+         ``GPTResearcher()`` is constructed. gpt-researcher's
+         ``get_retriever("tavily")`` runs a late
+         ``from gpt_researcher.retrievers import TavilySearch`` at construction
+         time, so replacing that name is exactly the framework's own resolution
+         surface, not a fragile after-the-fact hook.
+
+    Returned as plain (non f-string) source so its own ``{}`` / ``%`` stay
+    literal when it is spliced into the outer f-string driver via a single
+    ``{retriever_block}`` substitution (f-strings do not re-scan substituted
+    values for braces).
+    """
+    search_endpoint = shim_url.rstrip("/") + "/search"
+    endpoint_repr = repr(search_endpoint)
+    return (
+        "import os as _os, sys as _sys, requests as _rq\n"
+        "\n"
+        "_SHIM_SEARCH_URL = " + endpoint_repr + "\n"
+        "\n"
+        "class _ShimTavilyRetriever:\n"
+        "    \"\"\"Sandbox retriever bound in place of gpt_researcher ... TavilySearch.\"\"\"\n"
+        "    def __init__(self, query, headers=None, topic='general', query_domains=None):\n"
+        "        self.query = query\n"
+        "        self.headers = headers or {}\n"
+        "        self.topic = topic\n"
+        "        self.query_domains = query_domains or None\n"
+        "\n"
+        "    def search(self, max_results=10):\n"
+        "        payload = {\n"
+        "            'query': self.query,\n"
+        "            'max_results': max_results,\n"
+        "            'search_depth': 'basic',\n"
+        "            'topic': self.topic,\n"
+        "            'include_raw_content': True,\n"
+        "            'include_domains': list(self.query_domains) if self.query_domains else None,\n"
+        "        }\n"
+        "        try:\n"
+        "            resp = _rq.post(_SHIM_SEARCH_URL, json=payload, timeout=100)\n"
+        "            resp.raise_for_status()\n"
+        "            data = resp.json()\n"
+        "        except Exception as e:\n"
+        "            print('[gptr-shim] search FAILED q=%r err=%s' % (self.query, e), file=_sys.stderr)\n"
+        "            return []\n"
+        "        results = (data or {}).get('results', []) or []\n"
+        "        out = []\n"
+        "        for obj in results:\n"
+        "            if not isinstance(obj, dict):\n"
+        "                continue\n"
+        "            url = obj.get('url') or obj.get('href')\n"
+        "            if not url:\n"
+        "                continue\n"
+        "            body = obj.get('raw_content') or obj.get('content') or ''\n"
+        "            out.append({'href': url, 'body': body})\n"
+        "        print('[gptr-shim] search q=%r -> %d hits' % (self.query, len(out)), file=_sys.stderr)\n"
+        "        return out\n"
+        "\n"
+        "# Bind at the name gpt-researcher's get_retriever('tavily') imports.\n"
+        "import gpt_researcher.retrievers as _gr_pkg\n"
+        "import gpt_researcher.retrievers.tavily.tavily_search as _gr_tav\n"
+        "_gr_pkg.TavilySearch = _ShimTavilyRetriever\n"
+        "_gr_tav.TavilySearch = _ShimTavilyRetriever\n"
+        "print('[gptr-shim] bound _ShimTavilyRetriever -> ' + _SHIM_SEARCH_URL, file=_sys.stderr)\n"
+    )
 
 
 def _build_driver_script(
@@ -86,14 +235,10 @@ def _build_driver_script(
     in-process, minus the langchain 1.x compatibility shims (.venv-gptr has
     langchain 0.3.x already).
     """
-    enhanced_intent = (
-        intent + "\n\n"
-        "CITATION REQUIREMENTS:\n"
-        "- You MUST cite Wikipedia/encyclopedia articles as markdown links for technical definitions.\n"
-        "- Include at least 15 Wikipedia article citations (e.g. [Active noise control](http://localhost:8090/...)).\n"
-        "- Cite all three source types: shopping product pages, forum/reddit threads, AND Wikipedia articles.\n"
-        "- Every factual claim needs a `[label](url)` markdown link."
-    )
+    enhanced_intent = _enhance_intent(intent)
+
+    # Sandbox retriever definition + registry bind (spliced verbatim below).
+    retriever_block = _build_shim_retriever_block(shim_url)
 
     # Use repr() to embed the intent as a single Python string literal —
     # safer than triple-quote delimiters because the intent may contain
@@ -140,18 +285,13 @@ os.environ.pop('LANGSMITH_TRACING', None)
 os.environ.pop('LANGSMITH_API_KEY', None)
 os.environ.pop('LANGCHAIN_TRACING_V2', None)
 
-# === Layer 2: Patch TavilySearch to use our shim ===
-try:
-    import gpt_researcher.retrievers.tavily.tavily_search as _tm
-    _orig = _tm.TavilySearch.__init__
-    def _patched(self, *a, **kw):
-        _orig(self, *a, **kw)
-        self.base_url = f'{{SHIM}}/search'
-    _tm.TavilySearch.__init__ = _patched
-    print(f'[gptr-patch] TavilySearch.base_url -> {{SHIM}}/search')
-except Exception as e:
-    print(f'[gptr-patch] WARNING: could not patch TavilySearch: {{e}}')
-
+# === Layer 2: Bind the sandbox retriever (reach-0 root fix) ===
+# Replaces the whole tavily retriever class with a shim-backed one and binds
+# it at the exact name gpt-researcher's get_retriever('tavily') imports, BEFORE
+# GPTResearcher() below builds self.retrievers. Every planning/sub-query search
+# then goes through the sandbox shim; a wiring break can no longer silently
+# swallow to zero sources (it prints [gptr-shim] ... FAILED to stderr).
+{retriever_block}
 # === Layer 3: Run gpt-researcher ===
 from gpt_researcher import GPTResearcher
 
@@ -179,6 +319,12 @@ async def _go():
                     break
         except Exception:
             pass
+    # Grounding diagnostic (printed OUTSIDE the report sentinels so it never
+    # pollutes the captured report). Surfaces whether the retriever actually
+    # fed the model any sandbox URLs; the parent parses this to log a warning
+    # when retrieved=0 or localhost=0 (the "reach 0" failure mode).
+    _local = [u for u in _urls if ('localhost' in u) or ('127.0.0.1' in u)]
+    print({_DIAG_MARK!r} + ' retrieved=%d localhost=%d' % (len(_urls), len(_local)))
     if _urls:
         _block = chr(10).join('- ' + u for u in sorted(set(_urls))[:120])
         _appendix = (chr(10) + chr(10) + 'CITE ONLY FROM THESE VERBATIM RETRIEVED URLS '
@@ -253,6 +399,19 @@ def _extract_report(stdout: str) -> str:
     return stdout[start_idx + len(_REPORT_START):end_idx].strip()
 
 
+def _extract_diag(stdout: str) -> str:
+    """Extract the grounding-diagnostic line (``_DIAG_MARK ...``) from stdout.
+
+    Returns the marker line stripped of surrounding whitespace, or "" if the
+    driver did not emit one (older driver, or a hard crash before research
+    completed). Pure/string-only so it is unit-testable without the venv.
+    """
+    for line in stdout.splitlines():
+        if line.startswith(_DIAG_MARK):
+            return line.strip()
+    return ""
+
+
 async def run(
     intent: str,
     model: str,
@@ -271,8 +430,9 @@ async def run(
         proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
         timeout_s: Subprocess timeout in seconds.
         strict_sandbox: when True, pre-flight asserts no real Tavily key is
-            present in the env (which would route past our monkey-patch to
-            api.tavily.com), forces RETRIEVER=tavily-shim-only, and writes
+            present in the env (a future code path importing the real tavily
+            client directly would otherwise reach api.tavily.com), keeps
+            RETRIEVER=tavily (bound to the shim retriever), and writes
             SHIM_MODE=strict into the subprocess so any leaked request that
             still hits the shim is refused at the gate.
 
@@ -281,11 +441,10 @@ async def run(
         "(gpt-researcher ...".
     """
     # Strict-mode pre-flight: refuse the run if the operator has a real
-    # Tavily key in their environment. The patch only redirects in-process
-    # uses of `gpt_researcher.retrievers.tavily.tavily_search.TavilySearch`;
-    # anything that bypasses that class (e.g. a future framework code path
-    # that imports `tavily.TavilyClient` directly) would still hit the real
-    # endpoint with the real key. We'd rather fail loud.
+    # Tavily key in their environment. Our bound `_ShimTavilyRetriever` never
+    # reads TAVILY_API_KEY, but a future framework code path that imports
+    # `tavily.TavilyClient` directly would still hit the real endpoint with the
+    # real key. We'd rather fail loud than leak past the sandbox.
     if strict_sandbox:
         env_key = os.environ.get("TAVILY_API_KEY", "")
         if env_key and env_key != _FAKE_TAVILY_KEY:
@@ -321,7 +480,7 @@ async def run(
 
         # Strict-mode propagation: pin TAVILY_API_KEY to our sentinel and
         # forward SHIM_MODE=strict so the search shim's URL gate is the
-        # second layer of defence behind the in-process monkey-patch.
+        # second layer of defence behind the bound shim retriever.
         if strict_sandbox:
             env["TAVILY_API_KEY"] = _FAKE_TAVILY_KEY
             env["SHIM_MODE"] = "strict"
@@ -354,6 +513,20 @@ async def run(
                 "gpt-researcher exited %d after %.0fs\nstderr (last 1500): %s",
                 proc.returncode, elapsed, stderr[-1500:],
             )
+
+        # Log the grounding diagnostic so the "reach 0" failure is visible in
+        # the run log without inspecting the report. A warning here is the
+        # cheapest signal that the Tavily->shim wiring needs a live check.
+        diag = _extract_diag(stdout)
+        if diag:
+            if "retrieved=0" in diag or "localhost=0" in diag:
+                logger.warning(
+                    "gpt-researcher grounding: %s — NO sandbox URLs reached the "
+                    "writer; check the [gptr-shim] stderr lines and the shim "
+                    "/search endpoint on the box.", diag,
+                )
+            else:
+                logger.info("gpt-researcher grounding: %s", diag)
 
         report = _extract_report(stdout)
 
