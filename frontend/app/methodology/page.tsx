@@ -66,8 +66,8 @@ export default function MethodologyPage() {
       id: 'grounding-gate',
       title: 'Registry reachability',
       titleZh: '注册表可达性',
-      body: 'Reachability is a closed-world set-membership test, not a network fetch. Every cited URL is canonicalized and checked against an enumerated registry of 232k corpus pages (products, forum submissions, and Bloom-filtered encyclopedia paths); a citation is reachable iff its canonical form is in the corpus, so search pages, redirect laundering, and off-sandbox links all fail by construction with zero HTTP requests.',
-      bodyZh: '可达性是闭世界的集合成员判定,而非网络抓取。每个被引 URL 先规范化,再对一个枚举好的 232k 条语料页注册表（商品、论坛帖、以及经 Bloom filter 覆盖的百科路径）做成员查询;引用的规范形式在语料中才算可达,搜索页、重定向洗链、越沙箱链接都因构造而判失败,全程零 HTTP。',
+      body: 'Reachability is a closed-world set-membership test, not a network fetch. Every cited URL is canonicalized and checked against an enumerated registry of 232k corpus pages (104k products + 127k forum submissions), plus a Bloom filter over the full 19.0M-key encyclopedia enumeration (0.5% FPR, no false negatives); a citation is reachable iff its canonical form is in the corpus, so search pages, redirect laundering, and off-sandbox links all fail by construction with zero HTTP requests.',
+      bodyZh: '可达性是闭世界的集合成员判定,而非网络抓取。每个被引 URL 先规范化,再对一个枚举好的 232k 条语料页注册表（104k 商品 + 127k 论坛帖）做成员查询,百科则用覆盖全量 1,900 万条路径枚举的 Bloom filter（假阳率 0.5%,无假阴性）;引用的规范形式在语料中才算可达,搜索页、重定向洗链、越沙箱链接都因构造而判失败,全程零 HTTP。',
       artifact: (
         <Mono>
           <pre className="whitespace-pre">
@@ -83,10 +83,10 @@ reachability = mean(reachable)           # unfloored hard gate
     },
     {
       id: 'jury',
-      title: 'Presentation panel',
-      titleZh: '呈现质量面板',
-      body: 'A cross-family PoLL jury (arXiv 2404.18796) scores presentation quality in anonymized A/B pairs with position swaps. Presentation is reported as its own column and may only break ties between reports the decidable truth score cannot separate; it can never override the truth ranking.',
-      bodyZh: '跨家族 PoLL 陪审团(arXiv 2404.18796)在匿名 A/B 对（含位置交换）中为呈现质量打分。呈现质量作为独立列展示,仅用于对可判定 truth 分无法区分的报告做平局裁决,永远不能推翻 truth 排序。',
+      title: 'LLM jury',
+      titleZh: 'LLM 陪审团',
+      body: 'A cross-family 3-judge PoLL jury (arXiv 2404.18796) compares reports in anonymized A/B pairs with position swaps and majority vote. On the current truth-gated Elo board the jury Elo is the quality signal, always scaled by the grounding gate so it can never rescue fabricated citations. Once the five-axis truth board goes live, the jury demotes to a presentation-only column that may break ties between reports the decidable truth score cannot separate, and can never override the truth ranking.',
+      bodyZh: '跨家族 3 判官 PoLL 陪审团(arXiv 2404.18796)在匿名 A/B 对（含位置交换、多数票）中比较报告。在当前的 truth-gated Elo 榜上,陪审团 Elo 是质量信号,但始终乘以接地门,因此永远救不回编造引用。五轴 truth 榜上线后,陪审团降级为仅呈现质量列,只用于对可判定 truth 分无法区分的报告做平局裁决,永远不能推翻 truth 排序。',
       artifact: (
         <div className="mt-6 flex flex-wrap items-center gap-2">
           {(jury.length > 0 ? jury : ['juror A', 'juror B', 'juror C']).map((j) => (
@@ -95,21 +95,45 @@ reachability = mean(reachable)           # unfloored hard gate
             </span>
           ))}
           <span className="text-xs text-muted">
-            <T en="· anonymized A/B · position swap · tie-break only" zh="· 匿名 A/B · 位置交换 · 仅平局裁决" />
+            <T en="· anonymized A/B · position swap · majority vote · gated by grounding" zh="· 匿名 A/B · 位置交换 · 多数票 · 受接地门约束" />
           </span>
         </div>
       ),
     },
     {
       id: 'bradley-terry',
-      title: 'Presentation Elo + bootstrap',
-      titleZh: '呈现列 Elo 与自助重采样',
-      body: 'Within the presentation column, anonymized A/B outcomes are fit with Bradley-Terry to an Elo scale for tie-breaking only. Separately, a two-level bootstrap (battles → refit → per-task grounding) is used to test the honesty of the judge-vs-grounding correlation, not to rank the board.',
-      bodyZh: '在呈现质量列内部,匿名 A/B 结果用 Bradley-Terry 拟合到 Elo 尺度,仅用于平局裁决。另外,两级自助重采样（对战 → 重拟合 → 逐任务接地）用于检验判官分与接地分相关性的诚实性,而非用于排榜。',
+      title: 'Truth-gated Elo (current board)',
+      titleZh: 'Truth-gated Elo（当前榜）',
+      body: 'The public board today ranks by truth-gated Elo: anonymized jury A/B outcomes are fit with Bradley-Terry to an Elo scale, then multiplied by the grounding gate (the mean of citation reachability and quote verification). Raw judge Elo stays visible as its own tab but never decides the public ranking alone; bootstrap confidence intervals over the battle set accompany each rating.',
+      bodyZh: '当前公开榜按 truth-gated Elo 排名:匿名陪审团 A/B 结果用 Bradley-Terry 拟合到 Elo 尺度,再乘以接地门（引用可达率与引文核实率的均值）。裸判官 Elo 作为独立 tab 保留展示,但永远不单独决定公开排名;每个评分附带对战集自助重采样的置信区间。',
       artifact: (
         <Mono>
-          P(i ≻ j) = 1 / (1 + 10<sup>(R_j − R_i)/400</sup>)
-          <span className="ml-4 text-muted-2">· MLE fit (presentation) · two-level bootstrap → correlation honesty</span>
+          score = Elo × gate,&nbsp;&nbsp;P(i ≻ j) = 1 / (1 + 10<sup>(R_j − R_i)/400</sup>)
+          <span className="ml-4 text-muted-2">· BT MLE fit · gate = mean(reachability, quote-verified) · bootstrap CIs</span>
+        </Mono>
+      ),
+    },
+    {
+      id: 'calibration',
+      title: 'Calibration + sensitivity',
+      titleZh: '校准与敏感性',
+      body: 'The free parameters of the composite are calibrated externally, never fitted on the eval panel. The proof-of-fetch threshold (0.35) was set on 640 verbatim-positive and fabricated/cross-page-negative snippets plus a paraphrase side-class: TPR 1.000, fabricated FPR 0.000, cross-page FPR 0.6%, flat across the 0.15-0.60 grid. γ = 1.5 is checked by fabrication injection: truth must decrease monotonically as injected fabrication rises through {0, 0.1, 0.25, 0.5}. Weight robustness: across 2,000 Dirichlet weight draws, 91.6% reproduce the identical full ranking and the top 2 never change.',
+      bodyZh: '复合分的自由参数全部在外部校准,绝不在评测面板上拟合。抓取证明阈值（0.35）在 640 条原文正例与编造/跨页负例外加一组转写侧类上标定:TPR 1.000,编造假阳率 0.000,跨页假阳率 0.6%,且在 0.15-0.60 网格上平坦。γ = 1.5 用注入编造法检验:注入编造率经过 {0, 0.1, 0.25, 0.5} 时 truth 必须单调下降。权重稳健性:2,000 组 Dirichlet 权重抽样中 91.6% 复现完全相同的全排名,前 2 名从未改变。',
+      artifact: (
+        <Mono>
+          <span className="text-muted-2">pof_threshold=0.35 · TPR 1.000 / FPR 0.000 (fabricated) · γ=1.5 monotone under injection · 2,000 weight draws → 91.6% identical ranking</span>
+        </Mono>
+      ),
+    },
+    {
+      id: 'lane-fairness',
+      title: 'Lane fairness',
+      titleZh: '通道公平性',
+      body: 'The harness never ghostwrites: if a framework fails, its lane emits an explicit error stub instead of a synthesized report, and a lane is marked lane_failed when stubs plus missing records exceed half its runs. A full fairness audit removed every harness-side grounding manufacture (post-hoc citation grafting, prior-run memory seeding) and repaired every adapter defect, and all LLM traffic flows through one policy gateway with per-run usage accounting.',
+      bodyZh: '评测框架绝不代笔:框架失败时,其通道输出显式错误存根而非合成报告;当存根加缺失记录超过该通道一半时标记 lane_failed。一次完整的公平性审计移除了所有评测侧的接地制造行为（事后引用嫁接、跨次运行记忆种子）,并修复了每个适配器缺陷;全部 LLM 流量经由统一策略网关,逐次运行记账 token 用量。',
+      artifact: (
+        <Mono>
+          <span className="text-muted-2">framework failure → (lane error: phase: reason) stub · stubs + missing &gt; 50% → lane_failed · unified LLM gateway, per-run usage log</span>
         </Mono>
       ),
     },
@@ -117,8 +141,8 @@ reachability = mean(reachable)           # unfloored hard gate
       id: 'intent-typology',
       title: 'Intent typology',
       titleZh: '意图类型',
-      body: 'The 100 v2 tasks are built from 7 real-question archetypes across 13 tri-source topic clusters (store category + active forum community + encyclopedia article). Coverage quotas are removed from the prompts and compiled into a hidden spec axis; 3,373 typed, decidable checklist items are generated from corpus answer keys with zero manual annotation.',
-      bodyZh: '100 道 v2 任务由 7 种真实提问原型、覆盖 13 个三源主题簇（商店类目 + 活跃论坛社区 + 百科文章）构成。覆盖配额已移出题面,编译进隐藏的 spec 轴;3,373 条带类型的可判定核查项由语料答案键生成,零人工标注。',
+      body: 'The 100 v2 tasks are built from 7 real-question archetypes across 13 tri-source topic clusters (store category + active forum community + encyclopedia article). Coverage quotas are removed from the prompts and compiled into a hidden spec axis; the answer keys carry 3,478 typed fact nuggets plus 191 spec requirements and 88 adjudicated contradictions, all generated from the corpus with zero manual annotation.',
+      bodyZh: '100 道 v2 任务由 7 种真实提问原型、覆盖 13 个三源主题簇（商店类目 + 活跃论坛社区 + 百科文章）构成。覆盖配额已移出题面,编译进隐藏的 spec 轴;答案键含 3,478 条带类型的事实要点、191 条 spec 要求与 88 条经裁决的矛盾项,全部由语料生成,零人工标注。',
       artifact: (
         <div className="mt-6 flex flex-wrap gap-2">
           {INTENTS.map((it) => (
@@ -151,19 +175,19 @@ reachability = mean(reachable)           # unfloored hard gate
         intro={<T en="Deep Research Arena keeps the audit trail explicit: task brief, tri-source corpus, typed decidable checklist, report with citations, registry reachability and the four quality axes, the composed truth score, and a separate presentation column are each kept as distinct artifacts." zh="Deep Research Arena 明确保留审计链路：任务简报、三源语料、带类型的可判定核查清单、带引用的报告、注册表可达性与四个质量轴、复合出的 truth 分,以及独立的呈现质量列,分别作为独立产物保存。" />}
       >
         <div className="mb-6 rounded-xl border border-hairline bg-surface-low p-4">
-          <span className="label-caps text-ink"><T en="Protocol v2 · boards still v1" zh="协议 v2 · 榜单仍为 v1" /></span>
+          <span className="label-caps text-ink"><T en="Five-axis protocol · boards on truth-gated Elo" zh="五轴协议 · 当前榜为 truth-gated Elo" /></span>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             <T
-              en="The scoring stack described here is protocol v2 (five decidable axes, registry reachability). The public boards you see today are still the v1 diagnostic metric; they switch to the v2 truth board after the first full v2 run."
-              zh="本页描述的是 v2 协议（五个可判定轴、注册表可达性）。当前公开榜仍采用 v1 诊断口径,将在 v2 全量首跑后切换到 v2 真值榜。"
+              en="The scoring stack described here is the five-axis decidable protocol (registry reachability gate over four quality axes). The public boards you see today rank by truth-gated Elo (jury Elo × grounding gate); they switch to the five-axis truth board after the first full run under the new protocol completes."
+              zh="本页描述的是五轴可判定协议（注册表可达性硬门叠加四个质量轴）。当前公开榜按 truth-gated Elo（陪审团 Elo × 接地门）排名,待新协议下的首次全量运行完成后切换到五轴真值榜。"
             />
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Score axes" zh="评分轴" />} value="5" detail={<T en="reachability gate + fact, proof-of-fetch, completeness, spec" zh="可达性硬门 + 事实、抓取证明、完整度、规格" />} />
-          <MetricCard label={<T en="Presentation panel" zh="呈现质量面板" />} value={String(jury.length || 3)} detail={<T en="cross-family PoLL jury, tie-break only" zh="跨家族 PoLL 陪审团,仅平局裁决" />} />
-          <MetricCard label={<T en="Bootstrap" zh="自助重采样" />} value="1,000" detail={<T en="two-level, Elo-vs-grounding honesty" zh="两级,判官-接地相关性检验" />} />
+          <MetricCard label={<T en="LLM jury" zh="LLM 陪审团" />} value={String(jury.length || 3)} detail={<T en="cross-family PoLL jury, always gated by grounding" zh="跨家族 PoLL 陪审团,始终受接地门约束" />} />
+          <MetricCard label={<T en="Weight draws" zh="权重抽样" />} value="2,000" detail={<T en="Dirichlet draws, 91.6% identical ranking" zh="Dirichlet 抽样,91.6% 排名完全一致" />} />
           <MetricCard label={<T en="Archetypes" zh="提问原型" />} value="7" detail={<T en="real-question archetypes across 13 clusters" zh="真实提问原型,覆盖 13 个三源簇" />} />
         </div>
 

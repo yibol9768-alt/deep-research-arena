@@ -35,7 +35,7 @@ export default function TasksPage() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Tasks" zh="任务" />} value={String(stats.count)} detail={<T en="cross-site deep research prompts" zh="跨站点深度研究提示" />} />
           <MetricCard label={<T en="Archetypes" zh="研究原型" />} value="7" detail={<T en="buying dilemma, use-case fit, claim check, community vs ratings, value question, durability, evolution/explainer" zh="选购两难、场景匹配、断言核查、社区口碑 vs 评分、性价比、耐用/BIFL、演进/科普" />} />
-          <MetricCard label={<T en="Typed checks" zh="可判定检查" />} value="3,373" detail={<T en="typed, decidable checks routed to scoring axes" zh="逐条路由到评分轴的可判定检查" />} />
+          <MetricCard label={<T en="Typed checks" zh="可判定检查" />} value="3,478" detail={<T en="typed fact nuggets routed to scoring axes" zh="逐条路由到评分轴的带类型事实要点" />} />
           <MetricCard label={<T en="Tri-source clusters" zh="三源簇" />} value={String(clusters.length)} detail={<T en="shop census × forum activity × frozen wiki" zh="商店普查 × 论坛活跃度 × 冻结 wiki" />} />
         </div>
       </PageHero>

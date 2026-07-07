@@ -28,7 +28,7 @@ export default function HomePage() {
     { value: '100', label: 'Frozen tasks', zh: '冻结任务' },
     { value: fmt(lb.n_runs), label: 'Jury battles', zh: '陪审团对战' },
     { value: String(jury.length || 3), label: 'Jurors', zh: '陪审员' },
-    { value: '1,000', label: 'Bootstrap resamples', zh: '自助重采样' },
+    { value: '232k', label: 'Registry pages', zh: '注册表页面' },
   ]
 
   const sections = [

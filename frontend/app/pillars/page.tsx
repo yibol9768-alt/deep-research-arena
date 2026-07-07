@@ -30,8 +30,8 @@ const AXES = [
     nameZh: '完整性',
     role: 'Weight 0.30',
     roleZh: '权重 0.30',
-    description: 'Coverage of the relevant set and required concept anchors, matched from the hidden answer key rather than a fixed source quota. Typed checklists (3,373 decidable checks) are computed from the corpus with zero human annotation and route each check to a scoring axis.',
-    descriptionZh: '对相关集合与所需概念锚的覆盖度，依据隐藏答案键匹配，而非固定的来源配额。typed checklist（3,373 条可判定检查）全部由语料计算、零人工标注，并逐条路由到评分轴。',
+    description: 'Coverage of the relevant set and required concept anchors, matched from the hidden answer key rather than a fixed source quota. The answer keys carry 3,478 typed fact nuggets (plus 191 spec requirements and 88 adjudicated contradictions), computed from the corpus with zero human annotation, each routed to a scoring axis.',
+    descriptionZh: '对相关集合与所需概念锚的覆盖度，依据隐藏答案键匹配，而非固定的来源配额。答案键含 3,478 条带类型的事实要点（另有 191 条 spec 要求与 88 条经裁决的矛盾项），全部由语料计算、零人工标注，并逐条路由到评分轴。',
   },
   {
     name: 'Proof of fetch',
@@ -69,12 +69,12 @@ export default function PillarsPage() {
       <PageHero
         eyebrow={<T en="Scoring Pillars" zh="评分维度" />}
         title={<T en="What the public score measures." zh="公开主分衡量什么。" />}
-        intro={<T en="The live leaderboard is intentionally simple: judge Elo measures comparative report quality, while the grounding gate checks whether citations resolve and quotes match. The five decidable axes below are the implemented protocol v2 stack; the public board still runs v1 while v2 rolls out." zh="当前公开榜单刻意保持简单：判官 Elo 衡量报告质量，接地门核验引用是否可达、引文是否匹配。下方五个可判定轴是已实现的 protocol v2 评分栈；公开榜仍运行 v1，v2 正在切换上线。" />}
+        intro={<T en="The live leaderboard is intentionally simple: judge Elo measures comparative report quality, while the grounding gate checks whether citations resolve and quotes match. The five decidable axes below are the implemented five-axis truth stack; the public board switches to it after the first full run under the new protocol completes." zh="当前公开榜单刻意保持简单：判官 Elo 衡量报告质量，接地门核验引用是否可达、引文是否匹配。下方五个可判定轴是已实现的五轴真值评分栈；待新协议下的首次全量运行完成后，公开榜将切换到该口径。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Public axes" zh="公开轴" />} value="2" detail={<T en="judge Elo and grounding gate" zh="判官 Elo 与接地门" />} />
           <MetricCard label={<T en="Decidable axes" zh="可判定轴" />} value="5" detail={<T en="plus presentation as a tie-break column" zh="外加作为平局裁决列的呈现质量" />} />
-          <MetricCard label={<T en="Bootstrap" zh="自助采样" />} value="1000" detail={<T en="resamples for 95% confidence intervals" zh="次重采样以得到 95% 置信区间" />} />
+          <MetricCard label={<T en="Weight draws" zh="权重抽样" />} value="2,000" detail={<T en="Dirichlet draws, 91.6% identical ranking" zh="Dirichlet 抽样,91.6% 排名完全一致" />} />
           <MetricCard label={<T en="Agents" zh="智能体" />} value={String(agents.length)} detail={<T en="ranked under the same scoring contract" zh="在同一评分契约下排名" />} />
         </div>
       </PageHero>
@@ -124,8 +124,8 @@ export default function PillarsPage() {
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
-              en="The four quality axes have an epsilon=0.05 floor; reachability has no floor, so a zero-output or fabricated report is capped near the floor constant. This stack is implemented but not yet live: the public board above still runs v1, so no v2 rankings are shown here."
-              zh="四个质量轴有 epsilon=0.05 地板；reachability 无地板，零产出或编造报告的得分被压到地板常数附近。该评分栈已实现但尚未上线：上方公开榜仍运行 v1，此处不展示任何 v2 排名。"
+              en="The four quality axes have an epsilon=0.05 floor; reachability has no floor, so a zero-output or fabricated report is capped near the floor constant. This stack is implemented and externally calibrated (proof-of-fetch threshold 0.35; gamma checked by fabrication injection; 2,000 Dirichlet weight draws reproduce the identical ranking 91.6% of the time) but not yet live: the public board above still ranks by truth-gated Elo, so no five-axis rankings are shown here."
+              zh="四个质量轴有 epsilon=0.05 地板；reachability 无地板，零产出或编造报告的得分被压到地板常数附近。该评分栈已实现并完成外部校准（抓取证明阈值 0.35；γ 经注入编造检验；2,000 组 Dirichlet 权重抽样中 91.6% 复现完全相同排名），但尚未上线：上方公开榜仍按 truth-gated Elo 排名，此处不展示任何五轴排名。"
             />
           </p>
         </div>
