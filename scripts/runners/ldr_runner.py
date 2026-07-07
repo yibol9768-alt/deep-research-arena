@@ -42,7 +42,7 @@ import time
 from pathlib import Path
 
 from ._runner_lock import runner_exclusive_lock
-from .evidence_fallback import synthesize_report
+from .evidence_fallback import error_stub, fallback_enabled, synthesize_report
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,15 @@ DEFAULT_NATIVE_TIMEOUT_S = int(os.environ.get("LDR_NATIVE_TIMEOUT_S", "420") or 
 # ---------------------------------------------------------------------------
 _REPORT_START = "===LDR_REPORT_START==="
 _REPORT_END = "===LDR_REPORT_END==="
+
+# LDR's detailed_research() returns the narrative body in `summary`
+# (current_knowledge) which cites sources by bracketed [N] index only. The
+# actual source URL table LDR retrieved and threaded lives in the sibling
+# `sources` field (all_links_of_system). The driver emits that list as JSON
+# between these sentinels so the parent can re-attach it to the report; the
+# old capture read only `summary` and dropped every localhost URL.
+_SOURCES_START = "===LDR_SOURCES_START==="
+_SOURCES_END = "===LDR_SOURCES_END==="
 
 # ---------------------------------------------------------------------------
 # Localhost URL -> neutral description mapping for intent sanitization.
@@ -558,6 +567,7 @@ def _build_driver_script(
                 openai_endpoint_url=PROXY,
             )
 
+            _sources = []
             if isinstance(result, dict):
                 report = (
                     result.get("final_report")
@@ -565,6 +575,14 @@ def _build_driver_script(
                     or result.get("summary")
                     or str(result)[:30000]
                 )
+                # LDR returns the retrieved source URL table in the sibling
+                # `sources` field (all_links_of_system), NOT inline in `summary`.
+                # Emit it so the parent can resolve the report's bracketed [N]
+                # citations to the localhost URLs LDR actually fetched. No
+                # fabrication: these are LDR's own collected links.
+                _s = result.get("sources")
+                if isinstance(_s, list):
+                    _sources = _s
             else:
                 report = str(result)
 
@@ -576,11 +594,19 @@ def _build_driver_script(
 
         except Exception as e:
             report = f"(local-deep-research error: {{type(e).__name__}}: {{e}})"
+            _sources = []
             traceback.print_exc()
 
         print('{_REPORT_START}')
         print(report)
         print('{_REPORT_END}')
+        try:
+            _sources_json = json.dumps(_sources, default=str)
+        except Exception:
+            _sources_json = '[]'
+        print('{_SOURCES_START}')
+        print(_sources_json)
+        print('{_SOURCES_END}')
     """)
 
 
@@ -641,6 +667,22 @@ async def run(
     Returns:
         The markdown report produced by LDR, or an error string.
     """
+    def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: an LDR failure must surface as the framework's own
+        # (missing) output, never as a harness-ghostwritten report. In benchmark
+        # mode we save an honest error stub; the evidence writer runs only under
+        # the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return error_stub("ldr", phase, reason)
+
     ldr_python = Path(LDR_PYTHON)
     if not ldr_python.exists():
         return f"(ldr: missing venv at {ldr_python})"
@@ -697,16 +739,17 @@ async def run(
 
         if not report:
             logger.warning("No report extracted from LDR output")
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            return _degrade("native", "no report extracted from LDR output")
 
-        # Belt-and-suspenders: unmask any .internal domains that survived
+        # Re-attach LDR's own retrieved source URLs (all_links_of_system). LDR's
+        # narrative body cites sources as bracketed [N] only and keeps the URL
+        # table in a sibling field the old capture dropped, so every LDR report
+        # lost its localhost citations. This is faithful capture of what LDR
+        # produced, not fabricated grounding (see _attach_sources).
+        report = _attach_sources(report, _extract_sources(stdout))
+
+        # Belt-and-suspenders: unmask any .internal domains that survived, and
+        # normalize any off-sandbox Wikipedia URLs in the re-attached block.
         report = _unmask_report(report)
         # FAIRNESS: capture LDR's real report even when it is light on sandbox
         # URLs. Only rescue genuine failures (empty output / driver error
@@ -715,15 +758,8 @@ async def run(
         # would fabricate grounding the model never produced and hide a real
         # model/framework weakness -- the opposite of a fair benchmark.
         if _is_failed_report(report):
-            logger.warning("LDR produced a failed/empty report; using source-grounded writer")
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            logger.warning("LDR produced a failed/empty report")
+            return _degrade("native", "LDR produced a failed/empty report")
 
         logger.info(
             "LDR completed in %.0fs, report=%d chars",
@@ -733,24 +769,12 @@ async def run(
 
     except subprocess.TimeoutExpired:
         logger.error("LDR native path exceeded %ds", _native_timeout(timeout_s))
-        return synthesize_report(
-            intent,
-            model,
-            shim_url,
-            proxy_url,
-            min_chars=4500,
-            min_urls=5,
+        return _degrade(
+            "native", f"native path exceeded {_native_timeout(timeout_s)}s timeout"
         )
     except Exception as e:
         logger.exception("LDR runner error")
-        return synthesize_report(
-            intent,
-            model,
-            shim_url,
-            proxy_url,
-            min_chars=4500,
-            min_urls=5,
-        )
+        return _degrade("native", f"{type(e).__name__}: {e}")
     finally:
         if driver_path.exists():
             driver_path.unlink(missing_ok=True)
@@ -769,6 +793,76 @@ def _extract_report(stdout: str) -> str:
         return ""
 
     return stdout[start_idx + len(_REPORT_START):end_idx].strip()
+
+
+def _extract_sources(stdout: str) -> list:
+    """Extract LDR's retrieved source list (all_links_of_system) from stdout.
+
+    Returns the list of ``{"title", "link"/"url", "index"}`` dicts the driver
+    serialized between the sources sentinels, or ``[]`` if absent/unparseable.
+    """
+    import json as _json
+
+    start_idx = stdout.find(_SOURCES_START)
+    end_idx = stdout.find(_SOURCES_END)
+    if start_idx == -1 or end_idx == -1 or end_idx <= start_idx:
+        return []
+    blob = stdout[start_idx + len(_SOURCES_START):end_idx].strip()
+    if not blob:
+        return []
+    try:
+        data = _json.loads(blob)
+    except Exception:
+        return []
+    return data if isinstance(data, list) else []
+
+
+def _attach_sources(report: str, sources: list) -> str:
+    """Append LDR's own retrieved source URLs to the report as a Sources section.
+
+    LDR's ``detailed_research()`` returns the narrative in ``summary``
+    (current_knowledge), which cites sources by bracketed ``[N]`` index only;
+    the URL table LDR retrieved and threaded lives in the sibling ``sources``
+    field (``all_links_of_system``). The old capture read only the narrative and
+    so dropped every localhost URL regardless of backbone. Re-attaching LDR's
+    own link table is faithful capture, not fabrication:
+
+      - No URL is invented; every entry comes from LDR's ``all_links_of_system``.
+      - The ``[N]`` labels match the indices LDR assigned to its own citations.
+      - Nothing is added when LDR returned no sources, or when the model already
+        resolved its citations to sandbox (localhost) URLs inline.
+
+    This restores fidelity of capture; it does not compensate for a model or
+    framework weakness (a genuinely source-less run still yields no URLs).
+    """
+    if not report or not isinstance(sources, list) or not sources:
+        return report
+    # If the narrative already resolved its citations to sandbox URLs, do not
+    # duplicate the table.
+    if "http://localhost:" in report:
+        return report
+
+    lines = []
+    seen = set()
+    for src in sources:
+        if not isinstance(src, dict):
+            continue
+        url = src.get("url") or src.get("link")
+        if not isinstance(url, str):
+            continue
+        url = url.strip()
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        idx = src.get("index")
+        idx_str = str(idx).strip() if idx is not None else ""
+        label = f"[{idx_str}] " if idx_str else f"[{len(seen)}] "
+        title = str(src.get("title") or "Untitled").strip().replace("\n", " ") or "Untitled"
+        lines.append(f"{label}{title}\n   URL: {url}")
+
+    if not lines:
+        return report
+    return report.rstrip() + "\n\n### Sources\n\n" + "\n".join(lines) + "\n"
 
 
 # ---------------------------------------------------------------------------

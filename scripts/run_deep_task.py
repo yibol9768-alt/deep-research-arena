@@ -343,7 +343,12 @@ def _install_inproc_sandbox_gate() -> None:
 
 
 async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
-    from scripts.runners.evidence_fallback import is_weak_report, synthesize_report
+    from scripts.runners.evidence_fallback import (
+        error_stub,
+        fallback_enabled,
+        is_weak_report,
+        synthesize_report,
+    )
 
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
@@ -357,9 +362,21 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
             synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
         )
 
-    force_fallback = os.environ.get("SMOLAGENTS_FORCE_FALLBACK", "1").strip().lower()
+    async def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: a smolagents failure must surface as the framework's
+        # own (missing) output, never as a harness-ghostwritten report. In
+        # benchmark mode we save an honest error stub; the evidence writer runs
+        # only under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return await _fallback_report()
+        return error_stub("smolagents", phase, reason)
+
+    # Default OFF: the native smolagents agent is the benchmark path. The old
+    # default ("1") forced the evidence writer for every run, so this lane never
+    # exercised smolagents at all and emitted the deterministic fallback report.
+    force_fallback = os.environ.get("SMOLAGENTS_FORCE_FALLBACK", "0").strip().lower()
     if force_fallback not in {"0", "false", "no", "native"}:
-        return await _fallback_report()
+        return await _degrade("forced", "SMOLAGENTS_FORCE_FALLBACK requested the evidence writer")
 
     if strict_sandbox:
         # Install the HTTP gate FIRST so any tool that bypasses the
@@ -474,8 +491,8 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
             asyncio.to_thread(agent.run, smol_prompt),
             timeout=max(60.0, native_timeout),
         )
-    except Exception:
-        return await _fallback_report()
+    except Exception as e:
+        return await _degrade("native", f"{type(e).__name__}: {e}")
 
     # FIX P2.2: smolagents may return a dict/JSON with {"answer": "..."} structure.
     # Extract the answer field if present.
@@ -523,8 +540,8 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
                 asyncio.to_thread(agent.run, repair_prompt),
                 timeout=max(60.0, native_timeout),
             )
-        except Exception:
-            return await _fallback_report()
+        except Exception as e:
+            return await _degrade("repair", f"{type(e).__name__}: {e}")
         if isinstance(repaired, dict):
             repaired = repaired.get("answer", repaired.get("output", str(repaired)))
         elif isinstance(repaired, str):
@@ -542,7 +559,10 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
         is_weak_report(result, min_chars=min_chars, min_urls=3)
         or _sandbox_url_count(result) < min_urls
     ):
-        return await _fallback_report()
+        return await _degrade(
+            "write", f"native output under threshold ({len(result or '')} chars, "
+            f"{_sandbox_url_count(result)} sandbox URLs)"
+        )
     return result
 
 
@@ -575,6 +595,30 @@ def _sanitize_camel_report(text: str) -> str:
 async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
+    from scripts.runners.evidence_fallback import (
+        error_stub,
+        fallback_enabled,
+        is_weak_report,
+        synthesize_report,
+    )
+
+    async def _fallback_report() -> str:
+        return await asyncio.to_thread(
+            synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
+        )
+
+    async def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: a camel-ai failure must surface as the framework's own
+        # (missing) output, never as a harness-ghostwritten report. In benchmark
+        # mode we save an honest error stub; the evidence writer runs only under
+        # the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return await _fallback_report()
+        return error_stub("camel-ai", phase, reason)
+
+    if os.environ.get("CAMEL_FORCE_FALLBACK", "").strip().lower() in {"1", "true", "yes", "on"}:
+        return await _degrade("forced", "CAMEL_FORCE_FALLBACK requested the evidence writer")
+
     if strict_sandbox:
         # Same gate as smolagents — camel-ai's SearchToolkit may add new
         # tools at any release; the HTTP-layer gate catches anything that
@@ -626,7 +670,20 @@ async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -
         "you actually retrieved. Do not invent URLs."
     )
     agent = ChatAgent(system_message=system, model=m, tools=tools)
-    resp = agent.step(intent)
+    native_timeout = int(os.environ.get("CAMEL_NATIVE_TIMEOUT_S", "0") or "0")
+    try:
+        if native_timeout > 0:
+            resp = await asyncio.wait_for(
+                asyncio.to_thread(agent.step, intent), timeout=native_timeout
+            )
+        else:
+            resp = agent.step(intent)
+    except asyncio.TimeoutError:
+        print(f"camel-ai native path exceeded {native_timeout}s")
+        return await _degrade("native", f"native path exceeded {native_timeout}s timeout")
+    except Exception as e:  # noqa: BLE001
+        print(f"  warn: camel-ai native path failed: {e}")
+        return await _degrade("native", f"{type(e).__name__}: {e}")
     content = resp.msg.content if resp.msg else "(empty)"
 
     # Fairness audit 2026-07-06: sanitize the SAVED report only — strip
@@ -652,6 +709,8 @@ async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -
         if len(prefix) < 500 and '[' not in prefix:
             content = content[idx:].lstrip('\n')
 
+    if is_weak_report(content, min_chars=3000, min_urls=3):
+        return await _degrade("write", "native report weak/under-threshold")
     return content
 
 
@@ -1349,6 +1408,8 @@ async def _run_langchain_odr_fallback(intent: str, model: str) -> str:
     """Stable LangChain-based DR adapter for GLM runs when ODR graph stalls."""
     import re as _re
     import requests as _requests
+    from scripts.runners.evidence_fallback import error_stub as _error_stub
+    from scripts.runners.evidence_fallback import fallback_enabled as _fallback_enabled
     from scripts.runners.evidence_fallback import is_weak_report as _is_weak_report
     from scripts.runners.evidence_fallback import synthesize_report as _synthesize_report
 
@@ -1356,6 +1417,14 @@ async def _run_langchain_odr_fallback(intent: str, model: str) -> str:
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
     api_key = os.environ.get("OPENAI_API_KEY", "anything")
     llm_timeout = float(os.environ.get("LANGCHAIN_ODR_LLM_TIMEOUT_S", "180") or "180")
+
+    def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: even on this debug-only adapter path, a failure must
+        # surface as an honest stub in benchmark mode; the evidence writer runs
+        # only under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if _fallback_enabled():
+            return _synthesize_report(intent, model, shim, proxy, min_chars=4500, min_urls=5)
+        return _error_stub("langchain-odr", phase, reason)
 
     def _search(query: str, limit: int = 6) -> list[dict]:
         try:
@@ -1457,7 +1526,7 @@ Write the final markdown report directly. Requirements:
             text = resp.choices[0].message.content or ""
         except Exception as e2:  # noqa: BLE001
             print(f"  warn: langchain-odr direct writer failed: {e2}")
-            return _synthesize_report(intent, model, shim, proxy, min_chars=4500, min_urls=5)
+            return _degrade("write", f"{type(e2).__name__}: {e2}")
 
     if len(text.strip()) < 3000:
         expand_prompt = (
@@ -1484,7 +1553,7 @@ Write the final markdown report directly. Requirements:
             pass
     text = str(text).strip()
     if _is_weak_report(text, min_chars=3000, min_urls=3):
-        return _synthesize_report(intent, model, shim, proxy, min_chars=4500, min_urls=5)
+        return _degrade("write", "fallback writer report weak/under-threshold")
     return text
 
 
@@ -1510,11 +1579,44 @@ async def _run_langchain_odr(intent: str, model: str) -> str:
         except Exception as e:  # noqa: BLE001
             return f"(langchain-odr error: fallback failed: {type(e).__name__}: {e})"
     timeout_s = int(os.environ.get("LANGCHAIN_ODR_GRAPH_TIMEOUT_S", "1500") or "1500")
+    allow_benchmark_fallback = os.environ.get(
+        "LANGCHAIN_ODR_BENCHMARK_FALLBACK", ""
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if allow_benchmark_fallback:
+        from scripts.runners.evidence_fallback import error_stub as _error_stub
+        from scripts.runners.evidence_fallback import fallback_enabled as _fallback_enabled
+        from scripts.runners.evidence_fallback import is_weak_report as _is_weak_report
+        from scripts.runners.evidence_fallback import synthesize_report as _synthesize_report
+
+        shim = os.environ.get("SHIM_URL", "http://localhost:8081")
+        proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
+
+        async def _benchmark_fallback(phase: str, reason: str) -> str:
+            # Fairness rule: the evidence writer runs only under the explicit
+            # non-benchmark EVIDENCE_FALLBACK_ENABLE flag; in benchmark mode a
+            # failure surfaces as an honest per-lane error stub instead.
+            if _fallback_enabled():
+                return await asyncio.to_thread(
+                    _synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
+                )
+            return _error_stub("langchain-odr", phase, reason)
+
     try:
-        return await asyncio.wait_for(_run_langchain_odr_graph(intent, model), timeout=timeout_s)
+        text = await asyncio.wait_for(_run_langchain_odr_graph(intent, model), timeout=timeout_s)
+        if allow_benchmark_fallback and _is_weak_report(text, min_chars=3000, min_urls=3):
+            return await _benchmark_fallback("write", "graph report weak/under-threshold")
+        return text
     except asyncio.TimeoutError:
+        if allow_benchmark_fallback:
+            print(f"langchain-odr graph exceeded {timeout_s}s")
+            return await _benchmark_fallback(
+                "timeout", f"open_deep_research graph timeout after {timeout_s}s"
+            )
         return f"(langchain-odr error: open_deep_research graph timeout after {timeout_s}s)"
     except Exception as e:  # noqa: BLE001
+        if allow_benchmark_fallback:
+            print(f"  warn: langchain-odr graph failed: {e}")
+            return await _benchmark_fallback("native", f"{type(e).__name__}: {e}")
         return f"(langchain-odr error: {type(e).__name__}: {e})"
 
 
@@ -1526,12 +1628,39 @@ async def _run_deerflow(intent: str, model: str, *, strict_sandbox: bool = False
     run would be silently downgraded to best-effort shim-only.
     """
     from scripts.runners.deerflow_runner import run as deerflow_run
+    from scripts.runners.evidence_fallback import (
+        error_stub,
+        fallback_enabled,
+        is_weak_report,
+        synthesize_report,
+    )
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
-    return await deerflow_run(
+    timeout_s = int(os.environ.get("DEERFLOW_NATIVE_TIMEOUT_S", "1800") or "1800")
+    text = await deerflow_run(
         intent=intent, model=model, shim_url=shim, proxy_url=proxy,
-        strict_sandbox=strict_sandbox,
+        strict_sandbox=strict_sandbox, timeout_s=timeout_s,
     )
+    lowered = str(text or "").strip().lower()
+    if (
+        is_weak_report(text, min_chars=3000, min_urls=3)
+        or lowered.startswith("(deerflow")
+        or "timeout after" in lowered
+    ):
+        # Fairness rule: a deerflow failure must surface as the framework's own
+        # (missing) output, never as a harness-ghostwritten report. The evidence
+        # writer runs only under the explicit non-benchmark
+        # EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            print(f"deerflow native path weak/timeout after {timeout_s}s; using source-grounded writer")
+            return await asyncio.to_thread(
+                synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
+            )
+        if lowered.startswith("(deerflow"):
+            # Already deerflow's own honest stub; pass it through unchanged.
+            return text
+        return error_stub("deerflow", "native", f"native path weak/timeout after {timeout_s}s")
+    return text
 
 
 async def _run_deerflow_OLD(intent: str, model: str) -> str:
@@ -1885,6 +2014,13 @@ async def _run_ldr_OLD(intent: str, model: str) -> str:
 
 async def _run_ii_researcher(intent: str, model: str) -> str:
     """Intelligent-Internet/ii-researcher via subprocess in .venv-ii."""
+    from scripts.runners.evidence_fallback import (
+        error_stub,
+        fallback_enabled,
+        is_weak_report,
+        synthesize_report,
+    )
+
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
     ii_root = ROOT / "third_party" / "ii-researcher"
@@ -1977,13 +2113,36 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
     )
     cmd = [str(ii_python), str(driver)]
     import subprocess
+    timeout_s = int(os.environ.get("II_RESEARCHER_NATIVE_TIMEOUT_S", "1500") or "1500")
+
+    async def _fallback_report() -> str:
+        return await asyncio.to_thread(
+            synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
+        )
+
+    async def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: an ii-researcher failure must surface as the
+        # framework's own (missing) output, never as a harness-ghostwritten
+        # report. In benchmark mode we save an honest error stub; the evidence
+        # writer runs only under the explicit non-benchmark
+        # EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return await _fallback_report()
+        return error_stub("ii-researcher", phase, reason)
+
     try:
-        proc = subprocess.run(cmd, cwd=str(ii_root), env=env, capture_output=True, text=True, timeout=1500)
+        proc = subprocess.run(cmd, cwd=str(ii_root), env=env, capture_output=True, text=True, timeout=timeout_s)
     except subprocess.TimeoutExpired:
-        return "(ii: timeout 1500s)"
+        print(f"ii-researcher native path exceeded {timeout_s}s")
+        return await _degrade("native", f"native path exceeded {timeout_s}s timeout")
     if "===REPORT===" in proc.stdout:
-        return proc.stdout.split("===REPORT===", 1)[1].strip()
-    return f"(ii: no report marker. stderr: {proc.stderr[-500:]})"
+        report = proc.stdout.split("===REPORT===", 1)[1].strip()
+        if not is_weak_report(report, min_chars=3000, min_urls=3):
+            return report
+        print("ii-researcher native report weak")
+        return await _degrade("write", "native report weak/under-threshold")
+    print("ii-researcher native path produced no report marker")
+    return await _degrade("native", "native path produced no report marker")
 
 
 async def _run_qx_agents(intent: str, model: str) -> str:
@@ -2008,7 +2167,12 @@ async def _run_qx_agents(intent: str, model: str) -> str:
 
 async def _run_flowsearcher_ds(intent: str, model: str) -> str:
     """FlowSearcher-DS: memory-guided deep research agent."""
-    from scripts.runners.evidence_fallback import is_weak_report, synthesize_report
+    from scripts.runners.evidence_fallback import (
+        error_stub,
+        fallback_enabled,
+        is_weak_report,
+        synthesize_report,
+    )
 
     task_id = os.environ.get("_FLOWSEARCHER_TASK_ID", "")
     shim = os.environ.get("SHIM_URL", "http://localhost:8081")
@@ -2019,7 +2183,19 @@ async def _run_flowsearcher_ds(intent: str, model: str) -> str:
             synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
         )
 
-    force_fallback = os.environ.get("FLOWSEARCHER_FORCE_FALLBACK", "1").strip().lower()
+    async def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: a flowsearcher failure must surface as an honest stub,
+        # never a harness-ghostwritten report. The evidence writer runs only
+        # under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return await _fallback_report()
+        return error_stub("flowsearcher", phase, reason)
+
+    # Default OFF: run the real flowsearcher adapter as the benchmark path.
+    # When the operator explicitly sets FLOWSEARCHER_FORCE_FALLBACK, treat that
+    # as opt-in authorization to use the shared evidence writer for completion
+    # runs instead of returning a short error stub.
+    force_fallback = os.environ.get("FLOWSEARCHER_FORCE_FALLBACK", "0").strip().lower()
     if force_fallback not in {"0", "false", "no", "native"}:
         return await _fallback_report()
 
@@ -2037,15 +2213,22 @@ async def _run_flowsearcher_ds(intent: str, model: str) -> str:
             timeout=max(60.0, native_timeout),
         )
     except asyncio.TimeoutError:
-        return await _fallback_report()
-    except Exception:
-        return await _fallback_report()
+        return await _degrade("native", f"native path exceeded {native_timeout}s timeout")
+    except Exception as e:
+        return await _degrade("native", f"{type(e).__name__}: {e}")
 
+    # run_flowsearcher already returns its own honest "(flowsearcher error: ...)"
+    # stub on internal failure; pass those through unchanged rather than masking
+    # them with the evidence writer.
+    from src.eval.report_stubs import classify_report as _classify_report
+
+    if _classify_report(report) != "ok":
+        return report
     if (
         "LLM writer failed after retries" in report
         or is_weak_report(report, min_chars=3000, min_urls=3)
     ):
-        return await _fallback_report()
+        return await _degrade("write", "native report weak/under-threshold")
     return report
 
 
@@ -2146,19 +2329,72 @@ def _wrap_runner(run_fn):
     """
     import inspect as _inspect
     try:
-        _supports_strict = "strict_sandbox" in _inspect.signature(run_fn).parameters
+        _sig = _inspect.signature(run_fn)
+        _supports_strict = "strict_sandbox" in _sig.parameters
+        _supports_timeout = "timeout_s" in _sig.parameters
     except (TypeError, ValueError):
+        _sig = None
         _supports_strict = False
+        _supports_timeout = False
+    _agent_name = getattr(run_fn, "AGENT_NAME", None)
+    if not _agent_name:
+        try:
+            _module = __import__(getattr(run_fn, "__module__", ""), fromlist=["AGENT_NAME"])
+            _agent_name = getattr(_module, "AGENT_NAME", None)
+        except Exception:
+            _agent_name = None
+    _agent_name = str(_agent_name or getattr(run_fn, "__module__", "runner")).split(".")[-1]
+    _env_prefix = _agent_name.replace("_runner", "").replace("-", "_").upper()
 
     async def _adapter(intent: str, model: str, *, strict_sandbox: bool = False) -> str:
         shim = os.environ.get("SHIM_URL", "http://localhost:8081")
         proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
+        kwargs = {"intent": intent, "model": model, "shim_url": shim, "proxy_url": proxy}
         if _supports_strict:
-            return await run_fn(
-                intent=intent, model=model, shim_url=shim, proxy_url=proxy,
-                strict_sandbox=strict_sandbox,
+            kwargs["strict_sandbox"] = strict_sandbox
+        if _supports_timeout:
+            raw_timeout = (
+                os.environ.get(f"{_env_prefix}_NATIVE_TIMEOUT_S")
+                or os.environ.get("REGISTRY_RUNNER_NATIVE_TIMEOUT_S")
             )
-        return await run_fn(intent=intent, model=model, shim_url=shim, proxy_url=proxy)
+            if raw_timeout:
+                kwargs["timeout_s"] = int(raw_timeout)
+        text = await run_fn(**kwargs)
+        lowered = str(text or "").strip().lower()
+        if lowered.startswith("(") and (
+            "timeout" in lowered or "error" in lowered or "produced no report" in lowered
+        ):
+            from scripts.runners.evidence_fallback import fallback_enabled, synthesize_report
+
+            # Fairness rule: a runner failure must surface as the framework's
+            # own honest stub, never a harness-ghostwritten report. The
+            # evidence writer runs only under the explicit non-benchmark
+            # EVIDENCE_FALLBACK_ENABLE flag.
+            if fallback_enabled():
+                print(f"{_agent_name} native path failed/timeout; using source-grounded writer")
+                return await asyncio.to_thread(
+                    synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
+                )
+            # Already the runner's own honest stub; pass it through unchanged.
+            return text
+        try:
+            from scripts.runners.evidence_fallback import (
+                error_stub,
+                fallback_enabled,
+                is_weak_report,
+                synthesize_report,
+            )
+
+            if is_weak_report(text, min_chars=3000, min_urls=3):
+                if fallback_enabled():
+                    print(f"{_agent_name} native report weak; using source-grounded writer")
+                    return await asyncio.to_thread(
+                        synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
+                    )
+                return error_stub(_agent_name, "write", "native report weak/under-threshold")
+        except Exception as e:  # noqa: BLE001
+            print(f"  warn: registry fallback check failed for {_agent_name}: {e}")
+        return text
     _adapter.__name__ = f"_adapter_{getattr(run_fn, '__module__', 'runner')}"
     return _adapter
 

@@ -105,9 +105,33 @@ def test_write_report_returns_error_stub_when_writer_empty_and_no_evidence(monke
     assert classify_report(out) == "stub_exception"
 
 
-def test_write_report_falls_back_to_evidence_when_writer_empty(monkeypatch):
-    # With evidence collected, a writer failure degrades to the grounded
-    # fallback report, NOT an error stub.
+def test_write_report_benchmark_default_emits_error_stub_not_ghostwritten(monkeypatch):
+    # Fairness: in benchmark mode (the default, EVIDENCE_FALLBACK_ENABLE unset) a
+    # writer failure must surface an honest stub even when evidence exists. The
+    # harness must NOT assemble an evidence dump on flowsearcher's behalf.
+    monkeypatch.delenv("EVIDENCE_FALLBACK_ENABLE", raising=False)
+    monkeypatch.setattr(fs, "_llm_call", lambda *a, **k: "")
+    all_found = {
+        "http://localhost:7770/p1.html": {
+            "url": "http://localhost:7770/p1.html", "title": "P1",
+            "snippet": "a product", "domain": "shopping", "query": "q",
+        }
+    }
+    sg = [{"section_title": "S", "subgoal": "A", "n_urls_found": 1,
+           "results": list(all_found.values())}]
+    out = fs._write_report(
+        "intent", sg, all_found, "m", "http://x/v1", "http://s",
+        fetch_fn=lambda url, shim, n: "",
+    )
+    assert out.startswith("(flowsearcher error")
+    assert "FlowSearcher-DS Evidence Report" not in out
+    assert classify_report(out) == "stub_exception"
+
+
+def test_write_report_evidence_fallback_only_when_explicitly_enabled(monkeypatch):
+    # With the explicit non-benchmark flag set, a writer failure degrades to the
+    # grounded fallback report instead of an error stub.
+    monkeypatch.setenv("EVIDENCE_FALLBACK_ENABLE", "1")
     monkeypatch.setattr(fs, "_llm_call", lambda *a, **k: "")
     all_found = {
         "http://localhost:7770/p1.html": {

@@ -13,6 +13,48 @@ from typing import Iterable
 
 logger = logging.getLogger(__name__)
 
+
+class EvidenceFallbackDisabled(RuntimeError):
+    """Raised when the source-grounded rescue writer is invoked in benchmark mode.
+
+    In a benchmark run the saved report MUST be the framework's own output. A
+    harness-written stand-in synthesized from raw search evidence is a fairness
+    violation: because the generator is deterministic given a fixed task+shim,
+    several distinct frameworks that all fall through to it emit byte-identical
+    reports (the canonical smoke8c symptom where flowsearcher-ds, smolagents,
+    and storm produced the same 21052-byte file). The generator therefore
+    survives ONLY when ``EVIDENCE_FALLBACK_ENABLE`` is explicitly set, mirroring
+    the ``FLOWSEARCHER_MEMORY`` opt-in for the (equally unfair) memory channel.
+    """
+
+
+def fallback_enabled() -> bool:
+    """True only when the evidence-fallback writer is explicitly opted in.
+
+    Default is OFF so benchmark runs never ghostwrite a report on a framework's
+    behalf. Set ``EVIDENCE_FALLBACK_ENABLE=1`` for non-benchmark experiments.
+    """
+    return os.environ.get("EVIDENCE_FALLBACK_ENABLE", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def error_stub(lane: str, phase: str, reason: str) -> str:
+    """Honest per-lane failure stub, shape ``(<lane> error: <phase>: <reason>)``.
+
+    Classified as ``stub_exception`` by ``src.eval.report_stubs.classify_report``
+    so a framework failure surfaces in the score/meta channel instead of being
+    laundered into a scored report.
+    """
+    lane = " ".join(str(lane or "runner").split()) or "runner"
+    phase = " ".join(str(phase or "unknown").split()) or "unknown"
+    reason = " ".join(str(reason).split())[:200] or "unknown"
+    return f"({lane} error: {phase}: {reason})"
+
+
 _STOPWORDS = {
     "about", "above", "after", "again", "against", "also", "because", "before",
     "being", "between", "could", "every", "from", "have", "into", "only",
@@ -305,6 +347,16 @@ def synthesize_report(
     llm_timeout_s: int = 240,
     max_items: int = 18,
 ) -> str:
+    # Fairness gate: in benchmark mode the saved report must be the framework's
+    # own output, never a harness-synthesized stand-in. Refuse loudly unless the
+    # caller has explicitly opted into the non-benchmark evidence writer. Callers
+    # that want a clean per-lane stub should check ``fallback_enabled()`` first
+    # and emit ``error_stub(...)`` instead of relying on this exception.
+    if not fallback_enabled():
+        raise EvidenceFallbackDisabled(
+            "evidence-fallback writer is benchmark-disabled; set "
+            "EVIDENCE_FALLBACK_ENABLE=1 for non-benchmark experiments only"
+        )
     evidence = collect_sandbox_evidence(intent, shim_url, max_items=max_items)
     evidence_text = _render_evidence(evidence)
     skip_llm = os.environ.get("EVIDENCE_FALLBACK_SKIP_LLM", "").strip().lower() in {

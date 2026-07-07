@@ -73,9 +73,21 @@ def test_wrapper_forwards_strict_sandbox(monkeypatch, wrapper_name,
                                          module_name, strict_value):
     captured: dict = {}
 
+    # The fake report must clear is_weak_report (>=3000 chars, >=3 sandbox
+    # URLs): since the evidence-fallback gate landed, _run_deerflow answers a
+    # weak native report with an honest per-lane error stub in benchmark mode,
+    # and this test pins pass-through of a GOOD report plus kwarg forwarding.
+    fake_report = (
+        "# fake report\n\n"
+        "Evidence: [p1](http://localhost:7770/p1.html), "
+        "[t2](http://localhost:9999/t2.html), "
+        "[w3](http://localhost:8090/w3.html).\n\n"
+        + ("body paragraph with enough length to clear the weak-report floor. " * 60)
+    )
+
     async def _recording_run(**kwargs):
         captured.update(kwargs)
-        return "# fake report\n\nbody"
+        return fake_report
 
     monkeypatch.delitem(sys.modules, module_name, raising=False)
     stub = types.SimpleNamespace(run=_recording_run)
@@ -84,7 +96,7 @@ def test_wrapper_forwards_strict_sandbox(monkeypatch, wrapper_name,
     wrapper = getattr(rdt, wrapper_name)
     out = asyncio.run(wrapper("intent", "deepseek-v4", strict_sandbox=strict_value))
 
-    assert out == "# fake report\n\nbody"
+    assert out == fake_report
     assert captured.get("strict_sandbox") == strict_value, (
         f"{wrapper_name} dropped strict_sandbox={strict_value}; "
         f"underlying run() saw {captured.get('strict_sandbox')!r}"

@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src.memory.hierarchical import HierarchicalMemory, classify_intent
+from scripts.runners.evidence_fallback import fallback_enabled
 
 
 DEFAULT_SHIM_URL = "http://localhost:8081"
@@ -466,12 +467,16 @@ Write the complete report now. Be comprehensive and thorough — cite as many so
     if report and report.strip():
         return report
 
-    # Defect 2: no laundered sentinel. Prefer an evidence-grounded fallback if
-    # we actually collected sources; otherwise surface an honest error stub
-    # carrying the failure phase and reason.
-    fallback = _write_evidence_fallback_report(intent, subgoal_results, all_found)
-    if fallback:
-        return fallback
+    # Defect 2: no laundered sentinel. When the LLM writer fails, a benchmark
+    # run must surface an honest error stub, NOT a harness-assembled evidence
+    # dump written on flowsearcher's behalf (that is the same fairness violation
+    # the shared evidence writer commits). The evidence-grounded fallback
+    # survives only under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE
+    # flag; otherwise we fall straight through to the honest error stub below.
+    if fallback_enabled():
+        fallback = _write_evidence_fallback_report(intent, subgoal_results, all_found)
+        if fallback:
+            return fallback
     if not all_found:
         return _error_stub(
             "write", "LLM writer returned empty and no sandbox evidence was collected")

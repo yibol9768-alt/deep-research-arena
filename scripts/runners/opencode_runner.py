@@ -33,7 +33,7 @@ import time
 import uuid
 from pathlib import Path
 
-from .evidence_fallback import is_weak_report, synthesize_report
+from .evidence_fallback import error_stub, fallback_enabled, is_weak_report, synthesize_report
 
 logger = logging.getLogger(__name__)
 
@@ -517,6 +517,22 @@ async def _run_local_opencode(
         raise FileNotFoundError("opencode")
 
     model_id = opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model
+
+    def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: an opencode failure must surface as the framework's
+        # own (missing) output, never as a harness-ghostwritten report. In
+        # benchmark mode we save an honest error stub; the evidence writer runs
+        # only under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return synthesize_report(
+                intent,
+                model_id,
+                shim_url,
+                base_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return error_stub("opencode", phase, reason)
     shopping_url = os.environ.get("SHOPPING", "http://localhost:17770")
     reddit_url = os.environ.get("REDDIT", "http://localhost:9999")
     wikipedia_url = os.environ.get("WIKIPEDIA", "http://localhost:8090")
@@ -566,14 +582,9 @@ async def _run_local_opencode(
                 ),
             )
         except subprocess.TimeoutExpired:
-            logger.warning("opencode native path exceeded %ss; using source-grounded writer", _native_timeout(timeout_s))
-            return synthesize_report(
-                intent,
-                opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
-                shim_url,
-                base_url,
-                min_chars=4500,
-                min_urls=5,
+            logger.warning("opencode native path exceeded %ss", _native_timeout(timeout_s))
+            return _degrade(
+                "native", f"native path exceeded {_native_timeout(timeout_s)}s timeout"
             )
         stdout_path.write_text((proc.stdout or "") + (proc.stderr or ""), encoding="utf-8")
         report = report_path.read_text(encoding="utf-8", errors="replace").lstrip("﻿").strip()
@@ -581,15 +592,8 @@ async def _run_local_opencode(
         if len(report) < 500 and stdout_text:
             report = stdout_text
         if is_weak_report(report, min_chars=3000, min_urls=3):
-            logger.warning("opencode native report weak/empty; using source-grounded writer")
-            return synthesize_report(
-                intent,
-                opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
-                shim_url,
-                base_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            logger.warning("opencode native report weak/empty")
+            return _degrade("write", "native report weak/under-threshold")
         return report
 
 
@@ -638,6 +642,22 @@ async def run(
     base_url = _resolve_llm_base_url(proxy_url)
     out_cap = _resolve_output_cap()
     ctx_lim = _resolve_context_limit()
+
+    def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: an opencode failure must surface as the framework's
+        # own (missing) output, never as a harness-ghostwritten report. In
+        # benchmark mode we save an honest error stub; the evidence writer runs
+        # only under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return synthesize_report(
+                intent,
+                opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
+                shim_url,
+                base_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return error_stub("opencode", phase, reason)
 
     if os.environ.get("OPENCODE_USE_WINDOWS", "0") != "1" and shutil.which("opencode"):
         try:
@@ -736,15 +756,8 @@ async def run(
             report = stdout_text.strip()
 
         if is_weak_report(report, min_chars=3000, min_urls=3):
-            logger.warning("opencode ssh report weak/empty; using source-grounded writer")
-            return synthesize_report(
-                intent,
-                opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
-                shim_url,
-                base_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            logger.warning("opencode ssh report weak/empty")
+            return _degrade("write", "native report weak/under-threshold")
 
         logger.info("opencode completed in %.0fs, report=%d chars",
                     elapsed, len(report))
@@ -752,13 +765,8 @@ async def run(
 
     except subprocess.TimeoutExpired:
         logger.error("opencode native path exceeded %ds", _native_timeout(timeout_s))
-        return synthesize_report(
-            intent,
-            opencode_model.split("/", 1)[1] if "/" in opencode_model else opencode_model,
-            shim_url,
-            base_url,
-            min_chars=4500,
-            min_urls=5,
+        return _degrade(
+            "native", f"native path exceeded {_native_timeout(timeout_s)}s timeout"
         )
     except Exception as e:
         logger.exception("opencode runner error")

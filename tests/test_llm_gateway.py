@@ -1,0 +1,275 @@
+"""Unit tests for the unified LLM gateway (integrations/llm_gateway/app.py).
+
+Upstream is faked with an httpx.MockTransport so no real backbone is hit. Each
+test reloads the module under a clean env (the usage-log path and keys are read
+at import time / request time) and monkeypatches the module's httpx.AsyncClient
+so every forwarded request lands on our stub router.
+"""
+
+from __future__ import annotations
+
+import importlib
+import json
+import sys
+from pathlib import Path
+
+import httpx
+import pytest
+from fastapi.testclient import TestClient
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+
+class Router:
+    """Programmable stub upstream. `queue` is a list of (status, headers, body)
+    the router returns in order (last one repeats). Records every request."""
+
+    def __init__(self):
+        self.queue: list[tuple[int, dict, object]] = []
+        self.requests: list[httpx.Request] = []
+
+    def add_json(self, status: int, body: dict):
+        self.queue.append((status, {"content-type": "application/json"}, body))
+
+    def add_text(self, status: int, text: str):
+        self.queue.append((status, {"content-type": "text/plain"}, text))
+
+    def handler(self, request: httpx.Request) -> httpx.Response:
+        self.requests.append(request)
+        idx = min(len(self.requests) - 1, len(self.queue) - 1)
+        status, headers, body = self.queue[idx]
+        if isinstance(body, (dict, list)):
+            return httpx.Response(status, headers=headers, json=body)
+        return httpx.Response(status, headers=headers, content=str(body).encode())
+
+    def last_body(self) -> dict:
+        return json.loads(self.requests[-1].content)
+
+
+@pytest.fixture
+def make_gw(monkeypatch, tmp_path):
+    """Factory: (env_overrides) -> (module, TestClient, Router)."""
+
+    def _make(env: dict | None = None):
+        env = env or {}
+        for k, v in env.items():
+            monkeypatch.setenv(k, v)
+        # Fresh import so import-time config (USAGE_LOG, registry) is re-read.
+        sys.modules.pop("integrations.llm_gateway.app", None)
+        mod = importlib.import_module("integrations.llm_gateway.app")
+        mod = importlib.reload(mod)
+
+        router = Router()
+        transport = httpx.MockTransport(router.handler)
+
+        real_client = mod.httpx.AsyncClient
+
+        def _client_factory(*args, **kwargs):
+            kwargs["transport"] = transport
+            return real_client(*args, **kwargs)
+
+        monkeypatch.setattr(mod.httpx, "AsyncClient", _client_factory)
+        return mod, TestClient(mod.app), router
+
+    return _make
+
+
+# ---------------------------------------------------------------------------
+# Routing
+# ---------------------------------------------------------------------------
+def test_prefix_routing_qwen(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(200, {"choices": [], "usage": {}})
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 200
+    assert str(router.requests[-1].url).startswith("http://127.0.0.1:8001/v1")
+
+
+def test_prefix_routing_glm(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(200, {"choices": [], "usage": {}})
+    r = client.post("/v1/chat/completions",
+                    json={"model": "glm-4.7-flash", "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 200
+    assert "bigmodel.cn" in str(router.requests[-1].url)
+
+
+def test_unknown_model_404(make_gw):
+    mod, client, router = make_gw()
+    r = client.post("/v1/chat/completions",
+                    json={"model": "gpt-9", "messages": []})
+    assert r.status_code == 404
+    err = r.json()["error"]
+    assert err["type"] == "model_not_found"
+    assert "qwen3-8b" in err["known_prefixes"]
+    assert router.requests == []  # never forwarded
+
+
+# ---------------------------------------------------------------------------
+# Policy pipeline
+# ---------------------------------------------------------------------------
+def test_floor_raises(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(200, {"choices": []})
+    # glm floor is 131072; caller asks for a tiny budget.
+    client.post("/v1/chat/completions",
+                json={"model": "glm-4.7-flash", "max_tokens": 100,
+                      "messages": [{"role": "user", "content": "hi"}]})
+    assert router.last_body()["max_tokens"] == 131072
+
+
+def test_cap_lowers(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(200, {"choices": []})
+    # qwen cap is 8192; small prompt so fit does not bite.
+    client.post("/v1/chat/completions",
+                json={"model": "qwen3-8b", "max_tokens": 50000,
+                      "messages": [{"role": "user", "content": "hi"}]})
+    assert router.last_body()["max_tokens"] == 8192
+
+
+def test_fit_to_window_clamps(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(200, {"choices": []})
+    big = "x" * 180000  # ~60k estimated tokens
+    messages = [{"role": "user", "content": big}]
+    est = len(json.dumps(messages, ensure_ascii=False)) // 3
+    client.post("/v1/chat/completions",
+                json={"model": "qwen3-8b", "max_tokens": 50000, "messages": messages})
+    expected = 65536 - est - 256
+    assert router.last_body()["max_tokens"] == expected
+    assert expected < 8192  # fit bit harder than the cap
+
+
+# ---------------------------------------------------------------------------
+# Resilience: context-overflow refit-and-retry
+# ---------------------------------------------------------------------------
+_CTX_ERR = {
+    "error": {
+        "message": ("This model's maximum context length is 65536 tokens. However, "
+                    "you requested 65537 tokens (8961 in the messages, 56576 in the "
+                    "completion). Please reduce the length of the messages or completion."),
+        "type": "BadRequestError",
+        "code": 400,
+    }
+}
+
+
+def test_ctx_overflow_retry_succeeds(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(400, _CTX_ERR)          # first attempt: window+1
+    router.add_json(200, {"choices": []})   # retry: succeeds
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 56576,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 200
+    assert len(router.requests) == 2  # retried exactly once
+    # window - reported_prompt - margin = 65536 - 8961 - 256
+    assert router.last_body()["max_tokens"] == 65536 - 8961 - 256
+
+
+def test_ctx_overflow_retry_only_once(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(400, _CTX_ERR)  # always 400
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 56576,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 400          # passed through
+    assert len(router.requests) == 2     # original + one retry, no more
+
+
+# ---------------------------------------------------------------------------
+# thinking-off injection
+# ---------------------------------------------------------------------------
+def test_thinking_off_deepseek_only(make_gw):
+    mod, client, router = make_gw()
+    router.add_json(200, {"choices": []})
+    client.post("/v1/chat/completions",
+                json={"model": "deepseek-v4-flash",
+                      "messages": [{"role": "user", "content": "hi"}]})
+    assert router.last_body().get("thinking") == {"type": "disabled"}
+
+    router.queue.clear()
+    router.requests.clear()
+    router.add_json(200, {"choices": []})
+    client.post("/v1/chat/completions",
+                json={"model": "qwen3-8b",
+                      "messages": [{"role": "user", "content": "hi"}]})
+    assert "thinking" not in router.last_body()
+
+
+# ---------------------------------------------------------------------------
+# Usage accounting + run brackets
+# ---------------------------------------------------------------------------
+def test_usage_log_tagged_with_run_id(make_gw, tmp_path):
+    log = tmp_path / "usage.jsonl"
+    mod, client, router = make_gw({"LLMGW_USAGE_LOG": str(log)})
+    router.add_json(200, {"choices": [],
+                          "usage": {"prompt_tokens": 10, "completion_tokens": 5,
+                                    "total_tokens": 15}})
+    assert client.post("/_mark", json={"phase": "start", "run_id": "run-42"}).status_code == 200
+    client.post("/v1/chat/completions",
+                json={"model": "qwen3-8b",
+                      "messages": [{"role": "user", "content": "hi"}]})
+    lines = [json.loads(x) for x in log.read_text().splitlines() if x.strip()]
+    usage_lines = [x for x in lines if x.get("prompt_tokens") == 10]
+    assert usage_lines, "usage line not written"
+    u = usage_lines[-1]
+    assert u["run_id"] == "run-42"
+    assert u["model"] == "qwen3-8b"
+    assert "latency_ms" in u
+    assert "fit_adjustments" in u
+
+
+def test_mark_end_closes_bracket(make_gw, tmp_path):
+    log = tmp_path / "usage.jsonl"
+    mod, client, router = make_gw({"LLMGW_USAGE_LOG": str(log)})
+    client.post("/_mark", json={"phase": "start", "run_id": "r1"})
+    client.post("/_mark", json={"phase": "end", "run_id": "r1"})
+    router.add_json(200, {"choices": [], "usage": {"prompt_tokens": 1}})
+    client.post("/v1/chat/completions",
+                json={"model": "qwen3-8b", "messages": [{"role": "user", "content": "hi"}]})
+    lines = [json.loads(x) for x in log.read_text().splitlines() if x.strip()]
+    usage = [x for x in lines if x.get("prompt_tokens") == 1][-1]
+    assert "run_id" not in usage  # bracket closed
+
+
+# ---------------------------------------------------------------------------
+# Introspection endpoints never leak keys
+# ---------------------------------------------------------------------------
+def test_healthz_no_key_leak(make_gw):
+    secret = "sk-super-secret-DEADBEEF"
+    mod, client, router = make_gw({"GLM_API_KEY": secret, "DASHSCOPE_API_KEY": secret})
+    r = client.get("/healthz")
+    assert r.status_code == 200
+    assert secret not in r.text
+    prefixes = [m["prefix"] for m in r.json()["models"]]
+    assert "glm-4.7-flash" in prefixes and "deepseek-v4" in prefixes
+    # only the env-var NAME is exposed, never contents
+    assert any(m["api_key_env"] == "GLM_API_KEY" for m in r.json()["models"])
+
+
+def test_models_listing(make_gw):
+    mod, client, router = make_gw()
+    r = client.get("/v1/models")
+    ids = [m["id"] for m in r.json()["data"]]
+    assert {"qwen3-8b", "glm-4.7-flash", "deepseek-v4"} <= set(ids)
+
+
+# ---------------------------------------------------------------------------
+# LLM_GATEWAY_CONFIG override
+# ---------------------------------------------------------------------------
+def test_config_extends_registry(make_gw, tmp_path):
+    cfg = tmp_path / "gw.json"
+    cfg.write_text(json.dumps([
+        {"prefix": "my-model", "upstream": "http://example/v1",
+         "context_window": 1000, "thinking_off": True},
+    ]))
+    mod, client, router = make_gw({"LLM_GATEWAY_CONFIG": str(cfg)})
+    router.add_json(200, {"choices": []})
+    client.post("/v1/chat/completions",
+                json={"model": "my-model-x", "messages": [{"role": "user", "content": "hi"}]})
+    assert "example" in str(router.requests[-1].url)
+    assert router.last_body().get("thinking") == {"type": "disabled"}

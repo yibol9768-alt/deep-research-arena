@@ -41,7 +41,7 @@ import uuid
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .evidence_fallback import is_weak_report, synthesize_report
+from .evidence_fallback import error_stub, fallback_enabled, is_weak_report, synthesize_report
 
 logger = logging.getLogger(__name__)
 
@@ -389,6 +389,22 @@ async def _run_local_claude(
     timeout_s: int,
     strict_sandbox: bool,
 ) -> str:
+    def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: a claude-code failure must surface as the framework's
+        # own (missing) output, never as a harness-ghostwritten report. In
+        # benchmark mode we save an honest error stub; the evidence writer runs
+        # only under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return error_stub("claude-code", phase, reason)
+
     if not shutil.which("claude"):
         return "(claude-code local unavailable: claude executable not found)"
 
@@ -453,14 +469,9 @@ async def _run_local_claude(
                 ),
             )
         except subprocess.TimeoutExpired:
-            logger.warning("claude-code local path exceeded %ss; using source-grounded writer", _native_timeout(timeout_s))
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
+            logger.warning("claude-code local path exceeded %ss", _native_timeout(timeout_s))
+            return _degrade(
+                "native", f"native path exceeded {_native_timeout(timeout_s)}s timeout"
             )
 
         elapsed = time.time() - t0
@@ -479,15 +490,8 @@ async def _run_local_claude(
                 stdout_text[-1500:],
             )
         if is_weak_report(report, min_chars=3000, min_urls=3):
-            logger.warning("claude-code local report weak/empty; using source-grounded writer")
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            logger.warning("claude-code local report weak/empty")
+            return _degrade("write", "native report weak/under-threshold")
         logger.info("claude-code local completed in %.0fs, report=%d chars", elapsed, len(report))
         return report
 
@@ -571,6 +575,22 @@ async def run(
             ``curl https://en.wikipedia.org/...`` despite WebSearch/WebFetch
             being banned.
     """
+    def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: a claude-code failure must surface as the framework's
+        # own (missing) output, never as a harness-ghostwritten report. In
+        # benchmark mode we save an honest error stub; the evidence writer runs
+        # only under the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return error_stub("claude-code", phase, reason)
+
     if os.environ.get("CLAUDE_CODE_USE_WINDOWS") != "1":
         try:
             local_report = await _run_local_claude(
@@ -585,25 +605,14 @@ async def run(
                 return local_report
             logger.warning("claude-code local path returned short/error report: %s", local_report[:500])
             if os.environ.get("CLAUDE_CODE_NO_WINDOWS_FALLBACK") == "1":
-                return synthesize_report(
-                    intent,
-                    model,
-                    shim_url,
-                    proxy_url,
-                    min_chars=4500,
-                    min_urls=5,
+                return _degrade(
+                    "write",
+                    "local report weak/under-threshold and windows fallback disabled",
                 )
         except Exception as e:
             logger.exception("claude-code local path failed")
             if os.environ.get("CLAUDE_CODE_NO_WINDOWS_FALLBACK") == "1":
-                return synthesize_report(
-                    intent,
-                    model,
-                    shim_url,
-                    proxy_url,
-                    min_chars=4500,
-                    min_urls=5,
-                )
+                return _degrade("native", f"{type(e).__name__}: {e}")
 
     job_id = uuid.uuid4().hex[:12]
     intent_remote = f"{REMOTE_DIR_WIN}/intent_{job_id}.txt"
@@ -668,15 +677,8 @@ async def run(
             report = stdout_text.strip()
 
         if is_weak_report(report, min_chars=3000, min_urls=3):
-            logger.warning("claude-code ssh report weak/empty; using source-grounded writer")
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            logger.warning("claude-code ssh report weak/empty")
+            return _degrade("write", "native report weak/under-threshold")
 
         logger.info("claude-code completed in %.0fs, report=%d chars",
                     elapsed, len(report))
@@ -684,24 +686,12 @@ async def run(
 
     except subprocess.TimeoutExpired:
         logger.error("claude-code native path exceeded %ds", _native_timeout(timeout_s))
-        return synthesize_report(
-            intent,
-            model,
-            shim_url,
-            proxy_url,
-            min_chars=4500,
-            min_urls=5,
+        return _degrade(
+            "native", f"native path exceeded {_native_timeout(timeout_s)}s timeout"
         )
     except Exception as e:
         logger.exception("claude-code runner error")
-        return synthesize_report(
-            intent,
-            model,
-            shim_url,
-            proxy_url,
-            min_chars=4500,
-            min_urls=5,
-        )
+        return _degrade("native", f"{type(e).__name__}: {e}")
     finally:
         for p in (intent_wsl, report_wsl, stdout_wsl, driver_wsl):
             try:

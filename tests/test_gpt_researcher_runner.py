@@ -214,6 +214,33 @@ def test_registry_bind_replaces_the_class_get_retriever_imports() -> None:
                 sys.modules[k] = v
 
 
+def test_driver_does_not_compensate_the_report_writer() -> None:
+    """Fairness (box smoke8c, World-(b) close-as-model): gpt-researcher 0.12.3
+    already threads each scraped source URL into the writer context as
+    ``Source: <url>`` and its prompt mandates citing them, so the adapter must
+    NOT re-inject a curated URL list or otherwise write citations on the
+    framework's behalf. The old revision appended a "CITE ONLY FROM THESE
+    VERBATIM RETRIEVED URLS" block and mutated ``r.query`` post-construction.
+    Both were dead code (no ``custom_prompt`` kwarg; ReportGenerator snapshots
+    the query at ``__init__``) and, worse, harness compensation for a model
+    weakness. Guard against either creeping back in.
+    """
+    drv = gptr._build_driver_script(
+        "task", "http://localhost:8081", "http://localhost:8088/v1", "qwen3-8b"
+    )
+    # No fabricated-URL-injection appendix, in any casing.
+    assert "CITE ONLY FROM THESE VERBATIM" not in drv
+    # No unsupported write_report kwarg (raised TypeError; a silent no-op).
+    assert "custom_prompt" not in drv
+    # No post-construction query mutation to smuggle a URL list into the prompt.
+    assert "r.query = QUERY +" not in drv
+    # The writer is invoked plainly, letting the framework+model own citations.
+    assert "await r.write_report()" in drv
+    # The read-only grounding diagnostic is retained (it never edits the report).
+    assert gptr._DIAG_MARK in drv
+    assert "retrieved=%d localhost=%d" in drv
+
+
 def test_build_driver_script_does_not_hardcode_context_length() -> None:
     """The lane must stay correct across the planned vLLM 65536/YaRN move and
     glm-4.7-flash@200k — it must not bake a context/window constant into the

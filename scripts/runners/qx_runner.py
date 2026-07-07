@@ -46,7 +46,7 @@ from pathlib import Path
 
 from .serper_adapter import SerperAdapter
 from ._runner_lock import runner_exclusive_lock
-from .evidence_fallback import is_weak_report, synthesize_report
+from .evidence_fallback import error_stub, fallback_enabled, is_weak_report, synthesize_report
 
 logger = logging.getLogger(__name__)
 
@@ -334,7 +334,15 @@ def _prefetch_evidence(intent: str, shim_url: str, *, max_items: int = 14) -> st
     return "\n\n".join(rows) if rows else "(no sandbox evidence returned)"
 
 
-def _fallback_report(intent: str, model: str, shim_url: str, proxy_url: str, reason: str) -> str:
+def _fallback_report(
+    intent: str, model: str, shim_url: str, proxy_url: str, phase: str, reason: str
+) -> str:
+    # Fairness rule: a qx-agents failure must surface as the framework's own
+    # (missing) output, never as a harness-ghostwritten report. In benchmark
+    # mode we save an honest error stub; the evidence writer runs only under
+    # the explicit non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+    if not fallback_enabled():
+        return error_stub("qx-agents", phase, reason)
     logger.warning("qx-agents fallback activated: %s", reason[:500])
     return synthesize_report(
         intent,
@@ -476,7 +484,7 @@ async def run(
             )
             return await asyncio.get_event_loop().run_in_executor(
                 None,
-                lambda: _fallback_report(intent, model, shim_url, proxy_url, reason),
+                lambda: _fallback_report(intent, model, shim_url, proxy_url, "native", reason),
             )
 
         if is_weak_report(report, min_chars=MIN_REPORT_CHARS, min_urls=3):
@@ -491,6 +499,7 @@ async def run(
                     model,
                     shim_url,
                     proxy_url,
+                    "write",
                     f"native qx report was too short ({len(report)} chars)",
                 ),
             )
@@ -512,15 +521,22 @@ async def run(
                     model,
                     shim_url,
                     proxy_url,
+                    "native",
                     f"native qx timed out after {effective_timeout_s}s",
                 ),
             )
         except Exception as fallback_error:
             logger.warning("qx-agents fallback failed after timeout: %s", fallback_error)
-            return synthesize_report(intent, model, shim_url, proxy_url, min_chars=4500, min_urls=5)
+            if fallback_enabled():
+                return synthesize_report(intent, model, shim_url, proxy_url, min_chars=4500, min_urls=5)
+            return error_stub(
+                "qx-agents", "native", f"native qx timed out after {effective_timeout_s}s"
+            )
     except Exception as e:
         logger.exception("qx-agents runner error")
-        return synthesize_report(intent, model, shim_url, proxy_url, min_chars=4500, min_urls=5)
+        if fallback_enabled():
+            return synthesize_report(intent, model, shim_url, proxy_url, min_chars=4500, min_urls=5)
+        return error_stub("qx-agents", "native", f"{type(e).__name__}: {e}")
     finally:
         # Clean up
         await adapter.stop()

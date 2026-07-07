@@ -300,13 +300,21 @@ QUERY = {intent_repr}
 async def _go():
     r = GPTResearcher(query=QUERY, report_type="research_report", tone="objective")
     await r.conduct_research()
-    # Fairness fix (verify on a live sandbox): gpt-researcher's vector-store
-    # writer drops the verbatim retrieved URLs, so the LLM regenerates
-    # citations from its prior and invents sequential placeholders like
-    # /products/1. Other runners (camel) keep the raw URLs in context and
-    # cite them verbatim. Feed gpt-researcher the same real URL list so it
-    # cites real pages instead of fabricating. Defensive: if the API differs,
-    # this no-ops and behaviour is unchanged.
+    # Grounding diagnostic ONLY, no harness compensation. We proved (box
+    # smoke8c, gpt-researcher 0.12.3) that the framework already threads every
+    # scraped source URL into the writer's context as "Source: <url>"
+    # (context/compression.py) and its report prompt MANDATES citing them
+    # verbatim (prompts.py reference_prompt, report_source=web). So there is
+    # nothing for the adapter to re-inject: a working retriever plus a capable
+    # model is all it takes. An earlier revision here tried to append a curated
+    # retrieved-URL block to the prompt and to mutate r.query after
+    # construction; BOTH were dead code (the writer takes no prompt-override
+    # keyword, and ReportGenerator snapshots r.query at __init__ so a later
+    # mutation never reaches the prompt) AND, had they worked, they would have
+    # written citations on the framework's behalf, i.e. a fairness violation. We
+    # only READ the visited URLs to report how many sandbox origins the
+    # framework surfaced; whether the model then cites them is the
+    # framework-plus-model's job, not ours.
     _urls = []
     for _attr in ('visited_urls', 'research_sources', 'source_urls'):
         try:
@@ -319,27 +327,14 @@ async def _go():
                     break
         except Exception:
             pass
-    # Grounding diagnostic (printed OUTSIDE the report sentinels so it never
-    # pollutes the captured report). Surfaces whether the retriever actually
-    # fed the model any sandbox URLs; the parent parses this to log a warning
-    # when retrieved=0 or localhost=0 (the "reach 0" failure mode).
+    # Printed OUTSIDE the report sentinels so it never pollutes the captured
+    # report. Surfaces whether the retriever actually fed the framework any
+    # sandbox URLs; the parent parses this to log a warning when retrieved=0 or
+    # localhost=0 (the "reach 0" failure mode). retrieved>0 & localhost>0 with a
+    # report that still cites public URLs is a MODEL fabrication, documented and
+    # attributed to the model, never patched over by the harness.
     _local = [u for u in _urls if ('localhost' in u) or ('127.0.0.1' in u)]
     print({_DIAG_MARK!r} + ' retrieved=%d localhost=%d' % (len(_urls), len(_local)))
-    if _urls:
-        _block = chr(10).join('- ' + u for u in sorted(set(_urls))[:120])
-        _appendix = (chr(10) + chr(10) + 'CITE ONLY FROM THESE VERBATIM RETRIEVED URLS '
-                     '(copy each exactly; do NOT invent, renumber, or guess URLs):'
-                     + chr(10) + _block)
-        try:
-            r.query = QUERY + _appendix
-        except Exception:
-            pass
-        try:
-            return await r.write_report(custom_prompt=_appendix)
-        except TypeError:
-            pass
-        except Exception:
-            pass
     return await r.write_report()
 
 try:

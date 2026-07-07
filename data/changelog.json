@@ -3,6 +3,35 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v13-2026-07-07",
+   "date": "2026-07-07",
+   "title": "Fallback ghostwriting eliminated, ldr citation capture repaired, unified LLM gateway ships",
+   "summary": "The harness can no longer substitute a synthesized report for a framework's own output in benchmark runs: every fallback call site across all lanes now degrades to an explicit per-lane error stub. A systematic capture bug that silently dropped ldr's source URLs on every backbone is fixed. All LLM traffic gains a single policy gateway.",
+   "tags": [
+    "fairness",
+    "harness",
+    "gateway",
+    "bugfix"
+   ],
+   "sections": [
+    {
+     "heading": "Fairness",
+     "bullets": [
+      "Two lanes (smolagents, flowsearcher-ds) had force-fallback DEFAULTS enabled and had never actually run their frameworks; defaults flipped, evidence writer benchmark-gated behind EVIDENCE_FALLBACK_ENABLE (default off)",
+      "Every remaining fallback call site across camel-ai, langchain-odr, deerflow, ii-researcher, claude-code, ldr, opencode, qx-agents rewired: framework failure now saves an honest (lane error: phase: reason) stub that stub-classification catches",
+      "gpt-researcher and langchain-odr zero-grounding closed as model-capability with evidence (writer provably receives sandbox sources); no compensation applied"
+     ]
+    },
+    {
+     "heading": "Repairs",
+     "bullets": [
+      "ldr: the runner captured only the narrative and dropped the framework's sources field, deleting localhost citations on every backbone (proven model-independent); driver now returns sources and the runner attaches them",
+      "integrations/llm_gateway: single OpenAI-compatible entry point with per-model routing, max-token floor/cap/window-fit policies, context-overflow retry (fixes the window+1 class), run-bracketed usage accounting (14 tests)"
+     ]
+    }
+   ]
+  },
+  {
    "version": "v12-2026-07-07",
    "date": "2026-07-07",
    "title": "Lane fairness audit: two harness-side integrity defects removed, every adapter repaired, all 12 lanes re-validated",

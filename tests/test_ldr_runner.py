@@ -89,6 +89,103 @@ def test_extract_report_missing_sentinels_returns_empty() -> None:
     assert ldr._extract_report("no sentinels here") == ""
 
 
+# ---------------------------------------------------------------------------
+# Source-capture fix: LDR returns its retrieved URL table in the sibling
+# `sources` field (all_links_of_system); the narrative in `summary` cites those
+# sources by bracketed [N] only. The old capture read just `summary`, dropping
+# every localhost URL regardless of backbone. The driver now also emits the
+# sources list, and the parent re-attaches it -- faithful capture, not
+# fabricated grounding.
+# ---------------------------------------------------------------------------
+
+def test_driver_emits_sources_block() -> None:
+    """The generated driver must serialize LDR's `sources` field between the
+    sources sentinels so the parent can resolve [N] citations to real URLs.
+    """
+    drv = ldr._build_driver_script(
+        "task", "http://localhost:8081", "http://localhost:8088/v1", "qwen3-8b"
+    )
+    import ast as _ast
+    _ast.parse(drv)
+    assert ldr._SOURCES_START in drv
+    assert ldr._SOURCES_END in drv
+    # It must read LDR's own sources field, not synthesize links.
+    assert 'result.get("sources")' in drv
+
+
+def test_extract_sources_roundtrip() -> None:
+    import json
+    payload = [
+        {"title": "HD681 review", "link": "http://localhost:9999/f/headphones/1", "index": "1"},
+        {"title": "HD800S review", "url": "http://localhost:9999/f/headphones/2", "index": "2"},
+    ]
+    stdout = (
+        f"{ldr._REPORT_START}\nbody\n{ldr._REPORT_END}\n"
+        f"{ldr._SOURCES_START}\n{json.dumps(payload)}\n{ldr._SOURCES_END}\n"
+    )
+    assert ldr._extract_sources(stdout) == payload
+
+
+def test_extract_sources_missing_or_bad_returns_empty() -> None:
+    assert ldr._extract_sources("no sentinels") == []
+    bad = f"{ldr._SOURCES_START}\nnot json\n{ldr._SOURCES_END}"
+    assert ldr._extract_sources(bad) == []
+
+
+def test_attach_sources_appends_localhost_urls() -> None:
+    """A narrative that cites [1]/[2] but carries zero URLs gets LDR's own
+    localhost source table appended, resolving the bracketed citations.
+    """
+    report = "# Headphones\n\nOver-ear seal analysis citing [1] and [2].\n\n### References\n\n[1] HD681 review – partial.\n[2] HD800S review – critical."
+    sources = [
+        {"title": "HD681 review", "link": "http://localhost:9999/f/headphones/126745", "index": "1"},
+        {"title": "HD800S review", "url": "http://localhost:9999/f/headphones/126762", "index": "2"},
+    ]
+    out = ldr._attach_sources(report, sources)
+    assert "### Sources" in out
+    assert "http://localhost:9999/f/headphones/126745" in out
+    assert "http://localhost:9999/f/headphones/126762" in out
+    assert "[1] HD681 review" in out
+    assert "[2] HD800S review" in out
+
+
+def test_attach_sources_noop_when_no_sources() -> None:
+    report = "# Report\n\nBody with no URLs."
+    assert ldr._attach_sources(report, []) == report
+    assert ldr._attach_sources(report, None) == report
+
+
+def test_attach_sources_noop_when_report_already_has_localhost() -> None:
+    """If the model already inlined sandbox URLs, do not duplicate the table."""
+    report = "See http://localhost:9999/f/headphones/1 for details [1]."
+    sources = [{"title": "x", "url": "http://localhost:9999/f/headphones/1", "index": "1"}]
+    assert ldr._attach_sources(report, sources) == report
+
+
+def test_attach_sources_dedupes_and_skips_urlless_entries() -> None:
+    report = "Body citing [1] [2] with no URLs."
+    sources = [
+        {"title": "dup", "url": "http://localhost:9999/f/a/1", "index": "1"},
+        {"title": "dup again", "url": "http://localhost:9999/f/a/1", "index": "1"},
+        {"title": "no url entry", "index": "2"},
+        {"title": "second", "link": "http://localhost:8090/content/x", "index": "3"},
+    ]
+    out = ldr._attach_sources(report, sources)
+    assert out.count("http://localhost:9999/f/a/1") == 1
+    assert "http://localhost:8090/content/x" in out
+    # The url-less entry contributes no line.
+    assert "no url entry" not in out
+
+
+def test_attach_sources_invented_urls_never_appear() -> None:
+    """Fairness guard: only LDR-provided URLs are attached; the function never
+    manufactures a URL for a source that lacks one.
+    """
+    report = "Body [1]."
+    sources = [{"title": "sourceless", "index": "1"}]
+    assert ldr._attach_sources(report, sources) == report
+
+
 def test_is_failed_report_true_for_genuine_failures() -> None:
     assert ldr._is_failed_report("") is True
     assert ldr._is_failed_report("   ") is True

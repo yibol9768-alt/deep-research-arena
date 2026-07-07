@@ -67,7 +67,12 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import dspy
 import requests
 
-from .evidence_fallback import is_weak_report, synthesize_report
+from .evidence_fallback import (
+    error_stub,
+    fallback_enabled,
+    is_weak_report,
+    synthesize_report,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -677,6 +682,22 @@ async def run(
     os.makedirs(scratch_dir, exist_ok=True)
     scratch_path = Path(scratch_dir)
 
+    def _degrade(phase: str, reason: str) -> str:
+        # Fairness rule: a STORM failure or weak native article must surface as
+        # STORM's own output (an honest error stub), never a harness-ghostwritten
+        # report. The source-grounded evidence writer runs only under the explicit
+        # non-benchmark EVIDENCE_FALLBACK_ENABLE flag.
+        if fallback_enabled():
+            return synthesize_report(
+                intent,
+                model,
+                shim_url,
+                proxy_url,
+                min_chars=4500,
+                min_urls=5,
+            )
+        return error_stub("storm", phase, reason)
+
     try:
         ctx = mp.get_context("fork")
         out_q = ctx.Queue(maxsize=1)
@@ -688,20 +709,13 @@ async def run(
         proc.start()
         proc.join(_native_timeout())
         if proc.is_alive():
-            logger.warning("storm native path exceeded %ss; using source-grounded writer", _native_timeout())
+            logger.warning("storm native path exceeded %ss; recording honest failure", _native_timeout())
             proc.terminate()
             proc.join(5)
             if proc.is_alive():
                 proc.kill()
                 proc.join(5)
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            return _degrade("native", f"native path exceeded {_native_timeout()}s timeout")
 
         payload = None
         try:
@@ -709,36 +723,15 @@ async def run(
         except Exception:
             pass
         if not payload:
-            logger.warning("storm native path exited without payload; using source-grounded writer")
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            logger.warning("storm native path exited without payload; recording honest failure")
+            return _degrade("native", "native path exited without payload")
         if not payload.get("ok"):
             logger.warning("storm native path failed: %s", payload.get("error"))
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            return _degrade("native", str(payload.get("error") or "native path failed"))
         report = str(payload.get("report") or "").strip()
         if is_weak_report(report, min_chars=3000, min_urls=3):
-            logger.warning("storm native report weak/empty; using source-grounded writer")
-            return synthesize_report(
-                intent,
-                model,
-                shim_url,
-                proxy_url,
-                min_chars=4500,
-                min_urls=5,
-            )
+            logger.warning("storm native report weak/empty; recording honest failure")
+            return _degrade("write", "native article under length/URL threshold")
         return report
     finally:
         shutil.rmtree(scratch_dir, ignore_errors=True)
