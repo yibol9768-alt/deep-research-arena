@@ -314,7 +314,11 @@ def test_output_states_actual_additive_formula(synth, monkeypatch):
     s = res["summary"]
     assert "curated" in s["composite_formula"].lower()
     assert "quote_match" in s["composite_formula"].lower()
-    assert "f1" not in s["composite_formula"].lower()
+    # The primary formula is the closed-world composite (which legitimately
+    # names GroundF1@K); the legacy fallback half must stay additive and its
+    # description must keep disclaiming F1 for the fallback path.
+    assert "reachrate^gamma" in s["composite_formula"].lower()
+    assert "legacy fallback: 0.5 * curated_must_cite_recall" in s["composite_formula"].lower()
     assert "additive" in s["grounding_description"].lower()
     assert "not an f1" in s["grounding_description"].lower()
 
