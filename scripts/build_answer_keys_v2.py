@@ -20,7 +20,9 @@ assembles an AnswerKey from the cluster's box-derived data:
                    data/golden/contradictions/*.gold.json by cluster match
                    (registry T4 honesty contract: the builder itself never
                    invents gold; it only reads what the adjudication
-                   pipeline promoted). decidable_verdicts stay EMPTY.
+                   pipeline promoted). decidable_verdicts follow the same
+                   contract, attached from data/golden/verdicts/*.gold.json by
+                   task_id; they stay EMPTY until such gold is promoted.
 
 Deterministic and offline: no model, no HTTP. Rerunnable any time the cluster
 dumps refresh.
@@ -45,6 +47,8 @@ from src.eval.checklist_gen import generate as gen_checklist  # noqa: E402
 TRI = ROOT / "data/golden/tri_source"
 KEYS_OUT = ROOT / "data/golden/answer_keys"
 CONTRA_DIR = ROOT / "data/golden/contradictions"
+VERDICTS_DIR = ROOT / "data/golden/verdicts"
+ALLOWED_VERDICT_VALUES = {"SUPPORTED", "REFUTED", "UNDETERMINED"}
 
 
 def load_adjudicated_gold() -> dict[str, list]:
@@ -82,6 +86,31 @@ def load_adjudicated_gold() -> dict[str, list]:
                 if cl:
                     by_cluster.setdefault(cl, []).append(entry)
     return by_cluster
+
+
+def load_adjudicated_verdicts(verdicts_dir: Path = VERDICTS_DIR) -> dict[str, dict]:
+    """task_id -> {claim_id: verdict}. Reads data/golden/verdicts/*.gold.json
+    only (what the verdict adjudication pipeline promoted), same honesty
+    contract as load_adjudicated_gold: an entry enters a key only when a
+    human / strong-model adjudicator has filled a valid verdict AND signed it.
+    A missing dir or no gold files yields {}, so keys stay verdict-free until
+    adjudication happens."""
+    by_task: dict[str, dict] = {}
+    if not verdicts_dir.exists():
+        return by_task
+    for path in sorted(verdicts_dir.glob("*.gold.json")):
+        doc = json.loads(path.read_text())
+        for it in doc.get("gold_verdicts", []):
+            cid = it.get("id")
+            tid = it.get("task_id")
+            verdict = (it.get("adjudicated_verdict") or "").strip()
+            adjudicator = (it.get("adjudicator") or "").strip()
+            if not (cid and tid and adjudicator):
+                continue
+            if verdict not in ALLOWED_VERDICT_VALUES:
+                continue
+            by_task.setdefault(tid, {})[cid] = verdict
+    return by_task
 
 N_VITAL_SENT = 12      # top sentiment products as vital nuggets
 N_USEFUL_SENT = 20     # next tier as useful
@@ -241,7 +270,9 @@ def main() -> int:
     CHECK_OUT.mkdir(parents=True, exist_ok=True)
     cache: dict[str, tuple] = {}
     gold_by_cluster = load_adjudicated_gold()
+    verdicts_by_task = load_adjudicated_verdicts()
     n_gold_attached = 0
+    n_verdicts_attached = 0
     n = 0
     for tid, spec in sorted(specs.items()):
         cl = spec["cluster"]
@@ -251,6 +282,8 @@ def main() -> int:
         ak = build_key(tid, spec, products, sent)
         ak.gold_contradictions = gold_by_cluster.get(cl, [])
         n_gold_attached += len(ak.gold_contradictions)
+        ak.decidable_verdicts = verdicts_by_task.get(tid, {})
+        n_verdicts_attached += len(ak.decidable_verdicts)
         ak.save(KEYS_OUT / f"{tid}.json")
         items = gen_checklist(ak)
         (CHECK_OUT / f"{tid}.json").write_text(json.dumps(
@@ -259,7 +292,8 @@ def main() -> int:
             ensure_ascii=False, indent=1) + "\n")
         n += 1
     print(f"built {n} answer keys -> {KEYS_OUT} (+ checklists -> {CHECK_OUT}); "
-          f"{n_gold_attached} adjudicated gold-contradiction attachments")
+          f"{n_gold_attached} adjudicated gold-contradiction attachments; "
+          f"{n_verdicts_attached} adjudicated decidable-verdict attachments")
     return 0
 
 

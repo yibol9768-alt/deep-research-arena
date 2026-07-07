@@ -40,6 +40,34 @@ AXES = ("grounding_reach", "grounding_proof_of_fetch",
         "correctness_fact_support", "completeness", "spec")
 
 
+def _load_lane_info(manifest_path: Path) -> dict[str, dict]:
+    """Derive per-agent lane-failure accounting from an extraction manifest.
+
+    A lane fails when the runs that never produced a real report (stub reports
+    plus runs missing versus the fullest lane) exceed half of that lane's total
+    runs. ``n_runs_total`` is the agent's own attempted-run count; ``n_missing``
+    counts tasks it never even recorded, measured against the most complete
+    lane in the manifest. Neither number touches the truth score: it only tells
+    the board that a 0.0 (or an absent agent) is a broken pipe, not a real zero.
+    """
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    agents = manifest.get("agents", {})
+    expected = max((a.get("n_records", 0) for a in agents.values()), default=0)
+    info: dict[str, dict] = {}
+    for agent, a in agents.items():
+        n_records = a.get("n_records", 0)
+        n_stub = sum(a.get("n_stubs_by_class", {}).values())
+        n_missing = max(0, expected - n_records)
+        lane_failed = (n_stub + n_missing) > (n_records / 2) if n_records else True
+        info[agent] = {
+            "n_runs_total": n_records,
+            "n_stub_reports": n_stub,
+            "n_missing_runs": n_missing,
+            "lane_failed": lane_failed,
+        }
+    return info
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--reports-dir", required=True,
@@ -48,6 +76,10 @@ def main() -> int:
     ap.add_argument("--cache", default=None, help="sandbox page cache json")
     ap.add_argument("--panel", default=None,
                     help="presentation panel results json: {agent: score}")
+    ap.add_argument("--manifest", default=None,
+                    help="extraction_manifest.json from extract_unified_reports.py; "
+                         "surfaces lane failures instead of letting a broken "
+                         "lane silently vanish or read as a real 0.0")
     ap.add_argument("--gamma", type=float, default=ds.GAMMA_DEFAULT)
     ap.add_argument("--tie-eps", type=float, default=0.005)
     ap.add_argument("--out", default=None)
@@ -114,6 +146,37 @@ def main() -> int:
     for k, r in enumerate(rows, 1):
         r["rank"] = k
 
+    lane_info = _load_lane_info(Path(args.manifest)) if args.manifest else {}
+    if lane_info:
+        scored_agents = {r["agent"] for r in rows}
+        for r in rows:
+            li = lane_info.get(r["agent"])
+            if li:
+                r.update(li)
+        # A lane whose every run was a stub (or missing) produces no report file
+        # for the board to score, so it would silently disappear. Keep it in,
+        # flagged, so the failure is visible rather than absent. Placeholders are
+        # ranked after every scored agent and carry no truth signal.
+        next_rank = len(rows) + 1
+        for agent in sorted(lane_info):
+            li = lane_info[agent]
+            if agent in scored_agents or not li["lane_failed"]:
+                continue
+            placeholder = {
+                "agent": agent,
+                "n_tasks": 0,
+                "truth_macro": 0.0,
+                "truth_micro": 0.0,
+                "min_report_truth": 0.0,
+                "axes_mean": {a: 0.0 for a in AXES},
+                "presentation": panel.get(agent),
+                "per_task": {},
+                "rank": next_rank,
+            }
+            placeholder.update(li)
+            rows.append(placeholder)
+            next_rank += 1
+
     board = {
         "board": "truth_v2",
         "composition": ("truth = reach^gamma * (0.35 fact + 0.25 pof + "
@@ -130,9 +193,13 @@ def main() -> int:
         print(f"wrote {args.out}")
     for r in rows:
         pres = r["presentation"]
+        suffix = ""
+        if r.get("lane_failed"):
+            suffix = (f"  [LANE FAILED {r.get('n_stub_reports', 0)}/"
+                      f"{r.get('n_runs_total', 0)} runs]")
         print(f"#{r['rank']} {r['agent']:20s} truth={r['truth_macro']:.4f} "
               f"min={r['min_report_truth']:.4f} n={r['n_tasks']} "
-              f"pres={pres if pres is not None else '-'}")
+              f"pres={pres if pres is not None else '-'}{suffix}")
     return 0
 
 

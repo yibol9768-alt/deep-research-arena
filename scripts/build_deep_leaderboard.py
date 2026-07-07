@@ -54,28 +54,12 @@ SCORE_RE = re.compile(r"^(.+?)__([a-z0-9_]+_\d+)_(\w+)\.score\.json$")
 
 
 _DEGENERATE_PREFIXES = ("(empty ", "(runner error", "(error", "(timeout", "(no output", "(qx-agents produced no report")
-# Runner-failure placeholder pattern: e.g.
-#   "(DeerFlow produced no report after 1256s, exit=1)"
-#   "(STORM produced no report after 600s, exit=137)"
-# These mean the agent crashed; any markdown that follows is stdout-tail
-# noise, not a real research report. Without this filter, the scorer happily
-# extracts URLs and checklist passes from the stdout dump, producing a
-# composite_v2 ~0.02-0.05 that pollutes Elo with phantom failures.
-_RUNNER_FAILURE_PREFIX_RE = re.compile(
-    r"^\(\s*[A-Za-z][\w\- ]*\s+produced no report\s+after\s+\d+\s*s\s*,\s*exit\s*=\s*\d+\s*\)",
-    re.IGNORECASE,
-)
-# A second class of runner-error placeholder produced by qx-agents (and
-# friends) when the framework itself raises a Python exception mid-run.
-# Examples:
-#   "(qx-agents error: ValidationError: 2 validation errors for KnowledgeGapOutput..."
-#   "(qx-agents error: IndexError: list index out of range)"
-#   "(qx stderr: Traceback (most recent call last):..."
-# Some of these escape the chars<600 filter because they include a long
-# Python traceback. Drop them.
-_RUNNER_EXCEPTION_PREFIX_RE = re.compile(
-    r"^\(\s*[A-Za-z][\w\- ]*\s+(error|stderr)\s*:",
-    re.IGNORECASE,
+# Runner-failure placeholder patterns now live in src/eval/report_stubs.py so
+# the leaderboard, the truth-board extractor, and the tests all share one
+# definition. Re-exported here (same names) so existing imports keep working.
+from src.eval.report_stubs import (  # noqa: E402
+    _RUNNER_FAILURE_PREFIX_RE,
+    _RUNNER_EXCEPTION_PREFIX_RE,
 )
 
 

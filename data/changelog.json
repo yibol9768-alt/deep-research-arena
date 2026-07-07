@@ -3,6 +3,40 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v11-2026-07-06",
+   "date": "2026-07-06",
+   "title": "Scorer hardening: fact-claim extraction fix, PoF/gamma calibration, lane-failure honesty, weight-sensitivity analysis",
+   "summary": "Numbers inside citation link labels no longer become fact claims; the proof-of-fetch threshold and reach-gate exponent now ship with a reproducible calibration artifact; broken evaluation lanes are surfaced as lane_failed instead of masquerading as real zeros; ranking stability under scoring-weight perturbation is published.",
+   "tags": [
+    "scoring",
+    "grounding",
+    "calibration",
+    "tooling"
+   ],
+   "sections": [
+    {
+     "heading": "Fact axis",
+     "bullets": [
+      "Standalone numbers inside a [label](url) link label are subject identity, not claim values: a correct price sentence citing a product named '... (Pack of 3)' no longer generates a phantom contradicted claim (regression tests added)"
+     ]
+    },
+    {
+     "heading": "Calibration",
+     "bullets": [
+      "calibrate_pof_gamma.py: 320 verbatim positives, 320 fabricated/cross-page negatives, 120 paraphrase side-class from real sandbox snapshots; threshold 0.35 confirmed (TPR 100%, FPR 0% fabricated / 0.63% cross-page); gamma=1.5 monotonic under fabrication injection at every tested rate; artifact byte-reproducible with a fixed seed",
+      "analyze_weight_sensitivity.py: quality-weight convention tested with 2000 Dirichlet draws on the diagnostic partial run; 91.6% identical full ranking, top-2 stable in 100%, equal weights reproduce the baseline ranking"
+     ]
+    },
+    {
+     "heading": "Lane honesty",
+     "bullets": [
+      "report_stubs.py centralizes runner-failure stub detection; extract_unified_reports.py + build_truth_board --manifest mark agents whose runs are mostly stubs as lane_failed (Qwen3-8B partial run: 185 of 592 records were stubs)",
+      "Verdict pipeline plumbing: candidate miner + adjudication template (83 candidates), gold loader accepts only adjudicated *.gold.json; nothing auto-promotes"
+     ]
+    }
+   ]
+  },
+  {
    "version": "v10-2026-07-06",
    "date": "2026-07-06",
    "title": "Scorer fix: kiwix no-namespace citations no longer count as fabrication",

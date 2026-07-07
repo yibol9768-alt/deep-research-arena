@@ -55,12 +55,24 @@ from dataclasses import dataclass, field
 # Tunables (defaults; see each docstring for the calibration story)
 # ---------------------------------------------------------------------------
 
-GAMMA_DEFAULT = 1.5      # grounding gate exponent; calibrate EXTERNALLY (M-H3)
+GAMMA_DEFAULT = 1.5      # grounding gate exponent, calibrated EXTERNALLY on an
+                         # injected-fabrication series (M-H3): data/results/
+                         # pof_gamma_calibration.json. Truth is monotone
+                         # non-increasing in the fabrication rate at every tested
+                         # gamma; 1.5 gives clean-vs-50% mean separation 0.042
+                         # and is not dominated (no gamma beats it on BOTH
+                         # separation and monotonicity), so it is retained.
 EPS_FLOOR = 0.05         # per-axis floor on the quality axes only (M-H5)
 K_F_DEFAULT = 10         # fact-volume saturation constant (M-C3)
 K_STAR_DEFAULT = 20      # completeness saturation constant (T1)
-POF_THRESHOLD_DEFAULT = 0.35  # provisional; calibration against a
-                              # fabricated-quote negative set is pending (G-F1)
+POF_THRESHOLD_DEFAULT = 0.35  # calibrated (G-F1): data/results/
+                              # pof_gamma_calibration.json. Operating point on
+                              # 320 verbatim positives + 160 fabricated-quote +
+                              # 160 cross-page negatives: TPR=1.000, FPR=0.000
+                              # (fabricated) / 0.006 (cross-page). The verbatim
+                              # span requirement separates the classes on its
+                              # own, so TPR/FPR are flat over the whole 0.15-0.60
+                              # grid; 0.35 sits mid-plateau, kept as the incumbent.
 BIND_WINDOW = 40         # subject<->value binding window, chars (M-H2/G-F6)
 
 QUALITY_WEIGHTS = {
@@ -72,6 +84,14 @@ QUALITY_WEIGHTS = {
 
 LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
 BARE_URL_RE = re.compile(r"https?://\S+")
+
+# Standalone digit runs inside a [label](url) are part of the subject's
+# identity (pack counts, size tokens like "36 Ounce", "(Pack of 3)"), never
+# claim VALUES. Mask them before value extraction so a price cue near the label
+# tail cannot turn a name number into a phantom price/rating claim. Mirrors the
+# slug-token exclusion in proof-of-fetch context. Alphanumeric model tokens
+# ("wh-1000xm4", "e45bt") keep their digits: only fully standalone runs match.
+_LABEL_NUM_RE = re.compile(r"(?<![A-Za-z0-9])\d+(?:\.\d+)?(?![A-Za-z0-9])")
 TAG_RE = re.compile(r"<[^>]+>")
 WS_RE = re.compile(r"\s+")
 
@@ -475,8 +495,12 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
     (the span requirement kills bag-of-words gaming: pasting a product name
     plus topic words no longer passes).
 
-    threshold=0.35 is provisional: calibration against a fabricated-quote
-    negative set is pending (G-F1)."""
+    threshold=0.35 is calibrated (G-F1) in data/results/
+    pof_gamma_calibration.json (scripts/calibrate_pof_gamma.py): on 320 verbatim
+    positives + 160 fabricated-quote + 160 cross-page negatives it holds
+    TPR=1.000 at FPR=0.000 (fabricated) / 0.006 (cross-page). The span
+    requirement carries the separation, so the operating point is flat over the
+    0.15-0.60 grid and 0.35 is retained mid-plateau."""
     stats = page_stats if page_stats is not None else build_page_stats(cache)
     df, chrome = stats.get("df"), stats.get("chrome", set(CHROME_FALLBACK))
 
@@ -636,8 +660,11 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
                        if u.rstrip(".,;").rsplit("/", 1)[-1]
                              .removesuffix(".html").lower() in slug_key}
         forced_key = next(iter(linked_keys)) if len(linked_keys) == 1 else None
-        # strip URLs from the prose: slug tokens must not act as subjects
-        low = norm(BARE_URL_RE.sub(" ", LINK_RE.sub(lambda m: m.group(1), sent)))
+        # strip URLs from the prose: slug tokens must not act as subjects.
+        # Label words stay for subject identity, but their standalone numbers
+        # are masked so name digits never extract as claim values (G-F6 tail).
+        low = norm(BARE_URL_RE.sub(
+            " ", LINK_RE.sub(lambda m: _LABEL_NUM_RE.sub(" ", m.group(1)), sent)))
         if not low:
             continue
         subs: dict[str, tuple] = {}
