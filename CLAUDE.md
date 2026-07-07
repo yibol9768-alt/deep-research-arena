@@ -42,5 +42,7 @@ Workflow for any update:
 Skipping the changelog step is not acceptable, even for small fixes. The
 `/changelog` page is the user-facing record of every shipped change.
 
-For the broader project status and roadmap, see `docs/PROJECT_STATUS_2026-06-09.md`
-and `docs/FULL_PROJECT_ROADMAP.md`.
+For the broader project status and roadmap, see
+`internal/docs/PROJECT_STATUS_2026-06-09.md` and
+`internal/docs/FULL_PROJECT_ROADMAP.md`. These are maintainer-local notes:
+`internal/` is gitignored and is not part of the public repository.

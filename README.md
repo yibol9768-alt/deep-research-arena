@@ -155,7 +155,7 @@ gated_score = round( judge_Elo * (reachability% + quote%) / 200 )
 - **judge Elo**: a 3-judge PoLL jury (deepseek-v4-flash, qwen3-max, glm-5), position-debiased, Bradley-Terry with bootstrap CIs. Measures "reads well".
 - **grounding gate**: `reachability%` (cited sandbox URLs that resolve to HTTP 200) and `quote%` (quoted text actually present on the cited page), computed without any judge API. Measures "stands up".
 
-Why this matters: judge preference and citation grounding are decoupled. A model the judges love can cite sources that mostly do not resolve. The gate keeps unsupported polish from dominating the ranking. The exact verifier and Elo formulas are in `src/verifiers/` and `src/scoring/bradley_terry.py`; the decoupling finding is in `docs/FINDINGS_2026-06-09.md`.
+Why this matters: judge preference and citation grounding are decoupled. A model the judges love can cite sources that mostly do not resolve. The gate keeps unsupported polish from dominating the ranking. The exact verifier and Elo formulas are in `src/verifiers/` and `src/scoring/bradley_terry.py`; the scoring methodology and its validation record are in [`docs/EVAL_FACTSHEET.md`](docs/EVAL_FACTSHEET.md).
 
 ---
 
@@ -175,7 +175,7 @@ Why this matters: judge preference and citation grounding are decoupled. A model
 
 **Backbone-LLM board** (`/models`): 8 vendor LLMs run on the same minimal scaffold, varying only the base model, over 24 tasks and 643 battles.
 
-> Honest caveat: the live 12-agent framework board is currently about 40.5% single-juror (the later claude-code and opencode battles were judged when the judge accounts were nearly out of funds). A clean 3-judge re-judge is pending judge-API funding. See `docs/PROJECT_STATUS_2026-06-09.md`.
+> Honest caveat: the live 12-agent framework board is currently about 40.5% single-juror (the later claude-code and opencode battles were judged when the judge accounts were nearly out of funds). A clean 3-judge re-judge is pending judge-API funding; progress is tracked on the site's [`/changelog`](https://www.deepresearcharena.com/changelog).
 
 ---
 
@@ -269,4 +269,4 @@ Hard rule: every meaningful change must be logged in `data/changelog.json` (rend
 
 ## 11. Status and limitations
 
-`docs/PROJECT_STATUS_2026-06-09.md` is the authoritative, file-verified status: what is done, what remains (more scorable tasks, full reproducibility, real human-alignment kappa labels), and the current honest caveats. `docs/FULL_PROJECT_ROADMAP.md` holds the phased plan.
+[`docs/EVAL_FACTSHEET.md`](docs/EVAL_FACTSHEET.md) records what has been validated and what has not; [`docs/DATASHEET.md`](docs/DATASHEET.md) documents the dataset; [`docs/EVAL_SET_REMEDIATION.md`](docs/EVAL_SET_REMEDIATION.md) logs the eval-set cleanup. Known open items (more scorable tasks, full reproducibility, real human-alignment kappa labels) are tracked on the site's [`/changelog`](https://www.deepresearcharena.com/changelog).

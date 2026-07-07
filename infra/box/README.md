@@ -50,5 +50,5 @@ Jury / scoring run drivers:
 - `run_cc_batch.sh`, `run_oc_batch.sh`, `run_eff*.sh`, `run_dsq.sh` — per-agent /
   per-backbone batch runners.
 
-The note in the repo-root `docs/PROJECT_STATUS_2026-06-09.md` (section 6) tracks
-which of these still depend on a live box or a funded judge API.
+Which of these still depend on a live box or a funded judge API is tracked in
+the maintainers' local status notes (untracked `internal/` directory).

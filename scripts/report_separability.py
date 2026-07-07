@@ -183,7 +183,8 @@ def _render_markdown(
     )
     lines.append("")
     lines.append(
-        "See `docs/SEPARABILITY_PLAN.md` for the staged validation protocol."
+        "See `internal/docs/SEPARABILITY_PLAN.md` (maintainer-local, untracked) "
+        "for the staged validation protocol."
     )
     lines.append("")
     return "\n".join(lines)

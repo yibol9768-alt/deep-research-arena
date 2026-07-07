@@ -7,7 +7,8 @@ This replaces the synthetic placeholder produced by
 top). NOTHING here is synthesized: if an agent has no real report files it is
 SKIPPED and logged, never invented.
 
-Two orthogonal numbers per the redesign (docs/SCORING_REDESIGN.md), plus a gate:
+Two orthogonal numbers per the 2026-06 scoring redesign (see
+docs/EVAL_FACTSHEET.md), plus a gate:
 
   GROUNDING (deterministic, from stored pillars / simple_score)
     Per (agent, task) we read the real ``*.score.json`` and compute a grounding
