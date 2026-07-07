@@ -407,6 +407,42 @@ def _extract_diag(stdout: str) -> str:
     return ""
 
 
+def _summarize_shim_activity(stderr: str) -> tuple[int, int, int]:
+    """Parse the bound retriever's ``[gptr-shim]`` breadcrumbs from stderr.
+
+    Returns ``(n_search, n_hits, n_failed)``:
+      - ``n_search``  number of search POSTs the bound ``_ShimTavilyRetriever``
+        physically issued to the sandbox shim (one per ``[gptr-shim] search
+        q=... -> N hits`` line),
+      - ``n_hits``    total results the shim returned across those POSTs,
+      - ``n_failed``  number of searches that raised (shim down / rejected —
+        one per ``[gptr-shim] search FAILED`` line).
+
+    This is the durable fix for the *silent* reach-0 failure: the runner used to
+    log the subprocess stderr only on a non-zero exit, so a run that completed
+    (exit 0) having issued zero shim POSTs — the exact deepseek symptom — left no
+    trace in the lane log. Surfacing these counts on EVERY run makes "the
+    framework never searched through the shim" self-revealing. Pure/string-only
+    so it is unit-testable without the venv. Read-only: it parses breadcrumbs, it
+    never adds or edits report content.
+    """
+    n_search = n_hits = n_failed = 0
+    for line in stderr.splitlines():
+        if "[gptr-shim]" not in line:
+            continue
+        if "search FAILED" in line:
+            n_failed += 1
+        elif "search q=" in line:
+            n_search += 1
+            # Tail shape: "... -> <N> hits"
+            tail = line.rsplit("-> ", 1)
+            if len(tail) == 2:
+                num = tail[1].split(None, 1)[0]
+                if num.isdigit():
+                    n_hits += int(num)
+    return n_search, n_hits, n_failed
+
+
 async def run(
     intent: str,
     model: str,
@@ -507,6 +543,28 @@ async def run(
             logger.error(
                 "gpt-researcher exited %d after %.0fs\nstderr (last 1500): %s",
                 proc.returncode, elapsed, stderr[-1500:],
+            )
+
+        # Surface the bound retriever's per-search shim breadcrumbs into the lane
+        # log on EVERY run, not only failures. This is what closes the *silent*
+        # reach-0 hole: a run could exit 0 having POSTed zero searches to the shim
+        # (the deepseek symptom) and, because stderr was logged only on a non-zero
+        # exit, leave no trace. These counts make "the framework never searched
+        # through the shim" (n_search=0) vs "searched but the shim was down"
+        # (n_failed>0) vs "searched and got sandbox hits" (n_hits>0) explicit.
+        # Read-only: parsed from stderr breadcrumbs, no report content is touched.
+        n_search, n_hits, n_failed = _summarize_shim_activity(stderr)
+        if n_search or n_failed:
+            log_at = logger.warning if (n_failed and not n_hits) else logger.info
+            log_at(
+                "gpt-researcher shim reach: %d search POST(s) -> %d hit(s), "
+                "%d failed (shim=%s)", n_search, n_hits, n_failed, shim_url,
+            )
+        else:
+            logger.warning(
+                "gpt-researcher shim reach: the bound retriever issued NO search "
+                "POSTs (no [gptr-shim] breadcrumbs on stderr) — the framework "
+                "never called search() through the shim (shim=%s)", shim_url,
             )
 
         # Log the grounding diagnostic so the "reach 0" failure is visible in

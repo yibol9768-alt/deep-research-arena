@@ -245,9 +245,35 @@ _CTX_HINT_RE = re.compile(
     r"reduce the length|too long",
     re.IGNORECASE,
 )
-_PROMPT_TOK_RE = re.compile(r"(\d+)\s+in the messages", re.IGNORECASE)
+# vLLM has shipped at least two phrasings of the overflow error:
+#   old:   "... 65537 tokens (65281 in the messages) ..."
+#   0.23:  "... your prompt contains at least 65281 input tokens ...
+#           (parameter=input_tokens, value=65281)"
+# Smoke 2026-07-07 (claude-code lane): the 0.23 phrasing did not match the old
+# single-pattern regex, so the refit-and-retry never fired and the window+1
+# 400 leaked through to the client.
+#
+# Smoke 2026-07-07 (refit proof, ~60k-token prompt): the 0.23 phrasing is a
+# LOWER BOUND, not the true prompt size. vLLM reports input_tokens as exactly
+# window+1-max_tokens (the smallest count that proves overflow), so a
+# margin-step refit re-overflows every time: 8192 -> 400 "at least 57345"
+# -> refit 7935 -> 400 "at least 57602" -> ... Each retry only shrinks
+# max_tokens by margin+1. For that phrasing we additionally halve max_tokens
+# geometrically and retry in a bounded loop (converges in <= log2 steps).
+# The old "(N in the messages)" phrasing reports the true count and keeps the
+# original one-shot margin-step behaviour.
+_PROMPT_TOK_RE = re.compile(
+    r"(?:(\d+)\s+in the messages"
+    r"|prompt contains at least\s+(\d+)\s+input tokens"
+    r"|parameter=input_tokens,\s*value=(\d+))",
+    re.IGNORECASE,
+)
+
+# Bounded refit loop: enough for 8192 -> 8 by halving, with slack.
+_REFIT_MAX_RETRIES = 6
 _MAXLEN_RE = re.compile(
-    r"(?:maximum context length is|max_model_len[\"']?\s*[:=]?\s*)(\d+)", re.IGNORECASE
+    r"(?:maximum context length is|max_model_len[\"']?\s*[:=]?\s*)\s*(\d+)",
+    re.IGNORECASE,
 )
 
 
@@ -261,26 +287,49 @@ def _is_ctx_overflow(content: bytes | None) -> bool:
     return bool(_CTX_HINT_RE.search(text))
 
 
-def _refit_from_error(entry: dict[str, Any], content: bytes | None) -> int | None:
+def _refit_from_error(
+    entry: dict[str, Any], content: bytes | None, cur_max: int | None = None
+) -> int | None:
     """Recompute a safe max_tokens from an upstream context-overflow 400.
 
-    Uses the prompt-token count the upstream actually reported (authoritative,
-    unlike our heuristic), and the window (reported, else registry)."""
+    Uses the prompt-token count the upstream actually reported and the window
+    (reported, else registry). When the count comes from vLLM 0.23's
+    "at least N input tokens" phrasing it is only a lower bound (see comment
+    above _PROMPT_TOK_RE), so we also cap the refit at half the max_tokens
+    that just overflowed; the caller's bounded retry loop then converges
+    geometrically instead of creeping down margin+1 per attempt."""
     if not content:
         return None
     text = content.decode("utf-8", "replace")
     m = _PROMPT_TOK_RE.search(text)
     if not m:
         return None
-    reported_prompt = int(m.group(1))
+    groups = m.groups()
+    reported_prompt = int(next(g for g in groups if g))
+    # groups[0] is the old exact "(N in the messages)" phrasing; groups[1]/[2]
+    # are the 0.23 lower-bound phrasings.
+    reported_is_lower_bound = groups[0] is None
     win_m = _MAXLEN_RE.search(text)
     window = int(win_m.group(1)) if win_m else int(entry.get("context_window") or 0)
     if window <= 0:
         return None
+    # Smoke 2026-07-07: clamping UP to _FIT_MARGIN_MIN re-overflowed when the
+    # prompt (65281) left fewer than 256 tokens of window. Take whatever room
+    # actually remains (minus 1 for the upstream's off-by-one counting); only
+    # give up when nothing usable is left.
+    avail = window - reported_prompt - 1
+    if avail < 8:
+        return None
     margin = int(entry.get("fit_margin") or _FIT_MARGIN_MIN)
     fitted = window - reported_prompt - margin
-    if fitted < _FIT_MARGIN_MIN:
-        fitted = _FIT_MARGIN_MIN
+    if fitted < 1:
+        fitted = avail
+    fitted = min(fitted, avail)
+    if reported_is_lower_bound and cur_max is not None and int(cur_max) > 0:
+        half = int(cur_max) // 2
+        if half < 8:
+            return None  # shrunk to nothing: prompt fills the window
+        fitted = min(fitted, half)
     return fitted
 
 
@@ -313,11 +362,25 @@ def _scan_sse_usage(lines: list[bytes]) -> dict | None:
 app = FastAPI(title="deep-research-arena unified LLM gateway")
 
 _TIMEOUT = httpx.Timeout(
-    connect=15.0,
+    connect=float(os.environ.get("LLMGW_CONNECT_TIMEOUT_S", "15") or "15"),
     read=float(os.environ.get("LLMGW_READ_TIMEOUT_S", "120") or "120"),
     write=30.0,
     pool=10.0,
 )
+
+# Some hosts (WSL boxes with blackholed IPv6 routes) resolve upstreams to IPv6
+# addresses that never connect; getaddrinfo prefers them and each attempt eats
+# the whole connect timeout. LLMGW_FORCE_IPV4=1 binds the local side to an
+# IPv4 address, which pins the socket family to AF_INET, and adds connect-level
+# retries for jittery links.
+_FORCE_IPV4 = os.environ.get("LLMGW_FORCE_IPV4", "") == "1"
+
+
+def _make_async_client() -> httpx.AsyncClient:
+    if _FORCE_IPV4:
+        transport = httpx.AsyncHTTPTransport(local_address="0.0.0.0", retries=2)
+        return httpx.AsyncClient(timeout=_TIMEOUT, transport=transport)
+    return httpx.AsyncClient(timeout=_TIMEOUT)
 
 
 def _auth_headers(entry: dict[str, Any], request: Request) -> dict[str, str]:
@@ -388,17 +451,24 @@ async def _forward(path: str, request: Request) -> Any:
 
 async def _forward_unary(entry, url, headers, body, adjustments) -> Any:
     t0 = time.time()
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+    async with _make_async_client() as client:
         r = await client.post(url, json=body, headers=headers)
 
-        # Resilience: one refit-and-retry on a context-overflow 400. This is
-        # what kills the claude-code window+1 class for good.
-        if r.status_code == 400 and _is_ctx_overflow(r.content):
-            fitted = _refit_from_error(entry, r.content)
-            if fitted is not None and fitted != body.get("max_tokens"):
-                body["max_tokens"] = fitted
-                adjustments = list(adjustments) + ["refit_retry"]
-                r = await client.post(url, json=body, headers=headers)
+        # Resilience: bounded refit-and-retry loop on context-overflow 400s.
+        # This is what kills the claude-code window+1 class for good. A loop
+        # (not retry-once) because vLLM 0.23 reports input_tokens as a lower
+        # bound, so one refit can legitimately re-overflow (see
+        # _refit_from_error); the exact-count phrasing still converges in one
+        # step because the recomputed fit is then a fixed point.
+        for _ in range(_REFIT_MAX_RETRIES):
+            if not (r.status_code == 400 and _is_ctx_overflow(r.content)):
+                break
+            fitted = _refit_from_error(entry, r.content, body.get("max_tokens"))
+            if fitted is None or fitted == body.get("max_tokens"):
+                break
+            body["max_tokens"] = fitted
+            adjustments = list(adjustments) + ["refit_retry"]
+            r = await client.post(url, json=body, headers=headers)
 
         latency_ms = round((time.time() - t0) * 1000, 1)
         if r.headers.get("content-type", "").startswith("application/json"):
@@ -428,27 +498,32 @@ async def _forward_stream(entry, url, headers, body, adjustments) -> Any:
         body["stream_options"] = {"include_usage": True}
 
     t0 = time.time()
-    client = httpx.AsyncClient(timeout=_TIMEOUT)
+    client = _make_async_client()
     req = client.build_request("POST", url, json=body, headers=headers)
     upstream = await client.send(req, stream=True)
 
     ctype = upstream.headers.get("content-type", "")
-    # Error / non-SSE response: buffer it, try one refit-retry on ctx overflow.
+    # Error / non-SSE response: buffer it, run the bounded refit-retry loop on
+    # ctx overflow (mirrors _forward_unary; see _refit_from_error for why a
+    # single retry is not enough under vLLM 0.23's lower-bound phrasing).
     if upstream.status_code != 200 or ctype.startswith("application/json"):
         content = await upstream.aread()
         await upstream.aclose()
-        if upstream.status_code == 400 and _is_ctx_overflow(content):
-            fitted = _refit_from_error(entry, content)
-            if fitted is not None and fitted != body.get("max_tokens"):
-                body["max_tokens"] = fitted
-                adjustments = list(adjustments) + ["refit_retry"]
-                req = client.build_request("POST", url, json=body, headers=headers)
-                upstream = await client.send(req, stream=True)
-                ctype = upstream.headers.get("content-type", "")
-                if upstream.status_code == 200 and not ctype.startswith("application/json"):
-                    return _sse_response(entry, client, upstream, body, adjustments, t0)
-                content = await upstream.aread()
-                await upstream.aclose()
+        for _ in range(_REFIT_MAX_RETRIES):
+            if not (upstream.status_code == 400 and _is_ctx_overflow(content)):
+                break
+            fitted = _refit_from_error(entry, content, body.get("max_tokens"))
+            if fitted is None or fitted == body.get("max_tokens"):
+                break
+            body["max_tokens"] = fitted
+            adjustments = list(adjustments) + ["refit_retry"]
+            req = client.build_request("POST", url, json=body, headers=headers)
+            upstream = await client.send(req, stream=True)
+            ctype = upstream.headers.get("content-type", "")
+            if upstream.status_code == 200 and not ctype.startswith("application/json"):
+                return _sse_response(entry, client, upstream, body, adjustments, t0)
+            content = await upstream.aread()
+            await upstream.aclose()
         await client.aclose()
         try:
             payload = json.loads(content)

@@ -180,6 +180,78 @@ def test_ctx_overflow_retry_only_once(make_gw):
     assert len(router.requests) == 2     # original + one retry, no more
 
 
+# vLLM 0.23's phrasing, captured VERBATIM from the live :8001 serve during the
+# 2026-07-07 smoke8e refit proof. Crucially "at least N input tokens" is a
+# LOWER BOUND: vLLM reports exactly window+1-max_tokens (the smallest count
+# proving overflow), NOT the true prompt size. A margin-step refit therefore
+# re-overflows: the live gateway went 8192 -> "at least 57345" -> refit 7935
+# -> "at least 57602" -> 400 leaked to the client (true prompt ~59.9k).
+def _vllm023_ctx_err(requested_out: int) -> dict:
+    inp = 65537 - requested_out  # vLLM's lower-bound arithmetic
+    return {
+        "error": {
+            "message": (
+                f"This model's maximum context length is 65536 tokens. However, "
+                f"you requested {requested_out} output tokens and your prompt "
+                f"contains at least {inp} input tokens, for a total of at least "
+                f"65537 tokens. Please reduce the length of the input prompt or "
+                f"the number of requested output tokens. "
+                f"(parameter=input_tokens, value={inp})"
+            ),
+            "type": "BadRequestError",
+            "param": "input_tokens",
+            "code": 400,
+        }
+    }
+
+
+def test_ctx_overflow_vllm023_lower_bound_halves(make_gw):
+    """0.23 lower-bound phrasing: refit must halve, not margin-step."""
+    mod, client, router = make_gw()
+    router.add_json(400, _vllm023_ctx_err(8192))  # first attempt overflows
+    router.add_json(200, {"choices": []})         # halved retry fits
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 8192,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 200
+    assert len(router.requests) == 2
+    # min(margin-step 65536-57345-256=7935, half 8192//2=4096) == 4096
+    assert router.last_body()["max_tokens"] == 4096
+
+
+def test_ctx_overflow_vllm023_converges_in_loop(make_gw):
+    """True prompt ~64k: several lower-bound 400s, loop converges to 200."""
+    mod, client, router = make_gw()
+    router.add_json(400, _vllm023_ctx_err(8192))  # cur 8192 -> refit 4096
+    router.add_json(400, _vllm023_ctx_err(4096))  # cur 4096 -> refit 2048
+    router.add_json(400, _vllm023_ctx_err(2048))  # cur 2048 -> refit 1024
+    router.add_json(200, {"choices": []})         # 64k + 1024 fits
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 8192,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 200
+    assert len(router.requests) == 4
+    assert router.last_body()["max_tokens"] == 1024
+
+
+def test_ctx_overflow_vllm023_gives_up_bounded(make_gw):
+    """Upstream overflows on every attempt: loop stays bounded, 400 surfaces.
+
+    The queue mirrors what a always-overflowing vLLM would report for the
+    max_tokens sequence the gateway's halving refit actually produces:
+    8192 -> 4096 -> 2048 -> 1024 -> 512 -> 255 -> 127 (255 because the
+    margin-step bound 65536-65025-256=255 is tighter than half=256 there)."""
+    mod, client, router = make_gw()
+    for out in (8192, 4096, 2048, 1024, 512, 255, 127):
+        router.add_json(400, _vllm023_ctx_err(out))
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 8192,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 400
+    # 1 original + exactly the 6-retry loop bound
+    assert len(router.requests) == 7
+
+
 # ---------------------------------------------------------------------------
 # thinking-off injection
 # ---------------------------------------------------------------------------

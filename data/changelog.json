@@ -3,6 +3,27 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v15-2026-07-07",
+   "date": "2026-07-07",
+   "title": "gpt-researcher retriever reaches the sandbox; gateway context-overflow retry hardened",
+   "summary": "gpt-researcher's search now physically routes through the sandbox shim instead of resolving a retriever that bypassed it, so its zero-grounding was a real adapter defect, now fixed and verified by live shim traffic. The gateway's context-overflow refit was hardened for vLLM's lower-bound token wording.",
+   "tags": [
+    "fairness",
+    "adapters",
+    "gateway",
+    "bugfix"
+   ],
+   "sections": [
+    {
+     "heading": "Details",
+     "bullets": [
+      "gpt-researcher: retriever was bound at import and bypassed the langchain_tavily intercept, so its searches never hit the shim (report literally opened 'search returned []'); rewired through the framework's own retriever surface, confirmed by new POST /search traffic in the shim log",
+      "llm_gateway: vLLM reports input_tokens as a lower bound, so the single-margin refit re-overflowed; now halves max_tokens geometrically inside a bounded retry loop (unary and streaming), proven live"
+     ]
+    }
+   ]
+  },
+  {
    "version": "v14-2026-07-07",
    "date": "2026-07-07",
    "title": "Capture layer stops judging quality: weak-but-real reports are saved verbatim",

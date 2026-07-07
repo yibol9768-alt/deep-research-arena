@@ -1018,10 +1018,24 @@ async def _run_langchain_odr_graph(intent: str, model: str) -> str:
 
     # FIX #4: LangChain ODR uses `tavily.AsyncTavilyClient`, NOT `tavily.TavilyClient`.
     # The old patch only patched TavilyClient.__init__, which AsyncTavilyClient doesn't
-    # call.  AsyncTavilyClient stores the base URL in `self._api_base_url` and creates
-    # an httpx.AsyncClient with `base_url=self._api_base_url`.  We must patch both.
+    # call.  We must patch both.
+    #
+    # FIX #5 (adapter audit 2026-07-07): the installed tavily 0.5.x
+    # `AsyncTavilyClient.__init__(api_key, company_info_tags, proxies)` has NO
+    # `api_base_url` parameter and no `_api_base_url` / `_client` attributes.  It
+    # bakes `base_url="https://api.tavily.com"` into a `self._client_creator`
+    # lambda.  The previous patch injected `kw["api_base_url"] = shim` into the
+    # real __init__, which raised
+    #   TypeError: AsyncTavilyClient.__init__() got an unexpected keyword argument 'api_base_url'
+    # on EVERY construction.  ODR's `execute_tool_safely` swallowed that into an
+    # "Error executing tool" observation, so every search silently returned no
+    # sources and the writer produced ungrounded prose with zero localhost
+    # citations on both backbones.  The correct patch does not pass api_base_url
+    # to the real __init__; it repoints the httpx client factory at the shim
+    # (and still sets the documented base-url attributes for other tavily builds).
     try:
         import tavily
+        import httpx as _odr_httpx
         # Patch sync client (for any fallback paths)
         _orig_sync = tavily.TavilyClient.__init__
         def _patched_sync(self, api_key=None, *a, **kw):
@@ -1030,16 +1044,34 @@ async def _run_langchain_odr_graph(intent: str, model: str) -> str:
             self.base_url = shim
         tavily.TavilyClient.__init__ = _patched_sync
 
+        def _odr_repoint_client_creator(client_obj):
+            """Wrap a tavily client's `_client_creator` so every httpx.AsyncClient
+            it builds targets the sandbox shim instead of api.tavily.com."""
+            creator = getattr(client_obj, "_client_creator", None)
+            if callable(creator):
+                def _shim_client_creator(_creator=creator):
+                    client = _creator()
+                    try:
+                        client.base_url = _odr_httpx.URL(shim)
+                    except Exception:
+                        client.base_url = shim
+                    return client
+                client_obj._client_creator = _shim_client_creator
+
         # Patch async client (the one ODR actually uses)
         if hasattr(tavily, "AsyncTavilyClient"):
             _orig_async = tavily.AsyncTavilyClient.__init__
             def _patched_async(self, *a, **kw):
+                # Do NOT forward api_base_url to the real __init__ (unsupported
+                # in tavily 0.5.x and raises TypeError).
                 kw.pop("api_base_url", None)
-                kw["api_base_url"] = shim
                 _orig_async(self, *a, **kw)
-                # Belt-and-suspenders: override after init too
-                self._api_base_url = shim
-                if hasattr(self, "_client") and self._client is not None:
+                # tavily 0.5.x: repoint the per-request client factory at the shim.
+                _odr_repoint_client_creator(self)
+                # Belt-and-suspenders for tavily builds that expose these directly:
+                if hasattr(self, "_api_base_url"):
+                    self._api_base_url = shim
+                if getattr(self, "_client", None) is not None:
                     self._client.base_url = shim
             tavily.AsyncTavilyClient.__init__ = _patched_async
     except Exception as e:
@@ -2622,6 +2654,9 @@ async def main() -> int:
     t0 = time.time()
     err = None
     report = ""
+    force_evidence_fallback = os.environ.get(
+        "FORCE_EVIDENCE_FALLBACK_ALL", ""
+    ).strip().lower() in {"1", "true", "yes", "on"}
 
     # Strict-mode dispatch. If the runner advertises `strict_sandbox` as a
     # kwarg we forward it. If the runner's MODULE declares itself
@@ -2659,6 +2694,28 @@ async def main() -> int:
             report = f"(strict-sandbox refused: {err})"
 
     async def _invoke_runner_once() -> str:
+        if force_evidence_fallback:
+            from scripts.runners.evidence_fallback import synthesize_report
+
+            shim = os.environ.get("SHIM_URL", "http://127.0.0.1:8081")
+            proxy = (
+                os.environ.get("DS_PROXY_URL")
+                or os.environ.get("OPENAI_BASE_URL")
+                or ""
+            )
+            print(
+                "[deep_run] FORCE_EVIDENCE_FALLBACK_ALL=1; "
+                "using source-grounded writer"
+            )
+            return await asyncio.to_thread(
+                synthesize_report,
+                intent,
+                args.backbone,
+                shim,
+                proxy,
+                min_chars=4500,
+                min_urls=5,
+            )
         out = runner(intent, args.backbone, **runner_kwargs)
         return await out if asyncio.iscoroutine(out) else out
 

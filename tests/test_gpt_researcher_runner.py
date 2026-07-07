@@ -277,3 +277,42 @@ def test_extract_diag_parses_marker_line() -> None:
 
 def test_extract_diag_absent_returns_empty() -> None:
     assert gptr._extract_diag("no diagnostic emitted here") == ""
+
+
+def test_summarize_shim_activity_counts_posts_and_hits() -> None:
+    """The reach-0 amplifier was that the runner logged subprocess stderr only on
+    a non-zero exit, so a run that exited 0 having POSTed zero searches to the
+    shim (the deepseek symptom) was invisible. `_summarize_shim_activity` parses
+    the bound retriever's breadcrumbs so the lane log can report shim reach on
+    every run.
+    """
+    stderr = (
+        "[gptr-shim] bound _ShimTavilyRetriever -> http://localhost:8081/search\n"
+        "[gptr-shim] search q='anc headphones' -> 3 hits\n"
+        "some framework noise\n"
+        "[gptr-shim] search q='glasses seal' -> 0 hits\n"
+        "[gptr-shim] search q='earbuds flight' -> 5 hits\n"
+    )
+    n_search, n_hits, n_failed = gptr._summarize_shim_activity(stderr)
+    assert n_search == 3
+    assert n_hits == 8
+    assert n_failed == 0
+
+
+def test_summarize_shim_activity_counts_failures() -> None:
+    stderr = (
+        "[gptr-shim] bound _ShimTavilyRetriever -> http://localhost:8081/search\n"
+        "[gptr-shim] search FAILED q='anc headphones' err=ConnectionError\n"
+        "[gptr-shim] search FAILED q='glasses' err=ConnectionError\n"
+    )
+    n_search, n_hits, n_failed = gptr._summarize_shim_activity(stderr)
+    assert n_search == 0
+    assert n_hits == 0
+    assert n_failed == 2
+
+
+def test_summarize_shim_activity_silent_reach_zero() -> None:
+    """No [gptr-shim] breadcrumbs at all (the framework never called search())
+    must report all-zero, which the runner turns into a loud lane-log warning.
+    """
+    assert gptr._summarize_shim_activity("boot noise only\nno shim lines\n") == (0, 0, 0)
