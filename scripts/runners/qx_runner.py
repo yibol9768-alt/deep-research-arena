@@ -46,7 +46,13 @@ from pathlib import Path
 
 from .serper_adapter import SerperAdapter
 from ._runner_lock import runner_exclusive_lock
-from .evidence_fallback import error_stub, fallback_enabled, is_weak_report, synthesize_report
+from .evidence_fallback import (
+    error_stub,
+    fallback_enabled,
+    is_weak_report,
+    keep_or_stub,
+    synthesize_report,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -489,19 +495,28 @@ async def run(
 
         if is_weak_report(report, min_chars=MIN_REPORT_CHARS, min_urls=3):
             logger.warning(
-                "qx-agents report weak after %.0fs: %d chars; using fallback",
+                "qx-agents report weak after %.0fs: %d chars",
                 elapsed, len(report),
             )
-            return await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: _fallback_report(
-                    intent,
-                    model,
-                    shim_url,
-                    proxy_url,
-                    "write",
-                    f"native qx report was too short ({len(report)} chars)",
-                ),
+            if fallback_enabled():
+                return await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: _fallback_report(
+                        intent,
+                        model,
+                        shim_url,
+                        proxy_url,
+                        "write",
+                        f"native qx report was too short ({len(report)} chars)",
+                    ),
+                )
+            # Weak-but-real output is qx-agents' own report: save it verbatim
+            # (the scorer judges quality); stub only genuinely empty/stub output.
+            return keep_or_stub(
+                "qx-agents",
+                "write",
+                f"native qx report was too short ({len(report)} chars)",
+                report,
             )
 
         logger.info(

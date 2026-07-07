@@ -71,6 +71,7 @@ from .evidence_fallback import (
     error_stub,
     fallback_enabled,
     is_weak_report,
+    keep_or_stub,
     synthesize_report,
 )
 
@@ -730,8 +731,14 @@ async def run(
             return _degrade("native", str(payload.get("error") or "native path failed"))
         report = str(payload.get("report") or "").strip()
         if is_weak_report(report, min_chars=3000, min_urls=3):
-            logger.warning("storm native report weak/empty; recording honest failure")
-            return _degrade("write", "native article under length/URL threshold")
+            if fallback_enabled():
+                logger.warning("storm native report weak/empty; using source-grounded writer")
+                return _degrade("write", "native article under length/URL threshold")
+            # Weak-but-real output is STORM's own article: save it verbatim
+            # (the scorer judges quality); stub only genuinely empty/stub output.
+            return keep_or_stub(
+                "storm", "write", "native article under length/URL threshold", report
+            )
         return report
     finally:
         shutil.rmtree(scratch_dir, ignore_errors=True)

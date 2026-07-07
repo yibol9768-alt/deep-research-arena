@@ -128,6 +128,80 @@ def test_write_report_benchmark_default_emits_error_stub_not_ghostwritten(monkey
     assert classify_report(out) == "stub_exception"
 
 
+# --------------------------------------------------------------------------
+# Weak-but-real capture policy: capture never judges quality, the scorer does.
+# Regression (observed 2026-07): flowsearcher-ds ran its full native pipeline
+# and wrote a real report, and the benchmark adapter binned it as
+# "(flowsearcher error: write: native report weak/under-threshold)".
+# --------------------------------------------------------------------------
+
+WEAK_REAL_REPORT = (
+    "# Verdict\n\n"
+    "A real but under-threshold flowsearcher report with a single citation: "
+    "[p1](http://localhost:7770/p1.html). It is far below the 3000-char/3-URL "
+    "floor, yet it is the framework's own output and must be saved verbatim.\n"
+)
+
+
+def test_write_report_returns_weak_real_writer_output_verbatim(monkeypatch):
+    # A short-but-real writer output must be returned verbatim in benchmark
+    # mode; the write-phase error stub is reserved for EMPTY writer output.
+    monkeypatch.delenv("EVIDENCE_FALLBACK_ENABLE", raising=False)
+    monkeypatch.setattr(fs, "_llm_call", lambda *a, **k: WEAK_REAL_REPORT)
+    all_found = {
+        "http://localhost:7770/p1.html": {
+            "url": "http://localhost:7770/p1.html", "title": "P1",
+            "snippet": "a product", "domain": "shopping", "query": "q",
+        }
+    }
+    sg = [{"section_title": "S", "subgoal": "A", "n_urls_found": 1,
+           "results": list(all_found.values())}]
+    out = fs._write_report(
+        "intent", sg, all_found, "m", "http://x/v1", "http://s",
+        fetch_fn=lambda url, shim, n: "",
+    )
+    assert out == WEAK_REAL_REPORT
+    assert classify_report(out) == "ok"
+
+
+def test_lane_adapter_keeps_weak_real_native_report_verbatim(monkeypatch):
+    # The benchmark lane adapter must save flowsearcher's weak-but-real native
+    # report verbatim instead of replacing it with a write-phase error stub.
+    import asyncio
+
+    import scripts.run_deep_task as rdt
+
+    monkeypatch.delenv("EVIDENCE_FALLBACK_ENABLE", raising=False)
+    monkeypatch.delenv("FLOWSEARCHER_FORCE_FALLBACK", raising=False)
+
+    async def _fake_run_flowsearcher(intent, model, task_id="", shim_url=None, proxy_url=None):
+        return WEAK_REAL_REPORT
+
+    monkeypatch.setattr(fs, "run_flowsearcher", _fake_run_flowsearcher)
+    out = asyncio.run(rdt._run_flowsearcher_ds("intent", "m"))
+    assert out == WEAK_REAL_REPORT
+    assert classify_report(out) == "ok"
+
+
+def test_lane_adapter_still_stubs_native_exception(monkeypatch):
+    # Exceptions remain honest stubs: keeping weak-but-real output must not
+    # weaken the failure channel.
+    import asyncio
+
+    import scripts.run_deep_task as rdt
+
+    monkeypatch.delenv("EVIDENCE_FALLBACK_ENABLE", raising=False)
+    monkeypatch.delenv("FLOWSEARCHER_FORCE_FALLBACK", raising=False)
+
+    async def _boom(intent, model, task_id="", shim_url=None, proxy_url=None):
+        raise RuntimeError("kaput")
+
+    monkeypatch.setattr(fs, "run_flowsearcher", _boom)
+    out = asyncio.run(rdt._run_flowsearcher_ds("intent", "m"))
+    assert out == "(flowsearcher error: native: RuntimeError: kaput)"
+    assert classify_report(out) == "stub_exception"
+
+
 def test_write_report_evidence_fallback_only_when_explicitly_enabled(monkeypatch):
     # With the explicit non-benchmark flag set, a writer failure degrades to the
     # grounded fallback report instead of an error stub.

@@ -33,7 +33,13 @@ import time
 import uuid
 from pathlib import Path
 
-from .evidence_fallback import error_stub, fallback_enabled, is_weak_report, synthesize_report
+from .evidence_fallback import (
+    error_stub,
+    fallback_enabled,
+    is_weak_report,
+    keep_or_stub,
+    synthesize_report,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -593,7 +599,11 @@ async def _run_local_opencode(
             report = stdout_text
         if is_weak_report(report, min_chars=3000, min_urls=3):
             logger.warning("opencode native report weak/empty")
-            return _degrade("write", "native report weak/under-threshold")
+            if fallback_enabled():
+                return _degrade("write", "native report weak/under-threshold")
+            # Weak-but-real output is opencode's own report: save it verbatim
+            # (the scorer judges quality); stub only genuinely empty/stub output.
+            return keep_or_stub("opencode", "write", "native report weak/under-threshold", report)
         return report
 
 
@@ -757,7 +767,11 @@ async def run(
 
         if is_weak_report(report, min_chars=3000, min_urls=3):
             logger.warning("opencode ssh report weak/empty")
-            return _degrade("write", "native report weak/under-threshold")
+            if fallback_enabled():
+                return _degrade("write", "native report weak/under-threshold")
+            # Weak-but-real output is opencode's own report: save it verbatim
+            # (the scorer judges quality); stub only genuinely empty/stub output.
+            return keep_or_stub("opencode", "write", "native report weak/under-threshold", report)
 
         logger.info("opencode completed in %.0fs, report=%d chars",
                     elapsed, len(report))

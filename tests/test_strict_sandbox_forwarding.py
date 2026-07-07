@@ -73,10 +73,10 @@ def test_wrapper_forwards_strict_sandbox(monkeypatch, wrapper_name,
                                          module_name, strict_value):
     captured: dict = {}
 
-    # The fake report must clear is_weak_report (>=3000 chars, >=3 sandbox
-    # URLs): since the evidence-fallback gate landed, _run_deerflow answers a
-    # weak native report with an honest per-lane error stub in benchmark mode,
-    # and this test pins pass-through of a GOOD report plus kwarg forwarding.
+    # The fake report clears is_weak_report (>=3000 chars, >=3 sandbox URLs)
+    # so the wrapper's weak-branch (which now keeps weak-but-real output
+    # verbatim after logging a warning) never enters the picture: this test
+    # pins byte-for-byte pass-through of a GOOD report plus kwarg forwarding.
     fake_report = (
         "# fake report\n\n"
         "Evidence: [p1](http://localhost:7770/p1.html), "

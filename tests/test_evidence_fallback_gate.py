@@ -105,3 +105,73 @@ def test_error_stub_handles_empty_fields():
     stub = ef.error_stub("", "", "")
     assert stub == "(runner error: unknown: unknown)"
     assert classify_report(stub) == "stub_exception"
+
+
+# --------------------------------------------------------------------------
+# keep_or_stub: capture must not judge quality. A weak-but-REAL framework
+# report is saved verbatim in benchmark mode; the error stub is reserved for
+# timeout/exception (call sites), empty output, or already-stub-shaped text.
+# Regression: flowsearcher-ds ran its full native pipeline, wrote a real
+# report, and the adapter binned it as "(flowsearcher error: write: native
+# report weak/under-threshold)".
+# --------------------------------------------------------------------------
+
+WEAK_REAL_REPORT = (
+    "# Sandbox verdict\n\n"
+    "Short but genuine framework output with one citation: "
+    "[thread](http://localhost:9999/f/headphones/126764).\n"
+)
+
+
+def test_keep_or_stub_saves_weak_real_markdown_verbatim():
+    out = ef.keep_or_stub(
+        "flowsearcher", "write", "native report weak/under-threshold", WEAK_REAL_REPORT
+    )
+    assert out == WEAK_REAL_REPORT
+    assert classify_report(out) == "ok"
+
+
+def test_keep_or_stub_saves_nonempty_merely_short_text_verbatim():
+    short = "The framework answered in one plain sentence and cited nothing."
+    # classify_report calls this "too_short", but it is real textual output,
+    # so capture keeps it; the scorer is the one that judges quality.
+    assert classify_report(short) == "too_short"
+    out = ef.keep_or_stub("smolagents", "write", "native output under threshold", short)
+    assert out == short
+
+
+def test_keep_or_stub_logs_one_line_under_threshold_warning(caplog):
+    import logging
+
+    with caplog.at_level(logging.WARNING, logger="scripts.runners.evidence_fallback"):
+        out = ef.keep_or_stub(
+            "camel-ai", "write", "native report weak/under-threshold", WEAK_REAL_REPORT
+        )
+    assert out == WEAK_REAL_REPORT
+    warned = [r for r in caplog.records if "verbatim" in r.getMessage()]
+    assert len(warned) == 1
+    assert "native report weak/under-threshold" in warned[0].getMessage()
+
+
+@pytest.mark.parametrize("empty", [None, "", "   \n\t  ", "\ufeff \n"])
+def test_keep_or_stub_stubs_empty_or_whitespace_output(empty):
+    out = ef.keep_or_stub("storm", "write", "native article under length/URL threshold", empty)
+    assert out == "(storm error: write: native article under length/URL threshold)"
+    assert classify_report(out) == "stub_exception"
+
+
+@pytest.mark.parametrize(
+    "stub_text",
+    [
+        # stub_exception
+        "(flowsearcher error: write: LLM writer returned empty after retries)",
+        # stub_timeout
+        "(opencode timeout after 360s)",
+        # stub_runner_failure
+        "(DeerFlow produced no report after 1256s, exit=1)",
+    ],
+)
+def test_keep_or_stub_stubs_already_stub_shaped_output(stub_text):
+    out = ef.keep_or_stub("ldr", "native", "LDR produced a failed/empty report", stub_text)
+    assert out == "(ldr error: native: LDR produced a failed/empty report)"
+    assert classify_report(out) == "stub_exception"

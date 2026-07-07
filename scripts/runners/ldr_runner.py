@@ -42,7 +42,7 @@ import time
 from pathlib import Path
 
 from ._runner_lock import runner_exclusive_lock
-from .evidence_fallback import error_stub, fallback_enabled, synthesize_report
+from .evidence_fallback import error_stub, fallback_enabled, keep_or_stub, synthesize_report
 
 logger = logging.getLogger(__name__)
 
@@ -759,7 +759,14 @@ async def run(
         # model/framework weakness -- the opposite of a fair benchmark.
         if _is_failed_report(report):
             logger.warning("LDR produced a failed/empty report")
-            return _degrade("native", "LDR produced a failed/empty report")
+            if fallback_enabled():
+                return _degrade("native", "LDR produced a failed/empty report")
+            # Weak-but-real output (e.g. merely short) is LDR's own report:
+            # save it verbatim (the scorer judges quality); stub only genuinely
+            # empty output or text already shaped like a failure stub.
+            return keep_or_stub(
+                "ldr", "native", "LDR produced a failed/empty report", report
+            )
 
         logger.info(
             "LDR completed in %.0fs, report=%d chars",

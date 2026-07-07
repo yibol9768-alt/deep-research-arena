@@ -465,6 +465,10 @@ Write the complete report now. Be comprehensive and thorough — cite as many so
     )
 
     if report and report.strip():
+        # Weak-but-real writer output is returned VERBATIM, even when it is
+        # short or under any citation threshold: capture must not judge
+        # quality, the scorer does. Only genuinely empty writer output falls
+        # through to the honest write-phase error stub below.
         return report
 
     # Defect 2: no laundered sentinel. When the LLM writer fails, a benchmark

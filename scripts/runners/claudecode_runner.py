@@ -41,7 +41,13 @@ import uuid
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .evidence_fallback import error_stub, fallback_enabled, is_weak_report, synthesize_report
+from .evidence_fallback import (
+    error_stub,
+    fallback_enabled,
+    is_weak_report,
+    keep_or_stub,
+    synthesize_report,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -491,7 +497,13 @@ async def _run_local_claude(
             )
         if is_weak_report(report, min_chars=3000, min_urls=3):
             logger.warning("claude-code local report weak/empty")
-            return _degrade("write", "native report weak/under-threshold")
+            if fallback_enabled():
+                return _degrade("write", "native report weak/under-threshold")
+            # Weak-but-real output is claude-code's own report: save it verbatim
+            # (the scorer judges quality); stub only genuinely empty/stub output.
+            return keep_or_stub(
+                "claude-code", "write", "native report weak/under-threshold", report
+            )
         logger.info("claude-code local completed in %.0fs, report=%d chars", elapsed, len(report))
         return report
 
@@ -605,9 +617,18 @@ async def run(
                 return local_report
             logger.warning("claude-code local path returned short/error report: %s", local_report[:500])
             if os.environ.get("CLAUDE_CODE_NO_WINDOWS_FALLBACK") == "1":
-                return _degrade(
+                if fallback_enabled():
+                    return _degrade(
+                        "write",
+                        "local report weak/under-threshold and windows fallback disabled",
+                    )
+                # Weak-but-real local output: save it verbatim (the scorer
+                # judges quality); stub only genuinely empty/stub output.
+                return keep_or_stub(
+                    "claude-code",
                     "write",
                     "local report weak/under-threshold and windows fallback disabled",
+                    local_report,
                 )
         except Exception as e:
             logger.exception("claude-code local path failed")
@@ -678,7 +699,13 @@ async def run(
 
         if is_weak_report(report, min_chars=3000, min_urls=3):
             logger.warning("claude-code ssh report weak/empty")
-            return _degrade("write", "native report weak/under-threshold")
+            if fallback_enabled():
+                return _degrade("write", "native report weak/under-threshold")
+            # Weak-but-real output is claude-code's own report: save it verbatim
+            # (the scorer judges quality); stub only genuinely empty/stub output.
+            return keep_or_stub(
+                "claude-code", "write", "native report weak/under-threshold", report
+            )
 
         logger.info("claude-code completed in %.0fs, report=%d chars",
                     elapsed, len(report))

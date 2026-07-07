@@ -347,6 +347,7 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
         error_stub,
         fallback_enabled,
         is_weak_report,
+        keep_or_stub,
         synthesize_report,
     )
 
@@ -559,10 +560,15 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
         is_weak_report(result, min_chars=min_chars, min_urls=3)
         or _sandbox_url_count(result) < min_urls
     ):
-        return await _degrade(
-            "write", f"native output under threshold ({len(result or '')} chars, "
+        reason = (
+            f"native output under threshold ({len(result or '')} chars, "
             f"{_sandbox_url_count(result)} sandbox URLs)"
         )
+        if fallback_enabled():
+            return await _degrade("write", reason)
+        # Weak-but-real output is the framework's own report: save it verbatim
+        # (the scorer judges quality); stub only genuinely empty/stub output.
+        return keep_or_stub("smolagents", "write", reason, result)
     return result
 
 
@@ -599,6 +605,7 @@ async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -
         error_stub,
         fallback_enabled,
         is_weak_report,
+        keep_or_stub,
         synthesize_report,
     )
 
@@ -710,7 +717,11 @@ async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -
             content = content[idx:].lstrip('\n')
 
     if is_weak_report(content, min_chars=3000, min_urls=3):
-        return await _degrade("write", "native report weak/under-threshold")
+        if fallback_enabled():
+            return await _degrade("write", "native report weak/under-threshold")
+        # Weak-but-real output is camel's own report: save it verbatim (the
+        # scorer judges quality); stub only genuinely empty/stub output.
+        return keep_or_stub("camel-ai", "write", "native report weak/under-threshold", content)
     return content
 
 
@@ -1411,6 +1422,7 @@ async def _run_langchain_odr_fallback(intent: str, model: str) -> str:
     from scripts.runners.evidence_fallback import error_stub as _error_stub
     from scripts.runners.evidence_fallback import fallback_enabled as _fallback_enabled
     from scripts.runners.evidence_fallback import is_weak_report as _is_weak_report
+    from scripts.runners.evidence_fallback import keep_or_stub as _keep_or_stub
     from scripts.runners.evidence_fallback import synthesize_report as _synthesize_report
 
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
@@ -1553,7 +1565,13 @@ Write the final markdown report directly. Requirements:
             pass
     text = str(text).strip()
     if _is_weak_report(text, min_chars=3000, min_urls=3):
-        return _degrade("write", "fallback writer report weak/under-threshold")
+        if _fallback_enabled():
+            return _degrade("write", "fallback writer report weak/under-threshold")
+        # Weak-but-real writer output: save it verbatim (the scorer judges
+        # quality); stub only genuinely empty/stub output.
+        return _keep_or_stub(
+            "langchain-odr", "write", "fallback writer report weak/under-threshold", text
+        )
     return text
 
 
@@ -1586,6 +1604,7 @@ async def _run_langchain_odr(intent: str, model: str) -> str:
         from scripts.runners.evidence_fallback import error_stub as _error_stub
         from scripts.runners.evidence_fallback import fallback_enabled as _fallback_enabled
         from scripts.runners.evidence_fallback import is_weak_report as _is_weak_report
+        from scripts.runners.evidence_fallback import keep_or_stub as _keep_or_stub
         from scripts.runners.evidence_fallback import synthesize_report as _synthesize_report
 
         shim = os.environ.get("SHIM_URL", "http://localhost:8081")
@@ -1604,7 +1623,13 @@ async def _run_langchain_odr(intent: str, model: str) -> str:
     try:
         text = await asyncio.wait_for(_run_langchain_odr_graph(intent, model), timeout=timeout_s)
         if allow_benchmark_fallback and _is_weak_report(text, min_chars=3000, min_urls=3):
-            return await _benchmark_fallback("write", "graph report weak/under-threshold")
+            if _fallback_enabled():
+                return await _benchmark_fallback("write", "graph report weak/under-threshold")
+            # Weak-but-real graph output: save it verbatim (the scorer judges
+            # quality); stub only genuinely empty/stub output.
+            return _keep_or_stub(
+                "langchain-odr", "write", "graph report weak/under-threshold", text
+            )
         return text
     except asyncio.TimeoutError:
         if allow_benchmark_fallback:
@@ -1632,6 +1657,7 @@ async def _run_deerflow(intent: str, model: str, *, strict_sandbox: bool = False
         error_stub,
         fallback_enabled,
         is_weak_report,
+        keep_or_stub,
         synthesize_report,
     )
     proxy = os.environ.get("DS_PROXY_URL", "http://localhost:8088/v1")
@@ -1659,7 +1685,12 @@ async def _run_deerflow(intent: str, model: str, *, strict_sandbox: bool = False
         if lowered.startswith("(deerflow"):
             # Already deerflow's own honest stub; pass it through unchanged.
             return text
-        return error_stub("deerflow", "native", f"native path weak/timeout after {timeout_s}s")
+        if "timeout after" in lowered:
+            # A timeout marker is a genuine failure, not a weak report.
+            return error_stub("deerflow", "native", f"native path weak/timeout after {timeout_s}s")
+        # Weak-but-real output is deerflow's own report: save it verbatim (the
+        # scorer judges quality); stub only genuinely empty/stub output.
+        return keep_or_stub("deerflow", "native", "native report weak/under-threshold", text)
     return text
 
 
@@ -2018,6 +2049,7 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
         error_stub,
         fallback_enabled,
         is_weak_report,
+        keep_or_stub,
         synthesize_report,
     )
 
@@ -2140,7 +2172,11 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
         if not is_weak_report(report, min_chars=3000, min_urls=3):
             return report
         print("ii-researcher native report weak")
-        return await _degrade("write", "native report weak/under-threshold")
+        if fallback_enabled():
+            return await _degrade("write", "native report weak/under-threshold")
+        # Weak-but-real output is ii-researcher's own report: save it verbatim
+        # (the scorer judges quality); stub only genuinely empty/stub output.
+        return keep_or_stub("ii-researcher", "write", "native report weak/under-threshold", report)
     print("ii-researcher native path produced no report marker")
     return await _degrade("native", "native path produced no report marker")
 
@@ -2171,6 +2207,7 @@ async def _run_flowsearcher_ds(intent: str, model: str) -> str:
         error_stub,
         fallback_enabled,
         is_weak_report,
+        keep_or_stub,
         synthesize_report,
     )
 
@@ -2228,7 +2265,11 @@ async def _run_flowsearcher_ds(intent: str, model: str) -> str:
         "LLM writer failed after retries" in report
         or is_weak_report(report, min_chars=3000, min_urls=3)
     ):
-        return await _degrade("write", "native report weak/under-threshold")
+        if fallback_enabled():
+            return await _degrade("write", "native report weak/under-threshold")
+        # Weak-but-real output is flowsearcher's own report: save it verbatim
+        # (the scorer judges quality); stub only genuinely empty/stub output.
+        return keep_or_stub("flowsearcher", "write", "native report weak/under-threshold", report)
     return report
 
 
@@ -2379,9 +2420,9 @@ def _wrap_runner(run_fn):
             return text
         try:
             from scripts.runners.evidence_fallback import (
-                error_stub,
                 fallback_enabled,
                 is_weak_report,
+                keep_or_stub,
                 synthesize_report,
             )
 
@@ -2391,7 +2432,12 @@ def _wrap_runner(run_fn):
                     return await asyncio.to_thread(
                         synthesize_report, intent, model, shim, proxy, min_chars=4500, min_urls=5
                     )
-                return error_stub(_agent_name, "write", "native report weak/under-threshold")
+                # Weak-but-real output is the framework's own report: save it
+                # verbatim (the scorer judges quality); stub only genuinely
+                # empty/stub output.
+                return keep_or_stub(
+                    _agent_name, "write", "native report weak/under-threshold", text
+                )
         except Exception as e:  # noqa: BLE001
             print(f"  warn: registry fallback check failed for {_agent_name}: {e}")
         return text

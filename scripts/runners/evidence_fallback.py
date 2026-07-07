@@ -55,6 +55,42 @@ def error_stub(lane: str, phase: str, reason: str) -> str:
     return f"({lane} error: {phase}: {reason})"
 
 
+_STUB_CLASSES = frozenset({"stub_timeout", "stub_runner_failure", "stub_exception"})
+
+
+def keep_or_stub(lane: str, phase: str, reason: str, text: str | None) -> str:
+    """Benchmark-mode policy for a weak-but-REAL framework report: keep it.
+
+    Capture must not judge quality; the scorer does that. When the framework
+    produced ANY non-stub textual output (``classify_report(text) == "ok"``,
+    or nonempty text that is merely short), that output is saved VERBATIM and
+    a one-line warning records that it was under threshold. ``error_stub`` is
+    reserved for genuine non-output: empty/whitespace text, or text that
+    ``classify_report`` already flags as a stub (timeout / runner-failure /
+    exception placeholders). Timeout and exception call sites must keep
+    calling ``error_stub`` directly instead of routing through here.
+    """
+    s = "" if text is None else str(text)
+    if not s.lstrip("\ufeff").strip():
+        return error_stub(lane, phase, reason)
+    try:
+        from src.eval.report_stubs import classify_report
+    except ImportError:  # standalone import without the repo root on sys.path
+        import sys
+        from pathlib import Path
+
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+        from src.eval.report_stubs import classify_report
+    if classify_report(s) in _STUB_CLASSES:
+        return error_stub(lane, phase, reason)
+    logger.warning(
+        "%s %s: %s; saving the framework's own output verbatim (%d chars) "
+        "instead of an error stub",
+        lane, phase, reason, len(s),
+    )
+    return s
+
+
 _STOPWORDS = {
     "about", "above", "after", "again", "against", "also", "because", "before",
     "being", "between", "could", "every", "from", "have", "into", "only",
