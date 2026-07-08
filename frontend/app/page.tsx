@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { rankedAgents, loadLeaderboard, juryModels } from '@/lib/data/load-leaderboard'
+import { loadMatrixSubset } from '@/lib/data/load-matrix-subset'
 import { loadChangelog } from '@/lib/data/changelog'
 import { agentMeta } from '@/lib/providers'
 import { groundingGatePct, fmt } from '@/lib/format'
@@ -10,6 +11,7 @@ import { DryRunBanner } from '@/components/home/dry-run-banner'
 import { RankShift } from '@/components/home/rank-shift'
 import { GateScatter } from '@/components/home/gate-scatter'
 import { PipelineBand } from '@/components/home/pipeline-band'
+import { MatrixPreview } from '@/components/home/matrix-preview'
 import { VBarChart, type VBarRow } from '@/components/home/vbar-chart'
 import { Faq } from '@/components/home/faq'
 import { CiteBlock } from '@/components/home/cite-block'
@@ -21,6 +23,7 @@ export default function HomePage() {
   const agents = rankedAgents()
   const lb = loadLeaderboard()
   const jury = juryModels()
+  const matrix = loadMatrixSubset()
   const news = loadChangelog().entries.slice(0, 3)
 
   const stats = [
@@ -36,6 +39,7 @@ export default function HomePage() {
     { id: 'leaderboard', label: 'Leaderboard', zh: '排行榜' },
     { id: 'rankshift', label: 'What the gate changes', zh: '门控改变了什么' },
     { id: 'scatter', label: 'Fluency vs grounding', zh: '流畅 vs 接地' },
+    ...(matrix ? [{ id: 'matrix', label: 'Matrix preview', zh: '矩阵预览' }] : []),
     { id: 'how-it-works', label: 'How it works', zh: '评测流程' },
     { id: 'faq', label: 'FAQ', zh: '常见问题' },
     { id: 'cite', label: 'Cite & reproduce', zh: '引用与复现' },
@@ -133,6 +137,13 @@ export default function HomePage() {
           <div id="scatter" className="scroll-mt-24">
             <GateScatter agents={agents} />
           </div>
+
+          {/* v2 preview: framework x backbone matrix (subset) */}
+          {matrix && (
+            <div id="matrix" className="scroll-mt-24">
+              <MatrixPreview data={matrix} />
+            </div>
+          )}
 
           {/* Pipeline explainer (light) */}
           <PipelineBand />
