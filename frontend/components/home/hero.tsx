@@ -26,8 +26,8 @@ export function Hero({ stats, news }: Props) {
         <div>
           <h1 className="font-serif text-display max-w-3xl text-balance leading-[1.04] text-ink">
             <T
-              en="Independent, truth-gated analysis of Deep Research agents"
-              zh="面向 Deep Research 智能体的独立真值门控评测"
+              en="Independent analysis of deep-research harnesses across LLMs"
+              zh="跨主干模型的深度研究框架独立评测"
             />
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted md:text-lg">

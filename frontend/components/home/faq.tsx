@@ -15,10 +15,10 @@ const ITEMS = [
     aZh: '一项不依赖裁判、按冻结沙箱核验的检查:被引 URL 存在于冻结页面注册表、可以重新打开的比例。它由验证器而非任何 LLM 裁判计算,并以 1.5 次幂进入 Arena 主分,对弱接地施加超线性惩罚。',
   },
   {
-    q: 'Why does every harness appear twice on the board?',
-    qZh: '为什么每个框架在榜上出现两次?',
-    a: 'Each leaderboard entry is one harness running on one backbone LLM. The current board covers two backbones (Qwen3-8B and DeepSeek V4 Flash), so the same harness appears once per backbone — separating what the scaffold contributes from what the model contributes.',
-    aZh: '榜单的每一条记录是"一个框架 × 一个主干模型"的完整运行。当前榜覆盖两个主干模型(Qwen3-8B 与 DeepSeek V4 Flash),所以同一框架每个主干各出现一次 —— 以区分框架本身与模型本身的贡献。',
+    q: 'Why is the headline number an average across LLMs?',
+    qZh: '为什么主榜显示的是跨模型平均分?',
+    a: 'Underneath, every entry is one harness running on one backbone LLM. The headline board averages each harness across the backbones it ran on (currently Qwen3-8B and DeepSeek V4 Flash) so the list stays readable as more LLMs join; expand a row, or open the Models page, to see each backbone separately.',
+    aZh: '底层数据里,每条记录都是"一个框架 × 一个主干模型"的完整运行。主榜把每个框架在其运行过的主干模型上取平均(当前是 Qwen3-8B 与 DeepSeek V4 Flash),这样以后加入更多模型榜单也不会爆炸;点开行或进入模型页,可以分别查看每个主干模型的结果。',
   },
   {
     q: 'Why a frozen sandbox instead of the live web?',

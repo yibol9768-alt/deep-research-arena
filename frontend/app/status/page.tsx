@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock3, Database, FileJson2 } from 'lucide-react'
 import { PageHero, MetricCard } from '@/components/layout/metric-card'
 import { T } from '@/components/i18n/t'
-import { leaderboardMtime, loadLeaderboard, rankedAgents } from '@/lib/data/load-leaderboard'
+import { loadArenaV2 } from '@/lib/data/load-arena-v2'
 import { taskStats } from '@/lib/data/tasks'
 import { fmt } from '@/lib/format'
 
@@ -11,8 +11,8 @@ const CHECKS = [
   {
     label: 'Leaderboard snapshot',
     labelZh: '排行榜快照',
-    detail: 'Deep v3 cache is present and ranked by truth-gated score.',
-    detailZh: 'Deep v3 缓存已就绪，并按真值门控主分排名。',
+    detail: 'The uj_v1 arena snapshot is present and ranked by arena = reach^1.5 x jury win rate.',
+    detailZh: 'uj_v1 竞技场快照已就绪,按 arena = 可达率^1.5 × 陪审团胜率 排名。',
   },
   {
     label: 'Task corpus',
@@ -23,8 +23,8 @@ const CHECKS = [
   {
     label: 'Grounding fields',
     labelZh: '接地字段',
-    detail: 'Reachability and quote-veracity fields are exposed on agent pages and tables.',
-    detailZh: '引用可达率与引文核实率已在智能体页和表格中展示。',
+    detail: 'Reach and truth-score fields are exposed on harness pages and tables.',
+    detailZh: '引用可达率与真值分字段已在框架页和表格中展示。',
   },
 ]
 
@@ -44,16 +44,15 @@ const LIMITS = [
   {
     label: 'Model board scope',
     labelZh: '模型榜范围',
-    detail: 'The model board uses a fixed minimal DR protocol and should not be read as a general chatbot benchmark.',
-    detailZh: '模型榜采用固定的最小 DR 协议，不应解读为通用聊天模型基准。',
+    detail: 'The current board is the 13-task diagnostic subset on two backbones; the full 100-task run extends it without changing the protocol.',
+    detailZh: '当前榜基于 13 任务诊断子集与两个主干模型;100 任务全量跑会在不改口径的情况下扩充它。',
   },
 ]
 
 export default function StatusPage() {
-  const leaderboard = loadLeaderboard()
-  const agents = rankedAgents()
+  const arena = loadArenaV2()
   const stats = taskStats()
-  const lastUpdated = new Date(leaderboardMtime()).toLocaleDateString('en-US')
+  const lastUpdated = arena?.generated_at ?? 'n/a'
 
   return (
     <>
@@ -68,10 +67,10 @@ export default function StatusPage() {
         }
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label={<T en="Agents" zh="智能体" />} value={String(agents.length)} detail={<T en="ranked in the public board" zh="进入公开榜单" />} />
+          <MetricCard label={<T en="Runs" zh="运行" />} value={String(arena?.entries.length ?? 0)} detail={<T en="harness × LLM on the board" zh="框架 × 主干模型在榜" />} />
           <MetricCard label={<T en="Tasks" zh="任务" />} value={String(stats.count)} detail={<T en="frozen sandbox prompts" zh="冻结沙盒提示" />} />
-          <MetricCard label={<T en="Battles" zh="对战" />} value={fmt(leaderboard.n_runs)} detail={<T en="pairwise judge decisions" zh="成对判官决策" />} />
-          <MetricCard label={<T en="Updated" zh="更新" />} value={lastUpdated} detail={<T en="leaderboard cache timestamp" zh="排行榜缓存时间戳" />} />
+          <MetricCard label={<T en="Jury records" zh="陪审团判例" />} value={fmt(arena?.n_judge_records_total ?? 0)} detail={<T en="pairwise judge decisions" zh="成对判官决策" />} />
+          <MetricCard label={<T en="Updated" zh="更新" />} value={lastUpdated} detail={<T en="arena snapshot date" zh="竞技场快照日期" />} />
         </div>
       </PageHero>
 

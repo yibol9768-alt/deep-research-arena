@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { PageHero, MetricCard } from '@/components/layout/metric-card'
 import { T } from '@/components/i18n/t'
-import { juryModels } from '@/lib/data/load-leaderboard'
+import { loadArenaV2 } from '@/lib/data/load-arena-v2'
 
 export const dynamic = 'force-static'
 
@@ -46,7 +46,7 @@ function Mono({ children }: { children: ReactNode }) {
 }
 
 export default function MethodologyPage() {
-  const jury = juryModels()
+  const jury = loadArenaV2()?.judges ?? []
   const juryLine = jury.length > 0 ? jury.join(' · ') : 'cross-family LLM jury'
 
   const SECTIONS: Section[] = [
@@ -85,8 +85,8 @@ reachability = mean(reachable)           # unfloored hard gate
       id: 'jury',
       title: 'LLM jury',
       titleZh: 'LLM 陪审团',
-      body: 'A cross-family 3-judge PoLL jury (arXiv 2404.18796) compares reports in anonymized A/B pairs with position swaps and majority vote. On the current truth-gated Elo board the jury Elo is the quality signal, always scaled by the grounding gate so it can never rescue fabricated citations. Once the five-axis truth board goes live, the jury demotes to a presentation-only column that may break ties between reports the decidable truth score cannot separate, and can never override the truth ranking.',
-      bodyZh: '跨家族 3 判官 PoLL 陪审团(arXiv 2404.18796)在匿名 A/B 对（含位置交换、多数票）中比较报告。在当前的 truth-gated Elo 榜上,陪审团 Elo 是质量信号,但始终乘以接地门,因此永远救不回编造引用。五轴 truth 榜上线后,陪审团降级为仅呈现质量列,只用于对可判定 truth 分无法区分的报告做平局裁决,永远不能推翻 truth 排序。',
+      body: 'A cross-family 3-judge PoLL jury (arXiv 2404.18796) compares reports in anonymized A/B pairs under a four-question usefulness rubric (answer directness, actionability, time-to-insight, verifiability), with a 10% order audit to catch position bias. Judges are told citation veracity is checked elsewhere and length is not a merit. Outcomes are fit with Bradley-Terry; the resulting win rate enters the Arena score only after the judge-free reach term, so jury taste can never rescue fabricated citations.',
+      bodyZh: '跨家族 3 裁判 PoLL 陪审团(arXiv 2404.18796)在匿名 A/B 对中依据四问有用性量规（答案直接性、可操作性、洞察速度、可核验性）比较报告,并抽取 10% 做顺序审计以捕捉位置偏置。裁判被明确告知引用真伪另行核验、篇幅不是优点。对战结果用 Bradley-Terry 拟合;得到的胜率要与不依赖裁判的可达率项相乘才进入 Arena 主分,陪审团口味永远救不回编造引用。',
       artifact: (
         <div className="mt-6 flex flex-wrap items-center gap-2">
           {(jury.length > 0 ? jury : ['juror A', 'juror B', 'juror C']).map((j) => (
@@ -95,21 +95,21 @@ reachability = mean(reachable)           # unfloored hard gate
             </span>
           ))}
           <span className="text-xs text-muted">
-            <T en="· anonymized A/B · position swap · majority vote · gated by grounding" zh="· 匿名 A/B · 位置交换 · 多数票 · 受接地门约束" />
+            <T en="· anonymized A/B · order audit · Bradley-Terry fit · reach term is judge-free" zh="· 匿名 A/B · 顺序审计 · Bradley-Terry 拟合 · 可达率项不依赖裁判" />
           </span>
         </div>
       ),
     },
     {
       id: 'bradley-terry',
-      title: 'Truth-gated Elo (current board)',
-      titleZh: 'Truth-gated Elo（当前榜）',
-      body: 'The public board today ranks by truth-gated Elo: anonymized jury A/B outcomes are fit with Bradley-Terry to an Elo scale, then multiplied by the grounding gate (the mean of citation reachability and quote verification). Raw judge Elo stays visible as its own tab but never decides the public ranking alone; bootstrap confidence intervals over the battle set accompany each rating.',
-      bodyZh: '当前公开榜按 truth-gated Elo 排名:匿名陪审团 A/B 结果用 Bradley-Terry 拟合到 Elo 尺度,再乘以接地门（引用可达率与引文核实率的均值）。裸判官 Elo 作为独立 tab 保留展示,但永远不单独决定公开排名;每个评分附带对战集自助重采样的置信区间。',
+      title: 'Arena score (current board)',
+      titleZh: 'Arena 主分（当前榜）',
+      body: 'The public board ranks by the Arena score: arena = reach^1.5 × Bradley-Terry jury win rate. Reach is the judge-free share of cited URLs that resolve in the frozen registry, raised to the 1.5 power so weak grounding is penalised super-linearly; the win rate comes from the BT fit of jury battles against the average opponent. Jury Elo stays visible as its own tab but never decides the public ranking alone; bootstrap 95% intervals on the win rate accompany each run.',
+      bodyZh: '公开榜按 Arena 主分排名:arena = 可达率^1.5 × Bradley-Terry 陪审团胜率。可达率是不依赖裁判、被引 URL 在冻结注册表中可解析的比例,取 1.5 次幂对弱接地施加超线性惩罚;胜率来自陪审团对战对平均对手的 BT 拟合。陪审团 Elo 作为独立 tab 保留展示,但永远不单独决定公开排名;每条运行附带胜率的 95% 自助法区间。',
       artifact: (
         <Mono>
-          score = Elo × gate,&nbsp;&nbsp;P(i ≻ j) = 1 / (1 + 10<sup>(R_j − R_i)/400</sup>)
-          <span className="ml-4 text-muted-2">· BT MLE fit · gate = mean(reachability, quote-verified) · bootstrap CIs</span>
+          arena = reach<sup>1.5</sup> × bt_winrate,&nbsp;&nbsp;P(i ≻ j) = 1 / (1 + 10<sup>(R_j − R_i)/400</sup>)
+          <span className="ml-4 text-muted-2">· BT MLE fit · reach is judge-free · bootstrap CIs</span>
         </Mono>
       ),
     },
@@ -175,18 +175,18 @@ reachability = mean(reachable)           # unfloored hard gate
         intro={<T en="Deep Research Arena keeps the audit trail explicit: task brief, tri-source corpus, typed decidable checklist, report with citations, registry reachability and the four quality axes, the composed truth score, and a separate presentation column are each kept as distinct artifacts." zh="Deep Research Arena 明确保留审计链路：任务简报、三源语料、带类型的可判定核查清单、带引用的报告、注册表可达性与四个质量轴、复合出的 truth 分,以及独立的呈现质量列,分别作为独立产物保存。" />}
       >
         <div className="mb-6 rounded-xl border border-hairline bg-surface-low p-4">
-          <span className="label-caps text-ink"><T en="Five-axis protocol · boards on truth-gated Elo" zh="五轴协议 · 当前榜为 truth-gated Elo" /></span>
+          <span className="label-caps text-ink"><T en="uj_v1 protocol · boards on the Arena score" zh="uj_v1 协议 · 当前榜为 Arena 主分" /></span>
           <p className="mt-2 text-sm leading-relaxed text-muted">
             <T
-              en="The scoring stack described here is the five-axis decidable protocol (registry reachability gate over four quality axes). The public boards you see today rank by truth-gated Elo (jury Elo × grounding gate); they switch to the five-axis truth board after the first full run under the new protocol completes."
-              zh="本页描述的是五轴可判定协议（注册表可达性硬门叠加四个质量轴）。当前公开榜按 truth-gated Elo（陪审团 Elo × 接地门）排名,待新协议下的首次全量运行完成后切换到五轴真值榜。"
+              en="The public boards rank harness × backbone runs by the Arena score: arena = reach^1.5 × Bradley-Terry jury win rate, computed on the 13-task diagnostic subset over two backbone LLMs. The five-axis decidable truth score described below is reported alongside as its own column; the full 100-task run extends the board without changing the protocol."
+              zh="公开榜按 Arena 主分对「框架 × 主干模型」运行排名:arena = 可达率^1.5 × Bradley-Terry 陪审团胜率,在 13 任务诊断子集、两个主干模型上计算。下文描述的五轴可判定真值分作为独立列一并展示;100 任务全量运行会在不改口径的前提下扩充榜单。"
             />
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <MetricCard label={<T en="Score axes" zh="评分轴" />} value="5" detail={<T en="reachability gate + fact, proof-of-fetch, completeness, spec" zh="可达性硬门 + 事实、抓取证明、完整度、规格" />} />
-          <MetricCard label={<T en="LLM jury" zh="LLM 陪审团" />} value={String(jury.length || 3)} detail={<T en="cross-family PoLL jury, always gated by grounding" zh="跨家族 PoLL 陪审团,始终受接地门约束" />} />
+          <MetricCard label={<T en="LLM jury" zh="LLM 陪审团" />} value={String(jury.length || 3)} detail={<T en="cross-family PoLL jury; reach term is judge-free" zh="跨家族 PoLL 陪审团;可达率项不依赖裁判" />} />
           <MetricCard label={<T en="Weight draws" zh="权重抽样" />} value="2,000" detail={<T en="Dirichlet draws, 91.6% identical ranking" zh="Dirichlet 抽样,91.6% 排名完全一致" />} />
           <MetricCard label={<T en="Archetypes" zh="提问原型" />} value="7" detail={<T en="real-question archetypes across 13 clusters" zh="真实提问原型,覆盖 13 个三源簇" />} />
         </div>

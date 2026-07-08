@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { loadArenaV2, backboneShort } from '@/lib/data/load-arena-v2'
+import { loadArenaV2, harnessAggregates, backboneShort, type HarnessAgg } from '@/lib/data/load-arena-v2'
 import { loadChangelog } from '@/lib/data/changelog'
 import { agentMeta } from '@/lib/providers'
 import { fmt } from '@/lib/format'
@@ -27,7 +27,8 @@ export default function HomePage() {
   }
 
   const entries = arena.entries
-  const harnessCount = new Set(entries.map((e) => e.id)).size
+  const harnesses = harnessAggregates(arena)
+  const harnessCount = harnesses.length
 
   const stats = [
     { value: String(harnessCount), label: 'Harnesses', zh: '框架' },
@@ -46,31 +47,30 @@ export default function HomePage() {
     { id: 'cite', label: 'Cite & reproduce', zh: '引用与复现' },
   ]
 
-  // One bar per harness x backbone run. Same hue per harness; the second
-  // backbone is rendered at reduced alpha so pairs read as a family.
-  const secondBackbone = arena.backbones[1]
-  const row = (e: (typeof entries)[number], value: number, valueLabel?: string): VBarRow => {
-    const meta = agentMeta(e.id)
+  // One bar per harness: the bar is the cross-LLM average, the small dots
+  // mark each backbone's individual value. Click lands on the harness page.
+  const row = (h: HarnessAgg, value: number, valueLabel: string, markerValue: (r: HarnessAgg['runs'][number]) => number): VBarRow => {
+    const meta = agentMeta(h.id)
     return {
-      id: e.key,
+      id: h.id,
       label: meta.display,
-      sublabel: backboneShort(e.backbone),
-      color: e.backbone === secondBackbone ? `${meta.color}8C` : meta.color,
+      color: meta.color,
       value,
       valueLabel,
-      href: `/agents/${e.id}#run-${e.backbone}`,
+      href: `/agents/${h.id}`,
+      markers: h.runs.map((r) => ({ value: markerValue(r), label: backboneShort(r.backbone) })),
     }
   }
 
-  const byArena: VBarRow[] = [...entries]
+  const byArena: VBarRow[] = [...harnesses]
     .sort((a, b) => b.arena - a.arena)
-    .map((e) => row(e, e.arena * 100, (e.arena * 100).toFixed(1)))
-  const byReach: VBarRow[] = [...entries]
+    .map((h) => row(h, h.arena * 100, (h.arena * 100).toFixed(1), (r) => r.arena * 100))
+  const byReach: VBarRow[] = [...harnesses]
     .sort((a, b) => b.reach - a.reach)
-    .map((e) => row(e, e.reach * 100, `${(e.reach * 100).toFixed(0)}%`))
-  const byElo: VBarRow[] = [...entries]
+    .map((h) => row(h, h.reach * 100, `${(h.reach * 100).toFixed(0)}%`, (r) => r.reach * 100))
+  const byElo: VBarRow[] = [...harnesses]
     .sort((a, b) => b.bt_elo - a.bt_elo)
-    .map((e) => row(e, e.bt_elo, String(Math.round(e.bt_elo))))
+    .map((h) => row(h, h.bt_elo, String(Math.round(h.bt_elo)), (r) => r.bt_elo))
 
   const juryLine = arena.judges.join(' · ')
   const kappaLine = arena.backbones
@@ -95,11 +95,11 @@ export default function HomePage() {
         <div className="mt-6">
           <VBarChart
             accent="#6E5BFF"
-            title={<T en="Deep Research Arena — harness × LLM" zh="Deep Research Arena —— 框架 × 主干模型" />}
+            title={<T en="Deep Research Arena — harness average" zh="Deep Research Arena —— 框架平均分" />}
             subtitle={
               <T
-                en={`arena = reach^1.5 × jury win rate (×100). Every bar is one harness run on one backbone — click it for the full breakdown. ${kappaLine}.`}
-                zh={`arena = 引用可达率^1.5 × 陪审团胜率（×100）。每根竖条是一个框架在一个主干模型上的完整运行,点击查看详细分数。${kappaLine}。`}
+                en={`arena = reach^1.5 × jury win rate (×100), averaged over ${arena.backbones.length} backbone LLMs. Dots mark each LLM's individual score — click a bar for the per-LLM breakdown. ${kappaLine}.`}
+                zh={`arena = 引用可达率^1.5 × 陪审团胜率（×100）,对 ${arena.backbones.length} 个主干模型取平均。小圆点是各模型的单独得分,点击竖条查看分模型明细。${kappaLine}。`}
               />
             }
             rows={byArena}
@@ -127,12 +127,12 @@ export default function HomePage() {
               title={<T en="Leaderboard" zh="排行榜" />}
               caption={
                 <T
-                  en={`${entries.length} harness × LLM runs · arena = reach^1.5 × Bradley-Terry win rate · ${arena.judges.length}-judge jury: ${juryLine}`}
-                  zh={`${entries.length} 条框架 × 主干模型记录 · arena = 可达率^1.5 × Bradley-Terry 胜率 · ${arena.judges.length} 裁判陪审团：${juryLine}`}
+                  en={`${harnessCount} harnesses averaged over ${arena.backbones.length} LLMs (${entries.length} runs) · arena = reach^1.5 × Bradley-Terry win rate · jury: ${juryLine} · click a row to expand per-LLM results`}
+                  zh={`${harnessCount} 个框架,对 ${arena.backbones.length} 个模型取平均(共 ${entries.length} 条运行)· arena = 可达率^1.5 × Bradley-Terry 胜率 · 陪审团：${juryLine} · 点击行展开分模型结果`}
                 />
               }
             />
-            <ArenaTable entries={entries} />
+            <ArenaTable harnesses={harnesses} />
           </div>
 
           {/* Secondary axes: grounding + raw jury Elo */}
@@ -151,13 +151,13 @@ export default function HomePage() {
               <VBarChart
                 accent="#34A853"
                 title={<T en="Grounding (reach)" zh="接地（引用可达率）" />}
-                subtitle={<T en="Share of cited URLs that resolve inside the frozen sandbox" zh="引用 URL 在冻结沙箱内可重新打开的比例" />}
+                subtitle={<T en="Share of cited URLs that resolve inside the frozen sandbox · cross-LLM average, dots per LLM" zh="引用 URL 在冻结沙箱内可重新打开的比例 · 跨模型平均,圆点为各模型" />}
                 rows={byReach}
               />
               <VBarChart
                 accent="#cc785c"
                 title={<T en="Jury Elo (Bradley-Terry)" zh="陪审团 Elo（Bradley-Terry）" />}
-                subtitle={<T en="Pairwise usefulness preference from the 3-judge jury, order-audited" zh="三裁判陪审团的成对有用性偏好,含顺序审计" />}
+                subtitle={<T en="Pairwise usefulness preference from the 3-judge jury · cross-LLM average, dots per LLM" zh="三裁判陪审团的成对有用性偏好 · 跨模型平均,圆点为各模型" />}
                 rows={byElo}
               />
             </div>

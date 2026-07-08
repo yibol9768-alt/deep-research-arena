@@ -7,23 +7,23 @@ export const dynamic = 'force-static'
 
 const STORIES = [
   {
-    slug: 'judge-vs-grounding',
-    title: 'Raw judge Elo and grounded evidence disagree sharply',
-    titleZh: '裸判官 Elo 与真实证据出现明显分歧',
-    kicker: 'Agent board',
-    kickerZh: '智能体榜',
-    body: 'GPT-Researcher sits near the top by raw judge Elo (1147), but only 4.3% of its cited URLs resolve and 2.2% of quoted evidence is verified. The truth-gated board drops it to #11, while Claude Code and OpenCode lead because quality and evidence both hold up.',
-    bodyZh: 'GPT-Researcher 的裸判官 Elo 很高（1147），但引用可达率只有 4.3%，引文核实率只有 2.2%。真值门控榜将其降到第 11；Claude Code 与 OpenCode 领先，是因为报告质量与证据质量同时成立。',
+    slug: 'jury-vs-grounding',
+    title: 'The jury favourite is not the Arena leader',
+    titleZh: '陪审团最喜欢的,不是 Arena 的第一名',
+    kicker: 'Harness board',
+    kickerZh: '框架榜',
+    body: 'ii-researcher holds the highest jury Elo on both backbones (1381 on Qwen3-8B, 1430 on DS-V4-Flash), but only 27% and 5% of its cited URLs resolve, so its Arena score collapses to 12.5 and 1.0. smolagents on DS-V4-Flash leads instead: 81% reach and an 80% win rate.',
+    bodyZh: 'ii-researcher 在两个主干模型上都拿到最高的陪审团 Elo（Qwen3-8B 上 1381,DS-V4-Flash 上 1430）,但引用可达率只有 27% 和 5%,Arena 主分因此塌缩到 12.5 和 1.0。领跑的是 DS-V4-Flash 上的 smolagents：81% 可达率加 80% 胜率。',
     href: '/methodology#grounding-gate',
   },
   {
-    slug: 'qwen3-cheap-baseline',
-    title: 'The minimal qwen3 baseline exposes the cost of citation pressure',
-    titleZh: '极简 qwen3 基线暴露了引用压力的代价',
-    kicker: 'Model board',
+    slug: 'backbone-sensitivity',
+    title: 'The same harness can flip rank when the backbone changes',
+    titleZh: '换一个主干模型,同一框架的排名可以完全翻转',
+    kicker: 'Backbone board',
     kickerZh: '模型榜',
-    body: 'In the current model board, qwen3-30b-a3b-instruct-2507 runs under the fixed minimal protocol across 24 tasks and 643 clean judge battles. Its grounding gate is about 24%: many answers read coherently, but weak source budgets still push the model toward unreachable or unverifiable citations.',
-    bodyZh: '在当前模型榜中，qwen3-30b-a3b-instruct-2507 使用固定极简协议，覆盖 24 个任务与 643 场 clean 判官对战。它的接地门约为 24%：不少回答读起来连贯，但来源预算不足仍会把模型推向不可达或无法核验的引用。',
+    body: 'local-deep-research scores 58.3 on Qwen3-8B but 11.8 on DS-V4-Flash — reach stays near-perfect on both, yet its jury win rate collapses from 64% to 12%. smolagents moves the other way. Averaging across backbones is what keeps the headline board honest.',
+    bodyZh: 'local-deep-research 在 Qwen3-8B 上拿 58.3,在 DS-V4-Flash 上只有 11.8 —— 两边可达率都接近满分,但陪审团胜率从 64% 跌到 12%。smolagents 则正好相反。这正是主榜要对主干模型取平均的原因。',
     href: '/models',
   },
   {
@@ -32,8 +32,8 @@ const STORIES = [
     titleZh: '只看判官分时,流畅的报告可以压过有据可依的报告',
     kicker: 'Grounding',
     kickerZh: '接地',
-    body: 'The prettiest report can still fabricate unreachable URLs. Composite v3.1 makes citation reachability a first-class ranking signal.',
-    bodyZh: '再漂亮的报告也可能捏造无法访问的 URL。Composite v3.1 把引用可达性作为一等排名信号。',
+    body: 'The prettiest report can still fabricate unreachable URLs. The Arena score raises reach to the 1.5 power, so weak grounding is penalised super-linearly before jury preference counts.',
+    bodyZh: '再漂亮的报告也可能捏造无法访问的 URL。Arena 主分对可达率取 1.5 次幂,在陪审团偏好起作用之前就对弱接地施加超线性惩罚。',
     href: '/methodology#grounding-gate',
   },
   {
@@ -74,7 +74,7 @@ const STORIES = [
     kickerZh: '效率',
     body: 'The efficient frontier is small: most agents are dominated once quality, cost, and dropped runs are considered together.',
     bodyZh: '高效前沿很小：一旦同时考量质量、成本与丢弃的运行，大多数智能体都会被支配。',
-    href: '/pillars',
+    href: '/models',
   },
 ]
 

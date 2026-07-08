@@ -12,6 +12,8 @@ export interface VBarRow {
   valueLabel?: string
   /** When set, the whole column (bar + label) links here. */
   href?: string
+  /** Small dot markers overlaid on the bar (e.g. one per backbone LLM). */
+  markers?: Array<{ value: number; label: string }>
 }
 
 interface Props {
@@ -62,11 +64,21 @@ export function VBarChart({ accent, title, subtitle, rows, badge }: Props) {
                 <span className="mb-1 text-[10px] font-semibold tnum leading-none text-ink">
                   {r.valueLabel ?? String(Math.round(r.value))}
                 </span>
-                <div
-                  className="w-full max-w-[40px] rounded-t-[3px] transition-opacity group-hover:opacity-80"
-                  style={{ height: `${h}%`, backgroundColor: r.color }}
-                  title={`${r.label}${r.sublabel ? ` (${r.sublabel})` : ''}: ${r.valueLabel ?? r.value}`}
-                />
+                <div className="relative w-full max-w-[40px]" style={{ height: `${h}%` }}>
+                  <div
+                    className="h-full w-full rounded-t-[3px] transition-opacity group-hover:opacity-80"
+                    style={{ backgroundColor: r.color }}
+                    title={`${r.label}${r.sublabel ? ` (${r.sublabel})` : ''}: ${r.valueLabel ?? r.value}`}
+                  />
+                  {r.markers?.map((m) => (
+                    <span
+                      key={m.label}
+                      title={`${m.label}: ${m.value.toFixed(1)}`}
+                      className="absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 translate-y-1/2 rounded-full border border-white bg-ink/70"
+                      style={{ bottom: `${(m.value / Math.max(r.value, 0.0001)) * 100}%` }}
+                    />
+                  ))}
+                </div>
               </>
             )
             return r.href ? (

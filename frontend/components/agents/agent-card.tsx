@@ -1,21 +1,14 @@
 import Link from 'next/link'
 import { ArrowUpRight, Swords } from 'lucide-react'
 import { agentMeta, AgentMeta } from '@/lib/providers'
-import { fmt, groundingGatePct, truthScore } from '@/lib/format'
+import { backboneShort } from '@/lib/backbones'
 import { T } from '@/components/i18n/t'
 import type { ReactNode } from 'react'
-import type { RankedAgent } from '@/lib/data/types'
+import type { HarnessAgg } from '@/lib/data/load-arena-v2'
 
-export function AgentCard({ agent, rank }: { agent: RankedAgent; rank: number }) {
-  const meta: AgentMeta = agentMeta(agent.id)
-  const winRate = agent.wins / Math.max(1, agent.n_battles)
-  const gate = groundingGatePct(agent)
-  const score = truthScore(agent)
-  const bars = [
-    { label: 'Reach', value: agent.reachability_pct, color: '#7F4BF3' },
-    { label: 'Quote', value: agent.url_veracity_pct, color: '#1c7ff8' },
-    { label: 'Judge', value: Math.min(100, Math.max(0, (agent.elo / 1200) * 100)), color: meta.color },
-  ]
+export function AgentCard({ harness, rank }: { harness: HarnessAgg; rank: number }) {
+  const meta: AgentMeta = agentMeta(harness.id)
+  const topArena = Math.max(...harness.runs.map((r) => r.arena), 0.0001)
 
   return (
     <article className="card relative overflow-hidden p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-hover">
@@ -50,38 +43,35 @@ export function AgentCard({ agent, rank }: { agent: RankedAgent; rank: number })
         </div>
       </header>
 
-      <p className="mt-1.5 inline-block rounded-pill bg-surface-mid px-2 py-0.5 text-[11px] font-medium text-muted">
-        <T en="Backbone" zh="主干模型" /> · {meta.backbone}
-      </p>
-
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        <Stat label={<T en="Score" zh="主分" />} value={fmt(score)} accent />
-        <Stat label={<T en="Grounding" zh="接地" />} value={gate == null ? 'n/a' : `${gate.toFixed(0)}%`} />
-        <Stat label={<T en="Judge Elo" zh="判官 Elo" />} value={fmt(agent.elo)} />
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <Stat label={<T en="Arena (avg)" zh="Arena 平均" />} value={(harness.arena * 100).toFixed(1)} accent />
+        <Stat label={<T en="Reach" zh="可达" />} value={`${(harness.reach * 100).toFixed(0)}%`} />
+        <Stat label={<T en="Jury Elo" zh="陪审团 Elo" />} value={String(Math.round(harness.bt_elo))} />
       </div>
 
+      {/* One row per backbone LLM */}
       <div className="mt-5 space-y-2">
-        {bars.map((bar) => (
-          <div key={bar.label}>
+        {harness.runs.map((r) => (
+          <Link key={r.key} href={`/agents/${harness.id}#run-${r.backbone}`} className="block">
             <div className="mb-1 flex justify-between text-[10px] font-semibold uppercase tracking-wider text-muted">
-              <span>{bar.label}</span>
-              <span className="tnum">{bar.value == null ? 'n/a' : `${Math.round(bar.value)}%`}</span>
+              <span>{backboneShort(r.backbone)}</span>
+              <span className="tnum">{(r.arena * 100).toFixed(1)}</span>
             </div>
             <div className="h-1.5 rounded-pill bg-surface-mid">
               <div
                 className="h-full rounded-pill"
-                style={{ width: `${Math.max(0, Math.min(100, bar.value ?? 0))}%`, backgroundColor: bar.color }}
+                style={{ width: `${(r.arena / topArena) * 100}%`, backgroundColor: meta.color }}
               />
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
       <p className="mt-4 text-xs leading-relaxed text-muted">
         {meta.blurb ?? (
           <T
-            en={`${agent.wins}/${agent.losses}/${agent.draws} W/L/D across ${agent.n_battles} agent-side records; win rate ${(winRate * 100).toFixed(0)}%.`}
-            zh={`${agent.n_battles} 条单边记录中胜/负/平为 ${agent.wins}/${agent.losses}/${agent.draws}；胜率 ${(winRate * 100).toFixed(0)}%。`}
+            en={`${harness.n_battles} jury battles across ${harness.runs.length} backbone LLMs.`}
+            zh={`${harness.runs.length} 个主干模型上共 ${harness.n_battles} 场陪审团对战。`}
           />
         )}
       </p>

@@ -69,10 +69,10 @@ export default function PillarsPage() {
       <PageHero
         eyebrow={<T en="Scoring Pillars" zh="评分维度" />}
         title={<T en="What the public score measures." zh="公开主分衡量什么。" />}
-        intro={<T en="The live leaderboard is intentionally simple: judge Elo measures comparative report quality, while the grounding gate checks whether citations resolve and quotes match. The five decidable axes below are the implemented five-axis truth stack; the public board switches to it after the first full run under the new protocol completes." zh="当前公开榜单刻意保持简单：判官 Elo 衡量报告质量，接地门核验引用是否可达、引文是否匹配。下方五个可判定轴是已实现的五轴真值评分栈；待新协议下的首次全量运行完成后，公开榜将切换到该口径。" />}
+        intro={<T en="The live leaderboard is intentionally simple: the Arena score is reach^1.5 × jury win rate, where reach is judge-free citation reachability. The five decidable axes below are the implemented truth stack behind the truth column shown next to every run." zh="当前公开榜单刻意保持简单：Arena 主分 = 可达率^1.5 × 陪审团胜率,其中可达率是不依赖裁判的引用可达检查。下方五个可判定轴是每条运行旁真值分列背后的评分栈。" />}
       >
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label={<T en="Public axes" zh="公开轴" />} value="2" detail={<T en="judge Elo and grounding gate" zh="判官 Elo 与接地门" />} />
+          <MetricCard label={<T en="Public axes" zh="公开轴" />} value="2" detail={<T en="jury win rate and reach" zh="陪审团胜率与可达率" />} />
           <MetricCard label={<T en="Decidable axes" zh="可判定轴" />} value="5" detail={<T en="plus presentation as a tie-break column" zh="外加作为平局裁决列的呈现质量" />} />
           <MetricCard label={<T en="Weight draws" zh="权重抽样" />} value="2,000" detail={<T en="Dirichlet draws, 91.6% identical ranking" zh="Dirichlet 抽样,91.6% 排名完全一致" />} />
           <MetricCard label={<T en="Agents" zh="智能体" />} value={String(agents.length)} detail={<T en="ranked under the same scoring contract" zh="在同一评分契约下排名" />} />
@@ -83,12 +83,12 @@ export default function PillarsPage() {
         <div className="card p-6 lg:col-span-3">
           <span className="label-caps"><T en="Composite formula" zh="综合公式" /></span>
           <p className="mt-4 font-serif text-3xl leading-tight text-ink">
-            score = judge Elo × grounding gate
+            arena = reach^1.5 × jury win rate
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
               en="The gate is the mean of citation reachability and quote verification. Raw judge Elo remains visible, but it does not decide the public ranking by itself."
-              zh="接地门是引用可达率与引文核实率的均值。裸判官 Elo 仍然公开展示，但它不会单独决定公开排名。"
+              zh="可达率是不依赖裁判的引用核验信号。陪审团 Elo 仍然公开展示，但它不会单独决定公开排名。"
             />
           </p>
         </div>
@@ -124,8 +124,8 @@ export default function PillarsPage() {
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             <T
-              en="The four quality axes have an epsilon=0.05 floor; reachability has no floor, so a zero-output or fabricated report is capped near the floor constant. This stack is implemented and externally calibrated (proof-of-fetch threshold 0.35; gamma checked by fabrication injection; 2,000 Dirichlet weight draws reproduce the identical ranking 91.6% of the time) but not yet live: the public board above still ranks by truth-gated Elo, so no five-axis rankings are shown here."
-              zh="四个质量轴有 epsilon=0.05 地板；reachability 无地板，零产出或编造报告的得分被压到地板常数附近。该评分栈已实现并完成外部校准（抓取证明阈值 0.35；γ 经注入编造检验；2,000 组 Dirichlet 权重抽样中 91.6% 复现完全相同排名），但尚未上线：上方公开榜仍按 truth-gated Elo 排名，此处不展示任何五轴排名。"
+              en="The four quality axes have an epsilon=0.05 floor; reachability has no floor, so a zero-output or fabricated report is capped near the floor constant. This stack is implemented and externally calibrated (proof-of-fetch threshold 0.35; gamma checked by fabrication injection; 2,000 Dirichlet weight draws reproduce the identical ranking 91.6% of the time); the composed truth score is reported as its own column next to every run on the public board."
+              zh="四个质量轴有 epsilon=0.05 地板；reachability 无地板，零产出或编造报告的得分被压到地板常数附近。该评分栈已实现并完成外部校准（抓取证明阈值 0.35；γ 经注入编造检验；2,000 组 Dirichlet 权重抽样中 91.6% 复现完全相同排名）；复合出的真值分作为独立列展示在公开榜每条运行旁。"
             />
           </p>
         </div>

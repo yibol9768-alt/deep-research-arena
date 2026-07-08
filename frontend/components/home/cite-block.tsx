@@ -5,7 +5,7 @@ import { T } from '@/components/i18n/t'
 const BIBTEX = `@misc{deepresearcharena2026,
   title = {Deep Research Arena},
   year  = {2026},
-  note  = {Reproducible truth-gated Elo benchmark
+  note  = {Reproducible harness x LLM arena benchmark
            for Deep Research agents},
   url   = {https://www.deepresearcharena.com}
 }`

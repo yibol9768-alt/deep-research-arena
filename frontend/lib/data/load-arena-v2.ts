@@ -28,6 +28,82 @@ export interface ArenaSnapshot {
 
 export { BACKBONE_SHORT, backboneShort } from '../backbones'
 
+/** One harness aggregated across every backbone it ran on. */
+export interface HarnessAgg {
+  id: string
+  runs: ArenaEntry[]
+  /** Unweighted mean across backbones (each backbone counts once). */
+  arena: number
+  reach: number
+  bt_elo: number
+  winrate: number
+  truth: number
+  n_battles: number
+}
+
+/** One backbone LLM aggregated across every harness that ran on it. */
+export interface BackboneAgg {
+  backbone: string
+  runs: ArenaEntry[]
+  arena: number
+  reach: number
+  bt_elo: number
+  winrate: number
+  truth: number
+  n_battles: number
+  fleiss_kappa: number
+  spearman: number
+}
+
+const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / Math.max(1, xs.length)
+
+/** Harness view: one row per framework, averaged across backbones. */
+export function harnessAggregates(snapshot: ArenaSnapshot): HarnessAgg[] {
+  const byId = new Map<string, ArenaEntry[]>()
+  for (const e of snapshot.entries) {
+    const arr = byId.get(e.id) ?? []
+    arr.push(e)
+    byId.set(e.id, arr)
+  }
+  const out: HarnessAgg[] = []
+  for (const [id, runs] of byId) {
+    runs.sort((a, b) => b.arena - a.arena)
+    out.push({
+      id,
+      runs,
+      arena: mean(runs.map((r) => r.arena)),
+      reach: mean(runs.map((r) => r.reach)),
+      bt_elo: mean(runs.map((r) => r.bt_elo)),
+      winrate: mean(runs.map((r) => r.winrate)),
+      truth: mean(runs.map((r) => r.truth)),
+      n_battles: runs.reduce((s, r) => s + r.n_battles, 0),
+    })
+  }
+  return out.sort((a, b) => b.arena - a.arena || b.bt_elo - a.bt_elo)
+}
+
+/** Backbone view: one row per LLM, averaged across harnesses. */
+export function backboneAggregates(snapshot: ArenaSnapshot): BackboneAgg[] {
+  return snapshot.backbones
+    .map((backbone) => {
+      const runs = snapshot.entries.filter((e) => e.backbone === backbone).sort((a, b) => b.arena - a.arena)
+      const bb = snapshot.perBackbone[backbone]
+      return {
+        backbone,
+        runs,
+        arena: mean(runs.map((r) => r.arena)),
+        reach: mean(runs.map((r) => r.reach)),
+        bt_elo: mean(runs.map((r) => r.bt_elo)),
+        winrate: mean(runs.map((r) => r.winrate)),
+        truth: mean(runs.map((r) => r.truth)),
+        n_battles: runs.reduce((s, r) => s + r.n_battles, 0),
+        fleiss_kappa: bb.fleiss_kappa,
+        spearman: bb.spearman,
+      }
+    })
+    .sort((a, b) => b.arena - a.arena)
+}
+
 export function loadArenaV2(): ArenaSnapshot | null {
   const raw: MatrixSubset | null = loadMatrixSubset()
   if (!raw) return null
