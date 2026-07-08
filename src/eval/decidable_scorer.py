@@ -477,23 +477,109 @@ def build_page_stats(cache: dict, top_n_chrome: int = _CHROME_TOP_N,
     return {"df": dict(df), "n_pages": n, "chrome": chrome}
 
 
+# Citation styles whose site sits next to a CLAIM in the running prose and can
+# therefore serve as a proof-of-fetch evidence anchor (E-3 §6.3). Reference-list
+# forms (``source`` = "URL: ..." bibliography lines, ``bullet`` = "- <url>"
+# lists) are excluded from EVIDENCE: the 400 chars before such a site are the
+# entry's own title / other bibliography rows, not a claim, so verifying them
+# would either self-match the page title or prove nothing. They still count for
+# reachability; here they only mark the page as CITED (denominator), never as
+# read (numerator). Numbered / footnote inline anchors ([N], [^id]) are the
+# in-text markers whose surrounding prose is the report's own claim.
+POF_EVIDENCE_STYLES = frozenset({"markdown", "numbered", "footnote", "bare"})
+
+
+def _resolve_cache_key(cache: dict, u: str):
+    """The actual key under which ``u``'s page is cached, tolerant to the same
+    normalization drift ``_cache_entry`` handles (trailing punctuation,
+    localhost<->127.0.0.1). Returns the key string or None. Used to group
+    citation occurrences by the ONE page they point at."""
+    for k in (u, u.rstrip("`.,;:!?)"),
+              u.replace("127.0.0.1", "localhost"),
+              u.replace("localhost", "127.0.0.1")):
+        if k in cache:
+            return k
+    return None
+
+
+def _pof_occurrence_ok(md: str, offset: int, u: str, page_set: set,
+                       page_tris: set, w, chrome: set, threshold: float,
+                       span_len: int) -> tuple[bool, float, bool, bool]:
+    """Evaluate ONE citation occurrence: does the 400 chars of prose BEFORE the
+    citation site (labels + bare URLs stripped) verbatim-appear on the cited
+    page? Returns (ok, cover, span_ok, empty_context). Same verbatim judge as
+    the incumbent (IDF-weighted containment >= threshold AND a non-boilerplate
+    contiguous span_len-token run present on the page); only the anchor moved
+    from the markdown link to the extractor-reported citation offset."""
+    raw_ctx = md[max(0, offset - 400): offset]
+    raw_ctx = LINK_RE.sub(" ", raw_ctx)      # label REMOVED (G-F1)
+    raw_ctx = BARE_URL_RE.sub(" ", raw_ctx)
+    ctx_seq = _tokens(norm(raw_ctx))
+    # the cited URL's own slug tokens are the page title by construction:
+    # pasting the slug as prose next to the link must not count as proof
+    # of reading (G-F1 residual, verify pass)
+    slug_toks = set(_tokens(norm(re.sub(r"[/\-_.]", " ", u.split("://")[-1]))))
+    kept = [t for t in set(ctx_seq)
+            if (_is_numeric_tok(t) or (t not in STOPWORDS and t not in chrome))
+            and t not in slug_toks]
+    if not kept:
+        return False, 0.0, False, True
+    total = sum(w(t) for t in kept)
+    hit = sum(w(t) for t in kept if t in page_set)
+    cover = hit / total if total else 0.0
+    span_ok = True
+    if len(ctx_seq) >= span_len:
+        span_ok = False
+        for i in range(len(ctx_seq) - span_len + 1):
+            tri = tuple(ctx_seq[i:i + span_len])
+            if all(not _is_numeric_tok(t) and (t in STOPWORDS or t in chrome)
+                   for t in tri):
+                continue  # an all-stopword/chrome span proves nothing
+            if tri in page_tris:
+                span_ok = True
+                break
+    return (cover >= threshold and span_ok), cover, span_ok, False
+
+
 def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
                          threshold: float = POF_THRESHOLD_DEFAULT,
                          span_len: int = 3) -> tuple[float, dict]:
-    """axis 1b: does the report's own context around each citation actually
-    appear on the cited page? (G-F1 rebuild.)
+    """axis 1b (VERBATIM-EVIDENCE LOWER BOUND): for each DISTINCT cited page,
+    does the report verbatim-reproduce that page's text next to at least one of
+    its in-text citations? (E-3/E-4 rebuild.)
 
-    Context = the 400 chars BEFORE the link, with every markdown link label
-    REMOVED (not substituted back in: the label is usually the page title and
-    would auto-hit) and bare URLs stripped. Tokens = words >=3 chars MINUS the
-    stopword set MINUS the chrome tokens; numeric tokens are always kept
-    (G-F15). Pages are scanned in FULL, never a 5k/20k/40k prefix (G-F4).
+    Two structural fixes over the incumbent (audit E-3 §6):
 
-    Match = IDF-weighted containment (weight 1/log(2+page_df) when a df table
-    exists, else 1) >= `threshold` AND at least one contiguous span of
-    `span_len` raw context tokens appearing verbatim in the page token stream
-    (the span requirement kills bag-of-words gaming: pasting a product name
-    plus topic words no longer passes).
+    1. Citation extraction is shared with reachability via
+       ``citation_format.extract_citations`` instead of the markdown-only
+       ``LINK_RE``. 59% of cited-URL occurrences on the panel are non-markdown
+       (numbered ``[N]``, bare, footnote); the old scanner saw ``checked=0`` for
+       every numbered-citation agent (LDR/STORM) and returned 0.0 despite a
+       62-83% page-level read rate. ``source``/``bullet`` reference-list forms
+       are counted as CITED but are not evidence anchors (their context is the
+       entry's own title, E-3 §6.3); the in-text markers are.
+
+    2. Aggregation is PAGE-LEVEL any-occurrence, not per-marker averaging: a
+       page passes if ANY of its citation sites carries verbatim evidence. The
+       old per-marker mean diluted a page cited many times (a `[7]` repeated in
+       enumerations) down to the single marker that hugged the quote; the read
+       signal is "was this page demonstrably read", once per page (E-3 §2.3).
+
+    Denominator = distinct cited pages that resolve to a cached status-200 entry
+    (a cited page with no cached text is undecidable and excluded, as before);
+    numerator = those with >=1 in-text occurrence whose 400-char preceding
+    context (labels + bare URLs stripped) verbatim-matches the page. A page
+    cited ONLY from a reference list (no in-text anchor) is checked-and-failed:
+    a bare bibliography URL is not proof of having read it.
+
+    Verbatim judge (unchanged, still deterministic / model-free): IDF-weighted
+    containment (weight 1/log(2+page_df) when a df table exists, else 1) >=
+    ``threshold`` AND at least one non-boilerplate contiguous ``span_len``-token
+    run appearing verbatim in the FULL page token stream (G-F4). The name is a
+    LOWER BOUND on grounding: a report that read a page but fully paraphrased it
+    can legitimately score low here (order-preserving paraphrase still passes
+    82-86%, E-4 §2); semantic grounding is carried by the reach gate, not this
+    axis.
 
     threshold=0.35 is calibrated (G-F1) in data/results/
     pof_gamma_calibration.json (scripts/calibrate_pof_gamma.py): on 320 verbatim
@@ -509,67 +595,69 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
             return 1.0 / math.log(2 + df.get(t, 0))
         return 1.0
 
-    page_cache: dict[str, tuple[set, set]] = {}
-    checked = passed = 0
-    per = []
-    for m in LINK_RE.finditer(md):
-        u = m.group(2).rstrip(".,;")
-        entry = cache.get(u)
+    # (a) collect every citation site, group by the ONE cached-200 page it
+    # points at. `cited_keys` is the denominator (distinct cited pages with
+    # text); `evidence_by_key` holds only the in-text anchor occurrences.
+    try:
+        from src.verifiers.citation_format import extract_citations, strip_url_trail
+        cits = [(strip_url_trail(c.raw_url), c.char_offset, c.style)
+                for c in extract_citations(md, sandbox_only=False)]
+    except Exception:
+        cits = [(m.group(2).rstrip(".,;"), m.start(), "markdown")
+                for m in LINK_RE.finditer(md)]
+
+    cited_keys: dict[str, str] = {}   # cache_key -> a representative raw url
+    evidence_by_key: dict[str, list[tuple[int, str]]] = {}
+    for u, off, style in cits:
+        k = _resolve_cache_key(cache, u)
+        if k is None:
+            continue
+        entry = cache.get(k)
         try:
             st = int((entry or {}).get("status", 0) or 0)
         except (TypeError, ValueError):
             st = 0
-        if not entry or st != 200:
+        if st != 200:
             continue
-        raw_ctx = md[max(0, m.start() - 400): m.start()]
-        raw_ctx = LINK_RE.sub(" ", raw_ctx)      # label REMOVED (G-F1)
-        raw_ctx = BARE_URL_RE.sub(" ", raw_ctx)
-        ctx_seq = _tokens(norm(raw_ctx))
-        # the cited URL's own slug tokens are the page title by construction:
-        # pasting the slug as prose next to the link must not count as proof
-        # of reading (G-F1 residual, verify pass)
-        slug_toks = set(_tokens(norm(re.sub(r"[/\-_.]", " ", u.split("://")[-1]))))
-        kept = [t for t in set(ctx_seq)
-                if (_is_numeric_tok(t) or (t not in STOPWORDS and t not in chrome))
-                and t not in slug_toks]
-        if not kept:
-            # a cached-200 citation with ZERO non-boilerplate context is
-            # exactly "no proof of fetch": count it as checked-and-failed,
-            # else slug/stopword padding turns real-but-unread citations into
-            # skips and pof collapses to the one genuine citation (verify
-            # finding: 1 real + 5 padded scored 1.000)
-            checked += 1
-            per.append({"url": u[-60:], "cover": 0.0, "span": False,
-                        "ok": False, "reason": "empty_context"})
-            continue
-        if u not in page_cache:
-            page_seq = _tokens(norm(strip_html(entry.get("text", ""))))  # FULL text (G-F4)
+        cited_keys.setdefault(k, u)
+        if style in POF_EVIDENCE_STYLES:
+            evidence_by_key.setdefault(k, []).append((off, u))
+
+    # (b) score each distinct cited page: pass on ANY in-text occurrence.
+    page_cache: dict[str, tuple[set, set]] = {}
+    checked = passed = 0
+    per = []
+    for k, rep_url in cited_keys.items():
+        entry = cache.get(k)
+        if k not in page_cache:
+            page_seq = _tokens(norm(strip_html((entry or {}).get("text", ""))))
             tris = {tuple(page_seq[i:i + span_len])
                     for i in range(len(page_seq) - span_len + 1)}
-            page_cache[u] = (set(page_seq), tris)
-        page_set, page_tris = page_cache[u]
-        total = sum(w(t) for t in kept)
-        hit = sum(w(t) for t in kept if t in page_set)
-        cover = hit / total if total else 0.0
-        span_ok = True
-        if len(ctx_seq) >= span_len:
-            span_ok = False
-            for i in range(len(ctx_seq) - span_len + 1):
-                tri = tuple(ctx_seq[i:i + span_len])
-                if all(not _is_numeric_tok(t) and (t in STOPWORDS or t in chrome)
-                       for t in tri):
-                    continue  # an all-stopword/chrome span proves nothing
-                if tri in page_tris:
-                    span_ok = True
-                    break
-        ok = cover >= threshold and span_ok
+            page_cache[k] = (set(page_seq), tris)
+        page_set, page_tris = page_cache[k]
+        occ = evidence_by_key.get(k, [])
         checked += 1
-        passed += ok
-        per.append({"url": u[-60:], "cover": round(cover, 3),
-                    "span_ok": span_ok, "passed": bool(ok)})
+        if not occ:
+            per.append({"url": rep_url[-60:], "cover": 0.0, "span_ok": False,
+                        "passed": False, "n_occ": 0, "reason": "no_inline_anchor"})
+            continue
+        best_cover, page_ok, any_span = 0.0, False, False
+        for off, u in occ:
+            ok, cover, span_ok, _empty = _pof_occurrence_ok(
+                md, off, u, page_set, page_tris, w, chrome, threshold, span_len)
+            best_cover = max(best_cover, cover)
+            any_span = any_span or span_ok
+            if ok:
+                page_ok = True
+                break
+        passed += page_ok
+        per.append({"url": rep_url[-60:], "cover": round(best_cover, 3),
+                    "span_ok": any_span, "passed": bool(page_ok),
+                    "n_occ": len(occ)})
     return (passed / checked if checked else 0.0), {
         "checked": checked, "passed": passed, "threshold": threshold,
-        "df_pages": stats.get("n_pages", 0), "per": per[:12]}
+        "df_pages": stats.get("n_pages", 0),
+        "aggregation": "page_level_any_occurrence", "per": per[:12]}
 
 
 # ---------------------------------------------------------------------------

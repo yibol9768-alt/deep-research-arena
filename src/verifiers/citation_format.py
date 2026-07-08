@@ -225,19 +225,59 @@ def _claim_context(answer: str, span_start: int, window: int = 200) -> str:
     return chunk.strip()
 
 
+_REF_HEAD_RE = re.compile(r"^\s*\[(?P<n>\d{1,3})\]\s*\.?\s*(?:[-:.]\s*)?(?P<rest>.*)$")
+
+
 def _build_numbered_table(answer: str) -> dict[str, str]:
     """Parse ``[N] http://...`` reference list lines (under "## References"
-    or anywhere in the doc) into ``{N: url}``."""
+    or anywhere in the doc) into ``{N: url}``.
+
+    Two shapes are recognised:
+      * single line   ``[N] <title> http://...`` (or a markdown link)
+      * two line      ``[N] <title>`` then a following ``URL: http://...`` /
+                      bare-URL continuation line (LDR's ``### Sources`` block:
+                      the URL sits on the NEXT line, so the single-line pass
+                      returned an empty table and every ``[N]`` inline anchor
+                      silently lost its URL — audit E-3 §2.1).
+
+    First definition of a given ``N`` wins. The two-line lookahead stops at the
+    next numbered reference head so ``[1]``'s scan can never steal ``[2]``'s URL.
+    """
     table: dict[str, str] = {}
-    for m in NUMBERED_REF_LINE_RE.finditer(answer):
+    lines = answer.splitlines()
+    for i, line in enumerate(lines):
+        m = _REF_HEAD_RE.match(line)
+        if not m:
+            continue
+        n = m.group("n")
+        if n in table:
+            continue
         rest = m.group("rest").strip()
+        url = None
         url_m = BARE_URL_RE.search(rest)
-        if not url_m:
+        if url_m:
+            url = url_m.group(0)
+        else:
             inner_md = MD_LINK_RE.search(rest)
             if inner_md:
-                table[m.group("n")] = strip_url_trail(inner_md.group("url"))
-            continue
-        table[m.group("n")] = strip_url_trail(url_m.group(0))
+                url = inner_md.group("url")
+        if url is None:
+            # two-line continuation: look at the next few lines for a URL,
+            # stopping at the next reference head so we bind the right entry.
+            for j in range(i + 1, min(i + 4, len(lines))):
+                nxt = lines[j]
+                if _REF_HEAD_RE.match(nxt):
+                    break
+                src_m = SOURCE_PREFIX_RE.search(nxt)
+                if src_m:
+                    url = src_m.group("url")
+                    break
+                bare_m = BARE_URL_RE.search(nxt)
+                if bare_m:
+                    url = bare_m.group(0)
+                    break
+        if url:
+            table[n] = strip_url_trail(url)
     return table
 
 
