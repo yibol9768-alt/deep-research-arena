@@ -39,6 +39,48 @@ from src.eval.closed_world_eval import evaluate, load_registry  # noqa: E402
 AXES = ("grounding_reach", "grounding_proof_of_fetch",
         "correctness_fact_support", "completeness", "spec")
 
+# D7: version stamp so a board can self-certify which scoring/extractor/formula
+# it was produced under. The three headline fields (formula_version,
+# extractor_commit, formula_commit) are the cross-version identity; the numeric
+# knobs (gamma/weights/eps_floor/floor_mode/pof_threshold) are read straight
+# from the live scorer constants so the stamp can never drift from the code that
+# produced the numbers. Boards carrying different formula_version are NOT
+# comparable (FORMULA_LOCK: "跨版本禁比").
+FORMULA_VERSION = "tv2.2-nofloor-D1"
+EXTRACTOR_COMMIT = "423575b1+D4_bibliography_bleed_fix"
+FORMULA_COMMIT = "7574fc97+D1_floor_abolished"
+
+
+def _task_set_hash(task_ids) -> str:
+    """Deterministic short hash of the scored task-id set (order-independent)."""
+    import hashlib
+    joined = ",".join(sorted(task_ids)).encode("utf-8")
+    return hashlib.sha256(joined).hexdigest()[:16]
+
+
+def _protocols(gamma: float, task_ids) -> dict:
+    """The board's version stamp. floor_mode/eps_floor are derived from the live
+    ds.EPS_FLOOR so a future re-enabling of the floor is reflected automatically.
+    """
+    eps = ds.EPS_FLOOR
+    return {
+        "formula_version": FORMULA_VERSION,
+        "extractor_commit": EXTRACTOR_COMMIT,
+        "formula_commit": FORMULA_COMMIT,
+        "gamma": gamma,
+        "weights": dict(ds.QUALITY_WEIGHTS),
+        "eps_floor": eps,
+        "floor_mode": "none" if eps <= 0.0 else "floor_if_active",
+        "spec_in_truth": False,
+        "pof_threshold": ds.POF_THRESHOLD_DEFAULT,
+        "pof_semantics": ("page_level_any_occurrence; in-text anchors only "
+                          "(D4 bib-bleed excluded)"),
+        "citation_styles": sorted(ds.POF_EVIDENCE_STYLES),
+        "judge_model": "n/a (decidable, model-free)",
+        "task_set_hash": _task_set_hash(task_ids),
+        "n_tasks_scored": len(set(task_ids)),
+    }
+
 
 def _load_lane_info(manifest_path: Path) -> dict[str, dict]:
     """Derive per-agent lane-failure accounting from an extraction manifest.
@@ -184,13 +226,21 @@ def main() -> int:
             rows.append(placeholder)
             next_rank += 1
 
+    eps = ds.EPS_FLOOR
+    floor_desc = ("NO floor (D1: EPS_FLOOR=0.0)" if eps <= 0.0
+                  else f"floor-if-active eps={eps}")
     board = {
         "board": "truth_v2",
-        "composition": ("truth = reach^gamma * (0.39 fact + 0.28 pof + "
-                        "0.33 completeness), floor-if-active eps=0.05 "
-                        "(FORMULA_LOCK K6); spec/compliance and presentation "
-                        "are separate columns, tie-break only, never in truth"),
+        "composition": (f"truth = reach^gamma * (0.39 fact + 0.28 pof + "
+                        f"0.33 completeness), {floor_desc} "
+                        "(FORMULA_LOCK K6 + D1/D4); spec/compliance and "
+                        "presentation are separate columns, tie-break only, "
+                        "never in truth"),
         "gamma": args.gamma,
+        "eps_floor": eps,
+        "floor_mode": "none" if eps <= 0.0 else "floor_if_active",
+        "spec_in_truth": False,
+        "protocols": _protocols(args.gamma, keys.keys()),
         "n_answer_keys": len(keys),
         "rows": [{k: v for k, v in r.items() if k != "per_task"} for r in rows],
         "per_task": {r["agent"]: r["per_task"] for r in rows},
