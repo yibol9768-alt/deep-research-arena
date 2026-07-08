@@ -155,12 +155,53 @@ def shell_assertion() -> list[str]:
     return violations
 
 
+# Panel honest medians (macro truth of substantive honest agents) on the
+# D4-cleaned v22 boards (boards_fixed/truth_board_{backbone}_v22.json,
+# PYTHONHASHSEED=0). The mini-shell corner is checked against the TIGHTER
+# (qwen) median so the assertion binds on both panels.
+PANEL_HONEST_MEDIANS = {"deepseek-v4-flash": 0.0378, "qwen3-8b": 0.0146}
+
+
+def mini_shell_assertion() -> list[str]:
+    """C2-strengthened (D1): a MINI-SHELL that only grazes each quality axis
+    (raw 0.001-0.01) with one real reachable citation (reach=1) must NOT outrank
+    the panel's honest median. Under the abolished FLOOR-IF-ACTIVE (eps=0.05)
+    every such graze was lifted to 0.05, giving truth=0.05 -- above both panels'
+    honest medians and beating 9-10/12 real systems. With no floor (EPS_FLOOR=0)
+    the cheap mini-shell scores its earned value (<=0.01) and falls below the
+    median. The all-0.05 corner (a report that genuinely earned 0.05 on every
+    axis) is floor-independent and a reach-gaming question, out of D1 scope."""
+    print("\n== C2-strengthened mini-shell assertion (D1, floor abolished) ==")
+    graze = (0.001, 0.01)
+    tight_median = min(PANEL_HONEST_MEDIANS.values())
+    violations: list[str] = []
+    print(f"  EPS_FLOOR={EPS_FLOOR}; tightest panel honest median={tight_median} "
+          f"(qwen v22)")
+    for gamma in (1.0, 1.5, 2.0):
+        worst = 0.0
+        for f in graze:
+            for p in graze:
+                for c in graze:
+                    t = compose_truth(1.0, f, p, c, 0.0, gamma=gamma, eps=0.0)[0]
+                    worst = max(worst, t)
+        floored = compose_truth(1.0, 0.01, 0.01, 0.01, 0.0,
+                                gamma=gamma, eps=0.05)[0]
+        print(f"  gamma={gamma}: worst cheap mini-shell truth={worst:.4f} "
+              f"(vs {floored:.4f} under the old eps=0.05 floor)")
+        if worst >= tight_median:
+            violations.append(
+                f"gamma={gamma}: cheap mini-shell {worst:.4f} >= panel honest "
+                f"median {tight_median} (D1)")
+    return violations
+
+
 def main() -> int:
     analytic_frontier()
     print("\n== empirical adversarial grid ==")
     violations = empirical_grid()
     print()
     violations += shell_assertion()
+    violations += mini_shell_assertion()
     if violations:
         print(f"GATE VIOLATIONS ({len(violations)}):")
         for v in violations[:20]:

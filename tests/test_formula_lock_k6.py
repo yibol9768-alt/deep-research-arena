@@ -2,7 +2,8 @@
 
 Locks the three structural decisions derived from the two adversarial criteria:
   * spec is OUT of truth (compliance is a separate column) -- C2;
-  * floor-if-active: a zero-substance axis stays 0, only a >0 axis is buffered;
+  * NO quality floor (D1 endgame, EPS_FLOOR=0.0): each axis is raw, so a zero
+    shell stays 0 AND a grazed mini-shell is not inflated to a 0.05 plateau;
   * three evidence weights 0.39/0.28/0.33 summing to 1.0.
 
 The headline assertion is C2: a format-compliant EMPTY SHELL (zero substance,
@@ -34,17 +35,38 @@ def test_spec_not_in_truth():
     assert q_lo == q_hi
 
 
-def test_floor_if_active():
-    """eps floors a >0 axis but never a zero axis."""
-    # all three axes zero -> quality 0 (no unconditional floor)
+def test_no_floor_default_D1():
+    """D1 endgame: EPS_FLOOR abolished (0.0). Each quality axis contributes its
+    RAW value -- no floor lifts a grazed axis, so a mini-shell scores its earned
+    value, not an inflated plateau."""
+    assert ds.EPS_FLOOR == 0.0
+    # all three axes zero -> quality 0 (zero shell stays zero)
     _t, q0, floors0 = ds.compose_truth(1.0, 0.0, 0.0, 0.0)
     assert q0 == 0.0
     assert not any(floors0.values())
-    # a tiny positive axis is floored up to eps; the zero axes stay 0
+    # a tiny positive axis stays RAW (no floor); nothing is floored
     _t, q1, floors1 = ds.compose_truth(1.0, 0.01, 0.0, 0.0)
+    assert not any(floors1.values())
+    assert abs(q1 - ds.QUALITY_WEIGHTS["fact_support"] * 0.01) < 1e-12
+
+
+def test_mini_shell_not_inflated_D1():
+    """The mini-shell that motivated D1: reach=1 (one real citation), each
+    quality axis grazed to raw 0.01. Under the abolished floor it must score its
+    earned quality (~0.01), NOT the old 0.05 plateau."""
+    t, q, _ = ds.compose_truth(1.0, 0.01, 0.01, 0.01)
+    assert abs(q - 0.01) < 1e-9   # weights sum to 1, all axes 0.01
+    assert abs(t - 0.01) < 1e-9
+    assert t < 0.05               # not the old floor plateau
+
+
+def test_legacy_floor_reenabled_by_positive_eps():
+    """The eps kwarg is retained for back-compat: a positive value restores the
+    old floor-if-active (a >0 axis lifted to eps, a zero axis left at 0)."""
+    _t, q1, floors1 = ds.compose_truth(1.0, 0.01, 0.0, 0.0, eps=0.05)
     assert floors1["fact_support"] is True
     assert floors1["completeness"] is False
-    assert abs(q1 - ds.QUALITY_WEIGHTS["fact_support"] * ds.EPS_FLOOR) < 1e-9
+    assert abs(q1 - ds.QUALITY_WEIGHTS["fact_support"] * 0.05) < 1e-9
 
 
 def test_empty_shell_truth_is_zero_C2():

@@ -27,12 +27,21 @@ four-axis K0. Structure derived from two adversarial criteria, not tuned):
     (reach=1, zero substance, spec=1) outrank the honest champion (C2 failed at
     truth 0.145 > 0.113). spec is now computed and reported as a SEPARATE
     "compliance" column, never multiplied into truth.
-  * FLOOR-IF-ACTIVE (EPS_FLOOR=0.05): a quality axis is floored to eps only
-    when its RAW value is >0 (buffers single-axis matcher noise on a report
-    that has some substance); an axis at exactly 0 stays 0. A zero-substance
-    shell therefore has quality=0 and truth=0 (criterion C2). This replaces the
-    old UNCONDITIONAL floor, which gave every silent report quality>=eps and
-    was the shell's fuel.
+  * NO quality floor (EPS_FLOOR=0.0, D1 endgame): each quality axis contributes
+    its RAW value. The earlier FLOOR-IF-ACTIVE (eps=0.05 when raw>0) closed the
+    zero-shell hole but opened a MINI-SHELL one: a report that merely grazes each
+    axis (raw ~0.001-0.01, e.g. read one page / cite one real URL / hit one vital
+    word) had all three axes lifted to 0.05, so quality=0.05 and truth=0.05 -- on
+    the fixed panels that beat 9/10 (deepseek) to 10/10 (qwen) substantive honest
+    systems. A 50x inflation of a trivial report is exactly what a floor must not
+    do. Removing it collapses the cheap mini-shell to its earned value (raw 0.01
+    -> truth 0.01, below every honest system but the near-zero-reach tail) while
+    leaving the agent RANKING unchanged (no-floor == floor-if-active order on
+    both panels; FORMULA_LOCK K2/K3~K6). The zero-shell stays truth=0 with no
+    floor at all (a raw-0 axis contributes 0). The buffer-single-axis-noise
+    argument does not survive the mini-shell data: the floor bought no ordering
+    and cost a whole gameable plateau. ``eps`` is kept as a (now 0.0) kwarg for
+    back-compat; a positive value re-enables floor-if-active.
   * reach is deliberately UNfloored: it is the anti-fabrication gate and a pure
     fabricator must be able to reach truth = 0 (criterion C1 / M-C2).
   * weights 0.39/0.28/0.33 are the declared four-axis harm-ordering weights
@@ -81,11 +90,12 @@ GAMMA_DEFAULT = 1.5      # grounding gate exponent, calibrated EXTERNALLY on an
                          # gamma ranking are unchanged) and is not dominated (no
                          # gamma beats it on BOTH separation and monotonicity),
                          # so it is retained.
-EPS_FLOOR = 0.05         # per-axis floor on the quality axes, FLOOR-IF-ACTIVE
-                         # (FORMULA_LOCK K6): applied only when the raw axis > 0,
-                         # so a zero-substance shell keeps quality=0 (C2) while a
-                         # report with some substance is buffered against
-                         # single-axis matcher noise (M-H5).
+EPS_FLOOR = 0.0          # NO quality floor (D1 endgame): the FLOOR-IF-ACTIVE
+                         # eps=0.05 inflated a "mini-shell" (each axis grazed to
+                         # raw~0.01) to truth=0.05 and beat 9-10/12 honest
+                         # systems; abolishing it collapses the mini-shell to its
+                         # earned value without changing agent order. Kept as a
+                         # kwarg for back-compat; >0 re-enables floor-if-active.
 K_F_DEFAULT = 10         # fact-volume saturation constant (M-C3)
 K_STAR_DEFAULT = 20      # completeness saturation constant (T1)
 POF_THRESHOLD_DEFAULT = 0.35  # calibrated (G-F1): data/results/
@@ -1217,20 +1227,22 @@ def compose_truth(reach: float, fact: float, pof: float, completeness: float,
     axes only. spec is accepted for signature compatibility but is NOT part of
     truth (it is the separate compliance column); passing it changes nothing.
 
-    Each quality axis is floored FLOOR-IF-ACTIVE: eps only when the raw value is
-    >0 (buffers matcher noise on a report with substance, M-H5); an axis at
-    exactly 0 stays 0, so a zero-substance shell has quality=0 and truth=0
-    (criterion C2). reach is UNfloored: it is the anti-fabrication gate and a
-    pure fabricator collapses to 0 (criterion C1). gamma defaults to 1.5,
-    calibrated EXTERNALLY on an injected-fabrication set; sensitivity() is the
-    accompanying rank-stability probe. Returns (truth, quality,
-    floors_applied)."""
+    NO quality floor (D1 endgame, eps defaults to 0.0): each axis contributes its
+    RAW value, so a zero-substance shell has quality=0 / truth=0 (criterion C2)
+    AND a trivial mini-shell that only grazes each axis scores its earned value
+    rather than an inflated 0.05 plateau. reach is UNfloored: it is the
+    anti-fabrication gate and a pure fabricator collapses to 0 (criterion C1).
+    gamma defaults to 1.5, calibrated EXTERNALLY on an injected-fabrication set;
+    sensitivity() is the accompanying rank-stability probe. ``eps`` is retained
+    for back-compat: a positive value re-enables the old floor-if-active
+    (max(eps,v) for v>0). Returns (truth, quality, floors_applied)."""
     floors_applied = {}
     vals = {}
     for name, v in (("fact_support", fact), ("proof_of_fetch", pof),
                     ("completeness", completeness)):
-        v = float(v)
-        f = max(eps, v) if v > 0.0 else 0.0   # floor-if-active (K6)
+        v = max(0.0, float(v))
+        # eps=0.0 -> raw axis (no floor, D1); eps>0 -> floor-if-active (legacy)
+        f = max(eps, v) if (eps > 0.0 and v > 0.0) else v
         floors_applied[name] = f > v
         vals[name] = f
     quality = sum(QUALITY_WEIGHTS[k] * vals[k] for k in QUALITY_WEIGHTS)
