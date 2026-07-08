@@ -13,14 +13,16 @@ Decidable axes computed here (no model):
   axis 3  completeness   saturating recall over the ranked vital pool (T1/T2)
   axis 4  spec           output-shape requirements
 
-Composition (see decidable_scorer.compose_truth):
-  quality = 0.35*fact + 0.25*pof + 0.30*completeness + 0.10*spec
-            (each quality axis floored at eps=0.05 AFTER computation)
+Composition (see decidable_scorer.compose_truth; FORMULA_LOCK K6):
+  quality = 0.39*fact + 0.28*pof + 0.33*completeness
+            (three evidence axes only, floor-if-active eps=0.05: a >0 axis is
+            buffered, a zero axis stays 0 so an empty shell has quality 0)
   truth   = reach**gamma * quality            (reach UNfloored: the gate)
 
-Presentation (the LLM jury) is NOT part of truth: it is reported as a
-separate column at leaderboard time and may only break ties, never overturn
-the truth ordering (M-C1). This harness is fully offline and replayable.
+Spec (output shape) is NOT part of truth: it is reported as a separate
+"compliance" column. Presentation (the LLM jury) is likewise separate. Both may
+only break ties, never overturn the truth ordering (M-C1). This harness is
+fully offline and replayable.
 """
 
 from __future__ import annotations

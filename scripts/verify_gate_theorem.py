@@ -1,21 +1,30 @@
 #!/usr/bin/env python3
-"""Checked property: a fabricator cannot outrank an honest report (M-C2).
+"""Checked property: neither a fabricator (C1) nor a format-compliant empty
+shell (C2) can outrank an honest report with substance.
 
 Imports the composition from src.eval.decidable_scorer (single source of
 truth; compose_truth returns (truth, quality, floors)) and verifies the
-claim two ways:
+claim three ways:
 
-  1. analytic mode: with truth = reach**gamma * quality and quality in
-     [Q_FLOOR_MIN, 1] (quality axes floored at EPS_FLOOR, weights sum to 1),
-     a fabricator with reach <= Rf has truth_f <= Rf**gamma, and an honest
-     report with reach >= Rh and quality >= Qh has
+  1. analytic mode (C1): with truth = reach**gamma * quality and quality in
+     [Q_FLOOR_MIN, 1] (quality axes floor-if-active at EPS_FLOOR, weights sum
+     to 1), a fabricator with reach <= Rf has truth_f <= Rf**gamma, and an
+     honest report with reach >= Rh and quality >= Qh has
      truth_h >= Rh**gamma * Qh. The gate holds iff Rf < Rh * Qh**(1/gamma).
      Prints the frontier for gamma in {1, 1.5, 2}.
 
-  2. empirical grid: adversarial corners (max quality with fabricated
+  2. empirical grid (C1): adversarial corners (max quality with fabricated
      citations, threshold-riding reach, zero-claim reports) must never
-     outrank an honest reference set. Exits nonzero listing violations,
-     so this file doubles as a regression test.
+     outrank an honest reference set.
+
+  3. shell assertion (C2, FORMULA_LOCK K6): a zero-substance shell
+     (fact=pof=comp=0) with one real reachable citation (reach=1) and perfect
+     format compliance (spec=1) must score truth=0 -- strictly below every
+     honest reference with any substance. Under K6 (spec out of truth,
+     floor-if-active) quality collapses to 0; the old four-axis K0 gave the
+     shell truth 0.145 and FAILED this check.
+
+Exits nonzero listing violations, so this file doubles as a regression test.
 
 Run:  python3 scripts/verify_gate_theorem.py
 """
@@ -117,10 +126,41 @@ def empirical_grid() -> list[str]:
     return violations
 
 
+def shell_assertion() -> list[str]:
+    """C2 (FORMULA_LOCK K6): a format-compliant zero-substance shell must score
+    truth=0 and fall strictly below every honest reference with substance."""
+    print("== C2 empty-shell assertion (FORMULA_LOCK K6) ==")
+    honest_refs = [
+        (0.90, 0.60, 0.60, 0.30, 1.00),
+        (0.80, 0.50, 0.50, 0.25, 0.50),
+        (0.70, 0.40, 0.45, 0.20, 1.00),
+        # thin-but-real: the honest champion profile (fact=0 but pof/comp>0)
+        (0.99, 0.00, 0.12, 0.05, 0.62),
+    ]
+    violations: list[str] = []
+    for gamma in (1.0, 1.5, 2.0):
+        # shell: zero substance, one real reachable citation, perfect format
+        shell = truth(1.00, 0.00, 0.00, 0.00, 1.00, gamma=gamma)
+        print(f"  gamma={gamma}: shell(reach=1,fact=pof=comp=0,spec=1) "
+              f"truth={shell:.6f}")
+        if shell != 0.0:
+            violations.append(
+                f"gamma={gamma}: empty shell truth={shell:.6f} != 0 (C2)")
+        for ref in honest_refs:
+            th = truth(*ref, gamma=gamma)
+            if th > 0 and shell >= th:
+                violations.append(
+                    f"gamma={gamma}: shell {shell:.6f} >= honest-with-"
+                    f"substance {th:.6f} {ref} (C2)")
+    return violations
+
+
 def main() -> int:
     analytic_frontier()
     print("\n== empirical adversarial grid ==")
     violations = empirical_grid()
+    print()
+    violations += shell_assertion()
     if violations:
         print(f"GATE VIOLATIONS ({len(violations)}):")
         for v in violations[:20]:

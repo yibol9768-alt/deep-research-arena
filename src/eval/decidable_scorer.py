@@ -14,30 +14,45 @@ Everything here is deterministic and model-free: given a report, an AnswerKey,
 the sandbox page cache and (optionally) a UrlRegistry, it returns per-axis
 scores that replay byte-for-byte.
 
-Composition (registry findings M-C1/C2/H3/H4/H5/M1/L1):
+Composition (FORMULA_LOCK_2026-07-08 = candidate K6; supersedes the old
+four-axis K0. Structure derived from two adversarial criteria, not tuned):
 
-    quality = 0.35*fact + 0.25*proof_of_fetch + 0.30*completeness + 0.10*spec
+    quality = 0.39*fact + 0.28*proof_of_fetch + 0.33*completeness
     truth   = reach**gamma * quality
 
-  * fact / pof / completeness / spec are each floored at eps=0.05 AFTER
-    computation, so a matcher recall error cannot annihilate an honest report
-    (M-H5); reach is deliberately UNfloored: it is the anti-fabrication gate
-    and a pure fabricator must be able to reach truth = 0 (M-C2).
-  * the old a/b exponents are gone (M-H3): they were non-identifiable and
-    redundant with gamma. gamma defaults to 1.5 and is to be calibrated
-    EXTERNALLY on an injected-fabrication set, never fitted on the eval panel;
-    sensitivity() reports how the ranking moves across candidate gammas.
-  * spec is inside the composition with a small weight (M-H4): instruction
-    following is a real axis, not decoration.
-  * no cross-denominator arithmetic means: the old (fact+pof)/2 averaged two
-    ratios with different denominators (M-L1); they are now separate weighted
-    terms.
+  * THREE evidence/volume axes only (fact / pof / completeness). spec (output
+    shape) is NO LONGER in truth: it is orthogonal to grounding (E-13: spec r
+    with reach -0.01, with fact 0.13) and is the one axis where every agent is
+    near ceiling, so multiplying it in let a format-compliant EMPTY SHELL
+    (reach=1, zero substance, spec=1) outrank the honest champion (C2 failed at
+    truth 0.145 > 0.113). spec is now computed and reported as a SEPARATE
+    "compliance" column, never multiplied into truth.
+  * FLOOR-IF-ACTIVE (EPS_FLOOR=0.05): a quality axis is floored to eps only
+    when its RAW value is >0 (buffers single-axis matcher noise on a report
+    that has some substance); an axis at exactly 0 stays 0. A zero-substance
+    shell therefore has quality=0 and truth=0 (criterion C2). This replaces the
+    old UNCONDITIONAL floor, which gave every silent report quality>=eps and
+    was the shell's fuel.
+  * reach is deliberately UNfloored: it is the anti-fabrication gate and a pure
+    fabricator must be able to reach truth = 0 (criterion C1 / M-C2).
+  * weights 0.39/0.28/0.33 are the declared four-axis harm-ordering weights
+    (0.35/0.25/0.30) renormalized over the three surviving axes (/0.90) and
+    rounded to hundredths; they are a stated convention, NOT fitted. The choice
+    of exact weights is not claimed optimal: raw axis scores are published and
+    the ranking's weight-sensitivity is disclosed (FORMULA_LOCK Dirichlet
+    table). "fewer parameters / averaging" is never offered as a reason.
+  * gamma defaults to 1.5, calibrated EXTERNALLY on an injected-fabrication set,
+    never fitted on the eval panel; sensitivity() reports how the ranking moves
+    across candidate gammas.
+  * no cross-denominator arithmetic: the old (fact+pof)/2 averaged two ratios
+    with different denominators (M-L1); they are separate weighted terms.
 
-PRESENTATION IS NOT PART OF TRUTH (M-C1). score_report returns the decidable
-axes and the truth score only. The presentation judge (normalized Elo, an
-interval scale with no true zero) is reported as a SEPARATE column at
-leaderboard time and may only break ties between reports with equal truth; it
-must never overturn the truth ordering, and it is never multiplied in.
+PRESENTATION AND COMPLIANCE ARE NOT PART OF TRUTH (M-C1). score_report returns
+the three decidable evidence axes, the truth score, and spec as a separate
+"compliance" figure. The presentation judge (normalized Elo, an interval scale
+with no true zero) and compliance are reported as SEPARATE columns at
+leaderboard time and may only break ties between reports with equal truth; they
+must never overturn the truth ordering, and are never multiplied in.
 
 aggregate() reports macro AND micro views plus min_report_truth, so a single
 catastrophic report can no longer hide inside a per-agent mean (M-M1).
@@ -59,10 +74,18 @@ GAMMA_DEFAULT = 1.5      # grounding gate exponent, calibrated EXTERNALLY on an
                          # injected-fabrication series (M-H3): data/results/
                          # pof_gamma_calibration.json. Truth is monotone
                          # non-increasing in the fabrication rate at every tested
-                         # gamma; 1.5 gives clean-vs-50% mean separation 0.042
-                         # and is not dominated (no gamma beats it on BOTH
-                         # separation and monotonicity), so it is retained.
-EPS_FLOOR = 0.05         # per-axis floor on the quality axes only (M-H5)
+                         # gamma; under K6 (spec out, floor-if-active) 1.5 gives
+                         # clean-vs-50% mean separation 0.0093 (the absolute
+                         # scale shrank vs the 0.042 four-axis K0 figure because
+                         # spec no longer inflates quality; monotonicity and the
+                         # gamma ranking are unchanged) and is not dominated (no
+                         # gamma beats it on BOTH separation and monotonicity),
+                         # so it is retained.
+EPS_FLOOR = 0.05         # per-axis floor on the quality axes, FLOOR-IF-ACTIVE
+                         # (FORMULA_LOCK K6): applied only when the raw axis > 0,
+                         # so a zero-substance shell keeps quality=0 (C2) while a
+                         # report with some substance is buffered against
+                         # single-axis matcher noise (M-H5).
 K_F_DEFAULT = 10         # fact-volume saturation constant (M-C3)
 K_STAR_DEFAULT = 20      # completeness saturation constant (T1)
 POF_THRESHOLD_DEFAULT = 0.35  # calibrated (G-F1): data/results/
@@ -75,11 +98,14 @@ POF_THRESHOLD_DEFAULT = 0.35  # calibrated (G-F1): data/results/
                               # grid; 0.35 sits mid-plateau, kept as the incumbent.
 BIND_WINDOW = 40         # subject<->value binding window, chars (M-H2/G-F6)
 
+# FORMULA_LOCK K6: three evidence/volume axes only. spec is OUT of truth (see
+# module docstring) and reported as a separate compliance column. Weights are
+# the declared four-axis harm-ordering weights renormalized over the survivors
+# (0.35/0.90, 0.25/0.90, 0.30/0.90) rounded to hundredths; they sum to 1.0.
 QUALITY_WEIGHTS = {
-    "fact_support": 0.35,
-    "proof_of_fetch": 0.25,
-    "completeness": 0.30,
-    "spec": 0.10,
+    "fact_support": 0.39,
+    "proof_of_fetch": 0.28,
+    "completeness": 0.33,
 }
 
 LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
@@ -291,8 +317,10 @@ class AxisScores:
     fact_contradicted: int = 0
     fact_absent: int = 0         # claims made but unbindable/untestable
     completeness: float = 0.0    # axis 3
-    spec: float = 0.0            # axis 4
-    quality: float = 0.0         # weighted sum of floored quality axes
+    spec: float = 0.0            # axis 4 (output shape) -- retained field
+    compliance: float = 0.0      # spec surfaced as a SEPARATE column, NOT in
+                                 # truth (FORMULA_LOCK K6); mirrors spec
+    quality: float = 0.0         # weighted sum of floor-if-active evidence axes
     truth: float = 0.0           # reach**gamma * quality
     detail: dict = field(default_factory=dict)
 
@@ -1058,23 +1086,29 @@ def _check_spec(md: str, r) -> bool:
 # ---------------------------------------------------------------------------
 
 def compose_truth(reach: float, fact: float, pof: float, completeness: float,
-                  spec: float, gamma: float = GAMMA_DEFAULT,
+                  spec: float = 0.0, gamma: float = GAMMA_DEFAULT,
                   eps: float = EPS_FLOOR) -> tuple[float, float, dict]:
-    """truth = reach**gamma * quality (M-C2/H3/H4/H5/L1).
+    """truth = reach**gamma * quality (FORMULA_LOCK K6; C1/C2 derived).
 
-    quality = 0.35*fact + 0.25*pof + 0.30*completeness + 0.10*spec, with each
-    quality axis floored at eps AFTER computation (floors stop matcher-error
-    annihilation, M-H5) and reach UNfloored (it is the anti-fabrication gate:
-    a pure fabricator collapses to 0). gamma defaults to 1.5 and is to be
-    calibrated EXTERNALLY on an injected-fabrication set (M-H3); sensitivity()
-    is the accompanying rank-stability probe. Returns (truth, quality,
+    quality = 0.39*fact + 0.28*pof + 0.33*completeness over the THREE evidence
+    axes only. spec is accepted for signature compatibility but is NOT part of
+    truth (it is the separate compliance column); passing it changes nothing.
+
+    Each quality axis is floored FLOOR-IF-ACTIVE: eps only when the raw value is
+    >0 (buffers matcher noise on a report with substance, M-H5); an axis at
+    exactly 0 stays 0, so a zero-substance shell has quality=0 and truth=0
+    (criterion C2). reach is UNfloored: it is the anti-fabrication gate and a
+    pure fabricator collapses to 0 (criterion C1). gamma defaults to 1.5,
+    calibrated EXTERNALLY on an injected-fabrication set; sensitivity() is the
+    accompanying rank-stability probe. Returns (truth, quality,
     floors_applied)."""
     floors_applied = {}
     vals = {}
     for name, v in (("fact_support", fact), ("proof_of_fetch", pof),
-                    ("completeness", completeness), ("spec", spec)):
-        f = max(eps, float(v))
-        floors_applied[name] = f > float(v)
+                    ("completeness", completeness)):
+        v = float(v)
+        f = max(eps, v) if v > 0.0 else 0.0   # floor-if-active (K6)
+        floors_applied[name] = f > v
         vals[name] = f
     quality = sum(QUALITY_WEIGHTS[k] * vals[k] for k in QUALITY_WEIGHTS)
     truth = (max(0.0, float(reach)) ** gamma) * quality
@@ -1115,13 +1149,15 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
         reach=reach, proof_of_fetch=pof, fact_support=fact,
         fact_contradicted=fd.get("contradicted", 0),
         fact_absent=fd.get("unbound", 0) + fd.get("untestable", 0),
-        completeness=comp, spec=spec, quality=quality, truth=truth)
+        completeness=comp, spec=spec, compliance=spec,
+        quality=quality, truth=truth)
     s.detail = {
         "reach": rd, "proof_of_fetch": pd, "fact": fd,
-        "completeness": cd, "spec": sd,
+        "completeness": cd, "spec": sd, "compliance": sd,
         "floors_applied": floors, "gamma": gamma, "eps": eps,
         "quality_weights": dict(QUALITY_WEIGHTS),
         "quality": round(quality, 4), "truth": round(truth, 6),
+        "compliance_score": round(spec, 4),
         "counts": {
             "reach_num": rd.get("num", 0), "reach_den": rd.get("den", 0),
             "pof_passed": pd.get("passed", 0), "pof_checked": pd.get("checked", 0),

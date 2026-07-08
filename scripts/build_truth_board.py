@@ -128,6 +128,9 @@ def main() -> int:
             "truth_micro": round(micro, 4),
             "min_report_truth": round(min(truths), 4),
             "axes_mean": axes_mean,
+            # spec is OUT of truth (FORMULA_LOCK K6): surfaced as a separate
+            # compliance column, never multiplied in. Kept in axes_mean too.
+            "compliance": axes_mean.get("spec", 0.0),
             "presentation": panel.get(agent_dir.name),
             "per_task": {t: {"truth": d["truth"], "axes": d["axes"]}
                          for t, d in per_task.items()},
@@ -183,9 +186,10 @@ def main() -> int:
 
     board = {
         "board": "truth_v2",
-        "composition": ("truth = reach^gamma * (0.35 fact + 0.25 pof + "
-                        "0.30 completeness + 0.10 spec); presentation is a "
-                        "separate column, tie-break only"),
+        "composition": ("truth = reach^gamma * (0.39 fact + 0.28 pof + "
+                        "0.33 completeness), floor-if-active eps=0.05 "
+                        "(FORMULA_LOCK K6); spec/compliance and presentation "
+                        "are separate columns, tie-break only, never in truth"),
         "gamma": args.gamma,
         "n_answer_keys": len(keys),
         "rows": [{k: v for k, v in r.items() if k != "per_task"} for r in rows],
