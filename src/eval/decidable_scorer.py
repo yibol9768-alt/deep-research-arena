@@ -517,6 +517,107 @@ def build_page_stats(cache: dict, top_n_chrome: int = _CHROME_TOP_N,
 POF_EVIDENCE_STYLES = frozenset({"markdown", "numbered", "footnote", "bare"})
 
 
+# --- Reference-list / bibliography region detection (audit F1 / D4) ----------
+# A citation marker that sits INSIDE a reference list -- a "## References" /
+# "### Sources" section, a run of "[N] <title>" reference-entry lines, or a
+# "[^id]: <url>" footnote-DEFINITION line -- is NOT an in-text claim and must
+# not serve as a proof-of-fetch EVIDENCE anchor. The 400 chars preceding such a
+# marker are the PREVIOUS bibliography entry's title / result-snippet, not the
+# report's own running prose; anchoring on it lets entry N's verbatim snippet
+# "bleed" onto the page that entry N+1 points at (a cross-entry false positive:
+# 12/12 numbered reports triggered, 35.6% of numbered occurrences landed after a
+# references heading -- audit F1). Such markers still count for reachability and
+# for the PoF DENOMINATOR (the page is CITED); they are barred only from the
+# NUMERATOR (evidence). Detection is deterministic: a reference-section heading,
+# or the entry/footnote-definition LINE pattern itself.
+_REF_SECTION_HEAD_RE = re.compile(
+    r"^\s{0,3}(?:#{1,6}\s*)?\**\s*"
+    r"(?:works\s+cited|bibliography|references?|sources?|citations?|"
+    r"footnotes?|end\s?notes?|notes)"
+    r"\s*:?\s*\**\s*$",
+    re.IGNORECASE)
+_ANY_MD_HEAD_RE = re.compile(r"^\s{0,3}#{1,6}\s+\S")
+_NUM_ENTRY_LINE_RE = re.compile(r"^\s*\[\d{1,3}\]\s")   # "[N] <title>" ref head
+_FN_DEF_LINE_RE = re.compile(r"^\s*\[\^[\w-]+\]:")       # "[^id]: <url>" def line
+
+
+def _reference_region_offsets(md: str) -> list[tuple[int, int]]:
+    """Char-offset spans of ``md`` that are reference-list / bibliography regions
+    (audit F1 / D4). An evidence anchor whose offset falls inside any span is a
+    bibliography row, not an in-text claim marker, and is dropped from the PoF
+    numerator (kept for the denominator). Deterministic; three cues:
+
+      (1) a reference-section HEADING ("## References", "### Sources",
+          "**Footnotes**", ...) delimits a region up to the next non-reference
+          markdown heading (or EOF);
+      (2) a run of >=2 consecutive numbered-entry / footnote-definition lines
+          (an unheaded reference list) is a region;
+      (3) any single numbered-entry ("[N] ...") or footnote-definition
+          ("[^id]: ...") LINE is itself a bibliography row.
+
+    Returns a (possibly overlapping) list of ``(start, end)`` char spans."""
+    spans: list[tuple[int, int]] = []
+    lines = md.splitlines(keepends=True)
+    n = len(lines)
+    offs = []
+    p = 0
+    for ln in lines:
+        offs.append(p)
+        p += len(ln)
+    total = len(md)
+
+    # (1) heading-delimited reference sections
+    i = 0
+    while i < n:
+        if _REF_SECTION_HEAD_RE.match(lines[i]):
+            j = i + 1
+            while j < n:
+                if (_ANY_MD_HEAD_RE.match(lines[j])
+                        and not _REF_SECTION_HEAD_RE.match(lines[j])):
+                    break
+                j += 1
+            spans.append((offs[i], offs[j] if j < n else total))
+            i = j
+            continue
+        i += 1
+
+    def _is_entry(k: int) -> bool:
+        return bool(_NUM_ENTRY_LINE_RE.match(lines[k])
+                    or _FN_DEF_LINE_RE.match(lines[k]))
+
+    # (2) runs of >=2 consecutive reference-definition lines (blank-tolerant)
+    i = 0
+    while i < n:
+        if _is_entry(i):
+            j = i
+            last_entry = i
+            while j < n and (_is_entry(j) or lines[j].strip() == ""):
+                if _is_entry(j):
+                    last_entry = j
+                j += 1
+            cnt = sum(1 for k in range(i, j) if _is_entry(k))
+            if cnt >= 2:
+                end = offs[last_entry] + len(lines[last_entry])
+                spans.append((offs[i], end))
+            i = max(j, i + 1)
+            continue
+        i += 1
+
+    # (3) any single numbered-entry / footnote-definition line is a bibliography
+    #     row on its own (covers a lone reference head and markdown-in-entry).
+    for k in range(n):
+        if _is_entry(k):
+            spans.append((offs[k], offs[k] + len(lines[k])))
+    return spans
+
+
+def _offset_in_spans(off: int, spans: list[tuple[int, int]]) -> bool:
+    for a, b in spans:
+        if a <= off < b:
+            return True
+    return False
+
+
 def _resolve_cache_key(cache: dict, u: str):
     """The actual key under which ``u``'s page is cached, tolerant to the same
     normalization drift ``_cache_entry`` handles (trailing punctuation,
@@ -595,10 +696,16 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
 
     Denominator = distinct cited pages that resolve to a cached status-200 entry
     (a cited page with no cached text is undecidable and excluded, as before);
-    numerator = those with >=1 in-text occurrence whose 400-char preceding
-    context (labels + bare URLs stripped) verbatim-matches the page. A page
-    cited ONLY from a reference list (no in-text anchor) is checked-and-failed:
-    a bare bibliography URL is not proof of having read it.
+    numerator = those with >=1 IN-TEXT occurrence whose 400-char preceding
+    context (labels + bare URLs stripped) verbatim-matches the page. A page cited
+    ONLY from a reference list (no in-text anchor) is checked-and-failed: a bare
+    bibliography URL is not proof of having read it. Reference-region markers
+    (``[N]`` entry heads, ``[^id]:`` footnote-definition lines, anything under a
+    References/Sources/Bibliography heading) are NOT evidence anchors (audit F1 /
+    D4): their preceding 400 chars are the previous bibliography entry, so
+    anchoring on them let entry N's snippet "bleed" onto entry N+1's page. They
+    still count for reachability and the denominator; see
+    ``_reference_region_offsets``.
 
     Verbatim judge (unchanged, still deterministic / model-free): IDF-weighted
     containment (weight 1/log(2+page_df) when a df table exists, else 1) >=
@@ -634,6 +741,11 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
         cits = [(m.group(2).rstrip(".,;"), m.start(), "markdown")
                 for m in LINK_RE.finditer(md)]
 
+    # Reference-list / bibliography spans (audit F1 / D4): a marker inside one
+    # is a bibliography row, not an in-text claim, so it counts for the
+    # denominator (CITED) but never as an evidence anchor (numerator).
+    ref_spans = _reference_region_offsets(md)
+
     cited_keys: dict[str, str] = {}   # cache_key -> a representative raw url
     evidence_by_key: dict[str, list[tuple[int, str]]] = {}
     for u, off, style in cits:
@@ -648,7 +760,7 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
         if st != 200:
             continue
         cited_keys.setdefault(k, u)
-        if style in POF_EVIDENCE_STYLES:
+        if style in POF_EVIDENCE_STYLES and not _offset_in_spans(off, ref_spans):
             evidence_by_key.setdefault(k, []).append((off, u))
 
     # (b) score each distinct cited page: pass on ANY in-text occurrence.
