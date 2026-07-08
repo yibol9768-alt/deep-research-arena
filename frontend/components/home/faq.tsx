@@ -3,22 +3,22 @@ import { T } from '@/components/i18n/t'
 
 const ITEMS = [
   {
-    q: 'Why can an agent with a high judge Elo still rank low?',
-    qZh: '为什么判官 Elo 很高的智能体,公开排名仍然可能很低?',
-    a: 'The public score multiplies judge Elo by the grounding gate. An agent whose citations rarely resolve, or whose quotes do not appear on the cited pages, keeps its raw Elo as a diagnostic but loses most of its public score.',
-    aZh: '公开主分是判官 Elo 乘以接地门。如果一个智能体的引用大多无法访问、或引文并不出现在被引页面上,它的裸 Elo 仍会作为诊断信息保留,但公开主分会大幅缩水。',
+    q: 'Why can a harness with a high jury Elo still rank low?',
+    qZh: '为什么陪审团 Elo 很高的框架,公开排名仍然可能很低?',
+    a: 'The Arena score is reach^1.5 × jury win rate. A harness whose citations rarely resolve in the frozen sandbox keeps its raw jury Elo as a diagnostic, but the reach term collapses its Arena score — fluent fabrication cannot rank.',
+    aZh: 'Arena 主分 = 可达率^1.5 × 陪审团胜率。如果一个框架的引用在冻结沙箱里大多无法解析,它的陪审团 Elo 仍会作为诊断信息保留,但可达率一项会让 Arena 主分塌缩 —— 流畅的编造无法上榜。',
   },
   {
-    q: 'What exactly is the grounding gate?',
-    qZh: '接地门到底是什么?',
-    a: 'Two judge-free checks, scored against the frozen sandbox: citation reachability (is the cited URL present in the frozen page registry?) and quote verification (does the quoted passage appear on the cited page?). The gate is the mean of the two, expressed as a share between 0 and 1.',
-    aZh: '两项不依赖判官、按冻结沙箱核验的检查:引用可达率(被引 URL 是否存在于冻结页面注册表中)与引文核实率(引述的段落是否真的出现在被引页面上)。接地门取两者的均值,取值范围 0 到 1。',
+    q: 'What exactly is grounding (reach)?',
+    qZh: '接地(可达率)到底是什么?',
+    a: 'A judge-free check scored against the frozen sandbox: the share of cited URLs that are present in the frozen page registry and can be re-opened. It is computed by a verifier, not by any LLM judge, and enters the Arena score with a 1.5 exponent to penalize weak grounding super-linearly.',
+    aZh: '一项不依赖裁判、按冻结沙箱核验的检查:被引 URL 存在于冻结页面注册表、可以重新打开的比例。它由验证器而非任何 LLM 裁判计算,并以 1.5 次幂进入 Arena 主分,对弱接地施加超线性惩罚。',
   },
   {
-    q: 'Is this the final scoring protocol?',
-    qZh: '这是最终的评分口径吗?',
-    a: 'The public board here is the v1 diagnostic protocol: judge Elo scaled by the two-part grounding gate. A richer v2 protocol, a five-axis decidable score plus a separate presentation-quality tie-break, is implemented and rolling out; it replaces the public board only after a full v2 run, and no v2 numbers are shown until then.',
-    aZh: '当前公开榜是 v1 诊断口径:判官 Elo 乘以两项接地门。更完整的 v2 口径(五轴可判定得分,外加独立的呈现质量平局裁决)代码已就绪、正在推进;它要等 v2 全量首跑之后才会替换公开榜,在此之前不展示任何 v2 数字。',
+    q: 'Why does every harness appear twice on the board?',
+    qZh: '为什么每个框架在榜上出现两次?',
+    a: 'Each leaderboard entry is one harness running on one backbone LLM. The current board covers two backbones (Qwen3-8B and DeepSeek V4 Flash), so the same harness appears once per backbone — separating what the scaffold contributes from what the model contributes.',
+    aZh: '榜单的每一条记录是"一个框架 × 一个主干模型"的完整运行。当前榜覆盖两个主干模型(Qwen3-8B 与 DeepSeek V4 Flash),所以同一框架每个主干各出现一次 —— 以区分框架本身与模型本身的贡献。',
   },
   {
     q: 'Why a frozen sandbox instead of the live web?',
@@ -29,14 +29,14 @@ const ITEMS = [
   {
     q: 'Who judges the battles?',
     qZh: '对战由谁来裁决?',
-    a: 'A cross-family jury of LLM judges votes on anonymized A/B pairs, with positions swapped to cancel order bias and majority vote deciding. Crucially, the grounding gate is computed without any judge, so jury taste alone can never put an ungrounded report on top.',
-    aZh: '由跨模型家族的 LLM 陪审团对匿名 A/B 报告投票,交换位置以抵消顺序偏置,多数票裁决。关键在于:接地门的计算完全不经过判官,所以仅凭陪审团口味无法把缺乏证据的报告送上榜首。',
+    a: 'A cross-family jury of three LLM judges votes on anonymized A/B pairs, with an order audit to catch position bias, aggregated with a Bradley-Terry model. Crucially, reach is computed without any judge, so jury taste alone can never put an ungrounded report on top.',
+    aZh: '由三名跨模型家族的 LLM 裁判组成陪审团,对匿名 A/B 报告投票,并做顺序审计以捕捉位置偏置,再用 Bradley-Terry 模型聚合。关键在于:可达率的计算完全不经过裁判,所以仅凭陪审团口味无法把缺乏证据的报告送上榜首。',
   },
   {
     q: 'Can I reproduce the numbers or submit an agent?',
     qZh: '我能复现这些数字,或者提交自己的智能体吗?',
-    a: 'Yes. The tasks, sandbox recipe, verifier outputs, and scoring scripts are open. Every leaderboard rebuild is logged in the changelog. To add an agent, wire it to the sandbox search contract and open a pull request; the same frozen tasks and gate apply to every entrant.',
-    aZh: '可以。任务、沙箱构建方式、验证器输出与计分脚本均公开,每次榜单重建都记录在更新日志中。要接入新智能体,只需按沙箱检索契约对接并提交 PR;所有参赛者都使用同样的冻结任务与门控。',
+    a: 'Yes. The tasks, sandbox recipe, verifier outputs, and scoring scripts are open. Every leaderboard rebuild is logged in the changelog. To add an agent, wire it to the sandbox search contract and open a pull request; the same frozen tasks and scoring apply to every entrant.',
+    aZh: '可以。任务、沙箱构建方式、验证器输出与计分脚本均公开,每次榜单重建都记录在更新日志中。要接入新智能体,只需按沙箱检索契约对接并提交 PR;所有参赛者都使用同样的冻结任务与计分口径。',
   },
 ] as const
 

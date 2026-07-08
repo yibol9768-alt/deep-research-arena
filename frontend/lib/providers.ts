@@ -55,9 +55,9 @@ export function providerColor(p: ProviderKey): string {
   return PROVIDER_COLOR[p] ?? '#7F4BF3'
 }
 
-// Backbones below are the ACTUAL models recorded in each run's meta.json on the
-// eval box (2026-06-05): every framework ran on deepseek-v4-flash except
-// DeerFlow (qwen3.5-27b). Do not list aspirational/configured-but-unused models.
+// The `backbone` field below is only a fallback for legacy pages. The public
+// board is harness x backbone: actual backbones per entry come from the
+// matrix_subset snapshot (lib/data/load-arena-v2.ts), not from this file.
 const AGENTS: AgentMeta[] = [
   {
     id: 'claude-code',
@@ -66,7 +66,7 @@ const AGENTS: AgentMeta[] = [
     family: 'Code-as-Action',
     provider: 'deepseek',
     color: PROVIDER_COLOR.deepseek,
-    blurb: 'CLI coding-agent workflow adapted to the sandbox. Leads the truth-gated board because high judge Elo is paired with strong citation reachability.',
+    blurb: 'CLI coding-agent workflow adapted to the sandbox search contract.',
   },
   {
     id: 'opencode',
@@ -76,7 +76,7 @@ const AGENTS: AgentMeta[] = [
     provider: 'z',
     color: PROVIDER_COLOR.z,
     github: 'https://github.com/sst/opencode',
-    blurb: 'Terminal-native coding-agent workflow. The strongest grounding profile in the current snapshot, with more than 90% reachable citations.',
+    blurb: 'Terminal-native coding-agent workflow.',
   },
   {
     id: 'camel-ai',
@@ -86,7 +86,7 @@ const AGENTS: AgentMeta[] = [
     provider: 'glm',
     color: PROVIDER_COLOR.glm,
     github: 'https://github.com/camel-ai/camel',
-    blurb: 'Role-playing multi-agent framework with researcher / writer roles. Most grounded agent on the board (60% reachable citations).',
+    blurb: 'Role-playing multi-agent framework with researcher / writer roles.',
   },
   {
     id: 'deerflow',
@@ -95,7 +95,7 @@ const AGENTS: AgentMeta[] = [
     family: 'Plan-Execute-Report',
     provider: 'meta',
     color: PROVIDER_COLOR.meta,
-    blurb: 'ByteDance plan/execute/report stack. Ties camel-ai on grounding (60% reachable); some runs degrade into data-availability writeups.',
+    blurb: 'ByteDance plan/execute/report stack.',
   },
   {
     id: 'flowsearcher-ds',
@@ -114,7 +114,7 @@ const AGENTS: AgentMeta[] = [
     provider: 'glm',
     color: PROVIDER_COLOR.glm,
     github: 'https://github.com/huggingface/smolagents',
-    blurb: 'HuggingFace code-as-action agent. Solid prose; citations sometimes drift off-topic.',
+    blurb: 'HuggingFace code-as-action agent.',
   },
   {
     id: 'langchain-odr',
@@ -132,7 +132,7 @@ const AGENTS: AgentMeta[] = [
     family: 'ReAct',
     provider: 'z',
     color: PROVIDER_COLOR.z,
-    blurb: 'Lightweight ReAct loop + retrieval. High judge Elo but only ~27% of citations resolve.',
+    blurb: 'Lightweight ReAct loop + retrieval.',
   },
   {
     id: 'ldr',
@@ -141,7 +141,7 @@ const AGENTS: AgentMeta[] = [
     family: 'Plan-Execute-Report',
     provider: 'google',
     color: PROVIDER_COLOR.google,
-    blurb: 'Lightweight local DR variant. Citations rarely resolve (2% reachable).',
+    blurb: 'Lightweight local deep-research variant.',
   },
   {
     id: 'storm',
@@ -151,7 +151,7 @@ const AGENTS: AgentMeta[] = [
     provider: 'minimax',
     color: PROVIDER_COLOR.minimax,
     github: 'https://github.com/stanford-oval/storm',
-    blurb: 'Stanford OVAL outline-then-write framework. Fluent, weakly grounded in the sandbox (13% reachable).',
+    blurb: 'Stanford OVAL outline-then-write framework.',
   },
   {
     id: 'gpt-researcher',
@@ -161,7 +161,7 @@ const AGENTS: AgentMeta[] = [
     provider: 'openai',
     color: PROVIDER_COLOR.openai,
     github: 'https://github.com/assafelovic/gpt-researcher',
-    blurb: 'RAG + report-writing pipeline. Strong raw judge Elo, but only 4% of cited URLs resolve in the sandbox, so the truth gate sharply lowers its public rank.',
+    blurb: 'RAG + report-writing pipeline.',
   },
   {
     id: 'qx-agents',
@@ -170,7 +170,7 @@ const AGENTS: AgentMeta[] = [
     family: 'Multi-agent',
     provider: 'z',
     color: PROVIDER_COLOR.z,
-    blurb: 'Partial coverage (48 tasks attempted, 13 battles); near-zero grounding so far.',
+    blurb: 'Custom multi-agent research stack.',
   },
 ]
 

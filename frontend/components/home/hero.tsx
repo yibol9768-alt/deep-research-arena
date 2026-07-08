@@ -32,8 +32,8 @@ export function Hero({ stats, news }: Props) {
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
             <T
-              en="Open-source research agents run the same frozen tasks in an offline sandbox. An LLM jury compares their reports pairwise, and every cited URL and quote is verified against the sandbox. The public score is judge Elo scaled by the verified-citation rate."
-              zh="开源研究智能体在离线沙箱中运行同一批冻结任务。LLM 陪审团对报告做两两比较,每条引用 URL 和引文都会按沙箱核验。公开主分 = 判官 Elo × 引用核验率。"
+              en="Open-source research harnesses run the same frozen tasks on each backbone LLM in an offline sandbox. A cross-family LLM jury compares reports pairwise (Bradley-Terry), and every cited URL is re-opened against the sandbox. The Arena score is reach^1.5 × jury win rate — fluent fabrication cannot rank."
+              zh="开源研究框架在离线沙箱中,于每个主干模型上运行同一批冻结任务。跨家族 LLM 陪审团对报告做两两比较（Bradley-Terry）,每条引用 URL 都会在沙箱内重新打开核验。Arena 主分 = 引用可达率^1.5 × 陪审团胜率 —— 流畅的编造无法上榜。"
             />
           </p>
 

@@ -28,8 +28,8 @@ const STEPS = [
     icon: ShieldCheck,
     title: 'Truth gate',
     titleZh: '真值门控',
-    body: 'Independently of the jury, every cited URL is checked for membership in the frozen page registry (no network fetch), and every quote is matched against the archived page. Elo × gate = the public score.',
-    bodyZh: '在陪审团之外，每个引用 URL 都在冻结页面注册表中做成员查询（不发任何网络请求），每段引文都与归档页面比对。Elo × 接地门 = 公开主分。',
+    body: 'Independently of the jury, every cited URL is checked for membership in the frozen page registry (no network fetch). Reach is the share that resolves, and arena = reach^1.5 × jury win rate.',
+    bodyZh: '在陪审团之外，每个引用 URL 都在冻结页面注册表中做成员查询（不发任何网络请求）。可达率是能解析的比例,arena 主分 = 可达率^1.5 × 陪审团胜率。',
   },
 ] as const
 
@@ -71,13 +71,13 @@ export function PipelineBand() {
       </ol>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-card border border-hairline bg-surface-low px-5 py-3.5 font-mono text-xs text-muted md:text-sm">
-        <span className="text-muted-2"><T en="public score" zh="公开主分" /></span>
+        <span className="text-muted-2"><T en="arena score" zh="Arena 主分" /></span>
         <span>=</span>
-        <span className="font-semibold text-ink">judge&nbsp;Elo</span>
+        <span className="font-semibold text-ink">reach<sup>1.5</sup></span>
         <span>×</span>
-        <span className="font-semibold text-ink">(reachability&nbsp;+&nbsp;quote&nbsp;match)&nbsp;/&nbsp;2</span>
+        <span className="font-semibold text-ink"><T en="jury&nbsp;win&nbsp;rate" zh="陪审团胜率" /></span>
         <span className="ml-auto hidden text-muted-2 md:inline">
-          <T en="judge-free gate · computed against the frozen sandbox" zh="不依赖判官的门控 · 按冻结沙箱核验" />
+          <T en="reach is judge-free · computed against the frozen sandbox" zh="可达率不依赖裁判 · 按冻结沙箱核验" />
         </span>
       </div>
     </div>
