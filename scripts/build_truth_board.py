@@ -93,6 +93,10 @@ def main() -> int:
     cache = json.loads(Path(args.cache).read_text()) if args.cache else {}
     panel = json.loads(Path(args.panel).read_text()) if args.panel else {}
     registry = load_registry()
+    # build_page_stats(cache) is a document-frequency pass over the WHOLE
+    # cache; it is the same for every report in this run, so compute it once
+    # here rather than paying its cost inside score_report() per report.
+    page_stats = ds.build_page_stats(cache)
 
     rows = []
     rdir = Path(args.reports_dir)
@@ -104,7 +108,7 @@ def main() -> int:
                 continue
             md = rp.read_text(errors="replace")
             per_task[tid] = evaluate(md, ak, cache, registry=registry,
-                                     gamma=args.gamma)
+                                     gamma=args.gamma, page_stats=page_stats)
         if not per_task:
             continue
         truths = [d["truth"] for d in per_task.values()]

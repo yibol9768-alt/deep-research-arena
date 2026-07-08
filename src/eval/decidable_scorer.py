@@ -997,16 +997,23 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
                  gamma: float = GAMMA_DEFAULT, k_f: int = K_F_DEFAULT,
                  k_star: int = K_STAR_DEFAULT,
                  pof_threshold: float = POF_THRESHOLD_DEFAULT,
-                 eps: float = EPS_FLOOR) -> AxisScores:
+                 eps: float = EPS_FLOOR,
+                 page_stats: dict | None = None) -> AxisScores:
     """Compute all decidable axes and the composed truth score.
 
     Returns axes + truth ONLY (M-C1): presentation is a separate column,
     fused (if at all) as a bounded tie-breaker downstream, never multiplied
-    into truth."""
+    into truth.
+
+    ``page_stats`` is the ``build_page_stats(cache)`` document-frequency pass
+    over the WHOLE cache (G-F1); it depends only on ``cache``, not on this
+    report, so callers scoring many reports against one cache (a full board
+    build) should compute it once and pass it in here instead of paying an
+    O(cache size) pass per report."""
     cache = cache or {}
     urls = _cited_urls(md)
     reach, rd = score_reachability(urls, cache, registry)
-    stats = build_page_stats(cache)
+    stats = page_stats if page_stats is not None else build_page_stats(cache)
     pof, pd = score_proof_of_fetch(md, cache, page_stats=stats,
                                    threshold=pof_threshold)
     generic = build_generic_tokens(answer_key)
