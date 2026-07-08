@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react'
 import { rankedAgents, loadLeaderboard, juryModels } from '@/lib/data/load-leaderboard'
 import { loadMatrixSubset } from '@/lib/data/load-matrix-subset'
-import { loadCost } from '@/lib/data/load-cost'
 import { loadChangelog } from '@/lib/data/changelog'
-import { agentMeta, isFeatured } from '@/lib/providers'
+import { agentMeta } from '@/lib/providers'
 import { groundingGatePct, fmt } from '@/lib/format'
 import { Hero } from '@/components/home/hero'
 import { LeaderboardTable } from '@/components/home/leaderboard-table'
@@ -12,8 +11,7 @@ import { DryRunBanner } from '@/components/home/dry-run-banner'
 import { RankShift } from '@/components/home/rank-shift'
 import { GateScatter } from '@/components/home/gate-scatter'
 import { PipelineBand } from '@/components/home/pipeline-band'
-import { FlagshipArenaChart, type FlagshipBackbone } from '@/components/home/flagship-arena-chart'
-import { QualityPriceScatter, type ScatterPoint } from '@/components/home/quality-price-scatter'
+import { MatrixPreview } from '@/components/home/matrix-preview'
 import { VBarChart, type VBarRow } from '@/components/home/vbar-chart'
 import { Faq } from '@/components/home/faq'
 import { CiteBlock } from '@/components/home/cite-block'
@@ -23,11 +21,9 @@ export const dynamic = 'force-static'
 
 export default function HomePage() {
   const agents = rankedAgents()
-  const featured = agents.filter((a) => isFeatured(a.id))
   const lb = loadLeaderboard()
   const jury = juryModels()
   const matrix = loadMatrixSubset()
-  const cost = loadCost()
   const news = loadChangelog().entries.slice(0, 3)
 
   const stats = [
@@ -40,89 +36,32 @@ export default function HomePage() {
 
   const sections = [
     { id: 'highlights', label: 'Highlights', zh: '亮点图表' },
-    ...(matrix ? [{ id: 'arena', label: 'Arena Score', zh: '竞技场得分' }] : []),
-    ...(matrix && cost ? [{ id: 'value', label: 'Quality vs price', zh: '质量 vs 价格' }] : []),
     { id: 'leaderboard', label: 'Leaderboard', zh: '排行榜' },
     { id: 'rankshift', label: 'What the gate changes', zh: '门控改变了什么' },
     { id: 'scatter', label: 'Fluency vs grounding', zh: '流畅 vs 接地' },
+    ...(matrix ? [{ id: 'matrix', label: 'Matrix preview', zh: '矩阵预览' }] : []),
     { id: 'how-it-works', label: 'How it works', zh: '评测流程' },
     { id: 'faq', label: 'FAQ', zh: '常见问题' },
     { id: 'cite', label: 'Cite & reproduce', zh: '引用与复现' },
   ]
 
-  // Chart rows — all straight from the loaded snapshot, restricted to the
-  // featured open-source frameworks; each bar links to its detail page.
+  // Chart rows — all straight from the loaded snapshot.
   const row = (id: string, value: number, valueLabel?: string): VBarRow => {
     const meta = agentMeta(id)
-    return { id, label: meta.display, color: meta.color, value, valueLabel, href: `/agents/${id}` }
+    return { id, label: meta.display, color: meta.color, value, valueLabel }
   }
-  const byGated: VBarRow[] = [...featured]
+  const byGated: VBarRow[] = [...agents]
     .sort((a, b) => (b.gated_score ?? 0) - (a.gated_score ?? 0))
     .map((a) => row(a.id, a.gated_score ?? 0))
-  const byGate: VBarRow[] = [...featured]
+  const byGate: VBarRow[] = [...agents]
     .map((a) => ({ a, gate: groundingGatePct(a) ?? 0 }))
     .sort((p, q) => q.gate - p.gate)
     .map((p) => row(p.a.id, p.gate, `${p.gate.toFixed(0)}%`))
-  const byJudge: VBarRow[] = [...featured]
+  const byJudge: VBarRow[] = [...agents]
     .sort((a, b) => b.elo - a.elo)
     .map((a) => row(a.id, a.elo))
 
   const juryLine = jury.length > 0 ? jury.join(' · ') : 'cross-family LLM jury'
-
-  // Flagship Arena chart: per-backbone rows, featured only. Arena CI derived by
-  // propagating the jury win-rate CI through the fixed (decidable) reach term.
-  const BB_ORDER = ['qwen3-8b', 'deepseek-v4-flash']
-  const flagshipBackbones: FlagshipBackbone[] = matrix
-    ? BB_ORDER.filter((k) => matrix.backbones[k]).map((key) => {
-        const bb = matrix.backbones[key]
-        const rows = bb.agents
-          .filter((a) => isFeatured(a.id))
-          .map((a) => {
-            const meta = agentMeta(a.id)
-            const reachPow = Math.pow(a.reach, 1.5)
-            return {
-              id: a.id,
-              label: meta.display,
-              backbone: key,
-              color: meta.color,
-              arena: a.arena,
-              arenaLo: a.winrate_ci95 ? reachPow * a.winrate_ci95[0] : undefined,
-              arenaHi: a.winrate_ci95 ? reachPow * a.winrate_ci95[1] : undefined,
-              winrate: a.winrate,
-              reach: a.reach,
-              bt_elo: a.bt_elo,
-              n_battles: a.n_battles,
-            }
-          })
-        return { key, label: key, rows }
-      })
-    : []
-
-  // Quality-vs-price scatter points: Arena (y) vs estimated cost per task (x).
-  const scatterPoints: ScatterPoint[] =
-    matrix && cost
-      ? BB_ORDER.flatMap((key) => {
-          const bb = matrix.backbones[key]
-          if (!bb) return []
-          return bb.agents
-            .filter((a) => isFeatured(a.id))
-            .map((a) => {
-              const cell = cost.frameworks[a.id]?.[key]
-              if (!cell || !(cell.est_cost_cny_per_task > 0)) return null
-              const meta = agentMeta(a.id)
-              return {
-                id: a.id,
-                label: meta.display,
-                color: meta.color,
-                backbone: key,
-                cost: cell.est_cost_cny_per_task,
-                score: a.arena,
-                costEstimated: !cell.pricing.confirmed,
-              } as ScatterPoint
-            })
-            .filter((p): p is ScatterPoint => p != null)
-        })
-      : []
 
   return (
     <>
@@ -159,21 +98,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Flagship AA-style Arena chart (13-task subset, featured frameworks) */}
-      {matrix && flagshipBackbones.length > 0 && (
-        <FlagshipArenaChart
-          backbones={flagshipBackbones}
-          updatedAt={matrix.generated_at}
-          formula={matrix.arena_formula}
-          isPreview
-        />
-      )}
-
-      {/* Quality vs price scatter */}
-      {matrix && cost && scatterPoints.length > 0 && (
-        <QualityPriceScatter points={scatterPoints} isPreview />
-      )}
-
       {/* Two-column body: sticky on-page nav + main */}
       <div className="container mt-16 flex flex-col gap-12 lg:flex-row">
         <SectionNav items={sections} />
@@ -186,12 +110,12 @@ export default function HomePage() {
               title={<T en="Leaderboard" zh="排行榜" />}
               caption={
                 <T
-                  en={`${featured.length} open-source frameworks · truth-gated Elo (judge Elo × grounding gate) · jury: ${juryLine}`}
-                  zh={`${featured.length} 个开源框架 · 真值门控 Elo（判官 Elo × 接地门）· 陪审团：${juryLine}`}
+                  en={`${agents.length} agents · truth-gated Elo (judge Elo × grounding gate) · jury: ${juryLine}`}
+                  zh={`${agents.length} 个智能体 · 真值门控 Elo（判官 Elo × 接地门）· 陪审团：${juryLine}`}
                 />
               }
             />
-            <LeaderboardTable agents={featured} />
+            <LeaderboardTable agents={agents} />
           </div>
 
           {/* Raw vs gated rank movement */}
@@ -206,13 +130,20 @@ export default function HomePage() {
                 />
               }
             />
-            <RankShift agents={featured} />
+            <RankShift agents={agents} />
           </div>
 
           {/* Scatter: judge Elo vs grounding gate */}
           <div id="scatter" className="scroll-mt-24">
-            <GateScatter agents={featured} />
+            <GateScatter agents={agents} />
           </div>
+
+          {/* v2 preview: framework x backbone matrix (subset) */}
+          {matrix && (
+            <div id="matrix" className="scroll-mt-24">
+              <MatrixPreview data={matrix} />
+            </div>
+          )}
 
           {/* Pipeline explainer (light) */}
           <PipelineBand />

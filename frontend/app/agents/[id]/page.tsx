@@ -6,10 +6,6 @@ import { rankedAgents } from '@/lib/data/load-leaderboard'
 import { agentMeta, allAgents } from '@/lib/providers'
 import { MetricCard } from '@/components/layout/metric-card'
 import { QualityProfile } from '@/components/agents/quality-profile'
-import { ScoreExplainer, type ExplainerBackbone } from '@/components/agents/score-explainer'
-import { loadAxesDetail } from '@/lib/data/load-axes-detail'
-import { loadMatrixSubset } from '@/lib/data/load-matrix-subset'
-import { loadSampleReports } from '@/lib/data/load-sample-reports'
 import { T } from '@/components/i18n/t'
 import { fmt, groundingGatePct, truthScore } from '@/lib/format'
 
@@ -25,36 +21,6 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
   if (!agent) notFound()
   const meta = agentMeta(agent.id)
   const gate = groundingGatePct(agent)
-
-  // Score-explainer data: decidable five-axis truth, jury stats, sample report.
-  // Assembled per backbone; degrades gracefully when a source is missing.
-  const axes = loadAxesDetail()
-  const matrix = loadMatrixSubset()
-  const samples = loadSampleReports()
-  const explainerBackbones: ExplainerBackbone[] = ['qwen3-8b', 'deepseek-v4-flash']
-    .map((key): ExplainerBackbone | null => {
-      const ax = axes?.backbones[key]?.agents[agent.id]
-      const mx = matrix?.backbones[key]?.agents.find((a) => a.id === agent.id)
-      const sample = samples?.[key]?.[agent.id]
-      if (!ax && !mx && !sample) return null
-      return {
-        key,
-        label: key,
-        axes: ax?.axes_mean,
-        truthMacro: ax?.truth_macro,
-        gamma: axes?.backbones[key]?.gamma ?? axes?.gamma,
-        arena: mx?.arena,
-        reach: mx?.reach,
-        winrate: mx?.winrate,
-        winrateCi95: mx?.winrate_ci95,
-        btElo: mx?.bt_elo,
-        nBattles: mx?.n_battles,
-        tieRate: mx?.tie_rate,
-        sample,
-        perTask: ax?.per_task,
-      }
-    })
-    .filter((b): b is ExplainerBackbone => b != null)
 
   return (
     <div className="container py-12 md:py-16">
@@ -108,10 +74,6 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
           </p>
         </div>
       </section>
-
-      {explainerBackbones.length > 0 ? (
-        <ScoreExplainer agentLabel={meta.display} color={meta.color} backbones={explainerBackbones} />
-      ) : null}
 
       <section className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">

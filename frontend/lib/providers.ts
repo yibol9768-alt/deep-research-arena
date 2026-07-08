@@ -33,10 +33,6 @@ export interface AgentMeta {
   github?: string
   /** One-line description */
   blurb?: string
-  /** Included in the home-page charts / leaderboard (well-known open-source DR frameworks). */
-  featured?: boolean
-  /** Open-source deep-research framework (as opposed to a coding CLI or niche tool). */
-  openSource?: boolean
 }
 
 const PROVIDER_COLOR: Record<ProviderKey, string> = {
@@ -88,12 +84,9 @@ const AGENTS: AgentMeta[] = [
     backbone: 'deepseek-v4-flash',
     family: 'Multi-agent',
     provider: 'glm',
-    // Overridden off the GLM green so it does not collide with smolagents in charts.
-    color: '#cc785c',
+    color: PROVIDER_COLOR.glm,
     github: 'https://github.com/camel-ai/camel',
     blurb: 'Role-playing multi-agent framework with researcher / writer roles. Most grounded agent on the board (60% reachable citations).',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'deerflow',
@@ -102,10 +95,7 @@ const AGENTS: AgentMeta[] = [
     family: 'Plan-Execute-Report',
     provider: 'meta',
     color: PROVIDER_COLOR.meta,
-    github: 'https://github.com/bytedance/deer-flow',
     blurb: 'ByteDance plan/execute/report stack. Ties camel-ai on grounding (60% reachable); some runs degrade into data-availability writeups.',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'flowsearcher-ds',
@@ -125,8 +115,6 @@ const AGENTS: AgentMeta[] = [
     color: PROVIDER_COLOR.glm,
     github: 'https://github.com/huggingface/smolagents',
     blurb: 'HuggingFace code-as-action agent. Solid prose; citations sometimes drift off-topic.',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'langchain-odr',
@@ -135,10 +123,7 @@ const AGENTS: AgentMeta[] = [
     family: 'Graph-based',
     provider: 'deepseek',
     color: PROVIDER_COLOR.deepseek,
-    github: 'https://github.com/langchain-ai/open_deep_research',
     blurb: 'LangChain open_deep_research graph pipeline.',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'ii-researcher',
@@ -147,10 +132,7 @@ const AGENTS: AgentMeta[] = [
     family: 'ReAct',
     provider: 'z',
     color: PROVIDER_COLOR.z,
-    github: 'https://github.com/Intelligent-Internet/ii-researcher',
     blurb: 'Lightweight ReAct loop + retrieval. High judge Elo but only ~27% of citations resolve.',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'ldr',
@@ -159,10 +141,7 @@ const AGENTS: AgentMeta[] = [
     family: 'Plan-Execute-Report',
     provider: 'google',
     color: PROVIDER_COLOR.google,
-    github: 'https://github.com/LearningCircuit/local-deep-research',
     blurb: 'Lightweight local DR variant. Citations rarely resolve (2% reachable).',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'storm',
@@ -173,8 +152,6 @@ const AGENTS: AgentMeta[] = [
     color: PROVIDER_COLOR.minimax,
     github: 'https://github.com/stanford-oval/storm',
     blurb: 'Stanford OVAL outline-then-write framework. Fluent, weakly grounded in the sandbox (13% reachable).',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'gpt-researcher',
@@ -185,8 +162,6 @@ const AGENTS: AgentMeta[] = [
     color: PROVIDER_COLOR.openai,
     github: 'https://github.com/assafelovic/gpt-researcher',
     blurb: 'RAG + report-writing pipeline. Strong raw judge Elo, but only 4% of cited URLs resolve in the sandbox, so the truth gate sharply lowers its public rank.',
-    featured: true,
-    openSource: true,
   },
   {
     id: 'qx-agents',
@@ -195,8 +170,6 @@ const AGENTS: AgentMeta[] = [
     family: 'Multi-agent',
     provider: 'z',
     color: PROVIDER_COLOR.z,
-    github: 'https://github.com/qx-labs/agents-deep-research',
-    openSource: true,
     blurb: 'Partial coverage (48 tasks attempted, 13 battles); near-zero grounding so far.',
   },
 ]
@@ -286,18 +259,4 @@ export function agentMeta(id: string): AgentMeta {
 
 export function allAgents(): AgentMeta[] {
   return AGENTS
-}
-
-/**
- * Well-known open-source deep-research frameworks shown on the home page charts
- * and leaderboard. Coding CLIs (claude-code, opencode) and niche tools
- * (qx-agents, flowsearcher-ds) are kept in the registry — their /agents/[id]
- * pages still render — but are filtered out of the home page.
- */
-export function featuredAgents(): AgentMeta[] {
-  return AGENTS.filter((a) => a.featured)
-}
-
-export function isFeatured(id: string): boolean {
-  return !!AGENT_INDEX[id]?.featured
 }

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import Link from 'next/link'
 import { T } from '@/components/i18n/t'
 
 export interface VBarRow {
@@ -9,8 +8,6 @@ export interface VBarRow {
   value: number
   /** Formatted value shown above the bar (defaults to rounded value). */
   valueLabel?: string
-  /** When set, the bar becomes a link to this route (e.g. /agents/<id>). */
-  href?: string
 }
 
 interface Props {
@@ -56,25 +53,16 @@ export function VBarChart({ accent, title, subtitle, rows, badge }: Props) {
             // Cap at 86% so the value label above the tallest bar stays inside
             // the plot area.
             const h = Math.max((r.value / max) * 86, 1.5)
-            const bar = (
-              <div
-                className="w-full max-w-[40px] rounded-t-[3px] transition-opacity group-hover:opacity-80"
-                style={{ height: `${h}%`, backgroundColor: r.color }}
-                title={r.href ? `View ${r.label} detail` : `${r.label}: ${r.valueLabel ?? r.value}`}
-              />
-            )
             return (
               <div key={r.id} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end">
                 <span className="mb-1 text-[10px] font-semibold tnum leading-none text-ink">
                   {r.valueLabel ?? String(Math.round(r.value))}
                 </span>
-                {r.href ? (
-                  <Link href={r.href} className="flex w-full cursor-pointer justify-center" aria-label={`View ${r.label} detail`}>
-                    {bar}
-                  </Link>
-                ) : (
-                  bar
-                )}
+                <div
+                  className="w-full max-w-[40px] rounded-t-[3px] transition-opacity group-hover:opacity-80"
+                  style={{ height: `${h}%`, backgroundColor: r.color }}
+                  title={`${r.label}: ${r.valueLabel ?? r.value}`}
+                />
               </div>
             )
           })}
