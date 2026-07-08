@@ -3,6 +3,31 @@
  "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
  "entries": [
   {
+   "version": "v16-2026-07-07",
+   "date": "2026-07-07",
+   "title": "claude-code lane gets per-backbone routers with pre-run identity assertion and provenance; gateway tags unfixable context overflows",
+   "summary": "The claude-code adapter no longer points every backbone at one shared claude-code-router whose config drifted over time (the cause of the 2026-07-07 subset runs where deepseek-labeled passes were actually served by qwen3-8b). Each backbone now gets its own router instance whose config is asserted before every run, with routing provenance recorded per run; the ssh fallback is disabled by default and the gateway now tags and accounts unfixable context-overflow 400s.",
+   "tags": [
+    "fairness",
+    "adapters",
+    "gateway",
+    "provenance",
+    "bugfix"
+   ],
+   "sections": [
+    {
+     "heading": "Details",
+     "bullets": [
+      "claude-code: dedicated claude-code-router per backbone (qwen3-8b:3461, deepseek-v4-flash:3462, glm-4.7-flash:3463; unknown backbones hash into 3470-3489), each with its own HOME and an idempotently written config that pins every route to 'gateway,<backbone>' via the unified :8100 LLM gateway (maxtoken clamp 8192 preserved)",
+      "claude-code: hard pre-run assertion reads the router config back and refuses to run when Router.default does not end with the lane's backbone, so a label/model mismatch is a loud runner error instead of a silently mislabeled score; env URL overrides still win but are logged and marked unverified",
+      "claude-code: every run emits a '[claude-code] router=... backbone=... config=...' stdout line and a <report>.provenance.json sidecar (router_url, backbone, config_path, config_router_default, timestamp)",
+      "claude-code: ssh/Windows fallback is now opt-in via CLAUDE_CODE_SSH_HOST (the old default '5090' parsed as decimal IPv4 0.0.19.226 and burned ~150s x2 per task on dead connects)",
+      "llm_gateway: refit now clamps max_tokens to window-input-1 and retries as long as >=1 output token fits; when the prompt alone fills the window the passthrough 400 carries gateway diagnostics (reason, routed_model, context_window, refit_attempts) and streaming error responses are finally written to the usage log (previously invisible)"
+     ]
+    }
+   ]
+  },
+  {
    "version": "v15-2026-07-07",
    "date": "2026-07-07",
    "title": "gpt-researcher retriever reaches the sandbox; gateway context-overflow retry hardened",

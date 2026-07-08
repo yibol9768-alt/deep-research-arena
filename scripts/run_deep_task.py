@@ -2650,6 +2650,13 @@ async def main() -> int:
         print("[deep_run] strict-sandbox mode: per-adapter allowlist + shim gate + post-audit")
 
     os.environ["_FLOWSEARCHER_TASK_ID"] = args.task
+    suffix = f"_{args.out_suffix}" if args.out_suffix else ""
+    out_md = OUT_DIR / f"{args.agent}__{args.task}{suffix}.md"
+    out_meta = OUT_DIR / f"{args.agent}__{args.task}{suffix}.meta.json"
+    # Adapters that record routing provenance (e.g. claude-code writes a
+    # <report>.provenance.json sidecar) need to know where the final report
+    # will land; export it before the runner is invoked.
+    os.environ["DEEP_RUN_REPORT_PATH"] = str(out_md)
     runner = RUNNERS[args.agent]
     t0 = time.time()
     err = None
@@ -2743,9 +2750,6 @@ async def main() -> int:
     # "informational" to "policy violation".
     sandbox_audit = _post_audit_sandbox(report or "")
 
-    suffix = f"_{args.out_suffix}" if args.out_suffix else ""
-    out_md = OUT_DIR / f"{args.agent}__{args.task}{suffix}.md"
-    out_meta = OUT_DIR / f"{args.agent}__{args.task}{suffix}.meta.json"
     out_md.write_text(report or "(empty)")
     out_meta.write_text(json.dumps({
         "agent": args.agent, "task": args.task, "backbone": args.backbone,

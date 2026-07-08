@@ -252,6 +252,75 @@ def test_ctx_overflow_vllm023_gives_up_bounded(make_gw):
     assert len(router.requests) == 7
 
 
+def _exact_ctx_err(in_messages: int, in_completion: int) -> dict:
+    """Old exact-count vLLM phrasing: '(N in the messages)' reports the TRUE
+    prompt size, so the refit lands on window - N - 1 in one step."""
+    total = in_messages + in_completion
+    return {
+        "error": {
+            "message": (f"This model's maximum context length is 65536 tokens. "
+                        f"However, you requested {total} tokens ({in_messages} in the "
+                        f"messages, {in_completion} in the completion). Please reduce "
+                        f"the length of the messages or completion."),
+            "type": "BadRequestError",
+            "code": 400,
+        }
+    }
+
+
+def test_ctx_overflow_refit_clamps_to_window_minus_input(make_gw):
+    """Regression (2026-07-07): the refit gave up whenever fewer than 8 output
+    tokens remained. It must clamp max_tokens to window - input - 1 and retry
+    as long as that is >= 1."""
+    mod, client, router = make_gw()
+    router.add_json(400, _exact_ctx_err(65530, 512))  # window - input - 1 == 5
+    router.add_json(200, {"choices": []})
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 512,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 200
+    assert len(router.requests) == 2
+    assert router.last_body()["max_tokens"] == 65536 - 65530 - 1
+
+
+def test_ctx_overflow_prompt_fills_window_gives_up(make_gw):
+    """Prompt alone fills the whole window: protocol-level unfixable. The 400
+    passes through immediately (no futile retries) and carries the gateway
+    diagnostics that name the ACTUAL routed model + window."""
+    mod, client, router = make_gw()
+    router.add_json(400, _exact_ctx_err(65536, 1))  # avail = -1
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 512,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 400
+    assert len(router.requests) == 1  # no pointless retry
+    gw = r.json()["gateway"]
+    assert gw["reason"] == "prompt_overflow_unfixable"
+    assert gw["routed_model"] == "qwen3-8b"
+    assert gw["context_window"] == 65536
+    # original upstream error text is preserved alongside the tag
+    assert "maximum context length" in r.json()["error"]["message"]
+
+
+def test_stream_error_path_writes_usage(make_gw, tmp_path):
+    """Regression (2026-07-07): streaming error responses wrote NO usage line,
+    so the claude-code lane's leaked 400s were invisible in the usage log."""
+    log = tmp_path / "usage.jsonl"
+    mod, client, router = make_gw({"LLMGW_USAGE_LOG": str(log)})
+    router.add_json(400, _exact_ctx_err(65536, 1))  # unfixable overflow
+    r = client.post("/v1/chat/completions",
+                    json={"model": "qwen3-8b", "max_tokens": 512, "stream": True,
+                          "messages": [{"role": "user", "content": "hi"}]})
+    assert r.status_code == 400
+    assert r.json()["gateway"]["reason"] == "prompt_overflow_unfixable"
+    lines = [json.loads(x) for x in log.read_text().splitlines() if x.strip()]
+    usage = [x for x in lines if x.get("model") == "qwen3-8b"]
+    assert len(usage) == 1, "stream error path must write exactly one usage line"
+    assert usage[0]["stream"] is True
+    assert usage[0]["status"] == 400
+    assert usage[0]["ctx_overflow_giveup"] is True
+
+
 # ---------------------------------------------------------------------------
 # thinking-off injection
 # ---------------------------------------------------------------------------

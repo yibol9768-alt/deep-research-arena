@@ -1,23 +1,31 @@
 """Claude Code CLI as a deep-research agent.
 
-Architecture (SSH-driven, runner orchestrates from any host that can reach 5090):
+Architecture (local-first; per-backbone claude-code-router instances):
 
-    runner (any host with ssh 5090)
-        │  scp intent + ps1 driver
-        │  ssh 5090 powershell -File driver.ps1
+    runner
+        │  claude --print ... (local subprocess)
         ▼
-    5090 Windows
-        claude.exe --print --disallowedTools WebSearch WebFetch
-        --append-system-prompt <sandbox-only directive>
-            │  ANTHROPIC_BASE_URL=http://127.0.0.1:3456
-            ▼
-        ccr (claude-code-router)   --Anthropic→OpenAI Chat translation-->
-            │  http://127.0.0.1:8088/v1/chat/completions
-            ▼
-        ds_proxy  --inject thinking:disabled, strip <think>-->
-            │  https://api.deepseek.com/v1
-            ▼
-        DeepSeek V4 flash
+    claude CLI
+        │  ANTHROPIC_BASE_URL=http://127.0.0.1:<port-for-backbone>
+        ▼
+    ccr (claude-code-router, ONE instance PER backbone, own HOME + config
+         written/asserted by this runner)   --Anthropic→OpenAI translation-->
+        │  http://127.0.0.1:8100/v1/chat/completions
+        ▼
+    unified LLM gateway (:8100)  --per-model policy + routing-->
+        vLLM qwen3-8b / DashScope deepseek-v4-flash / bigmodel glm-4.7-flash
+
+Why per-backbone ccr instances: until 2026-07-07 every claude-code run pointed
+at ONE shared ccr on :3456 whose config.json was mutated over time, so the
+lane's --backbone label said qwen/deepseek/glm while the actual model was
+whatever :3456 happened to be configured with at that moment (the subset
+"deepseek" passes were actually qwen3-8b). Now the requested backbone picks
+its own dedicated port/HOME, the config is asserted before every run, and a
+provenance line + sidecar record what was actually used.
+
+An optional SSH/Windows path still exists but is DISABLED unless
+CLAUDE_CODE_SSH_HOST is explicitly set (the old default "5090" parsed as the
+decimal IPv4 0.0.19.226 and burned ~150s per fallback attempt).
 
 Tooling lockdown (fairness with other DR baselines):
     - claude's native WebSearch + WebFetch are stripped via --disallowedTools
@@ -30,14 +38,18 @@ Tooling lockdown (fairness with other DR baselines):
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
 import os
+import re
 import shutil
 import socket
 import subprocess
 import tempfile
 import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -66,8 +78,15 @@ STRICT_SANDBOX_ELIGIBLE = True
 
 DEFAULT_TIMEOUT_S = 1800
 DEFAULT_NATIVE_TIMEOUT_S = int(os.environ.get("CLAUDE_CODE_NATIVE_TIMEOUT_S", "420") or "420")
-SSH_HOST = os.environ.get("CLAUDE_CODE_SSH_HOST", "5090")
 REMOTE_DIR_WIN = os.environ.get("CLAUDE_CODE_REMOTE_DIR", "C:/tools/cc_runner")
+
+
+def _ssh_host() -> str:
+    """SSH/Windows fallback host. EMPTY by default: the old default "5090"
+    was parsed by ssh as the decimal IPv4 integer 5090 == 0.0.19.226, so every
+    fallback attempt burned a ~150s connect timeout. The ssh path is now
+    opt-in via an explicit CLAUDE_CODE_SSH_HOST."""
+    return os.environ.get("CLAUDE_CODE_SSH_HOST", "").strip()
 
 
 def _win_path_to_wsl(path: str) -> Path:
@@ -86,25 +105,256 @@ REMOTE_DIR_WSL = Path(
 )
 
 
-def _default_ccr_base_url() -> str:
-    configured = os.environ.get("CLAUDE_CODE_CCR_URL")
+# ---------------------------------------------------------------------------
+# Per-backbone CCR selection.
+#
+# Root cause of the 2026-07-07 subset mislabeling: this runner always pointed
+# ANTHROPIC_BASE_URL at one shared ccr port whose config was mutated over
+# time, with zero validation and zero provenance. Each backbone now gets its
+# OWN ccr instance (own port, own HOME, config written idempotently by this
+# runner), the config is read back and asserted before every run, and the
+# actually-used router is recorded to stdout + a .provenance.json sidecar.
+# ---------------------------------------------------------------------------
+
+GATEWAY_CHAT_URL = os.environ.get(
+    "CLAUDE_CODE_GATEWAY_URL", "http://127.0.0.1:8100/v1/chat/completions"
+)
+CCR_HOME_BASE = Path(os.environ.get("CLAUDE_CODE_CCR_HOME_BASE", "/root/ccr_homes"))
+
+_BACKBONE_CCR_PORTS = {
+    "qwen3-8b": 3461,
+    "deepseek-v4-flash": 3462,
+    "glm-4.7-flash": 3463,
+}
+_UNKNOWN_PORT_BASE = 3470
+_UNKNOWN_PORT_SPAN = 20
+
+
+def _port_for_backbone(model: str) -> int:
+    port = _BACKBONE_CCR_PORTS.get(model)
+    if port is not None:
+        return port
+    # Unknown backbone: stable hash into 3470-3489 so the same label always
+    # lands on the same port (and never on another backbone's port).
+    digest = hashlib.sha256(model.encode("utf-8")).hexdigest()
+    return _UNKNOWN_PORT_BASE + int(digest, 16) % _UNKNOWN_PORT_SPAN
+
+
+def _ccr_home_for_backbone(model: str) -> Path:
+    safe = re.sub(r"[^A-Za-z0-9._-]", "_", model) or "unknown"
+    return CCR_HOME_BASE / safe
+
+
+def _ccr_config_path(home: Path) -> Path:
+    return home / ".claude-code-router" / "config.json"
+
+
+def _build_ccr_config(model: str, port: int) -> dict:
+    """Desired ccr config for one backbone: a single 'gateway' provider that
+    forwards to the unified :8100 LLM gateway, every Router route pinned to
+    this backbone, and the maxtoken transformer preserved (clamp 8192, the
+    same semantics the qwen lane used on the old :3457 instance)."""
+    route = f"gateway,{model}"
+    return {
+        "LOG": False,
+        "LOG_LEVEL": "info",
+        "HOST": "127.0.0.1",
+        "PORT": port,
+        "APIKEY": "anything",
+        "API_TIMEOUT_MS": 600000,
+        "Providers": [
+            {
+                "name": "gateway",
+                "api_base_url": GATEWAY_CHAT_URL,
+                "api_key": "anything",
+                "models": [model],
+                "transformer": {"use": [["maxtoken", {"max_tokens": 8192}]]},
+            }
+        ],
+        "Router": {
+            "default": route,
+            "background": route,
+            "think": route,
+            "longContext": route,
+            "longContextThreshold": 60000,
+            "webSearch": route,
+        },
+    }
+
+
+def _ccr_for_backbone(model: str) -> tuple[str, Path | None]:
+    """Return (base_url, ccr_home) for this backbone's dedicated ccr.
+
+    CLAUDE_CODE_LOCAL_CCR_URL / CLAUDE_CODE_CCR_URL stay the highest priority
+    as an explicit user escape hatch, but an override is logged loudly and
+    recorded in provenance, because with an override the runner cannot verify
+    which model actually sits behind the URL (ccr_home is None then)."""
+    for var in ("CLAUDE_CODE_LOCAL_CCR_URL", "CLAUDE_CODE_CCR_URL"):
+        override = (os.environ.get(var) or "").strip()
+        if override:
+            logger.warning(
+                "[claude-code] %s=%s overrides per-backbone ccr selection for "
+                "backbone=%s; the model behind this URL is NOT verified",
+                var, override, model,
+            )
+            print(
+                f"[claude-code] ccr env override {var}={override} "
+                f"backbone={model} (model identity unverified)",
+                flush=True,
+            )
+            return override, None
+    return f"http://127.0.0.1:{_port_for_backbone(model)}", _ccr_home_for_backbone(model)
+
+
+def _read_ccr_config(cfg_path: Path) -> dict:
+    try:
+        return json.loads(cfg_path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        raise
+    except Exception as e:
+        raise RuntimeError(f"unreadable ccr config at {cfg_path}: {e}") from e
+
+
+def _config_routes_model(cfg: dict, model: str) -> bool:
+    providers = cfg.get("Providers") or cfg.get("providers") or []
+    models: list[str] = []
+    for p in providers:
+        if isinstance(p, dict):
+            models.extend(p.get("models") or [])
+    router = cfg.get("Router") or cfg.get("router") or {}
+    default = str(router.get("default", ""))
+    return model in models and default.endswith(f",{model}")
+
+
+def _ensure_ccr_for_backbone(model: str, url: str, home: Path) -> Path:
+    """Bring up the per-backbone ccr WITHOUT ever touching anyone else's.
+
+    - Port not listening: idempotently write our config under ``home`` and
+      ``HOME=<home> ccr start``, then wait for the port.
+    - Port listening: it must be OUR instance — ``home``'s config must exist,
+      claim this port and route to this model. Anything else means a foreign
+      process squats the port; fail loud instead of killing it (shared-box
+      rule: never kill/restart existing processes)."""
+    cfg_path = _ccr_config_path(home)
+    desired = _build_ccr_config(model, _port_for_backbone(model))
+
+    if _tcp_listening(url):
+        try:
+            current = _read_ccr_config(cfg_path)
+        except FileNotFoundError:
+            raise RuntimeError(
+                f"port at {url} (backbone={model}) is already in use but "
+                f"{cfg_path} does not exist: a process this runner does not "
+                "own is squatting the port; refusing to reuse or kill it"
+            )
+        if int(current.get("PORT") or 0) != int(desired["PORT"]) or not _config_routes_model(current, model):
+            raise RuntimeError(
+                f"ccr at {url} (config {cfg_path}) does not route to "
+                f"backbone={model}; refusing to run mislabeled and refusing "
+                "to kill the existing process — fix/stop it manually"
+            )
+        return cfg_path
+
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        stale = _read_ccr_config(cfg_path)
+    except Exception:
+        stale = None
+    if stale != desired:
+        cfg_path.write_text(json.dumps(desired, indent=2) + "\n", encoding="utf-8")
+    if not shutil.which("ccr"):
+        raise RuntimeError("ccr executable not found")
+    log_path = Path(os.environ.get("CLAUDE_CODE_CCR_START_LOG", "/tmp/claude_code_router_start.log"))
+    env = {**os.environ, "HOME": str(home)}
+    with log_path.open("ab") as log:
+        subprocess.Popen(
+            ["ccr", "start"],
+            stdout=log,
+            stderr=log,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
+            env=env,
+        )
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        if _tcp_listening(url):
+            return cfg_path
+        time.sleep(0.5)
+    raise RuntimeError(f"ccr (HOME={home}) did not start listening at {url}")
+
+
+def _assert_ccr_model(cfg_path: Path | None, url: str, model: str) -> str | None:
+    """Pre-run guard: read the config back and PROVE the router sends this
+    lane's traffic to the labeled backbone. This assertion is what prevents a
+    repeat of the 2026-07-07 subset mislabeling — do not remove it."""
+    if cfg_path is None:
+        return None  # env-override mode: unverifiable, already logged loudly
+    try:
+        cfg = _read_ccr_config(cfg_path)
+    except FileNotFoundError:
+        raise RuntimeError(f"ccr config missing at {cfg_path} for backbone={model}")
+    router = cfg.get("Router") or cfg.get("router") or {}
+    default = str(router.get("default", ""))
+    if not default.endswith(f",{model}"):
+        raise RuntimeError(
+            f"CCR at {url} routes default={default!r} but this lane expects "
+            f"backbone={model!r} (config {cfg_path}); refusing to run mislabeled"
+        )
+    return default
+
+
+def _emit_provenance(
+    model: str,
+    ccr_url: str,
+    cfg_path: Path | None,
+    router_default: str | None,
+) -> None:
+    """Record which router/backbone this run ACTUALLY used: one stdout line
+    (grep-able in lane logs) plus a .provenance.json sidecar next to the final
+    report (path exported by run_deep_task as DEEP_RUN_REPORT_PATH)."""
+    print(
+        f"[claude-code] router={ccr_url} backbone={model} "
+        f"config={cfg_path if cfg_path else '(env-override, unverified)'}",
+        flush=True,
+    )
+    report_path = (os.environ.get("DEEP_RUN_REPORT_PATH") or "").strip()
+    if not report_path:
+        logger.info("[claude-code] DEEP_RUN_REPORT_PATH unset; provenance sidecar skipped")
+        return
+    record = {
+        "agent": AGENT_NAME,
+        "backbone": model,
+        "router_url": ccr_url,
+        "config_path": str(cfg_path) if cfg_path else None,
+        "config_router_default": router_default,
+        "task": os.environ.get("_FLOWSEARCHER_TASK_ID") or None,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        sidecar = Path(report_path).with_suffix(".provenance.json")
+        sidecar.parent.mkdir(parents=True, exist_ok=True)
+        sidecar.write_text(
+            json.dumps(record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+    except Exception:
+        logger.exception("[claude-code] failed writing provenance sidecar")
+
+
+def _remote_ccr_base_url(model: str) -> str:
+    """CCR URL as seen from the (opt-in) SSH/Windows remote. Env override
+    first; otherwise this host's LAN IP + the backbone's dedicated port."""
+    configured = (os.environ.get("CLAUDE_CODE_CCR_URL") or "").strip()
     if configured:
         return configured
+    port = _port_for_backbone(model)
     try:
         ips = subprocess.check_output(["hostname", "-I"], text=True, timeout=2).split()
         for ip in ips:
             if ip.startswith(("172.", "10.", "192.168.")):
-                return f"http://{ip}:3456"
+                return f"http://{ip}:{port}"
     except Exception:
         pass
-    return "http://127.0.0.1:3456"
-
-
-CCR_BASE_URL = _default_ccr_base_url()
-
-
-def _local_ccr_base_url() -> str:
-    return os.environ.get("CLAUDE_CODE_LOCAL_CCR_URL", "http://127.0.0.1:3456")
+    return f"http://127.0.0.1:{port}"
 
 
 def _tcp_listening(url: str, *, timeout_s: float = 1.0) -> bool:
@@ -263,11 +513,11 @@ _TOOL_POLICY_STRICT = (
 )
 
 
-def _build_ps_driver(*, strict_sandbox: bool = False) -> str:
+def _build_ps_driver(*, ccr_url: str, strict_sandbox: bool = False) -> str:
     policy = _TOOL_POLICY_STRICT if strict_sandbox else _TOOL_POLICY_OPEN
     return (
         _PS_DRIVER_TEMPLATE
-        .replace("__CCR_URL__", CCR_BASE_URL)
+        .replace("__CCR_URL__", ccr_url)
         .replace("__TOOL_POLICY_ARGS__", policy)
     )
 
@@ -323,28 +573,6 @@ After the Bash write command succeeds, your final text response should be ONLY:
 
 Begin now.  Do not ask for clarification - act on the brief alone.
 """
-
-
-def _ensure_local_ccr(base_url: str) -> None:
-    if _tcp_listening(base_url):
-        return
-    if not shutil.which("ccr"):
-        raise RuntimeError("ccr executable not found")
-    log_path = Path(os.environ.get("CLAUDE_CODE_CCR_START_LOG", "/tmp/claude_code_router_start.log"))
-    with log_path.open("ab") as log:
-        subprocess.Popen(
-            ["ccr", "start"],
-            stdout=log,
-            stderr=log,
-            stdin=subprocess.DEVNULL,
-            start_new_session=True,
-        )
-    deadline = time.time() + 30
-    while time.time() < deadline:
-        if _tcp_listening(base_url):
-            return
-        time.sleep(0.5)
-    raise RuntimeError(f"ccr did not start listening at {base_url}")
 
 
 def _local_tool_policy_args(*, strict_sandbox: bool) -> list[str]:
@@ -414,8 +642,22 @@ async def _run_local_claude(
     if not shutil.which("claude"):
         return "(claude-code local unavailable: claude executable not found)"
 
-    ccr_url = _local_ccr_base_url()
-    _ensure_local_ccr(ccr_url)
+    # Per-backbone router selection + hard pre-run identity assertion.
+    ccr_url, ccr_home = _ccr_for_backbone(model)
+    if ccr_home is None:
+        # Env-override mode: never auto-start a shared router we do not own;
+        # the URL must already be live and the operator owns its identity.
+        if not _tcp_listening(ccr_url):
+            raise RuntimeError(
+                f"CLAUDE_CODE_(LOCAL_)CCR_URL override {ccr_url} is not "
+                "listening; refusing to auto-start a router this runner "
+                "does not own"
+            )
+        cfg_path = None
+    else:
+        cfg_path = _ensure_ccr_for_backbone(model, ccr_url, ccr_home)
+    router_default = _assert_ccr_model(cfg_path, ccr_url, model)
+    _emit_provenance(model, ccr_url, cfg_path, router_default)
 
     shopping_url = os.environ.get("SHOPPING", "http://localhost:17770")
     reddit_url = os.environ.get("REDDIT", "http://localhost:9999")
@@ -509,11 +751,14 @@ async def _run_local_claude(
 
 
 def _ssh(cmd: str, *, timeout_s: int = 60) -> subprocess.CompletedProcess:
+    host = _ssh_host()
+    if not host:
+        raise RuntimeError("CLAUDE_CODE_SSH_HOST unset; ssh path is disabled")
     return subprocess.run(
         ["ssh",
          "-o", "ServerAliveInterval=30",
          "-o", "ServerAliveCountMax=20",
-         SSH_HOST, cmd],
+         host, cmd],
         capture_output=True, text=True, timeout=timeout_s,
         stdin=subprocess.DEVNULL,
     )
@@ -548,7 +793,7 @@ def _ssh_with_retries(
 def _scp_up(local: Path, remote_win: str, *, timeout_s: int = 60) -> None:
     subprocess.run(
         ["scp", "-o", "ServerAliveInterval=30",
-         str(local), f"{SSH_HOST}:{remote_win}"],
+         str(local), f"{_ssh_host()}:{remote_win}"],
         check=True, capture_output=True, timeout=timeout_s,
         stdin=subprocess.DEVNULL,
     )
@@ -557,7 +802,7 @@ def _scp_up(local: Path, remote_win: str, *, timeout_s: int = 60) -> None:
 def _scp_down(remote_win: str, local: Path, *, timeout_s: int = 60) -> None:
     subprocess.run(
         ["scp", "-o", "ServerAliveInterval=30",
-         f"{SSH_HOST}:{remote_win}", str(local)],
+         f"{_ssh_host()}:{remote_win}", str(local)],
         check=True, capture_output=True, timeout=timeout_s,
         stdin=subprocess.DEVNULL,
     )
@@ -572,13 +817,16 @@ async def run(
     timeout_s: int = DEFAULT_TIMEOUT_S,
     strict_sandbox: bool = False,
 ) -> str:
-    """Run claude-code on the remote 5090 host and return the markdown report.
+    """Run claude-code locally (per-backbone ccr) and return the markdown report.
 
     Args:
         intent: research brief.
-        model: ignored — model is fixed in ccr config (deepseek-v4-flash by default).
+        model: the lane's backbone. Selects (and asserts) the dedicated
+            claude-code-router instance for that backbone; a mismatch between
+            the label and the router config raises instead of running.
         shim_url: sandbox shim URL, baked into the agent's system prompt.
-        proxy_url: ignored — ccr is configured separately to talk to ds_proxy.
+        proxy_url: ignored — the per-backbone ccr forwards to the unified
+            :8100 LLM gateway which owns upstream routing.
         timeout_s: hard timeout for the remote subprocess.
         strict_sandbox: when True, the PowerShell driver swaps claude-code's
             `--disallowedTools` flag for `--allowed-tools <whitelist>` that
@@ -603,7 +851,22 @@ async def run(
             )
         return error_stub("claude-code", phase, reason)
 
-    if os.environ.get("CLAUDE_CODE_USE_WINDOWS") != "1":
+    # SSH/Windows path is OPT-IN: it exists only when CLAUDE_CODE_SSH_HOST is
+    # explicitly set (no default host — the old "5090" default parsed as the
+    # decimal IPv4 0.0.19.226 and wasted ~150s per fallback attempt).
+    ssh_host = _ssh_host()
+    use_windows = os.environ.get("CLAUDE_CODE_USE_WINDOWS") == "1"
+    if use_windows and not ssh_host:
+        logger.warning(
+            "[claude-code] CLAUDE_CODE_USE_WINDOWS=1 but CLAUDE_CODE_SSH_HOST "
+            "is unset; ssh/Windows path skipped, using local claude"
+        )
+        use_windows = False
+    ssh_fallback_allowed = bool(ssh_host) and (
+        os.environ.get("CLAUDE_CODE_NO_WINDOWS_FALLBACK") != "1"
+    )
+
+    if not use_windows:
         try:
             local_report = await _run_local_claude(
                 intent,
@@ -616,7 +879,12 @@ async def run(
             if not is_weak_report(local_report, min_chars=3000, min_urls=3):
                 return local_report
             logger.warning("claude-code local path returned short/error report: %s", local_report[:500])
-            if os.environ.get("CLAUDE_CODE_NO_WINDOWS_FALLBACK") == "1":
+            if not ssh_fallback_allowed:
+                if not ssh_host:
+                    logger.info(
+                        "[claude-code] ssh fallback skipped: CLAUDE_CODE_SSH_HOST "
+                        "unset (ssh path is default-disabled)"
+                    )
                 if fallback_enabled():
                     return _degrade(
                         "write",
@@ -632,7 +900,12 @@ async def run(
                 )
         except Exception as e:
             logger.exception("claude-code local path failed")
-            if os.environ.get("CLAUDE_CODE_NO_WINDOWS_FALLBACK") == "1":
+            if not ssh_fallback_allowed:
+                if not ssh_host:
+                    logger.info(
+                        "[claude-code] ssh fallback skipped: CLAUDE_CODE_SSH_HOST "
+                        "unset (ssh path is default-disabled)"
+                    )
                 return _degrade("native", f"{type(e).__name__}: {e}")
 
     job_id = uuid.uuid4().hex[:12]
@@ -648,10 +921,14 @@ async def run(
     driver_wsl = _win_path_to_wsl(driver_remote)
     workdir_wsl = _win_path_to_wsl(workdir_remote)
 
+    remote_ccr_url = _remote_ccr_base_url(model)
+    _emit_provenance(model, remote_ccr_url, None, None)
+
     REMOTE_DIR_WSL.mkdir(parents=True, exist_ok=True)
     intent_wsl.write_text(intent, encoding="utf-8")
     driver_wsl.write_text(
-        _build_ps_driver(strict_sandbox=strict_sandbox), encoding="utf-8",
+        _build_ps_driver(ccr_url=remote_ccr_url, strict_sandbox=strict_sandbox),
+        encoding="utf-8",
     )
     if strict_sandbox:
         logger.info("claude-code: strict-sandbox tool allowlist active")

@@ -315,10 +315,13 @@ def _refit_from_error(
         return None
     # Smoke 2026-07-07: clamping UP to _FIT_MARGIN_MIN re-overflowed when the
     # prompt (65281) left fewer than 256 tokens of window. Take whatever room
-    # actually remains (minus 1 for the upstream's off-by-one counting); only
-    # give up when nothing usable is left.
+    # actually remains: clamp max_tokens to window - reported_prompt - 1 (the
+    # -1 covers the upstream's off-by-one counting) and retry as long as at
+    # least 1 output token fits. Only when the prompt alone fills the whole
+    # window (avail < 1) is the overflow unfixable at the protocol level; the
+    # caller then gives up and tags the passthrough 400 with diagnostics.
     avail = window - reported_prompt - 1
-    if avail < 8:
+    if avail < 1:
         return None
     margin = int(entry.get("fit_margin") or _FIT_MARGIN_MIN)
     fitted = window - reported_prompt - margin
@@ -327,10 +330,29 @@ def _refit_from_error(
     fitted = min(fitted, avail)
     if reported_is_lower_bound and cur_max is not None and int(cur_max) > 0:
         half = int(cur_max) // 2
-        if half < 8:
+        if half < 1:
             return None  # shrunk to nothing: prompt fills the window
         fitted = min(fitted, half)
     return fitted
+
+
+def _tag_ctx_giveup(entry: dict[str, Any], body: dict, payload: Any, adjustments: list[str]) -> Any:
+    """Attach gateway diagnostics to a terminal context-overflow 400 that the
+    refit loop could not fix (prompt alone fills the window) or exhausted its
+    retry budget on. The original error message and 400 status are preserved;
+    the extra field makes the ACTUAL routed model + window visible in lane
+    logs, so a label/routing mismatch (the 2026-07-07 claude-code subset bug)
+    is self-evident from the error body instead of requiring forensics."""
+    if isinstance(payload, dict):
+        payload = dict(payload)
+        payload["gateway"] = {
+            "reason": "prompt_overflow_unfixable",
+            "routed_model": body.get("model"),
+            "context_window": int(entry.get("context_window") or 0),
+            "max_tokens_final": body.get("max_tokens"),
+            "refit_attempts": adjustments.count("refit_retry"),
+        }
+    return payload
 
 
 # ---------------------------------------------------------------------------
@@ -470,11 +492,15 @@ async def _forward_unary(entry, url, headers, body, adjustments) -> Any:
             adjustments = list(adjustments) + ["refit_retry"]
             r = await client.post(url, json=body, headers=headers)
 
+        # Terminal state: still a ctx-overflow 400 after the loop (prompt
+        # alone fills the window, or the retry budget ran out).
+        ctx_giveup = r.status_code == 400 and _is_ctx_overflow(r.content)
+
         latency_ms = round((time.time() - t0) * 1000, 1)
         if r.headers.get("content-type", "").startswith("application/json"):
             data = r.json()
             _u = data.get("usage") if isinstance(data, dict) else None
-            _usage_write({
+            rec = {
                 "model": body.get("model"),
                 "stream": False,
                 "prompt_tokens": (_u or {}).get("prompt_tokens"),
@@ -482,7 +508,11 @@ async def _forward_unary(entry, url, headers, body, adjustments) -> Any:
                 "total_tokens": (_u or {}).get("total_tokens"),
                 "latency_ms": latency_ms,
                 "fit_adjustments": adjustments,
-            })
+            }
+            if ctx_giveup:
+                rec["ctx_overflow_giveup"] = True
+                data = _tag_ctx_giveup(entry, body, data, adjustments)
+            _usage_write(rec)
             return JSONResponse(status_code=r.status_code, content=data)
         _usage_write({
             "model": body.get("model"), "stream": False,
@@ -529,6 +559,23 @@ async def _forward_stream(entry, url, headers, body, adjustments) -> Any:
             payload = json.loads(content)
         except Exception:
             payload = {"raw": content.decode("utf-8", "replace")}
+        # Terminal state as in _forward_unary: tag unfixable ctx overflows.
+        ctx_giveup = upstream.status_code == 400 and _is_ctx_overflow(content)
+        if ctx_giveup:
+            payload = _tag_ctx_giveup(entry, body, payload, adjustments)
+        # Error path accounting: streaming failures previously wrote NO usage
+        # line at all (the claude-code lane's leaked 400s were invisible in
+        # the usage log); record them like every other response.
+        rec = {
+            "model": body.get("model"),
+            "stream": True,
+            "status": upstream.status_code,
+            "latency_ms": round((time.time() - t0) * 1000, 1),
+            "fit_adjustments": adjustments,
+        }
+        if ctx_giveup:
+            rec["ctx_overflow_giveup"] = True
+        _usage_write(rec)
         return JSONResponse(status_code=upstream.status_code, content=payload)
 
     return _sse_response(entry, client, upstream, body, adjustments, t0)
