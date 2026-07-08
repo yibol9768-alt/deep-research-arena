@@ -72,6 +72,17 @@ def test_tavily_search_schema(client: TestClient) -> None:
     )
 
 
+def test_tavily_search_get_schema(client: TestClient) -> None:
+    r = client.get("/search", params={"q": "anc headphones", "count": 2})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["query"] == "anc headphones"
+    assert len(data["results"]) == 2
+    assert {"title", "url", "content", "score"} <= set(data["results"][0].keys())
+    assert len(data["web"]["results"]) == 2
+    assert {"title", "url", "description"} <= set(data["web"]["results"][0].keys())
+
+
 # ---------------------------------------------------------------------------
 # Serper-compat
 # ---------------------------------------------------------------------------

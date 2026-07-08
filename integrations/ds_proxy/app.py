@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import asyncio
 import time
 from typing import Any
 
@@ -41,6 +42,15 @@ REWRITE_MODEL = os.environ.get("OPENAI_PROXY_REWRITE_MODEL", "").strip() or None
 # the model finish thinking AND produce the answer. 2048 is the empirical
 # sweet spot for Qwen3-27b on JSON-mode judges.
 MIN_MAX_TOKENS = int(os.environ.get("OPENAI_PROXY_MIN_MAX_TOKENS", "0") or "0")
+RETRY_INITIAL_S = float(os.environ.get("OPENAI_PROXY_RETRY_INITIAL_S", "2") or "2")
+RETRY_MAX_S = float(os.environ.get("OPENAI_PROXY_RETRY_MAX_S", "60") or "60")
+# Hard cap on retry attempts. The retry loops below used to be unbounded
+# `while True`: a persistent upstream 429/5xx (or a wedged endpoint) would spin
+# forever, hanging a whole #39 run instead of failing the one request. Bound it
+# so the proxy gives up after N tries and returns an explicit error the caller
+# can log and skip. Backoff itself is already capped at RETRY_MAX_S per pause.
+RETRY_MAX_ATTEMPTS = int(os.environ.get("OPENAI_PROXY_RETRY_MAX_ATTEMPTS", "8") or "8")
+CHAT_READ_TIMEOUT_S = float(os.environ.get("OPENAI_PROXY_CHAT_READ_TIMEOUT_S", "120") or "120")
 
 # Strip `<think>...</think>` blocks from response content for reasoning models
 # (Qwen3, DeepSeek-R1) when their tags leak into chat output.
@@ -72,6 +82,7 @@ _QWEN_PROSE_THINK_RE = re.compile(
     r"^\s*Thinking Process:.*?(?=\n\n(?:[A-Za-z\{\[\"]|Final Answer|Output|Answer))",
     flags=re.DOTALL | re.IGNORECASE,
 )
+_JSON_FENCE_RE = re.compile(r"^\s*```(?:json)?\s*(.*?)\s*```\s*$", flags=re.DOTALL | re.IGNORECASE)
 
 
 def _strip_think(content: Any) -> Any:
@@ -94,6 +105,20 @@ def _strip_think(content: Any) -> Any:
         # No clear answer after the preamble -> CoT-only response, drop it.
         return ""
     return content
+
+
+def _strip_json_fence(content: Any) -> Any:
+    if not isinstance(content, str) or "```" not in content:
+        return content
+    m = _JSON_FENCE_RE.match(content)
+    if not m:
+        return content
+    inner = m.group(1).strip()
+    try:
+        json.loads(inner)
+    except Exception:
+        return content
+    return inner
 
 EMB_UPSTREAM = os.environ.get(
     "OPENAI_PROXY_EMB_UPSTREAM",
@@ -129,6 +154,72 @@ def _usage_write(record: dict) -> None:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception:
         pass
+
+
+def _contains_code(obj: Any, code: str) -> bool:
+    if isinstance(obj, dict):
+        for k in ("code", "error_code", "status_code"):
+            if str(obj.get(k, "")).strip() == code:
+                return True
+        return any(_contains_code(v, code) for v in obj.values())
+    if isinstance(obj, list):
+        return any(_contains_code(v, code) for v in obj)
+    return False
+
+
+def _retryable_payload(status_code: int, content: bytes | None) -> tuple[bool, str]:
+    if status_code == 429:
+        return True, "http_429"
+    if status_code in (502, 503, 504):
+        return True, f"http_{status_code}"
+    if content:
+        try:
+            data = json.loads(content)
+        except Exception:
+            data = None
+        if _contains_code(data, "1305"):
+            return True, "code_1305"
+        if _contains_code(data, "1234"):
+            return True, "code_1234"
+    return False, ""
+
+
+async def _retry_pause(reason: str, attempt: int, delay: float, model: str | None) -> float:
+    _usage_write({
+        "retry": True,
+        "reason": reason,
+        "attempt": attempt,
+        "sleep_s": delay,
+        "model": model,
+    })
+    await asyncio.sleep(delay)
+    return min(RETRY_MAX_S, max(delay * 2, RETRY_INITIAL_S))
+
+
+def _retry_exhausted(reason: str, attempt: int, model: str | None,
+                     upstream_status: int | None = None,
+                     upstream_body: bytes | None = None) -> JSONResponse:
+    """Give up after RETRY_MAX_ATTEMPTS and return an explicit gateway error
+    instead of looping forever. Logged to the usage stream so the run
+    aggregator can see which requests were dropped."""
+    _usage_write({
+        "retry_exhausted": True,
+        "reason": reason,
+        "attempts": attempt,
+        "model": model,
+    })
+    err: dict[str, Any] = {
+        "message": (f"ds_proxy: upstream retry limit reached after {attempt} "
+                    f"attempt(s) (last reason: {reason})"),
+        "type": "upstream_retry_exhausted",
+        "reason": reason,
+        "attempts": attempt,
+    }
+    if upstream_status is not None:
+        err["upstream_status"] = upstream_status
+    if upstream_body:
+        err["upstream_body"] = upstream_body.decode("utf-8", "replace")[:500]
+    return JSONResponse(status_code=502, content={"error": err})
 
 
 _SSE_DATA_RE = re.compile(rb"^data:\s*(\{.*\})\s*$")
@@ -215,7 +306,7 @@ async def _forward(path: str, request: Request) -> Any:
     # Downgrade `json_schema` (LangChain's `with_structured_output(method="json_schema")`)
     # to `json_object` and inject the schema as a system-prompt nudge so the
     # model still emits valid JSON of the right shape.
-    if model.startswith("deepseek-v4"):
+    if model.startswith(("deepseek-v4", "glm-")):
         rf = body.get("response_format")
         if isinstance(rf, dict) and rf.get("type") == "json_schema":
             schema_obj = rf.get("json_schema") or {}
@@ -241,8 +332,10 @@ async def _forward(path: str, request: Request) -> Any:
 
     url = f"{UPSTREAM}{path}"
     stream = bool(body.get("stream"))
+    wants_json = isinstance(body.get("response_format"), dict)
 
-    timeout = httpx.Timeout(connect=15.0, read=180.0, write=30.0, pool=10.0)
+    timeout = httpx.Timeout(connect=15.0, read=CHAT_READ_TIMEOUT_S, write=30.0, pool=10.0)
+    req_model = body.get("model")
 
     if stream:
         # Ask the upstream to append the usage chunk to the stream so whole-run
@@ -250,10 +343,42 @@ async def _forward(path: str, request: Request) -> Any:
         # chunk (empty choices + usage) is OpenAI-spec and piped through as-is.
         if USAGE_LOG and STREAM_USAGE and "stream_options" not in body:
             body["stream_options"] = {"include_usage": True}
-        client = httpx.AsyncClient(timeout=timeout)
-        req = client.build_request("POST", url, json=body, headers=headers)
-        upstream_resp = await client.send(req, stream=True)
-        req_model = body.get("model")
+        delay = RETRY_INITIAL_S
+        attempt = 0
+        while True:
+            attempt += 1
+            client = httpx.AsyncClient(timeout=timeout)
+            try:
+                req = client.build_request("POST", url, json=body, headers=headers)
+                upstream_resp = await client.send(req, stream=True)
+            except httpx.TimeoutException:
+                await client.aclose()
+                if attempt >= RETRY_MAX_ATTEMPTS:
+                    return _retry_exhausted("timeout", attempt, req_model)
+                delay = await _retry_pause("timeout", attempt, delay, req_model)
+                continue
+
+            ctype = upstream_resp.headers.get("content-type", "")
+            if upstream_resp.status_code != 200 or ctype.startswith("application/json"):
+                content = await upstream_resp.aread()
+                retry, reason = _retryable_payload(upstream_resp.status_code, content)
+                if retry:
+                    await upstream_resp.aclose()
+                    await client.aclose()
+                    if attempt >= RETRY_MAX_ATTEMPTS:
+                        return _retry_exhausted(reason, attempt, req_model,
+                                                upstream_resp.status_code, content)
+                    delay = await _retry_pause(reason, attempt, delay, req_model)
+                    continue
+                await upstream_resp.aclose()
+                await client.aclose()
+                if ctype.startswith("application/json"):
+                    try:
+                        return JSONResponse(status_code=upstream_resp.status_code, content=json.loads(content))
+                    except Exception:
+                        pass
+                return JSONResponse(status_code=upstream_resp.status_code, content={"raw": content.decode("utf-8", "replace")})
+            break
 
         async def _stream():
             tail = b""
@@ -292,8 +417,25 @@ async def _forward(path: str, request: Request) -> Any:
             media_type=upstream_resp.headers.get("content-type", "text/event-stream"),
         )
 
+    delay = RETRY_INITIAL_S
+    attempt = 0
     async with httpx.AsyncClient(timeout=timeout) as client:
-        r = await client.post(url, json=body, headers=headers)
+        while True:
+            attempt += 1
+            try:
+                r = await client.post(url, json=body, headers=headers)
+            except httpx.TimeoutException:
+                if attempt >= RETRY_MAX_ATTEMPTS:
+                    return _retry_exhausted("timeout", attempt, req_model)
+                delay = await _retry_pause("timeout", attempt, delay, req_model)
+                continue
+            retry, reason = _retryable_payload(r.status_code, r.content)
+            if not retry:
+                break
+            if attempt >= RETRY_MAX_ATTEMPTS:
+                return _retry_exhausted(reason, attempt, req_model,
+                                        r.status_code, r.content)
+            delay = await _retry_pause(reason, attempt, delay, req_model)
         if r.headers.get("content-type", "").startswith("application/json"):
             data = r.json()
             # Whole-run token accounting (see header). No-op when unset.
@@ -319,6 +461,8 @@ async def _forward(path: str, request: Request) -> Any:
                 if isinstance(msg.get("content"), str):
                     original = msg["content"]
                     stripped = _strip_think(original)
+                    if wants_json:
+                        stripped = _strip_json_fence(stripped)
                     msg["content"] = stripped
                     # Only set reasoning_content if we *changed* the content
                     # (i.e. there was thinking to strip). If the response

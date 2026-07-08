@@ -237,6 +237,30 @@ def _hit_to_tavily(h: SearchHit, include_raw: Union[bool, str]) -> TavilySearchR
     )
 
 
+def _tavily_search_response(
+    query: str,
+    *,
+    max_results: int = 5,
+    include_raw_content: Union[bool, str] = False,
+    include_domains: Optional[list[str]] = None,
+    exclude_domains: Optional[list[str]] = None,
+) -> TavilySearchResponse:
+    t0 = time.time()
+    hits = search(
+        query,
+        max_results=max_results or 5,
+        include_domains=include_domains or [],
+        exclude_domains=exclude_domains or [],
+    )
+    hits = _filter_hits_strict(hits, endpoint="/search", query=query)
+    return TavilySearchResponse(
+        query=query,
+        results=[_hit_to_tavily(h, include_raw_content) for h in hits],
+        response_time=round(time.time() - t0, 3),
+        request_id=str(uuid.uuid4()),
+    )
+
+
 @app.post("/search", response_model=TavilySearchResponse)
 def tavily_search(
     req: TavilySearchRequest,
@@ -246,19 +270,57 @@ def tavily_search(
     if authorization and not authorization.lower().startswith("bearer "):
         raise HTTPException(status_code=401, detail="expected Bearer token")
 
-    t0 = time.time()
-    hits = search(
+    return _tavily_search_response(
         req.query,
         max_results=req.max_results or 5,
         include_domains=req.include_domains or [],
         exclude_domains=req.exclude_domains or [],
+        include_raw_content=req.include_raw_content,
     )
-    hits = _filter_hits_strict(hits, endpoint="/search", query=req.query)
-    return TavilySearchResponse(
-        query=req.query,
-        results=[_hit_to_tavily(h, req.include_raw_content) for h in hits],
-        response_time=round(time.time() - t0, 3),
-        request_id=str(uuid.uuid4()),
+
+
+def _search_get_payload(
+    query: str,
+    *,
+    max_results: int,
+    include_raw_content: bool = False,
+) -> dict[str, Any]:
+    response = _tavily_search_response(
+        query,
+        max_results=max_results,
+        include_raw_content=include_raw_content,
+    )
+    payload = response.model_dump() if hasattr(response, "model_dump") else response.dict()
+    payload["web"] = {
+        "results": [
+            {
+                "title": item["title"],
+                "url": item["url"],
+                "description": item.get("content", ""),
+            }
+            for item in payload.get("results", [])
+        ]
+    }
+    return payload
+
+
+@app.get("/search")
+def tavily_search_get(
+    q: Optional[str] = Query(default=None),
+    query: Optional[str] = Query(default=None),
+    count: int = Query(default=5, ge=0, le=100),
+    max_results: Optional[int] = Query(default=None, ge=0, le=100),
+    include_raw_content: bool = Query(default=False),
+) -> dict[str, Any]:
+    # Some agent tools use Brave-like GET /search?q=... while others expect the
+    # Tavily shape. Return both shapes so the shim stays a single endpoint.
+    text = query or q
+    if not text:
+        raise HTTPException(status_code=422, detail="missing q or query")
+    return _search_get_payload(
+        text,
+        max_results=max_results if max_results is not None else count,
+        include_raw_content=include_raw_content,
     )
 
 
