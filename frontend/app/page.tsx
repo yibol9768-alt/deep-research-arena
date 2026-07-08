@@ -1,17 +1,12 @@
 import type { ReactNode } from 'react'
-import { rankedAgents, loadLeaderboard, juryModels } from '@/lib/data/load-leaderboard'
-import { loadMatrixSubset } from '@/lib/data/load-matrix-subset'
+import { loadArenaV2, backboneShort } from '@/lib/data/load-arena-v2'
 import { loadChangelog } from '@/lib/data/changelog'
 import { agentMeta } from '@/lib/providers'
-import { groundingGatePct, fmt } from '@/lib/format'
+import { fmt } from '@/lib/format'
 import { Hero } from '@/components/home/hero'
-import { LeaderboardTable } from '@/components/home/leaderboard-table'
+import { ArenaTable } from '@/components/home/arena-table'
 import { SectionNav } from '@/components/home/section-nav'
-import { DryRunBanner } from '@/components/home/dry-run-banner'
-import { RankShift } from '@/components/home/rank-shift'
-import { GateScatter } from '@/components/home/gate-scatter'
 import { PipelineBand } from '@/components/home/pipeline-band'
-import { MatrixPreview } from '@/components/home/matrix-preview'
 import { VBarChart, type VBarRow } from '@/components/home/vbar-chart'
 import { Faq } from '@/components/home/faq'
 import { CiteBlock } from '@/components/home/cite-block'
@@ -20,82 +15,104 @@ import { T } from '@/components/i18n/t'
 export const dynamic = 'force-static'
 
 export default function HomePage() {
-  const agents = rankedAgents()
-  const lb = loadLeaderboard()
-  const jury = juryModels()
-  const matrix = loadMatrixSubset()
+  const arena = loadArenaV2()
   const news = loadChangelog().entries.slice(0, 3)
 
+  if (!arena) {
+    return (
+      <div className="container py-20 text-sm text-muted">
+        Arena snapshot missing: data/results/matrix_subset/matrix_subset_20260707.json
+      </div>
+    )
+  }
+
+  const entries = arena.entries
+  const harnessCount = new Set(entries.map((e) => e.id)).size
+
   const stats = [
-    { value: String(agents.length), label: 'Agents', zh: '智能体' },
-    { value: '100', label: 'Frozen tasks', zh: '冻结任务' },
-    { value: fmt(lb.n_runs), label: 'Jury battles', zh: '陪审团对战' },
-    { value: String(jury.length || 3), label: 'Jurors', zh: '陪审员' },
-    { value: '232k', label: 'Registry pages', zh: '注册表页面' },
+    { value: String(harnessCount), label: 'Harnesses', zh: '框架' },
+    { value: String(arena.backbones.length), label: 'Backbone LLMs', zh: '主干模型' },
+    { value: String(entries.length), label: 'Runs on the board', zh: '在榜记录' },
+    { value: fmt(arena.n_judge_records_total), label: 'Jury records', zh: '陪审团判例' },
+    { value: String(arena.judges.length), label: 'Jurors', zh: '陪审员' },
   ]
 
   const sections = [
-    { id: 'highlights', label: 'Highlights', zh: '亮点图表' },
+    { id: 'arena-chart', label: 'Arena score', zh: 'Arena 主分' },
     { id: 'leaderboard', label: 'Leaderboard', zh: '排行榜' },
-    { id: 'rankshift', label: 'What the gate changes', zh: '门控改变了什么' },
-    { id: 'scatter', label: 'Fluency vs grounding', zh: '流畅 vs 接地' },
-    ...(matrix ? [{ id: 'matrix', label: 'Matrix preview', zh: '矩阵预览' }] : []),
+    { id: 'axes', label: 'Grounding & jury Elo', zh: '接地与陪审团 Elo' },
     { id: 'how-it-works', label: 'How it works', zh: '评测流程' },
     { id: 'faq', label: 'FAQ', zh: '常见问题' },
     { id: 'cite', label: 'Cite & reproduce', zh: '引用与复现' },
   ]
 
-  // Chart rows — all straight from the loaded snapshot.
-  const row = (id: string, value: number, valueLabel?: string): VBarRow => {
-    const meta = agentMeta(id)
-    return { id, label: meta.display, color: meta.color, value, valueLabel }
+  // One bar per harness x backbone run. Same hue per harness; the second
+  // backbone is rendered at reduced alpha so pairs read as a family.
+  const secondBackbone = arena.backbones[1]
+  const row = (e: (typeof entries)[number], value: number, valueLabel?: string): VBarRow => {
+    const meta = agentMeta(e.id)
+    return {
+      id: e.key,
+      label: meta.display,
+      sublabel: backboneShort(e.backbone),
+      color: e.backbone === secondBackbone ? `${meta.color}8C` : meta.color,
+      value,
+      valueLabel,
+      href: `/agents/${e.id}#run-${e.backbone}`,
+    }
   }
-  const byGated: VBarRow[] = [...agents]
-    .sort((a, b) => (b.gated_score ?? 0) - (a.gated_score ?? 0))
-    .map((a) => row(a.id, a.gated_score ?? 0))
-  const byGate: VBarRow[] = [...agents]
-    .map((a) => ({ a, gate: groundingGatePct(a) ?? 0 }))
-    .sort((p, q) => q.gate - p.gate)
-    .map((p) => row(p.a.id, p.gate, `${p.gate.toFixed(0)}%`))
-  const byJudge: VBarRow[] = [...agents]
-    .sort((a, b) => b.elo - a.elo)
-    .map((a) => row(a.id, a.elo))
 
-  const juryLine = jury.length > 0 ? jury.join(' · ') : 'cross-family LLM jury'
+  const byArena: VBarRow[] = [...entries]
+    .sort((a, b) => b.arena - a.arena)
+    .map((e) => row(e, e.arena * 100, (e.arena * 100).toFixed(1)))
+  const byReach: VBarRow[] = [...entries]
+    .sort((a, b) => b.reach - a.reach)
+    .map((e) => row(e, e.reach * 100, `${(e.reach * 100).toFixed(0)}%`))
+  const byElo: VBarRow[] = [...entries]
+    .sort((a, b) => b.bt_elo - a.bt_elo)
+    .map((e) => row(e, e.bt_elo, String(Math.round(e.bt_elo))))
+
+  const juryLine = arena.judges.join(' · ')
+  const kappaLine = arena.backbones
+    .map((bb) => `${backboneShort(bb)} κ=${arena.perBackbone[bb].fleiss_kappa.toFixed(2)}`)
+    .join(' · ')
 
   return (
     <>
-      <DryRunBanner isDryRun={!!lb.is_dry_run} schemaVersion={lb.schema_version} />
       <Hero stats={stats} news={news} />
 
-      {/* Highlights: AA-style chart cards */}
-      <section id="highlights" className="container mt-12 scroll-mt-24">
+      {/* Flagship chart: every harness x backbone run, ranked by Arena score */}
+      <section id="arena-chart" className="container mt-12 scroll-mt-24">
         <div className="flex items-end justify-between border-b border-hairline pb-3">
-          <h2 className="text-sm font-semibold text-ink"><T en="Highlights" zh="亮点图表" /></h2>
+          <h2 className="text-sm font-semibold text-ink"><T en="Arena score" zh="Arena 主分" /></h2>
           <span className="text-[11px] uppercase tracking-wider text-muted-2">
-            <T en="Computed from the current snapshot" zh="基于当前快照计算" />
+            <T
+              en={`${arena.task_set} · jury: ${juryLine}`}
+              zh={`${arena.task_set} · 陪审团：${juryLine}`}
+            />
           </span>
         </div>
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="mt-6">
           <VBarChart
             accent="#6E5BFF"
-            title={<T en="Truth-gated Score" zh="真值门控得分" />}
-            subtitle={<T en="Judge Elo × grounding gate — the headline ranking" zh="判官 Elo × 接地门 —— 榜单主排序" />}
-            rows={byGated}
-          />
-          <VBarChart
-            accent="#34A853"
-            title={<T en="Grounding" zh="接地门" />}
-            subtitle={<T en="(citation reachability + quote match) / 2 · judge-free" zh="(引用可达率 + 引文核实率)/ 2 · 不依赖判官" />}
-            rows={byGate}
-          />
-          <VBarChart
-            accent="#cc785c"
-            title={<T en="Judge Elo (raw)" zh="裸判官 Elo" />}
-            subtitle={<T en="Pairwise jury preference, blind to citation reality" zh="陪审团成对偏好，看不见引用真假" />}
-            rows={byJudge}
+            title={<T en="Deep Research Arena — harness × LLM" zh="Deep Research Arena —— 框架 × 主干模型" />}
+            subtitle={
+              <T
+                en={`arena = reach^1.5 × jury win rate (×100). Every bar is one harness run on one backbone — click it for the full breakdown. ${kappaLine}.`}
+                zh={`arena = 引用可达率^1.5 × 陪审团胜率（×100）。每根竖条是一个框架在一个主干模型上的完整运行,点击查看详细分数。${kappaLine}。`}
+              />
+            }
+            rows={byArena}
           />
         </div>
+        {arena.excluded_agents.length > 0 ? (
+          <p className="mt-2 text-[11px] text-muted-2">
+            <T
+              en={`Excluded: ${arena.excluded_agents.map((id) => agentMeta(id).display).join(', ')} — ${arena.excluded_reason}`}
+              zh={`暂未上榜：${arena.excluded_agents.map((id) => agentMeta(id).display).join('、')} —— ${arena.excluded_reason}`}
+            />
+          </p>
+        ) : null}
       </section>
 
       {/* Two-column body: sticky on-page nav + main */}
@@ -110,40 +127,41 @@ export default function HomePage() {
               title={<T en="Leaderboard" zh="排行榜" />}
               caption={
                 <T
-                  en={`${agents.length} agents · truth-gated Elo (judge Elo × grounding gate) · jury: ${juryLine}`}
-                  zh={`${agents.length} 个智能体 · 真值门控 Elo（判官 Elo × 接地门）· 陪审团：${juryLine}`}
+                  en={`${entries.length} harness × LLM runs · arena = reach^1.5 × Bradley-Terry win rate · ${arena.judges.length}-judge jury: ${juryLine}`}
+                  zh={`${entries.length} 条框架 × 主干模型记录 · arena = 可达率^1.5 × Bradley-Terry 胜率 · ${arena.judges.length} 裁判陪审团：${juryLine}`}
                 />
               }
             />
-            <LeaderboardTable agents={agents} />
+            <ArenaTable entries={entries} />
           </div>
 
-          {/* Raw vs gated rank movement */}
-          <div>
+          {/* Secondary axes: grounding + raw jury Elo */}
+          <div id="axes" className="scroll-mt-24">
             <SectionTitle
-              id="rankshift"
-              title={<T en="What the gate changes" zh="门控改变了什么" />}
+              id="axes-title"
+              title={<T en="Grounding & jury Elo" zh="接地与陪审团 Elo" />}
               caption={
                 <T
-                  en="Rank by jury preference alone, versus rank after evidence is checked — computed from the same snapshot"
-                  zh="仅凭陪审团偏好的排名,对比证据核验之后的排名 —— 均来自同一快照"
+                  en="The two ingredients behind the Arena score, shown separately — grounding is judge-free, jury Elo is blind to citation reality"
+                  zh="Arena 主分的两个组成部分分开展示 —— 接地不依赖裁判,陪审团 Elo 则看不见引用真假"
                 />
               }
             />
-            <RankShift agents={agents} />
-          </div>
-
-          {/* Scatter: judge Elo vs grounding gate */}
-          <div id="scatter" className="scroll-mt-24">
-            <GateScatter agents={agents} />
-          </div>
-
-          {/* v2 preview: framework x backbone matrix (subset) */}
-          {matrix && (
-            <div id="matrix" className="scroll-mt-24">
-              <MatrixPreview data={matrix} />
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+              <VBarChart
+                accent="#34A853"
+                title={<T en="Grounding (reach)" zh="接地（引用可达率）" />}
+                subtitle={<T en="Share of cited URLs that resolve inside the frozen sandbox" zh="引用 URL 在冻结沙箱内可重新打开的比例" />}
+                rows={byReach}
+              />
+              <VBarChart
+                accent="#cc785c"
+                title={<T en="Jury Elo (Bradley-Terry)" zh="陪审团 Elo（Bradley-Terry）" />}
+                subtitle={<T en="Pairwise usefulness preference from the 3-judge jury, order-audited" zh="三裁判陪审团的成对有用性偏好,含顺序审计" />}
+                rows={byElo}
+              />
             </div>
-          )}
+          </div>
 
           {/* Pipeline explainer (light) */}
           <PipelineBand />

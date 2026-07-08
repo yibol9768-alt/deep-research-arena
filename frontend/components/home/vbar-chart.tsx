@@ -4,10 +4,14 @@ import { T } from '@/components/i18n/t'
 export interface VBarRow {
   id: string
   label: string
+  /** Optional second label line under the rotated label (e.g. backbone). */
+  sublabel?: string
   color: string
   value: number
   /** Formatted value shown above the bar (defaults to rounded value). */
   valueLabel?: string
+  /** When set, the whole column (bar + label) links here. */
+  href?: string
 }
 
 interface Props {
@@ -53,16 +57,25 @@ export function VBarChart({ accent, title, subtitle, rows, badge }: Props) {
             // Cap at 86% so the value label above the tallest bar stays inside
             // the plot area.
             const h = Math.max((r.value / max) * 86, 1.5)
-            return (
-              <div key={r.id} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end">
+            const column = (
+              <>
                 <span className="mb-1 text-[10px] font-semibold tnum leading-none text-ink">
                   {r.valueLabel ?? String(Math.round(r.value))}
                 </span>
                 <div
                   className="w-full max-w-[40px] rounded-t-[3px] transition-opacity group-hover:opacity-80"
                   style={{ height: `${h}%`, backgroundColor: r.color }}
-                  title={`${r.label}: ${r.valueLabel ?? r.value}`}
+                  title={`${r.label}${r.sublabel ? ` (${r.sublabel})` : ''}: ${r.valueLabel ?? r.value}`}
                 />
+              </>
+            )
+            return r.href ? (
+              <a key={r.id} href={r.href} className="group flex h-full min-w-0 flex-1 cursor-pointer flex-col items-center justify-end">
+                {column}
+              </a>
+            ) : (
+              <div key={r.id} className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end">
+                {column}
               </div>
             )
           })}
@@ -71,16 +84,26 @@ export function VBarChart({ accent, title, subtitle, rows, badge }: Props) {
 
       {/* Rotated labels */}
       <div className="mt-1.5 flex justify-between gap-1.5 border-t border-hairline pt-1 sm:gap-2">
-        {rows.map((r) => (
-          <div key={r.id} className="relative h-[72px] min-w-0 flex-1">
+        {rows.map((r) => {
+          const text = (
             <span
               className="absolute left-1/2 top-1.5 origin-top-left -rotate-45 whitespace-nowrap text-[10px] leading-none text-muted"
               style={{ transform: 'translateX(-2px) rotate(-45deg)', transformOrigin: 'top right', right: '50%', left: 'auto' }}
             >
               {r.label}
+              {r.sublabel ? <span className="text-muted-2"> · {r.sublabel}</span> : null}
             </span>
-          </div>
-        ))}
+          )
+          return r.href ? (
+            <a key={r.id} href={r.href} className="relative h-[72px] min-w-0 flex-1 hover:text-ink">
+              {text}
+            </a>
+          ) : (
+            <div key={r.id} className="relative h-[72px] min-w-0 flex-1">
+              {text}
+            </div>
+          )
+        })}
       </div>
 
       <p className="mt-1 text-right text-[10px] uppercase tracking-wider text-muted-2">
