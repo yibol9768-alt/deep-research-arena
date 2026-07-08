@@ -138,6 +138,173 @@ def build_pof_sets(cache: dict, rng: random.Random):
     return positives, neg_a, neg_b, paraphrases
 
 
+# ---------------------------------------------------------------------------
+# Per-format calibration (D5): the SHIPPED proof-of-fetch path anchors on
+# numbered [N], footnote [^id] and bare in-text markers and aggregates
+# page-level any-occurrence -- none of which the markdown-only sets above
+# exercised. Build a labelled subset PER anchor format (positive / fabricated /
+# cross-page) plus the bibliography-BLEED structural negative that the D4 fix
+# targets, so the reported TPR/FPR reflect the anchors actually in production.
+# ---------------------------------------------------------------------------
+
+FORMATS = ("markdown", "numbered", "footnote", "bare", "page_agg")
+N_POS_F = 160
+N_NEG_A_F = 160
+N_NEG_B_F = 160
+N_BLEED = 160
+
+
+def _fabricated_sentence(rng: random.Random) -> str:
+    tmpl = _FAKE_TMPL[rng.randrange(len(_FAKE_TMPL))]
+    return tmpl.format(
+        noun=_FAKE_NOUNS[rng.randrange(len(_FAKE_NOUNS))],
+        a=rng.randint(1000, 9999), ua=_FAKE_UNITS[rng.randrange(len(_FAKE_UNITS))],
+        b=round(rng.uniform(1, 999), 1), ub=_FAKE_UNITS[rng.randrange(len(_FAKE_UNITS))])
+
+
+def _render_intext(style: str, body: str, url: str) -> str:
+    """Render ``body`` (the claim/span-bearing prose) with an IN-TEXT anchor of
+    ``style`` plus the matching reference apparatus. The in-text marker is the
+    evidence anchor; the reference row is denominator-only (and, post-D4, is
+    never itself an anchor)."""
+    if style == "markdown":
+        return f"{body} ([source]({url}))."
+    if style == "bare":
+        return f"{body} {url} ."
+    if style == "numbered":
+        return (f"{body} [1].\n\n### References\n"
+                f"[1] cited source entry\n    URL: {url}\n")
+    if style == "footnote":
+        return f"{body} [^s1].\n\n[^s1]: {url}\n"
+    if style == "page_agg":
+        # page cited THREE times; only the last occurrence carries the span, so
+        # a pass proves page-level any-occurrence aggregation (not per-marker).
+        return (f"A first passing mention of the topic [1]. A second, unrelated "
+                f"aside also points there [1]. {body} [1].\n\n### References\n"
+                f"[1] cited source entry\n    URL: {url}\n")
+    raise ValueError(style)
+
+
+def _render_bleed(style: str, span_from_x: str, url_x: str, url_other: str) -> str:
+    """Bibliography cross-entry BLEED (audit F1 / D4): entry [1] carries page
+    X's verbatim snippet but points ELSEWHERE (url_other, an UNCACHED url so X
+    is the only scored page and the report score isolates X); page X is cited
+    only by entry [2]'s head and a generic in-text [2]. Pre-D4 the entry-[2]
+    head anchored on entry-[1]'s snippet and X passed (false positive); post-D4
+    the reference rows are not anchors, so X (generic in-text only) must FAIL."""
+    if style == "numbered":
+        return ("The report discusses the subject in broad general terms [2].\n\n"
+                "### References\n"
+                f"[1] {span_from_x}\n    URL: {url_other}\n"
+                f"[2] plain reference title with no verbatim page text\n"
+                f"    URL: {url_x}\n")
+    if style == "footnote":
+        return ("The report discusses the subject in broad general terms [^b2].\n\n"
+                f"[^b1]: {span_from_x} {url_other}\n"
+                f"[^b2]: plain reference title with no verbatim page text {url_x}\n")
+    raise ValueError(style)
+
+
+def build_format_sets(cache: dict, rng: random.Random) -> dict:
+    """Per-format labelled sets. Returns {format: {pos, neg_a, neg_b}} plus a
+    ``_bleed`` entry {numbered, footnote} of structural cross-entry negatives.
+    Every item is a (markdown, cited_url) pair, same as build_pof_sets."""
+    s200 = sorted(u for u, e in cache.items()
+                  if isinstance(e, dict) and e.get("status") == 200 and e.get("text"))
+    words = {u: stripped_words(cache, u) for u in s200}
+    pages = sorted(u for u in s200 if len(words[u]) >= 120)
+
+    def span_of(u: str) -> str:
+        w = words[u]
+        n = rng.randint(15, 40)
+        start = rng.randint(0, len(w) - n)
+        return " ".join(w[start:start + n])
+
+    out: dict = {}
+    for fmt in FORMATS:
+        pos, neg_a, neg_b = [], [], []
+        while len(pos) < N_POS_F:
+            u = pages[rng.randrange(len(pages))]
+            body = f'The page notes that "{span_of(u)}"'
+            pos.append((_render_intext(fmt, body, u), u))
+        while len(neg_a) < N_NEG_A_F:
+            u = pages[rng.randrange(len(pages))]
+            neg_a.append((_render_intext(fmt, _fabricated_sentence(rng), u), u))
+        while len(neg_b) < N_NEG_B_F:
+            ux = pages[rng.randrange(len(pages))]
+            uy = pages[rng.randrange(len(pages))]
+            if uy == ux:
+                continue
+            body = f'The page notes that "{span_of(ux)}"'
+            neg_b.append((_render_intext(fmt, body, uy), uy))
+        out[fmt] = {"pos": pos, "neg_a": neg_a, "neg_b": neg_b}
+
+    bleed = {}
+    for style in ("numbered", "footnote"):
+        items = []
+        while len(items) < N_BLEED:
+            ux = pages[rng.randrange(len(pages))]
+            # entry [1] points at an UNCACHED sandbox url (dropped from the
+            # denominator) so page X (entry [2]) is the ONLY scored page and the
+            # report score = whether the bleed made X falsely pass.
+            fab = f"http://localhost:9999/f/void/{rng.randint(10**7, 10**8)}"
+            items.append((_render_bleed(style, span_of(ux), ux, fab), ux))
+        bleed[style] = items
+    out["_bleed"] = bleed
+    return out
+
+
+def calibrate_pof_by_format(cache: dict, rng: random.Random) -> dict:
+    """TPR/FPR per anchor format across the threshold grid for the SHIPPED
+    scorer. FPR classes: fabricated (neg_a), cross-page (neg_b), and the D4
+    bibliography-bleed structural negative for numbered/footnote."""
+    stats = ds.build_page_stats(cache)
+    sets = build_format_sets(cache, rng)
+    bleed = sets.pop("_bleed")
+    per_format: dict = {}
+    for fmt, d in sets.items():
+        rows = []
+        for t in GRID:
+            rows.append({
+                "threshold": t,
+                "tpr": round(pass_rate(d["pos"], cache, stats, t), 4),
+                "fpr_fabricated": round(pass_rate(d["neg_a"], cache, stats, t), 4),
+                "fpr_cross_page": round(pass_rate(d["neg_b"], cache, stats, t), 4),
+            })
+        entry = {
+            "n_pos": len(d["pos"]), "n_neg_a": len(d["neg_a"]),
+            "n_neg_b": len(d["neg_b"]), "per_threshold": rows,
+        }
+        if fmt in bleed:
+            entry["n_bleed"] = len(bleed[fmt])
+            entry["fpr_bibliography_bleed"] = {
+                t: round(pass_rate(bleed[fmt], cache, stats, t), 4) for t in GRID
+            }
+        # operating-point row at the shipped default threshold
+        op = next(r for r in rows
+                  if abs(r["threshold"] - ds.POF_THRESHOLD_DEFAULT) < 1e-9)
+        entry["at_default_threshold"] = {
+            "threshold": ds.POF_THRESHOLD_DEFAULT,
+            "tpr": op["tpr"],
+            "fpr_fabricated": op["fpr_fabricated"],
+            "fpr_cross_page": op["fpr_cross_page"],
+        }
+        if fmt in bleed:
+            entry["at_default_threshold"]["fpr_bibliography_bleed"] = \
+                entry["fpr_bibliography_bleed"][ds.POF_THRESHOLD_DEFAULT]
+        per_format[fmt] = entry
+    return {
+        "formats": list(sets.keys()),
+        "grid": GRID,
+        "default_threshold": ds.POF_THRESHOLD_DEFAULT,
+        "n_pos_per_format": N_POS_F,
+        "n_neg_a_per_format": N_NEG_A_F,
+        "n_neg_b_per_format": N_NEG_B_F,
+        "n_bleed_per_style": N_BLEED,
+        "per_format": per_format,
+    }
+
+
 def pass_rate(items, cache, stats, threshold) -> float:
     passed = 0
     for md, _u in items:
@@ -362,10 +529,25 @@ def print_gamma_table(gam: dict) -> None:
           f"dominated = {gam['gamma_default_dominated']}")
 
 
+def print_format_table(byfmt: dict) -> None:
+    print("\n=== per-format TPR/FPR at shipped default threshold "
+          f"{byfmt['default_threshold']} (D5) ===")
+    print(f"{'format':>10} {'n_pos':>6} {'TPR':>7} {'FPR_fab':>8} "
+          f"{'FPR_xpage':>10} {'FPR_bleed':>10}")
+    for fmt in byfmt["per_format"]:
+        e = byfmt["per_format"][fmt]
+        op = e["at_default_threshold"]
+        bleed = op.get("fpr_bibliography_bleed")
+        bleed_s = f"{bleed:>10.4f}" if bleed is not None else f"{'n/a':>10}"
+        print(f"{fmt:>10} {e['n_pos']:>6} {op['tpr']:>7.3f} "
+              f"{op['fpr_fabricated']:>8.4f} {op['fpr_cross_page']:>10.4f} {bleed_s}")
+
+
 def main() -> int:
     rng = random.Random(SEED)
     cache = load_cache()
     pof = calibrate_pof(cache, rng)
+    byfmt = calibrate_pof_by_format(cache, rng)
     gam = calibrate_gamma(cache)
     artifact = {
         "seed": SEED,
@@ -373,11 +555,13 @@ def main() -> int:
         "n_status200_pages": sum(1 for e in cache.values()
                                  if isinstance(e, dict) and e.get("status") == 200),
         "pof_threshold_calibration": pof,
+        "pof_per_format_calibration": byfmt,
         "gamma_calibration": gam,
     }
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(artifact, indent=2, ensure_ascii=False, sort_keys=True))
     print_pof_table(pof)
+    print_format_table(byfmt)
     print_gamma_table(gam)
     print(f"\nartifact -> {OUT_PATH}")
     return 0

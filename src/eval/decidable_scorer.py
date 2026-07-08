@@ -716,12 +716,23 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
     82-86%, E-4 §2); semantic grounding is carried by the reach gate, not this
     axis.
 
-    threshold=0.35 is calibrated (G-F1) in data/results/
-    pof_gamma_calibration.json (scripts/calibrate_pof_gamma.py): on 320 verbatim
-    positives + 160 fabricated-quote + 160 cross-page negatives it holds
-    TPR=1.000 at FPR=0.000 (fabricated) / 0.006 (cross-page). The span
-    requirement carries the separation, so the operating point is flat over the
-    0.15-0.60 grid and 0.35 is retained mid-plateau."""
+    threshold=0.35 is calibrated in data/results/pof_gamma_calibration.json
+    (scripts/calibrate_pof_gamma.py). The calibration covers EVERY shipped anchor
+    format, not just markdown (D5): per-format, 160 verbatim positives + 160
+    fabricated + 160 cross-page negatives at threshold 0.35 hold
+
+        format    TPR    FPR_fabricated  FPR_cross-page  FPR_bib-bleed
+        markdown  1.000  0.000           0.000           -
+        numbered  1.000  0.000           0.000           0.000
+        footnote  1.000  0.000           0.013           0.000
+        bare      1.000  0.000           0.006           -
+        page_agg  0.981  0.000           0.000           -
+
+    (page_agg = page-level any-occurrence; bib-bleed = the D4 cross-entry
+    reference structure, 160 numbered + 160 footnote items -- 0.000 post-fix vs
+    1.000 pre-fix). The span requirement carries the separation, so TPR is flat
+    over the 0.15-0.60 grid and 0.35 is retained mid-plateau. The legacy
+    markdown-only figure (TPR=1.000, FPR 0.000/0.006) is the ``markdown`` row."""
     stats = page_stats if page_stats is not None else build_page_stats(cache)
     df, chrome = stats.get("df"), stats.get("chrome", set(CHROME_FALLBACK))
 
