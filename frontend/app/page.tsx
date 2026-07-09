@@ -4,6 +4,8 @@ import { loadChangelog } from '@/lib/data/changelog'
 import { agentMeta } from '@/lib/providers'
 import { fmt } from '@/lib/format'
 import { Hero } from '@/components/home/hero'
+import { CostQualityScatter } from '@/components/home/cost-quality-scatter'
+import { loadCostQuality } from '@/lib/data/load-cost-quality'
 import { ArenaTable } from '@/components/home/arena-table'
 import { SectionNav } from '@/components/home/section-nav'
 import { PipelineBand } from '@/components/home/pipeline-band'
@@ -38,10 +40,13 @@ export default function HomePage() {
     { value: String(arena.judges.length), label: 'Jurors', zh: '陪审员' },
   ]
 
+  const costQuality = loadCostQuality()
+
   const sections = [
     { id: 'arena-chart', label: 'Arena score', zh: 'Arena 主分' },
     { id: 'leaderboard', label: 'Leaderboard', zh: '排行榜' },
     { id: 'axes', label: 'Grounding & jury Elo', zh: '接地与陪审团 Elo' },
+    ...(costQuality ? [{ id: 'cost', label: 'Cost per score', zh: '性价比' }] : []),
     { id: 'how-it-works', label: 'How it works', zh: '评测流程' },
     { id: 'faq', label: 'FAQ', zh: '常见问题' },
     { id: 'cite', label: 'Cite & reproduce', zh: '引用与复现' },
@@ -162,6 +167,23 @@ export default function HomePage() {
               />
             </div>
           </div>
+
+          {/* Cost per score: real token metering vs same-lane truth */}
+          {costQuality ? (
+            <div id="cost" className="scroll-mt-24">
+              <SectionTitle
+                id="cost-title"
+                title={<T en="Cost per score" zh="性价比" />}
+                caption={
+                  <T
+                    en="Real per-run token metering priced at the model's list rate, against the same lane's five-axis truth score"
+                    zh="逐次运行实测 token、按模型列表价折算,对同一车道的五轴 truth 分"
+                  />
+                }
+              />
+              <CostQualityScatter data={costQuality} />
+            </div>
+          ) : null}
 
           {/* Pipeline explainer (light) */}
           <PipelineBand />

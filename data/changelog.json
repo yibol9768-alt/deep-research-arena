@@ -3,6 +3,33 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v20-2026-07-08",
+      "date": "2026-07-08",
+      "title": "Cost-per-score chart ships on the homepage (AA-style, real token metering)",
+      "summary": "New homepage section plots five-axis truth against measured cost per task on the glm-4.7-flash lane: tokens metered per run by the proxy usage log, money stated at the paid same-model list price. The old never-mounted scatter with synthetic hardcoded costs is deleted.",
+      "tags": [
+        "frontend",
+        "cost",
+        "fairness"
+      ],
+      "sections": [
+        {
+          "heading": "Cost axis",
+          "bullets": [
+            "x = mean cost per task in CNY (log scale), from per-run proxy metering (1,476 attributed runs so far); y = the same lane's five-axis truth score, so cost and score come from identical runs",
+            "Pricing honesty: the lane ran on the free 1-QPS tier (actual spend CNY 0); the chart states the paid GLM-4.7-FlashX list price (CNY 0.5/3.0 per Mtok input/output, recorded with source in data/model_prices.json) per the user's standing-price rule",
+            "Harnesses without a truth score yet are listed under the chart, not plotted; other lanes join as their usage accounting lands"
+          ]
+        },
+        {
+          "heading": "Cleanup",
+          "bullets": [
+            "components/home/quality-cost-scatter.tsx (unused, synthetic hardcoded USD costs) removed so placeholder numbers can never ship"
+          ]
+        }
+      ]
+    },
+    {
       "version": "v19-2026-07-08",
       "date": "2026-07-08",
       "title": "Site-wide move to the uj_v1 arena protocol; headline board becomes cross-LLM harness averages",
