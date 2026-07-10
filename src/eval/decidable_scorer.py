@@ -75,6 +75,7 @@ import math
 import functools as _functools
 import re
 from dataclasses import dataclass, field
+from enum import Enum
 
 # ---------------------------------------------------------------------------
 # Tunables (defaults; see each docstring for the calibration story)
@@ -151,6 +152,103 @@ _RATING_CUE = re.compile(
     r"%|\bpercent\b|\brating\b|\brated\b|\bstars?\b|out of 5|/\s*5\b|"
     r"\bpositive\b|\bsatisfaction\b|\bfavourable\b|\bfavorable\b", re.I)
 _REVIEW_CUE = re.compile(r"\breviews?\b|\bratings?\b|\breviewers?\b|\bbuyers?\b", re.I)
+
+
+# ---------------------------------------------------------------------------
+# Withhold reason codes (G4 gate; foundation for G6 machine-readable reasons)
+# ---------------------------------------------------------------------------
+#
+# A withhold is NOT a zero. `0` means "the instrument observed it and it is
+# genuinely absent"; a WithholdReason means "the instrument could not observe
+# it, so no score is licensed". Scoring a blind instrument as 0 is a false
+# accusation -- the class of defect this project keeps re-fixing (see
+# HANDOFF_2026-07-09.md #7 "Withhold, never zero").
+#
+# The human sentence stays in the `reason` field (transport tests pin those
+# exact strings and the scoring semantics are frozen). This enum is the ONE
+# canonical set of codes every withhold path collapses to, so a board or the G6
+# gate can switch on a stable token that a reworded prose string can never move.
+class WithholdReason(str, Enum):
+    """Canonical machine-readable code for one "instrument was blind" outcome."""
+
+    # transport / proof-of-fetch (src/eval/fetch_log.py) -- the evidence log
+    NO_EVIDENCE_LOG = "no_evidence_log"
+    EMPTY_EVIDENCE_LOG = "empty_evidence_log"
+    LOG_MULTIPLE_RUN_IDS = "evidence_log_multiple_run_ids"
+    MISSING_START_MARK = "evidence_missing_start_mark"
+    MULTIPLE_START_MARKS = "evidence_multiple_start_marks"
+    MISSING_END_MARK = "evidence_missing_end_mark"
+    MULTIPLE_END_MARKS = "evidence_multiple_end_marks"
+    TRAFFIC_AFTER_END = "evidence_traffic_after_end"
+    ORPHANED_BRACKET = "evidence_orphaned_bracket"
+    INVALID_TIMESTAMP = "evidence_invalid_timestamp"
+    END_BEFORE_START = "evidence_end_before_start"
+    LOG_DAMAGED = "evidence_log_damaged"
+    LOG_INCOMPLETE_UNATTRIBUTED = "evidence_incomplete_unattributed"
+    ISOLATION_AMBIGUOUS = "evidence_isolation_ambiguous"
+    WORKER_DISAGREEMENT = "evidence_worker_disagreement"
+    # transport / proof-of-fetch -- lane fetches off-shim (8/12 lanes)
+    FETCH_NOT_OBSERVABLE = "fetch_not_observable"
+    # completeness concept axis -- the evaluator holds no cached copy of the
+    # concept's source page, so a quote cannot be verified either way.
+    CONCEPT_PAGE_NOT_CACHED = "concept_page_not_cached"
+    # anything the classifier does not recognise. test_gate_withhold locks every
+    # LIVE withhold path to a non-UNKNOWN code, so this can only appear when a new
+    # reason string is added without a matching code -- a loud, testable failure.
+    UNKNOWN = "unknown_withhold"
+
+
+def withhold_reason_code(reason: str | None) -> WithholdReason:
+    """Map a human withhold sentence to its canonical code.
+
+    Matching is on stable anchor substrings (the transport tests already pin
+    these phrases), so the prose can be reworded without moving a code. Order is
+    significant: more specific anchors ("traffic after its end mark",
+    "missing end mark") are tested before the substrings they contain
+    ("end mark", "end marks"). An unrecognised string returns UNKNOWN.
+    """
+    r = (reason or "").strip().lower()
+    if not r:
+        return WithholdReason.UNKNOWN
+    # Off-shim lane: an exact machine token, checked first.
+    if "fetch_not_observable" in r or "not observable" in r:
+        return WithholdReason.FETCH_NOT_OBSERVABLE
+    # Bracket-shape failures (order matters: specific before generic).
+    if "traffic after" in r:
+        return WithholdReason.TRAFFIC_AFTER_END
+    if "precedes start" in r or "end before start" in r:
+        return WithholdReason.END_BEFORE_START
+    if "no valid timestamp" in r or "invalid timestamp" in r:
+        return WithholdReason.INVALID_TIMESTAMP
+    if "orphaned" in r:
+        return WithholdReason.ORPHANED_BRACKET
+    if "multiple run_id" in r or "mixes multiple run" in r:
+        return WithholdReason.LOG_MULTIPLE_RUN_IDS
+    if "missing start" in r:
+        return WithholdReason.MISSING_START_MARK
+    if "missing end" in r:
+        return WithholdReason.MISSING_END_MARK
+    if "start marks" in r:
+        return WithholdReason.MULTIPLE_START_MARKS
+    if "end marks" in r:
+        return WithholdReason.MULTIPLE_END_MARKS
+    # Isolation before "incomplete/unattributed": the ambiguous sentence also
+    # contains "unattributed".
+    if "ambiguous" in r:
+        return WithholdReason.ISOLATION_AMBIGUOUS
+    if "disagree on worker" in r:
+        return WithholdReason.WORKER_DISAGREEMENT
+    if "damaged" in r:
+        return WithholdReason.LOG_DAMAGED
+    if "incomplete" in r or "landed unattributed" in r:
+        return WithholdReason.LOG_INCOMPLETE_UNATTRIBUTED
+    if "empty evidence" in r:
+        return WithholdReason.EMPTY_EVIDENCE_LOG
+    if "concept" in r and "cache" in r:
+        return WithholdReason.CONCEPT_PAGE_NOT_CACHED
+    if "no evidence log" in r:
+        return WithholdReason.NO_EVIDENCE_LOG
+    return WithholdReason.UNKNOWN
 
 
 def _cue_near(win: str, start: int, end: int, cue: re.Pattern, radius: int = 24) -> bool:
@@ -1598,8 +1696,16 @@ def _page_identity(url: str, registry=None) -> str:
 
 def _concept_quote_supported(md: str, source_url: str, cache: dict,
                              page_stats: dict | None = None,
-                             registry=None) -> bool:
-    """Does prose at this concept's citation quote that SAME cached page?"""
+                             registry=None) -> tuple[bool, bool]:
+    """Does prose at this concept's citation quote that SAME cached page?
+
+    Returns ``(supported, cache_present)``. ``cache_present`` is False when the
+    evaluator holds no usable (status 200 + text) cached copy of this concept's
+    source page: the quote CANNOT be verified either way, so the caller must
+    WITHHOLD rather than read the resulting False as an uncovered nugget. A
+    False with ``cache_present=True`` is a real miss (the page is in cache, the
+    prose does not quote it). See G4 and SPEC_ISSUES.
+    """
     from src.verifiers.citation_format import extract_citations
     target = _page_identity(source_url, registry)
     entry = cache_key = None
@@ -1613,7 +1719,8 @@ def _concept_quote_supported(md: str, source_url: str, cache: dict,
                 cache_key, entry = k, v
                 break
     if entry is None:
-        return False
+        # Instrument blind: no cached page to compare the prose against.
+        return False, False
 
     ref_spans = _reference_region_offsets(md)
     occ = [(c.char_offset, c.raw_url) for c in extract_citations(md, sandbox_only=False)
@@ -1621,7 +1728,7 @@ def _concept_quote_supported(md: str, source_url: str, cache: dict,
            and not _offset_in_spans(c.char_offset, ref_spans)
            and _page_identity(c.raw_url, registry) == target]
     if not occ:
-        return False
+        return False, True
     stats = page_stats if page_stats is not None else build_page_stats(cache)
     df, chrome = stats.get("df"), stats.get("chrome", set(CHROME_FALLBACK))
 
@@ -1631,9 +1738,42 @@ def _concept_quote_supported(md: str, source_url: str, cache: dict,
     seq = _tokens(norm(strip_html(entry.get("text", ""))))
     tris = {tuple(seq[i:i + 3]) for i in range(max(0, len(seq) - 2))}
     page_set = set(seq)
-    return any(_pof_occurrence_ok(
+    supported = any(_pof_occurrence_ok(
         md, off, raw, page_set, tris, weight, chrome,
         POF_THRESHOLD_DEFAULT, 3)[0] for off, raw in occ)
+    return supported, True
+
+
+def _transport_fetch_usable(evidence) -> bool:
+    """Is the run's transport evidence usable to DECIDE whether a page was
+    fetched?
+
+    This mirrors, exactly, the gate `fetch_log.transport_metrics` uses to decide
+    whether it may emit a real `pof` or must WITHHOLD (available=False): the log
+    must exist and be well-formed (`available`), the lane's reads must go through
+    the shim (`fetch_observable`), and the log must be neither damaged
+    (`write_errors`) nor incomplete (`unattributed_in_window` /
+    `unattributed_ambiguous`).
+
+    Why completeness must use THIS, not `evidence.available`: the concept/forum
+    fetch requirement demands the source page appear in `fetched_ok`. When the
+    instrument cannot observe fetches -- an off-shim lane (fetch_observable=false,
+    8/12 lanes), a damaged log, records lost to _unattributed.jsonl -- `fetched_ok`
+    is empty or short for a reason that has NOTHING to do with the agent. Gating
+    on `available` alone (log merely well-bracketed) then scores an impeccable,
+    quoted, in-cache concept as UNCOVERED: `pof` is correctly withheld while
+    completeness reads the same blind instrument as a 0. That is the false
+    accusation this project keeps re-fixing. When transport is not usable the
+    requirement falls back to the cache-quote criterion (the same fallback `pof`
+    makes to text_v1), never to a demand the instrument cannot adjudicate.
+    Registered as an implementation bug (SPEC_ISSUES, G4).
+    """
+    return bool(evidence is not None
+                and getattr(evidence, "available", False)
+                and getattr(evidence, "fetch_observable", True)
+                and not getattr(evidence, "write_errors", 0)
+                and not getattr(evidence, "unattributed_in_window", 0)
+                and not getattr(evidence, "unattributed_ambiguous", 0))
 
 
 def _forum_coverage_supported(md: str, answer_key, cache: dict,
@@ -1661,7 +1801,11 @@ def _forum_coverage_supported(md: str, answer_key, cache: dict,
     query = {str(t).strip().lower() for t in meta.get("forum_query_keywords", [])
              if str(t).strip()}
     ref_spans = _reference_region_offsets(md)
-    require_fetch = bool(evidence is not None and getattr(evidence, "available", False))
+    # Gate on transport USABILITY, not merely a well-bracketed log: an off-shim
+    # or damaged run has an empty/short fetched_ok for an instrument reason, and
+    # requiring the thread there would withhold-then-zero it (see
+    # _transport_fetch_usable / G4).
+    require_fetch = _transport_fetch_usable(evidence)
     fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
                if require_fetch else set())
 
@@ -1714,7 +1858,7 @@ def _forum_coverage_supported(md: str, answer_key, cache: dict,
                     or query_hits >= 2)
         if not relevant:
             continue
-        if _concept_quote_supported(md, c.raw_url, cache or {}, page_stats, registry):
+        if _concept_quote_supported(md, c.raw_url, cache or {}, page_stats, registry)[0]:
             return True, canonical
     return False, None
 
@@ -1759,8 +1903,13 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
                      "reason": "empty_vital_pool"}
     ents = {e.url: e for e in answer_key.relevant_set}
 
-    require_concept_fetch = bool(evidence is not None
-                                 and getattr(evidence, "available", False))
+    # Require the concept page in fetched_ok ONLY when transport can actually
+    # decide it. On an off-shim/damaged/incomplete run (where pof is withheld,
+    # not zeroed) this falls back to the cache-quote criterion instead of
+    # demanding a fetch the instrument never observed (see _transport_fetch_usable
+    # / G4). Was gated on evidence.available, which zeroed impeccable concepts on
+    # every fetch_observable=false lane.
+    require_concept_fetch = _transport_fetch_usable(evidence)
     fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
                if require_concept_fetch else set())
     require_nugget_citation = bool(
@@ -1789,15 +1938,30 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
 
     covered = 0
     covered_by_predicate: dict[str, int] = {}
+    concept_nuggets_total = 0
+    concept_withheld = 0
     sample = []
     for n in pool:
         candidate_texts = [text]
         if n.predicate == "concept_coverage":
+            concept_nuggets_total += 1
             # URL/title shells earn nothing.  Require a lexical quote supported
             # by this exact page.  When transport evidence exists, additionally
             # require that the agent actually fetched the concept page.
-            if not _concept_quote_supported(md, n.source_url, cache or {},
-                                            page_stats, registry):
+            supported, cache_present = _concept_quote_supported(
+                md, n.source_url, cache or {}, page_stats, registry)
+            if not cache_present:
+                # Instrument blind: the evaluator holds no cached copy of this
+                # concept's source page, so a quote cannot be checked either
+                # way. Behaviour and the denominator are UNCHANGED (this nugget
+                # still contributes 0, exactly as before); only observability is
+                # added so a board can see the axis was partly blind rather than
+                # reading the 0 as an earned miss. The spec does not say whether
+                # such a nugget should be withheld from the denominator instead:
+                # registered in SPEC_ISSUES, not decided here (scoring frozen).
+                concept_withheld += 1
+                continue
+            if not supported:
                 continue
             if (require_concept_fetch
                     and _page_identity(n.source_url, registry) not in fetched):
@@ -1866,6 +2030,16 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
         "covered": covered, "covered_by_predicate": covered_by_predicate,
         "concept_transport_required": require_concept_fetch,
         "inline_nugget_citation_required": require_nugget_citation,
+        # G4 observability: a concept nugget whose source page the evaluator
+        # never cached cannot be scored, so its 0 is a WITHHOLD (blind
+        # instrument), not an earned miss. Score/denominator unchanged; these
+        # fields let a board tell the two apart. reason is None when nothing was
+        # withheld.
+        "concept_nuggets_total": concept_nuggets_total,
+        "concept_withheld_count": concept_withheld,
+        "concept_axis_withheld": concept_withheld > 0,
+        "concept_axis_withheld_reason": (
+            WithholdReason.CONCEPT_PAGE_NOT_CACHED.value if concept_withheld else None),
         "covered_sample": sample}
 
 
@@ -2011,8 +2185,16 @@ def transport_metrics_for(urls, evidence, registry=None, cache=None) -> dict:
         except Exception:  # noqa: BLE001
             return False
 
-    return transport_metrics(urls, evidence, in_registry=_in_registry,
-                             linked=linked, identify=_identify, is_nav=_is_nav)
+    m = transport_metrics(urls, evidence, in_registry=_in_registry,
+                          linked=linked, identify=_identify, is_nav=_is_nav)
+    # G4/G6: stamp the machine-readable withhold code beside the human string,
+    # so the transport block ALWAYS carries a stable `reason_code` when it
+    # withholds. fetch_log keeps ownership of the (frozen) prose; the code is
+    # derived here so a board never has to string-match. A withhold never emits
+    # `pof`, so this can only decorate an available=False dict, never a real 0.
+    if isinstance(m, dict) and not m.get("available"):
+        m["reason_code"] = withhold_reason_code(m.get("reason")).value
+    return m
 
 
 def _axis_key(pof_semantics: str) -> str:
