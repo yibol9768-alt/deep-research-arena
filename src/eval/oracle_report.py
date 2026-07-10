@@ -41,10 +41,13 @@ from src.eval import decidable_scorer as ds
 # Re-used verbatim so the oracle's own coverage predicate matches the scorer's.
 from src.eval.decidable_scorer import (
     K_STAR_DEFAULT,
+    MIN_GROUNDABLE_QUOTE_CHARS,
     build_vital_pool,
     norm,
     strip_html,
+    _concept_page_is_stub,
     _page_identity,
+    _page_quote,
 )
 
 _SENTIMENT_OBJECT_RE = re.compile(r"([\d.]+)%/(\d+)rev")
@@ -146,36 +149,9 @@ def _cache_entry_for(source_url: str, cache: dict, registry=None):
     return None, None
 
 
-# The scorer's verbatim judge reads the 400 chars of prose before a citation.
-# A quote shorter than that leaves the window dominated by the NEIGHBOUR line's
-# off-page tokens, so IDF containment fails no matter where the line is placed:
-# a page whose whole extracted body is shorter than the window (a title-only
-# stub such as the fixture's "Input lag Input lag") cannot ground a quote for
-# ANY report. By-construction precondition, not a re-run of the scorer.
-MIN_GROUNDABLE_QUOTE_CHARS = 400
-
-
-def _page_quote(text: str, *, n_words: int = 90, skip_head: int = 12) -> str:
-    """A verbatim, content-bearing run of words from a cached page, usable as a
-    grounding quote.
-
-    The scorer's verbatim judge (``_pof_occurrence_ok``) reads the 400 chars of
-    prose BEFORE the citation and requires (a) IDF-weighted containment of that
-    context in the page above ``POF_THRESHOLD`` and (b) a contiguous 3-token run
-    present verbatim on the page. Two things dilute (a): tokens from a NEIGHBOUR
-    line bleeding into the 400-char window, and any glue words that are not on
-    the page. So we (i) emit no glue between the quote and the citation, and
-    (ii) make the quote long enough (~90 words ~= 600 chars) that the 400-char
-    window is pure page text. Words are drawn from the same ``strip_html`` stream
-    the scorer tokenises, so trigrams line up after normalisation. A short real
-    page yields its whole body, which is what the agent would have quoted."""
-    words = strip_html(text or "").split()
-    if not words:
-        return ""
-    if len(words) <= n_words:
-        return " ".join(words)
-    start = skip_head if len(words) > skip_head + n_words else 0
-    return " ".join(words[start:start + n_words])
+# ``_page_quote`` and ``_concept_page_is_stub`` are the scorer's own (imported
+# above): the oracle classifies a stub with the SAME grounding-based predicate
+# the scorer excises by, so plan and scorer agree slot-for-slot.
 
 
 def _forum_quote_ok(text: str, core: set[str], query: set[str]) -> bool:
@@ -250,6 +226,10 @@ def build_oracle_report(answer_key, cache: dict | None = None, registry=None, *,
     price claim, so reach and fact top out and completeness reaches the
     structured-only ceiling."""
     cache = cache or {}
+    # Built once so the stub predicate (below) reuses the scorer's IDF weights
+    # without rebuilding page_stats per concept; matches the gates' page_stats,
+    # which is build_page_stats over this same cache.
+    page_stats = ds.build_page_stats(cache) if cache else None
     pool = build_vital_pool(answer_key, k_star=k_star, pool_size=pool_size)
     meta = getattr(answer_key, "metadata", {}) or {}
     ents = {e.url: e for e in answer_key.relevant_set}
@@ -261,6 +241,7 @@ def build_oracle_report(answer_key, cache: dict | None = None, registry=None, *,
     concept_uncovered: list[str] = []
     concept_uncreditable: list[str] = []
     concept_stub_page: list[str] = []
+    excluded_slots: list[dict] = []
 
     for n in pool:
         if n.predicate == "buyer_sentiment":
@@ -282,15 +263,21 @@ def build_oracle_report(answer_key, cache: dict | None = None, registry=None, *,
                 # the containment score); the concept name in the link label
                 # makes the subject discussed.
                 lines.append(f"{quote} [{n.subject}]({n.source_url}).")
-                # A cached, quoted concept only earns completeness when (i) the
-                # scorer's subject gate can credit its subject (a strong token:
-                # short-subject concepts such as "Tea" cannot be credited for
-                # any report) and (ii) the quote is long enough to fill the
-                # scorer's 400-char containment window (a title-only stub page
-                # cannot ground). Both lines are still emitted -- a perfect
-                # agent would write them -- but excluded from the ceiling.
-                if len(quote) < MIN_GROUNDABLE_QUOTE_CHARS:
+                # A cached, quoted concept only earns completeness when (i) its
+                # page is groundable AT ALL -- a title-only stub page whose whole
+                # body is its own slug tokens ("Input lag") grounds for NO report
+                # (the scorer strips slug tokens as non-evidence), so it is a stub
+                # excised from the denominator; and (ii) the scorer's subject gate
+                # can credit its subject (short-subject concepts such as "Tea" are
+                # now creditable by word-boundary matching, ruling #5). The line is
+                # still emitted -- a perfect agent would write it -- but a stub is
+                # excluded from the ceiling via the SAME grounding-based predicate
+                # the scorer excises by (_concept_page_is_stub), so plan == scorer.
+                if _concept_page_is_stub(n.source_url, cache, registry, page_stats):
                     concept_stub_page.append(n.source_url)
+                    excluded_slots.append({
+                        "subject": n.subject, "source_url": n.source_url,
+                        "reason": "stub_page"})
                 elif _concept_subject_creditable(n.subject):
                     concept_covered.append(n.source_url)
                 else:
@@ -343,7 +330,16 @@ def build_oracle_report(answer_key, cache: dict | None = None, registry=None, *,
     markdown = "\n\n".join(lines)
     cited_urls = ds._cited_urls(markdown)
 
-    total_pool = len(pool) + int(forum_slot)
+    # docs/SPEC_DECISIONS.md '车道追加条目': stub concept slots (a cached page that
+    # grounds for NO report, e.g. a title-only capture whose whole body is its own
+    # slug tokens) are excised from the denominator at pool construction -- they
+    # must not sit in "存在某报告能覆盖" 的分母. Classified by the scorer's own
+    # grounding-based predicate (_concept_page_is_stub), the SAME one the scorer
+    # excises by, so oracle plan and scorer agree slot-for-slot. The lines are
+    # still emitted (a perfect agent writes them); they simply do not count toward
+    # or against the ceiling.
+    n_stub = len(concept_stub_page)
+    total_pool = len(pool) + int(forum_slot) - n_stub
     denom = min(k_star, total_pool) or k_star
     expected_covered = len(struct_urls) + len(concept_covered) + int(bool(forum_url))
     plan = {
@@ -362,9 +358,15 @@ def build_oracle_report(answer_key, cache: dict | None = None, registry=None, *,
         # cached + quoted but scorer cannot credit (short subject, no strong
         # token): emitted in the report, excluded from the ceiling.
         "concept_uncreditable_urls": concept_uncreditable,
-        # cached but the page body is a title-only stub shorter than the
-        # scorer's 400-char containment window: ungroundable for any report.
+        # cached but a title-only stub the grounding judge cannot credit for any
+        # report (whole body is its own slug tokens): ungroundable by construction,
+        # so EXCISED from the denominator (see total_pool below) and recorded here
+        # + in excluded_slots as the pool manifest.
         "concept_stub_page_urls": concept_stub_page,
+        # the pool manifest of slots removed from the denominator at construction
+        # (currently the stub concept pages), each with subject / source_url /
+        # reason -- the scorer echoes the same list in comp_det['excluded_slots'].
+        "excluded_slots": excluded_slots,
         # no cached page => not coverable by any report without the box fixture.
         "concept_uncovered_urls": concept_uncovered,
         "forum_url": forum_url,

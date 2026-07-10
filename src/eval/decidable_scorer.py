@@ -1727,6 +1727,94 @@ def build_vital_pool(answer_key, k_star: int = K_STAR_DEFAULT,
     return pool
 
 
+# The verbatim judge reads the 400 chars of prose BEFORE a citation (see
+# ``md[max(0, offset - 400): offset]`` in ``_pof_occurrence_ok``). A quote must
+# reach that far to fill the window with page text; the oracle's forum-slot guard
+# uses it to skip a thread quote too short to ground. Concept STUB detection does
+# NOT use this length (a short but content-bearing page still grounds): it uses
+# the grounding-based ``_concept_page_is_stub`` instead.
+MIN_GROUNDABLE_QUOTE_CHARS = 400
+
+
+def _page_quote(text: str, *, n_words: int = 90, skip_head: int = 12) -> str:
+    """A verbatim, content-bearing run of words from a cached page, usable as a
+    grounding quote.
+
+    The verbatim judge reads the 400 chars of prose BEFORE the citation and
+    requires (a) IDF-weighted containment of that context in the page and (b) a
+    contiguous 3-token run present verbatim on the page. Two things dilute (a):
+    tokens from a NEIGHBOUR line bleeding into the 400-char window, and glue
+    words not on the page. So the oracle emits ~90 words (~600 chars) of pure
+    page text with no glue before the citation. Words are drawn from the same
+    ``strip_html`` stream the scorer tokenises, so trigrams line up after
+    normalisation. A short real page yields its whole body -- exactly what a
+    report could quote -- so its length is the ceiling on any groundable quote."""
+    words = strip_html(text or "").split()
+    if not words:
+        return ""
+    if len(words) <= n_words:
+        return " ".join(words)
+    start = skip_head if len(words) > skip_head + n_words else 0
+    return " ".join(words[start:start + n_words])
+
+
+def _concept_page_is_stub(source_url: str, cache: dict, registry=None,
+                          page_stats: dict | None = None) -> bool:
+    """Whether this concept's source page is cached but ungroundable by ANY report.
+
+    The page IS cached (status 200 + text), yet even the MAXIMAL report a perfect
+    agent could write for it -- its own body verbatim immediately before the
+    citation, with NO neighbour line to dilute the 400-char window -- still fails
+    the scorer's grounding judge. The canonical instance is a title-only capture
+    ("Input lag Input lag"): every token is the page's own title/slug, which the
+    judge strips as non-evidence (repeating a page's title proves no read; see
+    ``_pof_occurrence_ok``'s ``slug_toks`` removal), leaving the containment
+    context empty so no citation can ever ground. Such a slot is coverable by NO
+    report, so per docs/SPEC_DECISIONS.md '车道追加条目' (分母只含"存在某报告能覆盖"的槽位)
+    it is excised from the completeness denominator at pool construction.
+
+    Decided by the SCORER's own grounding path (``_concept_quote_supported`` run
+    on the ideal isolated report), NOT a page-length heuristic: a SHORT but
+    content-bearing page (a 100-char definition) still grounds in isolation and
+    is NOT a stub. Returns False when the page is not cached -- the instrument-
+    blind case, handled by the diagnostic withhold, not here."""
+    target = _page_identity(source_url, registry)
+    entry = None
+    for k, v in (cache or {}).items():
+        if _page_identity(k, registry) != target:
+            continue
+        try:
+            status = int((v or {}).get("status", 0) or 0)
+        except (TypeError, ValueError):
+            status = 0
+        if status == 200 and (v or {}).get("text"):
+            entry = v
+            break
+    if entry is None:
+        return False
+    # The best any report can do for this page: the page's own text right before
+    # the citation, nothing else to bleed off-page tokens into the window. If even
+    # this cannot ground, the slot is uncoverable by construction.
+    ideal = f"{_page_quote(entry['text'])} [source]({source_url})"
+    supported, cache_present = _concept_quote_supported(
+        ideal, source_url, cache, page_stats, registry)
+    return bool(cache_present and not supported)
+
+
+def stub_concept_slots(pool: list, cache: dict, registry=None,
+                       page_stats: dict | None = None) -> list:
+    """The concept nuggets in ``pool`` whose source page is cached but ungroundable
+    by any report (see ``_concept_page_is_stub``): excised from the completeness
+    denominator at pool construction and recorded in the manifest. Empty when
+    ``cache`` is falsy -- no evidence with which to classify a stub."""
+    if not cache:
+        return []
+    return [n for n in pool
+            if getattr(n, "predicate", "") == "concept_coverage"
+            and _concept_page_is_stub(
+                getattr(n, "source_url", ""), cache, registry, page_stats)]
+
+
 def _typed_value_in_window(win: str, n, alt_prices=(), tail: str = "") -> bool:
     """Per-predicate typed value check inside a subject window (M-H2: NO
     global substring matching anywhere).
@@ -2110,6 +2198,28 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     text = _visible_prose(md)
     generic = generic if generic is not None else build_generic_tokens(answer_key)
     pool = build_vital_pool(answer_key, k_star=k_star, pool_size=pool_size)
+    # docs/SPEC_DECISIONS.md '车道追加条目': a concept whose source page is cached but
+    # ungroundable by ANY report (a title-only capture whose whole body is its own
+    # slug tokens, which the grounding judge strips as non-evidence -- see
+    # _concept_page_is_stub) is uncoverable by construction, a page-cache fixture
+    # defect rather than a real gap. It is EXCISED from the vital pool here so the
+    # completeness denominator holds only slots some report can cover (分母只含"存在
+    # 某报告能覆盖"的槽位). This differs from the diagnostic withhold, which covers a
+    # MISSING (uncached) page: excision applies under EVERY cache_policy and fires
+    # only with the cache as evidence (an empty cache excises nothing, so the
+    # shell/G2 path is unchanged) and only for a page that fails to ground even in
+    # isolation (a short but content-bearing page is NOT excised). The excised
+    # slots are surfaced in comp_det['excluded_slots'] so the removal is
+    # observable, never a silent disappearance.
+    excluded_stub = stub_concept_slots(pool, cache or {}, registry, page_stats)
+    excluded_slots = [{"subject": getattr(n, "subject", ""),
+                       "source_url": getattr(n, "source_url", ""),
+                       "reason": "stub_page"} for n in excluded_stub]
+    if excluded_stub:
+        _stub_urls = {n.source_url for n in excluded_stub}
+        pool = [n for n in pool if not (
+            getattr(n, "predicate", "") == "concept_coverage"
+            and getattr(n, "source_url", "") in _stub_urls)]
     forum_slot = bool((getattr(answer_key, "metadata", {}) or {}).get("forums")) \
         and not any(getattr(n, "predicate", "") == "forum_coverage" for n in pool)
     if not pool and not forum_slot:
@@ -2297,6 +2407,11 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
         "forum_slot_withheld": forum_withheld,
         "forum_axis_withheld_reason": (
             WithholdReason.FORUM_THREAD_NOT_CACHED.value if forum_withheld else None),
+        # docs/SPEC_DECISIONS.md '车道追加条目': concept slots whose cached source page
+        # grounds for no report (a title-only stub), excised from the pool (and
+        # thus the denominator) BEFORE scoring. Empty unless the cache holds such a
+        # stub page; makes the excision observable rather than a silent shrink.
+        "excluded_slots": excluded_slots,
         "covered_sample": sample}
     if comp_score == 0.0:
         # The pool was non-empty here (the empty-pool case returned earlier with

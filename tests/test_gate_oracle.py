@@ -6,19 +6,24 @@ axis the observable world allows:
 
     reach = 1.0, fact > 0, completeness == the achievable ceiling, EXACTLY.
 
-"Achievable ceiling" and not the literal 1.0 of GOAL_GATES_V1 because three
-frozen-semantics facts make a literal 1.0 unreachable for ANY report today;
-the literal assertion is kept as an expected-red xfail pointing at the
-docs/SPEC_ISSUES.md entries (freeze order: semantics are not touched here):
+"Achievable ceiling" and not the literal 1.0 of GOAL_GATES_V1 for the STRICT
+completeness score, because the strict denominator still carries slots no report
+can fill on the current fixture (the forum virtual slot, uncached concepts). The
+DIAGNOSTIC completeness score (ruling #2) now reaches literal 1.0 on all 100
+tasks, since the three blockers that used to hold it below are each resolved:
 
   * the forum virtual slot: no forum thread page exists in any page cache
-    fixture, so the slot is uncoverable (SPEC_ISSUES section 1 "论坛是否入分" +
-    section 2 "page cache 供给链失修");
-  * short-subject concepts ("Tea"): the scorer's ``_subject_discussed``
-    requires a strong token (>=4 chars or a digit), which such subjects never
-    have (SPEC_ISSUES section 4 G1 note);
-  * title-only stub pages in the capture ("Input lag"): shorter than the
-    scorer's 400-char containment window, ungroundable by construction.
+    fixture, so it is WITHHELD from the diagnostic denominator (ruling #2),
+    not scored as an earned miss;
+  * short-subject concepts ("Tea"): the short-topic deadlock fix (ruling #5)
+    credits them by word-boundary matching, so they are coverable;
+  * title-only stub pages in the capture ("Input lag", dr_cross_deep_0038):
+    the page is cached but its whole body is shorter than the scorer's 400-char
+    containment window, so no report can ground it. Per docs/SPEC_DECISIONS.md
+    '车道追加条目' (分母只含"存在某报告能覆盖"的槽位) such a stub slot is now EXCISED
+    from the vital pool at pool-construction time and recorded in the pool
+    manifest (``excluded_slots``), so it leaves the denominator entirely instead
+    of pinning completeness below 1.0.
 
 The EXACT-equality assertion against the generator's by-construction plan is
 the real gate: the scorer must credit precisely the nuggets the oracle made
@@ -182,62 +187,111 @@ def test_g1_oracle_completeness_equals_achievable_ceiling(oracle_runs,
 
 
 def test_g1_oracle_diagnostic_completeness_one_except_stub_pages(oracle_runs):
-    """The achievement of rulings #2 + #5 + the short-topic fix, as a GREEN gate.
+    """The achievement of rulings #2 + #5 + the short-topic fix + stub excision,
+    as a GREEN gate. Residual set is now EMPTY.
 
     Under the diagnostic cache_policy (ruling #2) the cache-blind forum slot is
     WITHHELD from the denominator instead of zeroing completeness, and the
-    short-topic fix (ruling #5) freed the last uncreditable concepts. So every
-    oracle report now reaches literal completeness == 1.0 EXACTLY, with a single
-    documented exception class: a task carrying a title-only stub concept page
-    (the page IS cached but its whole body is shorter than the 400-char
-    containment window, so no report can ground a quote). Those pages are a
-    page-cache FIXTURE defect to be excised at key-construction time
-    (build_answer_keys lane, docs/SPEC_DECISIONS.md '车道追加条目'), not a scorer
-    change; the diagnostic withhold only covers a MISSING page, not a cached-but
-    -too-short one. This gate pins that the ONLY tasks short of 1.0 are exactly
-    the stub-page ones, and by the exact residual."""
+    short-topic fix (ruling #5) freed the last uncreditable concepts. The final
+    blocker -- a title-only stub concept page (the page IS cached but its whole
+    body is shorter than the 400-char containment window, so no report can ground
+    a quote) -- is now EXCISED from the vital pool at pool-construction time and
+    recorded in the manifest (docs/SPEC_DECISIONS.md '车道追加条目', 分母只含"存在某
+    报告能覆盖"的槽位). So every oracle report reaches literal completeness == 1.0
+    EXACTLY, with NO residual class.
+
+    This gate pins two things: (a) the residual set is empty -- comp_diag is 1.0
+    on all 100 tasks; and (b) every stub the oracle plan flags is EXCISED and
+    OBSERVABLE, echoed slot-for-slot in the scorer's comp_det['excluded_slots']
+    (subject / source_url / reason='stub_page') rather than silently dropped from
+    the denominator."""
     bad = []
     for r in oracle_runs:
-        n_stub = len(r["plan"]["concept_stub_page_urls"])
-        if n_stub == 0:
-            if r["comp_diag"] != pytest.approx(1.0, abs=1e-9):
-                bad.append(f"{r['tid']}: no stub page yet comp_diag="
-                           f"{r['comp_diag']:.4f} (cd={r['cd_diag']})")
-        else:
-            # the shortfall must be exactly the uncoverable stub slots
-            denom = r["cd_diag"]["k_effective"]
-            expected = max(denom - n_stub, 0) / denom if denom else 0.0
-            if r["comp_diag"] != pytest.approx(expected, abs=1e-9):
-                bad.append(f"{r['tid']}: {n_stub} stub page(s), comp_diag="
-                           f"{r['comp_diag']:.4f} != expected {expected:.4f}")
-    assert not bad, ("G1 diagnostic completeness not 1.0-except-stub on:\n"
-                     + "\n".join(bad))
+        if r["comp_diag"] != pytest.approx(1.0, abs=1e-9):
+            bad.append(f"{r['tid']}: comp_diag={r['comp_diag']:.4f} != 1.0 "
+                       f"(cd={r['cd_diag']})")
+            continue
+        # every planned stub must be excised-and-recorded, not silently gone
+        stub_urls = set(r["plan"]["concept_stub_page_urls"])
+        if stub_urls:
+            excised = {s["source_url"] for s in r["cd_diag"].get("excluded_slots", [])
+                       if s.get("reason") == "stub_page"}
+            missing = stub_urls - excised
+            if missing:
+                bad.append(f"{r['tid']}: stub(s) {missing} not recorded in "
+                           f"comp_det excluded_slots={r['cd_diag'].get('excluded_slots')}")
+    assert not bad, ("G1 diagnostic completeness not 1.0-everywhere / stub not "
+                     "excised-and-observable on:\n" + "\n".join(bad))
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason=(
-        "GOAL_GATES_V1 asks completeness == 1.0 literally for EVERY task. Under "
-        "the diagnostic cache_policy (ruling #2) plus the short-topic fix "
-        "(ruling #5), 99/100 tasks now reach it exactly: the forum virtual slot "
-        "is WITHHELD (no cached thread to ground) and short-subject concepts "
-        "('Tea') are credited by word-boundary matching. The sole residual is a "
-        "title-only stub concept page ('Input lag', dr_cross_deep_0038): the "
-        "page IS cached but its whole body is shorter than the 400-char "
-        "containment window, so no report can ground a quote and the diagnostic "
-        "withhold (which covers a MISSING page, not a cached-but-too-short one) "
-        "cannot remove it. Excising such stub pages at key-construction time is "
-        "the build_answer_keys lane (docs/SPEC_DECISIONS.md '车道追加条目'), out "
-        "of the scorer's scope; until then this universal assertion stays red by "
-        "exactly that one slot. The green gate is "
-        "test_g1_oracle_diagnostic_completeness_one_except_stub_pages above."),
-)
 def test_g1_oracle_completeness_literal_one(oracle_runs):
+    """GOAL_GATES_V1's universal assertion, now GREEN on 100/100. Under the
+    diagnostic cache_policy (ruling #2) plus the short-topic fix (ruling #5) and
+    the stub-slot excision at pool construction (docs/SPEC_DECISIONS.md '车道追加
+    条目'), every one of the 100 oracle reports reaches literal completeness ==
+    1.0 exactly: the forum virtual slot is WITHHELD (no cached thread), short-
+    subject concepts ('Tea') are credited by word-boundary matching, and the last
+    residual -- a title-only stub concept page ('Input lag', dr_cross_deep_0038),
+    cached but shorter than the 400-char containment window -- is excised from the
+    denominator (分母只含"存在某报告能覆盖"的槽位) and recorded in the manifest. This
+    was the sole xfail; it is transferred green here."""
     bad = _failures(
         oracle_runs,
         lambda r: r["comp_diag"] == pytest.approx(1.0, abs=1e-9),
         lambda r: f"comp_diag={r['comp_diag']:.4f}")
     assert not bad, "completeness < 1.0 on:\n" + "\n".join(bad)
+
+
+def test_g1_stub_slot_excised_observable_and_neighbours_intact(oracle_runs,
+                                                               gates_concept_cache):
+    """Regression for the stub-slot excision (docs/SPEC_DECISIONS.md '车道追加条目').
+
+    Pins, on the sole stub-carrying task (dr_cross_deep_0038, concept page
+    'Input lag' -- cached but shorter than the 400-char containment window), the
+    three properties that were absent before excision:
+
+      1. diagnostic completeness reaches literal 1.0 (was <1.0: the uncoverable
+         stub sat in the denominator and could never be covered);
+      2. the excision is OBSERVABLE, not a silent denominator shrink -- the stub
+         is echoed with subject / source_url / reason='stub_page' in BOTH the
+         oracle plan manifest and the scorer's comp_det['excluded_slots'];
+      3. the neighbouring NON-stub concepts on the same task are untouched
+         (positive control): the scorer still credits exactly the concepts the
+         oracle made coverable, and never phantom-credits the excised stub.
+
+    Skips explicitly without the box cache fixture (the stub only manifests when
+    its cached-but-short page is present to classify)."""
+    if gates_concept_cache is None:
+        pytest.skip(NO_CACHE_SKIP)
+    runs = {r["tid"]: r for r in oracle_runs}
+    r = runs.get("dr_cross_deep_0038")
+    assert r is not None, "dr_cross_deep_0038 not in the gate sweep"
+
+    stub_urls = set(r["plan"]["concept_stub_page_urls"])
+    assert stub_urls, ("expected dr_cross_deep_0038 to carry a stub concept page; "
+                       "fixture may have changed -- re-check 'Input lag'")
+
+    # (1) the stub no longer pins completeness below 1.0
+    assert r["comp_diag"] == pytest.approx(1.0, abs=1e-9), (
+        f"stub slot still in diagnostic denominator: comp_diag={r['comp_diag']:.4f}")
+
+    # (2) excision recorded in both manifests (observable, not silent)
+    plan_excised = {s["source_url"] for s in r["plan"]["excluded_slots"]
+                    if s.get("reason") == "stub_page"}
+    scorer_excised = {s["source_url"] for s in r["cd_diag"].get("excluded_slots", [])
+                      if s.get("reason") == "stub_page"}
+    assert stub_urls <= plan_excised, "stub missing from oracle plan excluded_slots"
+    assert stub_urls <= scorer_excised, "stub missing from scorer comp_det excluded_slots"
+
+    # (3) neighbours intact: scorer credits exactly the oracle-coverable concepts,
+    # and the excised stub is not among the credited (no phantom credit).
+    concept_credited = r["cd_diag"].get("covered_by_predicate", {}).get(
+        "concept_coverage", 0)
+    assert concept_credited == len(r["plan"]["concept_covered_urls"]), (
+        f"concept credit {concept_credited} != oracle-coverable "
+        f"{len(r['plan']['concept_covered_urls'])} on the stub task")
+    assert not (stub_urls & set(r["plan"]["concept_covered_urls"])), (
+        "excised stub must not appear among the coverable concepts")
 
 
 # ---------------------------------------------------------------------------

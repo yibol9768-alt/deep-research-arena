@@ -52,10 +52,10 @@
           ]
         },
         {
-          "heading": "The oracle now reaches literal completeness 1.0 on 99/100 tasks (G1)",
+          "heading": "The oracle now reaches literal completeness 1.0 on 100/100 tasks (G1)",
           "bullets": [
-            "With the diagnostic cache_policy withholding the cache-blind forum slot and the short-topic fix crediting short concepts, the mechanically generated oracle report reaches literal completeness == 1.0 on 99 of 100 tasks. A new green G1 gate pins that the only tasks short of 1.0 are exactly those carrying a title-only stub concept page, and by the exact residual.",
-            "The sole remaining task (dr_cross_deep_0038, 'Input lag') has a concept page that IS cached but whose whole body is shorter than the 400-char grounding window, so no report can quote it. That is a page-cache fixture defect to be excised at key-construction time (build_answer_keys), not a scorer change; GOAL_GATES_V1's literal-1.0-for-every-task assertion stays a documented xfail until then, red by exactly that one slot."
+            "With the diagnostic cache_policy withholding the cache-blind forum slot and the short-topic fix crediting short concepts, the mechanically generated oracle report reaches literal completeness == 1.0 on every one of the 100 tasks. GOAL_GATES_V1's literal-1.0-for-every-task assertion is now a GREEN gate, no longer an xfail.",
+            "The final blocker (dr_cross_deep_0038, 'Input lag') was a title-only capture: the page IS cached but its whole body is just the page's own title/slug tokens, which the grounding judge strips as non-evidence (repeating a page's title proves no read), so its containment context is empty and NO report can ever ground it. Per docs/SPEC_DECISIONS.md '车道追加条目' (the completeness denominator holds only slots some report can cover), such a stub concept slot is now EXCISED from the vital pool at pool-construction time and recorded in the pool manifest (excluded_slots: subject / source_url / reason='stub_page'), so it leaves the denominator entirely instead of pinning completeness below 1.0. The excision is decided by the scorer's own grounding path on the ideal isolated report (a short but content-bearing page still grounds and is NOT excised), is cache-evidence-gated (fires only when the cached page is present), applies under every cache_policy, and is echoed identically by the oracle plan and the scorer's completeness detail so the removal is observable, never silent."
           ]
         },
         {
