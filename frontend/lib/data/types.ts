@@ -65,6 +65,11 @@ export interface RankedAgent {
    *  that carried no transport observation. */
   provenance_pct?: number
   guessed_pct?: number
+  /** Fact-support precision detail (ruling #9): supported / tested structured
+   *  claims. A DETAIL-ONLY column; the headline truth score is unchanged.
+   *  fact_tested === 0 must render as n/a (silence), never as a wrong-claim 0. */
+  fact_supported?: number
+  fact_tested?: number
   /** v3 per-pillar Elo (8 dimensions). */
   per_pillar?: PerPillarElo
   /** Schema marker propagated for the dry-run banner / tooltips. */

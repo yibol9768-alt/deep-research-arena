@@ -147,6 +147,30 @@ def _provenance_columns(cells) -> dict:
     }
 
 
+def _fact_precision(cells) -> dict:
+    """Fact-support precision as a DETAIL column (SPEC_DECISIONS #9).
+
+    fact-support's headline value already folds precision and recall-volume and
+    is 0 both when every claim was wrong AND when no checkable claim was made;
+    the headline truth number is NOT touched here. This surfaces the pooled
+    precision = supported / tested (tested = supported + contradicted) so a
+    reader can tell silence from wrong claims. tested == 0 yields precision=None
+    (rendered n/a, NEVER 0): a lane that made no checkable claim is not a lane
+    that made false ones.
+    """
+    supported = 0
+    tested = 0
+    for d in cells:
+        fd = (d.get("detail") or {}).get("fact") or {}
+        supported += int(fd.get("supported", 0) or 0)
+        tested += int(fd.get("claims_tested", 0) or 0)
+    return {
+        "supported": supported,
+        "tested": tested,
+        "precision": (round(supported / tested, 4) if tested else None),
+    }
+
+
 # D7: version stamp so a board can self-certify which scoring/extractor/formula
 # it was produced under. The three headline fields (formula_version,
 # extractor_commit, formula_commit) are the cross-version identity; the numeric
@@ -1496,6 +1520,10 @@ def main() -> int:
             # laundering the provenance gate defends against. provenance/guessed
             # are null on a text_v1 lane (no transport observation).
             "grounding_provenance": _provenance_columns(per_cell.values()),
+            # SPEC_DECISIONS #9: fact-support precision as a DETAIL column only.
+            # supported/tested with precision=None (n/a) when tested==0, so
+            # silence is never shown as a wrong-claim 0. Headline truth unchanged.
+            "fact_precision": _fact_precision(per_cell.values()),
             # spec is OUT of truth (FORMULA_LOCK K6): surfaced as a separate
             # compliance column, never multiplied in. Kept in axes_mean too.
             "compliance": axes_mean_all_tasks.get("spec", 0.0),
@@ -1606,6 +1634,7 @@ def main() -> int:
                     "guessed_frac": None, "n_reports": 0,
                     "n_reports_with_transport": 0,
                 },
+                "fact_precision": {"supported": 0, "tested": 0, "precision": None},
                 "presentation": panel.get(agent),
                 "per_task": {},
                 "rank": next_rank,

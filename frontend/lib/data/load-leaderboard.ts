@@ -46,6 +46,10 @@ interface PerAgentProfile {
   // present only when a run carried transport observation.
   provenance_pct?: number
   guessed_pct?: number
+  // Fact-support precision detail (ruling #9): supported / tested structured
+  // claims. Detail-only; fact_tested === 0 renders as n/a, never as 0.
+  fact_supported?: number
+  fact_tested?: number
   deviations?: LaneDeviation[]
   synthetic_placeholder?: boolean
 }
@@ -215,6 +219,8 @@ export function rankedAgents(): RankedAgent[] {
       reachability_pct: prof?.reachability_pct,
       provenance_pct: prof?.provenance_pct,
       guessed_pct: prof?.guessed_pct,
+      fact_supported: prof?.fact_supported,
+      fact_tested: prof?.fact_tested,
       deviations: Array.isArray(prof?.deviations) ? prof!.deviations : undefined,
       per_pillar: pillars,
       schema_version: c.schemaVersion,

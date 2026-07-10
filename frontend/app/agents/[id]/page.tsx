@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Github, Swords } from 'lucide-react'
 import { rankedAgents } from '@/lib/data/load-leaderboard'
+import type { RankedAgent } from '@/lib/data/types'
 import { agentMeta, allAgents } from '@/lib/providers'
 import { MetricCard } from '@/components/layout/metric-card'
 import { QualityProfile } from '@/components/agents/quality-profile'
@@ -52,6 +53,15 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
           <MetricCard label={<T en="Judge Elo" zh="判官 Elo" />} value={fmt(agent.elo)} detail={`95% CI ${agent.elo_lo.toFixed(0)}-${agent.elo_hi.toFixed(0)}`} />
           <MetricCard label={<T en="Battles" zh="对战数" />} value={String(agent.n_battles)} detail={<T en="pairwise outcomes" zh="两两对战结果" />} />
           <MetricCard label={<T en="Grounding" zh="接地" />} value={gate == null ? 'n/a' : `${gate.toFixed(0)}%`} detail={<T en="reachability + quote match" zh="可达率 + 引文核实率" />} />
+          <MetricCard
+            label={<T en="Fact precision" zh="事实精度" />}
+            value={factPrecision(agent)}
+            detail={
+              agent.fact_tested && agent.fact_tested > 0
+                ? <T en={`${agent.fact_supported ?? 0}/${agent.fact_tested} claims`} zh={`${agent.fact_supported ?? 0}/${agent.fact_tested} 条声明`} />
+                : <T en="no checkable claim (n/a, not 0)" zh="无可核查声明(n/a,非 0)" />
+            }
+          />
         </div>
       </section>
 
@@ -91,6 +101,14 @@ export default function AgentDetailPage({ params }: { params: { id: string } }) 
       </section>
     </div>
   )
+}
+
+/** Fact-support precision as a detail value (ruling #9): supported/tested. When
+ *  no checkable claim was tested this is n/a, never 0 -- silence is not a
+ *  wrong-claim failure. Absent data (v3 snapshot without the field) is n/a too. */
+function factPrecision(agent: RankedAgent): string {
+  if (!agent.fact_tested || agent.fact_tested <= 0) return 'n/a'
+  return `${(((agent.fact_supported ?? 0) / agent.fact_tested) * 100).toFixed(0)}%`
 }
 
 function Outcome({ label, value, total, color }: { label: ReactNode; value: number; total: number; color: string }) {
