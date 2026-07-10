@@ -152,6 +152,17 @@ _RATING_CUE = re.compile(
     r"\bpositive\b|\bsatisfaction\b|\bfavourable\b|\bfavorable\b", re.I)
 _REVIEW_CUE = re.compile(r"\breviews?\b|\bratings?\b|\breviewers?\b|\bbuyers?\b", re.I)
 
+# A number IMMEDIATELY followed by a count noun ("3 reviews", "12 ratings") is
+# presented as the review count, never as the sentiment value. Without this
+# guard the buyer_sentiment window check credited the COUNT as a 5-star-scale
+# rating whenever count == rating/20 (60.0%/3rev, 100.0%/5rev: 24 of the 100
+# tasks' first-ranked nuggets alone), so a report stating a WRONG percentage
+# stayed covered -- exactly the "silent saturation" class gate G3 exists to
+# kill, and the opposite of this function's own declared semantics ("The
+# review COUNT is not the sentiment").
+_COUNT_NOUN_AFTER = re.compile(r"\s*(?:reviews?|ratings?|reviewers?|buyers?)\b",
+                               re.I)
+
 
 def _cue_near(win: str, start: int, end: int, cue: re.Pattern, radius: int = 24) -> bool:
     """Is a cue word within `radius` chars of this number?"""
@@ -1512,9 +1523,15 @@ def build_vital_pool(answer_key, k_star: int = K_STAR_DEFAULT,
     return pool
 
 
-def _typed_value_in_window(win: str, n, alt_prices=()) -> bool:
+def _typed_value_in_window(win: str, n, alt_prices=(), tail: str = "") -> bool:
     """Per-predicate typed value check inside a subject window (M-H2: NO
-    global substring matching anywhere)."""
+    global substring matching anywhere).
+
+    ``tail`` is the handful of characters that FOLLOW the window in the
+    underlying text. It is consulted ONLY by the count-noun guard below (the
+    +-40 slice can cut "5 reviews" to "5 rev", hiding the count noun from the
+    guard and letting the count pass as a rating again); no value is ever
+    extracted from it, so it can only remove credit, never add it."""
     if n.predicate == "price":
         try:
             targets = {round(float(n.object), 2)} | set(alt_prices)
@@ -1569,7 +1586,14 @@ def _typed_value_in_window(win: str, n, alt_prices=()) -> bool:
         if not m:
             return False
         rat = float(m.group(1))
+        guard_text = win + tail
         for mm in _LABEL_NUM_RE.finditer(win):
+            # Presented as a count ("across 3 reviews"): not a rating, however
+            # close it lands to rat or rat/20 (see _COUNT_NOUN_AFTER). The
+            # guard reads past the window edge via ``tail`` so a count noun
+            # cut by the +-40 slice still classifies its number.
+            if _COUNT_NOUN_AFTER.match(guard_text, mm.end()):
+                continue
             v = float(mm.group())
             hit_rating = abs(v - rat) <= 1.0 or abs(v - rat / 20.0) <= 0.1
             if hit_rating and _cue_near(win, mm.start(), mm.end(), _RATING_CUE):
@@ -1829,9 +1853,22 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
             if not _subject_discussed(candidate_text, stoks):
                 continue
             spans = _subject_value_spans(candidate_text, n.subject, stoks)
+            if not spans:
+                continue
+            # Identity digits inside the subject's own written-out name are
+            # identity, never claim values -- the same masking the fact axis
+            # applies before value extraction. Without it a title like
+            # "... iWatch SE Series 7 6 5 4 3 2 1" put a standalone "4" next
+            # to a "rated" cue and covered an 80.0% sentiment nugget
+            # (4 == 80/20) no matter what percentage the report stated.
+            # Masking preserves offsets, so the spans above remain valid.
+            masked = _mask_numbers_in_spans(
+                candidate_text, _exact_subject_spans(candidate_text, n.subject))
             for s, en in spans:
-                win = candidate_text[max(0, s - BIND_WINDOW): en + BIND_WINDOW]
-                if _typed_value_in_window(win, n, alt_prices=alt):
+                w_end = en + BIND_WINDOW
+                win = masked[max(0, s - BIND_WINDOW): w_end]
+                if _typed_value_in_window(win, n, alt_prices=alt,
+                                          tail=masked[w_end: w_end + 16]):
                     hit = True
                     break
             if hit:

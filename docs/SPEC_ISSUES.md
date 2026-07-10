@@ -136,6 +136,22 @@
   完备性与逐 predicate 覆盖数与 by-construction plan **精确相等**（多一分=幻影记分、少一分=静默归零），
   字面 1.0 断言以 xfail 挂起（test_g1_oracle_completeness_literal_one）指回本条。
 
+G3 首跑抓获并已修复的实现 bug（实现与其自身声明语义不符，非语义变更；changelog v23-2026-07-10）：
+
+- [x] [G3车道] buyer_sentiment 窗口检查把**评论数**当评分：`_typed_value_in_window` 对窗口内任何
+  孤立数字按 rat 或 rat/20 匹配，而 "across N reviews" 的 N 恰在 "positive" 线索词 24 字符内，
+  凡 N == rating/20（60.0%/3rev、100.0%/5rev 等）错误百分比照样 covered——同函数注释明言
+  "The review COUNT is not the sentiment"。修复=数字后紧跟计数名词（reviews/ratings/reviewers/buyers）
+  即排除；±40 窗口切边把 "5 reviews" 截成 "5 rev" 导致守卫失明，守卫改读窗口外 16 字符尾巴
+  （只用于分类，只可能减分不可能加分）。
+- [x] [G3车道] 商品名身份数字被当评分值：完整书写的标题（"... iWatch SE Series 7 6 5 4 3 2 1"）
+  内的孤立 "4" 落在 "rated" 线索词 24 字符内，4 == 80/20 使 80.0% nugget 无论报告写什么百分比
+  都 covered。fact 轴对同类早有明文纪律（`_mask_numbers_in_spans`，"identity, not claims"），
+  completeness 现比照掩蔽 exact-name span 内数字后再取值。
+- 证据：G3 全量 100 题首跑 3 题（0030/0044/0100）腐蚀不降分；回归测试
+  tests/test_sentiment_window_fix.py 在旧代码上 3 红、修复后 7 绿（含正向对照与 /5 星级分支存活，
+  fixture 引商品/维基/论坛三源）。
+
 对既有条目的处置注记（不改原文）：
 
 - §2 "[R5][HANDOFF 手检衍生] fact 轴四位数纯数字价格被静默漏检"（转 G3）：按"先写重现再修"执行，

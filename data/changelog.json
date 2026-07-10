@@ -3,6 +3,36 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v23-2026-07-10",
+      "date": "2026-07-10",
+      "title": "Gate G3 catch: review counts and product-name digits can no longer stand in for a sentiment rating",
+      "summary": "The new perturbation gate (G3) found that a report stating a WRONG buyer-sentiment percentage stayed fully covered on 3/100 tasks. Two window-check defects fixed; scoring semantics unchanged, the checks now enforce what their own docstrings already declared.",
+      "tags": [
+        "scoring",
+        "completeness",
+        "gates"
+      ],
+      "sections": [
+        {
+          "heading": "What was wrong",
+          "bullets": [
+            "The buyer_sentiment window check credited ANY standalone number near a rating cue against rating or rating/20; the review count ('across 3 reviews') sits next to the 'positive' cue, so whenever count == rating/20 a wrong percentage kept the nugget covered.",
+            "Standalone digits inside a written-out product title ('iWatch SE Series 7 6 5 4 3 2 1') counted as rating values; the fact axis already masks exact-name digits ('identity, not claims'), completeness did not.",
+            "The +-40 window slice could cut '5 reviews' to '5 rev', hiding the count noun from any guard."
+          ]
+        },
+        {
+          "heading": "Fix + evidence",
+          "bullets": [
+            "Numbers immediately followed by a count noun (reviews/ratings/reviewers/buyers) are excluded from rating credit; the guard reads a 16-char tail past the window edge (classification only, can only remove credit).",
+            "Completeness now masks digits inside exact-subject-name spans before value extraction, mirroring the fact axis.",
+            "Regression tests red on the pre-fix scorer: tests/test_sentiment_window_fix.py (tasks 0030/0044/0100, tri-source fixtures, positive controls prove honest coverage intact).",
+            "Found and verified by scripts/run_gates.py (G1 oracle tops out / G2 shell zeroes / G3 perturbation must lose) over all 100 answer keys."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v22-2026-07-09",
       "date": "2026-07-09",
       "title": "A rescue that turned drift into grounding, an unreachable ceiling, and a rerun scored against the attempt that died",

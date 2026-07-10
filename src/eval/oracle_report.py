@@ -45,7 +45,6 @@ from src.eval.decidable_scorer import (
     norm,
     strip_html,
     _page_identity,
-    _tokens,
 )
 
 _SENTIMENT_OBJECT_RE = re.compile(r"([\d.]+)%/(\d+)rev")
