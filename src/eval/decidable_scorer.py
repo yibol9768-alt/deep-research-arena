@@ -1963,16 +1963,23 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
                        generic: set | None = None, cache: dict | None = None,
                        page_stats: dict | None = None, registry=None,
                        evidence=None) -> tuple[float, dict]:
-    """axis 3: SATURATING recall over the ranked vital pool (T1/T2/M-H1/H2).
+    """axis 3: vital-fact recall over the ranked vital pool (T1/T2/M-H1/H2).
 
-    completeness = min(covered_vital / K_star, 1). K_star defaults to 20,
-    following SAFE's saturating recall R_K = min(S/K, 1) and DRBench's
-    k = |gold| + 5, both of which cap the credited gold set at a small
-    vital-insight budget instead of demanding a census of the catalog: a
-    focused shortlist that nails every vital fact the task offers scores 1.0, and dumping 40
-    catalog rows no longer beats it (T1). This is the ONLY completeness
-    implementation in the codebase: the checklist verifier and the composition
-    must both call it (T2), so the number displayed is the number scored.
+    completeness = covered_vital / min(K_star, |pool|). SATURATION IS THE DESIGN
+    INTENT (SAFE's R_K = min(S/K, 1), DRBench's k = |gold| + 5: credit any K_star
+    of a larger pool), but it never fires at the pool sizes these tasks actually
+    have. Each per-task vital pool holds ~14-17 nuggets, all below K_star=20, so
+    the denominator collapses to |pool| and the axis is in practice a CENSUS:
+    covering EVERY vital fact the task offers (all 14-17, per task) is what
+    scores 1.0 (ruling #5). K_star is retained ONLY as an upper cap on the
+    denominator; it does not bind at current pool sizes and can be lowered later
+    to restore real saturation without changing today's numbers. Because the
+    denominator floats with the task, one vital fact is worth 1/|pool| (1/14 to
+    1/17), not a fixed 1/K_star. A focused shortlist that nails every vital fact
+    still scores 1.0 and dumping 40 catalog rows still cannot beat it (T1). This
+    is the ONLY completeness implementation in the codebase: the checklist
+    verifier and the composition must both call it (T2), so the number displayed
+    is the number scored.
 
     A vital fact counts as covered only if the report discusses its subject
     (distinctive identity tokens) AND the typed value appears within the

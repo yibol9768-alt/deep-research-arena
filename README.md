@@ -166,7 +166,7 @@ truth   = reach^γ · quality          # γ = 1.5 by default
 | `reach` | Fraction of cited URLs that are in-corpus / reachable in the closed world | Anti-fabrication **gate**. Unfloored: `reach = 0` ⇒ `truth = 0`. |
 | `fact` | Structured claims checked against DB / answer-key truth | "Wrong claim" failure mode |
 | `PoF` | Proof-of-fetch / quote support against page text (default `text_v1`) | "Unread citation" failure mode; see caveats below |
-| `completeness` | Saturating recall over a ranked vital pool from the answer key | "Missing coverage" failure mode |
+| `completeness` | Vital-fact recall over the ranked vital pool from the answer key. Denominator is `min(K*, \|pool\|)`; because each task's vital pool holds ~14-17 nuggets (below `K*=20`), this is in practice a **census** — covering *every* vital fact the task offers scores 1.0. `K*` is retained only as an upper cap and does not bind at current pool sizes. | "Missing coverage" failure mode |
 | `spec` | Output-shape / format checks | **Compliance column only.** Never multiplied into truth. |
 
 Design constraints (enforced in code + tests):

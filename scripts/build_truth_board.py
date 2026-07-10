@@ -1739,15 +1739,20 @@ def main() -> int:
                 "and claims_tested to distinguish silence from wrong claims. "
                 "NOT report-level correctness."),
             "completeness": (
-                f"SATURATING vital-fact recall over min(K*={ds.K_STAR_DEFAULT}, "
-                f"|ranked structured/concept pool + forum slot|). Every structured "
+                f"vital-fact recall over min(K*={ds.K_STAR_DEFAULT}, "
+                f"|ranked structured/concept pool + forum slot|). Saturation is "
+                "the design intent but does not fire: each task's vital pool "
+                "holds ~14-17 nuggets (below K*), so the denominator is |pool| "
+                "and the axis is in practice a CENSUS -- covering EVERY vital "
+                "fact the task offers scores 1.0 (ruling #5); K* is only an upper "
+                "cap and does not bind at current pool sizes. Every structured "
                 "nugget requires its source citation on the same Markdown line "
                 "as the subject/value and, when transport is "
                 "available, a fetch of that source page. A declared community "
                 "requirement adds one virtual slot covered only by a fetched, "
-                "quoted, task-relevant allowed-forum thread. Covering the effective "
-                "pool scores 1.0; detached source dumps, unrelated catalog rows, "
-                "or URL shells do not. NOT uncapped exhaustiveness."),
+                "quoted, task-relevant allowed-forum thread. Detached source "
+                "dumps, unrelated catalog rows, or URL shells do not count. NOT "
+                "uncapped exhaustiveness."),
             "spec": (
                 "output-shape compliance (format checks). Separate column, NOT in "
                 "truth. Row-level compliance is the all-task-replicate zero-padded mean; "

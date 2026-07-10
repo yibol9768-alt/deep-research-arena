@@ -69,7 +69,13 @@ or contradict Wikipedia backing, rank brands by forum sentiment, etc.).
   ground truth for grounding scoring. Keys: `task_id`, `generated_at`,
   `must_cite_urls` (the facts a strong report should cite), `expected_pool_urls`
   (the broader reachable pool, ~700-800 URLs), `triples` (subject-relation-object
-  facts), and `metadata`.
+  facts), and `metadata`. The ranked `triples` become the per-task **vital
+  pool** that the `completeness` axis scores against. Each pool holds ~14-17
+  vital nuggets, all below the `K*=20` saturation cap, so the axis is in
+  practice a **census**: covering every vital fact a task offers is what scores
+  `completeness = 1.0`, and the marginal value of one nugget floats per task at
+  `1/|pool|` (1/14 to 1/17). `K*` is retained only as an upper cap on the
+  denominator and does not bind at current pool sizes.
 - **Curated golden** (`data/golden/deep_clean/`): a cleaned, smaller-must-cite
   subset (49 of the 100 tasks at snapshot). The original whole-crawl
   `must_cite_urls` (often ~120 URLs/task) was structurally unreachable as a
