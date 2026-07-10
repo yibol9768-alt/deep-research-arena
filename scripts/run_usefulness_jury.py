@@ -61,6 +61,46 @@ try:
 except Exception:
     _is_stub_shared = None
 
+try:
+    from src.eval.report_stubs import classify_report as _classify_report_shared
+except Exception:
+    _classify_report_shared = None
+
+# Ruling #10 (docs/SPEC_DECISIONS.md): a walkover is attributed. A stub whose
+# text is a runner-emitted FAILURE placeholder (timeout / crash / framework
+# exception -- the framework did not deliver) is an INFRA debt: it is kept out
+# of the Bradley-Terry fit and counted as a delivery debt, never folded into
+# "humans dislike it". A genuinely near-empty answer the runner returned on a
+# HEALTHY run (too_short / missing) is a real non-delivery and records a loss.
+# The three placeholder classes below are the infra set; classify_report is the
+# single source of truth (src/eval/report_stubs.py).
+_INFRA_STUB_CLASSES = frozenset(
+    {"stub_timeout", "stub_runner_failure", "stub_exception"})
+
+
+def _is_infra_stub(text) -> bool:
+    """True when a stub report is a runner-emitted failure placeholder
+    (timeout/watchdog/harness error), i.e. the framework itself did not deliver.
+    A too_short / empty answer returns False: that is a healthy-run empty
+    delivery, which records a loss (ruling #10)."""
+    if _classify_report_shared is not None:
+        try:
+            return _classify_report_shared(text) in _INFRA_STUB_CLASSES
+        except Exception:
+            pass
+    # Fallback mirrors report_stubs' placeholder prefixes: a single parenthesized
+    # runner message carrying a failure marker is infra; bare short text is not.
+    s = (text or "").strip()
+    if not s:
+        return False
+    import re
+    if re.match(r"^\(\s*[A-Za-z][^\n]*"
+                r"(produced no report|timeout|error|stderr|exit\s*=)"
+                r"[^\n]*\)\Z", s, re.IGNORECASE):
+        return True
+    return False
+
+
 _FALLBACK_STUB_HEAD_RE = None
 
 
@@ -632,8 +672,20 @@ def walkover_record(
     *, backbone: str, task_id: str, a: str, b: str, order: str, judge: str,
     report_a: str, report_b: str, word_budget: int,
 ) -> dict:
-    """Deterministic outcome when one or both lanes did not deliver a report."""
+    """Deterministic outcome when one or both lanes did not deliver a report.
+
+    Ruling #10 (docs/SPEC_DECISIONS.md): the walkover is ATTRIBUTED. When a stub
+    side is a runner-emitted failure placeholder (timeout/crash/framework
+    exception), the battle is an INFRA debt -- fit_from_bank keeps it OUT of the
+    Bradley-Terry fit and counts it as a delivery debt, so a watchdog kill never
+    becomes "humans dislike it". A genuinely near-empty healthy delivery
+    (too_short / missing) is a real non-delivery and enters BT as a loss. The
+    deterministic winner is still computed (it decides the loss direction for the
+    healthy case and the delivery direction for the infra case)."""
     stub_a, stub_b = is_stub_report(report_a), is_stub_report(report_b)
+    infra_a = stub_a and _is_infra_stub(report_a)
+    infra_b = stub_b and _is_infra_stub(report_b)
+    walkover_infra = bool(infra_a or infra_b)
     if stub_a == stub_b:
         winner_agent = "tie"
     else:
@@ -653,6 +705,16 @@ def walkover_record(
             "both_missing_or_stub" if stub_a and stub_b else
             (f"{a}_missing_or_stub" if stub_a else f"{b}_missing_or_stub")
         ),
+        # Ruling #10 attribution fields (read by fit_from_bank):
+        #   stub_*   : did this side fail to deliver a real report?
+        #   infra_*  : was that failure a runner/infra placeholder (vs a healthy
+        #              empty delivery)?
+        #   walkover_infra : any infra side -> excluded from BT, counted as debt.
+        #   walkover_class : machine-readable disposition.
+        "stub_a": bool(stub_a), "stub_b": bool(stub_b),
+        "infra_a": bool(infra_a), "infra_b": bool(infra_b),
+        "walkover_infra": walkover_infra,
+        "walkover_class": "infra_debt" if walkover_infra else "healthy_empty",
         "q1": winner_pos, "q2": winner_pos, "q3": winner_pos, "q4": winner_pos,
         "winner": winner_pos, "usage": {"prompt": 0, "completion": 0},
         "error": None, "same_family": False,
@@ -751,6 +813,14 @@ def fit_from_bank(
         n_clean = 0
         n_total_items = len(items)
         n_superseded_generations = len(items_all) - len(items)
+        # Ruling #10 delivery accounting (separate from BT). n_faced counts every
+        # item an agent was in; n_delivered counts items where it produced a real
+        # (non-stub) report; n_infra_debt counts infra-debt walkovers where it
+        # was the failing side (kept OUT of BT below).
+        n_faced = defaultdict(int)
+        n_delivered = defaultdict(int)
+        n_infra_debt = defaultdict(int)
+        n_infra_debt_items = 0
         cats = ["A", "B", "tie"]
         for (task, a, b, order), votes in items.items():
             if order == "ab":
@@ -772,16 +842,43 @@ def fit_from_bank(
             else:
                 winner_pos = "tie"
             winner_agent = pos_agent.get(winner_pos, "tie") if winner_pos != "tie" else "tie"
-            battles.append({"agent_a": a, "agent_b": b, "winner": winner_agent})
-            # Walkover status is a property of THIS generation's report pair;
-            # an old generation's walkover must not taint the fresh item.
+            # Walkover status and its attribution are properties of THIS
+            # generation's report pair; an old generation's walkover must not
+            # taint the fresh item (ruling #10 fields carried by walkover_record).
             chosen_gen = latest_gen[(task, a, b, order)]
-            is_walkover = any(
-                bool(r.get("walkover"))
-                for r in brecs
+            gen_recs = [
+                r for r in brecs
                 if (r["task"], r["a"], r["b"], r["order"],
                     r.get("report_sha_a"), r.get("report_sha_b")) == chosen_gen
-            )
+            ]
+            wo_rec = next((r for r in gen_recs if r.get("walkover")), None)
+            is_walkover = wo_rec is not None
+            is_infra_debt = bool(wo_rec and wo_rec.get("walkover_infra"))
+            # Delivery accounting runs for EVERY item, in or out of BT.
+            n_faced[a] += 1
+            n_faced[b] += 1
+            if wo_rec is not None:
+                if not wo_rec.get("stub_a"):
+                    n_delivered[a] += 1
+                if not wo_rec.get("stub_b"):
+                    n_delivered[b] += 1
+            else:
+                n_delivered[a] += 1
+                n_delivered[b] += 1
+            if is_infra_debt:
+                # Ruling #10: a framework failure (timeout/watchdog/harness
+                # error) is NOT folded into the Bradley-Terry fit -- it is a
+                # delivery debt, surfaced separately. The real opponent is not
+                # credited a BT win it never earned against a real report.
+                n_infra_debt_items += 1
+                if wo_rec.get("infra_a"):
+                    n_infra_debt[a] += 1
+                if wo_rec.get("infra_b"):
+                    n_infra_debt[b] += 1
+                continue
+            # Healthy-empty walkovers and judged battles enter BT. A genuinely
+            # empty healthy delivery records a real loss.
+            battles.append({"agent_a": a, "agent_b": b, "winner": winner_agent})
             if judges and set(votes) == set(judges) and not is_walkover:
                 n_clean += 1
                 row = [0, 0, 0]
@@ -821,6 +918,7 @@ def fit_from_bank(
             else:
                 winrate_vs_avg = 0.5
             n_b = n_battle_count[ag]
+            faced = n_faced[ag]
             agent_rows[ag] = {
                 "bt_elo": round(elo.get(ag, 1000.0), 1),
                 "winrate_vs_avg_opponent": round(winrate_vs_avg, 4),
@@ -829,6 +927,14 @@ def fit_from_bank(
                 "n_losses": n_loss[ag],
                 "n_ties": n_tie[ag],
                 "tie_rate": round(n_tie[ag] / n_b, 4) if n_b else None,
+                # Ruling #10 delivery column (separate from BT strength): how
+                # often this agent produced a real report vs how often it was in
+                # the matrix, and how many of its no-shows were framework/infra
+                # failures excluded from the fit as delivery debt.
+                "n_faced": faced,
+                "n_delivered": n_delivered[ag],
+                "delivery_rate": round(n_delivered[ag] / faced, 4) if faced else None,
+                "n_infra_debt": n_infra_debt[ag],
             }
 
         kappa = _fleiss_kappa(fleiss_rows) if fleiss_rows else None
@@ -841,6 +947,10 @@ def fit_from_bank(
             # non-zero means the bank holds re-staged pairings and this fit used
             # only the newest of each (machine-readable, never silent).
             "n_superseded_generations": n_superseded_generations,
+            # Ruling #10: infra-debt walkovers (framework failures) kept OUT of
+            # the Bradley-Terry fit and reported here + per agent (n_infra_debt).
+            "n_infra_debt_walkovers": n_infra_debt_items,
+            "n_battles_in_fit": len(battles),
             "fleiss_kappa": round(kappa, 4) if kappa is not None else None,
             "agents": agent_rows,
         }
