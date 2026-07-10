@@ -3,6 +3,62 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v24-2026-07-10",
+      "date": "2026-07-10",
+      "title": "Maintainer rulings on the frozen semantic forks: scorer and jury updates",
+      "summary": "The twelve frozen semantic forks in docs/SPEC_ISSUES.md were adjudicated (docs/SPEC_DECISIONS.md). This entry logs the scorer- and jury-side changes: snippet-only lanes stop being charged a fetch they cannot make, off-topic-but-correct facts no longer inflate precision, jury walkovers separate framework failure from real non-delivery, and a diagnostic completeness mode withholds cache-blind slots instead of zeroing them.",
+      "tags": [
+        "scoring",
+        "fairness",
+        "grounding",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "Snippet-only lanes are exempt from the completeness fetch requirement (ruling #1)",
+          "bullets": [
+            "A lane that declares fetch_mode:none in config/lane_protocol.yaml (storm, langchain-odr, co-storm read no pages by architecture) no longer needs its concept/forum source page in fetched_ok to earn completeness. Coverage falls back to the same cache-quote criterion the L3 off-shim/damaged fallback already uses; grounding is still metered separately by proof-of-fetch and reach.",
+            "The exemption is driven by the lane's own protocol declaration (build_truth_board reads fetch_mode and passes it to the scorer), not a hard-coded lane list. Without the exemption the board was effectively ranking 'has a page-read tool' on the 0.33-weight completeness axis, contradicting how pof already treats snippet_only citations honestly."
+          ]
+        },
+        {
+          "heading": "Off-topic-but-correct facts no longer inflate fact precision (ruling #3)",
+          "bullets": [
+            "A correct fact about a catalog product OUTSIDE the task-ranked scope is now moved out of the fact axis's tested set entirely: it neither buys recall (it never did) nor dilutes precision. Previously a report could water down a wrong in-scope price with many easy, correct off-topic prices and keep a high precision.",
+            "Out-of-scope ERRORS still count as contradictions -- fabricated evidence stays fabricated. The out-of-scope correct count remains in the fact detail (supported_out_of_scope) for observability. Regression tests are red on the pre-ruling scorer."
+          ]
+        },
+        {
+          "heading": "The usefulness jury attributes walkovers: framework failure is a delivery debt, not a loss (ruling #10)",
+          "bullets": [
+            "When a lane sits out a battle because the runner itself failed (timeout, crash, framework exception -- a runner-emitted stub placeholder), that battle is now kept OUT of the Bradley-Terry fit and counted as a delivery debt instead. A watchdog kill can no longer be folded into 'humans disliked it', and the opponent earns no phantom BT win against a report that never ran.",
+            "A genuinely empty answer returned on a HEALTHY run (a real but near-empty delivery) still records a loss -- non-delivery is the agent's own result there, not an instrument artifact. The fit now publishes per-agent delivery columns (n_faced, n_delivered, delivery_rate, n_infra_debt) and a top-level n_infra_debt_walkovers, matching the truth board's infra/rerun separation."
+          ]
+        },
+        {
+          "heading": "A diagnostic completeness mode withholds cache-blind slots instead of zeroing them (ruling #2, scorer side)",
+          "bullets": [
+            "score_completeness gains a cache_policy parameter. 'strict' (the default) is unchanged: a concept whose source page was never cached, and the forum slot, stay in the denominator. 'diagnostic' withholds those instrument-blind slots from k_effective (withhold-not-zero) and reports the count, so a diagnostic run can still be scored without a blind slot dragging completeness down as if the agent missed it.",
+            "The forum slot is withheld only when the cache holds NO candidate thread page for the task's allowed forums; when a candidate IS cached but the report cited none, that 0 is a real miss and stays counted. The formal board's fail-closed refusal (no cache => refuse to rank) is a separate board-side control; this is only the scorer interface. Regression tests are red on the pre-ruling scorer."
+          ]
+        },
+        {
+          "heading": "Short-topic concepts ('Tea') are no longer structurally uncoverable (short-topic deadlock fix)",
+          "bullets": [
+            "A concept whose whole subject is a short common word (a single 3-char token like 'Tea') used to score 0 on completeness for EVERY report, including a perfect oracle that quotes and cites the page: the discussability check required a strong identity token (>=4 chars or a digit) that such a subject never has. This was an implementation bug, not the intended semantics.",
+            "All-short-token subjects now fall back to word-boundary exact matching, which is stricter than the old substring test (so 'tea' can no longer hide inside 'team') while crediting a genuinely discussed short concept. The oracle generator's ceiling predicate was updated in lockstep, so the G1 ceiling equality still holds. 11 concept slots across 10 tasks were freed."
+          ]
+        },
+        {
+          "heading": "The oracle now reaches literal completeness 1.0 on 99/100 tasks (G1)",
+          "bullets": [
+            "With the diagnostic cache_policy withholding the cache-blind forum slot and the short-topic fix crediting short concepts, the mechanically generated oracle report reaches literal completeness == 1.0 on 99 of 100 tasks. A new green G1 gate pins that the only tasks short of 1.0 are exactly those carrying a title-only stub concept page, and by the exact residual.",
+            "The sole remaining task (dr_cross_deep_0038, 'Input lag') has a concept page that IS cached but whose whole body is shorter than the 400-char grounding window, so no report can quote it. That is a page-cache fixture defect to be excised at key-construction time (build_answer_keys), not a scorer change; GOAL_GATES_V1's literal-1.0-for-every-task assertion stays a documented xfail until then, red by exactly that one slot."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v23-2026-07-10",
       "date": "2026-07-10",
       "title": "Seven goal gates go live: every zero explains itself, a withhold is never a zero, and every protocol deviation is disclosed",

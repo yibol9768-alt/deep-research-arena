@@ -86,7 +86,10 @@ def test_board_load_panel_splits_stamp_and_flags_unstamped(tmp_path):
     assert btb.load_panel(None) == ({}, None)
 
 
-def test_missing_report_is_a_loss_not_a_sit_out(tmp_path):
+def test_missing_report_is_a_healthy_empty_loss_not_a_sit_out(tmp_path):
+    """Ruling #10: a MISSING/empty report is a healthy-run empty delivery, so it
+    still records a loss (enters BT). Only a runner FAILURE placeholder becomes
+    an infra debt (next test)."""
     bb = tmp_path / "bb"
     (bb / "a").mkdir(parents=True)
     (bb / "b").mkdir(parents=True)
@@ -107,3 +110,76 @@ def test_missing_report_is_a_loss_not_a_sit_out(tmp_path):
     winner_agent = item["a"] if rec["winner"] == ("A" if item["order"] == "ab" else "B") else item["b"]
     assert winner_agent == "a"
     assert rec["walkover"] is True
+    # empty delivery is NOT an infra failure: it stays a loss inside BT.
+    assert rec["walkover_infra"] is False
+    assert rec["walkover_class"] == "healthy_empty"
+
+
+def test_infra_stub_walkover_is_attributed_as_debt(tmp_path):
+    """Ruling #10: a runner-failure placeholder (timeout / crash / framework
+    exception) is classified an infra debt on the walkover record. Red on old
+    code, which had no attribution fields."""
+    rec = jury.walkover_record(
+        backbone="bb", task_id="t1", a="a", b="b", order="ab", judge="j",
+        report_a="(DeerFlow produced no report after 1256s, exit=1)",
+        report_b="# Real report\n" + "useful " * 200,
+        word_budget=100,
+    )
+    assert rec["walkover_infra"] is True
+    assert rec["walkover_class"] == "infra_debt"
+    assert rec["infra_a"] is True and rec["infra_b"] is False
+    assert rec["stub_a"] is True and rec["stub_b"] is False
+
+
+def _walkover_recs(**kw):
+    """Three per-judge copies of one walkover record (walkovers are dispatched
+    once per judge, all identical)."""
+    return [jury.walkover_record(judge=f"j{i}", **kw) for i in range(3)]
+
+
+def _judged_recs(task, a, b, order, winner):
+    return [{
+        "protocol": jury.PROTOCOL, "rubric_hash": jury.rubric_hash(),
+        "word_budget": jury.DEFAULT_WORD_BUDGET, "backbone": "bb",
+        "task": task, "a": a, "b": b, "order": order,
+        "judge": f"j{i}", "winner": winner, "error": None,
+        "report_sha_a": "sa", "report_sha_b": "sb", "walkover": False,
+    } for i in range(3)]
+
+
+def test_infra_debt_walkover_excluded_from_bt_but_healthy_empty_is_a_loss():
+    """Ruling #10 end to end. Two agents fail to deliver against real reports:
+    `a` with a framework crash (infra debt -> OUT of BT, counted as debt), `c`
+    with an empty answer (healthy empty -> a real BT loss). Red on old code,
+    which folded both into the fit and never surfaced n_infra_debt."""
+    real = "# Real report\n" + "useful " * 200
+    recs = []
+    # t1: infra crash by `a` vs real `b`  -> infra debt, excluded from BT
+    recs += _walkover_recs(backbone="bb", task_id="t1", a="a", b="b", order="ab",
+                           report_a="(qx-agents error: ValidationError: boom)",
+                           report_b=real, word_budget=jury.DEFAULT_WORD_BUDGET)
+    # t2: empty delivery by `c` vs real `b` -> healthy empty, a real BT loss
+    recs += _walkover_recs(backbone="bb", task_id="t2", a="b", b="c", order="ab",
+                           report_a=real, report_b="",
+                           word_budget=jury.DEFAULT_WORD_BUDGET)
+    # t3: a real judged battle so BT has ordinary content (position "A" = b wins)
+    recs += _judged_recs("t3", "b", "c", "ab", "A")
+
+    fit = jury.fit_from_bank(recs, backbone="bb", judges=["j0", "j1", "j2"])
+
+    assert fit["n_infra_debt_walkovers"] == 1
+    ag = fit["agents"]
+    # `a` only ever appeared in the infra-debt walkover: NOT in BT at all,
+    # counted purely as a delivery debt.
+    assert ag["a"]["n_battles"] == 0
+    assert ag["a"]["n_losses"] == 0
+    assert ag["a"]["n_infra_debt"] == 1
+    assert ag["a"]["n_delivered"] == 0
+    assert ag["a"]["delivery_rate"] == 0.0
+    # `c` delivered nothing on t2 but that healthy-empty walkover IS a BT loss.
+    assert ag["c"]["n_infra_debt"] == 0
+    assert ag["c"]["n_losses"] >= 1
+    # `b` faced the crash (t1) and delivered; it earns no phantom BT win for the
+    # opponent's framework failure -- t1 is not in its battle count.
+    assert ag["b"]["n_infra_debt"] == 0
+    assert ag["b"]["delivery_rate"] == 1.0

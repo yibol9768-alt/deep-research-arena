@@ -320,6 +320,78 @@ def test_concept_withheld_detail_reaches_score_report_output():
 
 
 # ===========================================================================
+# Ruling #2 (docs/SPEC_DECISIONS.md): diagnostic cache_policy withholds the
+# cache-blind concept/forum slots from k_effective (strict is unchanged).
+# ===========================================================================
+
+# The cache holds the concept page but NO forum thread candidate for this task.
+CACHE_NO_FORUM = {
+    WIKI: {"status": 200, "text": WIKI_PAGE},
+}
+
+
+def test_strict_default_keeps_blind_slots_in_the_denominator():
+    """Default cache_policy='strict' is unchanged: the uncached concept stays in
+    the denominator and drags completeness down (observability only)."""
+    score, det = ds.score_completeness(REPORT, three_source_key(), k_star=3,
+                                       cache=CACHE_NO_WIKI, registry=REG)
+    assert det["cache_policy"] == "strict"
+    assert det["withheld_slots"] == 0
+    assert det["k_effective"] == 3
+    assert det["covered"] == 2  # product + forum
+    assert score == pytest.approx(2 / 3)
+
+
+def test_diagnostic_withholds_uncached_concept_from_denominator():
+    """Ruling #2: the SAME uncached concept is WITHHELD from k_effective in
+    diagnostic mode, so the two earned slots fill a denominator of two. Red on
+    old code (no cache_policy parameter; the concept always sat in the denom)."""
+    score, det = ds.score_completeness(REPORT, three_source_key(), k_star=3,
+                                       cache=CACHE_NO_WIKI, registry=REG,
+                                       cache_policy="diagnostic")
+    assert det["cache_policy"] == "diagnostic"
+    assert det["concept_axis_withheld"] is True
+    assert det["withheld_slots"] == 1
+    assert det["k_effective"] == 2          # concept slot removed
+    assert det["covered"] == 2              # product + forum
+    assert score == 1.0
+
+
+def test_diagnostic_withholds_forum_slot_when_no_thread_candidate_cached():
+    """Ruling #2 + forum-slot blind rule: when the cache holds no candidate
+    thread page for the task's allowed forums, the forum slot is withheld from
+    the denominator in diagnostic mode. The concept (cached) still earns."""
+    score, det = ds.score_completeness(REPORT, three_source_key(), k_star=3,
+                                       cache=CACHE_NO_FORUM, registry=REG,
+                                       cache_policy="diagnostic")
+    assert det["forum_slot_withheld"] is True
+    assert det["forum_axis_withheld_reason"] == \
+        WithholdReason.FORUM_THREAD_NOT_CACHED.value
+    assert det["withheld_slots"] == 1
+    assert det["k_effective"] == 2          # forum slot removed
+    assert det["covered"] == 2              # product + concept
+    assert score == 1.0
+
+
+def test_diagnostic_does_not_withhold_a_real_forum_miss():
+    """Guard against over-withhold: when a candidate thread IS cached but the
+    report never cited a qualifying one, that 0 is a REAL miss and the forum slot
+    stays in the denominator even in diagnostic mode."""
+    report = (  # cites the product + concept, ignores the forum entirely
+        f"The Sony WH-1000 sells for $278.00 [spec]({PRODUCT}).\n\n"
+        f"{WIKI_PAGE} [background]({WIKI})"
+    )
+    score, det = ds.score_completeness(report, three_source_key(), k_star=3,
+                                       cache=CACHE_FULL, registry=REG,
+                                       cache_policy="diagnostic")
+    assert det["forum_slot_withheld"] is False   # a candidate WAS cached
+    assert det["withheld_slots"] == 0
+    assert det["k_effective"] == 3
+    assert det["covered"] == 2                    # product + concept, forum missed
+    assert score == pytest.approx(2 / 3)
+
+
+# ===========================================================================
 # Path 3: damaged log / records lost to _unattributed.jsonl
 # ===========================================================================
 

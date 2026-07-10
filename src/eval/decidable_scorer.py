@@ -242,6 +242,10 @@ class WithholdReason(str, Enum):
     # completeness concept axis -- the evaluator holds no cached copy of the
     # concept's source page, so a quote cannot be verified either way.
     CONCEPT_PAGE_NOT_CACHED = "concept_page_not_cached"
+    # completeness forum slot (diagnostic cache_policy, ruling #2) -- the cache
+    # holds no candidate thread page for this task's allowed forums, so the slot
+    # is blind for an instrument reason rather than an earned miss.
+    FORUM_THREAD_NOT_CACHED = "forum_thread_not_cached"
     # anything the classifier does not recognise. test_gate_withhold locks every
     # LIVE withhold path to a non-UNKNOWN code, so this can only appear when a new
     # reason string is added without a matching code -- a loud, testable failure.
@@ -294,6 +298,8 @@ def withhold_reason_code(reason: str | None) -> WithholdReason:
         return WithholdReason.LOG_INCOMPLETE_UNATTRIBUTED
     if "empty evidence" in r:
         return WithholdReason.EMPTY_EVIDENCE_LOG
+    if "forum" in r and "cache" in r:
+        return WithholdReason.FORUM_THREAD_NOT_CACHED
     if "concept" in r and "cache" in r:
         return WithholdReason.CONCEPT_PAGE_NOT_CACHED
     if "no evidence log" in r:
@@ -514,14 +520,29 @@ def _subject_discussed(text: str, subj_tokens: list[str]) -> bool:
     present: a majority of identity tokens (capped at what the key actually
     has, so single-token subjects such as short forum-thread titles remain
     matchable), at least one of which is strong (>=4 chars, or a model-number
-    style token containing a digit)."""
+    style token containing a digit).
+
+    Ruling #5 (docs/SPEC_DECISIONS.md lane addendum, short-topic concept
+    deadlock): a subject whose EVERY token is short ("Tea", a single 3-char
+    word) has no strong token, so the strong-token rule deadlocked it to "not
+    discussed" for every report -- including the oracle -- an implementation bug,
+    not the spec's intent. For an all-short-token subject the discussability test
+    falls back to WORD-BOUNDARY exact matching of the identity tokens (stricter
+    than the substring `in` test above, so "tea" no longer hides inside "team"):
+    a genuinely discussed short concept is credited, a laundering substring
+    collision is not."""
     if not subj_tokens:
         return False
     present = [t for t in subj_tokens if t in text]
     need = min(len(subj_tokens), max(2, (len(subj_tokens) + 1) // 2))
     if len(present) < need:
         return False
-    return any(len(t) >= 4 or any(c.isdigit() for c in t) for t in present)
+    if any(len(t) >= 4 or any(c.isdigit() for c in t) for t in present):
+        return True
+    # All-short-token subject: no strong token exists. Require word-boundary
+    # matches (exact short phrases) for at least `need` of the identity tokens.
+    return sum(1 for t in subj_tokens
+               if _word_token_pattern(t).search(text)) >= need
 
 
 @_functools.lru_cache(maxsize=None)
@@ -1496,19 +1517,33 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
             seen_claims.add(claim_id)
             ok = (_price_close(value, targets) if predicate == "price"
                   else any(abs(value - t) <= RATING_TOL for t in targets))
+            in_scope = idx in creditable_ids
+            if ok and not in_scope:
+                # Ruling #3 (docs/SPEC_DECISIONS.md): a CORRECT fact about a
+                # product OUTSIDE the task-ranked scope is moved out of `tested`
+                # entirely -- it neither buys precision (numerator) nor dilutes
+                # it (denominator). Crediting off-topic correct catalog rows let
+                # a report water down a low precision with easy true facts while
+                # a sparse but fully-correct in-scope report lost. An
+                # out-of-scope ERROR still counts as a contradiction (fabricated
+                # evidence stays fabricated); only the correct off-scope claim is
+                # withdrawn. Kept observable via supported_out_of_scope.
+                supported_out_of_scope += 1
+                per.append((entities[idx]["name"][:36], predicate, raw_value,
+                            sorted(targets), "OK-oos"))
+                return
             support += bool(ok)
             contra += not ok
             if ok:
-                # Recall is over gold FACT identities, not numeric phrasings.
-                # Otherwise one product priced at 1769 could be repeated as
-                # ten slightly different values inside the 1% tolerance and
-                # single-handedly fill K_f.
-                if idx in creditable_ids and idx in claim_cited_ids:
+                # in_scope is guaranteed here (out-of-scope correct returned
+                # above). Recall is over gold FACT identities, not numeric
+                # phrasings: otherwise one product priced at 1769 could be
+                # repeated as ten slightly different values inside the 1%
+                # tolerance and single-handedly fill K_f.
+                if idx in claim_cited_ids:
                     supported_fact_ids.add((idx, predicate))
-                elif idx in creditable_ids:
-                    supported_uncited += 1
                 else:
-                    supported_out_of_scope += 1
+                    supported_uncited += 1
             per.append((entities[idx]["name"][:36], predicate, raw_value,
                         sorted(targets), "OK" if ok else "X"))
 
@@ -1839,6 +1874,20 @@ def _concept_quote_supported(md: str, source_url: str, cache: dict,
     return supported, True
 
 
+def _fetch_mode_none(lane_fetch_mode) -> bool:
+    """Ruling #1 (docs/SPEC_DECISIONS.md): a lane that DECLARES it reads no pages
+    (`config/lane_protocol.yaml` `fetch_mode: none`, e.g. storm / langchain-odr /
+    co-storm) is exempted from completeness's fetch requirement. Its facts are
+    legitimately obtained from search snippets, its pof is already 0-honest and
+    grounding is metered separately by pof/reach; charging completeness a fetch it
+    cannot make by architecture would rank "has a page-read tool", not the answer.
+    The exemption reuses the L3 fallback (see `_transport_fetch_usable`): the fetch
+    requirement drops and coverage falls back to the cache-quote criterion, exactly
+    as an off-shim/damaged run does. `None` means "lane not declared" (default), a
+    distinct value from the string `"none"`."""
+    return str(lane_fetch_mode) == "none"
+
+
 def _transport_fetch_usable(evidence) -> bool:
     """Is the run's transport evidence usable to DECIDE whether a page was
     fetched?
@@ -1873,7 +1922,8 @@ def _transport_fetch_usable(evidence) -> bool:
 
 def _forum_coverage_supported(md: str, answer_key, cache: dict,
                               page_stats: dict | None = None,
-                              registry=None, evidence=None) -> tuple[bool, str | None]:
+                              registry=None, evidence=None,
+                              snippet_only: bool = False) -> tuple[bool, str | None]:
     """Accept one fetched, quoted and task-relevant forum thread.
 
     The answer key declares allowed forums plus conservative domain/query terms
@@ -1899,8 +1949,9 @@ def _forum_coverage_supported(md: str, answer_key, cache: dict,
     # Gate on transport USABILITY, not merely a well-bracketed log: an off-shim
     # or damaged run has an empty/short fetched_ok for an instrument reason, and
     # requiring the thread there would withhold-then-zero it (see
-    # _transport_fetch_usable / G4).
-    require_fetch = _transport_fetch_usable(evidence)
+    # _transport_fetch_usable / G4). A lane that declares fetch_mode:none reads no
+    # pages by architecture, so it is exempted too (ruling #1 / _fetch_mode_none).
+    require_fetch = _transport_fetch_usable(evidence) and not snippet_only
     fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
                if require_fetch else set())
 
@@ -1958,11 +2009,72 @@ def _forum_coverage_supported(md: str, answer_key, cache: dict,
     return False, None
 
 
+def _forum_candidate_cached(answer_key, cache: dict, registry=None) -> bool:
+    """Diagnostic-mode blind test for the forum slot (docs/SPEC_DECISIONS.md lane
+    addendum, forum-slot blind rule): True when the page cache holds at least one
+    task-relevant CANDIDATE thread page -- a status-200 forum content page in an
+    allowed forum whose text carries the task terms.
+
+    When False, no report could have covered the forum slot for an INSTRUMENT
+    reason (no candidate is cached), so a diagnostic build WITHHOLDS the slot from
+    the denominator instead of scoring it 0. When True but the report cited no
+    qualifying thread, the slot is a REAL miss (stays in the denominator, scores
+    0). Mirrors the candidate + relevance predicate of _forum_coverage_supported;
+    called only under cache_policy='diagnostic', never in strict scoring, so it
+    cannot move a formal number."""
+    from urllib.parse import unquote, urlparse
+
+    meta = getattr(answer_key, "metadata", {}) or {}
+    allowed = {str(f).strip().casefold() for f in meta.get("forums", [])
+               if str(f).strip()}
+    if not allowed or registry is None:
+        return False
+    core = {str(t).strip().lower() for t in meta.get("forum_core_keywords", [])
+            if str(t).strip()}
+    query = {str(t).strip().lower() for t in meta.get("forum_query_keywords", [])
+             if str(t).strip()}
+
+    def term_hit(term: str, doc_tokens: set[str]) -> bool:
+        if term in doc_tokens:
+            return True
+        if len(term) < 5:
+            return False
+        stem = term[:5]
+        return any(len(tok) >= 5 and tok[:5] == stem for tok in doc_tokens)
+
+    for key, candidate in (cache or {}).items():
+        try:
+            info = registry.classify(key)
+        except Exception:
+            continue
+        if (not isinstance(info, dict) or info.get("host_role") != "forums"
+                or info.get("kind") != "content" or info.get("in_corpus") is not True):
+            continue
+        canonical = info.get("canonical") or key
+        parts = [unquote(p) for p in urlparse(canonical).path.split("/") if p]
+        if len(parts) < 3 or parts[0].casefold() != "f" \
+                or parts[1].casefold() not in allowed:
+            continue
+        try:
+            status = int((candidate or {}).get("status", 0) or 0)
+        except (TypeError, ValueError):
+            status = 0
+        if status != 200 or not (candidate or {}).get("text"):
+            continue
+        doc_tokens = set(re.findall(r"[a-z0-9]+", norm(strip_html(candidate["text"]))))
+        core_hits = sum(term_hit(t, doc_tokens) for t in core)
+        query_hits = sum(term_hit(t, doc_tokens) for t in query)
+        if (core_hits >= 1 and (query_hits >= 1 or not query)) or query_hits >= 2:
+            return True
+    return False
+
+
 def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
                        pool_size: int | None = None,
                        generic: set | None = None, cache: dict | None = None,
                        page_stats: dict | None = None, registry=None,
-                       evidence=None) -> tuple[float, dict]:
+                       evidence=None, lane_fetch_mode=None,
+                       cache_policy: str = "strict") -> tuple[float, dict]:
     """axis 3: SATURATING recall over the ranked vital pool (T1/T2/M-H1/H2).
 
     completeness = min(covered_vital / K_star, 1). K_star defaults to 20,
@@ -2003,8 +2115,10 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     # not zeroed) this falls back to the cache-quote criterion instead of
     # demanding a fetch the instrument never observed (see _transport_fetch_usable
     # / G4). Was gated on evidence.available, which zeroed impeccable concepts on
-    # every fetch_observable=false lane.
-    require_concept_fetch = _transport_fetch_usable(evidence)
+    # every fetch_observable=false lane. A lane that DECLARES fetch_mode:none
+    # reads no pages by architecture and is exempted too (ruling #1).
+    snippet_only = _fetch_mode_none(lane_fetch_mode)
+    require_concept_fetch = _transport_fetch_usable(evidence) and not snippet_only
     fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
                if require_concept_fetch else set())
     require_nugget_citation = bool(
@@ -2116,7 +2230,8 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     forum_hit, forum_url = (False, None)
     if forum_slot:
         forum_hit, forum_url = _forum_coverage_supported(
-            md, answer_key, cache or {}, page_stats, registry, evidence)
+            md, answer_key, cache or {}, page_stats, registry, evidence,
+            snippet_only=snippet_only)
         if forum_hit:
             covered += 1
             covered_by_predicate["forum_coverage"] = 1
@@ -2129,7 +2244,20 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     # so completeness was not comparable across tasks. Both the docstring above
     # and the published board text promised a 1.0 no report could earn.
     total_pool = len(pool) + int(forum_slot)
-    denom = min(k_star, total_pool) or k_star
+    # Ruling #2 (docs/SPEC_DECISIONS.md): cache_policy selects how instrument-blind
+    # slots are treated. 'strict' (default) is UNCHANGED -- blind slots stay in the
+    # denominator (score 0) and the fail-closed refusal is a board-side lane, this
+    # interface only carries the parameter. 'diagnostic' WITHHOLDS the blind slots
+    # from k_effective (withhold-not-zero): a concept whose source page was never
+    # cached, and the forum slot when the cache holds no candidate thread for this
+    # task. covered never counts a withheld slot, so completeness cannot exceed 1.
+    forum_withheld = bool(
+        cache_policy == "diagnostic" and forum_slot and not forum_hit
+        and not _forum_candidate_cached(answer_key, cache or {}, registry))
+    withheld_slots = ((concept_withheld + int(forum_withheld))
+                      if cache_policy == "diagnostic" else 0)
+    effective_pool = max(total_pool - withheld_slots, 0)
+    denom = min(k_star, effective_pool) or k_star
     comp_score = min(covered / denom, 1.0)
     comp_det = {
         "pool": total_pool, "structured_pool": len(pool),
@@ -2138,6 +2266,10 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
         "k_star": k_star, "k_effective": denom,
         "covered": covered, "covered_by_predicate": covered_by_predicate,
         "concept_transport_required": require_concept_fetch,
+        # ruling #1: this lane declared fetch_mode:none, so the concept/forum
+        # fetch requirement was dropped (coverage falls back to the cache-quote
+        # criterion). None-declared lanes carry False.
+        "fetch_mode_none_exempt": snippet_only,
         "inline_nugget_citation_required": require_nugget_citation,
         # G4 observability: a concept nugget whose source page the evaluator
         # never cached cannot be scored, so its 0 is a WITHHOLD (blind
@@ -2149,6 +2281,15 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
         "concept_axis_withheld": concept_withheld > 0,
         "concept_axis_withheld_reason": (
             WithholdReason.CONCEPT_PAGE_NOT_CACHED.value if concept_withheld else None),
+        # Ruling #2: cache_policy and the diagnostic-mode withhold accounting.
+        # In 'strict' withheld_slots is 0 and total_pool == k_effective(before
+        # k_star cap), so these are pure observability. In 'diagnostic' the blind
+        # slots are removed from k_effective above.
+        "cache_policy": cache_policy,
+        "withheld_slots": withheld_slots,
+        "forum_slot_withheld": forum_withheld,
+        "forum_axis_withheld_reason": (
+            WithholdReason.FORUM_THREAD_NOT_CACHED.value if forum_withheld else None),
         "covered_sample": sample}
     if comp_score == 0.0:
         # The pool was non-empty here (the empty-pool case returned earlier with
@@ -2349,7 +2490,9 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
                  eps: float = EPS_FLOOR,
                  page_stats: dict | None = None,
                  evidence=None,
-                 require_transport_pof: bool = False) -> AxisScores:
+                 require_transport_pof: bool = False,
+                 lane_fetch_mode=None,
+                 cache_policy: str = "strict") -> AxisScores:
     """Compute all decidable axes and the composed truth score.
 
     Returns axes + truth ONLY (M-C1): presentation is a separate column,
@@ -2394,6 +2537,7 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
     comp, cd = score_completeness(
         md, answer_key, k_star=k_star, generic=generic, cache=cache,
         page_stats=stats, registry=registry, evidence=evidence,
+        lane_fetch_mode=lane_fetch_mode, cache_policy=cache_policy,
     )
     spec, sd = score_spec(md, answer_key)
 
