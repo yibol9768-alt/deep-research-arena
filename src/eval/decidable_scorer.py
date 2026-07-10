@@ -242,6 +242,10 @@ class WithholdReason(str, Enum):
     # completeness concept axis -- the evaluator holds no cached copy of the
     # concept's source page, so a quote cannot be verified either way.
     CONCEPT_PAGE_NOT_CACHED = "concept_page_not_cached"
+    # completeness forum slot (diagnostic cache_policy, ruling #2) -- the cache
+    # holds no candidate thread page for this task's allowed forums, so the slot
+    # is blind for an instrument reason rather than an earned miss.
+    FORUM_THREAD_NOT_CACHED = "forum_thread_not_cached"
     # anything the classifier does not recognise. test_gate_withhold locks every
     # LIVE withhold path to a non-UNKNOWN code, so this can only appear when a new
     # reason string is added without a matching code -- a loud, testable failure.
@@ -294,6 +298,8 @@ def withhold_reason_code(reason: str | None) -> WithholdReason:
         return WithholdReason.LOG_INCOMPLETE_UNATTRIBUTED
     if "empty evidence" in r:
         return WithholdReason.EMPTY_EVIDENCE_LOG
+    if "forum" in r and "cache" in r:
+        return WithholdReason.FORUM_THREAD_NOT_CACHED
     if "concept" in r and "cache" in r:
         return WithholdReason.CONCEPT_PAGE_NOT_CACHED
     if "no evidence log" in r:
@@ -1988,11 +1994,72 @@ def _forum_coverage_supported(md: str, answer_key, cache: dict,
     return False, None
 
 
+def _forum_candidate_cached(answer_key, cache: dict, registry=None) -> bool:
+    """Diagnostic-mode blind test for the forum slot (docs/SPEC_DECISIONS.md lane
+    addendum, forum-slot blind rule): True when the page cache holds at least one
+    task-relevant CANDIDATE thread page -- a status-200 forum content page in an
+    allowed forum whose text carries the task terms.
+
+    When False, no report could have covered the forum slot for an INSTRUMENT
+    reason (no candidate is cached), so a diagnostic build WITHHOLDS the slot from
+    the denominator instead of scoring it 0. When True but the report cited no
+    qualifying thread, the slot is a REAL miss (stays in the denominator, scores
+    0). Mirrors the candidate + relevance predicate of _forum_coverage_supported;
+    called only under cache_policy='diagnostic', never in strict scoring, so it
+    cannot move a formal number."""
+    from urllib.parse import unquote, urlparse
+
+    meta = getattr(answer_key, "metadata", {}) or {}
+    allowed = {str(f).strip().casefold() for f in meta.get("forums", [])
+               if str(f).strip()}
+    if not allowed or registry is None:
+        return False
+    core = {str(t).strip().lower() for t in meta.get("forum_core_keywords", [])
+            if str(t).strip()}
+    query = {str(t).strip().lower() for t in meta.get("forum_query_keywords", [])
+             if str(t).strip()}
+
+    def term_hit(term: str, doc_tokens: set[str]) -> bool:
+        if term in doc_tokens:
+            return True
+        if len(term) < 5:
+            return False
+        stem = term[:5]
+        return any(len(tok) >= 5 and tok[:5] == stem for tok in doc_tokens)
+
+    for key, candidate in (cache or {}).items():
+        try:
+            info = registry.classify(key)
+        except Exception:
+            continue
+        if (not isinstance(info, dict) or info.get("host_role") != "forums"
+                or info.get("kind") != "content" or info.get("in_corpus") is not True):
+            continue
+        canonical = info.get("canonical") or key
+        parts = [unquote(p) for p in urlparse(canonical).path.split("/") if p]
+        if len(parts) < 3 or parts[0].casefold() != "f" \
+                or parts[1].casefold() not in allowed:
+            continue
+        try:
+            status = int((candidate or {}).get("status", 0) or 0)
+        except (TypeError, ValueError):
+            status = 0
+        if status != 200 or not (candidate or {}).get("text"):
+            continue
+        doc_tokens = set(re.findall(r"[a-z0-9]+", norm(strip_html(candidate["text"]))))
+        core_hits = sum(term_hit(t, doc_tokens) for t in core)
+        query_hits = sum(term_hit(t, doc_tokens) for t in query)
+        if (core_hits >= 1 and (query_hits >= 1 or not query)) or query_hits >= 2:
+            return True
+    return False
+
+
 def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
                        pool_size: int | None = None,
                        generic: set | None = None, cache: dict | None = None,
                        page_stats: dict | None = None, registry=None,
-                       evidence=None, lane_fetch_mode=None) -> tuple[float, dict]:
+                       evidence=None, lane_fetch_mode=None,
+                       cache_policy: str = "strict") -> tuple[float, dict]:
     """axis 3: SATURATING recall over the ranked vital pool (T1/T2/M-H1/H2).
 
     completeness = min(covered_vital / K_star, 1). K_star defaults to 20,
@@ -2162,7 +2229,20 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     # so completeness was not comparable across tasks. Both the docstring above
     # and the published board text promised a 1.0 no report could earn.
     total_pool = len(pool) + int(forum_slot)
-    denom = min(k_star, total_pool) or k_star
+    # Ruling #2 (docs/SPEC_DECISIONS.md): cache_policy selects how instrument-blind
+    # slots are treated. 'strict' (default) is UNCHANGED -- blind slots stay in the
+    # denominator (score 0) and the fail-closed refusal is a board-side lane, this
+    # interface only carries the parameter. 'diagnostic' WITHHOLDS the blind slots
+    # from k_effective (withhold-not-zero): a concept whose source page was never
+    # cached, and the forum slot when the cache holds no candidate thread for this
+    # task. covered never counts a withheld slot, so completeness cannot exceed 1.
+    forum_withheld = bool(
+        cache_policy == "diagnostic" and forum_slot and not forum_hit
+        and not _forum_candidate_cached(answer_key, cache or {}, registry))
+    withheld_slots = ((concept_withheld + int(forum_withheld))
+                      if cache_policy == "diagnostic" else 0)
+    effective_pool = max(total_pool - withheld_slots, 0)
+    denom = min(k_star, effective_pool) or k_star
     comp_score = min(covered / denom, 1.0)
     comp_det = {
         "pool": total_pool, "structured_pool": len(pool),
@@ -2186,6 +2266,15 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
         "concept_axis_withheld": concept_withheld > 0,
         "concept_axis_withheld_reason": (
             WithholdReason.CONCEPT_PAGE_NOT_CACHED.value if concept_withheld else None),
+        # Ruling #2: cache_policy and the diagnostic-mode withhold accounting.
+        # In 'strict' withheld_slots is 0 and total_pool == k_effective(before
+        # k_star cap), so these are pure observability. In 'diagnostic' the blind
+        # slots are removed from k_effective above.
+        "cache_policy": cache_policy,
+        "withheld_slots": withheld_slots,
+        "forum_slot_withheld": forum_withheld,
+        "forum_axis_withheld_reason": (
+            WithholdReason.FORUM_THREAD_NOT_CACHED.value if forum_withheld else None),
         "covered_sample": sample}
     if comp_score == 0.0:
         # The pool was non-empty here (the empty-pool case returned earlier with
@@ -2387,7 +2476,8 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
                  page_stats: dict | None = None,
                  evidence=None,
                  require_transport_pof: bool = False,
-                 lane_fetch_mode=None) -> AxisScores:
+                 lane_fetch_mode=None,
+                 cache_policy: str = "strict") -> AxisScores:
     """Compute all decidable axes and the composed truth score.
 
     Returns axes + truth ONLY (M-C1): presentation is a separate column,
@@ -2432,7 +2522,7 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
     comp, cd = score_completeness(
         md, answer_key, k_star=k_star, generic=generic, cache=cache,
         page_stats=stats, registry=registry, evidence=evidence,
-        lane_fetch_mode=lane_fetch_mode,
+        lane_fetch_mode=lane_fetch_mode, cache_policy=cache_policy,
     )
     spec, sd = score_spec(md, answer_key)
 
