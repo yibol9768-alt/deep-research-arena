@@ -3,6 +3,40 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v23-2026-07-09",
+      "date": "2026-07-09",
+      "title": "Every zero explains itself: reason codes end to end, and a no-silent-zero gate",
+      "summary": "A published 0 must mean 'observed and genuinely that bad', never 'the instrument saw nothing'. The scorer now stamps a machine-readable reason on every zero it emits, the board carries it through aggregation, and a deterministic gate script fails any result set containing a NaN or an unexplained zero.",
+      "tags": [
+        "scoring",
+        "gates",
+        "fairness",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "Reason codes for every scored zero (G6)",
+          "bullets": [
+            "Each decidable axis now names its zero: no_citations / all_citations_off_corpus (reach), no_citable_pages / no_quote_support / no_page_fetched (grounding fidelity), no_checkable_claims / no_supported_claims / no_recall_volume (fact), empty_vital_pool / no_vital_covered (completeness), no_spec_requirement_passed (compliance). score_report and evaluate() surface the full map as axis_reasons; the truth board keeps it per replicate, and a missing run's zeros carry the run outcome (missing/stalled/infra_abort/timeout) as their reason.",
+            "scripts/check_no_silent_zero.py is the gate: for every (lane, axis) unit in a results directory it asserts no NaN and no unexplained 0 (withheld axes are exempt: withhold-not-zero stands). Non-zero exit plus a violation list on failure.",
+            "Scores are unchanged by the reason pipeline itself: fields were added, no formula, weight, or gate moved."
+          ]
+        },
+        {
+          "heading": "Implementation bugs fixed against declared semantics (SPEC_ISSUES G6)",
+          "bullets": [
+            "A lane mixing pof semantics crashed the board builder with a KeyError before the rc=3 mixed-semantics refusal could fire; the board now reaches its declared machine-readable rejection, and the gate script flags the mix in any already-written result set.",
+            "reach deduplicated off-corpus URLs by raw string while transport used fetch_log.canonical, so spelling variants of one fabricated URL broke the declared fabrication == 1 - reach identity; both now share one identity.",
+            "aggregate()'s micro view let contradicted claims buy fact volume and divided completeness by k_star*n; it now pools distinct supported facts and the per-report k_effective denominators, matching the per-report axes.",
+            "The usefulness jury's verdict was a plurality that ignored tie ballots ({tie,tie,A} crowned A); it is now the majority vote the design doc declares.",
+            "A jury fit pooled judge votes across report-pair generations in the bank; it now scores only the latest generation per pairing and reports how many older generations were superseded.",
+            "A battle whose task file was missing was judged over an empty question and banked as clean data; it now refuses with a machine-readable task_intent_missing error.",
+            "Bradley-Terry bootstrap CIs injected a 1000-anchor pseudo-draw whenever a sparse agent fell out of a resample, dragging its published CI toward the anchor, and silently discarded failed fits; draws now come only from resamples the agent is actually in, and failed fits are counted in the output."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v22-2026-07-09",
       "date": "2026-07-09",
       "title": "A rescue that turned drift into grounding, an unreachable ceiling, and a rerun scored against the attempt that died",

@@ -89,6 +89,11 @@ def evaluate(report_md: str, answer_key: AnswerKey, cache: dict | None = None,
         "fact_absent": s.fact_absent,
         "quality": round(s.quality, 4),
         "truth": round(s.truth, 6),
+        # G6: {axis_key -> zero reason code} for every axis this report scored 0.
+        # Surfaced at top level so a per-report score json carries it without a
+        # reader walking into `detail`; `detail["axis_reasons"]` holds the same
+        # map. Empty when no axis is zero.
+        "axis_reasons": dict(s.detail.get("axis_reasons", {})),
         "detail": s.detail,
     }
     t = s.detail.get("transport")

@@ -171,14 +171,28 @@ def bootstrap_ci(
     agents = _battle_agents(battles)
     draws: dict[str, list[float]] = defaultdict(list)
 
+    n_failed_fits = 0
     for _ in range(n_boot):
         sample = [battles[rng.randrange(n)] for _ in range(n)]
         try:
             elo = fit_bradley_terry(sample)
         except Exception:
+            # A resample can disconnect the comparison graph and fail the fit.
+            # Dropping the draw is correct; dropping it SILENTLY is not
+            # (SPEC_ISSUES G6): the count is surfaced per row below so a CI
+            # built from a crippled draw pool can be seen for what it is.
+            n_failed_fits += 1
             continue
         for a in agents:
-            draws[a].append(elo.get(a, ELO_ANCHOR))
+            # Only agents PRESENT in this resample produce a draw. The old
+            # `elo.get(a, ELO_ANCHOR)` injected a 1000-anchor PSEUDO-observation
+            # whenever a sparse agent's battles fell out of the resample,
+            # dragging its published 95% CI toward the anchor (SPEC_ISSUES G6:
+            # a fabricated observation, not a measurement). An absent agent
+            # simply contributes no draw; its per-row n_boot says how many
+            # draws its CI actually rests on.
+            if a in elo:
+                draws[a].append(elo[a])
 
     base = fit_bradley_terry(battles)
     lo_q, hi_q = alpha / 2, 1 - alpha / 2
@@ -193,6 +207,8 @@ def bootstrap_ci(
             "hi": round(hi, 1),
             "half_width": round((hi - lo) / 2, 1),
             "n_boot": len(vals),
+            "n_boot_requested": n_boot,
+            "n_boot_failed_fits": n_failed_fits,
         }
     return out
 

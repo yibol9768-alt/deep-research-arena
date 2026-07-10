@@ -59,6 +59,24 @@ def _board_axes(pof_semantics: str) -> tuple:
     return ("grounding_reach", ds._axis_key(pof_semantics),
             "correctness_fact_support", "completeness", "spec")
 
+
+def _axes_mean(cells, axis_keys, denom) -> dict:
+    """Per-axis mean over ``cells`` (evaluate() outputs carrying "axes").
+
+    ``.get(a, 0.0)`` and not ``[a]``: when one lane MIXES pof semantics its
+    reports carry different grounding-axis keys (grounding_proof_of_fetch vs
+    grounding_quote_support), and indexing the FIRST report's key set into every
+    other report used to raise a bare KeyError here, before the rc=3
+    mixed-semantics gate could refuse the board with its machine-readable
+    reason (SPEC_ISSUES G6: a rejected board must exit rc=3, never crash). On a
+    well-formed single-semantics board every report carries every key, so the
+    numbers are unchanged there; a mixed lane now survives to the rc=3 refusal.
+    """
+    return {
+        a: round(math.fsum(d["axes"].get(a, 0.0) for d in cells) / denom, 4)
+        for a in axis_keys
+    }
+
 # D7: version stamp so a board can self-certify which scoring/extractor/formula
 # it was produced under. The three headline fields (formula_version,
 # extractor_commit, formula_commit) are the cross-version identity; the numeric
@@ -1197,18 +1215,14 @@ def main() -> int:
                 "transport_v2" if args.require_transport_pof else "text_v1"
             )
         )
-        axes_mean_surviving = {
-            a: round(math.fsum(d["axes"][a] for d in per_cell.values()) / n_scored, 4)
-            for a in axis_keys
-        } if n_scored else {a: 0.0 for a in axis_keys}
+        axes_mean_surviving = (
+            _axes_mean(per_cell.values(), axis_keys, n_scored)
+            if n_scored else {a: 0.0 for a in axis_keys})
         # Headline axis/compliance columns use the same all-task denominator as
         # truth_macro.  Publish the surviving-report view too, but name it and
         # expose both denominators so coverage differences cannot masquerade as
         # stronger axis performance.
-        axes_mean_all_tasks = {
-            a: round(math.fsum(d["axes"][a] for d in per_cell.values()) / n_expected, 4)
-            for a in axis_keys
-        }
+        axes_mean_all_tasks = _axes_mean(per_cell.values(), axis_keys, n_expected)
         # fact_active_rate (P2): fraction of this lane's PRODUCED reports that
         # made any checkable structured claim. Denominator is n_scored, not
         # n_keys: a missing report is not a report on which fact was "inert", it
@@ -1255,10 +1269,18 @@ def main() -> int:
                     "status": "pass",
                     "truth": score["truth"],
                     "axes": score["axes"],
+                    # G6: carry the per-axis zero-reason map through aggregation
+                    # so a board's 0 is never a silent 0 (mandate: 汇总不丢弃).
+                    "axis_reasons": dict(score.get("axis_reasons", {})),
                 } if score is not None else {
                     "status": cell_status.get((tid, rep), "missing"),
                     "truth": 0.0,
                     "axes": {a: 0.0 for a in axis_keys},
+                    # No report at all: every axis is 0 for one machine-readable
+                    # reason -- the run outcome (missing / stalled / infra_abort /
+                    # timeout). That IS the reason code for these zeros.
+                    "axis_reasons": {a: cell_status.get((tid, rep), "missing")
+                                     for a in axis_keys},
                 })
             per_task_summary[tid] = {
                 "truth": math.fsum(sorted(task_truth_replicates[tid])) / args.replicates,
