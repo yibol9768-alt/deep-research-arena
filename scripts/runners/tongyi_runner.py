@@ -172,7 +172,13 @@ def _build_driver_script(
                 if attempt < max_retries - 1:
                     sleep_t = min(2 ** attempt + random.uniform(0, 1), 30)
                     time.sleep(sleep_t)
-            return "Error: LLM call failed after retries."
+            # Retries exhausted. RAISE rather than return an error sentinel: the
+            # old sentinel string was appended as an assistant turn and fed back
+            # into the ReAct loop, and could land in the scored report. Raising
+            # crashes this driver with no report marker, so the outer runner
+            # records a tongyi-dr infra failure -- the same failure semantics
+            # every other lane has.
+            raise RuntimeError("tongyi-dr: LLM call failed after all retries")
 
         def call_llm_summarize(messages, max_retries=3):
             \"\"\"Summarize content via LLM (for visit tool).\"\"\"

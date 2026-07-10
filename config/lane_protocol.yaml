@@ -213,6 +213,11 @@ lanes:
         human_zh: "DeerFlow 的上下文压缩令牌阈值;默认不设,走框架自带的按模型名推断,默认榜上无 harness 额外上限。"
         human_en: "DeerFlow context-compression token threshold; default unset, so the framework's own model-name inference applies and no harness cap is imposed on the default board."
         detail: "DEERFLOW_TOKEN_LIMIT: DeerFlow context-compression threshold (scripts/runners/deerflow_runner.py:422). Env-overridable; default unset = None = DeerFlow's own model-name inference, the framework default. On the default board no harness cap is imposed, so this lane is on par; an operator override is the only way a per-lane token budget appears, and it is disclosed by this entry. Declared because a token/context window bounds how much a lane can read and write, and therefore moves completeness."
+      - kind: adapter_retry
+        code: adapter_retries
+        human_zh: "生成的 conf.yaml 设 BASIC_MODEL.max_retries=3:框架 LLM 客户端的适配层重试次数,原生不设。"
+        human_en: "The generated conf.yaml sets BASIC_MODEL.max_retries=3: an adapter-layer retry count for the framework's LLM client that it would not otherwise carry."
+        detail: "scripts/runners/deerflow_runner.py _build_conf_yaml writes BASIC_MODEL.max_retries=3 into the generated conf.yaml; DeerFlow's LLM client honours this retry count. It is adapter-imposed, not a framework default. Declared because an adapter-layer retry changes delivery reliability relative to a framework given none."
       - kind: fetch_withhold
         code: fetch_withhold
         human_zh: "页面读取绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不因未观测而记 0。"
@@ -537,3 +542,8 @@ lanes:
         human_zh: "visit 工具经 requests 直连加主干摘要、离记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
         human_en: "The visit tool reads via requests direct plus backbone summarization off the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
         detail: "tongyi's visit tool uses requests.get direct to the site plus backbone summarization, off the recording shim. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
+      - kind: adapter_retry
+        code: adapter_retries
+        human_zh: "适配层 ReAct 循环对 LLM 调用做有界退避重试(call_llm max_retries=5、call_llm_summarize max_retries=3);重试耗尽即抛出→本次运行记 infra 失败,错误串绝不进入被评分报告。"
+        human_en: "The adapter ReAct loop retries LLM calls with bounded backoff (call_llm max_retries=5, call_llm_summarize max_retries=3); on exhaustion it RAISES so the run is an infra failure and no error string enters the scored report."
+        detail: "scripts/runners/tongyi_runner.py call_llm(max_retries=5) and call_llm_summarize(max_retries=3): the reimplemented ReAct loop retries transient LLM failures with exponential backoff. On exhaustion call_llm now RAISES (it formerly returned the sentinel 'Error: LLM call failed after retries.', which was appended as an assistant turn and could reach the scored text); the raise crashes the driver with no report sentinel, so the outer runner records a tongyi-dr infra failure -- the same failure semantics as every other lane. Declared because an adapter-layer retry the framework would not otherwise get changes delivery reliability."

@@ -173,6 +173,40 @@ SIGNAL_RULES: list[dict] = [
                 "pairs from the scored text); a report post-processing step must "
                 "be declared so the board discloses it"),
     },
+    # adapter-layer retry constants: an adapter that retries LLM calls the
+    # framework would not otherwise retry changes delivery reliability. Every
+    # adapter file that carries a `max_retries` constant is reconciled here so
+    # the retry class has no silent blind spot (a `detail_token` match, since the
+    # constant appears as `max_retries=N` in a driver string and `max_retries: N`
+    # in generated yaml -- both invisible to an ast walk).
+    {
+        "lane": "tongyi-dr",
+        "file": "scripts/runners/tongyi_runner.py",
+        "signal": re.compile(r"max_retries\s*="),
+        "require": ("detail_token", "max_retries"),
+        "why": ("tongyi's reimplemented ReAct loop retries LLM calls with "
+                "backoff (call_llm max_retries=5, call_llm_summarize "
+                "max_retries=3); an adapter-layer retry no framework declared "
+                "must be named in a deviation"),
+    },
+    {
+        "lane": "deerflow",
+        "file": "scripts/runners/deerflow_runner.py",
+        "signal": re.compile(r"max_retries"),
+        "require": ("detail_token", "max_retries"),
+        "why": ("deerflow's generated conf.yaml sets BASIC_MODEL.max_retries=3, "
+                "an adapter-layer retry the framework would not otherwise get; "
+                "it must be named in a deviation"),
+    },
+    {
+        "lane": "deepagents",
+        "file": "scripts/runners/deepagents_runner.py",
+        "signal": re.compile(r"max_retries\s*="),
+        "require": ("detail_token", "max_retries"),
+        "why": ("deepagents' adapter constructs ChatOpenAI with max_retries=3, "
+                "an adapter-layer retry the framework would not otherwise get; "
+                "it must be named in a deviation"),
+    },
 ]
 
 
