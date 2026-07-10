@@ -234,6 +234,7 @@ The framework board uses **12 agent lanes**, each behind an adapter under `scrip
 Fairness contract: [`config/lane_protocol.yaml`](config/lane_protocol.yaml).
 
 - Every lane gets the shared task intent plus a shared "return a markdown report" line. Prompt extras that teach citation counts, word counts, or example URLs are forbidden unless declared.
+- The output budget unit is each backbone's **own tokenizer token** (not characters or words); the same 8192-token cap buys ~10-15% different English text across the three tokenizers, so a report's completeness ceiling shifts slightly by backbone. Cost is likewise reported in each backbone's own tokens.
 - Harness must not graft URLs, rewrite model URLs into sandbox hits, or repair reports against scored axes.
 - Preflight: `python3 scripts/check_parity.py` (adapter surface vs protocol).
 - Historical fairness blockers (ii-researcher output URL graft; flowsearcher prior-run memory seed) are disabled by default; memory requires `FLOWSEARCHER_MEMORY=1`, evidence ghostwriting requires `EVIDENCE_FALLBACK_ENABLE=1`.

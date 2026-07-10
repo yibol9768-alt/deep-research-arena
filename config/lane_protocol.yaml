@@ -102,6 +102,13 @@ backbone:
     note: >-
       Cross-backbone truth comparison is confounded while this is false.
       Single-backbone boards are unaffected.
+  # DISCLOSURE (ruling #11): the budget unit is each backbone's own tokenizer token
+  # (not characters, not words). The same 8192-token cap buys ~10-15%
+  # different amounts of English text across the three tokenizers, so a report
+  # written right up to the budget has a completeness ceiling that shifts
+  # directionally by backbone. Read cross-backbone completeness with that in
+  # mind; do NOT attribute the shift to model ability. Cost is likewise reported
+  # in each backbone's own tokens (cost_axis: tokens).
   max_output_tokens: 8192
   # The word above said "identical" and nothing enforced it: the gateway capped
   # qwen at 8192, left deepseek uncapped, and RAISED glm to 131072, while
