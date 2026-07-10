@@ -68,13 +68,20 @@ def oracle_runs(gates_key_paths, gates_registry, gates_concept_cache,
         comp, cd = ds.score_completeness(
             rep.markdown, ak, generic=generic, cache=cache,
             page_stats=gates_page_stats, registry=gates_registry)
+        # Ruling #6 (docs/SPEC_DECISIONS.md): the diagnostic cache_policy score
+        # (ruling #2) is what the literal-1.0 attempt is measured against -- it
+        # withholds the cache-blind forum slot instead of zeroing it.
+        comp_diag, cd_diag = ds.score_completeness(
+            rep.markdown, ak, generic=generic, cache=cache,
+            page_stats=gates_page_stats, registry=gates_registry,
+            cache_policy="diagnostic")
         fact, fd = ds.score_fact_support(rep.markdown, ak, generic=generic)
         reach, rd = ds.score_reachability(
             rep.cited_urls, cache, registry=gates_registry)
         runs.append({
             "tid": ak.task_id, "plan": rep.plan,
-            "comp": comp, "cd": cd, "fact": fact, "fd": fd,
-            "reach": reach, "rd": rd,
+            "comp": comp, "cd": cd, "comp_diag": comp_diag, "cd_diag": cd_diag,
+            "fact": fact, "fd": fd, "reach": reach, "rd": rd,
         })
     return runs
 
@@ -174,24 +181,62 @@ def test_g1_oracle_completeness_equals_achievable_ceiling(oracle_runs,
     assert not bad, "G1 completeness != achievable ceiling on:\n" + "\n".join(bad)
 
 
+def test_g1_oracle_diagnostic_completeness_one_except_stub_pages(oracle_runs):
+    """The achievement of rulings #2 + #5 + the short-topic fix, as a GREEN gate.
+
+    Under the diagnostic cache_policy (ruling #2) the cache-blind forum slot is
+    WITHHELD from the denominator instead of zeroing completeness, and the
+    short-topic fix (ruling #5) freed the last uncreditable concepts. So every
+    oracle report now reaches literal completeness == 1.0 EXACTLY, with a single
+    documented exception class: a task carrying a title-only stub concept page
+    (the page IS cached but its whole body is shorter than the 400-char
+    containment window, so no report can ground a quote). Those pages are a
+    page-cache FIXTURE defect to be excised at key-construction time
+    (build_answer_keys lane, docs/SPEC_DECISIONS.md '车道追加条目'), not a scorer
+    change; the diagnostic withhold only covers a MISSING page, not a cached-but
+    -too-short one. This gate pins that the ONLY tasks short of 1.0 are exactly
+    the stub-page ones, and by the exact residual."""
+    bad = []
+    for r in oracle_runs:
+        n_stub = len(r["plan"]["concept_stub_page_urls"])
+        if n_stub == 0:
+            if r["comp_diag"] != pytest.approx(1.0, abs=1e-9):
+                bad.append(f"{r['tid']}: no stub page yet comp_diag="
+                           f"{r['comp_diag']:.4f} (cd={r['cd_diag']})")
+        else:
+            # the shortfall must be exactly the uncoverable stub slots
+            denom = r["cd_diag"]["k_effective"]
+            expected = max(denom - n_stub, 0) / denom if denom else 0.0
+            if r["comp_diag"] != pytest.approx(expected, abs=1e-9):
+                bad.append(f"{r['tid']}: {n_stub} stub page(s), comp_diag="
+                           f"{r['comp_diag']:.4f} != expected {expected:.4f}")
+    assert not bad, ("G1 diagnostic completeness not 1.0-except-stub on:\n"
+                     + "\n".join(bad))
+
+
 @pytest.mark.xfail(
     strict=False,
     reason=(
-        "GOAL_GATES_V1 asks completeness == 1.0 literally, which is unreachable "
-        "for ANY report under frozen semantics: (a) the forum virtual slot has "
-        "no cached forum thread page to ground (docs/SPEC_ISSUES.md section 1 "
-        "'论坛是否入分', section 2 'page cache 供给链失修'); (b) short-subject "
-        "concepts ('Tea') can never satisfy _subject_discussed's strong-token "
-        "rule; (c) title-only stub pages ('Input lag') are shorter than the "
-        "400-char containment window. Expected red until the user rules on the "
-        "SPEC_ISSUES entries; the green gate is the exact-ceiling assertion "
-        "above."),
+        "GOAL_GATES_V1 asks completeness == 1.0 literally for EVERY task. Under "
+        "the diagnostic cache_policy (ruling #2) plus the short-topic fix "
+        "(ruling #5), 99/100 tasks now reach it exactly: the forum virtual slot "
+        "is WITHHELD (no cached thread to ground) and short-subject concepts "
+        "('Tea') are credited by word-boundary matching. The sole residual is a "
+        "title-only stub concept page ('Input lag', dr_cross_deep_0038): the "
+        "page IS cached but its whole body is shorter than the 400-char "
+        "containment window, so no report can ground a quote and the diagnostic "
+        "withhold (which covers a MISSING page, not a cached-but-too-short one) "
+        "cannot remove it. Excising such stub pages at key-construction time is "
+        "the build_answer_keys lane (docs/SPEC_DECISIONS.md '车道追加条目'), out "
+        "of the scorer's scope; until then this universal assertion stays red by "
+        "exactly that one slot. The green gate is "
+        "test_g1_oracle_diagnostic_completeness_one_except_stub_pages above."),
 )
 def test_g1_oracle_completeness_literal_one(oracle_runs):
     bad = _failures(
         oracle_runs,
-        lambda r: r["comp"] == pytest.approx(1.0, abs=1e-9),
-        lambda r: f"comp={r['comp']:.4f}")
+        lambda r: r["comp_diag"] == pytest.approx(1.0, abs=1e-9),
+        lambda r: f"comp_diag={r['comp_diag']:.4f}")
     assert not bad, "completeness < 1.0 on:\n" + "\n".join(bad)
 
 

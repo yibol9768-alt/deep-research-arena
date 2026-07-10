@@ -48,6 +48,13 @@
             "A concept whose whole subject is a short common word (a single 3-char token like 'Tea') used to score 0 on completeness for EVERY report, including a perfect oracle that quotes and cites the page: the discussability check required a strong identity token (>=4 chars or a digit) that such a subject never has. This was an implementation bug, not the intended semantics.",
             "All-short-token subjects now fall back to word-boundary exact matching, which is stricter than the old substring test (so 'tea' can no longer hide inside 'team') while crediting a genuinely discussed short concept. The oracle generator's ceiling predicate was updated in lockstep, so the G1 ceiling equality still holds. 11 concept slots across 10 tasks were freed."
           ]
+        },
+        {
+          "heading": "The oracle now reaches literal completeness 1.0 on 99/100 tasks (G1)",
+          "bullets": [
+            "With the diagnostic cache_policy withholding the cache-blind forum slot and the short-topic fix crediting short concepts, the mechanically generated oracle report reaches literal completeness == 1.0 on 99 of 100 tasks. A new green G1 gate pins that the only tasks short of 1.0 are exactly those carrying a title-only stub concept page, and by the exact residual.",
+            "The sole remaining task (dr_cross_deep_0038, 'Input lag') has a concept page that IS cached but whose whole body is shorter than the 400-char grounding window, so no report can quote it. That is a page-cache fixture defect to be excised at key-construction time (build_answer_keys), not a scorer change; GOAL_GATES_V1's literal-1.0-for-every-task assertion stays a documented xfail until then, red by exactly that one slot."
+          ]
         }
       ]
     },

@@ -39,6 +39,7 @@ GATES: dict[str, tuple[str, list[str] | None, str]] = {
             "tests/test_gate_oracle.py::test_g1_oracle_structured_share_fully_covered",
             "tests/test_gate_oracle.py::test_g1_oracle_concept_share_fully_covered",
             "tests/test_gate_oracle.py::test_g1_oracle_completeness_equals_achievable_ceiling",
+            "tests/test_gate_oracle.py::test_g1_oracle_diagnostic_completeness_one_except_stub_pages",
             "tests/test_gate_oracle.py::test_g1_oracle_completeness_literal_one"],
            ""),
     "G2": ("空壳归零(100 题)",
