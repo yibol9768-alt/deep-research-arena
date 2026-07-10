@@ -120,6 +120,45 @@ QUALITY_WEIGHTS = {
     "completeness": 0.33,
 }
 
+# ---------------------------------------------------------------------------
+# Silent-zero reason codes (G6 gate: every 0 an axis emits must carry a
+# machine-readable reason, so "0" always means "observed and genuinely bad",
+# never "the instrument saw nothing"). These codes cover SCORED zeros only.
+# The complementary "instrument was blind" half is the G4 lane's canonical
+# WithholdReason enum (branch gates-L3-withhold, commit 8985c07e; defined in
+# THIS module there: 18 codes -- no_evidence_log, fetch_not_observable,
+# concept_page_not_cached, ... -- plus withhold_reason_code()); it merges into
+# this module alongside these and is authoritative for every withhold. The two
+# sets are disjoint by construction: a WithholdReason never accompanies a
+# score, a ZERO_REASONS code always does. Values are stable identifiers, never
+# prose, so a board / preflight can branch on them.
+ZERO_REASONS = {
+    # reach (axis 1a)
+    "no_citations",              # nothing citable at all -> denominator 0
+    "all_citations_off_corpus",  # cited only URLs outside the frozen corpus
+    # proof_of_fetch / quote_support (axis 1b)
+    "no_citable_pages",          # no cited URL resolved to a cached-200 page
+    "no_quote_support",          # cited pages exist, none verbatim-supported
+    "no_page_fetched",           # transport_v2: cited real pages, none fetched
+    # fact_support (axis 2)
+    "no_checkable_claims",       # report asserted no checkable structured claim
+    "no_supported_claims",       # claims made, none supported (precision 0)
+    "no_recall_volume",          # no distinct task-scoped supported fact
+    # completeness (axis 3)
+    "empty_vital_pool",          # task offers no vital pool to cover
+    "no_vital_covered",          # vital pool exists, report covered none
+    # spec / compliance (axis 4)
+    "no_spec_requirement_passed",
+}
+
+# Withhold spelling: an axis the instrument could not observe is WITHHELD, not
+# scored 0 (HANDOFF trap "Withhold, never zero"). The canonical codes are G4's
+# WithholdReason enum (see the note above; unprefixed values like
+# "no_evidence_log"). This prefix survives only as a LEGACY tolerance for
+# synthetic/older results that spelled withholds "withheld_*"; nothing in the
+# live pipeline emits it.
+WITHHELD_REASON_PREFIX = "withheld_"
+
 LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
 BARE_URL_RE = re.compile(r"https?://\S+")
 
@@ -656,6 +695,17 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
         # unknown AND uncached counts as fabricated (conservative: excluding
         # it would reopen the G-F8 vanish-from-denominator hole) and is
         # tallied separately so a full ZIM enumeration can retire the flag.
+        # Off-corpus / unresolvable URLs still need a per-PAGE identity for the
+        # dedupe below. The registry has no canonical form for them, and the old
+        # RAW-string fallback let spelling variants of one fabricated URL
+        # (#fragment, trailing slash, https vs http, trailing punctuation) count
+        # as several fabricated citations here while `transport_metrics` (keyed
+        # on fetch_log.canonical) counted one, breaking the declared
+        # `fabrication == 1 - reach` identity (SPEC_ISSUES G6). Use the SAME
+        # normaliser transport uses for exactly these URLs. Lazy import keeps
+        # the module import graph unchanged (same pattern as
+        # transport_metrics_for).
+        from src.eval.fetch_log import canonical as _transport_canonical
         ok = fab = nav = mismatch = 0
         unknown_cache_ok = unknown_cache_fab = unknown_uncached = 0
         n_variant_dupes = 0
@@ -666,7 +716,7 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
             # one PAGE counts once: dedupe on the canonical form so case/
             # host/prefix/query variants of a single real page cannot pad the
             # numerator and launder fabricated citations (verify finding)
-            canon = d.get("canonical") or f"raw:{u}"
+            canon = d.get("canonical") or f"raw:{_transport_canonical(u)}"
             if canon in seen_canon:
                 n_variant_dupes += 1
                 continue
@@ -707,7 +757,12 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
             "unknown_uncached_counted_fabricated": unknown_uncached,
             "variant_duplicates_collapsed": n_variant_dupes,
         }
-        return (ok / den if den else 0.0), det
+        score = ok / den if den else 0.0
+        if score == 0.0:
+            # A scored 0 on the anti-fabrication gate must say which failure it
+            # was: no citations to judge, or citations that were all off-corpus.
+            det["reason"] = "no_citations" if den == 0 else "all_citations_off_corpus"
+        return score, det
 
     ok = bad = off = 0
     for u in urls:
@@ -725,13 +780,16 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
             bad += 1
     den = ok + bad
     score = ok / den if den else 0.0
-    return score, {
+    det = {
         "path": "cache_status", "registry_missing": True,
         "cited": len(urls), "ok": ok, "unreachable": bad, "off_sandbox": off,
         "num": ok, "den": den,
         "note": ("closed world: 4xx/5xx/0/uncached/off-sandbox all stay in "
                  "the denominator (M-M2/G-F8/G-F10)"),
     }
+    if score == 0.0:
+        det["reason"] = "no_citations" if den == 0 else "all_citations_off_corpus"
+    return score, det
 
 
 # ---------------------------------------------------------------------------
@@ -1114,10 +1172,17 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
         per.append({"url": rep_url[-60:], "cover": round(best_cover, 3),
                     "span_ok": any_span, "passed": bool(page_ok),
                     "n_occ": len(occ)})
-    return (passed / checked if checked else 0.0), {
+    pof_score = passed / checked if checked else 0.0
+    pof_det = {
         "checked": checked, "passed": passed, "threshold": threshold,
         "df_pages": stats.get("n_pages", 0),
         "aggregation": "page_level_any_occurrence", "per": per[:12]}
+    if pof_score == 0.0:
+        # A scored 0 is either "no cited page had cached text to verify against"
+        # (nothing to check) or "cited pages were checked and none carried
+        # verbatim evidence". Both are genuine, observed zeros -- name which.
+        pof_det["reason"] = "no_citable_pages" if checked == 0 else "no_quote_support"
+    return pof_score, pof_det
 
 
 # ---------------------------------------------------------------------------
@@ -1540,6 +1605,12 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
     detail["precision"] = round(precision, 4)
     detail["recall_vol"] = round(recall_vol, 4)
     if precision <= 0.0 or recall_vol <= 0.0:
+        # Claims WERE tested (tested>0) but the axis is still 0. Distinguish
+        # "every claim contradicted / none supported" (precision 0) from "no
+        # distinct task-scoped supported fact filled the volume term"
+        # (recall_vol 0), so this zero is never mistaken for silence.
+        detail["reason"] = ("no_supported_claims" if precision <= 0.0
+                            else "no_recall_volume")
         return 0.0, detail
     return 2 * precision * recall_vol / (precision + recall_vol), detail
 
@@ -2022,7 +2093,8 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     # and the published board text promised a 1.0 no report could earn.
     total_pool = len(pool) + int(forum_slot)
     denom = min(k_star, total_pool) or k_star
-    return min(covered / denom, 1.0), {
+    comp_score = min(covered / denom, 1.0)
+    comp_det = {
         "pool": total_pool, "structured_pool": len(pool),
         "forum_slots": int(forum_slot), "forum_covered": bool(forum_hit),
         "forum_url": forum_url,
@@ -2041,6 +2113,11 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
         "concept_axis_withheld_reason": (
             WithholdReason.CONCEPT_PAGE_NOT_CACHED.value if concept_withheld else None),
         "covered_sample": sample}
+    if comp_score == 0.0:
+        # The pool was non-empty here (the empty-pool case returned earlier with
+        # reason="empty_vital_pool"): the report simply covered none of it.
+        comp_det["reason"] = "no_vital_covered"
+    return comp_score, comp_det
 
 
 # ---------------------------------------------------------------------------
@@ -2058,7 +2135,11 @@ def score_spec(md: str, answer_key) -> tuple[float, dict]:
         ok = _check_spec(md, r)
         per.append({"id": r.id, "kind": r.kind, "passed": ok})
         passed += ok
-    return passed / len(reqs), {"requirements": len(reqs), "passed": passed, "per": per}
+    spec_det = {"requirements": len(reqs), "passed": passed, "per": per}
+    if passed == 0:
+        # Requirements existed and every one failed: an observed compliance zero.
+        spec_det["reason"] = "no_spec_requirement_passed"
+    return passed / len(reqs), spec_det
 
 
 def _check_spec(md: str, r) -> bool:
@@ -2289,6 +2370,32 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
                   if gate_semantics == "provenance_v2" else reach)
     truth, quality, floors = compose_truth(gate_value, fact, pof, comp, spec,
                                            gamma=gamma, eps=eps)
+    # G6: a single, downstream-stable map from each PUBLISHED axis key (the key
+    # evaluate() emits under "axes") to the machine-readable reason for its zero.
+    # Every axis whose emitted value is 0 gets a code here, so a summary or the
+    # G6 checker never has to reach into a per-axis sub-detail whose shape
+    # differs by axis. The per-axis `reason` fields set above are the source of
+    # truth; the `.get(..., default)` fallbacks are belt-and-suspenders so no
+    # scored zero can ever be emitted without a reason, even from a path a future
+    # edit forgets to annotate. Additive: no score value depends on this.
+    pof_key = _axis_key(pof_semantics)
+    axis_reasons: dict[str, str] = {}
+    if reach == 0.0:
+        axis_reasons["grounding_reach"] = rd.get("reason", "no_citations")
+    if pof == 0.0:
+        if pof_semantics == "transport_v2" and transport is not None:
+            axis_reasons[pof_key] = ("no_citations"
+                                     if transport.get("n_cited", 0) == 0
+                                     else "no_page_fetched")
+        else:
+            axis_reasons[pof_key] = pd.get("reason", "no_citable_pages")
+    if fact == 0.0:
+        axis_reasons["correctness_fact_support"] = fd.get("reason",
+                                                          "no_checkable_claims")
+    if comp == 0.0:
+        axis_reasons["completeness"] = cd.get("reason", "no_vital_covered")
+    if spec == 0.0:
+        axis_reasons["spec"] = sd.get("reason", "no_spec_requirement_passed")
     s = AxisScores(
         reach=reach, proof_of_fetch=pof, fact_support=fact,
         fact_contradicted=fd.get("contradicted", 0),
@@ -2298,6 +2405,8 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
     s.detail = {
         "reach": rd, "proof_of_fetch": pd, "fact": fd,
         "completeness": cd, "spec": sd, "compliance": sd,
+        # G6: {published_axis_key -> zero reason code} for every zero axis.
+        "axis_reasons": axis_reasons,
         "floors_applied": floors, "gamma": gamma, "eps": eps,
         "quality_weights": dict(QUALITY_WEIGHTS),
         "quality": round(quality, 4), "truth": round(truth, 6),
@@ -2316,7 +2425,16 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
             "pof_passed": pd.get("passed", 0), "pof_checked": pd.get("checked", 0),
             "fact_supported": fd.get("supported", 0),
             "fact_tested": fd.get("claims_tested", 0),
+            # SPEC_ISSUES G6 (aggregate micro divergence): the per-report recall
+            # term is min(DISTINCT task-scoped supported / k_f, 1); aggregate()
+            # was pooling `fact_tested` (supported+contradicted) as its volume
+            # numerator, so a wrong claim bought micro recall the per-report path
+            # forbids. Carry the distinct-supported count and the per-report
+            # completeness denominator so aggregate() can pool them the same way
+            # the per-report axes are computed. Additive fields.
+            "fact_distinct_supported": fd.get("distinct_supported_facts", 0),
             "comp_covered": cd.get("covered", 0),
+            "comp_k_effective": cd.get("k_effective", 0),
             "spec_passed": sd.get("passed", 0),
             "spec_total": sd.get("requirements", 0),
         },
@@ -2424,11 +2542,19 @@ def aggregate(reports: list, gamma: float = GAMMA_DEFAULT,
     tested = tot.get("fact_tested", 0)
     if tested:
         p = tot.get("fact_supported", 0) / tested
-        rvol = min(tested / (k_f * n), 1.0)
+        # Volume is DISTINCT supported facts, matching the per-report recall term
+        # (SPEC_ISSUES G6). Fall back to `fact_supported` for boards serialized
+        # before the distinct count was carried, so old panels still aggregate.
+        distinct = tot.get("fact_distinct_supported", tot.get("fact_supported", 0))
+        rvol = min(distinct / (k_f * n), 1.0)
         micro_fact = 0.0 if (p <= 0 or rvol <= 0) else 2 * p * rvol / (p + rvol)
     else:
         micro_fact = 0.0
-    micro_comp = min(tot.get("comp_covered", 0) / (k_star * n), 1.0)
+    # Completeness denominator is the SUM of per-report k_effective (each report's
+    # min(k_star,|pool|)), matching the per-report axis (SPEC_ISSUES G6). k_star*n
+    # is the pre-fix denominator, kept only when the per-report figure is absent.
+    comp_denom = tot.get("comp_k_effective") or (k_star * n)
+    micro_comp = min(tot.get("comp_covered", 0) / comp_denom, 1.0) if comp_denom else 0.0
     micro_spec = (tot.get("spec_passed", 0) / tot["spec_total"]
                   if tot.get("spec_total") else 1.0)
     micro_truth, micro_quality, _ = compose_truth(

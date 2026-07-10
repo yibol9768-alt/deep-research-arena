@@ -393,6 +393,23 @@ def run_judge(model: str, system: str, user: str, *, max_tokens: int, timeout_s:
 # ---------------------------------------------------------------------------
 # Staging discovery
 # ---------------------------------------------------------------------------
+def intent_for_battle(task_id: str, tasks_dir: Path, *, walkover: bool) -> str:
+    """The question a battle is judged on, or a refusal to judge without one.
+
+    A missing/unreadable task file used to be swallowed by ``or ""`` at the
+    call sites: the jury sat over an EMPTY question and the verdict entered the
+    bank with error=None, indistinguishable from clean data (SPEC_ISSUES G6).
+    A walkover needs no intent (its outcome is decided by report stubs); any
+    real judging call must refuse loudly and machine-readably instead.
+    """
+    intent = load_intent(task_id, tasks_dir)
+    if intent is None and not walkover:
+        raise FileNotFoundError(
+            f"task_intent_missing: {task_id} has no readable task file under "
+            f"{tasks_dir}; refusing to judge an empty question")
+    return intent or ""
+
+
 def load_intent(task_id: str, tasks_dir: Path) -> Optional[str]:
     p = tasks_dir / f"{task_id}.json"
     if not p.exists():
@@ -705,17 +722,35 @@ def fit_from_bank(
         by_backbone[r["backbone"]].append(r)
 
     def _fit_one(backbone_name: str, brecs: list[dict]) -> dict:
-        # Item = (task, a, b, order). Value = majority verdict across judges
-        # available for that item (position-mapped back to agent a/b/tie).
-        items: dict[tuple, dict[str, str]] = defaultdict(dict)
+        # Item = (task, a, b, order) over ONE report pair. The bank can hold
+        # several GENERATIONS of the same pairing (a re-staged report changes
+        # report_sha_*, and bank_key keeps both); the old 4-tuple item key mixed
+        # judges from different generations into one item and let bank record
+        # order decide which generation's verdict survived per judge
+        # (SPEC_ISSUES G6: "跨代拼池"). Group by the full report-pair identity,
+        # then keep only the LATEST generation per pairing -- the same
+        # supersede-by-newer semantics load_bank already declares for identical
+        # keys -- so a fit never pools two different report pairs as one battle
+        # and never double-counts the pairing.
+        items_all: dict[tuple, dict[str, str]] = defaultdict(dict)
+        gen_ts: dict[tuple, float] = {}
         for r in brecs:
-            key = (r["task"], r["a"], r["b"], r["order"])
-            items[key][r["judge"]] = r["winner"]
+            gkey = (r["task"], r["a"], r["b"], r["order"],
+                    r.get("report_sha_a"), r.get("report_sha_b"))
+            items_all[gkey][r["judge"]] = r["winner"]
+            gen_ts[gkey] = max(gen_ts.get(gkey, 0.0), float(r.get("ts") or 0.0))
+        latest_gen: dict[tuple, tuple] = {}
+        for gkey in items_all:
+            k4 = gkey[:4]
+            if k4 not in latest_gen or gen_ts[gkey] > gen_ts[latest_gen[k4]]:
+                latest_gen[k4] = gkey
+        items = {k4: items_all[g] for k4, g in latest_gen.items()}
 
         battles = []
         fleiss_rows = []
         n_clean = 0
         n_total_items = len(items)
+        n_superseded_generations = len(items_all) - len(items)
         cats = ["A", "B", "tie"]
         for (task, a, b, order), votes in items.items():
             if order == "ab":
@@ -724,18 +759,28 @@ def fit_from_bank(
                 pos_agent = {"A": b, "B": a}
             a_votes = sum(1 for v in votes.values() if v == "A")
             b_votes = sum(1 for v in votes.values() if v == "B")
-            if a_votes > b_votes:
+            # MAJORITY vote (USEFULNESS_JURY_DESIGN sec "多数票裁决"), not a
+            # plurality that ignores tie ballots: a side wins only with a strict
+            # majority of the votes CAST. The old rule let votes={tie,tie,A}
+            # crown A -- one judge overruling two tie verdicts (SPEC_ISSUES G6,
+            # jury 整改). {A,A,tie} still resolves to A; {A,B,tie} stays tie.
+            n_votes = len(votes)
+            if 2 * a_votes > n_votes:
                 winner_pos = "A"
-            elif b_votes > a_votes:
+            elif 2 * b_votes > n_votes:
                 winner_pos = "B"
             else:
                 winner_pos = "tie"
             winner_agent = pos_agent.get(winner_pos, "tie") if winner_pos != "tie" else "tie"
             battles.append({"agent_a": a, "agent_b": b, "winner": winner_agent})
+            # Walkover status is a property of THIS generation's report pair;
+            # an old generation's walkover must not taint the fresh item.
+            chosen_gen = latest_gen[(task, a, b, order)]
             is_walkover = any(
                 bool(r.get("walkover"))
                 for r in brecs
-                if (r["task"], r["a"], r["b"], r["order"]) == (task, a, b, order)
+                if (r["task"], r["a"], r["b"], r["order"],
+                    r.get("report_sha_a"), r.get("report_sha_b")) == chosen_gen
             )
             if judges and set(votes) == set(judges) and not is_walkover:
                 n_clean += 1
@@ -792,6 +837,10 @@ def fit_from_bank(
             "backbone": backbone_name,
             "n_items_ab_order_pairs": n_total_items,
             "n_clean_items_all_judges_voted": n_clean,
+            # Older report-pair generations dropped by the supersede rule above;
+            # non-zero means the bank holds re-staged pairings and this fit used
+            # only the newest of each (machine-readable, never silent).
+            "n_superseded_generations": n_superseded_generations,
             "fleiss_kappa": round(kappa, 4) if kappa is not None else None,
             "agents": agent_rows,
         }
@@ -1026,7 +1075,16 @@ def main(argv=None) -> int:
             return 0
         results = []
         for c in sample:
-            intent = load_intent(c["task"], args.tasks_dir) or ""
+            try:
+                intent = intent_for_battle(c["task"], args.tasks_dir,
+                                           walkover=bool(c.get("walkover")))
+            except FileNotFoundError as e:
+                # Same guard as the real run: never judge an empty question.
+                results.append({
+                    "error": str(e), "judge": c["judge"],
+                    "usage": {"prompt": 0, "completion": 0},
+                })
+                continue
             report_a = _report_text(task_agents[c["task"]][c["a"]])
             report_b = _report_text(task_agents[c["task"]][c["b"]])
             runner = walkover_record if c.get("walkover") else run_one_battle_judge
@@ -1078,7 +1136,12 @@ def main(argv=None) -> int:
     n_error = 0
 
     def _do(c: dict) -> dict:
-        intent = load_intent(c["task"], args.tasks_dir) or ""
+        # Raises task_intent_missing for a non-walkover battle with no task
+        # file; the executor's error path below records the machine-readable
+        # failure (which fit_from_bank filters out) instead of letting the
+        # jury judge an empty question as clean data (SPEC_ISSUES G6).
+        intent = intent_for_battle(c["task"], args.tasks_dir,
+                                   walkover=bool(c.get("walkover")))
         report_a = _report_text(task_agents[c["task"]][c["a"]])
         report_b = _report_text(task_agents[c["task"]][c["b"]])
         common = dict(
