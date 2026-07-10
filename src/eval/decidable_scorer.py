@@ -520,14 +520,29 @@ def _subject_discussed(text: str, subj_tokens: list[str]) -> bool:
     present: a majority of identity tokens (capped at what the key actually
     has, so single-token subjects such as short forum-thread titles remain
     matchable), at least one of which is strong (>=4 chars, or a model-number
-    style token containing a digit)."""
+    style token containing a digit).
+
+    Ruling #5 (docs/SPEC_DECISIONS.md lane addendum, short-topic concept
+    deadlock): a subject whose EVERY token is short ("Tea", a single 3-char
+    word) has no strong token, so the strong-token rule deadlocked it to "not
+    discussed" for every report -- including the oracle -- an implementation bug,
+    not the spec's intent. For an all-short-token subject the discussability test
+    falls back to WORD-BOUNDARY exact matching of the identity tokens (stricter
+    than the substring `in` test above, so "tea" no longer hides inside "team"):
+    a genuinely discussed short concept is credited, a laundering substring
+    collision is not."""
     if not subj_tokens:
         return False
     present = [t for t in subj_tokens if t in text]
     need = min(len(subj_tokens), max(2, (len(subj_tokens) + 1) // 2))
     if len(present) < need:
         return False
-    return any(len(t) >= 4 or any(c.isdigit() for c in t) for t in present)
+    if any(len(t) >= 4 or any(c.isdigit() for c in t) for t in present):
+        return True
+    # All-short-token subject: no strong token exists. Require word-boundary
+    # matches (exact short phrases) for at least `need` of the identity tokens.
+    return sum(1 for t in subj_tokens
+               if _word_token_pattern(t).search(text)) >= need
 
 
 @_functools.lru_cache(maxsize=None)

@@ -41,6 +41,13 @@
             "score_completeness gains a cache_policy parameter. 'strict' (the default) is unchanged: a concept whose source page was never cached, and the forum slot, stay in the denominator. 'diagnostic' withholds those instrument-blind slots from k_effective (withhold-not-zero) and reports the count, so a diagnostic run can still be scored without a blind slot dragging completeness down as if the agent missed it.",
             "The forum slot is withheld only when the cache holds NO candidate thread page for the task's allowed forums; when a candidate IS cached but the report cited none, that 0 is a real miss and stays counted. The formal board's fail-closed refusal (no cache => refuse to rank) is a separate board-side control; this is only the scorer interface. Regression tests are red on the pre-ruling scorer."
           ]
+        },
+        {
+          "heading": "Short-topic concepts ('Tea') are no longer structurally uncoverable (short-topic deadlock fix)",
+          "bullets": [
+            "A concept whose whole subject is a short common word (a single 3-char token like 'Tea') used to score 0 on completeness for EVERY report, including a perfect oracle that quotes and cites the page: the discussability check required a strong identity token (>=4 chars or a digit) that such a subject never has. This was an implementation bug, not the intended semantics.",
+            "All-short-token subjects now fall back to word-boundary exact matching, which is stricter than the old substring test (so 'tea' can no longer hide inside 'team') while crediting a genuinely discussed short concept. The oracle generator's ceiling predicate was updated in lockstep, so the G1 ceiling equality still holds. 11 concept slots across 10 tasks were freed."
+          ]
         }
       ]
     },

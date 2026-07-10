@@ -99,20 +99,18 @@ def _concept_subject_creditable(subject: str) -> bool:
     """Whether the scorer's completeness gate CAN credit a concept with this
     subject, independent of any page text.
 
-    ``_subject_discussed`` (decidable_scorer) requires at least one STRONG
-    identity token -- >=4 chars, or containing a digit -- among the subject's
-    tokens (``len > 2``, first 6). A concept whose only token is a short common
-    word (``Tea``) therefore earns NO completeness credit for ANY report,
-    including this oracle: quoting and citing the page is not enough. The oracle
-    still emits such a concept's line (a perfect agent would), but must not count
-    it toward the achievable ceiling, or its plan would over-predict the score.
-    This mirrors the scorer's rule verbatim so the plan equals the ceiling the
-    scorer actually allows; see docs/SPEC_ISSUES.md (short concept subjects
-    structurally uncoverable)."""
+    Ruling #5 (docs/SPEC_DECISIONS.md lane addendum): the scorer's
+    ``_subject_discussed`` no longer deadlocks a short-token subject (``Tea``).
+    When every identity token is short it falls back to WORD-BOUNDARY exact
+    matching, which the oracle line ``[Tea](url)`` satisfies (the subject sits in
+    the link label, at a word boundary, in the visible prose). So every concept
+    with at least one identity token (``len > 2``, first 6) is now creditable;
+    only a subject with NO such token (``AI``) remains uncreditable, matching the
+    scorer's ``_subject_tokens`` empty-token skip. This mirrors the scorer so the
+    plan equals the ceiling the scorer actually allows."""
     toks = [t for t in re.findall(r"[a-z0-9]+", (subject or "").lower())
             if len(t) > 2][:6]
-    return bool(toks) and any(len(t) >= 4 or any(c.isdigit() for c in t)
-                              for t in toks)
+    return bool(toks)
 
 
 def page_cache_from_fixture(fixture: dict) -> dict:
