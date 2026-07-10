@@ -40,3 +40,26 @@ def test_rc1_is_fail(monkeypatch):
                         lambda *a, **k: _Proc(1, stdout="1 failed", stderr="boom"))
     status, _ = run_gates.run_gate("G1", ["tests/x.py"], [])
     assert status == "FAIL"
+
+
+# --- preflight gates-smoke (GOAL_GATES_V1 permanent fixture) ----------------
+
+def test_gates_smoke_passes_on_the_real_tree():
+    """The goal-gate suite must be collectible and non-empty on the committed
+    tree, so run_full_leaderboard.sh's `run_gates.py --quick` entry gate has
+    something to run."""
+    from scripts.preflight import check_gates_smoke
+    results = check_gates_smoke()
+    assert len(results) == 1
+    assert results[0].ok is True, results[0].detail
+
+
+def test_gates_smoke_fails_when_no_gate_nodes_are_declared(monkeypatch):
+    """A GATES table with only non-pytest gates (nothing to collect) is a bad
+    state the smoke check must catch."""
+    from scripts import preflight
+    monkeypatch.setattr(run_gates, "GATES",
+                        {"G5": ("box-only", None, "box preflight")})
+    results = preflight.check_gates_smoke()
+    assert results[0].ok is False
+    assert "no pytest gate nodes" in results[0].detail
