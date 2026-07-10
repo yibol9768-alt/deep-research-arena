@@ -77,6 +77,76 @@ def _axes_mean(cells, axis_keys, denom) -> dict:
         for a in axis_keys
     }
 
+
+def _provenance_columns(cells) -> dict:
+    """Diagnostic grounding columns for one lane (SPEC_DECISIONS #8, revised).
+
+    The truth gate is provenance under transport_v2 (a cited URL is credited only
+    when the run could have learned it: searched, linked from a read page, or
+    fetched) and stays reach under text_v1 (a URL is credited if it merely exists
+    in the corpus). The headline gate is NOT reach and is NOT changed here. This
+    helper publishes the three fractions SIDE BY SIDE per lane so a reader sees
+    both the strict gate (provenance) and the laundering it defends against:
+
+      reach_frac       mean cited-URL corpus membership (the OLD gate, kept only
+                       as a diagnostic: a guessed real URL scores reach=1).
+      provenance_frac  mean fraction of cited URLs the run could have learned
+                       (transport_v2 only; None under text_v1, which cannot
+                       observe provenance).
+      guessed_frac     mean fraction of cited URLs classed `guessed` by
+                       fetch_log.classify_provenance -- fetch-then-fabricate
+                       laundering the provenance gate exists to catch (transport
+                       only; None under text_v1).
+
+    Means are over the lane's SCORED reports. reach is always available; the two
+    transport fractions are None when no scored report carried a transport log,
+    so a text_v1 board never fabricates a provenance number.
+    """
+    cells = list(cells)
+    n = len(cells)
+    if not n:
+        return {"gate_semantics": None, "gate_value_mean": None,
+                "reach_frac": None, "provenance_frac": None,
+                "guessed_frac": None, "n_reports": 0, "n_reports_with_transport": 0}
+    # Which gate the truth number used for this lane, carried alongside the
+    # diagnostic columns so a reader never mistakes the reach column for the gate.
+    gate_set = {str(d.get("gate_semantics")) for d in cells if d.get("gate_semantics")}
+    gate_semantics = (next(iter(gate_set)) if len(gate_set) == 1
+                      else ("mixed" if gate_set else None))
+    gate_value_mean = round(
+        math.fsum(float(d.get("gate_value", 0.0)) for d in cells) / n, 4
+    )
+    reach_frac = round(
+        math.fsum(float(d["axes"].get("grounding_reach", 0.0)) for d in cells) / n, 4
+    )
+    transport_cells = [d for d in cells
+                       if isinstance(d.get("transport"), dict)
+                       and d["transport"].get("available") is not False]
+    m = len(transport_cells)
+    if not m:
+        return {"gate_semantics": gate_semantics, "gate_value_mean": gate_value_mean,
+                "reach_frac": reach_frac, "provenance_frac": None,
+                "guessed_frac": None, "n_reports": n, "n_reports_with_transport": 0}
+    prov = math.fsum(float(t["transport"].get("provenance", 0.0))
+                     for t in transport_cells) / m
+
+    def _guessed_frac(t: dict) -> float:
+        counts = t.get("provenance_counts") or {}
+        n_cited = int(t.get("n_cited", 0) or 0)
+        return (int(counts.get("guessed", 0) or 0) / n_cited) if n_cited else 0.0
+
+    guessed = math.fsum(_guessed_frac(t["transport"]) for t in transport_cells) / m
+    return {
+        "gate_semantics": gate_semantics,
+        "gate_value_mean": gate_value_mean,
+        "reach_frac": reach_frac,
+        "provenance_frac": round(prov, 4),
+        "guessed_frac": round(guessed, 4),
+        "n_reports": n,
+        "n_reports_with_transport": m,
+    }
+
+
 # D7: version stamp so a board can self-certify which scoring/extractor/formula
 # it was produced under. The three headline fields (formula_version,
 # extractor_commit, formula_commit) are the cross-version identity; the numeric
@@ -1420,6 +1490,12 @@ def main() -> int:
             "fact_active_rate": round(fact_active_rate, 4),
             "reach_zero_rate": round(reach_zero_rate, 4),
             "gate_zero_rate": round(gate_zero_rate, 4),
+            # SPEC_DECISIONS #8 (revised): reach / provenance / guessed side by
+            # side. The gate stays provenance under transport (unchanged); these
+            # are diagnostic columns that expose the fetch-then-fabricate
+            # laundering the provenance gate defends against. provenance/guessed
+            # are null on a text_v1 lane (no transport observation).
+            "grounding_provenance": _provenance_columns(per_cell.values()),
             # spec is OUT of truth (FORMULA_LOCK K6): surfaced as a separate
             # compliance column, never multiplied in. Kept in axes_mean too.
             "compliance": axes_mean_all_tasks.get("spec", 0.0),
@@ -1524,6 +1600,12 @@ def main() -> int:
                 "compliance_denominator_all_tasks": len(keys),
                 "compliance_denominator_all_task_replicates": len(keys),
                 "compliance_denominator_surviving": 0,
+                "grounding_provenance": {
+                    "gate_semantics": None, "gate_value_mean": None,
+                    "reach_frac": None, "provenance_frac": None,
+                    "guessed_frac": None, "n_reports": 0,
+                    "n_reports_with_transport": 0,
+                },
                 "presentation": panel.get(agent),
                 "per_task": {},
                 "rank": next_rank,

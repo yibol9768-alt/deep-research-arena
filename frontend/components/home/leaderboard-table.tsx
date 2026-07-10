@@ -196,6 +196,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                         >
                           R{a.reachability_pct!.toFixed(0)} · Q{a.url_veracity_pct!.toFixed(0)}
                         </span>
+                        <ProvenanceCols agent={a} />
                       </span>
                     ) : (
                       <span className="text-muted">n/a</span>
@@ -293,6 +294,27 @@ function DeviationBadge({ deviations }: { deviations?: LaneDeviation[] }) {
         </span>
       </span>
     </>
+  )
+}
+
+/**
+ * Secondary grounding-provenance annotation (ruling #8). The truth gate is
+ * provenance under transport; this shows provenance (P) and guessed (G) side by
+ * side with reach so the fetch-then-fabricate laundering the provenance gate
+ * defends against is visible. Rendered only when transport observation exists;
+ * a text_v1 lane carries no provenance number and this stays hidden (never a
+ * fabricated 0). AA-style: quiet, secondary, non-numeric-dominant.
+ */
+function ProvenanceCols({ agent }: { agent: RankedAgent }) {
+  if (agent.provenance_pct == null && agent.guessed_pct == null) return null
+  return (
+    <span
+      className="ml-1 text-[10px] text-muted-2"
+      title="Provenance gate diagnostics (transport-observed). P = share of cited URLs the run could have learned (searched / linked / fetched) — this is the truth gate under transport. G = share classed 'guessed' (fetch-then-fabricate laundering the gate catches). Shown beside reach (R), which is only a membership diagnostic."
+    >
+      {agent.provenance_pct != null ? <> · P{agent.provenance_pct.toFixed(0)}</> : null}
+      {agent.guessed_pct != null ? <> · G{agent.guessed_pct.toFixed(0)}</> : null}
+    </span>
   )
 }
 

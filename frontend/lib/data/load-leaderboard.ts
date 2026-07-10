@@ -42,6 +42,10 @@ interface PerAgentProfile {
   checklist_pass_rate?: number
   coverage_pct?: number
   reachability_pct?: number
+  // Grounding provenance diagnostics (ruling #8), percentages 0-100. Optional:
+  // present only when a run carried transport observation.
+  provenance_pct?: number
+  guessed_pct?: number
   deviations?: LaneDeviation[]
   synthetic_placeholder?: boolean
 }
@@ -209,6 +213,8 @@ export function rankedAgents(): RankedAgent[] {
       checklist_pass_rate: prof?.checklist_pass_rate,
       coverage_pct: prof?.coverage_pct,
       reachability_pct: prof?.reachability_pct,
+      provenance_pct: prof?.provenance_pct,
+      guessed_pct: prof?.guessed_pct,
       deviations: Array.isArray(prof?.deviations) ? prof!.deviations : undefined,
       per_pillar: pillars,
       schema_version: c.schemaVersion,

@@ -58,6 +58,13 @@ export interface RankedAgent {
   checklist_pass_rate?: number
   coverage_pct?: number
   reachability_pct?: number
+  /** Grounding provenance diagnostics (truth board grounding_provenance, ruling
+   *  #8). The gate stays provenance under transport; these are shown side by
+   *  side with reach so the fetch-then-fabricate laundering the provenance gate
+   *  defends against is visible. Percentages (0-100); absent on a text_v1 lane
+   *  that carried no transport observation. */
+  provenance_pct?: number
+  guessed_pct?: number
   /** v3 per-pillar Elo (8 dimensions). */
   per_pillar?: PerPillarElo
   /** Schema marker propagated for the dry-run banner / tooltips. */
