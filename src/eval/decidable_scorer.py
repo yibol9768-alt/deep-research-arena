@@ -1496,19 +1496,33 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
             seen_claims.add(claim_id)
             ok = (_price_close(value, targets) if predicate == "price"
                   else any(abs(value - t) <= RATING_TOL for t in targets))
+            in_scope = idx in creditable_ids
+            if ok and not in_scope:
+                # Ruling #3 (docs/SPEC_DECISIONS.md): a CORRECT fact about a
+                # product OUTSIDE the task-ranked scope is moved out of `tested`
+                # entirely -- it neither buys precision (numerator) nor dilutes
+                # it (denominator). Crediting off-topic correct catalog rows let
+                # a report water down a low precision with easy true facts while
+                # a sparse but fully-correct in-scope report lost. An
+                # out-of-scope ERROR still counts as a contradiction (fabricated
+                # evidence stays fabricated); only the correct off-scope claim is
+                # withdrawn. Kept observable via supported_out_of_scope.
+                supported_out_of_scope += 1
+                per.append((entities[idx]["name"][:36], predicate, raw_value,
+                            sorted(targets), "OK-oos"))
+                return
             support += bool(ok)
             contra += not ok
             if ok:
-                # Recall is over gold FACT identities, not numeric phrasings.
-                # Otherwise one product priced at 1769 could be repeated as
-                # ten slightly different values inside the 1% tolerance and
-                # single-handedly fill K_f.
-                if idx in creditable_ids and idx in claim_cited_ids:
+                # in_scope is guaranteed here (out-of-scope correct returned
+                # above). Recall is over gold FACT identities, not numeric
+                # phrasings: otherwise one product priced at 1769 could be
+                # repeated as ten slightly different values inside the 1%
+                # tolerance and single-handedly fill K_f.
+                if idx in claim_cited_ids:
                     supported_fact_ids.add((idx, predicate))
-                elif idx in creditable_ids:
-                    supported_uncited += 1
                 else:
-                    supported_out_of_scope += 1
+                    supported_uncited += 1
             per.append((entities[idx]["name"][:36], predicate, raw_value,
                         sorted(targets), "OK" if ok else "X"))
 

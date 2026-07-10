@@ -12,32 +12,54 @@ Offline: only the shipped answer key is loaded; no network / DB.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from src.eval import decidable_scorer as ds
 from src.eval.answer_key import AnswerKey
+from src.verifiers.citation_format import canonicalize_url
 
 ROOT = Path(__file__).resolve().parents[1]
 ANSWER_KEY = ROOT / "data" / "golden" / "answer_keys" / "dr_cross_deep_0002.json"
 
+_NAME_NUM_RE = re.compile(r"(?<![\w.])\d+(?![\w.])")
+
 
 def _priced_entity(ak):
-    """The first relevant entity that carries a DB price, selected
-    programmatically so a name change in the answer key does not break the
-    test. This entity's name ends in a parenthetical pack count."""
-    return [e for e in ak.relevant_set if (e.facts or {}).get("price")][0]
+    """An in-scope, DB-priced entity whose name ends in a parenthetical pack
+    count, selected programmatically so an answer-key name change does not break
+    the test. In-scope (its URL is a ranked price/rating/sentiment nugget) so
+    ruling #3 (docs/SPEC_DECISIONS.md) does not withdraw its correct price from
+    `tested`; the trailing pack-count digit is the label number the masking fix
+    must never extract as a price value."""
+    scoped = {canonicalize_url(n.source_url)
+              for n in ak.vital_nuggets + ak.useful_nuggets
+              if n.predicate in {"buyer_sentiment", "price", "rating"}}
+    priced = [e for e in ak.relevant_set
+              if (e.facts or {}).get("price")
+              and canonicalize_url(e.url) in scoped]
+    packs = [e for e in priced
+             if re.search(r"\(pack of \d+\)\s*$", e.name, re.IGNORECASE)]
+    return (packs or priced)[0]
+
+
+def _name_numbers(e) -> set[str]:
+    return set(_NAME_NUM_RE.findall(e.name))
 
 
 def test_label_number_not_extracted_as_price():
     ak = AnswerKey.load(ANSWER_KEY)
     e = _priced_entity(ak)
-    sent = f"The [{e.name}]({e.url}) is priced at $5.20."
+    price = float(e.facts["price"])
+    sent = f"The [{e.name}]({e.url}) is priced at ${price:.2f}."
     _score, det = ds.score_fact_support(sent, ak)
     assert det["claims_tested"] == 1
     assert det["supported"] == 1
     assert det["contradicted"] == 0
-    # the pack count "3" from the name must not surface as a claim value
-    assert all(row[2] != "3" for row in det["sample"])
+    # no standalone number from the NAME (pack count, count box) may surface as
+    # a claim value
+    name_nums = _name_numbers(e)
+    assert all(row[2] not in name_nums for row in det["sample"])
 
 
 def test_wrong_prose_price_contradicts_without_label_number():
@@ -47,7 +69,8 @@ def test_wrong_prose_price_contradicts_without_label_number():
     _score, det = ds.score_fact_support(sent, ak)
     assert det["contradicted"] >= 1
     # the only tested claim is the wrong prose price, never a label number
-    assert all(row[2] != "3" for row in det["sample"])
+    name_nums = _name_numbers(e)
+    assert all(row[2] not in name_nums for row in det["sample"])
     assert any(row[2] == "9999.99" for row in det["sample"])
 
 

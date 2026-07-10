@@ -20,6 +20,13 @@
             "A lane that declares fetch_mode:none in config/lane_protocol.yaml (storm, langchain-odr, co-storm read no pages by architecture) no longer needs its concept/forum source page in fetched_ok to earn completeness. Coverage falls back to the same cache-quote criterion the L3 off-shim/damaged fallback already uses; grounding is still metered separately by proof-of-fetch and reach.",
             "The exemption is driven by the lane's own protocol declaration (build_truth_board reads fetch_mode and passes it to the scorer), not a hard-coded lane list. Without the exemption the board was effectively ranking 'has a page-read tool' on the 0.33-weight completeness axis, contradicting how pof already treats snippet_only citations honestly."
           ]
+        },
+        {
+          "heading": "Off-topic-but-correct facts no longer inflate fact precision (ruling #3)",
+          "bullets": [
+            "A correct fact about a catalog product OUTSIDE the task-ranked scope is now moved out of the fact axis's tested set entirely: it neither buys recall (it never did) nor dilutes precision. Previously a report could water down a wrong in-scope price with many easy, correct off-topic prices and keep a high precision.",
+            "Out-of-scope ERRORS still count as contradictions -- fabricated evidence stays fabricated. The out-of-scope correct count remains in the fact detail (supported_out_of_scope) for observability. Regression tests are red on the pre-ruling scorer."
+          ]
         }
       ]
     },
