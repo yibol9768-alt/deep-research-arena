@@ -1,0 +1,586 @@
+{
+  "task": "dr_cross_deep_0052",
+  "answer_path": "data/results/deep/deerflow__dr_cross_deep_0052_matrix.md",
+  "answer_chars": 9280,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 2,
+      "must_cite_total": 141,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 944,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 0,
+        "__WIKIPEDIA__": 2
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "cited_total": 2,
+      "cited_sandbox": 2,
+      "cited_off_sandbox": 0,
+      "probed": 2,
+      "http_200": 2,
+      "http_4xx": 0,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 1.0,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "claims_total": 4,
+      "claims_supported": 4,
+      "claims_unreachable": 0,
+      "match_rate": 1.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Greenwashing",
+          "supported": true,
+          "overlap": 0.333
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Numismatic_Guaranty_Company",
+          "supported": true,
+          "overlap": 0.423
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Greenwashing",
+          "supported": true,
+          "overlap": 0.5
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Numismatic_Guaranty_Company",
+          "supported": true,
+          "overlap": 0.4
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "total_pairs": 2,
+      "supported_pairs": 2,
+      "fetch_failures": 0,
+      "sentences_with_cite": 2,
+      "sentences_with_supported_cite": 2,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "- Greenwashing",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Greenwashing",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- Numismatic Guaranty Company",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Numismatic_Guaranty_Company",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.7333,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 2,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.5,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=5"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.2, total_paragraphs=30"
+        }
+      ],
+      "tier_b_passed": 5,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.833,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies patterns in health impacts of additives beyond mere listing."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains why additives may affect children and why greenwashing occurs."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "No explicit comparison across different source types is made."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Insight on greenwashing emerges from synthesizing consumer and expert views."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Acknowledges limitations in study methodology and potential greenwashing."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Recommends label reading, certifications, and regulatory improvements."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies patterns in health impacts of additives beyond mere listing.  \n2. PASS - Explains why additives may affect children and why greenwashing occurs.  \n3. FAIL - No explicit comparison across different source types is made.  \n4. PASS - Insight on greenwashing emerges from synthesizing consumer and expert views.  \n5. PASS - Acknowledges limitations in study methodology and potential greenwashing.  \n6. PASS - Recommends label reading, certifications, and regulatory improvements."
+    }
+  },
+  "presentation": {
+    "score": 0.8667,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 4,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.667,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3, 4]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=8"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": false,
+          "detail": "cv=1.545, word_counts=[6, 11, 13, 135, 92, 713, 174, 12]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": false,
+          "detail": "flesch_reading_ease=17.0"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to background to analysis to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences between sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present in the report."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent formatting with citations and terminology."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings and offers insights."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone without AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to background to analysis to conclusion.  \n2. PASS. Smooth transitions with bridging sentences between sections.  \n3. PASS. No empty meta-commentary present in the report.  \n4. PASS. Consistent formatting with citations and terminology.  \n5. PASS. Conclusion synthesizes findings and offers insights.  \n6. PASS. Professional tone without AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "total_citations": 4,
+      "sandbox_citations": 4,
+      "distinct_domains": 1,
+      "subforums_cited": [],
+      "type_counts": {
+        "wiki": 4
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.0,
+        "wiki": 0.4
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 0.0,
+        "top1_share_score": 0.0,
+        "top1_share_raw": 1.0,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.0
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "**1. Health Implications of Food Additives**",
+        "**2. Authenticity of Clean Label Claims**",
+        "**3. Value of Natural-Branded Snacks**",
+        "**4. Cost-Benefit Analysis of Clean Label Snacks**",
+        "**5. Comparison with Regular Snacks**",
+        "**Literature Review & Theoretical Framework**",
+        "**Methodology & Data Analysis**",
+        "**Critical Discussion**",
+        "**Future Research Directions**"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.0,
+        "rows": [
+          {
+            "entity": "**1. Health Implications of Food Additives**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**2. Authenticity of Clean Label Claims**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**3. Value of Natural-Branded Snacks**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**4. Cost-Benefit Analysis of Clean Label Snacks**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**5. Comparison with Regular Snacks**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**Literature Review & Theoretical Framework**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**Methodology & Data Analysis**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**Critical Discussion**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**Future Research Directions**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.0,
+        "rows": [
+          {
+            "entity": "**1. Health Implications of Food Additives**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**2. Authenticity of Clean Label Claims**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**3. Value of Natural-Branded Snacks**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**4. Cost-Benefit Analysis of Clean Label Snacks**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**5. Comparison with Regular Snacks**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**Literature Review & Theoretical Framework**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**Methodology & Data Analysis**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**Critical Discussion**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**Future Research Directions**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no_extracted_facts",
+      "paragraphs_attempted": 2,
+      "extract_errors": 2,
+      "judge": "qwen3-8b"
+    }
+  },
+  "internal_consistency": {
+    "score": 0.9091,
+    "passed": true,
+    "details": {
+      "applicable": true,
+      "sentence_count": 53,
+      "cluster_count": 5,
+      "pairs_tested": 11,
+      "contradictions": 1,
+      "min_score": 0.85,
+      "judge": "qwen3-8b",
+      "judge_error": null,
+      "cluster_summary": [
+        {
+          "entity": "clean-label",
+          "size": 3,
+          "pairs_tested": 3,
+          "contradictions": 0
+        },
+        {
+          "entity": "health impact",
+          "size": 3,
+          "pairs_tested": 3,
+          "contradictions": 1
+        },
+        {
+          "entity": "clean label snacks",
+          "size": 3,
+          "pairs_tested": 3,
+          "contradictions": 0
+        },
+        {
+          "entity": "artificial additives",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "regular snacks",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        }
+      ],
+      "contradiction_rows": [
+        {
+          "entity": "health impact",
+          "i": 10,
+          "j": 15,
+          "s1_excerpt": "**Health Impact**: Mixed research results.",
+          "s2_excerpt": "**Health Impact**: Linked to increased hyperactivity in children, according to a study in *The Lancet*.",
+          "verdict": "CONTRADICT"
+        }
+      ]
+    }
+  },
+  "markdown_spec": {
+    "word_count": 1193,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 6,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 29,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 0.3333,
+    "quality_score": 0.0667,
+    "truth_factor": 0.5,
+    "qm_factor": 1.0,
+    "nli_factor": 0.5,
+    "grounding_gate": 1.0,
+    "raw_score_v3": 0.5,
+    "citation_alignment": 1.0,
+    "analysis_depth": 0.7333,
+    "presentation": 0.8667,
+    "composite_v3": 0.5,
+    "composite_score": 0.0333,
+    "composite_v2": 0.0333,
+    "composite_v1": 0.0667,
+    "legacy_composite": 0.05,
+    "composite_v4": 0.4448,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.0,
+    "perspective_balance": 0.0,
+    "factual_exactness": 0.0,
+    "internal_consistency": 0.9091
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

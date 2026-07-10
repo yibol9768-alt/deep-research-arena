@@ -19,9 +19,9 @@ Tooling lockdown (fairness with other DR baselines):
     - codex's `exec` subcommand is non-interactive (no TUI, no approvals).
     - `--dangerously-bypass-approvals-and-sandbox` skips per-command approvals
       that would otherwise stall a headless run.
-    - The sandbox-only system prompt enumerates the four reachable endpoints
-      (Magento 7770, Postmill 9999, Kiwix 8090, shim 8081) and instructs the
-      model to drive them via `curl` through the Bash tool.
+    - The sandbox-only prompt supplies the shim search/fetch recipes required
+      by a CLI without a native benchmark search tool. It does not enumerate
+      the scored corpus modalities.
     - The work dir is a clean per-job scratch directory so codex's read/write
       tools are scoped to it.
 """
@@ -31,6 +31,7 @@ import asyncio
 import logging
 import os
 import subprocess
+import sys
 import time
 import uuid
 from pathlib import Path
@@ -38,15 +39,22 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from scripts.runners import _egress  # noqa: E402
+
 AGENT_NAME = "codex"
 
 DEFAULT_TIMEOUT_S = 1800
-SSH_HOST = os.environ.get("CODEX_SSH_HOST", os.environ.get("CLAUDE_CODE_SSH_HOST", "5090"))
+# No "5090" default: that literal parses as the decimal IPv4 0.0.19.226 and
+# burned ~150s per connect attempt (claudecode_runner learned this first).
+# The remote path is opt-in; unset means fail fast with a clear message.
+SSH_HOST = os.environ.get("CODEX_SSH_HOST", os.environ.get("CLAUDE_CODE_SSH_HOST", "")).strip()
 REMOTE_DIR_WIN = os.environ.get("CODEX_REMOTE_DIR", "C:/tools/codex_runner")
 # Route through ds_proxy on my5090 localhost:8088 → DeepSeek V4 flash.
 # Same backbone as the rest of the benchmark for cost parity.
 CODEX_MODEL = os.environ.get("CODEX_MODEL", "deepseek-v4-flash")
-CODEX_DS_PROXY = os.environ.get("CODEX_DS_PROXY", "http://localhost:8088/v1")
+CODEX_DS_PROXY = os.environ.get("CODEX_DS_PROXY", "http://localhost:8100/v1")
 
 
 _PS_DRIVER_TEMPLATE = r"""param(
@@ -59,9 +67,19 @@ _PS_DRIVER_TEMPLATE = r"""param(
   [string]$RedditUrl,
   [string]$WikipediaUrl,
   [string]$Model,
-  [string]$DsProxyUrl
+  [string]$DsProxyUrl,
+  [string]$EgressProxyUrl
 )
 $ErrorActionPreference = 'Continue'
+
+# The SSH process does not inherit the launcher's environment. Recreate the
+# canonical recording-door policy in the final Codex process explicitly.
+if ($EgressProxyUrl) {
+  $env:HTTP_PROXY = $EgressProxyUrl
+  $env:HTTPS_PROXY = $EgressProxyUrl
+  $env:ALL_PROXY = $EgressProxyUrl
+  $env:NO_PROXY = ''
+}
 
 # Force codex to use the local ds_proxy → DeepSeek V4 flash for cost parity
 # with the rest of the benchmark.  The OPENAI_API_KEY var is read by codex's
@@ -81,39 +99,22 @@ Push-Location $WorkDir
 $intent = Get-Content -Raw -Path $IntentPath
 
 $systemPrompt = @"
-You are a deep research agent.  You have NO direct internet access.
-
-The ONLY network endpoints you can reach are:
-- Search shim (Tavily-compatible):   $ShimUrl
-- Magento sandbox (shopping):        $ShoppingUrl
-- Postmill sandbox (reddit-like):    $RedditUrl
-- Kiwix sandbox (offline Wikipedia): $WikipediaUrl
+You are a deep research agent.  You have NO direct internet access. Use the
+benchmark search shim for search and page reads.
 
 To search, use the shell tool:
   curl -s -X POST $ShimUrl/search -H 'content-type: application/json' -d '{"query":"...","api_key":"tvly-shim-fake","max_results":10,"include_raw_content":true}'
 
-To fetch a page returned by search, use the shell tool:
-  curl -s -L '<sandbox URL>' | head -c 8000
-
-Methodology:
-1. Issue MULTIPLE search queries covering different angles of the task.
-2. For each promising result, fetch the page to extract specifics (prices, specs, quotes, dates).
-3. Cross-reference between Magento (products), Postmill (discussions), and Kiwix (encyclopedic background).
-4. Aim for >= 20 distinct sandbox URLs cited across all three sources.
+To fetch and read a page returned by search, use the shell tool. Route it
+through the shim's /fetch so the read is recorded:
+  curl -s "$ShimUrl/fetch?url=<sandbox URL>"
 
 OUTPUT INSTRUCTIONS (read carefully — the harness reads ONLY this file):
 
-  Write your complete markdown report to:
+  Write the task response to:
       $ReportPath
   using the write/edit file tool.  Do NOT print the report inline as your
   final message — the harness reads the file, not the message.
-
-The report MUST:
-- Be at least 2000 words.
-- Cite every factual claim inline as [anchor text](sandbox URL pointing at $ShoppingUrl / $RedditUrl / $WikipediaUrl).
-- Draw evidence from ALL THREE sandbox sources.
-- End with a "References" section listing every cited URL.
-- Start immediately with the report body (no preface, no chain-of-thought).
 
 After writing the file, your final text response should be ONLY:
   REPORT_WRITTEN
@@ -136,12 +137,24 @@ $intent
 #   exec                                    — non-interactive mode
 #   --dangerously-bypass-approvals-and-sandbox
 #                                           — skip approval prompts (we are externally sandboxed)
+#
+# FETCH CANNOT BE FORCED HERE (honest limitation, FETCH_PATH_AUDIT §3):
+# codex exec offers no per-command / per-host allowlist. Its only network
+# control is the coarse `--sandbox` switch (read-only | workspace-write |
+# danger-full-access), which is all-or-nothing: it can BLOCK all network or
+# ALLOW all, but cannot route a page read THROUGH the shim. Worse, that sandbox
+# is Seatbelt(macOS)/Landlock(Linux) only and is unsupported on the Windows box
+# this driver targets, so it degrades to danger-full-access regardless. The
+# /fetch recipe below is therefore advisory only: a disobedient model can still
+# `curl http://localhost:7770/...` directly. Consequently this lane's page
+# reads are NOT shim-observable; config/lane_protocol.yaml MUST keep
+# fetch_observable=false so the scorer marks pof available=false (never 0),
+# instead of falsely accusing it of hallucinated grounding.
 #   -m <model>                              — pick the backbone (here: deepseek-v4-flash via shim)
 #   -C <dir>                                — set codex's working root to $WorkDir
 #   -c model_providers.deepseek.<...>=...   — define a custom OpenAI-compat provider
 #                                             (dotted-key per-leaf form, not inline struct)
 #   -c model_provider="deepseek"            — pick that provider for this run
-#   -c model_reasoning_effort="low"         — avoid the xhigh reasoning that stalls
 $dsBase = '"' + $DsProxyUrl + '"'
 $codexArgs = @(
   'exec',
@@ -153,7 +166,6 @@ $codexArgs = @(
   '-c', ('model_providers.deepseek.base_url=' + $dsBase),
   '-c', ('model_providers.deepseek.env_key="OPENAI_API_KEY"'),
   '-c', 'model_provider="deepseek"',
-  '-c', 'model_reasoning_effort="low"',
   $fullPrompt
 )
 
@@ -242,7 +254,17 @@ async def run(
         proxy_url: ignored — codex uses its own provider routing.
         timeout_s: hard timeout for the remote subprocess.
     """
+    if not SSH_HOST:
+        raise RuntimeError(
+            "CODEX_SSH_HOST unset; the remote path is opt-in. Set it to the ssh "
+            "alias (my5090), never a bare port number.")
     del proxy_url  # informational only — we read CODEX_DS_PROXY env / module const
+    if _egress.enforced() and not _egress.remote_enforced():
+        raise RuntimeError(
+            "codex is an SSH lane: formal egress requires "
+            "DRA_REMOTE_EGRESS_PROXY to reach the bracketed door plus "
+            "DRA_REMOTE_EGRESS_ENFORCED=1 after remote bypass isolation passes"
+        )
     # Pass model through; default = DeepSeek V4 flash via ds_proxy.
     codex_model = model or CODEX_MODEL
 
@@ -282,7 +304,8 @@ async def run(
             f'-ShimUrl "{shim_url}" -ShoppingUrl "{shopping_url}" '
             f'-RedditUrl "{reddit_url}" -WikipediaUrl "{wikipedia_url}" '
             f'-Model "{codex_model}" '
-            f'-DsProxyUrl "{CODEX_DS_PROXY}"'
+            f'-DsProxyUrl "{CODEX_DS_PROXY}" '
+            f'-EgressProxyUrl "{_egress.remote_proxy()}"'
         )
 
         t0 = time.time()
@@ -318,8 +341,8 @@ async def run(
         except subprocess.CalledProcessError:
             pass
 
-        if len(report) < 500 and stdout_text.strip():
-            # The report file is missing/short and all we have is the merged
+        if not report and stdout_text.strip():
+            # The report file is empty and all we have is the merged
             # 2>&1 stdout stream. This is NOT a research report (it is tool-call
             # logs, chain-of-thought, curl output, error traces), so we must not
             # let it be scored as one. Prefix the recognized degenerate marker
@@ -327,8 +350,8 @@ async def run(
             # filters exclude it from scoring and Elo, instead of returning a
             # bare stdout dump that frequently passes the chars/URL filters.
             logger.info(
-                "codex: report file is %d chars, marking %d chars stdout as degenerate fallback",
-                len(report), len(stdout_text),
+                "codex: report file is empty, marking %d chars stdout as degenerate fallback",
+                len(stdout_text),
             )
             report = _wrap_stdout_fallback(stdout_text, elapsed, proc.returncode)
 
@@ -375,7 +398,7 @@ if __name__ == "__main__":
     parser.add_argument("intent")
     parser.add_argument("--model", default=CODEX_MODEL)
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o")
     args = parser.parse_args()

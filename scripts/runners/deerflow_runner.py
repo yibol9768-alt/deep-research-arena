@@ -26,6 +26,7 @@ import textwrap
 import time
 from pathlib import Path
 
+from scripts.runners import _egress
 from scripts.runners._runner_lock import runner_exclusive_lock
 
 logger = logging.getLogger(__name__)
@@ -163,6 +164,7 @@ def _build_driver_script(
         #!/usr/bin/env python3
         \"\"\"Auto-generated DeerFlow driver for benchmark runner.\"\"\"
         import os, sys, json, asyncio, re
+        sys.path.insert(0, os.getcwd())
 
         # --- 1. Set env vars BEFORE any imports ---
         # These are read by DeerFlow's native config machinery:
@@ -192,34 +194,47 @@ def _build_driver_script(
         except Exception:
             pass
 
-        # --- 2b. Prevent aiohttp from reading proxy vars from /etc/environment ---
-        # DeerFlow's raw_results_async uses aiohttp.ClientSession(trust_env=True)
-        # which reads HTTP_PROXY from the process environment even if we removed
-        # it from the subprocess env dict (WSL's /etc/environment may still have it).
+        # --- 2b. Deterministic aiohttp environment policy ---
+        # Trust the recording door in harness mode; reject ambient host proxies
+        # in standalone mode.
         try:
             import aiohttp as _aio
             _orig_cs_init = _aio.ClientSession.__init__
             def _no_trust_init(self, *a, **kw):
-                kw['trust_env'] = False
+                kw['trust_env'] = bool(os.environ.get('DRA_EGRESS_PROXY', '').strip())
                 _orig_cs_init(self, *a, **kw)
             _aio.ClientSession.__init__ = _no_trust_init
         except ImportError:
             pass
 
         # --- 3. Replace the crawl tool ---
-        # DeerFlow's Jina crawler calls https://r.jina.ai/ (external).
-        # We provide a tool that directly fetches sandbox URLs and extracts text.
+        # DeerFlow's Jina crawler calls https://r.jina.ai/ (external). crawl_tool
+        # is the ONLY page-read affordance DeerFlow hands the agent, so routing it
+        # through the shim's recorded POST /extract makes every page read of this
+        # lane observable and attributable. The previous version did a raw
+        # _req.get(url) straight to the sandbox origin: the page was fetched but
+        # never crossed the shim, so logs/fetch/<run_id>.jsonl saw zero fetches
+        # and the scorer could not distinguish a page the agent opened from one it
+        # recited from memory. The shim fetches the origin server-side and returns
+        # raw_content, which we tag-strip exactly as before. This also resolves the
+        # long-standing contradiction between this block and the module docstring
+        # (which already claimed crawl went through the shim's /extract).
+        # See FETCH_PATH_AUDIT_2026-07-08.md.
         import requests as _req
         from langchain_core.tools import tool as _tool_dec
 
         @_tool_dec
         def _sandbox_crawl(url: str) -> str:
-            \"\"\"Crawl a URL and return readable content.\"\"\"
+            \"\"\"Crawl a URL through the sandbox shim and return readable content.\"\"\"
             try:
-                r = _req.get(url, timeout=15)
+                r = _req.post(SHIM.rstrip('/') + '/extract',
+                              json={{"urls": [url]}}, timeout=20)
                 if r.status_code >= 400:
                     return json.dumps({{"error": f"HTTP {{r.status_code}}", "url": url}})
-                text = r.text
+                _results = (r.json() or {{}}).get("results") or []
+                text = _results[0].get("raw_content", "") if _results else ""
+                if not text:
+                    return json.dumps({{"error": "no content", "url": url}})
                 text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.DOTALL)
                 text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL)
                 text = re.sub(r'<[^>]+>', ' ', text)
@@ -317,7 +332,10 @@ def _build_driver_script(
             "configurable": {{
                 "thread_id": "benchmark-run",
                 "max_plan_iterations": 1,
-                "max_step_num": 6,
+                # Preserve DeerFlow's native default. The old adapter doubled
+                # this from 3 to 6, granting only this lane twice as many
+                # planned research steps and directly moving completeness.
+                "max_step_num": 3,
                 "mcp_settings": {{"servers": {{}}}},
             }},
             "recursion_limit": get_recursion_limit(default=80),
@@ -374,7 +392,7 @@ async def run(
         intent: The research query / task description.
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
-        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
+        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
         timeout_s: Subprocess timeout in seconds.
         strict_sandbox: when True, the driver script installs an HTTP-layer
             gate that rejects any non-sandbox URL (belt-and-suspenders on
@@ -414,19 +432,13 @@ async def run(
         driver_code = _build_driver_script(
             intent, shim_url, timeout_s, strict_sandbox=strict_sandbox,
         )
-        driver_path = DEERFLOW_ROOT / "_benchmark_driver.py"
+        driver_path = _egress.scratch_path("deerflow-benchmark-driver")
         driver_path.write_text(driver_code)
 
         # Build the subprocess environment
         env = {**os.environ}
-        # Remove ALL proxy env vars — prevents aiohttp(trust_env=True)
-        # from routing search through Mihomo to the real Tavily API.
-        for key in list(env.keys()):
-            if key.upper() in ('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY',
-                                'FTP_PROXY', 'NO_PROXY',
-                                'http_proxy', 'https_proxy', 'all_proxy',
-                                'ftp_proxy', 'no_proxy'):
-                del env[key]
+        # Canonical recording door in harness mode, standalone scrub otherwise.
+        _egress.scrub_or_apply(env)
         # LLM configuration via DeerFlow's native env-var mechanism
         # (src/llms/llm.py  _get_env_llm_conf reads BASIC_MODEL__* vars)
         env["BASIC_MODEL__base_url"] = proxy_url
@@ -548,7 +560,7 @@ if __name__ == "__main__":
     parser.add_argument("intent", help="Research query")
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
     parser.add_argument("--strict-sandbox", action="store_true", default=False)

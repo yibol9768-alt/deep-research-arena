@@ -35,8 +35,19 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[2]
 AGENT_NAME = "gemini-cli"
 
+# Standalone provider-specific CLI, not a shared-backbone comparative lane.
+# gemini-cli authenticates to Gemini with its own OAuth session and cannot route
+# the benchmark's DeepSeek/Qwen/GLM model through ds_proxy. Passing one of those
+# names with ``-m`` either fails or selects a different provider-side model; it
+# cannot produce an identity-probed framework x requested-backbone row.
+BENCHMARK_ENABLED = False
+BENCHMARK_DISABLED_REASON = "Gemini OAuth CLI cannot serve the requested shared backbone"
+
 DEFAULT_TIMEOUT_S = 1800
-SSH_HOST = os.environ.get("GEMINI_CLI_SSH_HOST", os.environ.get("CLAUDE_CODE_SSH_HOST", "5090"))
+# No "5090" default: that literal parses as the decimal IPv4 0.0.19.226 and
+# burned ~150s per connect attempt (claudecode_runner learned this first).
+# The remote path is opt-in; unset means fail fast with a clear message.
+SSH_HOST = os.environ.get("GEMINI_CLI_SSH_HOST", os.environ.get("CLAUDE_CODE_SSH_HOST", "")).strip()
 REMOTE_DIR_WIN = os.environ.get("GEMINI_CLI_REMOTE_DIR", "C:/tools/gemini_runner")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "")  # empty → gemini-cli default
 
@@ -75,14 +86,9 @@ The ONLY network endpoints you can reach are:
 To search, use the shell tool:
   curl -s -X POST $ShimUrl/search -H 'content-type: application/json' -d '{"query":"...","api_key":"tvly-shim-fake","max_results":10,"include_raw_content":true}'
 
-To fetch a page returned by search, use the shell tool:
-  curl -s -L '<sandbox URL>' | head -c 8000
-
-Methodology:
-1. Issue MULTIPLE search queries covering different angles of the task.
-2. For each promising result, fetch the page to extract specifics (prices, specs, quotes, dates).
-3. Cross-reference between Magento (products), Postmill (discussions), and Kiwix (encyclopedic background).
-4. Aim for >= 20 distinct sandbox URLs cited across all three sources.
+To fetch and read a page returned by search, use the shell tool. Route it
+through the shim's /fetch so the read is recorded:
+  curl -s "$ShimUrl/fetch?url=<sandbox URL>"
 
 OUTPUT INSTRUCTIONS (read carefully — the harness reads ONLY this file):
 
@@ -92,10 +98,7 @@ OUTPUT INSTRUCTIONS (read carefully — the harness reads ONLY this file):
   message — the harness reads the file, not the message.
 
 The report MUST:
-- Be at least 2000 words.
-- Cite every factual claim inline as [anchor text](sandbox URL pointing at $ShoppingUrl / $RedditUrl / $WikipediaUrl).
-- Draw evidence from ALL THREE sandbox sources.
-- End with a "References" section listing every cited URL.
+- Be a single self-contained markdown document.
 - Start immediately with the report body (no preface, no chain-of-thought).
 
 After writing the file, your final text response should be ONLY:
@@ -118,6 +121,18 @@ $intent
 #   --output-format text      — clean stdout (no streaming JSON)
 #   --include-directories DIR — give gemini access to $WorkDir for file writes
 #   -m <model>                — pick the model (empty = default)
+#
+# FETCH CANNOT BE FORCED HERE (honest limitation, FETCH_PATH_AUDIT §3):
+# --yolo is required to stay headless (the only other approval modes, `default`
+# and `auto_edit`, block on a prompt for every shell call and would stall the
+# run). gemini-cli has no per-host command allowlist: `coreTools`/`excludeTools`
+# can drop the native `google_web_search`/`web_fetch` tools (cutting off-box
+# leakage) and can pin the shell tool to `run_shell_command(curl)`, but neither
+# constrains the URL, so a bare `curl http://localhost:7770/...` still bypasses
+# the shim's record_fetch. The /fetch recipe below is therefore advisory only.
+# This lane's page reads are NOT shim-observable; config/lane_protocol.yaml MUST
+# keep fetch_observable=false so the scorer marks pof available=false (never 0)
+# rather than falsely accusing it of hallucinated grounding.
 $geminiArgs = @(
   '--prompt', $fullPrompt,
   '--yolo',
@@ -185,10 +200,27 @@ async def run(
         proxy_url: ignored.
         timeout_s: hard timeout for the remote subprocess.
     """
+    if not SSH_HOST:
+        raise RuntimeError(
+            "GEMINI_CLI_SSH_HOST unset; the remote path is opt-in. Set it to the ssh "
+            "alias (my5090), never a bare port number.")
     del proxy_url
-    # If the caller passes a DeepSeek-shaped model name, fall back to the env
-    # default (or gemini's built-in default if env is also empty).
-    gemini_model = GEMINI_MODEL if (not model or "deepseek" in model.lower()) else model
+    # This lane used to silently substitute its own model whenever the harness
+    # asked for a DeepSeek-shaped one:
+    #
+    #     gemini_model = GEMINI_MODEL if (not model or "deepseek" in model.lower()) else model
+    #
+    # So a row labelled `gemini-cli x deepseek-v4-flash` was gemini-cli running
+    # Gemini. The board would have compared a backbone against itself. This is
+    # the same class of accident as the claude-code lane filing qwen3-8b output
+    # under deepseek, and it branched on the backbone's NAME, which is why the
+    # cross-backbone axis cannot mean anything while such branches exist.
+    #
+    # A lane that cannot serve the requested backbone must say so, not quietly
+    # serve another one. The board then records an honest lane failure.
+    gemini_model = model or GEMINI_MODEL
+    if not gemini_model:
+        raise ValueError("gemini-cli: no model requested and GEMINI_MODEL unset")
 
     job_id = uuid.uuid4().hex[:12]
     intent_remote = f"{REMOTE_DIR_WIN}/intent_{job_id}.txt"

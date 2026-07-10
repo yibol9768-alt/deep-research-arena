@@ -5,12 +5,20 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY integrations/ds_proxy/ /app/ds_proxy/
+# Keep the repository package layout. ds_proxy imports the shared sampling
+# policy; copying only /app/ds_proxy made a rebuilt image fail at import time
+# and left production running an older, unfair sampler image.
+RUN mkdir -p /app/integrations \
+    && mkdir -p /app/config \
+    && touch /app/integrations/__init__.py
+COPY integrations/sampling_policy.py /app/integrations/sampling_policy.py
+COPY integrations/ds_proxy/ /app/integrations/ds_proxy/
+COPY config/lane_protocol.yaml /app/config/lane_protocol.yaml
 
-RUN pip install --no-cache-dir fastapi uvicorn httpx pydantic
+RUN pip install --no-cache-dir fastapi uvicorn httpx pydantic pyyaml
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8088
 
-CMD ["uvicorn", "ds_proxy.app:app", \
+CMD ["uvicorn", "integrations.ds_proxy.app:app", \
      "--host", "0.0.0.0", "--port", "8088"]

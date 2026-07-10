@@ -243,11 +243,12 @@ def test_select_pages_for_fetch_is_deterministic_and_bounded():
         ],
     }]
     picked = fs._select_pages_for_fetch(sg, pages_per_subgoal=3)
-    # 3 per subgoal, domain order shopping->reddit->wiki, discovery order within
+    # 3 per subgoal, preserving framework discovery order. The harness must not
+    # rebalance toward the benchmark's scored source classes.
     assert picked == [
         "http://localhost:7770/a",
         "http://localhost:7770/b",
-        "http://localhost:7770/e",
+        "http://localhost:9999/c",
     ]
 
 
@@ -298,6 +299,8 @@ def test_build_evidence_text_prefers_full_page_over_snippet():
     text = fs._build_evidence_text(sg, fetched, per_page_chars=3000)
     assert "FULL PAGE BODY" in text
     assert "### Landscape" in text
+    assert "URL: http://localhost:7770/a" in text
+    assert "[Product A](" not in text
 
 
 def test_build_evidence_text_uses_snippet_when_not_fetched():
@@ -337,3 +340,41 @@ def test_fetch_page_goes_through_shim_extract(monkeypatch):
     assert captured["url"] == "http://s:8081/extract"
     assert captured["json"] == {"urls": ["http://localhost:7770/a"]}
     assert out == "hello world"
+
+
+def test_benchmark_prompts_do_not_embed_scorer_rubric(monkeypatch):
+    captured = []
+
+    def fake_llm(messages, **kwargs):
+        captured.append((messages, kwargs))
+        if "workflow planner" in messages[0]["content"]:
+            return '[{"subgoal":"A","search_queries":["q"],"section_title":"S"}]'
+        return "# Report"
+
+    monkeypatch.setattr(fs, "_llm_call", fake_llm)
+    plan = fs._synthesize_workflow(
+        "user task", [{"label": "A", "title": "S", "body": "user task"}],
+        "", "m", "http://x/v1",
+    )
+    assert plan[0]["search_queries"] == ["q"]
+
+    all_found = {
+        "http://localhost:7770/p": {
+            "url": "http://localhost:7770/p", "title": "P", "snippet": "s",
+            "domain": "shopping", "query": "q",
+        }
+    }
+    fs._write_report(
+        "user task", [{"section_title": "S", "results": list(all_found.values())}],
+        all_found, "m", "http://x/v1", "http://s",
+        fetch_fn=lambda *_: "",
+    )
+
+    prompts = "\n".join(call[0][0]["content"] for call in captured)
+    forbidden = (
+        "AT LEAST 80", "4000-7000", "30 paragraphs", "min_urls_to_cite",
+        "target_domains", "shopping=", "reddit=", "wiki=", "8-15 search",
+        "product URL + reddit URL + wiki URL",
+    )
+    assert not any(term in prompts for term in forbidden)
+    assert all(call[1].get("temperature") == 0.2 for call in captured)

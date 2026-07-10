@@ -1,0 +1,574 @@
+{
+  "task": "dr_cross_deep_0001",
+  "answer_path": "data/results/deep/camel-ai__dr_cross_deep_0001_matrix.md",
+  "answer_chars": 5427,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 2,
+      "must_cite_total": 121,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 724,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 0,
+        "__WIKIPEDIA__": 2
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "cited_total": 2,
+      "cited_sandbox": 2,
+      "cited_off_sandbox": 0,
+      "probed": 2,
+      "http_200": 2,
+      "http_4xx": 0,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 1.0,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "claims_total": 2,
+      "claims_supported": 2,
+      "claims_unreachable": 0,
+      "match_rate": 1.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control",
+          "supported": true,
+          "overlap": 0.625
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/AptX",
+          "supported": true,
+          "overlap": 0.71
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no agent claims overlap with golden quoted_span URLs",
+      "claims_with_quote": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "total_pairs": 2,
+      "supported_pairs": 2,
+      "fetch_failures": 0,
+      "sentences_with_cite": 2,
+      "sentences_with_supported_cite": 2,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "According to Wikipedia, ANC is generally effective in reducing low-frequency noises such as engine hums and airplane cabin noise.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "According to Wikipedia, aptX is known for its high-quality audio and low latency, making it ideal for streaming music and video.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/AptX",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.775,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 1,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.25,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": false,
+          "detail": "contradiction_paragraphs=2"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.333, total_paragraphs=27"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Report identifies patterns in ANC effectiveness across different environments."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Report explains why ANC varies with frequency and device quality."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": true,
+          "reason": "Report cross-references Wikipedia and real-world examples."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Report synthesizes ANC, codecs, and price data for recommendations."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Report acknowledges budget considerations and limitations of ANC."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Report provides specific recommendations based on use cases and budgets."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Report identifies patterns in ANC effectiveness across different environments.  \n2. PASS - Report explains why ANC varies with frequency and device quality.  \n3. PASS - Report cross-references Wikipedia and real-world examples.  \n4. PASS - Report synthesizes ANC, codecs, and price data for recommendations.  \n5. PASS - Report acknowledges budget considerations and limitations of ANC.  \n6. PASS - Report provides specific recommendations based on use cases and budgets."
+    }
+  },
+  "presentation": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 6,
+      "tier_a_total": 6,
+      "tier_a_rate": 1.0,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=7"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.564, word_counts=[12, 74, 172, 178, 91, 181, 63]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=40.1"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to background to analysis to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences between sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present in the report."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent formatting with citations and terminology."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings and summarizes key points."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone without AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to background to analysis to conclusion.  \n2. PASS. Smooth transitions with bridging sentences between sections.  \n3. PASS. No empty meta-commentary present in the report.  \n4. PASS. Consistent formatting with citations and terminology.  \n5. PASS. Conclusion synthesizes findings and summarizes key points.  \n6. PASS. Professional tone without AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "total_citations": 2,
+      "sandbox_citations": 2,
+      "distinct_domains": 1,
+      "subforums_cited": [],
+      "type_counts": {
+        "wiki": 2
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.0,
+        "wiki": 0.2
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 0.0,
+        "top1_share_score": 0.0,
+        "top1_share_raw": 1.0,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.0
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.2222,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "How ANC Works",
+        "Effectiveness of ANC",
+        "Real-World Examples",
+        "Understanding Bluetooth Codecs",
+        "Effectiveness of Different Codecs",
+        "Is Expensive Always Better?",
+        "Budget-Friendly Options",
+        "Mid-Range Options",
+        "Premium Options"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.2222,
+        "rows": [
+          {
+            "entity": "How ANC Works",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Effectiveness of ANC",
+            "mentioned": true,
+            "positive": 3,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Real-World Examples",
+            "mentioned": true,
+            "positive": 5,
+            "negative": 1,
+            "ratio": 5.0,
+            "passed": true
+          },
+          {
+            "entity": "Understanding Bluetooth Codecs",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Effectiveness of Different Codecs",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 1,
+            "ratio": 0.0,
+            "passed": true
+          },
+          {
+            "entity": "Is Expensive Always Better?",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "Budget-Friendly Options",
+            "mentioned": true,
+            "positive": 4,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Mid-Range Options",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Premium Options",
+            "mentioned": true,
+            "positive": 5,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.2222,
+        "rows": [
+          {
+            "entity": "How ANC Works",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Effectiveness of ANC",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Real-World Examples",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Understanding Bluetooth Codecs",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Effectiveness of Different Codecs",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Is Expensive Always Better?",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "Budget-Friendly Options",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Mid-Range Options",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Premium Options",
+            "verdict": "FAIL"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "total_facts": 2,
+      "supported": 2,
+      "deterministic_hits": 0,
+      "llm_hits": 2,
+      "llm_calls": 2,
+      "llm_errors": 0,
+      "unfetchable_pages": 0,
+      "paragraphs_attempted": 2,
+      "extract_errors": 1,
+      "min_score": 0.5,
+      "judge": "qwen3-8b",
+      "per_fact": [
+        {
+          "subject": "aptX",
+          "predicate": "is known for",
+          "value": "high-quality audio and low latency",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/AptX",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "LDAC",
+          "predicate": "offers",
+          "value": "the highest audio quality",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/AptX",
+          "supported": true,
+          "method": "llm_nli"
+        }
+      ]
+    }
+  },
+  "internal_consistency": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "applicable": true,
+      "sentence_count": 39,
+      "cluster_count": 3,
+      "pairs_tested": 8,
+      "contradictions": 0,
+      "min_score": 0.85,
+      "judge": "qwen3-8b",
+      "judge_error": null,
+      "cluster_summary": [
+        {
+          "entity": "sony wh-1000xm5",
+          "size": 4,
+          "pairs_tested": 6,
+          "contradictions": 0
+        },
+        {
+          "entity": "bose quietcomfort",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "jabra elite",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        }
+      ],
+      "contradiction_rows": []
+    }
+  },
+  "markdown_spec": {
+    "word_count": 794,
+    "min_words": 400,
+    "max_words": 100000,
+    "words_ok": true,
+    "citation_count": 2,
+    "min_citations": 0,
+    "citations_ok": true,
+    "paragraph_count": 20,
+    "min_paragraphs": 0,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 1.0,
+    "quality_score": 0.2,
+    "truth_factor": 0.5,
+    "qm_factor": 1.0,
+    "nli_factor": 0.5,
+    "grounding_gate": 1.0,
+    "raw_score_v3": 0.5775,
+    "citation_alignment": 1.0,
+    "analysis_depth": 0.775,
+    "presentation": 1.0,
+    "composite_v3": 0.5775,
+    "composite_score": 0.1,
+    "composite_v2": 0.1,
+    "composite_v1": 0.2,
+    "legacy_composite": 0.15,
+    "composite_v4": 0.6553,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.0,
+    "perspective_balance": 0.2222,
+    "factual_exactness": 1.0,
+    "internal_consistency": 1.0
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

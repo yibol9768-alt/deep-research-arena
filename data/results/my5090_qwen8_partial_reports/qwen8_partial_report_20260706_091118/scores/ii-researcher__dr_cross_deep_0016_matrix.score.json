@@ -1,0 +1,532 @@
+{
+  "task": "dr_cross_deep_0016",
+  "answer_path": "data/results/deep/ii-researcher__dr_cross_deep_0016_matrix.md",
+  "answer_chars": 5637,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 4,
+      "must_cite_total": 123,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 719,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 1,
+        "__WIKIPEDIA__": 3
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "cited_total": 4,
+      "cited_sandbox": 4,
+      "cited_off_sandbox": 0,
+      "probed": 4,
+      "http_200": 4,
+      "http_4xx": 0,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 1.0,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "claims_total": 4,
+      "claims_supported": 4,
+      "claims_unreachable": 0,
+      "match_rate": 1.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_technology",
+          "supported": true,
+          "overlap": 0.406
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/List_of_Logitech_products",
+          "supported": true,
+          "overlap": 0.643
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Model_M_keyboard",
+          "supported": true,
+          "overlap": 0.278
+        },
+        {
+          "url": "http://localhost:9999/f/headphones/126761",
+          "supported": true,
+          "overlap": 0.222
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 0.75,
+    "passed": true,
+    "details": {
+      "citation_precision": 0.75,
+      "citation_recall": 0.75,
+      "total_pairs": 4,
+      "supported_pairs": 3,
+      "fetch_failures": 0,
+      "sentences_with_cite": 4,
+      "sentences_with_supported_cite": 3,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "- Keyboard Technology",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_technology",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- List of Logitech Products",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/List_of_Logitech_products",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- Model M Keyboard",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Model_M_keyboard",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- r/headphones: I got a DAC and the difference is UNREAL!",
+          "url": "http://localhost:9999/f/headphones/126761",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.8083,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 3,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.75,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=1"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=3"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=1"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.25, total_paragraphs=24"
+        }
+      ],
+      "tier_b_passed": 5,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.833,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies patterns in switch types and user preferences."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains why mechanical switches offer better tactile feedback."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "No explicit comparison across different source types."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Synthesizes user reviews and technical descriptions for insights."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Acknowledges subjectivity of improvement and limitations."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Recommends specific keyboards based on user needs and budget."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies patterns in switch types and user preferences.  \n2. PASS - Explains why mechanical switches offer better tactile feedback.  \n3. FAIL - No explicit comparison across different source types.  \n4. PASS - Synthesizes user reviews and technical descriptions for insights.  \n5. PASS - Acknowledges subjectivity of improvement and limitations.  \n6. PASS - Recommends specific keyboards based on user needs and budget."
+    }
+  },
+  "presentation": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 6,
+      "tier_a_total": 6,
+      "tier_a_rate": 1.0,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=9"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.626, word_counts=[10, 93, 177, 172, 63, 116, 63, 77]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=40.0"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent formatting and terminology."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings effectively."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone without AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to conclusion.  \n2. PASS. Smooth transitions with bridging sentences.  \n3. PASS. No empty meta-commentary present.  \n4. PASS. Consistent formatting and terminology.  \n5. PASS. Conclusion synthesizes findings effectively.  \n6. PASS. Professional tone without AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.3339,
+    "passed": false,
+    "details": {
+      "total_citations": 4,
+      "sandbox_citations": 4,
+      "distinct_domains": 2,
+      "subforums_cited": [
+        "headphones"
+      ],
+      "type_counts": {
+        "wiki": 3,
+        "reddit": 1
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.06666666666666667,
+        "wiki": 0.3
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 0.8113,
+        "top1_share_score": 0.0,
+        "top1_share_raw": 0.75,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.3333
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.25,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "Mechanical Switches",
+        "Rubber Dome Switches",
+        "Red Switches",
+        "Brown Switches",
+        "Blue Switches",
+        "Keychron K6",
+        "Ducky One 2 Mini",
+        "Vortex 108"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.25,
+        "rows": [
+          {
+            "entity": "Mechanical Switches",
+            "mentioned": true,
+            "positive": 8,
+            "negative": 3,
+            "ratio": 2.67,
+            "passed": true
+          },
+          {
+            "entity": "Rubber Dome Switches",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 2,
+            "ratio": 1.0,
+            "passed": true
+          },
+          {
+            "entity": "Red Switches",
+            "mentioned": true,
+            "positive": 3,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Brown Switches",
+            "mentioned": true,
+            "positive": 4,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Blue Switches",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Keychron K6",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Ducky One 2 Mini",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Vortex 108",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.25,
+        "rows": [
+          {
+            "entity": "Mechanical Switches",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Rubber Dome Switches",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Red Switches",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Brown Switches",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Blue Switches",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Keychron K6",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Ducky One 2 Mini",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Vortex 108",
+            "verdict": "FAIL"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no_extracted_facts",
+      "paragraphs_attempted": 1,
+      "extract_errors": 1,
+      "judge": "qwen3-8b"
+    }
+  },
+  "internal_consistency": {
+    "score": null,
+    "passed": false,
+    "details": {
+      "applicable": false,
+      "reason": "no_entity_clusters",
+      "sentence_count": 44
+    }
+  },
+  "markdown_spec": {
+    "word_count": 820,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 4,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 20,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 0.0,
+    "quality_score": 0.0,
+    "truth_factor": 0.5,
+    "qm_factor": 1.0,
+    "nli_factor": 0.5,
+    "grounding_gate": 1.0,
+    "raw_score_v3": 0.4433,
+    "citation_alignment": 0.75,
+    "analysis_depth": 0.8083,
+    "presentation": 1.0,
+    "composite_v3": 0.4433,
+    "composite_score": 0.0,
+    "composite_v2": 0.0,
+    "composite_v1": 0.0,
+    "legacy_composite": 0.0,
+    "composite_v4": 0.3459,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.3339,
+    "perspective_balance": 0.25,
+    "factual_exactness": 0.0,
+    "internal_consistency": 0.0
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

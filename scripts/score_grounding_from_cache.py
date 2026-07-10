@@ -38,7 +38,12 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     os.environ["DRA_SANDBOX_CACHE"] = args.cache
     from src.verifiers.sandbox_http_cache import install
-    install()  # all requests.get now served from the cache (instant)
+    # A miss now raises (STRICT_NO_REFETCH). It used to trigger a live fetch
+    # whose result was recorded as a hit, so a URL the model invented but which
+    # happened to exist was confirmed by the evaluator's own request. If this
+    # raises, the cache is incomplete for these reports: rebuild it with
+    # scripts/build_sandbox_cache.py rather than letting scoring go online.
+    install()
 
     from src.verifiers.url_reachability_verifier import URLReachabilityVerifier
     from src.verifiers.quote_match_verifier import QuoteMatchVerifier

@@ -56,6 +56,8 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import parse_qsl, unquote, urlparse
 
+from src.verifiers.citation_format import strip_url_trail
+
 # Default registry location, relative to the repo root.
 DEFAULT_REGISTRY_PATH = (
     Path(__file__).resolve().parents[2] / "data" / "golden" / "url_registry.json"
@@ -134,10 +136,6 @@ LAYERED_NAV_PARAMS = {
 _SHOPPING_NAV_SEGMENTS = {"catalogsearch", "search", "checkout", "customer", "wishlist"}
 _FORUM_NAV_SEGMENTS = {"search", "forums", "featured", "all", "submit", "login", "user"}
 _WIKI_NAV_SEGMENTS = {"search", "suggest", "random", "catch", "viewer", "skin"}
-
-# Light trailing-punct strip so a URL pasted mid-sentence still parses. Same
-# set as citation_format.URL_TRAIL_PUNCT (kept local: stdlib-only module).
-_TRAIL_PUNCT = ").,;:`'\"\\!?>]}"
 
 KIND_CONTENT = "content"
 KIND_SEARCH_NAV = "search_nav"
@@ -260,7 +258,11 @@ class UrlRegistry:
     @staticmethod
     def _parse(url: str) -> tuple[str, str, str, str] | None:
         """Return (host_port, path, query, fragmentless_url) or None."""
-        s = (url or "").strip().rstrip(_TRAIL_PUNCT)
+        # Use the citation extractor's punctuation rule.  A blind ``rstrip(')')``
+        # truncated ``Qi_(standard)`` before membership was checked, so three
+        # real vital sources were called fabricated even though Kiwix served
+        # them.  Balanced parentheses are URL data, not sentence punctuation.
+        s = strip_url_trail(url)
         if not s:
             return None
         try:

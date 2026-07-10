@@ -1,0 +1,569 @@
+{
+  "task": "dr_cross_deep_0031",
+  "answer_path": "data/results/deep/deerflow__dr_cross_deep_0031_matrix.md",
+  "answer_chars": 8685,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 3,
+      "must_cite_total": 120,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 615,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 1,
+        "__WIKIPEDIA__": 2
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "cited_total": 3,
+      "cited_sandbox": 3,
+      "cited_off_sandbox": 0,
+      "probed": 3,
+      "http_200": 3,
+      "http_4xx": 0,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 1.0,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "claims_total": 6,
+      "claims_supported": 6,
+      "claims_unreachable": 0,
+      "match_rate": 1.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console",
+          "supported": true,
+          "overlap": 0.583
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_games",
+          "supported": true,
+          "overlap": 0.263
+        },
+        {
+          "url": "http://localhost:9999/f/personalfinance/130943",
+          "supported": true,
+          "overlap": 0.158
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console",
+          "supported": true,
+          "overlap": 0.542
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_games",
+          "supported": true,
+          "overlap": 0.333
+        },
+        {
+          "url": "http://localhost:9999/f/personalfinance/130943",
+          "supported": true,
+          "overlap": 0.333
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "total_pairs": 3,
+      "supported_pairs": 3,
+      "fetch_failures": 0,
+      "sentences_with_cite": 3,
+      "sentences_with_supported_cite": 3,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "- Video Game Console",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- History of Video Games",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_games",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- r/personalfinance: Mortgage is 50% of takehome pay.",
+          "url": "http://localhost:9999/f/personalfinance/130943",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.85,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 2,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.5,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=2"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=3"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=2"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": false,
+          "detail": "density=0.115, total_paragraphs=26"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies patterns in TV compatibility and performance trends."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains why TV tech affects console feature utilization."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": true,
+          "reason": "Compares technical specs, consumer reviews, and display requirements."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Insight on TV compatibility affecting full feature utilization."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Acknowledges game optimization and TV tech limitations."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Recommends evaluating display tech before console purchase."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies patterns in TV compatibility and performance trends.  \n2. PASS - Explains why TV tech affects console feature utilization.  \n3. PASS - Compares technical specs, consumer reviews, and display requirements.  \n4. PASS - Insight on TV compatibility affecting full feature utilization.  \n5. PASS - Acknowledges game optimization and TV tech limitations.  \n6. PASS - Recommends evaluating display tech before console purchase."
+    }
+  },
+  "presentation": {
+    "score": 0.9333,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 5,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.833,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=7"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=1.249, word_counts=[8, 18, 109, 99, 631, 298, 17]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": false,
+          "detail": "flesch_reading_ease=19.3"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to background to analysis to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences between sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present in the report."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent formatting with citations and terminology."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings from multiple sections."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone without AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to background to analysis to conclusion.\n2. PASS. Smooth transitions with bridging sentences between sections.\n3. PASS. No empty meta-commentary present in the report.\n4. PASS. Consistent formatting with citations and terminology.\n5. PASS. Conclusion synthesizes findings from multiple sections.\n6. PASS. Professional tone without AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.3714,
+    "passed": false,
+    "details": {
+      "total_citations": 6,
+      "sandbox_citations": 6,
+      "distinct_domains": 2,
+      "subforums_cited": [
+        "personalfinance"
+      ],
+      "type_counts": {
+        "wiki": 4,
+        "reddit": 2
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.13333333333333333,
+        "wiki": 0.4
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 0.9183,
+        "top1_share_score": 0.0,
+        "top1_share_raw": 0.6667,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.3333
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.2889,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "Technical Specifications and Marketing Claims",
+        "Consumer Experiences and Real-World Performance",
+        "TV Compatibility and Feature Utilization",
+        "Marketing Claims and Their Validity",
+        "Impact on Consumer Experience and Value Proposition",
+        "Comparative Analysis of Claims and Real-World Performance",
+        "Literature Review & Theoretical Framework",
+        "Critical Discussion",
+        "Future Research Directions"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.2222,
+        "rows": [
+          {
+            "entity": "Technical Specifications and Marketing Claims",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Consumer Experiences and Real-World Performance",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "TV Compatibility and Feature Utilization",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Marketing Claims and Their Validity",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Impact on Consumer Experience and Value Proposition",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 1,
+            "ratio": 0.0,
+            "passed": true
+          },
+          {
+            "entity": "Comparative Analysis of Claims and Real-World Performance",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 1,
+            "ratio": 0.0,
+            "passed": true
+          },
+          {
+            "entity": "Literature Review & Theoretical Framework",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Critical Discussion",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Future Research Directions",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.3333,
+        "rows": [
+          {
+            "entity": "Technical Specifications and Marketing Claims",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Consumer Experiences and Real-World Performance",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "TV Compatibility and Feature Utilization",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Marketing Claims and Their Validity",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Impact on Consumer Experience and Value Proposition",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Comparative Analysis of Claims and Real-World Performance",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Literature Review & Theoretical Framework",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Critical Discussion",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Future Research Directions",
+            "verdict": "FAIL"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no_extracted_facts",
+      "paragraphs_attempted": 2,
+      "extract_errors": 2,
+      "judge": "qwen3-8b"
+    }
+  },
+  "internal_consistency": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "applicable": true,
+      "sentence_count": 53,
+      "cluster_count": 2,
+      "pairs_tested": 2,
+      "contradictions": 0,
+      "min_score": 0.85,
+      "judge": "qwen3-8b",
+      "judge_error": null,
+      "cluster_summary": [
+        {
+          "entity": "video game console history",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "video games",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        }
+      ],
+      "contradiction_rows": []
+    }
+  },
+  "markdown_spec": {
+    "word_count": 1189,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 6,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 24,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 0.0,
+    "quality_score": 0.0,
+    "truth_factor": 0.5,
+    "qm_factor": 1.0,
+    "nli_factor": 0.5,
+    "grounding_gate": 1.0,
+    "raw_score_v3": 0.4817,
+    "citation_alignment": 1.0,
+    "analysis_depth": 0.85,
+    "presentation": 0.9333,
+    "composite_v3": 0.4817,
+    "composite_score": 0.0,
+    "composite_v2": 0.0,
+    "composite_v1": 0.0,
+    "legacy_composite": 0.0,
+    "composite_v4": 0.5037,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.3714,
+    "perspective_balance": 0.2889,
+    "factual_exactness": 0.0,
+    "internal_consistency": 1.0
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

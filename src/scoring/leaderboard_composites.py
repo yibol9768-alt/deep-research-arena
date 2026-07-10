@@ -309,6 +309,67 @@ def composite_v3_breakdown(score: dict[str, Any]) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Legacy v4 compatibility
+# ---------------------------------------------------------------------------
+# Several shipped score/build entry points still materialise the historical
+# 11-pillar v4 record. The implementation was removed while those callers were
+# left live, making single-report scoring fail at import time. Keep the formula
+# here as an explicitly legacy compatibility surface. It is not the truth_v2
+# headline used by build_truth_board.py.
+
+
+def _pillar_score(score: dict[str, Any], key: str) -> float:
+    blob = score.get(key)
+    if not isinstance(blob, dict):
+        return 0.0
+    try:
+        return float(blob.get("score") or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def composite_v4_weights() -> dict[str, float]:
+    return {
+        "url_coverage": 0.10,
+        "spec": 0.05,
+        "checklist": 0.10,
+        "citation_alignment": 0.10,
+        "quote_match": 0.05,
+        "factual_exactness": 0.13,
+        "internal_consistency": 0.13,
+        "perspective_balance": 0.08,
+        "source_diversity": 0.06,
+        "analysis_depth": 0.10,
+        "presentation": 0.10,
+    }
+
+
+def composite_v4(score: dict[str, Any], floor: float = 0.0) -> float:
+    """Historical 11-pillar reach-gated composite used by legacy tools."""
+    values = {
+        "url_coverage": _pillar_score(score, "url_coverage"),
+        "spec": spec_pass_fraction(score.get("markdown_spec") or {}),
+        "checklist": checklist_pass_rate(score.get("checklist") or {}),
+        "citation_alignment": _pillar_score(score, "citation_alignment"),
+        "quote_match": _pillar_score(score, "quote_match"),
+        "factual_exactness": _pillar_score(score, "factual_exactness"),
+        "internal_consistency": _pillar_score(score, "internal_consistency"),
+        "perspective_balance": _pillar_score(score, "perspective_balance"),
+        "source_diversity": _pillar_score(score, "source_diversity"),
+        "analysis_depth": _pillar_score(score, "analysis_depth"),
+        "presentation": _pillar_score(score, "presentation"),
+    }
+    weights = composite_v4_weights()
+    raw = sum(weights[key] * value for key, value in values.items())
+    reach = _pillar_score(score, "url_reachability")
+    gate = max(float(floor), reach) if floor else reach
+    return gate * raw
+
+
+assert abs(sum(composite_v4_weights().values()) - 1.0) < 1e-9
+
+
+# ---------------------------------------------------------------------------
 # v3 RL reward variant. Additive-only: the public leaderboard path continues
 # to call composite_v3_softfloor / composite_v3_breakdown unchanged.
 # ---------------------------------------------------------------------------

@@ -17,6 +17,16 @@ Required contract for each ``*_runner.py``:
     ) -> str:
         ...                            # return the agent's markdown report
 
+An adapter that remains useful for standalone experiments but is not eligible
+for the comparative leaderboard must say so explicitly:
+
+    BENCHMARK_ENABLED = False
+    BENCHMARK_DISABLED_REASON = "requested backbone is not used"
+
+Disabled adapters stay importable and directly callable, but discovery does not
+place them in ``scripts.run_deep_task.RUNNERS``. This prevents an experimental
+modality or provider-specific CLI from silently entering the governed queue.
+
 The agent name is what shows up in score-file names
 (``data/results/deep_v3/<AGENT_NAME>__<task>_matrix.score.json``) and in the
 Elo leaderboard. Pick something stable: renaming an agent here means past
@@ -72,6 +82,13 @@ def discover() -> tuple[dict[str, Callable[..., Awaitable[str]]], dict[str, str]
             mod = importlib.import_module(mod_name)
         except Exception as e:
             import_errors[stem] = f"import: {type(e).__name__}: {e}"
+            continue
+
+        # Some adapters are deliberately standalone-only. In particular, a
+        # runner that ignores the requested backbone is not a valid framework x
+        # backbone lane even if its module can produce a report. Keep it
+        # callable by direct import, but never auto-enrol it in the formal queue.
+        if getattr(mod, "BENCHMARK_ENABLED", True) is False:
             continue
 
         agent_name = getattr(mod, "AGENT_NAME", None)

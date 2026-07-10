@@ -1,0 +1,1 @@
+(opencode timeout after 360s)

@@ -1,0 +1,1 @@
+﻿I'll proceed without using a worktree for this research task. Let me investigate the evolution of USB charging standards and explain how USB-C works, as well as why different cables and adapters can result in different charging speeds. I'll also provide recommendations for reliable adapters and cables.

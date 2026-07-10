@@ -1,0 +1,524 @@
+{
+  "task": "dr_cross_deep_0039",
+  "answer_path": "data/results/deep/deerflow__dr_cross_deep_0039_matrix.md",
+  "answer_chars": 11950,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 6,
+      "must_cite_total": 138,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 450,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 1,
+        "__WIKIPEDIA__": 1
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "cited_total": 6,
+      "cited_sandbox": 2,
+      "cited_off_sandbox": 4,
+      "probed": 2,
+      "http_200": 2,
+      "http_4xx": 0,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 1.0,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 0.5,
+    "passed": true,
+    "details": {
+      "claims_total": 2,
+      "claims_supported": 1,
+      "claims_unreachable": 0,
+      "match_rate": 0.5,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:9999/f/personalfinance/130933",
+          "supported": false,
+          "overlap": 0.042
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Egyptian_cuisine",
+          "supported": true,
+          "overlap": 0.32
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "total_pairs": 2,
+      "supported_pairs": 0,
+      "fetch_failures": 0,
+      "sentences_with_cite": 2,
+      "sentences_with_supported_cite": 0,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "- Factors Affecting the Price Gap Between Arabica and Robusta Beans",
+          "url": "http://localhost:9999/f/personalfinance/130933",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "- Role of Steamed Milk in Espresso Preparation",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Egyptian_cuisine",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.8083,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 3,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.75,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=1"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=3"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=1"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.355, total_paragraphs=31"
+        }
+      ],
+      "tier_b_passed": 5,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.833,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies chemical differences and their impact on flavor and texture."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains how cultivation costs and market demand affect price differences."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": true,
+          "reason": "Compares sources like scientific articles and coffee websites for information."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Synthesizes chemical, economic, and sensory data to recommend Arabica."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": false,
+          "reason": "No acknowledgment of limitations or counterarguments in the report."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Recommends Arabica based on flavor, balance, and consistency."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies chemical differences and their impact on flavor and texture.\n2. PASS - Explains how cultivation costs and market demand affect price differences.\n3. PASS - Compares sources like scientific articles and coffee websites for information.\n4. PASS - Synthesizes chemical, economic, and sensory data to recommend Arabica.\n5. FAIL - No acknowledgment of limitations or counterarguments in the report.\n6. PASS - Recommends Arabica based on flavor, balance, and consistency."
+    }
+  },
+  "presentation": {
+    "score": 0.8667,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 4,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.667,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3, 4]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=7"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": false,
+          "detail": "cv=1.936, word_counts=[7, 9, 42, 112, 84, 1401, 57]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": false,
+          "detail": "flesch_reading_ease=24.1"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to background to analysis to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences between sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present in the report."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent formatting with citations and terminology."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings with recommendation."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone without AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to background to analysis to conclusion.\n2. PASS. Smooth transitions with bridging sentences between sections.\n3. PASS. No empty meta-commentary present in the report.\n4. PASS. Consistent formatting with citations and terminology.\n5. PASS. Conclusion synthesizes findings with recommendation.\n6. PASS. Professional tone without AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.5,
+    "passed": false,
+    "details": {
+      "total_citations": 6,
+      "sandbox_citations": 2,
+      "distinct_domains": 2,
+      "subforums_cited": [
+        "personalfinance"
+      ],
+      "type_counts": {
+        "reddit": 1,
+        "wiki": 1
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.06666666666666667,
+        "wiki": 0.1
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 1.0,
+        "top1_share_score": 0.4,
+        "top1_share_raw": 0.5,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.3333
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.0571,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "Chemical Differences Between Arabica and Robusta Beans",
+        "Factors Affecting the Price Gap Between Arabica and Robusta Beans",
+        "Role of Steamed Milk in Espresso Preparation",
+        "Preferences of People Who Have Settled on a Particular Type of Bean",
+        "Synthesis and Comparison",
+        "Recommendation for the Best Bag of Espresso Beans",
+        "**Best Bag of Espresso Beans: Arabica Beans (Single-Origin or Blended)**"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.1429,
+        "rows": [
+          {
+            "entity": "Chemical Differences Between Arabica and Robusta Beans",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Factors Affecting the Price Gap Between Arabica and Robusta Beans",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 1,
+            "ratio": 0.0,
+            "passed": true
+          },
+          {
+            "entity": "Role of Steamed Milk in Espresso Preparation",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Preferences of People Who Have Settled on a Particular Type of Bean",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Synthesis and Comparison",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Recommendation for the Best Bag of Espresso Beans",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "**Best Bag of Espresso Beans: Arabica Beans (Single-Origin or Blended)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.0,
+        "rows": [
+          {
+            "entity": "Chemical Differences Between Arabica and Robusta Beans",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Factors Affecting the Price Gap Between Arabica and Robusta Beans",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Role of Steamed Milk in Espresso Preparation",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Preferences of People Who Have Settled on a Particular Type of Bean",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Synthesis and Comparison",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Recommendation for the Best Bag of Espresso Beans",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "**Best Bag of Espresso Beans: Arabica Beans (Single-Origin or Blended)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no_extracted_facts",
+      "paragraphs_attempted": 1,
+      "extract_errors": 1,
+      "judge": "qwen3-8b"
+    }
+  },
+  "internal_consistency": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "applicable": true,
+      "sentence_count": 59,
+      "cluster_count": 3,
+      "pairs_tested": 8,
+      "contradictions": 0,
+      "min_score": 0.85,
+      "judge": "qwen3-8b",
+      "judge_error": null,
+      "cluster_summary": [
+        {
+          "entity": "key findings",
+          "size": 4,
+          "pairs_tested": 6,
+          "contradictions": 0
+        },
+        {
+          "entity": "crema quality",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "consumer preferences",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        }
+      ],
+      "contradiction_rows": []
+    }
+  },
+  "markdown_spec": {
+    "word_count": 1737,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 6,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 27,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 0.3333,
+    "quality_score": 0.0667,
+    "truth_factor": 0.375,
+    "qm_factor": 0.75,
+    "nli_factor": 0.5,
+    "grounding_gate": 1.0,
+    "raw_score_v3": 0.2575,
+    "citation_alignment": 0.0,
+    "analysis_depth": 0.8083,
+    "presentation": 0.8667,
+    "composite_v3": 0.2575,
+    "composite_score": 0.025,
+    "composite_v2": 0.025,
+    "composite_v1": 0.0667,
+    "legacy_composite": 0.05,
+    "composite_v4": 0.3737,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.5,
+    "perspective_balance": 0.0571,
+    "factual_exactness": 0.0,
+    "internal_consistency": 1.0
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

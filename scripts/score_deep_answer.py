@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -280,6 +281,44 @@ def _composite(
     }
 
 
+def verify_report_seal(answer_path: Path) -> dict:
+    """Recompute the report sha and compare it to the seal in the meta sidecar.
+
+    run_deep_task seals sha256(exact bytes written) into
+    ``<stem>.meta.json:report_seal`` at the moment the runner returns. If a later
+    stage grafts a "### Sources" block, rewrites URLs, or otherwise edits the
+    saved report, the recomputed sha stops matching and this flags it. Before
+    this function nothing ever read the seal back, so it protected nothing.
+
+    Returns ``{checked, ok, reason, ...}``. ``checked=False`` (no sidecar / no
+    seal / older run) is NOT a failure: historical reports carry no seal. Only a
+    present seal that disagrees with the file is ``ok=False``.
+    """
+    meta_path = answer_path.with_suffix(".meta.json")
+    if not meta_path.exists():
+        return {"checked": False, "ok": True, "reason": "no_meta_sidecar"}
+    try:
+        meta = json.loads(meta_path.read_text())
+    except Exception as e:  # noqa: BLE001
+        return {"checked": False, "ok": True, "reason": f"meta_unreadable: {e}"}
+    seal = meta.get("report_seal") or {}
+    want = seal.get("sha256")
+    if not want:
+        return {"checked": False, "ok": True, "reason": "no_seal_in_meta"}
+    try:
+        got = hashlib.sha256(answer_path.read_bytes()).hexdigest()
+    except Exception as e:  # noqa: BLE001
+        return {"checked": False, "ok": True, "reason": f"report_unreadable: {e}"}
+    ok = (got == want)
+    return {
+        "checked": True,
+        "ok": ok,
+        "reason": "match" if ok else "sha_mismatch_report_tampered",
+        "sealed_sha256": want,
+        "actual_sha256": got,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--task", required=True)
@@ -295,6 +334,15 @@ def main() -> int:
             _install_cache()
         except Exception as _e:
             print(f"[cache] install failed: {_e}", file=sys.stderr)
+    else:
+        # Without a cache this tool verifies citations against the LIVE sandbox.
+        # That answers "does this URL exist", not "did the agent open it", and a
+        # URL the model guessed is confirmed by our own request. Fine for eyeballing
+        # one report; not the board's semantics. Board numbers come from the run's
+        # transport-level evidence log (src/eval/fetch_log.py).
+        print("[warn] no DRA_SANDBOX_CACHE: verifying against the live sandbox. "
+              "These numbers are NOT comparable to leaderboard numbers.",
+              file=sys.stderr)
 
     task_path = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep" / f"{args.task}.json"
     task_cfg = json.loads(task_path.read_text())
@@ -314,6 +362,15 @@ def main() -> int:
 
     print(f"=== scoring {answer_path.name} on task {args.task} ===")
     print(f"answer chars: {len(answer)}")
+
+    seal_check = verify_report_seal(answer_path)
+    if seal_check.get("checked") and not seal_check.get("ok"):
+        # Loud, not fatal: surface a tampered report in the score record so a
+        # board build can drop it, rather than silently scoring injected bytes.
+        print(f"\n[report_seal] TAMPERED: {json.dumps(seal_check, ensure_ascii=False)}",
+              file=sys.stderr)
+    elif seal_check.get("checked"):
+        print(f"[report_seal] verified (sha matches meta seal)")
 
     url_v = URLCoverageVerifier()
     url_result = url_v.verify(task_config=task_cfg, answer=answer)
@@ -473,6 +530,7 @@ def main() -> int:
         "task": args.task,
         "answer_path": str(answer_path),
         "answer_chars": len(answer),
+        "report_seal_check": seal_check,
         "url_coverage":     {"score": url_result.score,   "passed": url_result.passed,
                              "details": url_result.details},
         "url_reachability": {"score": reach_result.score, "passed": reach_result.passed,

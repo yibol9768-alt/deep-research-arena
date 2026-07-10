@@ -107,3 +107,12 @@ def test_distinct_urls_are_all_kept():
         "http://localhost:7770/product/b",
     }
     assert not any(c.style == "bare" for c in cits), _styles(cits)
+
+
+def test_balanced_parentheses_survive_markdown_and_bare_parsing():
+    url = "http://localhost:8090/content/wikipedia_en_all_nopic/A/Qi_(standard)"
+    for report in (f"[Qi standard]({url})", f"Source: {url}.", url):
+        cits = extract_citations(report, sandbox_only=False)
+        assert len(cits) == 1
+        assert cits[0].raw_url == url
+        assert cits[0].canonical_url.endswith("/A/Qi_(standard)")

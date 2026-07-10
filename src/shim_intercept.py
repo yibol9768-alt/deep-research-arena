@@ -8,7 +8,8 @@ this module intercepts ALL outgoing HTTP requests at the transport layer:
   - urllib.request.urlopen
 
 Any request to `api.tavily.com` is redirected to the local shim (default localhost:8081).
-Any request to `en.wikipedia.org` is redirected to the local Kiwix instance.
+Requests to `en.wikipedia.org` are NOT rewritten: that is parametric-memory
+drift out of the sandbox, and rescuing it manufactures grounding.
 
 Requests to localhost services (7770, 8081, 8088, 8090, 9999, etc.) and to
 external APIs (api.deepseek.com, open.bigmodel.cn) are left untouched.
@@ -59,36 +60,21 @@ def _rewrite_url(url: str) -> str:
         logger.info("TAVILY intercept: %s -> %s", url[:120], new_url[:120])
         return new_url
 
-    # --- Wikipedia interception ---
-    if "en.wikipedia.org" in host:
-        # e.g. https://en.wikipedia.org/wiki/Python_(programming_language)
-        # ->   http://localhost:8090/content/wikipedia_en_all_nopic/A/Python_(programming_language)
-        path = parsed.path  # /wiki/Title or /w/api.php etc.
-        if path.startswith("/wiki/"):
-            title = path[len("/wiki/"):]
-            kiwix_parsed = urlparse(WIKIPEDIA_KIWIX_URL)
-            new_path = f"/content/wikipedia_en_all_nopic/A/{title}"
-            new = parsed._replace(
-                scheme=kiwix_parsed.scheme,
-                netloc=kiwix_parsed.netloc,
-                path=new_path,
-                query="",  # Kiwix doesn't use query params
-            )
-            new_url = urlunparse(new)
-            logger.info("WIKIPEDIA intercept: %s -> %s", url[:120], new_url[:120])
-            return new_url
-        elif path.startswith("/w/api.php"):
-            # MediaWiki API call -- redirect to Kiwix search endpoint
-            kiwix_parsed = urlparse(WIKIPEDIA_KIWIX_URL)
-            new_path = "/search"
-            new = parsed._replace(
-                scheme=kiwix_parsed.scheme,
-                netloc=kiwix_parsed.netloc,
-                path=new_path,
-            )
-            new_url = urlunparse(new)
-            logger.info("WIKIPEDIA API intercept: %s -> %s", url[:120], new_url[:120])
-            return new_url
+    # --- Wikipedia: NOT intercepted ---
+    #
+    # This used to rewrite `en.wikipedia.org/wiki/X` into the sandbox Kiwix page
+    # and serve it. `lane_protocol.yaml` forbids `wiki_url_rewrite`, the same
+    # rewrite was deleted from ldr and local_deep_researcher (their comments
+    # still explain why), and it survived here and in the driver string
+    # `run_deep_task` injects -- a second copy reachable through another
+    # entrypoint, which is exactly what `check_parity` exists to catch.
+    #
+    # A model that addresses the public Wikipedia is answering from parametric
+    # memory: the sandbox search never returns that host. Rewriting the request
+    # converted off-sandbox drift into a page read, and then into grounding the
+    # lane had not earned. Only the lanes that route through this interceptor got
+    # the rescue, so it was also a per-lane advantage. The request is left alone
+    # and the sandbox gate refuses it, which is the honest measurement.
 
     return url
 

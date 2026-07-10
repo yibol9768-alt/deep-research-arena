@@ -110,14 +110,33 @@ def test_extract_article_prefers_polished_then_largest(tmp_path):
     assert out.startswith("polished body short")
 
 
-def test_extract_article_appends_references(tmp_path):
-    """References from url_to_info.json are appended to a fresh article."""
+def test_extract_article_never_appends_harness_references(tmp_path, caplog):
+    """Fairness contract: the harness NEVER writes STORM's bibliography into the report.
+
+    STORM keeps its retrieved sources in ``url_to_info.json``. The harness used to
+    append them as a ``## References`` block onto the extracted article "so the URL
+    extractor can recover" them. That injected block was STORM's ENTIRE grounding:
+    a counterfactual rescore with it removed dropped storm's macro reach
+    0.9609 -> 0.0000. STORM's own article contains no sandbox URLs; the harness was
+    ghost-writing its citations into the scored artifact, a credit no other
+    framework gets from the harness. The injection was removed 2026-07-08 (fairness
+    audit); the bibliography is now logged only, never appended.
+
+    This test LOCKS that contract. Do NOT "fix" a red here by re-appending the
+    references: that is exactly the reverted graft. The extracted report must be
+    byte-identical to the file STORM itself wrote, and the bibliography URLs must
+    appear only in the log, never in the returned text.
+    """
     import json
+    import logging
 
     run_start = time.time()
-    _write(
+    # Article body deliberately contains none of the bibliography URLs, so any URL
+    # found in the output could only have been injected by the harness.
+    article_body = "# Report title\n\nBody of the report. No sandbox URLs here.\n"
+    art = _write(
         tmp_path / "topic" / "storm_gen_article_polished.txt",
-        "Body of the report.",
+        article_body,
         mtime=run_start + 1,
     )
     _write(
@@ -132,10 +151,21 @@ def test_extract_article_appends_references(tmp_path):
         ),
         mtime=run_start + 1,
     )
-    out = storm_runner._extract_article(tmp_path, run_start)
-    assert "## References" in out
-    assert "[1] http://localhost:8081/a" in out
-    assert "[2] http://localhost:8081/b" in out
+
+    with caplog.at_level(logging.INFO, logger="scripts.runners.storm_runner"):
+        out = storm_runner._extract_article(tmp_path, run_start)
+
+    # No harness-injected references block, and no bibliography URL leaked in.
+    assert "## References" not in out
+    assert "http://localhost:8081/a" not in out
+    assert "http://localhost:8081/b" not in out
+    # The report is byte-identical to what STORM itself produced.
+    assert out == art.read_text()
+    assert out == article_body
+    # The bibliography is still observed, but only as a diagnostic log line.
+    assert any(
+        "diagnostic only, not appended" in r.getMessage() for r in caplog.records
+    ), "bibliography should be logged as diagnostic, not appended to the report"
 
 
 def test_run_uses_unique_scratch_dir_and_cleans_up(monkeypatch, tmp_path):
@@ -145,6 +175,17 @@ def test_run_uses_unique_scratch_dir_and_cleans_up(monkeypatch, tmp_path):
     neither tree may survive the call (so a later run cannot read it back).
     """
     import asyncio
+
+    # run() drives STORM through a forked native worker that imports
+    # knowledge_storm (via _install_offline_information_table_patch) BEFORE it ever
+    # reaches the monkeypatched _build_storm_runner. Without the dependency the
+    # worker fails at import and run() returns an honest error stub, so the
+    # scratch-dir contract can't be exercised. The workstation lacks the package;
+    # the box has it. Skip rather than weaken the cleanup assertions.
+    pytest.importorskip(
+        "knowledge_storm",
+        reason="storm native worker imports knowledge_storm; absent on workstation, present on box",
+    )
 
     # Redirect the scratch root into tmp_path by pointing ROOT's data dir there.
     fake_root = tmp_path
@@ -194,6 +235,14 @@ def test_run_uses_unique_scratch_dir_and_cleans_up(monkeypatch, tmp_path):
 def test_run_cleans_up_even_on_runner_error(monkeypatch, tmp_path):
     """A failing runner.run() must still leave no scratch dir behind."""
     import asyncio
+
+    # See test_run_uses_unique_scratch_dir_and_cleans_up: the native worker imports
+    # knowledge_storm before the monkeypatch is reachable. Absent on workstation,
+    # present on box. Skip rather than weaken the cleanup-on-error assertion.
+    pytest.importorskip(
+        "knowledge_storm",
+        reason="storm native worker imports knowledge_storm; absent on workstation, present on box",
+    )
 
     fake_root = tmp_path
     (fake_root / "data" / "results" / "deep").mkdir(parents=True)

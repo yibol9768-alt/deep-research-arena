@@ -15,7 +15,7 @@ plugs in directly.
 
 Usage (on westd, with shim+sandbox+ds_proxy running):
     export SHIM_URL=http://localhost:8081
-    export DS_PROXY_URL=http://localhost:8088/v1
+    export DS_PROXY_URL=http://localhost:8100/v1
     export OPENAI_API_KEY=anything
     python3 -c "
     import asyncio
@@ -24,7 +24,7 @@ Usage (on westd, with shim+sandbox+ds_proxy running):
         intent='Compare headphone prices across stores...',
         model='deepseek-v4-flash',
         shim_url='http://localhost:8081',
-        proxy_url='http://localhost:8088/v1',
+        proxy_url='http://localhost:8100/v1',
     )))
     "
 """
@@ -38,6 +38,8 @@ from pathlib import Path
 from typing import List, Union
 
 import numpy as np
+
+from .evidence_fallback import error_stub, keep_or_stub
 
 # Prevent HuggingFace from trying to download models at import time.
 # The model must be pre-cached on westd.
@@ -183,8 +185,8 @@ def _build_costorm_runner(
         api_key=api_key,
         api_base=proxy_url,
         max_tokens=4096,
-        temperature=0.7,
-        top_p=0.9,
+        temperature=0.2,
+        top_p=1.0,
     )
 
     lm_config = CollaborativeStormLMConfigs()
@@ -259,15 +261,17 @@ async def run(
         intent: The research topic / query.
         model: LLM model name (e.g. 'deepseek-v4-flash').
         shim_url: Tavily-compatible search shim (e.g. 'http://localhost:8081').
-        proxy_url: OpenAI-compatible LLM proxy (e.g. 'http://localhost:8088/v1').
+        proxy_url: OpenAI-compatible LLM proxy (e.g. 'http://localhost:8100/v1').
 
     Returns:
         The generated article as a markdown string with inline citations.
     """
     api_key = os.environ.get("OPENAI_API_KEY", "anything")
 
-    # Truncate topic to avoid filesystem path issues
-    topic = intent[:300]
+    # RunnerArgument keeps the topic as data, not as our scratch path.  Pass the
+    # complete benchmark task just as the other lanes do; truncating at 300
+    # characters silently dropped later constraints.
+    topic = intent
 
     logger.info(f"[co-storm] Starting Co-STORM for topic: {topic[:80]}...")
 
@@ -285,40 +289,19 @@ async def run(
     logger.info("[co-storm] Phase 1: warm_start()")
     runner.warm_start()
 
-    # ---- Phase 2: Simulated Conversation ----
-    # Run conversation turns. The pattern is:
-    #   - Inject a simulated user question
-    #   - Let Co-STORM answer with 2-3 expert/moderator turns
-    #   - Repeat with next user intent
-    # This interleaving ensures experts answer each question (building
-    # the knowledge base) before the next user question is injected.
+    # ---- Phase 2: Framework-native Conversation ----
+    # Let Co-STORM's own discourse policy choose every turn.  The harness used
+    # to inject three extra questions about comparisons, reviews and decision
+    # factors.  Those scorer-aligned research angles were not present in the
+    # benchmark task and no other lane received them.
     total_turns = runner.runner_argument.total_conv_turn
     logger.info(f"[co-storm] Phase 2: running up to {total_turns} conversation turns")
 
-    # Diverse research angles for the simulated user
-    user_intents = [
-        f"What are the key differences and trade-offs when comparing options for {topic}?",
-        f"What do real user reviews and discussions say about {topic}?",
-        f"What are the most important factors to consider regarding {topic}?",
-    ]
-
     turn_count = 0
-    intent_idx = 0
 
     while turn_count < total_turns:
         try:
-            # Every 3-4 turns, inject a new user intent (if available)
-            if intent_idx < len(user_intents) and (
-                turn_count == 0 or turn_count % 4 == 0
-            ):
-                runner.step(
-                    simulate_user=True,
-                    simulate_user_intent=user_intents[intent_idx],
-                )
-                intent_idx += 1
-            else:
-                # Let Co-STORM manage: expert answers / moderator questions
-                runner.step()
+            runner.step()
 
             turn_count += 1
             logger.info(
@@ -340,41 +323,18 @@ async def run(
         report = runner.generate_report()
     except Exception as e:
         logger.error(f"[co-storm] Report generation failed: {e}")
-        # Fall back to dumping knowledge base structure
-        report = _fallback_report(runner)
+        # A harness-assembled dump of the knowledge base/conversation is not
+        # Co-STORM's report. It used to turn a framework failure into a scored
+        # artifact for this lane alone. Surface the failure honestly instead.
+        return error_stub("co-storm", "write", f"{type(e).__name__}: {e}")
 
-    if not report or len(report.strip()) < 50:
-        logger.warning("[co-storm] Report too short, attempting fallback.")
-        report = _fallback_report(runner)
+    if not report or not str(report).strip():
+        return error_stub("co-storm", "write", "generate_report returned empty output")
+
+    # A short-but-real native article is still the framework's output. Capture
+    # it verbatim and let the scorer judge quality; never replace it based on a
+    # completeness proxy.
+    report = keep_or_stub("co-storm", "write", "native report was empty", str(report))
 
     logger.info(f"[co-storm] Done. Report length: {len(report)} chars")
     return report
-
-
-def _fallback_report(runner) -> str:
-    """Build a fallback report from conversation history if article generation fails."""
-    parts = []
-    parts.append(f"# {runner.runner_argument.topic}\n")
-
-    # Add knowledge base outline
-    try:
-        outline = runner.knowledge_base.get_node_hierarchy_string(
-            include_hash_tag=True,
-            include_node_content_count=True,
-        )
-        if outline.strip():
-            parts.append("## Knowledge Base Structure\n")
-            parts.append(outline)
-            parts.append("")
-    except Exception:
-        pass
-
-    # Add conversation highlights
-    parts.append("## Research Conversation\n")
-    for i, turn in enumerate(runner.conversation_history):
-        role = getattr(turn, "role", "Unknown")
-        utterance = getattr(turn, "utterance", "") or getattr(turn, "raw_utterance", "")
-        if utterance:
-            parts.append(f"**{role}** (turn {i+1}): {utterance}\n")
-
-    return "\n".join(parts)

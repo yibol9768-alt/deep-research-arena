@@ -28,7 +28,7 @@ from scripts.runners.evidence_fallback import fallback_enabled
 
 
 DEFAULT_SHIM_URL = "http://localhost:8081"
-DEFAULT_DS_PROXY = "http://localhost:8088/v1"
+DEFAULT_DS_PROXY = "http://localhost:8100/v1"
 LLM_TIMEOUT = float(os.environ.get("FLOWSEARCHER_LLM_TIMEOUT", "600"))
 FETCH_TIMEOUT = float(os.environ.get("FLOWSEARCHER_FETCH_TIMEOUT", "12"))
 PER_PAGE_CHARS = int(os.environ.get("FLOWSEARCHER_PER_PAGE_CHARS", "3000"))
@@ -137,7 +137,7 @@ def _fetch_page(url: str, shim_url: str, max_chars: int = PER_PAGE_CHARS,
 
 def _llm_call(messages: list[dict], base_url: str,
               model: str = "deepseek-v4-flash",
-              max_tokens: int = 4096, temperature: float = 0.3) -> str:
+              max_tokens: int = 4096, temperature: float = 0.2) -> str:
     ds_key = os.environ.get("OPENAI_API_KEY", "anything")
     for attempt in range(1, 4):
         try:
@@ -232,8 +232,8 @@ def _synthesize_workflow(intent: str, subgoals: list[dict], experience: str,
         for sg in subgoals
     )
 
-    prompt = f"""You are a deep-research workflow planner. Given a research task and prior experience,
-output a JSON array of search plans.
+    prompt = f"""You are a deep-research workflow planner. Given a research task,
+output a JSON array of search plans that would help answer it.
 
 {experience}
 
@@ -245,14 +245,11 @@ Return a JSON array. Each element:
 {{
   "subgoal": "A",
   "search_queries": ["query1", "query2", ...],
-  "target_domains": ["shopping", "reddit", "wiki"],
-  "min_urls_to_cite": 15,
-  "section_title": "Product Landscape"
+  "section_title": "Relevant section title"
 }}
 
-Generate 8-15 search queries per subgoal. For shopping queries, use product keywords.
-For reddit queries, use topic + opinion keywords. For wiki queries, use technical term keywords.
-Make queries specific enough to find relevant sandbox pages.
+Choose the number and wording of queries from the task itself. Do not add
+requirements that are absent from the task.
 
 Return ONLY the JSON array, no markdown fences."""
 
@@ -278,8 +275,7 @@ Return ONLY the JSON array, no markdown fences."""
 
     return [
         {"subgoal": sg["label"], "search_queries": [sg["body"][:100]],
-         "target_domains": ["shopping", "reddit", "wiki"],
-         "min_urls_to_cite": 15, "section_title": sg["title"]}
+         "section_title": sg["title"]}
         for sg in subgoals
     ]
 
@@ -291,7 +287,7 @@ def _execute_subgoal(plan_step: dict, all_found: dict[str, dict],
     results: list[dict] = []
 
     for q in queries:
-        hits = _search(q, shim_url, max_results=8)
+        hits = _search(q, shim_url, max_results=10)
         for h in hits:
             url = h.get("url", "")
             if url and url not in all_found:
@@ -324,27 +320,25 @@ _DOMAIN_ORDER = ("shopping", "reddit", "wiki", "unknown")
 
 def _select_pages_for_fetch(subgoal_results: list[dict],
                             pages_per_subgoal: int = PAGES_PER_SUBGOAL) -> list[str]:
-    """Deterministic pick of the top URLs to fetch full text for: up to
-    ``pages_per_subgoal`` per subgoal, iterating domains in a fixed order and
-    preserving discovery order within a domain. Deduped across subgoals."""
+    """Pick up to ``pages_per_subgoal`` URLs per subgoal in discovery order.
+
+    The old implementation grouped sources by the benchmark's three scored
+    domains before selection. That was a hidden cross-source strategy nudge:
+    this lane was told which source classes mattered while its peers only saw
+    search results. Retrieval order is framework output, so preserve it here.
+    """
     selected: list[str] = []
     seen: set[str] = set()
     for sg in subgoal_results:
-        by_domain: dict[str, list[dict]] = {d: [] for d in _DOMAIN_ORDER}
-        for r in sg.get("results", []):
-            by_domain.setdefault(r.get("domain", "unknown"), []).append(r)
         picked = 0
-        for domain in _DOMAIN_ORDER:
-            for r in by_domain.get(domain, []):
-                if picked >= pages_per_subgoal:
-                    break
-                url = r.get("url", "")
-                if url and url not in seen:
-                    seen.add(url)
-                    selected.append(url)
-                    picked += 1
+        for r in sg.get("results", []):
             if picked >= pages_per_subgoal:
                 break
+            url = r.get("url", "")
+            if url and url not in seen:
+                seen.add(url)
+                selected.append(url)
+                picked += 1
     return selected
 
 
@@ -391,28 +385,18 @@ def _build_evidence_text(subgoal_results: list[dict], fetched: dict[str, str],
 
     for sg_result in subgoal_results:
         section = sg_result["section_title"]
-        urls_by_domain: dict[str, list[dict]] = {d: [] for d in _DOMAIN_ORDER}
-        for r in sg_result["results"]:
-            urls_by_domain.setdefault(r.get("domain", "unknown"), []).append(r)
-
         if not _append(f"\n### {section}"):
             break
-        for domain in ["shopping", "reddit", "wiki"]:
-            items = urls_by_domain[domain]
-            if not items:
-                continue
-            if not _append(f"\n**{domain.title()} sources ({len(items)}):**"):
+        for item in sg_result["results"]:
+            url = item.get("url", "")
+            full = fetched.get(url)
+            body = full[:per_page_chars] if full else item.get("snippet", "")[:150]
+            # Plain fields, not citation-ready markdown. The writer decides how
+            # to use a source; the harness must not hand it preformatted links.
+            line = f"- Title: {item.get('title', '')[:80]}\n  URL: {url}\n  Text: {body}"
+            if not _append(line):
+                parts.append("\n... (evidence truncated at budget)")
                 return "\n".join(parts)
-            for item in items[:30]:
-                url = item.get("url", "")
-                full = fetched.get(url)
-                if full:
-                    line = f"- [{item['title'][:80]}]({url}):\n  {full[:per_page_chars]}"
-                else:
-                    line = f"- [{item['title'][:80]}]({url}): {item['snippet'][:150]}"
-                if not _append(line):
-                    parts.append("\n... (evidence truncated at budget)")
-                    return "\n".join(parts)
     return "\n".join(parts)
 
 
@@ -424,44 +408,22 @@ def _write_report(intent: str, subgoal_results: list[dict], all_found: dict[str,
 
     evidence_text = _build_evidence_text(subgoal_results, fetched)
 
-    total_urls = len(all_found)
-    domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
-    for info in all_found.values():
-        d = info.get("domain", "")
-        if d in domain_counts:
-            domain_counts[d] += 1
-
-    prompt = f"""You are a deep-research report writer. Write a comprehensive markdown report
-based on the evidence below.
+    prompt = f"""Answer the task using the evidence collected by the research workflow.
 
 ## Task:
-{intent[:3000]}
+{intent}
 
-## Evidence collected ({total_urls} unique URLs):
-Domain breakdown: shopping={domain_counts['shopping']}, reddit={domain_counts['reddit']}, wiki={domain_counts['wiki']}
+## Evidence:
 
 {evidence_text}
-
-## CRITICAL RULES:
-1. Every factual claim MUST be a markdown link `[label](url)` to a specific source URL from the evidence above.
-2. Cite AT LEAST 80 distinct URLs as markdown links in the report. Spread citations across ALL evidence domains.
-3. Cover ALL domains: shopping (product data), reddit (community sentiment), wiki (technical grounding).
-4. Write 4000-7000 words with at least 30 paragraphs. This is a COMPREHENSIVE report — be thorough and detailed.
-5. Start directly with the report content — no chain-of-thought or preamble.
-6. Do NOT fabricate URLs — only use URLs from the evidence above.
-7. Include cross-source synthesis as required by the task: contradictions, sentiment rankings, divergences, etc.
-8. Structure the report with clear markdown headings matching the task sections (A, B, C, D).
-9. For each product/thread/article, include ALL available metadata (price, rating, score, comment count, etc.).
-10. In synthesis sections, provide specific evidence chains: product URL + reddit URL + wiki URL per claim.
-
-Write the complete report now. Be comprehensive and thorough — cite as many sources as possible."""
+"""
 
     report = _llm_call(
         [{"role": "user", "content": prompt}],
         base_url=base_url,
         model=model,
         max_tokens=8192,
-        temperature=0.3,
+        temperature=0.2,
     )
 
     if report and report.strip():
@@ -601,46 +563,14 @@ async def run_flowsearcher(intent: str, model: str = "deepseek-v4-flash",
 
         print(f"  [fs] Total unique URLs found: {len(all_found)}")
 
-        # If under target, do supplementary searches
+        # Domain counts are diagnostics only. Do not trigger extra searches
+        # from scorer-shaped per-domain quotas.
         domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
         for info in all_found.values():
             d = info.get("domain", "")
             if d in domain_counts:
                 domain_counts[d] += 1
-
-        targets = {"shopping": 40, "reddit": 30, "wiki": 25}
-        for domain, target in targets.items():
-            if domain_counts[domain] < target:
-                deficit = target - domain_counts[domain]
-                print(f"  [fs] Supplementary search: {domain} needs {deficit} more URLs")
-                kw = _extract_keywords(intent, domain)
-                for q in kw[:8]:
-                    hits = _search(q, shim, max_results=10)
-                    for h in hits:
-                        url = h.get("url", "")
-                        if url and url not in all_found:
-                            d = "unknown"
-                            if ":7770" in url:
-                                d = "shopping"
-                            elif ":9999" in url:
-                                d = "reddit"
-                            elif ":8090" in url:
-                                d = "wiki"
-                            if d == domain:
-                                all_found[url] = {
-                                    "url": url, "title": h.get("title", ""),
-                                    "snippet": h.get("content", "")[:300],
-                                    "domain": d, "query": q,
-                                }
-                                subgoal_results[-1]["results"].append(all_found[url])
-
-        # Recount after supplementary
-        domain_counts = {"shopping": 0, "reddit": 0, "wiki": 0}
-        for info in all_found.values():
-            d = info.get("domain", "")
-            if d in domain_counts:
-                domain_counts[d] += 1
-        print(f"  [fs] After supplementary: shop={domain_counts['shopping']}, "
+        print(f"  [fs] Retrieved: shop={domain_counts['shopping']}, "
               f"reddit={domain_counts['reddit']}, wiki={domain_counts['wiki']}, "
               f"total={len(all_found)}")
 

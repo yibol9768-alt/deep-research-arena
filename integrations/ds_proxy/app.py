@@ -18,12 +18,15 @@ import json
 import os
 import re
 import asyncio
+import threading
 import time
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
+
+from integrations import sampling_policy as _sampling
 
 UPSTREAM = os.environ.get("OPENAI_PROXY_UPSTREAM", "https://api.deepseek.com").rstrip("/")
 UPSTREAM_KEY = os.environ.get("OPENAI_PROXY_KEY", "")
@@ -144,12 +147,90 @@ EMB_FORCE_MODEL = os.environ.get("OPENAI_PROXY_EMB_MODEL", "text-embedding-v4")
 USAGE_LOG = os.environ.get("DSPROXY_USAGE_LOG", "")
 STREAM_USAGE = os.environ.get("DSPROXY_STREAM_USAGE", "1") != "0"
 
+# The comment above described slicing a SERIAL timeline into runs. The harness
+# is not serial: measured over the 312-run 13-task subset, max concurrency is 2
+# (always cross-backbone). Two concurrent workers interleave their marks in one
+# log, so timeline slicing silently mis-attributes tokens. It happened to work
+# only because the two workers used different `model` values; the #39 full run
+# is single-backbone, where that accident disappears entirely.
+#
+# Fix: every usage record carries the open run's identity. Attribution no
+# longer depends on which pair of marks a line happens to fall between. Each
+# concurrent worker still needs its own proxy instance (own port, own
+# DSPROXY_USAGE_LOG); `_run_ctx_set` refuses to interleave two open runs.
+_RUN_CTX: dict[str, Any] = {}
+_RUN_CTX_LOCK = threading.Lock()
+
+
+class RunAlreadyActive(RuntimeError):
+    """A second `/_mark start` arrived while another run was open."""
+
+
+class RunOwnerMismatch(RuntimeError):
+    """An `/_mark end` caller does not own the currently open run."""
+
+
+def _run_ctx_set(body: dict) -> dict:
+    run_id = str(body.get("run_id") or "").strip()
+    if not run_id:
+        raise ValueError("run_id is required")
+    fields = {
+        "run_id": run_id,
+        "lane": body.get("lane") or body.get("agent"),
+        "task": body.get("task") or body.get("task_id"),
+        "backbone": body.get("backbone"),
+        "worker": body.get("worker") or os.environ.get("DRA_WORKER_ID") or None,
+    }
+    with _RUN_CTX_LOCK:
+        open_id = _RUN_CTX.get("run_id")
+        if open_id and open_id != run_id:
+            raise RunAlreadyActive(
+                f"run {open_id!r} is still open; refusing to interleave {run_id!r}. "
+                "Give each concurrent worker its own ds_proxy instance."
+            )
+        _RUN_CTX.clear()
+        _RUN_CTX.update({k: v for k, v in fields.items() if v is not None})
+        return dict(_RUN_CTX)
+
+
+def _run_ctx_clear(expected_run_id: str | None = None, *, require_owner: bool = False) -> dict:
+    """Clear the run context, optionally proving ownership first.
+
+    Internal test/reset callers may clear unconditionally.  The HTTP ``end``
+    path always sets ``require_owner=True``: an empty or stale end marker must
+    never clear a sibling worker's token-attribution bracket.
+    """
+    with _RUN_CTX_LOCK:
+        if require_owner:
+            expected_run_id = str(expected_run_id or "").strip()
+            if not expected_run_id:
+                raise ValueError("run_id is required for phase=end")
+            open_id = str(_RUN_CTX.get("run_id") or "").strip()
+            if not open_id:
+                raise RunOwnerMismatch(
+                    f"cannot close {expected_run_id!r}: no run is currently open"
+                )
+            if open_id != expected_run_id:
+                raise RunOwnerMismatch(
+                    f"cannot close {expected_run_id!r}: run {open_id!r} owns the bracket"
+                )
+        prev = dict(_RUN_CTX)
+        _RUN_CTX.clear()
+        return prev
+
+
+def _run_ctx() -> dict:
+    with _RUN_CTX_LOCK:
+        return dict(_RUN_CTX)
+
 
 def _usage_write(record: dict) -> None:
     if not USAGE_LOG:
         return
     try:
         record.setdefault("ts", round(time.time(), 3))
+        for k, v in _run_ctx().items():
+            record.setdefault(k, v)
         with open(USAGE_LOG, "a") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception:
@@ -249,15 +330,41 @@ app = FastAPI(title="deepseek-v4 thinking-inject proxy")
 
 @app.post("/_mark")
 async def usage_mark(request: Request):
-    """Append a run boundary marker to the usage log. Body is free-form JSON;
-    conventional fields: run_id, phase ('start'|'end'), agent, task_id,
-    backbone. No-op (but still 200) when DSPROXY_USAGE_LOG is unset."""
+    """Open or close a run bracket: {run_id, phase: 'start'|'end', lane, task,
+    backbone, worker}.
+
+    While a bracket is open every usage record is stamped with its identity, so
+    token attribution no longer depends on log-line ordering. A reentrant
+    `start` returns HTTP 409 rather than mixing two runs' tokens.
+    No-op (but still 200) when DSPROXY_USAGE_LOG is unset.
+    """
     try:
         body = json.loads(await request.body() or b"{}")
     except Exception:
         body = {}
-    _usage_write({"mark": True, **({k: v for k, v in body.items()} if isinstance(body, dict) else {})})
-    return {"ok": True, "logging": bool(USAGE_LOG)}
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body must be a JSON object")
+    phase = str(body.get("phase") or "start").lower()
+    if phase == "end":
+        try:
+            prev = _run_ctx_clear(body.get("run_id"), require_owner=True)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except RunOwnerMismatch as e:
+            raise HTTPException(
+                status_code=409,
+                detail={"error": "run_owner_mismatch", "message": str(e)},
+            )
+        _usage_write({"mark": True, "phase": "end", **prev})
+        return {"ok": True, "closed": prev.get("run_id"), "logging": bool(USAGE_LOG)}
+    try:
+        ctx = _run_ctx_set(body)
+    except RunAlreadyActive as e:
+        raise HTTPException(status_code=409, detail={"error": "run_already_active", "message": str(e)})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    _usage_write({"mark": True, "phase": "start", **ctx})
+    return {"ok": True, "run_id": ctx["run_id"], "logging": bool(USAGE_LOG)}
 
 
 # model prefixes that accept the `thinking: {"type": "disabled"}` body knob
@@ -285,6 +392,12 @@ async def _forward(path: str, request: Request) -> Any:
         body = {}
 
     model = body.get("model", "")
+    # The declared sampler, stamped where every lane's request must pass.
+    # `run_deep_task._setup_ds_backbone` points ELEVEN lanes here; only
+    # claude-code goes through llm_gateway. Equalising temperature in the
+    # gateway alone equalised exactly one lane.
+    _sampling.apply_sampling(body)
+    _sampling.apply_max_tokens(body)
     if _needs_thinking_off(model) and "thinking" not in body:
         body["thinking"] = {"type": "disabled"}
     # Optional model rewrite — set when UPSTREAM is LM Studio with a fixed

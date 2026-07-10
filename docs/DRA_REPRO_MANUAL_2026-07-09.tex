@@ -1,0 +1,503 @@
+\documentclass[10.5pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Noto Serif CJK SC}
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans Mono CJK SC}
+
+\usepackage[margin=2.0cm]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{tabularx}
+
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Deep Research Arena}
+\fancyhead[R]{\small 可复现实验手册}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.4em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.3em}{}
+
+\setlist[itemize]{leftmargin=1.4em,itemsep=0.15em,topsep=0.25em}
+\setlist[enumerate]{leftmargin=1.5em,itemsep=0.15em,topsep=0.25em}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  aboveskip=0.6em,
+  belowskip=0.6em
+}
+
+\title{\textbf{Deep Research Arena}\\[0.35em]
+\large 可复现实验手册：从零到 Truth 榜\\[0.25em]
+\normalsize 完整流程、命令、产物、验收与已知限制}
+\author{与仓库代码口径对齐（含 \texttt{docs/RUNNING\_EXPERIMENTS.md}）\\日期：2026-07-09\\分支参考：\texttt{fix/pof-citation-extractor}}
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+\noindent
+本手册面向需要\textbf{亲手复现} Deep Research Arena（DRA）评测的人。
+按章节顺序执行，应能：拉起沙箱 $\rightarrow$ 通过预检 $\rightarrow$ 跑 lane $\rightarrow$
+拿到证据日志与报告 $\rightarrow$ 建成带版本戳的 truth 榜。
+凡是仪器尚未强制的地方，文中用「现状」标明，避免把设计目标当成已落地能力。
+\end{abstract}
+\tableofcontents
+\newpage
+
+\section{本手册能让你复现什么}
+
+\begin{itemize}
+  \item 封闭沙箱上的一次（或多 lane）Deep Research 跑批
+  \item 可判定 truth 分：$\mathrm{truth}=\mathrm{reach}^{1.5}\cdot(0.39\,\mathrm{fact}+0.28\,\mathrm{pof}+0.33\,\mathrm{completeness})$
+  \item 带 \texttt{board.protocols} 版本戳的 JSON 榜，可与他人板子比对是否同口径
+\end{itemize}
+
+\textbf{本手册不保证}：开放网页评测、历史无证据日志档案的 transport PoF 重打、
+以及「所有 12 条 lane 都有硬 PoF」。后者取决于网络层是否已把沙箱端口只暴露给 shim（见第~\ref{sec:gap}~节）。
+
+\section{仓库与工作目录}
+
+\begin{lstlisting}
+# 假设仓库在:
+cd /path/to/deep_reserch   # 本机常见路径: /root/Desktop/lyb/deep_reserch
+export PYTHONPATH=.
+git rev-parse HEAD
+git status --short
+\end{lstlisting}
+
+关键目录：
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+路径 & 用途 \\
+\midrule
+\texttt{infra/sandbox.docker-compose.yml} & 沙箱编排 \\
+\texttt{integrations/search\_shim/} & 搜索/取页 shim（观测入口） \\
+\texttt{integrations/ds\_proxy/} & LLM 代理与 token 记账 \\
+\texttt{config/lane\_protocol.yaml} & 公平性与 fetch 可观测声明 \\
+\texttt{data/tasks/deep\_research/} & 任务 intent \\
+\texttt{data/golden/answer\_keys/} & 打分用答案键 \\
+\texttt{scripts/run\_deep\_task.py} & 单次跑入口 \\
+\texttt{scripts/preflight.py} & 开跑前硬门禁 \\
+\texttt{scripts/build\_truth\_board.py} & 建 truth 榜 \\
+\texttt{src/eval/decidable\_scorer.py} & K6 打分实现 \\
+\texttt{src/eval/fetch\_log.py} & transport 证据定义 \\
+\texttt{logs/fetch/} & 每 run 的搜/读证据 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{评分在测什么（复现前先对齐概念）}
+
+\subsection{封闭世界}
+
+Agent 应只接触：
+\begin{itemize}
+  \item Magento 购物站 \texttt{:7770}
+  \item Postmill 论坛 \texttt{:9999}
+  \item Kiwix Wikipedia \texttt{:8090}
+\end{itemize}
+经 search shim（默认 \texttt{:8081}）搜索与取页。没有「当天公网」作为真值来源。
+
+\subsection{Truth 公式（生产 K6）}
+
+\[
+\mathrm{quality}=0.39\cdot\mathrm{fact}+0.28\cdot\mathrm{pof}+0.33\cdot\mathrm{completeness}
+\]
+\[
+\mathrm{truth}=\mathrm{reach}^{\gamma}\cdot\mathrm{quality},\quad \gamma=1.5
+\]
+
+\begin{itemize}
+  \item \texttt{spec}（格式）只进 compliance 列，\textbf{不乘进} truth
+  \item 无 quality 地板（\texttt{EPS\_FLOOR=0.0}）
+  \item 权重为声明约定，不宣称最优；原始轴分应随板公开
+\end{itemize}
+
+\subsection{各量回答的问题}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+量 & 问题 \\
+\midrule
+\texttt{reach} & 引用的 URL 是否在冻结语料中 / 可达？ \\
+\texttt{pof}（transport\_v2） & agent \textbf{是否打开过}它引用的页？（看 shim 证据日志） \\
+\texttt{snippet\_only} & 引了真页但没打开，搜索却返回过该 URL+摘要 \\
+\texttt{hallucinated\_grounding} & 引了真页，但既没打开也没搜到（偏参数记忆） \\
+\texttt{fabrication} & URL 根本不在语料里 \\
+\texttt{quote\_support} / 旧 text\_v1 & 写的内容是否像页面（文本下界；\textbf{不是}取回证明） \\
+\texttt{fact} & 结构化声明是否与 DB/answer key 一致 \\
+\texttt{completeness} & vital 要点覆盖了多少 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{仪器拒绝做什么}
+
+若某 run 无证据日志，或该 lane 读页绕过 shim：
+\begin{itemize}
+  \item 默认 \texttt{--require-transport-pof}：该 lane \textbf{不上板}（withhold），并打印原因
+  \item 显式 \texttt{--no-require-transport-pof}：回退 \texttt{text\_v1}，板子戳 \texttt{pof\_semantics: text\_v1}，与 transport 板\textbf{不可比}
+  \item \textbf{绝不}把「没观测到」打成 \texttt{pof=0}（那是诬告）
+\end{itemize}
+
+\section{第 1 步：拉起沙箱}
+
+\subsection{Docker 内容面}
+
+\begin{lstlisting}
+docker compose -f infra/sandbox.docker-compose.yml up -d
+
+curl -fsS http://localhost:8081/healthz   # 若 compose 已含 gateway
+curl -fsS http://localhost:7770/
+curl -fsS http://localhost:9999/
+curl -fsS http://localhost:8090/
+\end{lstlisting}
+
+Wiki 需准备 \texttt{.zim} 并设置 \texttt{WIKI\_ZIM\_DIR}（见 \texttt{infra/build-images.md}）。
+购物/论坛镜像拉不下时走离线重建 Path C。
+
+\subsection{Shim 与 ds\_proxy（评测必开）}
+
+即使 compose 已有 gateway，实验文档要求明确拉起可记账服务：
+
+\begin{lstlisting}
+# 搜索/取页 shim：agent 接触沙箱的正门
+uvicorn integrations.search_shim.app:app --host 0.0.0.0 --port 8081
+
+# LLM 代理：统一底模 + token 归因
+mkdir -p logs
+DSPROXY_USAGE_LOG=logs/usage.jsonl \
+  uvicorn integrations.ds_proxy.app:app --host 0.0.0.0 --port 8088
+\end{lstlisting}
+
+环境变量示例：
+\begin{lstlisting}
+export SHOPPING=http://localhost:7770   # 或 17770，与任务占位符一致
+export REDDIT=http://localhost:9999
+export WIKIPEDIA=http://localhost:8090
+export TAVILY_API_URL=http://localhost:8081
+export DS_PROXY_URL=http://localhost:8088/v1
+export OPENAI_BASE_URL=$DS_PROXY_URL
+export OPENAI_API_KEY=anything-proxy-uses-server-key
+# 底模密钥按你的上游填写（vLLM / DashScope 等）
+\end{lstlisting}
+
+\subsection{并行 worker}
+
+一个 shim 同时只服务一个打开的 \texttt{/\_mark} 括号；第二路会 \texttt{409}。
+并行时\textbf{每 worker 一个 shim 端口}（由 \texttt{DRA\_WORKER\_ID} 派生；见 \texttt{run\_full\_leaderboard.sh}）。
+
+\section{第 2 步：预检（不过不许开跑）}\label{sec:preflight}
+
+\begin{lstlisting}
+python3 scripts/preflight.py --all
+\end{lstlisting}
+
+非零退出码 $=$ 不要跑。核心包括：
+\begin{itemize}
+  \item \textbf{Canary}：假 agent 搜两次、打开一页、引用三个 URL（含未打开真页与不存在 URL），仪器必须能分开
+  \item \texttt{scripts/check\_parity.py}：adapter 是否偷偷塞引用数/字数/示例 URL 等
+  \item 箱上专属检查若无法跑会标 \texttt{SKIP}（不得静默 PASS）
+\end{itemize}
+
+历史教训：子集 312 个 run 的 \texttt{shim\_search\_delta} 全为 0 却无人报警——
+「从没搜过」与「从没记到搜过」在数据上不可分。预检就是为防这件事再发生。
+
+\section{第 3 步：任务与答案键}
+
+\subsection{任务}
+
+\begin{lstlisting}
+ls data/tasks/deep_research/cross_site_deep/ | head
+# 例: dr_cross_deep_0001.json  字段含 intent, sites, markdown_spec, ...
+\end{lstlisting}
+
+Agent 主要消费 \texttt{intent}（其中 \texttt{\_\_SHOPPING\_\_} 等占位符会被替换成沙箱 URL）。
+\textbf{不要}把 must-cite 列表喂给 agent。
+
+\subsection{答案键}
+
+\begin{lstlisting}
+ls data/golden/answer_keys/ | head
+python3 - <<'PY'
+import json
+from pathlib import Path
+p=Path("data/golden/answer_keys/dr_cross_deep_0001.json")
+d=json.loads(p.read_text())
+print(d.keys())
+print("vital", len(d.get("vital_nuggets",[])),
+      "relevant", len(d.get("relevant_set",[])))
+PY
+\end{lstlisting}
+
+字段要点：\texttt{relevant\_set}、\texttt{vital\_nuggets}、\texttt{useful\_nuggets}、
+\texttt{spec\_requirements}。跨站 \texttt{gold\_contradictions} 多数为空——
+\textbf{不进 K6 truth}，复现时不要依赖它。
+
+可打分任务集合以 \texttt{data/golden/deep\_clean/\_manifest.json} 为准（约 75 scorable）。
+
+\section{第 4 步：公平性合同（加 lane 必读）}
+
+合同文件：\texttt{config/lane\_protocol.yaml}。
+
+每条 lane 只应得到：共享 intent + 一句「交一份自洽 Markdown 报告」。禁止：
+\begin{itemize}
+  \item 引用数量、字数/段落数、搜索次数、引用格式处方、示例 URL
+  \item harness 往终稿嫁接 URL / Sources 块
+  \item 按得分轴自动 retry/repair
+  \item 把模型写出的公网 wiki 改写成沙箱 URL（掩盖漂移）
+\end{itemize}
+
+实测过的违规代价（摘要）：ldr 嫁接 Sources 后 macro reach 从 $\sim0.95$ 降到 $0$（去掉嫁接后）；
+smolagents 曾按 localhost URL 数自动重试等。详见 \texttt{docs/RUNNING\_EXPERIMENTS.md} §4。
+
+新 lane 必须在 yaml 声明 \texttt{delivery} / \texttt{fetch\_mode} / \texttt{fetch\_observable}。
+\texttt{fetch\_observable: true} 前必须在箱上看到该 run 的 \texttt{logs/fetch/<run\_id>.jsonl} 含 fetch 行。
+
+\section{第 5 步：跑一次任务}
+
+\begin{lstlisting}
+python3 scripts/run_deep_task.py \
+  --agent deerflow \
+  --task dr_cross_deep_0001 \
+  --backbone qwen3-8b \
+  --out-suffix repro1
+\end{lstlisting}
+
+\texttt{--agent} 必须是 \texttt{RUNNERS} 已注册名（见脚本 \texttt{choices=}）。
+
+Harness 应：生成 \texttt{run\_id}；对 shim 与 ds\_proxy 开 \texttt{/\_mark}；\texttt{finally} 关闭。
+Shim 不可达应\textbf{响亮失败}，而不是无仪器继续跑。
+
+\subsection{每次 run 的产物}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+文件 & 证明什么 \\
+\midrule
+\texttt{<agent>/<task>.md} 或约定命名报告 & 框架自己的输出字节 \\
+\texttt{*.meta.json} & 状态、耗时、报告 \texttt{sha256} 封印 \\
+\texttt{logs/fetch/<run\_id>.jsonl} & 本次经 shim 的 search/fetch \\
+\texttt{logs/fetch/blobs/<sha256>} & agent 当时看到的页面字节 \\
+\texttt{logs/usage.jsonl} & token，按 run\_id 归因 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+打分时会校验封印：跑完后若有人追加 Sources/参考文献，会报 \texttt{TAMPERED}。
+
+\subsection{预算与 stalled}
+
+\begin{itemize}
+  \item \textbf{没有}比较用的墙钟限额；成本比 token
+  \item 无进展看门狗：连续 \texttt{stall\_timeout\_s}（默认 900s）既无 LLM 调用也无 shim 调用 $\Rightarrow$ 记 \texttt{stalled}（基建故障，可重跑）
+  \item 仅「重跑额度用尽仍 stalled」才计 0；若仍有欠重跑的 stalled，\texttt{build\_truth\_board} \textbf{拒绝出板}
+\end{itemize}
+
+\section{第 6 步：页面缓存（打分只读缓存，不现场上网）}
+
+\begin{lstlisting}
+# 按报告中出现的 URL 预热缓存（在可访问沙箱的机器上）
+python3 scripts/build_sandbox_cache.py --workers 6 --timeout 5
+# 具体参数以脚本 --help 为准；输出 sandbox_cache.json
+\end{lstlisting}
+
+打分时 cache miss \textbf{抛错}，不再现场 HTTP 补抓（避免用评测方请求「证实」模型猜中的 URL）。
+
+\section{第 7 步：建 Truth 榜}
+
+\begin{lstlisting}
+python3 scripts/build_truth_board.py \
+  --reports-dir data/results/deep/<backbone> \
+  --keys-dir data/golden/answer_keys \
+  --evidence-dir logs/fetch \
+  --cache sandbox_cache.json \
+  --out board.json
+\end{lstlisting}
+
+默认行为（以当前脚本为准）：
+\begin{itemize}
+  \item \texttt{--require-transport-pof} 默认 \textbf{开}：无 transport 证据的 lane withhold
+  \item \texttt{--missing-as-zero} 默认 \textbf{开}：缺报告的题计 0（避免「只跑成功的题」幸存者偏差）
+  \item \texttt{--min-coverage} 默认 0.5：覆盖不足标 \texttt{low\_coverage}，不进 headline 宣称
+  \item 同一板禁止混用 \texttt{text\_v1} 与 \texttt{transport\_v2}（退出码 3）
+  \item 没有任何 lane 可打分则拒绝写空板（退出码 5）
+\end{itemize}
+
+可选：\texttt{--panel winrates.json} 仅用于近乎打平时的 presentation 破平局，\textbf{不进入} truth 数值。
+
+\subsection{核对你复现的是不是同一口径}
+
+\begin{lstlisting}
+python3 - <<'PY'
+import json
+p=json.load(open("board.json"))
+print(p.get("protocols"))
+PY
+\end{lstlisting}
+
+比对：\texttt{formula\_version}、\texttt{extractor\_commit}、\texttt{pof\_semantics}、\texttt{task\_set\_hash}、\texttt{gamma}、\texttt{weights}。
+任一不同，数字不可比。
+
+更完整的主机级指纹：\texttt{scripts/run\_manifest.py}（git commit、脏树、影响分数的文件哈希、venv、语料指纹、模型身份探针）。
+在不同主机生成的 manifest，\texttt{verify()} 会拒绝。
+
+\section{第 8 步：Usefulness Jury（可选，与 truth 正交）}
+
+\begin{lstlisting}
+# 见 scripts/run_usefulness_jury.py --help
+# 产出 battles.jsonl -> Bradley-Terry 胜率/Elo
+\end{lstlisting}
+
+\begin{itemize}
+  \item 判官评「对人是否有用」，\textbf{不}评引用真假
+  \item 与 truth 的 Spearman 可为负：两轴测不同构念；\textbf{不要}用 jury 裁决哪个 truth 对
+  \item 历史 live 框架榜约 40.5\% 单判官：复现对外数字前先查 jury 源是否三判官齐全
+\end{itemize}
+
+\section{端到端最小复现清单（建议打印勾选）}
+
+\begin{enumerate}
+  \item[ ] \texttt{docker compose ... up -d}；7770/9999/8090 可 curl
+  \item[ ] shim :8081、ds\_proxy :8088 在跑；\texttt{DSPROXY\_USAGE\_LOG} 已设
+  \item[ ] \texttt{PYTHONPATH=.}；\texttt{preflight.py --all} 退出 0
+  \item[ ] \texttt{check\_parity.py} 无 violation
+  \item[ ] 选定 \texttt{--agent/--task/--backbone}；跑通 \texttt{run\_deep\_task.py}
+  \item[ ] 存在报告 md + meta（含 sha256）
+  \item[ ] 存在 \texttt{logs/fetch/<run\_id>.jsonl}；若声称可读页则有 fetch 行
+  \item[ ] 准备 \texttt{sandbox\_cache.json}
+  \item[ ] \texttt{build\_truth\_board.py} 成功；检查 \texttt{protocols}
+  \item[ ] 记录 git HEAD、是否脏树、公式版本，写入实验笔记
+\end{enumerate}
+
+\section{现状缺口（复现时必须知情）}\label{sec:gap}
+
+\subsection{网络层尚未强制「只能经 shim 读页」}
+
+进程内 gate 目前主要拦站外，且对 \texttt{localhost:7770} 等仍可能直连；
+且只补丁部分 HTTP 客户端。\texttt{aiohttp}/\texttt{httpx}/\texttt{curl} 可绕过。
+
+因此今日（协议声明口径）：
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\texttt{fetch\_observable} & 典型 lane 与 pof \\
+\midrule
+true & flowsearcher-ds、camel-ai（经 /extract）、storm / langchain-odr（无读页，snippet\_only）$\Rightarrow$ 可 transport \\
+false & smolagents、gpt-researcher、deerflow、ii、qx、claude-code、opencode、ldr $\Rightarrow$ \textbf{默认 withhold} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+根治：沙箱端口仅 shim 可达（网络命名空间/防火墙），则任意客户端不经 shim 就会失败，
+\texttt{fetch\_observable} 由构造为真。在此之前，默认 withhold 是刻意的强制函数，不是疏忽。
+
+\subsection{其他限制}
+
+\begin{enumerate}
+  \item 模型身份探针读的是 endpoint 自报；不能证明权重文件
+  \item 长驻服务未必随磁盘代码热更新；\texttt{/healthz} 暴露已加载模块 sha \textbf{尚未实现}
+  \item \texttt{quote\_support} 是逐字下界，释义会漏
+  \item 跨底模 thinking 等未 runtime 强制齐平前，只能当 lane 比较，不能当纯 backbone 消融
+  \item 历史无证据日志的档案无法用 transport\_v2 重打 PoF
+  \item 并发归因靠「一 shim 一括号」，请求本身不带 run\_id header
+\end{enumerate}
+
+\section{公式与门的设计意图（便于写进实验记录）}
+
+\begin{itemize}
+  \item \textbf{C1}：reach$=0$ 的纯编造 truth 必须为 0（乘法门）
+  \item \textbf{C2}：零实质空壳（即便格式满分）truth 必须为 0（spec 移出 + 无地板）
+  \item PoF 目标语义是取回证据；text\_v1 仅是显式降级且不可与 transport 板混比
+  \item Presentation/jury 与 truth 分离；合成若做乘法优先用 BT 胜率而非 Elo
+\end{itemize}
+
+相关维护者文档（若本地有 \texttt{internal/}）：
+\texttt{FORMULA\_LOCK\_*.md}、\texttt{FETCH\_PATH\_AUDIT\_*.md}、\texttt{ROOT\_CAUSE\_*.md}。
+
+\section{故障排查速查}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+现象 & 先查 \\
+\midrule
+preflight 失败 & canary 日志；shim 是否在记 search/fetch；parity 命中行 \\
+跑起来但无 \texttt{logs/fetch/<run\_id>.jsonl} & 是否对\textbf{shim}发了 /\_mark（不是只对 ds\_proxy） \\
+板子 withhold 某 lane & 该 lane \texttt{fetch\_observable}；jsonl 有无 fetch；是否 --no-require-transport-pof \\
+cache miss 报错 & 先 build\_sandbox\_cache；确认 URL 规范化一致 \\
+分数与论文表对不上 & 比对 protocols；是否旧 gated-Elo 板 vs K6 truth 板 \\
+stalled 很多 & vLLM/代理健康；900s 无进展定义；先重跑再计 0 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{命令总表}
+
+\begin{lstlisting}
+export PYTHONPATH=.
+
+# 预检
+python3 scripts/preflight.py --all
+python3 scripts/check_parity.py
+
+# 单跑
+python3 scripts/run_deep_task.py \
+  --agent <lane> --task <task_id> --backbone <model>
+
+# 缓存
+python3 scripts/build_sandbox_cache.py --help
+
+# 出板
+python3 scripts/build_truth_board.py \
+  --reports-dir <dir> \
+  --keys-dir data/golden/answer_keys \
+  --evidence-dir logs/fetch \
+  --cache sandbox_cache.json \
+  --out board.json
+
+# 显式降级（会戳 text_v1，勿与 transport 板比较）
+python3 scripts/build_truth_board.py ... --no-require-transport-pof
+
+# 口径
+python3 -c "import json;print(json.load(open('board.json'))['protocols'])"
+\end{lstlisting}
+
+\section{结语}
+
+可复现的最小闭环是：
+
+\begin{quote}
+冻结沙箱 + 预检通过 + 带 /\_mark 的跑次 + 证据日志 + 只读缓存打分 + 带 protocols 的 truth 板。
+\end{quote}
+
+在网络层强制「读页必经 shim」之前，请把 withhold 的 lane 当作\textbf{尚未可硬测 PoF}，
+而不是当作 PoF$=0$ 的差生。对外报告数字时，始终附上 \texttt{formula\_version} 与 \texttt{pof\_semantics}。
+
+\vspace{1em}
+\noindent\textit{文档日期 2026-07-09。若与后续 commit 冲突，以脚本默认参数、
+\texttt{lane\_protocol.yaml} 与 \texttt{board.protocols} 为准。
+英文操作摘要见 \texttt{docs/RUNNING\_EXPERIMENTS.md}。}
+
+\end{document}

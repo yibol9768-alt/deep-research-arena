@@ -21,10 +21,17 @@ from typing import Any, Literal, Optional, Union
 from urllib.parse import urlparse
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
-from .backend import SearchHit, extract, search
+from . import evidence
+from .backend import (
+    SearchHit,
+    extract,
+    last_source_diag,
+    route_public_url,
+    search,
+)
 
 
 # Upstream OpenAI-compat endpoint. Defaults to ds_proxy with deepseek-v4-flash.
@@ -68,6 +75,18 @@ SHIM_ALLOWLIST_HOSTS: tuple[str, ...] = (
     "127.0.0.1:7770", "127.0.0.1:8090", "127.0.0.1:9999", "127.0.0.1:8081",
 )
 
+
+def _allowlist_hosts() -> set[str]:
+    """Static public ports plus the backend's configured dial/public origins."""
+    hosts = {h.lower() for h in SHIM_ALLOWLIST_HOSTS}
+    try:
+        from .backend import _allowlist_hosts as _backend_allowlist
+
+        hosts.update(h.lower() for h in _backend_allowlist())
+    except Exception:  # noqa: BLE001 -- strict gate keeps the static floor
+        pass
+    return hosts
+
 # Where to log blocked URLs. Path is repo-relative so multiple shim
 # instances writing concurrently still land in the same audit file.
 _SHIM_ROOT = Path(__file__).resolve().parents[2]
@@ -105,7 +124,7 @@ def _url_is_sandbox(url: str) -> bool:
     except (ValueError, TypeError):
         port = None
     netloc = f"{host}:{port}" if port else host
-    for allowed in SHIM_ALLOWLIST_HOSTS:
+    for allowed in _allowlist_hosts():
         a = allowed.lower()
         if ":" in a:
             if netloc == a:
@@ -134,6 +153,9 @@ def _log_blocked_url(url: str, endpoint: str, *, query: str | None = None) -> No
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception:
         pass
+    # Also attribute the block to the open run. The global blocks log has no
+    # run_id, so it can say "something was blocked" but never "this agent tried".
+    evidence.record_block(url, endpoint, "non_sandbox_url_blocked")
 
 
 def _filter_hits_strict(
@@ -177,6 +199,156 @@ app = FastAPI(
                 "framework hit our sandbox with zero code change by "
                 "overriding TAVILY_API_URL / FIRECRAWL_BASE_URL.",
 )
+
+
+# ============================================================================
+# Run brackets and transport-level evidence
+# ============================================================================
+#
+# See integrations/search_shim/evidence.py for why this exists. In short: the
+# scorer used to infer "did the agent read this page" from the report prose.
+# It now reads what the shim actually served.
+
+@app.post("/_mark")
+async def run_mark(request: Request):
+    """Open or close a run bracket: {run_id, phase: "start"|"end", lane, task,
+    backbone, worker}.
+
+    A reentrant `start` returns HTTP 409 instead of silently interleaving two
+    runs into one evidence log. Concurrent workers must each get their own shim
+    instance; the harness runs two, so this is not hypothetical.
+    """
+    try:
+        body = json.loads(await request.body() or b"{}")
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body must be a JSON object")
+    phase = str(body.get("phase") or "start").lower()
+    try:
+        if phase == "end":
+            return evidence.mark_end(body)
+        ctx = evidence.mark_start(body)
+    except evidence.RunAlreadyActive as e:
+        raise HTTPException(status_code=409, detail={"error": "run_already_active", "message": str(e)})
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"ok": True, "run_id": ctx.run_id, "recording": evidence.enabled()}
+
+
+SOURCE_CANARY = os.environ.get("SHIM_SOURCE_CANARY", "headphones")
+_SOURCES_TTL_S = float(os.environ.get("SHIM_SOURCES_TTL_S", "600"))
+_SOURCES_CACHE: dict[str, Any] = {"at": 0.0, "payload": None}
+
+
+@app.get("/_sources/health")
+def sources_health(fresh: bool = False):
+    """Did every sandbox source actually answer? Read-only, cached.
+
+    A source that is unreachable returns no hits, and a source with no match for
+    this query returns no hits. The store spent the project in the first state
+    while every report was scored as though it were in the second. The harness
+    calls this before it opens a run bracket and refuses to start when a source
+    is down, so a run can no longer be scored against a corpus it could not see.
+
+    Probes `backend.search`, not the recorded `/search` chokepoint: a health
+    check must not write into the open run's evidence log, or it would inflate
+    that run's `search_returned` set and with it the `pof` denominator.
+    """
+    now = time.monotonic()
+    cached = _SOURCES_CACHE["payload"]
+    if not fresh and cached and now - _SOURCES_CACHE["at"] < _SOURCES_TTL_S:
+        return {**cached, "cached": True}
+
+    try:
+        hits = search(SOURCE_CANARY, max_results=3)
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "sources": {}, "down": {"*": f"{type(e).__name__}: {e}"},
+                "not_queried": [], "sample_urls": [], "query": SOURCE_CANARY,
+                "cached": False}
+
+    # The caller holds the registry; the shim does not. Hand back what a real
+    # search would have handed the agent, so the harness can ask the question the
+    # shim cannot: would the scorer count these as fabricated?
+    sample_urls = [h.url for h in hits][:12]
+    diag = last_source_diag()
+    # `down` is the undetectable failure: the source handed back nothing, which
+    # reads exactly like "no product matches this query". `degraded` is a source
+    # that answered despite an error on part of the fan-out -- the forum queries
+    # several boards and one may 404. That is visible in the data, so it warns
+    # rather than blocks; blocking on it would ground every run over one board.
+    down = {s: (d.get("error") or "zero hits")
+            for s, d in diag.items() if not d.get("n_results")}
+    degraded = {s: d["error"] for s, d in diag.items()
+                if d.get("error") and d.get("n_results")}
+    never_asked = [s for s in ("shopping", "forum", "wiki") if s not in diag]
+    payload = {"ok": not down and not never_asked, "sources": diag, "down": down,
+               "degraded": degraded, "not_queried": never_asked,
+               "sample_urls": sample_urls, "query": SOURCE_CANARY}
+    _SOURCES_CACHE.update(at=now, payload=payload)
+    return {**payload, "cached": False}
+
+
+@app.get("/_evidence/status")
+def evidence_status():
+    ctx = evidence.active()
+    return {
+        "recording": evidence.enabled(),
+        "dir": str(evidence.evidence_dir()),
+        "active_run": ctx.run_id if ctx else None,
+        "counters": evidence.counters(),
+    }
+
+
+@app.get("/fetch")
+def sandbox_fetch(url: str = Query(..., description="canonical sandbox URL")):
+    """Recorded page read. The ONLY page-fetch path agents may use.
+
+    CLI lanes (claude-code, opencode) used to `curl` the sandbox origins
+    directly, so page reads left no trace and the shim only ever saw /search.
+    Their command allowlists now permit the shim origin only, and this endpoint
+    is what they curl. The response body is returned verbatim, and the exact
+    bytes served are content-addressed so the scorer never re-fetches.
+    """
+    _ensure_url_allowed(url, endpoint="/fetch")
+    dial_url, dial_headers, _source = route_public_url(url)
+    try:
+        # Dial the compose/service address while presenting the source's public
+        # identity as Host.  The requested/public URL remains the evidence key.
+        r = httpx.get(
+            dial_url,
+            headers=dial_headers,
+            timeout=30.0,
+            follow_redirects=False,
+        )
+        body = r.content or b""
+        status = r.status_code
+        err = None
+    except Exception as e:  # noqa: BLE001
+        body, status, err = b"", 0, f"{type(e).__name__}: {e}"
+    # /fetch returns the full raw HTML verbatim, so the agent sees every <a href>
+    # on the page (nav included). Parse the WHOLE document for navigable links so
+    # a URL the agent reached by following any on-page link is later scored
+    # `linked`, not `hallucinated_grounding`. Best-effort: a parse failure leaves
+    # links unset and the scorer falls back to the blob regex.
+    links = None
+    ctype = ""
+    try:
+        ctype = (r.headers.get("content-type") or "") if err is None else ""
+    except Exception:  # noqa: BLE001
+        ctype = ""
+    if body and status and status < 400 and "html" in ctype.lower():
+        try:
+            from .backend import BeautifulSoup, _navigable_links
+            soup = BeautifulSoup(body.decode("utf-8", "replace"), "html.parser")
+            links = _navigable_links(soup, url)
+        except Exception:  # noqa: BLE001
+            links = None
+    evidence.record_fetch(url, status, body, endpoint="/fetch", error=err, links=links)
+    if err or status == 0:
+        raise HTTPException(status_code=502, detail=err or "fetch failed")
+    return Response(content=body, status_code=status,
+                    media_type=r.headers.get("content-type", "text/plain"))
 
 
 # ============================================================================
@@ -237,6 +409,46 @@ def _hit_to_tavily(h: SearchHit, include_raw: Union[bool, str]) -> TavilySearchR
     )
 
 
+def _search_recorded(query: str, *, endpoint: str, **kw) -> list[SearchHit]:
+    """Every search the shim serves, recorded against the open run.
+
+    This is the single chokepoint for `backend.search`. Recording here (rather
+    than in each of the seven wire-protocol endpoints) is what makes
+    `retrieval_utilization` and the searched/linked/guessed provenance classes
+    computable: without `urls_returned` a cited URL cannot be told apart from
+    one the model guessed.
+    """
+    hits = search(query, **kw)
+    from .backend import last_source_diag
+    evidence.record_search(
+        query, [h.url for h in hits], endpoint=endpoint,
+        source_diag=last_source_diag(),
+    )
+    return hits
+
+
+def _extract_recorded(urls: list[str], *, endpoint: str) -> list[dict]:
+    """Single chokepoint for `backend.extract`. Stores the served bytes.
+
+    The scorer reads these bytes (by digest) instead of re-fetching the page at
+    scoring time, so `quote_support` compares the report against what the agent
+    was actually shown.
+    """
+    rows = extract(urls)
+    for row in rows:
+        body = (row.get("raw_content") or "").encode("utf-8", "replace")
+        # `links` were captured from the page HTML before get_text() stripped
+        # the hrefs. Pass them so an on-page-link citation is scored `linked`,
+        # not `hallucinated_grounding`. `row.get("links")` is None on a blocked
+        # or errored page (never parsed), which record_fetch leaves unstamped.
+        evidence.record_fetch(
+            row.get("url", ""), int(row.get("status") or 0), body,
+            endpoint=endpoint, error=row.get("error"),
+            links=row.get("links"),
+        )
+    return rows
+
+
 def _tavily_search_response(
     query: str,
     *,
@@ -246,8 +458,9 @@ def _tavily_search_response(
     exclude_domains: Optional[list[str]] = None,
 ) -> TavilySearchResponse:
     t0 = time.time()
-    hits = search(
+    hits = _search_recorded(
         query,
+        endpoint="/search",
         max_results=max_results or 5,
         include_domains=include_domains or [],
         exclude_domains=exclude_domains or [],
@@ -355,7 +568,7 @@ def tavily_extract(
     # URLs the gate considers private; a single 403 is cleaner.
     for u in req.urls:
         _ensure_url_allowed(u, endpoint="/extract")
-    rows = extract(req.urls)
+    rows = _extract_recorded(list(req.urls), endpoint="/extract")
     results: list[TavilyExtractResultItem] = []
     failed: list[dict] = []
     for row in rows:
@@ -413,7 +626,7 @@ class FirecrawlSearchResponse(BaseModel):
 
 
 def _do_firecrawl_search(req: FirecrawlSearchRequest) -> FirecrawlSearchResponse:
-    hits = search(req.query, max_results=req.limit or 5)
+    hits = _search_recorded(req.query, endpoint="/v2/search", max_results=req.limit or 5)
     hits = _filter_hits_strict(hits, endpoint="/v2/search", query=req.query)
     web = [FirecrawlSearchItem(
         title=h.title, description=h.content, url=h.url,
@@ -445,7 +658,7 @@ def firecrawl_search_v1(
     req: FirecrawlSearchRequest,
     authorization: Optional[str] = Header(default=None),
 ) -> FirecrawlV1SearchResponse:
-    hits = search(req.query, max_results=req.limit or 5)
+    hits = _search_recorded(req.query, endpoint="/v1/search", max_results=req.limit or 5)
     hits = _filter_hits_strict(hits, endpoint="/v1/search", query=req.query)
     items = [
         {
@@ -482,7 +695,7 @@ def firecrawl_scrape(
     authorization: Optional[str] = Header(default=None),
 ) -> FirecrawlScrapeResponse:
     _ensure_url_allowed(req.url, endpoint="/scrape")
-    rows = extract([req.url])
+    rows = _extract_recorded([req.url], endpoint="/scrape")
     if not rows:
         raise HTTPException(status_code=500, detail="extract returned no rows")
     row = rows[0]
@@ -631,20 +844,40 @@ def product_lookup(req: ProductLookupRequest) -> ProductLookupResponse:
     # 403 is not swallowed by the broad except.
     _ensure_url_allowed(req.url, endpoint="/product_lookup")
     strict = _shim_mode() == "strict"
+    dial_url, dial_headers, _source = route_public_url(req.url)
     try:
         import requests  # type: ignore
         # In strict mode do not follow redirects: a sandbox PDP that
         # 30x-redirects off origin would otherwise bypass the pre-fetch
         # allowlist gate (which only saw the requested URL) and let requests
         # return off-allowlist content. Re-validate the final response URL too.
-        r = requests.get(req.url, timeout=20, allow_redirects=not strict)
+        r = requests.get(
+            dial_url,
+            headers=dial_headers,
+            timeout=20,
+            allow_redirects=not strict,
+        )
         if strict and (300 <= r.status_code < 400 or not _url_is_sandbox(str(r.url))):
+            evidence.record_fetch(
+                req.url,
+                r.status_code,
+                b"",
+                endpoint="/product_lookup",
+                error="non_sandbox_redirect_blocked",
+            )
             _log_blocked_url(str(r.url), endpoint="/product_lookup")
             raise HTTPException(
                 status_code=403,
                 detail={"error": "non_sandbox_redirect_blocked", "url": str(r.url)},
             )
         if r.status_code >= 400:
+            evidence.record_fetch(
+                req.url,
+                r.status_code,
+                getattr(r, "content", b"") or b"",
+                endpoint="/product_lookup",
+                error=f"HTTP {r.status_code}",
+            )
             return ProductLookupResponse(ok=False, url=req.url,
                                          error=f"HTTP {r.status_code}")
         html = r.text
@@ -653,8 +886,34 @@ def product_lookup(req: ProductLookupRequest) -> ProductLookupResponse:
         # by the broad except below and turned into an ok=False 200 body.
         raise
     except Exception as e:
+        evidence.record_fetch(
+            req.url,
+            0,
+            b"",
+            endpoint="/product_lookup",
+            error=f"{type(e).__name__}: {e}",
+        )
         return ProductLookupResponse(ok=False, url=req.url,
                                      error=f"{type(e).__name__}: {e}")
+
+    # Structured lookup is still a page read.  Record the public identity and
+    # the source bytes from which the JSON response was derived, never the
+    # compose-only dial URL.
+    links = None
+    try:
+        from .backend import BeautifulSoup, _navigable_links
+
+        soup = BeautifulSoup(html, "html.parser")
+        links = _navigable_links(soup, req.url)
+    except Exception:  # noqa: BLE001
+        links = None
+    evidence.record_fetch(
+        req.url,
+        r.status_code,
+        getattr(r, "content", b"") or html.encode("utf-8", "replace"),
+        endpoint="/product_lookup",
+        links=links,
+    )
 
     def _first(pattern: str, flags=0):
         m = re.search(pattern, html, flags)
@@ -721,7 +980,7 @@ def serper_search(
     """Serper-compat (`google.serper.dev/search`). Used by qx-agents and
     Tongyi DeepResearch. Body: `{"q": "...", "num": N}`. Returns
     `{"organic": [{title, link, snippet}], "credits": 1}`."""
-    hits = search(req.q, max_results=req.num or 10)
+    hits = _search_recorded(req.q, endpoint="/v1/serper", max_results=req.num or 10)
     hits = _filter_hits_strict(hits, endpoint="/v1/serper", query=req.q)
     organic = [
         SerperOrganicItem(title=h.title, link=h.url, snippet=h.content)
@@ -761,7 +1020,7 @@ def brave_search(
 ) -> BraveResponse:
     """Brave Search API compat (`api.search.brave.com/res/v1/web/search`).
     Returns Brave-style `{"web": {"results": [{url, title, description}]}}`."""
-    hits = search(q, max_results=count or 10)
+    hits = _search_recorded(q, endpoint="/v1/brave/web/search", max_results=count or 10)
     hits = _filter_hits_strict(hits, endpoint="/v1/brave/web/search", query=q)
     items = [
         BraveResultItem(url=h.url, title=h.title, description=h.content)
@@ -801,7 +1060,7 @@ def searxng_search(
     """SearxNG meta-search compat (`/search?q=...&format=json&pageno=1`).
     Used by Perplexica and ii-researcher. Returns `{"results": [{url, title,
     content}], "query": "..."}`."""
-    hits = search(q, max_results=10)
+    hits = _search_recorded(q, endpoint="/searxng/search", max_results=10)
     hits = _filter_hits_strict(hits, endpoint="/searxng/search", query=q)
     items = [
         SearxNGResultItem(url=h.url, title=h.title, content=h.content)
@@ -844,7 +1103,7 @@ def duckduckgo_search(
     """DuckDuckGo Instant Answer compat (`api.duckduckgo.com/?q=...`). Used
     by smolagents' default `DuckDuckGoSearchTool`. Returns
     `{"AbstractText": "...", "RelatedTopics": [{FirstURL, Text}]}`."""
-    hits = search(q, max_results=10)
+    hits = _search_recorded(q, endpoint="/duckduckgo/search", max_results=10)
     hits = _filter_hits_strict(hits, endpoint="/duckduckgo/search", query=q)
     abstract = hits[0].content if hits else ""
     abstract_url = hits[0].url if hits else ""

@@ -1,0 +1,643 @@
+{
+  "task": "dr_cross_deep_0024",
+  "answer_path": "data/results/deep/ii-researcher__dr_cross_deep_0024_matrix.md",
+  "answer_chars": 5845,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 5,
+      "must_cite_total": 126,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 602,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 0,
+        "__WIKIPEDIA__": 1
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 10,
+        "__REDDIT__": 30,
+        "__WIKIPEDIA__": 25
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "cited_total": 5,
+      "cited_sandbox": 1,
+      "cited_off_sandbox": 4,
+      "probed": 1,
+      "http_200": 1,
+      "http_4xx": 0,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 1.0,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "claims_total": 3,
+      "claims_supported": 3,
+      "claims_unreachable": 0,
+      "match_rate": 1.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "overlap": 0.724
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "overlap": 0.5
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "overlap": 0.593
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 0.6667,
+    "passed": true,
+    "details": {
+      "citation_precision": 0.6667,
+      "citation_recall": 0.6667,
+      "total_pairs": 3,
+      "supported_pairs": 2,
+      "fetch_failures": 0,
+      "sentences_with_cite": 3,
+      "sentences_with_supported_cite": 2,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "This has made it possible for a single charger to work with multiple devices, reducing the need for a drawer full of chargers (USB4).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "However, if the device does not support PD or the charger lacks PD support, it will default to a lower, slower charging rate (USB4).",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": false,
+          "verdict": "VERDICT: NOT_SUPPORTED"
+        },
+        {
+          "claim": "USB4.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.7333,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 2,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.5,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": false,
+          "detail": "paragraphs_with_multi_domain_refs=0"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=4"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=0"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.2, total_paragraphs=20"
+        }
+      ],
+      "tier_b_passed": 5,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.833,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies trends in standardization and interoperability beyond fact listing."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains why charging speeds vary based on PD negotiation and device compatibility."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "No explicit comparison across different source types like forums or product pages."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Insight that certified cables ensure reliability emerges from synthesizing sources."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Acknowledges limitations of non-compliant cables and importance of PD support."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Recommends choosing USB-IF certified products with PD support for consistent performance."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies trends in standardization and interoperability beyond fact listing.  \n2. PASS - Explains why charging speeds vary based on PD negotiation and device compatibility.  \n3. FAIL - No explicit comparison across different source types like forums or product pages.  \n4. PASS - Insight that certified cables ensure reliability emerges from synthesizing sources.  \n5. PASS - Acknowledges limitations of non-compliant cables and importance of PD support.  \n6. PASS - Recommends choosing USB-IF certified products with PD support for consistent performance."
+    }
+  },
+  "presentation": {
+    "score": 0.8667,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 4,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.667,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": false,
+          "detail": "levels_found=[2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": false,
+          "detail": "h2_sections=1"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=0.0, word_counts=[817]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=44.2"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to background to analysis to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences between sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present in the report."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent citation style and terminology throughout."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings and summarizes key points."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone with no AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to background to analysis to conclusion.  \n2. PASS. Smooth transitions with bridging sentences between sections.  \n3. PASS. No empty meta-commentary present in the report.  \n4. PASS. Consistent citation style and terminology throughout.  \n5. PASS. Conclusion synthesizes findings and summarizes key points.  \n6. PASS. Professional tone with no AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "total_citations": 7,
+      "sandbox_citations": 3,
+      "distinct_domains": 1,
+      "subforums_cited": [],
+      "type_counts": {
+        "wiki": 3
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.0,
+        "wiki": 0.3
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 0.0,
+        "top1_share_score": 0.0,
+        "top1_share_raw": 1.0,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.0
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.24,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "The Transition to USB-C",
+        "The Negotiation Process Between Chargers and Devices",
+        "Variations in Cable Performance",
+        "Trusted Adapters and Cables",
+        "Key Findings and Recommendations"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.0,
+        "rows": [
+          {
+            "entity": "The Transition to USB-C",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "The Negotiation Process Between Chargers and Devices",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Variations in Cable Performance",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Trusted Adapters and Cables",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Key Findings and Recommendations",
+            "mentioned": true,
+            "positive": 2,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.4,
+        "rows": [
+          {
+            "entity": "The Transition to USB-C",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "The Negotiation Process Between Chargers and Devices",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Variations in Cable Performance",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Trusted Adapters and Cables",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Key Findings and Recommendations",
+            "verdict": "FAIL"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 0.8462,
+    "passed": true,
+    "details": {
+      "total_facts": 13,
+      "supported": 11,
+      "deterministic_hits": 1,
+      "llm_hits": 10,
+      "llm_calls": 12,
+      "llm_errors": 0,
+      "unfetchable_pages": 0,
+      "paragraphs_attempted": 7,
+      "extract_errors": 5,
+      "min_score": 0.5,
+      "judge": "qwen3-8b",
+      "per_fact": [
+        {
+          "subject": "USB-C",
+          "predicate": "has feature",
+          "value": "reversible design",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "USB-C",
+          "predicate": "has feature",
+          "value": "support for Power Delivery (PD)",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "deterministic"
+        },
+        {
+          "subject": "USB-C",
+          "predicate": "has feature",
+          "value": "faster charging",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "USB-C",
+          "predicate": "has feature",
+          "value": "higher power output",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "USB-C",
+          "predicate": "has feature",
+          "value": "single charger to work with multiple devices",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "USB Power Delivery (PD) protocol",
+          "predicate": "governs",
+          "value": "negotiation process",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "fast-charging brick",
+          "predicate": "might support",
+          "value": "higher wattage",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": false,
+          "method": "llm_nli_neg"
+        },
+        {
+          "subject": "fast-charging brick",
+          "predicate": "might support",
+          "value": "30W",
+          "value_type": "numeric",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": false,
+          "method": "llm_nli_neg"
+        },
+        {
+          "subject": "fast-charging brick",
+          "predicate": "might support",
+          "value": "65W",
+          "value_type": "numeric",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "standard brick",
+          "predicate": "might only provide",
+          "value": "15W",
+          "value_type": "numeric",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "device",
+          "predicate": "can request",
+          "value": "appropriate power level",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "device",
+          "predicate": "will default to",
+          "value": "lower, slower charging rate",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        },
+        {
+          "subject": "USB4",
+          "predicate": "is anchored to",
+          "value": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "value_type": "relation",
+          "source_url": "http://localhost:8090/content/wikipedia_en_all_nopic/USB4",
+          "supported": true,
+          "method": "llm_nli"
+        }
+      ]
+    }
+  },
+  "internal_consistency": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "applicable": true,
+      "sentence_count": 33,
+      "cluster_count": 5,
+      "pairs_tested": 26,
+      "contradictions": 0,
+      "min_score": 0.85,
+      "judge": "qwen3-8b",
+      "judge_error": null,
+      "cluster_summary": [
+        {
+          "entity": "usb-c",
+          "size": 9,
+          "pairs_tested": 12,
+          "contradictions": 0
+        },
+        {
+          "entity": "usb-if",
+          "size": 4,
+          "pairs_tested": 6,
+          "contradictions": 0
+        },
+        {
+          "entity": "usb pd",
+          "size": 4,
+          "pairs_tested": 6,
+          "contradictions": 0
+        },
+        {
+          "entity": "power delivery",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "usb4",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        }
+      ],
+      "contradiction_rows": []
+    }
+  },
+  "markdown_spec": {
+    "word_count": 820,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 7,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 19,
+    "min_paragraphs": 25,
+    "paragraphs_ok": false
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 0.0,
+    "quality_score": 0.0,
+    "truth_factor": 0.5,
+    "qm_factor": 1.0,
+    "nli_factor": 0.5,
+    "grounding_gate": 1.0,
+    "raw_score_v3": 0.4167,
+    "citation_alignment": 0.6667,
+    "analysis_depth": 0.7333,
+    "presentation": 0.8667,
+    "composite_v3": 0.4167,
+    "composite_score": 0.0,
+    "composite_v2": 0.0,
+    "composite_v1": 0.0,
+    "legacy_composite": 0.0,
+    "composite_v4": 0.5359,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.0,
+    "perspective_balance": 0.24,
+    "factual_exactness": 0.8462,
+    "internal_consistency": 1.0
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

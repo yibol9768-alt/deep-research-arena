@@ -42,7 +42,7 @@ from typing import Any, Optional
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-PROTOCOL = "uj_v1"
+PROTOCOL = "uj_v2"
 DEFAULT_WORD_BUDGET = 1500
 DEFAULT_MAX_TOKENS = 600
 DEFAULT_TIMEOUT_S = 30.0
@@ -412,15 +412,18 @@ def load_intent(task_id: str, tasks_dir: Path) -> Optional[str]:
     return intent
 
 
-def discover_staging(staging_dir: Path, backbone: str, exclude_agents: set[str]) -> dict[str, dict[str, Path]]:
-    """Return {task_id: {agent: report_path}} for agents whose report for
-    that task exists AND is not a stub. Missing/stub -> agent sits out of
-    that task's battles (walkover), never recorded as a loss.
+def discover_staging(
+    staging_dir: Path, backbone: str, exclude_agents: set[str]
+) -> dict[str, dict[str, Path | None]]:
+    """Return every staged task crossed with every staged agent.
+
+    A missing or stub report remains in the matrix as a deterministic walkover.
+    Dropping it used to reward non-delivery by letting the lane sit out losses.
     """
     backbone_dir = staging_dir / backbone
     if not backbone_dir.is_dir():
         raise SystemExit(f"backbone dir not found: {backbone_dir}")
-    out: dict[str, dict[str, Path]] = defaultdict(dict)
+    found: dict[str, dict[str, Path]] = defaultdict(dict)
     agent_dirs = sorted(
         d for d in backbone_dir.iterdir()
         if d.is_dir() and d.name not in exclude_agents
@@ -429,21 +432,33 @@ def discover_staging(staging_dir: Path, backbone: str, exclude_agents: set[str])
         agent = agent_dir.name
         for md in sorted(agent_dir.glob("*.md")):
             task_id = md.stem
-            try:
-                text = md.read_text(encoding="utf-8", errors="replace")
-            except Exception:
-                continue
-            if is_stub_report(text):
-                continue
-            out[task_id][agent] = md
-    return dict(out)
+            found[task_id][agent] = md
+    tasks = sorted(found)
+    return {
+        task: {agent_dir.name: found.get(task, {}).get(agent_dir.name)
+               for agent_dir in agent_dirs}
+        for task in tasks
+    }
+
+
+def _report_text(path: Path | None) -> str:
+    if path is None:
+        return ""
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        return ""
+
+
+def _report_sha(text: str) -> str:
+    return hashlib.sha256((text or "").encode("utf-8")).hexdigest()
 
 
 # ---------------------------------------------------------------------------
 # Battle plan
 # ---------------------------------------------------------------------------
 def build_plan(
-    task_agents: dict[str, dict[str, Path]],
+    task_agents: dict[str, dict[str, Path | None]],
     *,
     only_agent: Optional[str],
     only_task: Optional[str],
@@ -469,7 +484,14 @@ def build_plan(
             audited = rng.random() < order_audit
             orders = ["ab", "ba"] if audited else [primary_order]
             for order in orders:
-                plan.append({"task": task_id, "a": a, "b": b, "order": order, "audited": audited})
+                ta, tb = _report_text(task_agents[task_id][a]), _report_text(task_agents[task_id][b])
+                plan.append({
+                    "task": task_id, "a": a, "b": b, "order": order,
+                    "audited": audited,
+                    "report_sha_a": _report_sha(ta),
+                    "report_sha_b": _report_sha(tb),
+                    "walkover": bool(is_stub_report(ta) or is_stub_report(tb)),
+                })
     return plan
 
 
@@ -477,7 +499,11 @@ def build_plan(
 # Bank I/O
 # ---------------------------------------------------------------------------
 def bank_key(rec: dict) -> tuple:
-    return (rec["protocol"], rec["backbone"], rec["task"], rec["a"], rec["b"], rec["order"], rec["judge"])
+    return (
+        rec["protocol"], rec["backbone"], rec["task"], rec["a"], rec["b"],
+        rec["order"], rec["judge"], rec.get("report_sha_a"),
+        rec.get("report_sha_b"),
+    )
 
 
 def load_bank(bank_path: Path) -> dict[tuple, dict]:
@@ -554,6 +580,9 @@ def run_one_battle_judge(
         "order": order,
         "judge": judge,
         "model_id": judge,
+        "report_sha_a": _report_sha(report_a),
+        "report_sha_b": _report_sha(report_b),
+        "walkover": False,
         # Both agents in a battle share the same backbone LLM (staging is
         # partitioned by backbone), so "same_family" is one flag per battle:
         # is this judge's family the same as the backbone under test? Only
@@ -580,6 +609,37 @@ def run_one_battle_judge(
     base["usage"] = result.get("usage", {"prompt": 0, "completion": 0})
     base["error"] = None
     return base
+
+
+def walkover_record(
+    *, backbone: str, task_id: str, a: str, b: str, order: str, judge: str,
+    report_a: str, report_b: str, word_budget: int,
+) -> dict:
+    """Deterministic outcome when one or both lanes did not deliver a report."""
+    stub_a, stub_b = is_stub_report(report_a), is_stub_report(report_b)
+    if stub_a == stub_b:
+        winner_agent = "tie"
+    else:
+        winner_agent = b if stub_a else a
+    if winner_agent == "tie":
+        winner_pos = "tie"
+    elif order == "ab":
+        winner_pos = "A" if winner_agent == a else "B"
+    else:
+        winner_pos = "A" if winner_agent == b else "B"
+    return {
+        "ts": time.time(), "protocol": PROTOCOL, "rubric_hash": rubric_hash(),
+        "word_budget": word_budget, "backbone": backbone, "task": task_id,
+        "a": a, "b": b, "order": order, "judge": judge, "model_id": judge,
+        "report_sha_a": _report_sha(report_a), "report_sha_b": _report_sha(report_b),
+        "walkover": True, "walkover_reason": (
+            "both_missing_or_stub" if stub_a and stub_b else
+            (f"{a}_missing_or_stub" if stub_a else f"{b}_missing_or_stub")
+        ),
+        "q1": winner_pos, "q2": winner_pos, "q3": winner_pos, "q4": winner_pos,
+        "winner": winner_pos, "usage": {"prompt": 0, "completion": 0},
+        "error": None, "same_family": False,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -627,6 +687,9 @@ def fit_from_bank(
     recs = [r for r in bank_records if r.get("error") is None and r.get("winner") is not None]
     if backbone:
         recs = [r for r in recs if r["backbone"] == backbone]
+    if judges is not None:
+        wanted = set(judges)
+        recs = [r for r in recs if r.get("judge") in wanted]
 
     # Protocol-mixing guard (design sec 9: rubric hash + judges + word_budget
     # must match to mix battles in one fit).
@@ -669,7 +732,12 @@ def fit_from_bank(
                 winner_pos = "tie"
             winner_agent = pos_agent.get(winner_pos, "tie") if winner_pos != "tie" else "tie"
             battles.append({"agent_a": a, "agent_b": b, "winner": winner_agent})
-            if judges and len(votes) == len(judges):
+            is_walkover = any(
+                bool(r.get("walkover"))
+                for r in brecs
+                if (r["task"], r["a"], r["b"], r["order"]) == (task, a, b, order)
+            )
+            if judges and set(votes) == set(judges) and not is_walkover:
                 n_clean += 1
                 row = [0, 0, 0]
                 for v in votes.values():
@@ -807,16 +875,22 @@ def cost_report(bank_records: list[dict]) -> dict:
     return {"per_judge": dict(per_judge), "total_cny": round(total_cny, 4)}
 
 
-def panel_from_fit(fit_result: dict) -> dict[str, float]:
+def panel_from_fit(fit_result: dict, *, backbone: str | None = None) -> dict[str, float]:
     """{agent: winrate} for build_truth_board.py --panel."""
     out: dict[str, float] = {}
     if "agents" in fit_result:
         for agent, row in fit_result["agents"].items():
             out[agent] = row["winrate_vs_avg_opponent"]
     elif "by_backbone" in fit_result:
-        for bb, sub in fit_result["by_backbone"].items():
-            for agent, row in sub["agents"].items():
-                out[f"{agent}"] = row["winrate_vs_avg_opponent"]
+        choices = fit_result["by_backbone"]
+        if backbone is None:
+            raise ValueError(
+                "panel output mixes multiple backbones; choose one explicitly"
+            )
+        if backbone not in choices:
+            raise ValueError(f"backbone {backbone!r} is absent from fit result")
+        for agent, row in choices[backbone]["agents"].items():
+            out[agent] = row["winrate_vs_avg_opponent"]
     return out
 
 
@@ -834,7 +908,11 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--calibrate", type=int, default=None,
                     help="run K real battle-judge calls, print usage/cost, do NOT write to bank")
-    ap.add_argument("--exclude-agents", type=str, default="claude-code")
+    # Default empty. It defaulted to "claude-code", so the documented plain
+    # invocation silently dropped that lane from every pairwise battle: it had
+    # no winrate and vanished from the arena ranking with no note anywhere.
+    # Excluding a competitor is a decision, and it must be typed out.
+    ap.add_argument("--exclude-agents", type=str, default="")
     ap.add_argument("--max-spend-cny", type=float, default=200.0)
     ap.add_argument("--fit", action="store_true")
     ap.add_argument("--bootstrap", type=int, default=200,
@@ -885,7 +963,7 @@ def main(argv=None) -> int:
         out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"wrote {out_path}")
         if args.panel_out:
-            panel = panel_from_fit(result)
+            panel = panel_from_fit(result, backbone=args.backbone)
             args.panel_out.parent.mkdir(parents=True, exist_ok=True)
             args.panel_out.write_text(json.dumps(panel, indent=2, ensure_ascii=False), encoding="utf-8")
             print(f"wrote {args.panel_out}")
@@ -917,7 +995,10 @@ def main(argv=None) -> int:
     calls = []
     for item in plan:
         for judge in judges:
-            key = (PROTOCOL, args.backbone, item["task"], item["a"], item["b"], item["order"], judge)
+            key = (
+                PROTOCOL, args.backbone, item["task"], item["a"], item["b"],
+                item["order"], judge, item["report_sha_a"], item["report_sha_b"],
+            )
             if key in existing and not args.supersede:
                 continue
             calls.append({**item, "judge": judge})
@@ -925,7 +1006,8 @@ def main(argv=None) -> int:
     n_pairs = len({(it["task"], it["a"], it["b"]) for it in plan})
     n_audited = len({(it["task"], it["a"], it["b"]) for it in plan if it["audited"]})
     est_cost = sum(
-        call_cost_cny(c["judge"], EST_PROMPT_TOKENS, EST_COMPLETION_TOKENS) for c in calls
+        call_cost_cny(c["judge"], EST_PROMPT_TOKENS, EST_COMPLETION_TOKENS)
+        for c in calls if not c.get("walkover")
     )
     print(
         f"plan: {n_pairs} unordered pairs across {len(task_agents)} tasks "
@@ -945,16 +1027,20 @@ def main(argv=None) -> int:
         results = []
         for c in sample:
             intent = load_intent(c["task"], args.tasks_dir) or ""
-            path_a = task_agents[c["task"]][c["a"]]
-            path_b = task_agents[c["task"]][c["b"]]
-            rec = run_one_battle_judge(
+            report_a = _report_text(task_agents[c["task"]][c["a"]])
+            report_b = _report_text(task_agents[c["task"]][c["b"]])
+            runner = walkover_record if c.get("walkover") else run_one_battle_judge
+            kwargs = dict(
                 backbone=args.backbone, task_id=c["task"], a=c["a"], b=c["b"], order=c["order"],
                 judge=c["judge"], intent=intent,
-                report_a=path_a.read_text(encoding="utf-8", errors="replace"),
-                report_b=path_b.read_text(encoding="utf-8", errors="replace"),
-                word_budget=args.word_budget, max_tokens=args.max_tokens,
-                timeout_s=args.timeout_s, retries=args.retries,
+                report_a=report_a, report_b=report_b, word_budget=args.word_budget,
             )
+            if c.get("walkover"):
+                kwargs.pop("intent")
+            else:
+                kwargs.update(max_tokens=args.max_tokens, timeout_s=args.timeout_s,
+                              retries=args.retries)
+            rec = runner(**kwargs)
             results.append(rec)
         n_ok = sum(1 for r in results if r["error"] is None)
         tot_p = sum(r["usage"]["prompt"] for r in results)
@@ -993,14 +1079,17 @@ def main(argv=None) -> int:
 
     def _do(c: dict) -> dict:
         intent = load_intent(c["task"], args.tasks_dir) or ""
-        path_a = task_agents[c["task"]][c["a"]]
-        path_b = task_agents[c["task"]][c["b"]]
-        return run_one_battle_judge(
+        report_a = _report_text(task_agents[c["task"]][c["a"]])
+        report_b = _report_text(task_agents[c["task"]][c["b"]])
+        common = dict(
             backbone=args.backbone, task_id=c["task"], a=c["a"], b=c["b"], order=c["order"],
-            judge=c["judge"], intent=intent,
-            report_a=path_a.read_text(encoding="utf-8", errors="replace"),
-            report_b=path_b.read_text(encoding="utf-8", errors="replace"),
-            word_budget=args.word_budget, max_tokens=args.max_tokens,
+            judge=c["judge"], report_a=report_a, report_b=report_b,
+            word_budget=args.word_budget,
+        )
+        if c.get("walkover"):
+            return walkover_record(**common)
+        return run_one_battle_judge(
+            **common, intent=intent, max_tokens=args.max_tokens,
             timeout_s=args.timeout_s, retries=args.retries,
         )
 
@@ -1016,6 +1105,8 @@ def main(argv=None) -> int:
                     "word_budget": args.word_budget, "backbone": args.backbone,
                     "task": c["task"], "a": c["a"], "b": c["b"], "order": c["order"],
                     "judge": c["judge"], "model_id": c["judge"],
+                    "report_sha_a": c["report_sha_a"],
+                    "report_sha_b": c["report_sha_b"], "walkover": c.get("walkover", False),
                     "q1": None, "q2": None, "q3": None, "q4": None, "winner": None,
                     "usage": {"prompt": 0, "completion": 0},
                     "error": f"{type(e).__name__}: {e}\n{traceback.format_exc()[-500:]}",

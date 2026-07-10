@@ -9,16 +9,17 @@ from scripts.runners import browser_dr_runner
 from scripts.runners.registry import discover
 
 
-def test_browser_dr_runner_is_discovered_by_main_registry() -> None:
+def test_browser_dr_runner_is_standalone_only() -> None:
     runners, errors = discover()
 
-    assert "browser-dr" in runners
+    assert browser_dr_runner.BENCHMARK_ENABLED is False
+    assert "requested backbone" in browser_dr_runner.BENCHMARK_DISABLED_REASON
+    assert "browser-dr" not in runners
     assert "browser_dr_runner" not in errors
-    assert runners["browser-dr"].__module__ == "scripts.runners.browser_dr_runner"
 
 
-def test_browser_dr_is_in_default_full_leaderboard_queue() -> None:
-    assert "browser-dr" in plan_full_leaderboard.DEFAULT_AGENTS
+def test_browser_dr_is_not_in_governed_full_leaderboard_queue() -> None:
+    assert "browser-dr" not in plan_full_leaderboard._declared_agents()
 
 
 def test_browser_dr_runner_returns_adapter_markdown(monkeypatch) -> None:

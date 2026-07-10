@@ -48,6 +48,7 @@ import textwrap
 import time
 from pathlib import Path
 
+from . import _egress
 from ._runner_lock import runner_exclusive_lock
 
 logger = logging.getLogger(__name__)
@@ -92,48 +93,73 @@ _MASK_MAP = {
 _UNMASK_MAP = {v: k for k, v in _MASK_MAP.items()}
 
 
-def _sanitize_intent(intent: str) -> str:
-    """Strip sandbox URLs and placeholders from the intent.
+def _needs_intent_masking(model: str | None) -> bool:
+    """Always False by default: the masking premise was measured and is false.
 
-    The framework discovers sandbox pages through search, so the LLM
-    never needs raw ``localhost`` URLs which trigger DeepSeek's safety filter.
+    The localhost -> neutral-description rewrite existed because "DeepSeek V4
+    refuses localhost URLs (safety filter)". The 2026-07-08 fairness audit tested
+    that against the live API (four arms, N=10) and found 0/10 refusals with 114
+    localhost URLs written. The premise is false, so masking is off by default;
+    it stripped the sandbox host roots every other lane keeps and (with the
+    now-removed Wikipedia rewrite) laundered off-sandbox drift into grounding.
+    ``LCDR_INTENT_MASK=1`` still forces it on for investigating a provider that
+    genuinely refuses, but that must be declared, not keyed on a backbone name.
     """
+    override = os.environ.get("LCDR_INTENT_MASK", "").strip().lower()
+    return override in ("1", "true", "yes", "on")
+
+
+def _sanitize_intent(intent: str, model: str | None = None) -> str:
+    """Normalize the intent before handing it to local-deep-researcher.
+
+    Default (masking off): information-preserving. The intent keeps the same
+    sandbox host roots and grounding policy every other lane receives. Only when
+    masking is explicitly enabled (see ``_needs_intent_masking``) are localhost
+    URLs rewritten to neutral descriptions, and the grounding policy is rephrased
+    rather than deleted, so the constraint survives in either mode.
+    """
+    if not _needs_intent_masking(model):
+        return intent.strip()
+
     text = intent
     for pattern, desc in _URL_TO_DESC.items():
         text = re.sub(pattern, desc, text)
     text = re.sub(r"http://localhost:\d+[^\s)\]]*", "", text)
     text = re.sub(r"\(`?__\w+__`?\)", "", text)
     text = re.sub(r"`?__(?:SHOPPING|REDDIT|WIKIPEDIA)__`?", "", text)
-    text = re.sub(r"Source URLs MUST be sandbox-local\.?\s*", "", text)
-    text = re.sub(r"Do not fabricate URLs[^.]*\.?\s*", "", text)
+    text = re.sub(
+        r"Source URLs MUST be sandbox-local\.?\s*",
+        "Use only source URLs returned by the benchmark sandbox search corpus. ",
+        text,
+    )
+    text = re.sub(
+        r"Do not fabricate URLs[^.]*\.?\s*",
+        "Do not fabricate URLs; cite only fetched sandbox search results. ",
+        text,
+    )
     text = re.sub(r"\(\s*\)", "", text)
     text = re.sub(r"  +", " ", text)
     return text.strip()
 
 
-def _unmask_report(report: str) -> str:
-    """Reverse masked domains back to localhost:PORT in the final report."""
+def _unmask_report(report: str, model: str | None = None) -> str:
+    """Reverse the mask ROUND TRIP the harness itself applied, and nothing else.
+
+    Only meaningful when masking was enabled inbound (``_needs_intent_masking``).
+    With masking off (the default) nothing was ever masked, so reversing masked
+    domains here would only LAUNDER a model that emitted onestopmarket.com /
+    kiwipedia.org from parametric memory into valid sandbox grounding. The former
+    "FIX P2.5" also rewrote any model-emitted ``en.wikipedia.org/wiki/X`` into a
+    Kiwix sandbox URL; nothing in this harness ever showed the model
+    en.wikipedia.org, so that converted off-sandbox drift into perfect grounding
+    for this lane only. Removed 2026-07-08 (fairness audit), mirroring ldr_runner.
+    """
+    if not _needs_intent_masking(model):
+        return report
     text = report
     for masked, original in _UNMASK_MAP.items():
         text = text.replace(masked, original)
     text = re.sub(r"sandbox-(\d+)\.internal", r"localhost:\1", text)
-    text = text.replace("https://onestopmarket.com", "http://localhost:7770")
-    text = text.replace("https://postmill.net", "http://localhost:9999")
-    text = text.replace("https://kiwipedia.org", "http://localhost:8090")
-
-    # FIX P2.5: Rewrite off-sandbox Wikipedia URLs to Kiwix sandbox URLs.
-    # The LLM may generate en.wikipedia.org/wiki/... URLs in its report text
-    # from model knowledge. These are off-sandbox. We rewrite them to the local
-    # Kiwix instance so they become valid sandbox URLs.
-    def _rewrite_wiki_url(m):
-        title = m.group(1)
-        return f"http://localhost:8090/content/wikipedia_en_all_nopic/A/{title}"
-
-    text = re.sub(
-        r"https?://en\.wikipedia\.org/wiki/([^\s)\]#\"']+)",
-        _rewrite_wiki_url,
-        text,
-    )
     return text
 
 
@@ -159,18 +185,21 @@ def _build_driver_script(
         .replace("'", "\\'")
         .replace("\n", "\\n")
     )
+    # Off by default; the mask premise was measured false (see _needs_intent_masking).
+    mask_enabled = _needs_intent_masking(model)
 
     return textwrap.dedent(f"""\
         #!/usr/bin/env python3
         \"\"\"Auto-generated local-deep-researcher driver for benchmark runner.\"\"\"
         import os, sys, json, re, traceback
 
-        # === Layer 0: Environment setup ===
-        # Purge proxy env vars so we can only reach localhost services.
-        for _pv in list(os.environ):
-            if _pv.lower() in ('http_proxy', 'https_proxy', 'all_proxy', 'ftp_proxy'):
-                del os.environ[_pv]
-        os.environ['NO_PROXY'] = '*'
+        # === Layer 0: Environment policy ===
+        _DRA_EGRESS_ON = bool(os.environ.get('DRA_EGRESS_PROXY', '').strip())
+        if not _DRA_EGRESS_ON:
+            for _pv in list(os.environ):
+                if _pv.lower() in ('http_proxy', 'https_proxy', 'all_proxy', 'ftp_proxy'):
+                    del os.environ[_pv]
+            os.environ['NO_PROXY'] = '*'
 
         # === Workstream C: HTTP-layer sandbox gate (strict mode only) ===
         # Refuses any HTTP request whose target host:port is not in the
@@ -239,13 +268,16 @@ def _build_driver_script(
 
             def _patched_tavily_init(self, *args, **kwargs):
                 kwargs['api_base_url'] = SHIM
-                # Also strip any proxy settings to prevent leaking through Mihomo
-                kwargs.pop('proxies', None)
+                # In standalone mode strip host proxy overrides. In a harness
+                # run, requests must inherit the recording door.
+                if not _DRA_EGRESS_ON:
+                    kwargs.pop('proxies', None)
                 _orig_tavily_init(self, *args, **kwargs)
                 # Belt-and-suspenders: force the base_url after init
                 self.base_url = SHIM
-                # Remove proxy settings from the session
-                if hasattr(self, 'session') and hasattr(self.session, 'proxies'):
+                # Do not erase the harness proxy from the final Session.
+                if (not _DRA_EGRESS_ON and hasattr(self, 'session')
+                        and hasattr(self.session, 'proxies')):
                     self.session.proxies = {{}}
                 print(f'[lcdr-patch] TavilyClient base_url -> {{SHIM}}')
 
@@ -270,8 +302,13 @@ def _build_driver_script(
         except (ImportError, AttributeError):
             pass
 
-        # === Layer 2: Localhost masking for LLM calls ===
-        # DeepSeek V4 refuses when it sees localhost URLs in context.
+        # === Layer 2: Localhost masking for LLM calls (OFF by default) ===
+        # The "DeepSeek refuses localhost" premise was measured false on
+        # 2026-07-08 (0/10 refusals, 114 localhost URLs written). Masking now
+        # only runs when _MASK_ENABLED, gated by the parent's _needs_intent_masking
+        # (LCDR_INTENT_MASK). With it off both directions are no-ops, so a model
+        # emitting onestopmarket.com from memory is not laundered into grounding.
+        _MASK_ENABLED = {mask_enabled!r}
         _MASK_MAP = {{
             'http://localhost:7770': 'http://onestopmarket.com',
             'http://localhost:9999': 'http://postmill.net',
@@ -285,7 +322,7 @@ def _build_driver_script(
         _UNMASK_MAP = {{v: k for k, v in _MASK_MAP.items()}}
 
         def _mask_localhost(text):
-            if not isinstance(text, str):
+            if not _MASK_ENABLED or not isinstance(text, str):
                 return text
             for old, new in _MASK_MAP.items():
                 text = text.replace(old, new)
@@ -293,7 +330,7 @@ def _build_driver_script(
             return text
 
         def _unmask_localhost(text):
-            if not isinstance(text, str):
+            if not _MASK_ENABLED or not isinstance(text, str):
                 return text
             for masked, original in _UNMASK_MAP.items():
                 text = text.replace(masked, original)
@@ -484,11 +521,7 @@ def _build_env(proxy_url: str, model: str, shim_url: str) -> dict:
     env["OPENAI_BASE_URL"] = proxy_url
     env["OPENAI_API_KEY"] = env.get("OPENAI_API_KEY", "anything")
 
-    # Remove HTTP proxies so the subprocess can only reach localhost services
-    for key in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
-                "ALL_PROXY", "all_proxy", "FTP_PROXY", "ftp_proxy"):
-        env.pop(key, None)
-    env["NO_PROXY"] = "*"
+    _egress.scrub_or_apply(env)
 
     # Disable optional integrations that would fail in sandbox
     env.pop("LANGSMITH_TRACING", None)
@@ -503,21 +536,17 @@ def _build_env(proxy_url: str, model: str, shim_url: str) -> dict:
 AGENT_NAME = "local-deep-researcher"
 
 # Workstream C — strict-sandbox eligibility.
-# DECISION: local-deep-researcher is strict_sandbox_eligible BUT relies on
-# the driver's HTTP-layer redirect+gate to honour the contract.
+# DECISION: local-deep-researcher is strict_sandbox_eligible via the driver's
+# HTTP-layer sandbox gate (refusal, not redirect).
 #
-# Per FRAMEWORK_AUDIT.md, this framework historically emitted 38 off-
-# sandbox `en.wikipedia.org` URLs in open mode. The driver below already
-# rewrites en.wikipedia.org -> :8090 in `_unmask_report`. Under strict
-# mode we ALSO install an HTTP-layer gate inside the driver process so
-# any request that wasn't covered by the rewrite is refused at the
-# requests / httpx layer. The shim is set to SHIM_MODE=strict so the
-# Tavily wrapper sees gated responses.
-#
-# Alternative considered: mark this runner ineligible and skip it. We
-# went the patch route because the code already handles the redirect
-# (just needs the gate added) and removing this framework from strict
-# benchmarks would lose useful coverage.
+# Per FRAMEWORK_AUDIT.md, this framework historically emitted 38 off-sandbox
+# `en.wikipedia.org` URLs in open mode. The former en.wikipedia.org -> :8090
+# rewrite in `_unmask_report` was REMOVED 2026-07-08 (fairness audit): rewriting
+# a model-emitted public URL into a sandbox URL launders off-sandbox drift into
+# perfect grounding, which is exactly the failure this benchmark measures. Under
+# strict mode the in-driver HTTP-layer gate REFUSES any non-sandbox request at
+# the requests / httpx layer (SHIM_MODE=strict), so off-sandbox drift now scores
+# as drift rather than being silently redirected into grounding.
 STRICT_SANDBOX_ELIGIBLE = True
 
 
@@ -536,7 +565,7 @@ async def run(
         intent: The research query / task description.
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
-        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
+        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
         timeout_s: Subprocess timeout in seconds.
 
     Returns:
@@ -558,14 +587,14 @@ async def run(
         )
 
     # Sanitize the intent: strip localhost URLs so DeepSeek doesn't refuse
-    clean_intent = _sanitize_intent(intent)
+    clean_intent = _sanitize_intent(intent, model)
 
     # Build the driver script
     driver_code = _build_driver_script(
         clean_intent, shim_url, proxy_url, model,
         strict_sandbox=strict_sandbox,
     )
-    driver_path = ROOT / "scripts" / "_lcdr_benchmark_driver.py"
+    driver_path = _egress.scratch_path("lcdr-benchmark-driver")
     if strict_sandbox:
         logger.info("local-deep-researcher: strict-sandbox HTTP gate active")
 
@@ -624,8 +653,9 @@ async def run(
                 f"--- stderr tail ---\n{err_snippet}"
             )
 
-        # Unmask any .internal domains that survived
-        report = _unmask_report(report)
+        # Reverse only the mask round trip the harness itself applied (no-op
+        # when masking is off, which is the default).
+        report = _unmask_report(report, model)
 
         logger.info(
             "local-deep-researcher completed in %.0fs, report=%d chars",
@@ -671,7 +701,7 @@ if __name__ == "__main__":
     parser.add_argument("intent", help="Research query")
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
     parser.add_argument("--strict-sandbox", action="store_true", default=False)

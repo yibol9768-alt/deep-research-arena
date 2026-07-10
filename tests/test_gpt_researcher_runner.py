@@ -34,9 +34,15 @@ def test_enhance_intent_has_no_seed_injection() -> None:
     # No teach-to-test per-domain quotas.
     assert "at least 15" not in ei
     assert "15 Wikipedia" not in ei
-    # Anti-fabrication guidance is present.
-    assert "do NOT invent" in ei
-    assert "retrieved" in ei.lower()
+    # 2026-07-08 (fairness audit, B3): the residual "citation requirements"
+    # block is gone too. It was defended as grounding-neutral, but it named the
+    # markdown citation style the scorer's extractor reads, and demanded a
+    # citation per factual claim, which is reach's numerator. No other lane was
+    # told either. Prompt parity now means: the shared intent, and nothing else.
+    assert ei == "Recommend headphones for a noisy commute."
+    for banned in ("CITATION REQUIREMENTS", "markdown link", "[label](url)",
+                   "every factual claim", "do NOT invent"):
+        assert banned not in ei
 
 
 def test_build_driver_script_is_valid_python() -> None:
@@ -64,6 +70,34 @@ def test_build_driver_script_is_valid_python() -> None:
     # The grounding diagnostic must still be wired in.
     assert gptr._DIAG_MARK in drv
     assert "retrieved=%d localhost=%d" in drv
+
+
+def test_host_model_and_tavily_pollution_is_overwritten(monkeypatch) -> None:
+    polluted = {
+        "FAST_LLM": "openai:wrong",
+        "SMART_LLM": "openai:wrong",
+        "STRATEGIC_LLM": "openai:wrong",
+        "RETRIEVER": "google",
+        "EMBEDDING": "openai:wrong",
+        "TAVILY_API_KEY": "tvly-real-secret",
+        "TAVILY_API_URL": "https://api.tavily.com",
+    }
+    for key, value in polluted.items():
+        monkeypatch.setenv(key, value)
+    env = gptr._build_env("http://proxy/v1", "glm-4.7-flash", "http://shim:8081")
+    assert env["FAST_LLM"] == env["SMART_LLM"] == env["STRATEGIC_LLM"] == \
+        "openai:glm-4.7-flash"
+    assert env["RETRIEVER"] == "tavily"
+    assert env["EMBEDDING"] == "custom:text-embedding-v4"
+    assert env["TAVILY_API_KEY"] == "tvly-shim-fake"
+    assert env["TAVILY_API_URL"] == "http://shim:8081"
+
+    driver = gptr._build_driver_script(
+        "task", "http://shim:8081", "http://proxy/v1", "glm-4.7-flash"
+    )
+    for key in ("FAST_LLM", "SMART_LLM", "STRATEGIC_LLM", "RETRIEVER",
+                "EMBEDDING", "TAVILY_API_KEY"):
+        assert f"os.environ.setdefault('{key}'" not in driver
 
 
 def _exec_retriever_block(shim_url: str, fake_post):

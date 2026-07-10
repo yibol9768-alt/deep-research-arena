@@ -38,12 +38,16 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
 import time
+from pathlib import Path
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
+
+from integrations import sampling_policy as _sampling
 
 # ---------------------------------------------------------------------------
 # Registry
@@ -170,6 +174,56 @@ STREAM_USAGE = os.environ.get("LLMGW_STREAM_USAGE", "1") != "0"
 # bracket is open every usage line is tagged with its run_id so the aggregator
 # needs no timeline slicing for gateway-native runs.
 _CURRENT_RUN: dict[str, Any] = {}
+_CURRENT_RUN_LOCK = threading.Lock()
+
+
+class RunAlreadyActive(RuntimeError):
+    """A second run tried to share one gateway attribution stream."""
+
+
+class RunOwnerMismatch(RuntimeError):
+    """An end marker did not own the currently open run."""
+
+
+def _run_ctx_start(body: dict) -> dict:
+    run_id = str(body.get("run_id") or "").strip()
+    if not run_id:
+        raise ValueError("run_id is required")
+    ctx = {
+        "run_id": run_id,
+        "lane": body.get("lane") or body.get("agent"),
+        "task": body.get("task") or body.get("task_id"),
+        "backbone": body.get("backbone") or body.get("model"),
+        "worker": body.get("worker") or os.environ.get("DRA_WORKER_ID") or None,
+    }
+    with _CURRENT_RUN_LOCK:
+        open_id = _CURRENT_RUN.get("run_id")
+        if open_id and open_id != run_id:
+            raise RunAlreadyActive(
+                f"run {open_id!r} is still open; refusing to interleave {run_id!r}"
+            )
+        _CURRENT_RUN.clear()
+        _CURRENT_RUN.update({k: v for k, v in ctx.items() if v is not None})
+        return dict(_CURRENT_RUN)
+
+
+def _run_ctx_end(expected_run_id: str | None) -> dict:
+    expected = str(expected_run_id or "").strip()
+    if not expected:
+        raise ValueError("run_id is required for phase=end")
+    with _CURRENT_RUN_LOCK:
+        open_id = str(_CURRENT_RUN.get("run_id") or "").strip()
+        if not open_id:
+            raise RunOwnerMismatch(
+                f"cannot close {expected!r}: no run is currently open"
+            )
+        if open_id != expected:
+            raise RunOwnerMismatch(
+                f"cannot close {expected!r}: run {open_id!r} owns the bracket"
+            )
+        prior = dict(_CURRENT_RUN)
+        _CURRENT_RUN.clear()
+        return prior
 
 
 def _usage_write(record: dict) -> None:
@@ -177,8 +231,10 @@ def _usage_write(record: dict) -> None:
         return
     try:
         record.setdefault("ts", round(time.time(), 3))
-        if _CURRENT_RUN.get("run_id") and "run_id" not in record:
-            record["run_id"] = _CURRENT_RUN["run_id"]
+        with _CURRENT_RUN_LOCK:
+            ctx = dict(_CURRENT_RUN)
+        for key, value in ctx.items():
+            record.setdefault(key, value)
         with open(USAGE_LOG, "a") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception:
@@ -234,6 +290,18 @@ def _apply_policy(entry: dict[str, Any], body: dict) -> list[str]:
     if entry.get("thinking_off") and "thinking" not in body:
         body["thinking"] = {"type": "disabled"}
         adj.append("thinking_off")
+
+    # (5) temperature: the protocol names the gateway as the enforcement point,
+    # and the gateway enforced nothing. storm sampled every stage at 0.7 while
+    # sitting at #1 on the qwen board; costorm and tongyi did too; a lane that
+    # sends no `temperature` at all inherits the upstream default (~1.0). Fixing
+    # the runners only reaches the runners we can see. A sampler is a number the
+    # harness passes to the model, so it is equalisable and is equalised here.
+    adj += _sampling.apply_sampling(body)
+    # Last, so it sees the result of floor/cap/fit: the declared ceiling caps
+    # (never raises), and a lane that sent nothing gets the ceiling explicitly
+    # instead of the upstream default, which differs per backbone.
+    adj += _sampling.apply_max_tokens(body)
 
     return adj
 
@@ -425,19 +493,29 @@ async def usage_mark(request: Request):
     run_id, phase ('start'|'end'), agent, task_id, backbone."""
     try:
         body = json.loads(await request.body() or b"{}")
-    except Exception:
-        body = {}
-    if isinstance(body, dict):
-        phase = str(body.get("phase", "")).lower()
-        if phase == "start" and body.get("run_id"):
-            _CURRENT_RUN.clear()
-            _CURRENT_RUN["run_id"] = body["run_id"]
-        elif phase == "end":
-            _CURRENT_RUN.clear()
-        _usage_write({"mark": True, **body})
-    else:
-        _usage_write({"mark": True})
-    return {"ok": True, "logging": bool(USAGE_LOG), "run_id": _CURRENT_RUN.get("run_id")}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="body must be valid JSON") from exc
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="body must be a JSON object")
+    phase = str(body.get("phase") or "start").lower()
+    if phase not in {"start", "end"}:
+        raise HTTPException(status_code=400, detail="phase must be start or end")
+    try:
+        if phase == "start":
+            ctx = _run_ctx_start(body)
+            _usage_write({"mark": True, "phase": "start", **ctx})
+            return {"ok": True, "logging": bool(USAGE_LOG), "run_id": ctx["run_id"]}
+        prior = _run_ctx_end(body.get("run_id"))
+        _usage_write({"mark": True, "phase": "end", **prior})
+        return {"ok": True, "logging": bool(USAGE_LOG), "closed": prior["run_id"]}
+    except RunAlreadyActive as exc:
+        raise HTTPException(status_code=409, detail={
+            "error": "run_already_active", "message": str(exc)}) from exc
+    except RunOwnerMismatch as exc:
+        raise HTTPException(status_code=409, detail={
+            "error": "run_owner_mismatch", "message": str(exc)}) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 async def _forward(path: str, request: Request) -> Any:

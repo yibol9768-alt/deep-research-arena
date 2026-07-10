@@ -132,58 +132,30 @@ def test_extract_sources_missing_or_bad_returns_empty() -> None:
     assert ldr._extract_sources(bad) == []
 
 
-def test_attach_sources_appends_localhost_urls() -> None:
-    """A narrative that cites [1]/[2] but carries zero URLs gets LDR's own
-    localhost source table appended, resolving the bracketed citations.
+def test_sources_diagnostic_collects_urls_without_touching_the_report() -> None:
+    """The retrieved link table is captured, never appended to the report.
+
+    `_attach_sources` used to write LDR's `all_links_of_system` into the saved
+    report as a "### Sources" block. Counterfactual rescore with the block
+    removed: macro reach 0.9519 -> 0.0000 (qwen), 0.9868 -> 0.0000 (deepseek),
+    with zero sandbox URLs anywhere in LDR's own prose. The lane that ranked #1
+    on both boards had its entire grounding written by the harness. That is the
+    construct deleted from ii-researcher as publish blocker B1 on 2026-07-06.
     """
-    report = "# Headphones\n\nOver-ear seal analysis citing [1] and [2].\n\n### References\n\n[1] HD681 review – partial.\n[2] HD800S review – critical."
+    assert not hasattr(ldr, "_attach_sources")
     sources = [
-        {"title": "HD681 review", "link": "http://localhost:9999/f/headphones/126745", "index": "1"},
-        {"title": "HD800S review", "url": "http://localhost:9999/f/headphones/126762", "index": "2"},
+        {"title": "HD681", "url": "http://localhost:9999/f/headphones/1", "index": "1"},
+        {"title": "dupe", "link": "http://localhost:9999/f/headphones/1", "index": "2"},
+        {"title": "no url", "index": "3"},
     ]
-    out = ldr._attach_sources(report, sources)
-    assert "### Sources" in out
-    assert "http://localhost:9999/f/headphones/126745" in out
-    assert "http://localhost:9999/f/headphones/126762" in out
-    assert "[1] HD681 review" in out
-    assert "[2] HD800S review" in out
+    diag = ldr.sources_diagnostic(sources)
+    assert diag["n_sources_retrieved"] == 1
+    assert diag["urls_retrieved"] == ["http://localhost:9999/f/headphones/1"]
 
 
-def test_attach_sources_noop_when_no_sources() -> None:
-    report = "# Report\n\nBody with no URLs."
-    assert ldr._attach_sources(report, []) == report
-    assert ldr._attach_sources(report, None) == report
-
-
-def test_attach_sources_noop_when_report_already_has_localhost() -> None:
-    """If the model already inlined sandbox URLs, do not duplicate the table."""
-    report = "See http://localhost:9999/f/headphones/1 for details [1]."
-    sources = [{"title": "x", "url": "http://localhost:9999/f/headphones/1", "index": "1"}]
-    assert ldr._attach_sources(report, sources) == report
-
-
-def test_attach_sources_dedupes_and_skips_urlless_entries() -> None:
-    report = "Body citing [1] [2] with no URLs."
-    sources = [
-        {"title": "dup", "url": "http://localhost:9999/f/a/1", "index": "1"},
-        {"title": "dup again", "url": "http://localhost:9999/f/a/1", "index": "1"},
-        {"title": "no url entry", "index": "2"},
-        {"title": "second", "link": "http://localhost:8090/content/x", "index": "3"},
-    ]
-    out = ldr._attach_sources(report, sources)
-    assert out.count("http://localhost:9999/f/a/1") == 1
-    assert "http://localhost:8090/content/x" in out
-    # The url-less entry contributes no line.
-    assert "no url entry" not in out
-
-
-def test_attach_sources_invented_urls_never_appear() -> None:
-    """Fairness guard: only LDR-provided URLs are attached; the function never
-    manufactures a URL for a source that lacks one.
-    """
-    report = "Body [1]."
-    sources = [{"title": "sourceless", "index": "1"}]
-    assert ldr._attach_sources(report, sources) == report
+def test_sources_diagnostic_empty_input() -> None:
+    assert ldr.sources_diagnostic([])["n_sources_retrieved"] == 0
+    assert ldr.sources_diagnostic(None)["urls_retrieved"] == []
 
 
 def test_is_failed_report_true_for_genuine_failures() -> None:
@@ -216,9 +188,12 @@ def test_unmask_report_restores_sandbox_urls() -> None:
     out = ldr._unmask_report(masked)
     assert "postmill.net" not in out and "localhost:9999" in out
     assert "kiwipedia.org" not in out and "localhost:8090" in out
-    # en.wikipedia.org is rewritten to the local Kiwix content path.
-    assert "en.wikipedia.org" not in out
-    assert "localhost:8090/content/wikipedia_en_all_nopic/A/Coffee" in out
+    # A model-emitted public Wikipedia URL is left ALONE. The old code rewrote
+    # it into a valid Kiwix sandbox URL, turning off-sandbox drift (the very
+    # thing the benchmark measures) into perfect grounding, for this lane only.
+    # Unmasking may only undo masks this harness applied.
+    assert "https://en.wikipedia.org/wiki/Coffee" in out
+    assert "wikipedia_en_all_nopic/A/Coffee" not in out
 
 
 # ---------------------------------------------------------------------------
@@ -255,12 +230,27 @@ def test_sanitize_intent_preserves_sandbox_roots_for_local_backbone(monkeypatch)
     assert "Source URLs MUST be sandbox-local." in out
 
 
-def test_sanitize_intent_masks_only_for_deepseek(monkeypatch) -> None:
-    """A DeepSeek backbone still gets the refusal-avoiding localhost rewrite."""
+def test_sanitize_intent_no_longer_masks_for_deepseek(monkeypatch) -> None:
+    """DeepSeek gets the same intent as every other backbone.
+
+    The masking existed to dodge a DeepSeek safety filter said to refuse
+    localhost URLs. Measured against the live API on 2026-07-08 (four arms,
+    N=10): 0/10 refusals with localhost, 114 localhost URLs written. The premise
+    is false, so the lane-specific privilege is gone.
+    """
     monkeypatch.delenv("LDR_INTENT_MASK", raising=False)
     out = ldr._sanitize_intent(_SAMPLE_INTENT, model="deepseek-v4-flash")
+    assert "http://localhost:17770" in out
+    assert "http://localhost:9999" in out
+    assert "Source URLs MUST be sandbox-local." in out
+
+
+def test_sanitize_intent_mask_still_forceable(monkeypatch) -> None:
+    """The escape hatch survives for investigating a provider that does refuse,
+    but it must be set explicitly and declared in config/lane_protocol.yaml."""
+    monkeypatch.setenv("LDR_INTENT_MASK", "1")
+    out = ldr._sanitize_intent(_SAMPLE_INTENT, model="qwen3-8b")
     assert "localhost" not in out
-    assert "the product catalog" in out
 
 
 def test_sanitize_intent_default_backbone_preserves(monkeypatch) -> None:
@@ -281,27 +271,27 @@ def test_intent_mask_env_override(monkeypatch) -> None:
     assert "http://localhost:17770" in out_off  # forced off -> preserved
 
 
-def test_needs_intent_masking_keying(monkeypatch) -> None:
-    monkeypatch.delenv("LDR_INTENT_MASK", raising=False)
-    assert ldr._needs_intent_masking("deepseek-v4-flash") is True
-    assert ldr._needs_intent_masking("qwen3-8b") is False
-    assert ldr._needs_intent_masking("glm-4.7-flash") is False
-    assert ldr._needs_intent_masking(None) is False
+def test_needs_intent_masking_is_off_for_every_backbone(monkeypatch) -> None:
+    """No backbone gets masking by name any more.
 
-
-def test_driver_bypasses_llm_mask_for_local_backbone() -> None:
-    """The generated driver must disable Layer-2 localhost masking for a local
-    backbone so the LLM sees real localhost URLs (parity with other lanes).
+    Keying a prompt rewrite on the backbone's name makes "same harness, swap the
+    backbone" a two-variable experiment: the model changes AND the prompt
+    changes. The cross-backbone board cannot mean anything under that design.
     """
-    drv_local = ldr._build_driver_script(
-        _SAMPLE_INTENT, "http://localhost:8081", "http://localhost:8088/v1", "qwen3-8b"
-    )
-    assert "_MASK_ENABLED = False" in drv_local
-    drv_ds = ldr._build_driver_script(
-        _SAMPLE_INTENT, "http://localhost:8081", "http://localhost:8088/v1", "deepseek-v4-flash"
-    )
-    assert "_MASK_ENABLED = True" in drv_ds
-    # Both remain valid Python.
-    import ast as _ast
-    _ast.parse(drv_local)
-    _ast.parse(drv_ds)
+    monkeypatch.delenv("LDR_INTENT_MASK", raising=False)
+    for model in ("deepseek-v4-flash", "qwen3-8b", "glm-4.7-flash", None):
+        assert ldr._needs_intent_masking(model) is False
+    monkeypatch.setenv("LDR_INTENT_MASK", "1")
+    assert ldr._needs_intent_masking("qwen3-8b") is True
+
+
+def test_driver_never_masks_by_backbone(monkeypatch) -> None:
+    """The generated driver keeps Layer-2 masking off for every backbone."""
+    monkeypatch.delenv("LDR_INTENT_MASK", raising=False)
+    for model in ("qwen3-8b", "deepseek-v4-flash", "glm-4.7-flash"):
+        drv = ldr._build_driver_script(
+            _SAMPLE_INTENT, "http://localhost:8081", "http://localhost:8088/v1", model
+        )
+        assert "_MASK_ENABLED = False" in drv
+        import ast as _ast
+        _ast.parse(drv)

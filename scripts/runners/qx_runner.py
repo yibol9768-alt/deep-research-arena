@@ -15,9 +15,9 @@ Configuration approach:
   - Max turns: Set via agents.run_config.DEFAULT_MAX_TURNS before import.
          This is an SDK-level configuration constant (same pattern as
          set_tracing_disabled), not a runtime monkey-patch of methods.
-  - Research mode: use qx's IterativeResearcher rather than DeepResearcher
-         so one benchmark task runs as one bounded research loop instead of
-         internally fanning out multiple concurrent section researchers.
+  - Research mode: use qx's native default DeepResearcher pipeline, which
+         plans sections, runs the framework's iterative research loops, and
+         invokes its native final writer.
 
 Architecture:
   1. Start a local SerperAdapter (Serper/SearchXNG -> Tavily translator)
@@ -44,6 +44,7 @@ import textwrap
 import time
 from pathlib import Path
 
+from . import _budget, _egress
 from .serper_adapter import SerperAdapter
 from ._runner_lock import runner_exclusive_lock
 from .evidence_fallback import (
@@ -60,14 +61,26 @@ ROOT = Path(__file__).resolve().parents[2]
 QX_ROOT = ROOT / "third_party" / "agents-deep-research"
 QX_VENV_PYTHON = ROOT / ".venv-qx" / "bin" / "python"
 
-# Generous timeout: deep research can take 10+ minutes with slow models
-DEFAULT_TIMEOUT_S = 1500
+# Production default: no comparative outer wall clock.  The shared watchdog
+# terminates no-progress stalls; an operator override is passed explicitly.
+DEFAULT_TIMEOUT_S = _budget.native_timeout_default()
 
-# How many LLM turns (tool-call cycles) to allow per Runner.run() call.
-# The openai-agents SDK defaults to 10, which is too low for DeepSeek
-# models that ignore "DO NOT do more than 2 tool calls" instructions.
-MAX_TURNS = 12
-HARD_TIMEOUT_S = int(os.environ.get("QX_AGENTS_HARD_TIMEOUT_S", "240"))
+# Preserve the openai-agents SDK's native per-run turn budget. Raising this for
+# one lane gave qx extra tool-call retries that its peers did not receive.
+MAX_TURNS = 10
+# Unified native timeout. Default identical to every lane (DRA_WALL_CLOCK_S);
+# QX_AGENTS_HARD_TIMEOUT_S still overrides. This lane's old 240s hard cap was
+# the tightest in the whole harness -- 7.5x tighter than camel-ai's unlimited
+# path -- and is exactly the per-lane inequality _budget.py removes. None
+# (unlimited) means the outer subprocess cap + the shared no-progress watchdog
+# govern. See scripts/runners/_budget.py.
+HARD_TIMEOUT_S = _budget.resolve_native_timeout("QX_AGENTS_HARD_TIMEOUT_S")
+
+
+def _effective_timeout(timeout_s):
+    """Resolve optional global/operator clocks; None means no outer cap."""
+    values = [float(v) for v in (timeout_s, HARD_TIMEOUT_S) if v is not None]
+    return min(values) if values else None
 MIN_REPORT_CHARS = int(os.environ.get("QX_AGENTS_MIN_REPORT_CHARS", "3000"))
 
 
@@ -76,13 +89,12 @@ MIN_REPORT_CHARS = int(os.environ.get("QX_AGENTS_MIN_REPORT_CHARS", "3000"))
 # path, never guided JSON. qwen3-8b wraps replies in <think> blocks or echoes
 # the pydantic JSON schema (input_value={'description': ..., 'type': 'object'}),
 # so create_type_parser raises ValidationError and the run aborts at iteration 1
-# with a one-line stub. This strips reasoning, and on any validation failure
-# falls back to a schema-valid default so the research loop keeps running.
+# with a one-line stub. This strips only the transport wrapper. Genuine JSON or
+# schema failures still raise through qx's normal parser and remain observable.
 # Plain string (literal braces); inserted verbatim at module scope in the driver.
 _ROBUST_PARSER_SRC = '''# ---- robust structured-output parsing for local reasoning backbones ----
 import re as _rp_re
 import importlib as _rp_il
-from typing import get_origin as _rp_go
 import deep_researcher.agents.utils.parse_output as _rp_po
 
 def _rp_strip(s):
@@ -98,35 +110,9 @@ def _rp_parse_json(output):
     return _rp_orig_parse(_rp_strip(output))
 _rp_po.parse_json_output = _rp_parse_json
 
-def _rp_fallback(typ):
-    vals = {}
-    for _name, _f in typ.model_fields.items():
-        _ann = _f.annotation
-        _origin = _rp_go(_ann)
-        if _ann is bool:
-            vals[_name] = False
-        elif _ann is str:
-            vals[_name] = ""
-        elif _ann is int:
-            vals[_name] = 0
-        elif _origin in (list, tuple, set) or _ann is list:
-            vals[_name] = []
-        elif not _f.is_required():
-            continue
-        else:
-            vals[_name] = None
-    if "research_complete" in vals:
-        vals["research_complete"] = False
-    if "outstanding_gaps" in vals and not vals["outstanding_gaps"]:
-        vals["outstanding_gaps"] = ["Continue researching the original query to fill the remaining gaps."]
-    return typ.model_validate(vals)
-
 def _rp_make_parser(typ):
     def _parser(output):
-        try:
-            return typ.model_validate(_rp_po.parse_json_output(output))
-        except Exception:
-            return _rp_fallback(typ)
+        return typ.model_validate(_rp_po.parse_json_output(_rp_strip(output)))
     return _parser
 
 _rp_po.create_type_parser = _rp_make_parser
@@ -146,7 +132,7 @@ for _rp_mod in (
             _rp_m.parse_json_output = _rp_parse_json
     except Exception:
         pass
-print("[qx-robust-parser] installed think-strip + schema-valid fallback for local backbone")'''
+print("[qx-parser] installed think-wrapper stripping; schema failures remain fatal")'''
 
 
 def _build_driver_script(
@@ -154,13 +140,14 @@ def _build_driver_script(
     adapter_url: str,
     model: str,
     proxy_url: str,
+    shim_url: str,
 ) -> str:
     """Build the Python driver script that runs inside .venv-qx.
 
     This script is executed with cwd=QX_ROOT so that
     ``import deep_researcher`` resolves to the repo's own package.
 
-    No monkey-patching is used.  Configuration points:
+    Configuration points 1-3 use no monkey-patching:
       1. ``agents.run_config.DEFAULT_MAX_TURNS`` -- SDK-level constant
          set before any agent code runs (same pattern as
          ``set_tracing_disabled``).
@@ -168,6 +155,12 @@ def _build_driver_script(
          native env-var-driven search configuration.
       3. ``*_MODEL_PROVIDER=local`` + ``LOCAL_MODEL_URL`` -- qx-agents'
          native local-model configuration.
+
+    Point 4 (page-fetch observability) DOES monkey-patch aiohttp, because
+    qx-agents fetches pages with ``aiohttp.ClientSession.get`` and there is no
+    env knob to redirect that transport (D5 forbids editing the framework
+    source, so the driver-local patch is the only compliant surface). See the
+    ``_QX_FETCH_PATCH`` section below and FETCH_PATH_AUDIT_2026-07-08.md.
     """
     # Escape the intent for embedding in a Python string literal
     # Use repr() for safe embedding
@@ -177,6 +170,54 @@ def _build_driver_script(
         #!/usr/bin/env python3
         \"\"\"Auto-generated qx-agents driver for benchmark runner.\"\"\"
         import os, sys, asyncio, traceback
+        sys.path.insert(0, os.getcwd())
+
+        # ----------------------------------------------------------------
+        # 0. Route page fetches through the shim's recorded GET /fetch
+        # ----------------------------------------------------------------
+        # Search already goes through the shim (SearchXNG -> SerperAdapter ->
+        # shim /search). But qx-agents reads each result page with
+        # aiohttp.ClientSession.get straight to the sandbox origin
+        # (web_search.fetch_and_process_url, crawl_website.fetch_page). A
+        # requests-layer patch cannot see aiohttp, so we patch
+        # aiohttp.ClientSession._request -- the single chokepoint under every
+        # aiohttp GET -- to rewrite a GET aimed at a sandbox SITE host to
+        # {{shim}}/fetch?url=<original>. The shim fetches the origin server-side,
+        # returns the bytes verbatim, and records the read against the open run
+        # bracket, so pages the agent actually opened become observable. Only
+        # GET-to-SITE is rewritten: the SerperAdapter host (search) and the LLM
+        # proxy are left untouched, so there is no self-loop.
+        _SHIM_FETCH_URL = {shim_url!r}.rstrip('/') + '/fetch'
+        _QX_FETCH_SITE_HOSTS = {{
+            'localhost:7770','localhost:17770','localhost:8090','localhost:9999',
+            '127.0.0.1:7770','127.0.0.1:17770','127.0.0.1:8090','127.0.0.1:9999',
+        }}
+        try:
+            import aiohttp as _qah
+            from urllib.parse import urlparse as _qup, quote as _qquote
+            _qah_orig_init = _qah.ClientSession.__init__
+            def _qx_session_init(self, *a, **kw):
+                if os.environ.get('DRA_EGRESS_PROXY', '').strip():
+                    kw['trust_env'] = True
+                return _qah_orig_init(self, *a, **kw)
+            _qah.ClientSession.__init__ = _qx_session_init
+            _qah_orig_request = _qah.ClientSession._request
+            async def _qx_fetch_via_shim(self, method, str_or_url, **kw):
+                _u = str(str_or_url)
+                try:
+                    _p = _qup(_u)
+                    _hp = (_p.hostname or '').lower() + ':' + str(_p.port)
+                except Exception:
+                    _hp = ''
+                if str(method).upper() == 'GET' and _hp in _QX_FETCH_SITE_HOSTS:
+                    _u = _SHIM_FETCH_URL + '?url=' + _qquote(_u, safe='')
+                    print('[qx-fetch] site GET -> shim /fetch (%s)' % _hp, file=sys.stderr)
+                    return await _qah_orig_request(self, method, _u, **kw)
+                return await _qah_orig_request(self, method, str_or_url, **kw)
+            _qah.ClientSession._request = _qx_fetch_via_shim
+            print('[qx-fetch] aiohttp _request patched -> ' + _SHIM_FETCH_URL, file=sys.stderr)
+        except ImportError:
+            print('[qx-fetch] aiohttp not importable; page fetches NOT observable', file=sys.stderr)
 
         # ----------------------------------------------------------------
         # 1. SDK-level configuration (before any agent imports)
@@ -216,7 +257,7 @@ def _build_driver_script(
         # ----------------------------------------------------------------
         # 2. Import and configure qx-agents
         # ----------------------------------------------------------------
-        from deep_researcher import IterativeResearcher
+        from deep_researcher import DeepResearcher
         from deep_researcher.llm_config import LLMConfig
 
         # Re-disable tracing: llm_config module-level code may have
@@ -239,26 +280,19 @@ def _build_driver_script(
         # 3. Run the researcher
         # ----------------------------------------------------------------
         intent = {intent_repr}
-        output_instructions = (
-            "Write a complete markdown report with inline citations and a References section. "
-            "Use only evidence from the benchmark sandbox sources reached through the configured search tool. "
-            "Draw evidence from the product catalog, discussion forum, and offline encyclopedia when relevant. "
-            "Do not fabricate URLs or cite sources that were not fetched."
-        )
-
         async def _run():
-            researcher = IterativeResearcher(
-                max_iterations=1,
-                max_time_minutes=4,
+            researcher = DeepResearcher(
+                # Framework-native defaults. The benchmark adapter used to
+                # cut these from 5 iterations / 10 minutes to 1 / 4, making qx
+                # the only lane deliberately run at a fraction of its normal
+                # research budget.
+                max_iterations=5,
+                max_time_minutes=10,
                 verbose=True,
                 tracing=False,
                 config=config,
             )
-            return await researcher.run(
-                query=intent,
-                output_length="about 1500 words",
-                output_instructions=output_instructions,
-            )
+            return await researcher.run(query=intent)
 
         try:
             report = asyncio.run(_run())
@@ -290,54 +324,6 @@ def _chat_completions_url(proxy_url: str) -> str:
     if base.endswith("/chat/completions"):
         return base
     return f"{base}/chat/completions"
-
-
-def _prefetch_evidence(intent: str, shim_url: str, *, max_items: int = 14) -> str:
-    shim = shim_url.rstrip("/")
-    words = intent.split()
-    short = " ".join(words[:14]) if words else intent
-    queries = [
-        intent,
-        short,
-        f"{short} product catalog",
-        f"{short} forum review",
-        f"{short} wikipedia background",
-    ]
-    seen: set[str] = set()
-    rows: list[str] = []
-    for query in queries:
-        if len(rows) >= max_items:
-            break
-        try:
-            resp = requests.post(
-                f"{shim}/search",
-                json={
-                    "query": query,
-                    "api_key": "tvly-shim-fake",
-                    "max_results": 6,
-                    "include_raw_content": True,
-                },
-                timeout=30,
-            )
-            resp.raise_for_status()
-            results = resp.json().get("results", [])
-        except Exception as e:
-            rows.append(f"[search error] query={query!r}: {e}")
-            continue
-        for item in results:
-            if len(rows) >= max_items:
-                break
-            if not isinstance(item, dict):
-                continue
-            url = item.get("url") or ""
-            if not url or url in seen:
-                continue
-            seen.add(url)
-            title = item.get("title") or "(untitled)"
-            content = item.get("raw_content") or item.get("raw_body_content") or item.get("content") or ""
-            content = " ".join(str(content).split())[:1400]
-            rows.append(f"[{len(rows)+1}] Title: {title}\nURL: {url}\nEvidence: {content}")
-    return "\n\n".join(rows) if rows else "(no sandbox evidence returned)"
 
 
 def _fallback_report(
@@ -372,7 +358,7 @@ async def run(
     shim_url: str,
     proxy_url: str,
     *,
-    timeout_s: int = DEFAULT_TIMEOUT_S,
+    timeout_s: float | None = DEFAULT_TIMEOUT_S,
 ) -> str:
     """Run qx-agents and return the markdown report.
 
@@ -380,7 +366,7 @@ async def run(
         intent: The research query / task description.
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
-        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
+        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
         timeout_s: Subprocess timeout in seconds.
 
     Returns:
@@ -396,8 +382,12 @@ async def run(
 
     # Start the search adapter
     adapter = SerperAdapter(shim_url=shim_url)
+    driver_path: Path | None = None
     try:
-        adapter_port = await adapter.start()
+        requested_adapter_port = int(
+            os.environ.get("DRA_QX_ADAPTER_PORT", "0") or "0"
+        )
+        adapter_port = await adapter.start(port=requested_adapter_port)
     except Exception as e:
         return f"(qx-agents error: adapter start failed: {e})"
 
@@ -414,8 +404,8 @@ async def run(
 
     try:
         # Write the driver script
-        driver_code = _build_driver_script(intent, adapter_url, model, proxy_url)
-        driver_path = QX_ROOT / "_benchmark_driver.py"
+        driver_code = _build_driver_script(intent, adapter_url, model, proxy_url, shim_url)
+        driver_path = _egress.scratch_path("qx-benchmark-driver")
         driver_path.write_text(driver_code)
 
         # Build the subprocess environment
@@ -444,15 +434,11 @@ async def run(
         # Serper key (not used with searchxng, but prevent import errors)
         env["SERPER_API_KEY"] = "serper-adapter-not-used"
 
-        # Prevent the subprocess from using external proxies
-        for var in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
-                    "ALL_PROXY", "all_proxy"):
-            env.pop(var, None)
-        env["NO_PROXY"] = "*"
+        _egress.scrub_or_apply(env)
 
         # Run the subprocess. Keep this below the lane timeout so a runaway
         # native qx loop can still fall back and let the queue advance.
-        effective_timeout_s = max(60, min(timeout_s, HARD_TIMEOUT_S))
+        effective_timeout_s = _effective_timeout(timeout_s)
         t0 = time.time()
         proc = await asyncio.get_event_loop().run_in_executor(
             None,
@@ -498,18 +484,6 @@ async def run(
                 "qx-agents report weak after %.0fs: %d chars",
                 elapsed, len(report),
             )
-            if fallback_enabled():
-                return await asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: _fallback_report(
-                        intent,
-                        model,
-                        shim_url,
-                        proxy_url,
-                        "write",
-                        f"native qx report was too short ({len(report)} chars)",
-                    ),
-                )
             # Weak-but-real output is qx-agents' own report: save it verbatim
             # (the scorer judges quality); stub only genuinely empty/stub output.
             return keep_or_stub(
@@ -526,8 +500,8 @@ async def run(
         return report
 
     except subprocess.TimeoutExpired:
-        effective_timeout_s = max(60, min(timeout_s, HARD_TIMEOUT_S))
-        logger.error("qx-agents timed out after %ds; using fallback", effective_timeout_s)
+        effective_timeout_s = _effective_timeout(timeout_s)
+        logger.error("qx-agents timed out after %ss; using fallback", effective_timeout_s)
         try:
             return await asyncio.get_event_loop().run_in_executor(
                 None,
@@ -555,8 +529,7 @@ async def run(
     finally:
         # Clean up
         await adapter.stop()
-        driver_path = QX_ROOT / "_benchmark_driver.py"
-        if driver_path.exists():
+        if driver_path is not None and driver_path.exists():
             driver_path.unlink(missing_ok=True)
         try:
             _lock_cm.__exit__(None, None, None)
@@ -574,7 +547,7 @@ if __name__ == "__main__":
     parser.add_argument("intent", help="Research query")
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
     args = parser.parse_args()

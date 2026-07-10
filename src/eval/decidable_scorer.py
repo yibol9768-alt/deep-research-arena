@@ -72,6 +72,7 @@ from __future__ import annotations
 import bisect
 import html as html_mod
 import math
+import functools as _functools
 import re
 from dataclasses import dataclass, field
 
@@ -135,18 +136,32 @@ WS_RE = re.compile(r"\s+")
 # [a-z0-9]{3,} tokenizer silently dropped rating values like "4.4" and "5").
 TOKEN_RE = re.compile(r"\d+(?:\.\d+)?|[a-z][a-z0-9]{2,}")
 
-_NUM_RE = re.compile(r"\d{1,6}(?:\.\d{1,2})?")
+# A comma-formatted amount is ONE number.  Matching ``$1,769.00`` as ``1`` and
+# ``769.00`` created two false contradictions against the true 1769.00 price.
+_NUM_RE = re.compile(r"(?:\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d{1,6}(?:\.\d{1,2})?)")
 
 # Price claims trigger ONLY on an explicit price cue within 12 chars of the
 # number ("$" or price/priced/costs/cost); "at 18 grams" no longer becomes a
 # CONTRADICTED price (G-F6).
 _PRICE_CUE = re.compile(r"\bpric(?:e|es|ed|ing)\b|\bcosts?\b")
+
+# The same cue discipline, for buyer_sentiment. A number only conveys a rating
+# if it is presented as one; likewise a review count.
+_RATING_CUE = re.compile(
+    r"%|\bpercent\b|\brating\b|\brated\b|\bstars?\b|out of 5|/\s*5\b|"
+    r"\bpositive\b|\bsatisfaction\b|\bfavourable\b|\bfavorable\b", re.I)
+_REVIEW_CUE = re.compile(r"\breviews?\b|\bratings?\b|\breviewers?\b|\bbuyers?\b", re.I)
+
+
+def _cue_near(win: str, start: int, end: int, cue: re.Pattern, radius: int = 24) -> bool:
+    """Is a cue word within `radius` chars of this number?"""
+    return bool(cue.search(win[max(0, start - radius): end + radius]))
 PRICE_CUE_WINDOW = 12
 
 # Numbers immediately followed by a unit word are measurements, never prices
 # (G-F6). Longer alternatives first where prefixes collide.
 _UNIT_AFTER = re.compile(
-    r"^\s*-?\s*(?:%|(?:grams?|hours?|hrs|inch(?:es)?|stars?|reviews?|days?"
+    r"^\s*-?\s*(?:%|/\s*5\b|out\s+of\s+5\b|(?:grams?|hours?|hrs|inch(?:es)?|stars?|reviews?|days?"
     r"|years?|khz|kbps|hz|mah|mm|cm|oz|lbs?|g|budgets?|total)\b)", re.I)
 
 # A rating claim requires the stars / out-of-5 cue (G-F15: single-digit values
@@ -247,6 +262,105 @@ def name_key(name: str, generic: set | None = None) -> str:
     return " ".join(toks[:6])
 
 
+def _name_tokens(name: str, generic: set | None = None, *, cap=None) -> list[str]:
+    """All distinctive name tokens, preserving model/size numbers.
+
+    ``name_key`` intentionally keeps a short six-token display key.  It must not
+    also be the entity identity used by the fact scorer: thousands of catalog
+    variants share those first six words but have different prices.  This helper
+    supplies the full identity for matching while keeping the old public helper
+    stable for callers that only need a compact label.
+    """
+    g = generic or _STOP
+    out, seen = [], set()
+    for t in re.findall(r"[a-z0-9]+", (name or "").lower()):
+        if (len(t) <= 2 and not any(c.isdigit() for c in t)) or t in g or t in seen:
+            continue
+        seen.add(t)
+        out.append(t)
+        if cap is not None and len(out) >= cap:
+            break
+    return out
+
+
+@_functools.lru_cache(maxsize=None)
+def _subject_pattern(subject: str):
+    """Compiled full-subject pattern, cached per subject.
+
+    `_fact_mentions` asks this for every entity on every sentence: 1,592 catalog
+    titles produce 1,592 DISTINCT patterns, which blows straight through
+    `re`'s 512-entry internal cache, so every sentence recompiled every pattern.
+    Measured: ~5s PER SENTENCE, ~25 minutes for one 28KB report, before any
+    board could even be built. The pattern set is fixed per answer key, so an
+    unbounded cache is a few MB and turns the compile cost into a one-time cost.
+    """
+    toks = re.findall(r"[a-z0-9]+", (subject or "").lower())
+    if not toks:
+        return None
+    return re.compile(r"(?<![a-z0-9])" + r"[^a-z0-9]+".join(map(re.escape, toks))
+                      + r"(?![a-z0-9])")
+
+
+def _exact_subject_spans(text: str, subject: str, cap: int = 20) -> list[tuple[int, int]]:
+    """Spans of a complete lexical subject mention, punctuation-insensitive."""
+    pat = _subject_pattern(subject)
+    if pat is None:
+        return []
+    return [m.span() for m in pat.finditer(text)][:cap]
+
+
+def _subject_value_spans(text: str, subject: str, tokens: list[str]) -> list[tuple[int, int]]:
+    """Prefer the FULL subject span; fall back to individual identity tokens.
+
+    The old completeness path kept only the first six tokens and opened a
+    +-40-character window around each.  In a real long catalog title, the gold
+    rating appears after the full title and therefore outside every one of those
+    windows.  Exact oracle prose failed 1200/1200 self-coverage in the worst
+    shape.  A full mention binds from its end, which is where a natural value is
+    written; abbreviated mentions retain the conservative token fallback.
+    """
+    exact = _exact_subject_spans(text, subject)
+    return exact or _token_spans(text, tokens)
+
+
+def _visible_prose(md: str, *, mask_link_numbers: bool = False) -> str:
+    """Normalised human-visible prose: labels stay, URL shells disappear."""
+    try:
+        from src.verifiers.citation_format import (
+            BARE_URL_RE as _CITED_BARE_URL_RE,
+            replace_markdown_links,
+        )
+        def label(link):
+            return (_LABEL_NUM_RE.sub(" ", link.label)
+                    if mask_link_numbers else link.label)
+        text = replace_markdown_links(md or "", label)
+        text = _CITED_BARE_URL_RE.sub(" ", text)
+    except Exception:
+        text = LINK_RE.sub(
+            (lambda m: _LABEL_NUM_RE.sub(" ", m.group(1)))
+            if mask_link_numbers else (lambda m: m.group(1)), md or "")
+        text = BARE_URL_RE.sub(" ", text)
+    return norm(text)
+
+
+def _subject_tokens(n, generic: set | None) -> list[str]:
+    """The tokens that identify this nugget's subject in the report.
+
+    Generic-token stripping exists to keep one product's head term ("wireless",
+    "headphones") from matching every other product. A wiki concept is not a
+    product: its identity IS its head term. `build_generic_tokens` derives the
+    generic set from the shopping catalog, and `_STOP` hardcodes `bluetooth`, so
+    `name_key("Bluetooth", generic)` returned "" and the nugget was skipped for
+    every report ever scored. 62 of 278 concept nuggets (22.3%) were structurally
+    uncoverable this way -- `Bluetooth`, `Headphones`, `Coffee`, `Tea`,
+    `Digital camera` -- which are the concepts the tasks are about.
+    """
+    if getattr(n, "predicate", None) == "concept_coverage":
+        return [t for t in re.findall(r"[a-z0-9]+", (n.subject or "").lower())
+                if len(t) > 2][:6]
+    return name_key(n.subject, generic).split()
+
+
 def _subject_discussed(text: str, subj_tokens: list[str]) -> bool:
     """The report discusses this entity only if its distinctive identity is
     present: a majority of identity tokens (capped at what the key actually
@@ -262,13 +376,19 @@ def _subject_discussed(text: str, subj_tokens: list[str]) -> bool:
     return any(len(t) >= 4 or any(c.isdigit() for c in t) for t in present)
 
 
+@_functools.lru_cache(maxsize=None)
+def _word_token_pattern(tok: str):
+    """Compiled word-boundary token pattern; same cache story as _subject_pattern."""
+    return re.compile(rf"(?<![a-z0-9]){re.escape(tok)}(?![a-z0-9])")
+
+
 def _token_spans(text: str, tokens: list[str], cap: int = 200) -> list[tuple[int, int]]:
     """Character spans of each identity token in text (word-boundary matches)."""
     spans: list[tuple[int, int]] = []
     for t in tokens:
         if not t:
             continue
-        for m in re.finditer(rf"(?<![a-z0-9]){re.escape(t)}(?![a-z0-9])", text):
+        for m in _word_token_pattern(t).finditer(text):
             spans.append(m.span())
             if len(spans) >= cap:
                 return spans
@@ -367,7 +487,7 @@ def _cited_urls(md: str) -> list[str]:
 # Axis 1a: reachability
 # ---------------------------------------------------------------------------
 
-def _cache_entry(cache: dict, u: str):
+def _cache_entry(cache: dict, u: str, registry=None):
     """Cache lookup tolerant to key-normalization drift between the extractor
     and the cache builder (trailing punctuation, localhost vs 127.0.0.1)."""
     for k in (u, u.rstrip("`.,;:!?)"),
@@ -376,7 +496,44 @@ def _cache_entry(cache: dict, u: str):
         e = cache.get(k)
         if e is not None:
             return e
+    # Registry aliases (/wiki/X, /content/<book>/A/X, forum decorative slugs)
+    # name the same page.  Unknown-membership fallback must use that identity in
+    # both reach and transport or their fabrication numbers diverge.
+    if registry is not None:
+        try:
+            target = registry.classify(u).get("canonical")
+        except Exception:
+            target = None
+        if target:
+            for k, e in cache.items():
+                try:
+                    if registry.classify(k).get("canonical") == target:
+                        return e
+                except Exception:
+                    continue
     return None
+
+
+def _in_corpus_with_cache(u: str, cache: dict, registry=None) -> bool:
+    """The single membership predicate used by reach and transport."""
+    if registry is not None and getattr(registry, "loaded", True):
+        try:
+            d = registry.classify(u)
+        except Exception:
+            return False
+        inc = d.get("in_corpus") if isinstance(d, dict) else bool(d)
+        if inc is not None:
+            return bool(inc)
+        try:
+            return int((_cache_entry(cache, u, registry) or {}).get("status", 0) or 0) == 200
+        except (TypeError, ValueError):
+            return False
+    if not _SANDBOX_URL_RE.match(u or ""):
+        return False
+    try:
+        return int((_cache_entry(cache, u) or {}).get("status", 0) or 0) == 200
+    except (TypeError, ValueError):
+        return False
 
 
 def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[float, dict]:
@@ -429,7 +586,7 @@ def score_reachability(urls: list[str], cache: dict, registry=None) -> tuple[flo
             elif inc is False or kind == "off_sandbox":
                 fab += 1
             else:  # unknown membership: resolve via cache
-                st = int((_cache_entry(cache, u) or {}).get("status", -1))
+                st = int((_cache_entry(cache, u, registry) or {}).get("status", -1))
                 if st == 200:
                     ok += 1
                     unknown_cache_ok += 1
@@ -628,6 +785,31 @@ def _offset_in_spans(off: int, spans: list[tuple[int, int]]) -> bool:
     return False
 
 
+def _sentence_spans(md: str):
+    """Yield the same claim segments as the fact parser plus source offsets."""
+    split = re.compile(r"(?<=[.!?])\s+|\n")
+    start = 0
+    for match in split.finditer(md or ""):
+        if match.start() > start:
+            yield (md[start:match.start()], start, match.start())
+        start = match.end()
+    if start < len(md or ""):
+        yield (md[start:], start, len(md))
+
+
+def _line_spans(md: str):
+    """Yield non-empty Markdown lines with source offsets."""
+    start = 0
+    for line in (md or "").splitlines(keepends=True):
+        end = start + len(line)
+        content = line.rstrip("\r\n")
+        if content.strip():
+            yield (content, start, start + len(content))
+        start = end
+    if md and not md.endswith(("\n", "\r")) and start < len(md):
+        yield (md[start:], start, len(md))
+
+
 def _resolve_cache_key(cache: dict, u: str):
     """The actual key under which ``u``'s page is cached, tolerant to the same
     normalization drift ``_cache_entry`` handles (trailing punctuation,
@@ -651,8 +833,16 @@ def _pof_occurrence_ok(md: str, offset: int, u: str, page_set: set,
     contiguous span_len-token run present on the page); only the anchor moved
     from the markdown link to the extractor-reported citation offset."""
     raw_ctx = md[max(0, offset - 400): offset]
-    raw_ctx = LINK_RE.sub(" ", raw_ctx)      # label REMOVED (G-F1)
-    raw_ctx = BARE_URL_RE.sub(" ", raw_ctx)
+    try:
+        from src.verifiers.citation_format import (
+            BARE_URL_RE as _CITED_BARE_URL_RE,
+            replace_markdown_links,
+        )
+        raw_ctx = replace_markdown_links(raw_ctx, " ")  # label REMOVED (G-F1)
+        raw_ctx = _CITED_BARE_URL_RE.sub(" ", raw_ctx)
+    except Exception:
+        raw_ctx = LINK_RE.sub(" ", raw_ctx)
+        raw_ctx = BARE_URL_RE.sub(" ", raw_ctx)
     ctx_seq = _tokens(norm(raw_ctx))
     # the cited URL's own slug tokens are the page title by construction:
     # pasting the slug as prose next to the link must not count as proof
@@ -717,14 +907,25 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
     still count for reachability and the denominator; see
     ``_reference_region_offsets``.
 
+    SEMANTICS (what this number is and is NOT). This is a VERBATIM LOWER BOUND on
+    grounding, not citation support and not equivalent to it. It fires only on
+    lexical overlap that is literally present in the evaluator-fetched page; a
+    faithful report that PARAPHRASES the page it read is a MISS here even though
+    it is well grounded (order-preserving paraphrase still passes 82-86%, E-4 §2,
+    but genuine rephrasing below that band is silently missed). The paraphrase
+    miss rate on real agent prose is UNMEASURED (task #56); until it is measured,
+    read this axis strictly as "the report reproduces page text verbatim next to
+    a citation", a floor beneath true grounding, never as "the citation is
+    supported". When there is no transport evidence this number is stamped
+    ``pof_semantics="text_v1"`` and surfaced under the axis name
+    ``grounding_quote_support`` (see ``_axis_key``): it does not observe whether
+    the agent opened anything, so it must not wear the proof-of-fetch name.
+
     Verbatim judge (unchanged, still deterministic / model-free): IDF-weighted
     containment (weight 1/log(2+page_df) when a df table exists, else 1) >=
     ``threshold`` AND at least one non-boilerplate contiguous ``span_len``-token
-    run appearing verbatim in the FULL page token stream (G-F4). The name is a
-    LOWER BOUND on grounding: a report that read a page but fully paraphrased it
-    can legitimately score low here (order-preserving paraphrase still passes
-    82-86%, E-4 §2); semantic grounding is carried by the reach gate, not this
-    axis.
+    run appearing verbatim in the FULL page token stream (G-F4). Semantic
+    grounding is carried by the reach gate, not this axis.
 
     threshold=0.35 is calibrated in data/results/pof_gamma_calibration.json
     (scripts/calibrate_pof_gamma.py). The calibration covers EVERY shipped anchor
@@ -825,44 +1026,157 @@ def score_proof_of_fetch(md: str, cache: dict, page_stats: dict | None = None,
 # Axis 2: fact support (structured, decidable)
 # ---------------------------------------------------------------------------
 
-def _fact_indices(answer_key, generic: set) -> tuple[dict, dict]:
-    """DB truth indexed by distinctive subject key. Values are SETS: variants
-    sharing a key are all acceptable, and facts['special_price'] is accepted
-    as an alternative correct price when present (G-F6 sale-vs-list)."""
-    price_of: dict[str, set] = {}
-    rating_of: dict[str, set] = {}
-    for n in (list(answer_key.vital_nuggets) + list(answer_key.useful_nuggets)):
-        if not getattr(n, "relevant", True):
-            continue
-        key = name_key(n.subject, generic)
-        if not key:
-            continue
-        try:
-            if n.predicate == "price":
-                price_of.setdefault(key, set()).add(round(float(n.object), 2))
-            elif n.predicate == "rating":
-                rating_of.setdefault(key, set()).add(float(n.object))
-        except (TypeError, ValueError):
-            continue
-    for e in answer_key.relevant_set:
+def _fact_entities(answer_key, generic: set) -> tuple[dict, dict, dict]:
+    """Entity-specific DB truth plus URL/name indexes.
+
+    The old index key was the first six distinctive name tokens.  Real catalog
+    variants routinely share that prefix and have different prices, so their
+    truth sets were merged: stating variant A's exact DB price could bind to B,
+    or any value from either variant could be accepted for both.  Keep identity
+    per relevant-set row and treat an unresolved collision as unbound.
+    """
+    from src.verifiers.citation_format import canonicalize_url
+
+    entities: dict[int, dict] = {}
+    url_to_ids: dict[str, set[int]] = {}
+    name_to_ids: dict[str, set[int]] = {}
+    for idx, e in enumerate(answer_key.relevant_set):
         if not getattr(e, "relevant", True):
             continue
-        key = name_key(e.name, generic)
-        if not key:
-            continue
         facts = e.facts or {}
+        prices, ratings = set(), set()
         for fk in ("price", "special_price"):
             if facts.get(fk) is not None:
                 try:
-                    price_of.setdefault(key, set()).add(round(float(facts[fk]), 2))
+                    prices.add(round(float(facts[fk]), 2))
                 except (TypeError, ValueError):
                     pass
         if facts.get("rating") is not None:
             try:
-                rating_of.setdefault(key, set()).add(float(facts["rating"]))
+                ratings.add(float(facts["rating"]))
             except (TypeError, ValueError):
                 pass
-    return price_of, rating_of
+        canon = canonicalize_url(e.url)
+        entities[idx] = {
+            "id": idx, "url": e.url, "canonical_url": canon,
+            "name": e.name, "tokens": _name_tokens(e.name, generic),
+            "prices": prices, "ratings": ratings,
+        }
+        if canon:
+            url_to_ids.setdefault(canon, set()).add(idx)
+        name_to_ids.setdefault(norm(e.name), set()).add(idx)
+
+    # Nugget facts are authoritative too.  Attach by source URL first, then by
+    # exact full name.  Never attach a fact through a six-token fuzzy key.
+    for nug in (list(answer_key.vital_nuggets) + list(answer_key.useful_nuggets)):
+        if not getattr(nug, "relevant", True) or nug.predicate not in {"price", "rating"}:
+            continue
+        ids = set()
+        if getattr(nug, "source_url", None):
+            ids = url_to_ids.get(canonicalize_url(nug.source_url), set())
+        if not ids:
+            ids = name_to_ids.get(norm(nug.subject), set())
+        try:
+            value = float(nug.object)
+        except (TypeError, ValueError):
+            continue
+        for idx in ids:
+            if nug.predicate == "price":
+                entities[idx]["prices"].add(round(value, 2))
+            else:
+                entities[idx]["ratings"].add(value)
+    return entities, url_to_ids, name_to_ids
+
+
+def _fact_mentions(text: str, entities: dict[int, dict]) -> dict[int, dict]:
+    """Candidate entity mentions in visible prose, exact full names first."""
+    mentions: dict[int, dict] = {}
+    for idx, ent in entities.items():
+        # Cheap gate before the regex: an exact full-name match needs every
+        # identity token as a substring, and a fuzzy match needs a majority.
+        # Sentences are ~100 chars and candidates number in the hundreds, so
+        # `in` here removes almost every `finditer` call. Semantics unchanged:
+        # a token absent as a substring cannot match with word boundaries.
+        fuzzy = ent.get("fuzzy_toks")
+        if fuzzy is None:
+            fuzzy = [t for t in ent["tokens"] if not t.isdigit()][:8]
+            ent["fuzzy_toks"] = fuzzy
+        anchor = ent.get("anchor_tok")
+        if anchor is None:
+            toks_all = ent["tokens"]
+            anchor = max(toks_all, key=len) if toks_all else ""
+            ent["anchor_tok"] = anchor
+        if anchor and anchor not in text:
+            # The longest (rarest) identity token is absent, so the exact full
+            # name cannot match. The fuzzy path needs a majority of the fuzzy
+            # tokens; count them with plain substring tests before paying for
+            # regex spans. `need` mirrors _subject_discussed exactly.
+            if not fuzzy:
+                continue
+            need = min(len(fuzzy), max(2, (len(fuzzy) + 1) // 2))
+            if sum(t in text for t in fuzzy) < need:
+                continue
+        exact = _exact_subject_spans(text, ent["name"])
+        if exact:
+            mentions[idx] = {
+                "spans": exact, "exact": True, "coverage": 1.0,
+                "specificity": len(re.findall(r"[a-z0-9]+", ent["name"].lower())),
+            }
+            continue
+        # Abbreviations remain matchable, but only through a short distinctive
+        # signature.  Equal candidates stay ambiguous in `_nearest_fact_entity`.
+        # Numeric-only tokens are useful in a complete exact title, but they
+        # are unsafe fuzzy identity anchors.  A claim value such as ``$5.20``
+        # otherwise makes every unrelated ``5-pound`` product look like the
+        # closest subject, and pack counts can do the same.  Alphanumeric model
+        # identifiers (for example ``wh1000xm4``) remain eligible.  If removing
+        # size/count digits makes two variants indistinguishable, leaving the
+        # claim unbound is safer than assigning it to the wrong product.
+        toks = fuzzy
+        if not toks or not _subject_discussed(text, toks):
+            continue
+        spans = _token_spans(text, toks)
+        present = sum(t in text for t in toks)
+        if spans:
+            mentions[idx] = {
+                "spans": spans, "exact": False,
+                "coverage": present / len(toks), "specificity": present,
+            }
+    return mentions
+
+
+def _nearest_fact_entity(mentions: dict[int, dict], pos: int,
+                         window: int = BIND_WINDOW):
+    """Bind a value to one entity; an equal best collision is unbound."""
+    best_rank = None
+    winners: set[int] = set()
+    for idx, hit in mentions.items():
+        for s, e in hit["spans"]:
+            d = 0 if s <= pos <= e else min(abs(pos - e), abs(s - pos))
+            if d > window:
+                continue
+            # A value belongs to the closest mentioned entity.  Putting name
+            # specificity ahead of distance made a long product title steal a
+            # price written immediately after a shorter product later in the
+            # same sentence or table row.
+            rank = (-d, int(hit["exact"]), hit["coverage"], hit["specificity"])
+            if best_rank is None or rank > best_rank:
+                best_rank, winners = rank, {idx}
+            elif rank == best_rank:
+                winners.add(idx)
+    return next(iter(winners)) if len(winners) == 1 else None
+
+
+def _mask_numbers_in_spans(text: str, spans: list[tuple[int, int]]) -> str:
+    """Product-name numbers are identity, never report claim values."""
+    if not spans:
+        return text
+    chars = list(text)
+    for s, e in spans:
+        for i in range(max(0, s), min(len(chars), e)):
+            if chars[i].isdigit():
+                chars[i] = " "
+    return "".join(chars)
 
 
 def score_fact_support(md: str, answer_key, generic: set | None = None,
@@ -870,124 +1184,250 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
     """axis 2 (structured, decidable): extract the price/rating claims the
     report EXPLICITLY makes about DB entities and check each against DB truth.
 
+    What this axis measures, and what it does NOT (P2 construct honesty):
+    it scores only CHECKABLE STRUCTURED CLAIMS the report explicitly makes about
+    DB entities (a price or an overall rating bound to a named product). It is
+    NOT a prose-quality axis: a fluent, well-organized report that never asserts
+    a checkable price or rating makes zero testable claims and scores 0.0. That
+    zero is BY DESIGN, not a bug: on the qwen backbone only 2/140 reports made
+    any checkable claim, so `fact` (the largest 0.39 quality weight) is inert on
+    ~98.6% of reports and `truth` there is driven by pof + completeness. The
+    `fact_active` flag in the detail (== claims_tested > 0) is what a board reads
+    to publish that inertness instead of leaving it buried in a doc.
+
     Volume-aware F1 (M-C3/G-F7: silence must not score):
         precision  = supported / tested
-        recall_vol = min(tested / K_f, 1)          # K_f defaults to 10
+        recall_vol = min(distinct_task_scoped_supported / K_f, 1)
         fact       = harmonic mean (0 if either is 0)
-    tested == 0 returns 0.0 with detail reason "no_checkable_claims": a report
-    that asserts nothing checkable earns nothing (the old `else 1.0` gave a
-    perfect score for silence).
+    tested == 0 returns 0.0 with detail reason "no_checkable_claims" and
+    fact_active == False: a report that asserts nothing checkable earns nothing
+    (the old `else 1.0` gave a perfect score for silence).
 
     Claim extraction is hardened per G-F6: price triggers only with a "$" or
     price-word cue within 12 chars; unit-suffixed numbers are measurements;
     subject-number binding only within +-40 chars of a subject identity token
     in the same sentence; aspect-qualified ratings ("5 stars for build") are
     not overall-rating claims. special_price counts as an alternative correct
-    price."""
+    price. Formal v2 keys require an inline citation to the same product in the
+    claim sentence before a correct claim can fill recall; uncited or detached
+    correct values remain visible in precision diagnostics but earn no volume
+    credit."""
+    from src.verifiers.citation_format import (
+        canonicalize_url,
+        extract_citations,
+        iter_markdown_links,
+    )
+
     generic = generic if generic is not None else build_generic_tokens(answer_key)
-    price_of, rating_of = _fact_indices(answer_key, generic)
-    all_keys = price_of.keys() | rating_of.keys()
-
-    # url slug -> index key, for link-precedence binding (verify finding:
-    # official-title prose bound claim values to ANOTHER product via title
-    # tail tokens; the citation link IS the subject identity)
-    slug_key: dict[str, str] = {}
-    for e in answer_key.relevant_set:
-        if not getattr(e, "relevant", True):
-            continue
-        k = name_key(e.name, generic)
-        if k:
-            slug_key[e.url.rsplit("/", 1)[-1].removesuffix(".html").lower()] = k
-
-    support = contra = unbound = untestable = skipped_aspect = 0
+    entities, url_to_ids, _name_to_ids = _fact_entities(answer_key, generic)
+    support = contra = unbound = untestable = skipped_aspect = duplicate_claims = 0
+    supported_out_of_scope = supported_uncited = 0
+    supported_fact_ids: set[tuple[int, str]] = set()
+    seen_claims: set[tuple] = set()
+    # ``relevant_set`` is a category enumeration (often ~1,900 products), not
+    # a task-specific gold set.  Crediting any ten correct catalog prices lets
+    # a report ignore the user's actual question and still fill fact recall.
+    # The task-ranked sentiment/price/rating nuggets identify the products for
+    # which structured facts can buy recall.  Correct facts about other catalog
+    # items remain precision-tested, but they cannot fill the volume term.
+    creditable_urls = {
+        canonicalize_url(n.source_url)
+        for n in (list(answer_key.vital_nuggets) + list(answer_key.useful_nuggets))
+        if getattr(n, "relevant", True)
+        and n.predicate in {"buyer_sentiment", "price", "rating"}
+        and getattr(n, "source_url", None)
+    }
+    creditable_ids = {
+        idx for idx, ent in entities.items()
+        if ent.get("canonical_url") in creditable_urls
+    }
+    # Backward compatibility for small/manual answer keys that contain no
+    # task-ranked structured nuggets: their declared relevant_set is the only
+    # available scope and remains fully creditable.
+    if not creditable_ids:
+        creditable_ids = set(entities)
+    require_inline_citation = bool(
+        (getattr(answer_key, "metadata", {}) or {}).get(
+            "inline_fact_citation_required", False
+        )
+    )
+    ref_spans = _reference_region_offsets(md)
+    inline_citations: list[tuple[int, set[int]]] = []
+    cited_fact_ids: set[int] = set()
+    if require_inline_citation:
+        for citation in extract_citations(md, sandbox_only=False):
+            if (citation.style not in POF_EVIDENCE_STYLES
+                    or _offset_in_spans(citation.char_offset, ref_spans)):
+                continue
+            ids = set(url_to_ids.get(canonicalize_url(citation.raw_url), set()))
+            cited_fact_ids.update(ids)
+            inline_citations.append((citation.char_offset, ids))
+    else:
+        cited_fact_ids = set(entities)
     per = []
-    for sent in re.split(r"(?<=[.!?])\s+|\n", md):
-        links = LINK_RE.findall(sent)
-        linked_keys = {slug_key[u.rstrip(".,;").rsplit("/", 1)[-1]
-                                .removesuffix(".html").lower()]
-                       for _lab, u in links
-                       if u.rstrip(".,;").rsplit("/", 1)[-1]
-                             .removesuffix(".html").lower() in slug_key}
-        forced_key = next(iter(linked_keys)) if len(linked_keys) == 1 else None
+    # Doc-level entity prefilter. `_fact_mentions` used to scan all ~1,600
+    # catalog entities on EVERY sentence; a sentence cannot mention an entity
+    # whose identity tokens never appear anywhere in the document, so filter the
+    # candidate set once against the whole visible prose. Superset-safe: the
+    # doc prose is the concatenation of the per-sentence prose this loop feeds
+    # `_fact_mentions`, so anything matchable in a sentence survives the filter.
+    _all_spans = list(_sentence_spans(md))
+    _doc_low = "\n".join(_visible_prose(t) for t, _a, _b in _all_spans)
+    _cand = {}
+    for _idx, _ent in entities.items():
+        if _exact_subject_spans(_doc_low, _ent["name"]):
+            _cand[_idx] = _ent
+            continue
+        _toks = [t for t in _ent["tokens"] if not t.isdigit()][:8]
+        if _toks and _subject_discussed(_doc_low, _toks):
+            _cand[_idx] = _ent
+    fact_candidates = _cand
+
+    for sent, sent_start, sent_end in _all_spans:
+        sentence_cited_ids = {
+            idx
+            for offset, ids in inline_citations
+            if sent_start <= offset < sent_end
+            for idx in ids
+        }
+        linked_ids: set[int] = set(sentence_cited_ids)
+        for link in iter_markdown_links(sent):
+            linked_ids.update(url_to_ids.get(canonicalize_url(link.url), set()))
+        forced_id = next(iter(linked_ids)) if len(linked_ids) == 1 else None
+        claim_cited_ids = sentence_cited_ids if require_inline_citation else set(entities)
         # strip URLs from the prose: slug tokens must not act as subjects.
-        # Label words stay for subject identity, but their standalone numbers
-        # are masked so name digits never extract as claim values (G-F6 tail).
-        low = norm(BARE_URL_RE.sub(
-            " ", LINK_RE.sub(lambda m: _LABEL_NUM_RE.sub(" ", m.group(1)), sent)))
+        # Keep the complete visible label for entity matching.  Masking digits
+        # here broke exact matching for real names such as ``7.2`` or
+        # ``RP-8000F``; the exact-name spans are masked below before claim-value
+        # extraction, which removes those identity digits without destroying
+        # the entity binding.
+        low = _visible_prose(sent)
         if not low:
             continue
-        subs: dict[str, tuple] = {}
-        for key in all_keys:
-            toks = key.split()
-            if _subject_discussed(low, toks):
-                spans = _token_spans(low, toks)
-                if spans:
-                    frac = sum(t in low for t in toks) / len(toks)
-                    subs[key] = (spans, frac)
+        mentions = _fact_mentions(low, fact_candidates)
+        # Plain-text product titles can themselves contain "$900-$1000",
+        # pack counts, years, sizes, and model numbers.  Find their spans first,
+        # then mask those identity digits before value extraction.
+        exact_spans = [sp for hit in mentions.values() if hit["exact"]
+                       for sp in hit["spans"]]
+        claim_text = _mask_numbers_in_spans(low, exact_spans)
+
+        def record(idx, predicate: str, raw_value: str, value: float, targets: set):
+            nonlocal support, contra, duplicate_claims, supported_out_of_scope
+            nonlocal supported_uncited
+            claim_id = (idx, predicate, round(value, 4))
+            if claim_id in seen_claims:
+                duplicate_claims += 1
+                return
+            seen_claims.add(claim_id)
+            ok = (_price_close(value, targets) if predicate == "price"
+                  else any(abs(value - t) <= RATING_TOL for t in targets))
+            support += bool(ok)
+            contra += not ok
+            if ok:
+                # Recall is over gold FACT identities, not numeric phrasings.
+                # Otherwise one product priced at 1769 could be repeated as
+                # ten slightly different values inside the 1% tolerance and
+                # single-handedly fill K_f.
+                if idx in creditable_ids and idx in claim_cited_ids:
+                    supported_fact_ids.add((idx, predicate))
+                elif idx in creditable_ids:
+                    supported_uncited += 1
+                else:
+                    supported_out_of_scope += 1
+            per.append((entities[idx]["name"][:36], predicate, raw_value,
+                        sorted(targets), "OK" if ok else "X"))
 
         # price claims
-        for m in _NUM_RE.finditer(low):
-            if not _standalone_number(low, m.start(), m.end()):
+        for m in _NUM_RE.finditer(claim_text):
+            if not _standalone_number(claim_text, m.start(), m.end()):
                 continue
-            if _UNIT_AFTER.match(low[m.end():]):
+            prefix = claim_text[max(0, m.start() - 8):m.start()]
+            if re.search(r"(?:/\s*|out\s+of\s+)$", prefix):
+                continue  # denominator in ``4.2/5``, never a price
+            if _UNIT_AFTER.match(claim_text[m.end():]):
                 continue
-            cue_win = low[max(0, m.start() - PRICE_CUE_WINDOW):
-                          m.end() + PRICE_CUE_WINDOW]
+            cue_win = claim_text[max(0, m.start() - PRICE_CUE_WINDOW):
+                                 m.end() + PRICE_CUE_WINDOW]
             if "$" not in cue_win and not _PRICE_CUE.search(cue_win):
                 continue
-            key, _span = _nearest_subject(subs, m.start())
-            if forced_key is not None:
-                key = forced_key   # the sentence cites exactly one entity
-            if key is None:
+            idx = _nearest_fact_entity(mentions, m.start())
+            # A unique markdown link is an exact entity identity.  Prefer it
+            # over a fuzzy token collision, while still allowing a second
+            # explicitly named product in the same sentence to own its nearby
+            # value.  This prevents generic words from a long link label (and
+            # the value itself) from binding the claim to another catalog row.
+            if forced_id is not None and (
+                idx is None or not mentions.get(idx, {}).get("exact", False)
+            ):
+                idx = forced_id
+            if idx is None:
+                idx = forced_id
+            if idx is None:
                 unbound += 1
                 continue
-            targets = price_of.get(key)
+            targets = entities[idx]["prices"]
             if not targets:
                 untestable += 1
                 continue
             try:
-                val = round(float(m.group()), 2)
+                val = round(float(m.group().replace(",", "")), 2)
             except ValueError:
                 continue
-            ok = _price_close(val, targets)
-            support += ok
-            contra += not ok
-            per.append((key[:36], "price", m.group(),
-                        sorted(targets), "OK" if ok else "X"))
+            record(idx, "price", m.group(), val, targets)
 
         # overall-rating claims
-        for m in _RATING_CLAIM.finditer(low):
-            key, span = _nearest_subject(subs, m.start())
-            if forced_key is not None and key is None:
-                key, span = forced_key, (m.start(), m.end())
-            if key is None:
+        for m in _RATING_CLAIM.finditer(claim_text):
+            idx = _nearest_fact_entity(mentions, m.start())
+            if forced_id is not None and (
+                idx is None or not mentions.get(idx, {}).get("exact", False)
+            ):
+                idx = forced_id
+            if idx is None:
+                idx = forced_id
+            if idx is None:
                 unbound += 1
                 continue
+            hit = mentions.get(idx)
+            span = None
+            if hit:
+                near = [(abs(m.start() - e), (s, e)) for s, e in hit["spans"]]
+                span = min(near)[1] if near else None
+            if span is None:
+                span = (m.start(), m.end())
             # aspect qualifier between the number and the subject anchor, or
             # attached right after the stars phrase ("5 stars for build")?
             lo = min(m.end(), span[1])
             hi = max(m.start(), span[0])
-            between = low[lo:hi] if lo < hi else ""
-            trailing = low[m.end(): m.end() + 24]
+            between = claim_text[lo:hi] if lo < hi else ""
+            trailing = claim_text[m.end(): m.end() + 24]
             if _ASPECT_QUALIFIER.search(between) or _ASPECT_QUALIFIER.search(trailing):
                 skipped_aspect += 1
                 continue
-            targets = rating_of.get(key)
+            targets = entities[idx]["ratings"]
             if not targets:
                 untestable += 1
                 continue
             val = float(m.group(1))
-            ok = any(abs(val - t) <= RATING_TOL for t in targets)
-            support += ok
-            contra += not ok
-            per.append((key[:36], "rating", m.group(1),
-                        sorted(targets), "OK" if ok else "X"))
+            record(idx, "rating", m.group(1), val, targets)
 
     tested = support + contra
     detail = {
         "claims_tested": tested, "supported": support, "contradicted": contra,
         "unbound": unbound, "untestable": untestable,
-        "skipped_aspect_rating": skipped_aspect, "k_f": k_f,
+        "skipped_aspect_rating": skipped_aspect,
+        "duplicate_claims_ignored": duplicate_claims, "k_f": k_f,
+        "creditable_entity_count": len(creditable_ids),
+        "inline_citation_required": require_inline_citation,
+        "cited_creditable_entity_count": len(creditable_ids & cited_fact_ids),
+        "supported_uncited": supported_uncited,
+        "supported_out_of_scope": supported_out_of_scope,
+        "distinct_supported_facts": len(supported_fact_ids),
+        # fact_active: did this report make ANY checkable structured claim? When
+        # False the 0.39 fact weight contributed nothing to truth. A board reads
+        # this per report to publish fact's EFFECTIVE (not nominal) weight; see
+        # scripts/analysis/fact_axis_report.py.
+        "fact_active": tested > 0,
         "sample": per[:12],
     }
     if tested == 0:
@@ -996,7 +1436,9 @@ def score_fact_support(md: str, answer_key, generic: set | None = None,
         detail["recall_vol"] = 0.0
         return 0.0, detail
     precision = support / tested
-    recall_vol = min(tested / k_f, 1.0)
+    # False claims lower precision but NEVER buy recall/volume.  Volume is the
+    # number of distinct correct structured facts the report actually supplied.
+    recall_vol = min(len(supported_fact_ids) / k_f, 1.0)
     detail["precision"] = round(precision, 4)
     detail["recall_vol"] = round(recall_vol, 4)
     if precision <= 0.0 or recall_vol <= 0.0:
@@ -1083,7 +1525,11 @@ def _typed_value_in_window(win: str, n, alt_prices=()) -> bool:
                 continue
             if _UNIT_AFTER.match(win[m.end():]):
                 continue
-            if _price_close(round(float(m.group()), 2), targets):
+            # ``_NUM_RE`` deliberately treats a thousands-formatted amount as
+            # one token.  Normalise it here just as the fact extractor does;
+            # otherwise an honest ``$1,769.00`` completeness claim raises
+            # ValueError instead of being scored.
+            if _price_close(round(float(m.group().replace(",", "")), 2), targets):
                 return True
         return False
     if n.predicate == "rating":
@@ -1105,15 +1551,30 @@ def _typed_value_in_window(win: str, n, alt_prices=()) -> bool:
         # the review count appears near the subject; the old literal-substring
         # fallback demanded the internal token verbatim, which no natural
         # report emits (verify finding: honest phrasing scored covered=0)
+        #
+        # The number must be presented AS a rating or AS a review count. Without
+        # that, any standalone number within 1.0 of the rating percent covered
+        # the nugget: a pure spec sentence ("85 dB", "5 mics", "11 mm drivers")
+        # scored buyer sentiment it never conveyed, and `_NUM_RE` had no word
+        # boundary, so `SKU-85X` matched too. This mirrors the discipline
+        # `_PRICE_CUE` already imposes above, for the same reason.
+        #
+        # The review COUNT is not the sentiment. 817 of the 1200 buyer_sentiment
+        # nuggets carry exactly "12rev", so writing "12 reviews" beside any named
+        # product satisfied 68% of them without stating -- or while contradicting
+        # -- the sentiment the nugget asserts. The rating branch is sound: 62
+        # distinct percentages, and the number must land within 1.0 of the true
+        # one, so it cannot be guessed. Only the rating conveys the sentiment.
         m = re.match(r"([\d.]+)%/(\d+)rev", str(n.object))
         if not m:
             return False
-        rat, cnt = float(m.group(1)), m.group(2)
-        for mm in _NUM_RE.finditer(win):
+        rat = float(m.group(1))
+        for mm in _LABEL_NUM_RE.finditer(win):
             v = float(mm.group())
-            if abs(v - rat) <= 1.0 or abs(v - rat / 20.0) <= 0.1:
+            hit_rating = abs(v - rat) <= 1.0 or abs(v - rat / 20.0) <= 0.1
+            if hit_rating and _cue_near(win, mm.start(), mm.end(), _RATING_CUE):
                 return True
-        return bool(re.search(rf"\b{cnt}\b", win))
+        return False
     if n.predicate == "concept_coverage":
         # subject==concept; upstream _subject_discussed already established
         # the concept is discussed near this window
@@ -1122,16 +1583,154 @@ def _typed_value_in_window(win: str, n, alt_prices=()) -> bool:
     return bool(obj) and obj in win
 
 
+def _page_identity(url: str, registry=None) -> str:
+    """One content-page identity, shared by completeness/cache/transport."""
+    from src.verifiers.citation_format import canonicalize_url
+    if registry is not None:
+        try:
+            d = registry.classify(url)
+            if isinstance(d, dict) and d.get("canonical"):
+                return d["canonical"]
+        except Exception:
+            pass
+    return canonicalize_url(url)
+
+
+def _concept_quote_supported(md: str, source_url: str, cache: dict,
+                             page_stats: dict | None = None,
+                             registry=None) -> bool:
+    """Does prose at this concept's citation quote that SAME cached page?"""
+    from src.verifiers.citation_format import extract_citations
+    target = _page_identity(source_url, registry)
+    entry = cache_key = None
+    for k, v in (cache or {}).items():
+        if _page_identity(k, registry) == target:
+            try:
+                status = int((v or {}).get("status", 0) or 0)
+            except (TypeError, ValueError):
+                status = 0
+            if status == 200 and (v or {}).get("text"):
+                cache_key, entry = k, v
+                break
+    if entry is None:
+        return False
+
+    ref_spans = _reference_region_offsets(md)
+    occ = [(c.char_offset, c.raw_url) for c in extract_citations(md, sandbox_only=False)
+           if c.style in POF_EVIDENCE_STYLES
+           and not _offset_in_spans(c.char_offset, ref_spans)
+           and _page_identity(c.raw_url, registry) == target]
+    if not occ:
+        return False
+    stats = page_stats if page_stats is not None else build_page_stats(cache)
+    df, chrome = stats.get("df"), stats.get("chrome", set(CHROME_FALLBACK))
+
+    def weight(tok: str) -> float:
+        return 1.0 / math.log(2 + df.get(tok, 0)) if df else 1.0
+
+    seq = _tokens(norm(strip_html(entry.get("text", ""))))
+    tris = {tuple(seq[i:i + 3]) for i in range(max(0, len(seq) - 2))}
+    page_set = set(seq)
+    return any(_pof_occurrence_ok(
+        md, off, raw, page_set, tris, weight, chrome,
+        POF_THRESHOLD_DEFAULT, 3)[0] for off, raw in occ)
+
+
+def _forum_coverage_supported(md: str, answer_key, cache: dict,
+                              page_stats: dict | None = None,
+                              registry=None, evidence=None) -> tuple[bool, str | None]:
+    """Accept one fetched, quoted and task-relevant forum thread.
+
+    The answer key declares allowed forums plus conservative domain/query terms
+    in metadata.  It deliberately does not nominate an automatically retrieved
+    thread as factual gold.  A report may choose any real thread in an allowed
+    forum, but the cited page must contain task terms and the citation context
+    must quote that same cached page.  Formal transport evidence additionally
+    proves that the agent fetched it.
+    """
+    from urllib.parse import unquote, urlparse
+    from src.verifiers.citation_format import extract_citations
+
+    meta = getattr(answer_key, "metadata", {}) or {}
+    allowed = {str(f).strip().casefold() for f in meta.get("forums", [])
+               if str(f).strip()}
+    if not allowed or registry is None:
+        return False, None
+    core = {str(t).strip().lower() for t in meta.get("forum_core_keywords", [])
+            if str(t).strip()}
+    query = {str(t).strip().lower() for t in meta.get("forum_query_keywords", [])
+             if str(t).strip()}
+    ref_spans = _reference_region_offsets(md)
+    require_fetch = bool(evidence is not None and getattr(evidence, "available", False))
+    fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
+               if require_fetch else set())
+
+    def term_hit(term: str, doc_tokens: set[str]) -> bool:
+        # Small morphology tolerance covers headphone/headphones and
+        # battery/batteries without broad substring matching.
+        if term in doc_tokens:
+            return True
+        if len(term) < 5:
+            return False
+        stem = term[:5]
+        return any(len(tok) >= 5 and tok[:5] == stem for tok in doc_tokens)
+
+    for c in extract_citations(md, sandbox_only=False):
+        if c.style not in POF_EVIDENCE_STYLES or _offset_in_spans(c.char_offset, ref_spans):
+            continue
+        try:
+            info = registry.classify(c.raw_url)
+        except Exception:
+            continue
+        if (not isinstance(info, dict) or info.get("host_role") != "forums"
+                or info.get("kind") != "content" or info.get("in_corpus") is not True):
+            continue
+        canonical = info.get("canonical") or c.raw_url
+        parts = [unquote(p) for p in urlparse(canonical).path.split("/") if p]
+        if len(parts) < 3 or parts[0].casefold() != "f" \
+                or parts[1].casefold() not in allowed:
+            continue
+        target = _page_identity(canonical, registry)
+        if require_fetch and target not in fetched:
+            continue
+
+        entry = None
+        for key, candidate in (cache or {}).items():
+            if _page_identity(key, registry) != target:
+                continue
+            try:
+                status = int((candidate or {}).get("status", 0) or 0)
+            except (TypeError, ValueError):
+                status = 0
+            if status == 200 and (candidate or {}).get("text"):
+                entry = candidate
+                break
+        if entry is None:
+            continue
+        doc_tokens = set(re.findall(r"[a-z0-9]+", norm(strip_html(entry["text"]))))
+        core_hits = sum(term_hit(t, doc_tokens) for t in core)
+        query_hits = sum(term_hit(t, doc_tokens) for t in query)
+        relevant = ((core_hits >= 1 and (query_hits >= 1 or not query))
+                    or query_hits >= 2)
+        if not relevant:
+            continue
+        if _concept_quote_supported(md, c.raw_url, cache or {}, page_stats, registry):
+            return True, canonical
+    return False, None
+
+
 def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
                        pool_size: int | None = None,
-                       generic: set | None = None) -> tuple[float, dict]:
+                       generic: set | None = None, cache: dict | None = None,
+                       page_stats: dict | None = None, registry=None,
+                       evidence=None) -> tuple[float, dict]:
     """axis 3: SATURATING recall over the ranked vital pool (T1/T2/M-H1/H2).
 
     completeness = min(covered_vital / K_star, 1). K_star defaults to 20,
     following SAFE's saturating recall R_K = min(S/K, 1) and DRBench's
     k = |gold| + 5, both of which cap the credited gold set at a small
     vital-insight budget instead of demanding a census of the catalog: a
-    focused shortlist that nails 20 vital facts scores 1.0, and dumping 40
+    focused shortlist that nails every vital fact the task offers scores 1.0, and dumping 40
     catalog rows no longer beats it (T1). This is the ONLY completeness
     implementation in the codebase: the checklist verifier and the composition
     must both call it (T2), so the number displayed is the number scored.
@@ -1141,21 +1740,83 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     +-40 char window of a subject mention, with per-predicate tolerance:
     price 0.02 absolute or 1 percent relative (special_price also accepted),
     rating +-0.15, thread_score exact-in-window. No global substring matching
-    anywhere (M-H2)."""
-    text = norm(md)
+    anywhere (M-H2). A v2 task that declares forums also contributes one
+    virtual completeness slot. It is covered only by a fetched, in-text quoted,
+    task-relevant thread from an allowed forum; arbitrary forum URLs and
+    reference-list shells earn nothing. Formal v2 keys also require each
+    structured nugget's own source page to be cited on the same Markdown line.
+    When transport is available, that page must have been fetched as well."""
+    # Only text a reader can see may satisfy a nugget.  URL paths contain exact
+    # product/concept titles and numbers; leaving them in prose let a citation
+    # shell cover facts it never stated.
+    text = _visible_prose(md)
     generic = generic if generic is not None else build_generic_tokens(answer_key)
     pool = build_vital_pool(answer_key, k_star=k_star, pool_size=pool_size)
-    if not pool:
+    forum_slot = bool((getattr(answer_key, "metadata", {}) or {}).get("forums")) \
+        and not any(getattr(n, "predicate", "") == "forum_coverage" for n in pool)
+    if not pool and not forum_slot:
         return 0.0, {"pool": 0, "k_star": k_star, "covered": 0,
                      "reason": "empty_vital_pool"}
     ents = {e.url: e for e in answer_key.relevant_set}
+
+    require_concept_fetch = bool(evidence is not None
+                                 and getattr(evidence, "available", False))
+    fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
+               if require_concept_fetch else set())
+    require_nugget_citation = bool(
+        (getattr(answer_key, "metadata", {}) or {}).get(
+            "inline_nugget_citation_required", False
+        )
+    )
+    inline_cited_pages: set[str] = set()
+    cited_line_text: dict[str, list[str]] = {}
+    if require_nugget_citation:
+        from src.verifiers.citation_format import extract_citations
+        ref_spans = _reference_region_offsets(md)
+        lines = list(_line_spans(md))
+        for c in extract_citations(md, sandbox_only=False):
+            if (c.style not in POF_EVIDENCE_STYLES
+                    or _offset_in_spans(c.char_offset, ref_spans)):
+                continue
+            page = _page_identity(c.raw_url, registry)
+            inline_cited_pages.add(page)
+            for raw_line, start, end in lines:
+                if start <= c.char_offset <= end:
+                    visible = _visible_prose(raw_line)
+                    if visible:
+                        cited_line_text.setdefault(page, []).append(visible)
+                    break
+
     covered = 0
+    covered_by_predicate: dict[str, int] = {}
     sample = []
     for n in pool:
-        stoks = name_key(n.subject, generic).split()
-        if not stoks or not _subject_discussed(text, stoks):
+        candidate_texts = [text]
+        if n.predicate == "concept_coverage":
+            # URL/title shells earn nothing.  Require a lexical quote supported
+            # by this exact page.  When transport evidence exists, additionally
+            # require that the agent actually fetched the concept page.
+            if not _concept_quote_supported(md, n.source_url, cache or {},
+                                            page_stats, registry):
+                continue
+            if (require_concept_fetch
+                    and _page_identity(n.source_url, registry) not in fetched):
+                continue
+        elif require_nugget_citation:
+            source_page = _page_identity(n.source_url, registry)
+            if source_page not in inline_cited_pages:
+                continue
+            if require_concept_fetch and source_page not in fetched:
+                continue
+            # Citation identity and claim content must share a Markdown line.
+            # A detached source dump at the top of the report cannot license a
+            # correct rating or price written elsewhere.
+            candidate_texts = cited_line_text.get(source_page, [])
+            if not candidate_texts:
+                continue
+        stoks = _subject_tokens(n, generic)
+        if not stoks:
             continue
-        spans = _token_spans(text, stoks)
         e = ents.get(n.source_url)
         alt = []
         if e is not None and (e.facts or {}).get("special_price") is not None:
@@ -1164,16 +1825,47 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
             except (TypeError, ValueError):
                 pass
         hit = False
-        for s, en in spans:
-            win = text[max(0, s - BIND_WINDOW): en + BIND_WINDOW]
-            if _typed_value_in_window(win, n, alt_prices=alt):
-                hit = True
+        for candidate_text in candidate_texts:
+            if not _subject_discussed(candidate_text, stoks):
+                continue
+            spans = _subject_value_spans(candidate_text, n.subject, stoks)
+            for s, en in spans:
+                win = candidate_text[max(0, s - BIND_WINDOW): en + BIND_WINDOW]
+                if _typed_value_in_window(win, n, alt_prices=alt):
+                    hit = True
+                    break
+            if hit:
                 break
         covered += hit
+        if hit:
+            covered_by_predicate[n.predicate] = covered_by_predicate.get(n.predicate, 0) + 1
         if hit and len(sample) < 10:
             sample.append((n.subject[:40], n.predicate, str(n.object)[:12]))
-    return min(covered / k_star, 1.0), {
-        "pool": len(pool), "k_star": k_star, "covered": covered,
+    forum_hit, forum_url = (False, None)
+    if forum_slot:
+        forum_hit, forum_url = _forum_coverage_supported(
+            md, answer_key, cache or {}, page_stats, registry, evidence)
+        if forum_hit:
+            covered += 1
+            covered_by_predicate["forum_coverage"] = 1
+            if len(sample) < 10:
+                sample.append(("community evidence", "forum_coverage", forum_url or ""))
+    # The denominator cannot exceed what the task actually offers. `k_star=20`
+    # against a vital pool of 14-17 (every one of the 100 tasks) meant the
+    # saturating cap `min(., 1)` never activated: a report that conveyed EVERY
+    # vital fact scored 0.70-0.85, never 1.0, and the ceiling differed per task,
+    # so completeness was not comparable across tasks. Both the docstring above
+    # and the published board text promised a 1.0 no report could earn.
+    total_pool = len(pool) + int(forum_slot)
+    denom = min(k_star, total_pool) or k_star
+    return min(covered / denom, 1.0), {
+        "pool": total_pool, "structured_pool": len(pool),
+        "forum_slots": int(forum_slot), "forum_covered": bool(forum_hit),
+        "forum_url": forum_url,
+        "k_star": k_star, "k_effective": denom,
+        "covered": covered, "covered_by_predicate": covered_by_predicate,
+        "concept_transport_required": require_concept_fetch,
+        "inline_nugget_citation_required": require_nugget_citation,
         "covered_sample": sample}
 
 
@@ -1207,8 +1899,14 @@ def _check_spec(md: str, r) -> bool:
     if r.kind == "section_present":
         return any(kw.lower() in md.lower() for kw in p.get("keywords", []))
     if r.kind == "max_bullets":
+        # There is no per-section machinery here, so a non-global max_bullets
+        # used to `return True` unconditionally: a compliance check that never
+        # ran but counted as passed, inflating the compliance column. The cap is
+        # decidable only over the whole document, so apply it there for every
+        # max_bullets requirement (drop the auto-pass). Author a per-section quota
+        # as a real check before adding one; do not smuggle it in as always-pass.
         bullets = len(re.findall(r"(?m)^\s*[-*+]\s+", md))
-        return bullets <= p.get("max", 999) if p.get("global") else True
+        return bullets <= p.get("max", 999)
     if r.kind == "min_words":
         return len(md.split()) >= p.get("min", 0)
     return False
@@ -1250,12 +1948,108 @@ def compose_truth(reach: float, fact: float, pof: float, completeness: float,
     return truth, quality, floors_applied
 
 
+class MissingEvidenceLog(RuntimeError):
+    """A run has no transport evidence, and the caller asked for real PoF."""
+
+
+def transport_metrics_for(urls, evidence, registry=None, cache=None) -> dict:
+    """Bridge to src.eval.fetch_log, imported lazily to keep this module's
+    import graph free of the shim."""
+    from src.eval.fetch_log import transport_metrics, linked_urls
+
+    def _in_registry(u: str) -> bool:
+        # Exactly the same tri-state + page-cache fallback used by reach.  A
+        # cached-200 wiki page under a partial registry cannot be reachable in
+        # one axis and fabricated in another.
+        return _in_corpus_with_cache(u, cache or {}, registry)
+
+    # Resolve `linked` from the stored page bodies so a URL the agent reached by
+    # following a link on a page it actually read is classified `linked` (honest
+    # navigation), not `guessed`, and is not charged as hallucinated grounding.
+    # Without this the blob-reading path is dead and every on-page-link citation
+    # is mislabelled. load_blob comes from the shim's evidence module; if it is
+    # unavailable (or a blob is missing) linked_urls yields the empty set and the
+    # behaviour degrades to the previous `guessed` classification, never worse.
+    linked = None
+    try:
+        from integrations.search_shim import evidence as _shim_ev
+        linked = linked_urls(evidence, _shim_ev.load_blob)
+    except Exception:
+        linked = None
+    def _identify(u: str) -> str:
+        """The page a URL names, by the registry's identity, not by string form.
+
+        `reach` and the transport axes must agree about what one page is.
+        `fetch_log.canonical` collapses scheme/host/fragment/layered-nav; the
+        registry additionally knows that `/wiki/Bluetooth` and
+        `/content/<book>/A/Bluetooth` are one article, and that a forum thread is
+        identified by its id, not by the board it is filed under. The shim serves
+        one spelling and the model writes the other, so without this a page the
+        agent really opened fell outside FETCHED and was scored
+        `hallucinated_grounding` -- an accusation of parametric recall against a
+        lane that read the page.
+        """
+        if registry is None:
+            return u
+        try:
+            c = registry.classify(u)
+        except Exception:  # noqa: BLE001
+            return u
+        return (c.get("canonical") if isinstance(c, dict) else None) or u
+
+    def _is_nav(u: str) -> bool:
+        """A navigation/search page: real, reachable, and carrying no claim.
+
+        `score_reachability` drops these from its denominator. Keeping them here
+        made one honest `catalogsearch/result/?q=` citation read as 50%
+        fabrication on a report that fabricated nothing.
+        """
+        if registry is None:
+            return False
+        try:
+            return registry.classify(u).get("kind") == "search_nav"
+        except Exception:  # noqa: BLE001
+            return False
+
+    return transport_metrics(urls, evidence, in_registry=_in_registry,
+                             linked=linked, identify=_identify, is_nav=_is_nav)
+
+
+def _axis_key(pof_semantics: str) -> str:
+    """Name of the grounding-fidelity axis for a report scored under
+    ``pof_semantics``. The KEY tracks the meaning; the composed truth score uses
+    the same number either way (the formula does not change), only the name does.
+
+        transport_v2 -> "grounding_proof_of_fetch"
+        text_v1      -> "grounding_quote_support"
+
+    Why a rename and not "proof_of_fetch, weaker": an axis called proof-of-fetch
+    that actually measures text_v1 is a CONSTRUCT ERROR, not a looser estimator
+    of the same quantity. text_v1 is a verbatim lexical match between the
+    report's prose and a copy the EVALUATOR fetched after the run; it never
+    observes the agent's transport at all. A model can reproduce that text
+    without opening the page: it can quote a search snippet the shim handed it,
+    or reproduce a page from parametric memory. Publishing that number under
+    "grounding_proof_of_fetch" asserts a fetch the instrument never witnessed,
+    which is exactly the claim-evidence break this rework exists to remove. Only
+    transport_v2 (|cited & fetched| / |cited|, decided from the run's shim
+    evidence log) witnesses a fetch, so only it may carry the proof-of-fetch
+    name. See tests/test_transport_pof_integration.py and P1.
+
+    Callers must key the axis off THIS return value, not a hard-coded string, so
+    the column header can never again disagree with what the column measures."""
+    return ("grounding_proof_of_fetch" if pof_semantics == "transport_v2"
+            else "grounding_quote_support")
+
+
 def score_report(md: str, answer_key, cache: dict, registry=None,
                  gamma: float = GAMMA_DEFAULT, k_f: int = K_F_DEFAULT,
                  k_star: int = K_STAR_DEFAULT,
                  pof_threshold: float = POF_THRESHOLD_DEFAULT,
                  eps: float = EPS_FLOOR,
-                 page_stats: dict | None = None) -> AxisScores:
+                 page_stats: dict | None = None,
+                 evidence=None,
+                 require_transport_pof: bool = False) -> AxisScores:
     """Compute all decidable axes and the composed truth score.
 
     Returns axes + truth ONLY (M-C1): presentation is a separate column,
@@ -1273,12 +2067,45 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
     stats = page_stats if page_stats is not None else build_page_stats(cache)
     pof, pd = score_proof_of_fetch(md, cache, page_stats=stats,
                                    threshold=pof_threshold)
+    # `pof` above is a textual measure: does the report's prose match a page the
+    # EVALUATOR fetched afterwards. It cannot see whether the agent opened
+    # anything. When the run has a transport-level evidence log, the real
+    # proof-of-fetch replaces it and the textual number is kept, renamed, as
+    # `quote_support`: read-then-write fidelity, which is a different question.
+    quote_support, pof_semantics, transport = pof, "text_v1", None
+    if evidence is not None:
+        transport = transport_metrics_for(urls, evidence, registry=registry,
+                                          cache=cache)
+        if transport.get("available"):
+            pof, pof_semantics = transport["pof"], "transport_v2"
+        elif require_transport_pof:
+            raise MissingEvidenceLog(
+                "no transport evidence for this run and require_transport_pof is set. "
+                "Scoring pof as the old textual measure would silently change its "
+                "meaning; scoring it as 0 would accuse an unobserved lane of "
+                "fabricating. Refusing both."
+            )
+    elif require_transport_pof:
+        raise MissingEvidenceLog(
+            "require_transport_pof is set but no evidence was passed to score_report()"
+        )
     generic = build_generic_tokens(answer_key)
     fact, fd = score_fact_support(md, answer_key, generic=generic, k_f=k_f)
-    comp, cd = score_completeness(md, answer_key, k_star=k_star, generic=generic)
+    comp, cd = score_completeness(
+        md, answer_key, k_star=k_star, generic=generic, cache=cache,
+        page_stats=stats, registry=registry, evidence=evidence,
+    )
     spec, sd = score_spec(md, answer_key)
 
-    truth, quality, floors = compose_truth(reach, fact, pof, comp, spec,
+    # A transport-observed run can decide whether the URL came from the
+    # benchmark at all.  Gate on in-corpus pages that were searched, fetched, or
+    # linked from a fetched page.  Raw reach remains a diagnostic.  Legacy
+    # text_v1 runs have no transport observation and therefore retain the old
+    # reach gate; the explicit stamp prevents the two semantics being mixed.
+    gate_semantics = "provenance_v2" if pof_semantics == "transport_v2" else "reach_v1"
+    gate_value = (float(transport.get("provenance", 0.0))
+                  if gate_semantics == "provenance_v2" else reach)
+    truth, quality, floors = compose_truth(gate_value, fact, pof, comp, spec,
                                            gamma=gamma, eps=eps)
     s = AxisScores(
         reach=reach, proof_of_fetch=pof, fact_support=fact,
@@ -1293,6 +2120,15 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
         "quality_weights": dict(QUALITY_WEIGHTS),
         "quality": round(quality, 4), "truth": round(truth, 6),
         "compliance_score": round(spec, 4),
+        # Which question `pof` answered for THIS report. Boards mixing the two
+        # are not comparable: text_v1 asks "does the prose resemble the page",
+        # transport_v2 asks "did the agent open the page".
+        "pof_semantics": pof_semantics,
+        "gate_semantics": gate_semantics,
+        "gate_value": round(gate_value, 4),
+        "raw_reach": round(reach, 4),
+        "quote_support": round(quote_support, 4),
+        "transport": transport,
         "counts": {
             "reach_num": rd.get("num", 0), "reach_den": rd.get("den", 0),
             "pof_passed": pd.get("passed", 0), "pof_checked": pd.get("checked", 0),
@@ -1319,7 +2155,11 @@ def _axis_tuple(r) -> tuple[float, float, float, float, float]:
     ax = r.get("axes", r)
     return (float(ax.get("grounding_reach", ax.get("reach", 0.0))),
             float(ax.get("correctness_fact_support", ax.get("fact_support", 0.0))),
-            float(ax.get("grounding_proof_of_fetch", ax.get("proof_of_fetch", 0.0))),
+            # text_v1 boards name this axis `grounding_quote_support` (P1); both
+            # names hold the same number for a given report, so read either.
+            float(ax.get("grounding_proof_of_fetch",
+                         ax.get("grounding_quote_support",
+                                ax.get("proof_of_fetch", 0.0)))),
             float(ax.get("completeness", 0.0)),
             float(ax.get("spec", 0.0)))
 

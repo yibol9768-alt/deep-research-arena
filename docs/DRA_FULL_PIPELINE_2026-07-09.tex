@@ -1,0 +1,435 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Noto Serif CJK SC}
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans Mono CJK SC}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{amsmath}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue,
+  citecolor=black
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Deep Research Arena}
+\fancyhead[R]{端到端流程说明}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true
+}
+
+\title{\textbf{Deep Research Arena}\\[0.4em]
+\large 端到端评测流程说明\\[0.3em]
+\normalsize 从沙箱、任务、跑 agent，到打分与上榜}
+\author{内部说明文档（与仓库代码口径对齐）\\日期：2026-07-09}
+\date{}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+\begin{abstract}
+本文用白话把 Deep Research Arena（DRA）从零到榜的完整流程写清楚：环境怎么搭、题怎么出、agent 怎么跑、报告怎么打分、榜怎么建，以及当前已知缺口。目标读者是项目成员与合作方，不要求先读完全部内部审计文档。文中公式与路径以仓库当前生产口径为准（truth 公式 K6；presentation 单列）。
+\end{abstract}
+
+\section{一句话：我们在测什么}
+
+DRA 测的是：一个 Deep Research agent 能不能在\textbf{冻结的离线沙箱网页}里做跨站调研，并写出一份\textbf{带引用的长 Markdown 报告}；这份报告是否\textbf{站得住}（引用真实、事实可核对、覆盖关键信息），以及（可选地）读起来是否有用。
+
+核心取舍：
+\begin{itemize}[leftmargin=1.5em]
+  \item 不用开放互联网当主战场（网页会变，实验不可复现）。
+  \item 用 WebArena 血统的购物站 + 论坛 + Wikipedia 快照，做成封闭世界。
+  \item 接地（grounding）尽量用可判定规则打分，不靠 LLM 说「我觉得引用真」。
+  \item 文采 / 有用性用陪审团（jury）另算，今天\textbf{不乘进}生产 truth 分。
+\end{itemize}
+
+\section{总览：从头到尾九步}
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item 搭沙箱（购物 / 论坛 / Wiki / 网关 / LLM 代理）
+  \item 建任务（intent）与答案键（answer key / golden）
+  \item 选 lane（12 个 agent 框架）与 backbone（底模）
+  \item 公平性协议检查（lane protocol + parity）
+  \item 跑一次任务：agent 搜、读、写报告
+  \item （理想）记录本次 run 的搜/读证据日志
+  \item 可判定打分：reach / fact / PoF / completeness / spec
+  \item 合成 truth，按 agent 聚合上榜；jury 另列
+  \item 站点发布与 changelog
+\end{enumerate}
+
+下面按这个顺序展开。
+
+\section{第 1 步：沙箱环境}
+
+\subsection{1.1 四个内容面 + 两扇门}
+
+\begin{center}
+\begin{tabular}{@{}llp{7.2cm}@{}}
+\toprule
+服务 & 端口 & 作用 \\
+\midrule
+shopping（Magento） & 7770 & 商品、价格、评分、评论 \\
+reddit（Postmill） & 9999 & 论坛帖子、投票、讨论 \\
+wiki（Kiwix） & 8090 & 百科文章快照 \\
+gateway / search shim & 8081 & 搜索与取页入口；理想情况下所有搜/读都经这里 \\
+ds\_proxy & 8088 & 把各框架的 LLM 请求转到统一底模 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+关键性质：
+\begin{itemize}[leftmargin=1.5em]
+  \item 语料冻结：购物/论坛数据烤进镜像；Wiki 用挂载的 \texttt{.zim}。
+  \item 封闭世界：评测意图是 agent 只看见这些站点，不依赖当天的公网页面。
+  \item 可复现：同一镜像 + 同一任务 + 同一打分代码，分数应可重放。
+\end{itemize}
+
+启动示例：
+\begin{lstlisting}
+docker compose -f infra/sandbox.docker-compose.yml up -d
+curl -fsS http://localhost:8081/healthz
+curl -fsS http://localhost:7770/
+curl -fsS http://localhost:9999/
+curl -fsS http://localhost:8090/
+\end{lstlisting}
+
+\subsection{1.2 为什么要有 shim}
+
+Shim 不是可有可无的代理，它是\textbf{观测与封闭}的关键：
+\begin{itemize}[leftmargin=1.5em]
+  \item 搜索：\texttt{POST /search}（Tavily 等兼容接口，结果只来自沙箱语料）
+  \item 读页：\texttt{GET /fetch?url=...} 或 \texttt{POST /extract}
+  \item 跑次括号：\texttt{POST /\_mark} 给请求打上 \texttt{run\_id}
+\end{itemize}
+
+只有走 shim 的搜/读，才能写入 \texttt{logs/fetch/<run\_id>.jsonl}，供后面的硬 PoF 使用。
+
+\section{第 2 步：任务与答案键}
+
+\subsection{2.1 任务（给 agent 看的）}
+
+任务 JSON 在 \texttt{data/tasks/deep\_research/cross\_site\_deep/}。agent 主要看到的是自然语言 \texttt{intent}，例如：围绕某类消费电子，综合购物站、论坛、百科，写一份带引用的市场情报报告。
+
+设计原则：
+\begin{itemize}[leftmargin=1.5em]
+  \item 题面尽量自然，不把「必须引用 60 个 URL」这类评分细则写进 prompt（避免教考试）。
+  \item 配额、格式要求放在答案键的 \texttt{spec\_requirements} 里，由打分器检查。
+\end{itemize}
+
+当前规模（口径见 README / manifest）：约 100 道 deep 任务中约 75 道可打分；另有对抗任务集，golden 尚未齐。
+
+\subsection{2.2 答案键 / golden（给打分器看的，agent 不应直接拿到）}
+
+两层真值：
+
+\paragraph{A. 沙箱原生 DB}
+Magento / Postmill 里的价格、评分、帖子分等，通过 \texttt{src/golden/db\_schema\_map.py} 与 \texttt{db\_verifier.py} 查询核对。这是 fact 轴的硬依据。
+
+\paragraph{B. Answer key（每题一份）}
+典型字段：
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{relevant\_set}：相关商品/帖子/词条及 DB 事实
+  \item \texttt{vital\_nuggets} / \texttt{useful\_nuggets}：报告应覆盖的要点（completeness 分母）
+  \item \texttt{spec\_requirements}：格式/体量等合规检查
+  \item \texttt{gold\_contradictions} / \texttt{decidable\_verdicts}：跨站矛盾等（多数题仍空；\textbf{当前不进 K6 truth}，论文也不应主卖未建成的支柱）
+\end{itemize}
+
+构建路径概览：爬沙箱 $\rightarrow$ 生成 golden $\rightarrow$ curate / manifest 隔离噪声题 $\rightarrow$ 迁移/整理为 answer key。
+
+\section{第 3 步：选谁来跑（lane $\times$ backbone）}
+
+\subsection{3.1 十二条框架车道（lane）}
+
+主要包括：deerflow、gpt-researcher、camel-ai、smolagents、langchain-odr、storm、ii-researcher、flowsearcher-ds、ldr、qx-agents，以及 CLI 类的 opencode、claude-code。
+
+说明：
+\begin{itemize}[leftmargin=1.5em]
+  \item 多数是开源 agent 框架；claude-code / opencode 是 CLI 产品，能力交付方式不同。
+  \item 每条 lane 有 adapter（\texttt{scripts/runners/}、\texttt{scripts/run\_deep\_task.py}），负责把统一任务接到该框架的 API/工具上。
+\end{itemize}
+
+\subsection{3.2 底模（backbone）}
+
+同一套 lane 可挂不同底模（如 qwen3-8b、deepseek-v4-flash），经 \texttt{ds\_proxy} 统一出口。跨底模比较要求除权重外尽量一致（温度、最大输出、thinking 开关等）；当前 thinking 跨底模仍未完全齐平，属已知限制。
+
+\section{第 4 步：公平性协议}
+
+文件：\texttt{config/lane\_protocol.yaml}。预检：\texttt{python3 scripts/check\_parity.py}。
+
+协议大意：
+\begin{itemize}[leftmargin=1.5em]
+  \item 每条 lane 只拿共享 intent + 统一的「请交一份 Markdown 报告」说明。
+  \item 禁止偷偷塞：引用数量、字数门槛、示例 URL、评分细则（除非在协议里声明偏差）。
+  \item 禁止 harness 事后往报告里嫁接 URL、把公网链接改写成沙箱链接、按得分轴自动修报告。
+  \item 历史硬作弊路径（如 ii 输出侧 URL graft、flowsearcher 注入同评测集 prior-run 记忆）默认关闭。
+\end{itemize}
+
+公平性解决的是「有没有偷偷喂答案」；\textbf{不等于}所有 lane 的搜/读能力交付已经完全同构（CLI 与 in-process 仍有差异）。
+
+\section{第 5 步：跑一次任务（agent 执行）}
+
+入口通常是 \texttt{scripts/run\_deep\_task.py}（或各 runner）。一次 run 的理想过程：
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item harness 向 shim 发 \texttt{/\_mark start}（带上 run\_id、lane、task）
+  \item agent 反复：搜索 $\rightarrow$ 打开页面 $\rightarrow$ 记笔记 / 规划
+  \item agent 写出带引用的 Markdown 终稿
+  \item harness 保存报告；发 \texttt{/\_mark end}
+\end{enumerate}
+
+现实中常见偏差（重要）：
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{搜索}多数还能走 shim \texttt{/search}。
+  \item \textbf{读页}很多框架用 \texttt{requests.get} / \texttt{aiohttp} / \texttt{curl} \textbf{直连} \texttt{localhost:7770/9999/8090}，不经 shim。
+  \item 结果：页面可能真读了，但 \texttt{logs/fetch} 没有记录 $\Rightarrow$ 「读页不可观测」。
+  \item 这与「外漏到公网」不是同一件事：直连沙箱仍是封闭世界内抄近路；公网引用是另一类问题（reach / fabrication 会罚）。
+\end{itemize}
+
+弱报告、超时、卡死（stalled：长时间既无 LLM 调用也无 shim 调用）应诚实记录，避免把基建故障直接当成框架零分（策略上建议：重跑后仍 stalled 再计 0）。
+
+\section{第 6 步：证据日志（理想仪器）}
+
+有完整证据时，每次 run 可区分：
+
+\begin{center}
+\begin{tabular}{@{}lp{9cm}@{}}
+\toprule
+集合 & 含义 \\
+\midrule
+SEARCH\_RETURNED & 搜索结果里出现过的 URL \\
+FETCHED & shim 实际取回成功的页面 \\
+CITED & 报告里引用的 URL \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+由此可剥开：
+\begin{itemize}[leftmargin=1.5em]
+  \item 真读过：\texttt{CITED $\cap$ FETCHED}
+  \item 只靠搜索摘要：snippet\_only
+  \item 沙箱里有但既没搜到也没读过：hallucinated\_grounding（偏参数记忆）
+  \item 沙箱外：fabrication
+\end{itemize}
+
+实现：\texttt{integrations/search\_shim/evidence.py}、\texttt{src/eval/fetch\_log.py}。\\
+现状：定义已有；主路径 \texttt{/\_mark} 与各 lane 读页收敛尚未齐，故默认仍难全面启用硬 PoF。
+
+\section{第 7 步：可判定打分（对一份报告）}
+
+核心模块：\texttt{src/eval/decidable\_scorer.py}。\\
+输入：报告 Markdown、answer key、页面缓存（及可选 transport 证据）。
+
+\subsection{7.1 五条轴}
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{reach}：引用的 URL 是否属于封闭世界 / 可达。反编造门。\\
+        reach $= 0$ $\Rightarrow$ 后面 truth 必为 0。
+  \item \textbf{fact}：报告中的结构化声明（价格、评分等）是否与 DB / answer key 一致。
+  \item \textbf{PoF}：引用是否有「读过 / 内容支撑」证据。\\
+        默认 \texttt{text\_v1}：报告上下文与评测方缓存页面做文本级匹配（更弱、更可复现）。\\
+        目标 \texttt{transport\_v2}：引用是否出现在本次 run 的 FETCHED 集合（更硬）。
+  \item \textbf{completeness}：vital 要点覆盖了多少（nugget / vital pool recall）。
+  \item \textbf{spec}：格式与体裁合规。只进 \textbf{compliance} 列，\textbf{不乘进 truth}。
+\end{enumerate}
+
+\subsection{7.2 合成（生产公式 K6）}
+
+\[
+\text{quality} = 0.39\cdot\text{fact} + 0.28\cdot\text{PoF} + 0.33\cdot\text{completeness}
+\]
+\[
+\text{truth} = \text{reach}^{\gamma}\cdot\text{quality},\quad \gamma=1.5
+\]
+
+要点：
+\begin{itemize}[leftmargin=1.5em]
+  \item 乘法门：接地是必要条件，文采再好也不能用加法把 reach$=0$ 救回来。
+  \item 无 quality 地板（\texttt{EPS\_FLOOR}=0）：避免空壳 / mini-shell 被垫高。
+  \item 权重是声明的伤害序重归一，不宣称最优；应公开原始轴分并做敏感性分析。
+\end{itemize}
+
+对抗判据（结构上要守住）：
+\begin{itemize}[leftmargin=1.5em]
+  \item C1：纯编造者不能得正 truth。
+  \item C2：格式完美但零实质的空壳 truth $=0$。
+\end{itemize}
+
+\subsection{7.3 页面缓存从哪来}
+
+评测方根据报告中出现的 URL 构建 / 查询 sandbox HTTP cache（\texttt{scripts/build\_sandbox\_cache.py} 等）。\\
+注意：这是「报告里写了什么 URL」，不等于「agent 当时取回过」。打分时 cache miss 不应再偷偷上网补抓（当前实现倾向拒绝现场补抓，避免仪器漂移）。
+
+\section{第 8 步：上榜与陪审}
+
+\subsection{8.1 Truth 榜}
+
+\texttt{scripts/build\_truth\_board.py}：
+\begin{itemize}[leftmargin=1.5em]
+  \item 对每个 (agent, task) 算 truth
+  \item 按 agent 做宏平均等聚合
+  \item 排序主键是 truth
+  \item 可选 \texttt{--panel} 喂入 jury 分数：仅在 truth 几乎打平时破平局，\textbf{不进入 truth 数值}
+\end{itemize}
+
+板子带 \texttt{protocols} 版本戳（公式版本、extractor commit 等），跨版本禁比。
+
+\subsection{8.2 Usefulness / presentation（jury）}
+
+流程概览：
+\begin{enumerate}[leftmargin=1.8em]
+  \item 同一任务上两份报告两两对战（常做位置对调）
+  \item 多判官投票（PoLL）
+  \item Bradley--Terry 拟合得到 Elo 或相对胜率
+\end{enumerate}
+
+判官被要求评「对人是否有用」，\textbf{不要}评引用真假（那是可判定栈的工作）。
+
+现状注意：
+\begin{itemize}[leftmargin=1.5em]
+  \item 生产 truth \textbf{尚未}乘上 judge Elo。
+  \item 若将来要合成，乘法更宜用 BT \textbf{胜率}（比例量表），不宜直接乘 Elo（区间量表）。
+  \item 历史 live 框架榜存在约 40.5\% 单判官场次，不能当成干净三判官结果。
+  \item 候选 Arena $=\text{reach}^{\gamma}\times\text{winrate}$ 曾未通过门定理，补门前不上 headline。
+\end{itemize}
+
+\subsection{8.3 旧公式（已退休，勿再引用）}
+
+早期对外叙述曾写：
+\[
+\text{gated\_score} \approx \text{judge\_Elo}\times\frac{\text{reach\%}+\text{quote\%}}{200}
+\]
+这已不是当前生产口径。请以第 7.2 节 K6 为准。
+
+\section{第 9 步：发布}
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item 代码 / 数据变更
+  \item 写入 \texttt{data/changelog.json}
+  \item 构建前端：\texttt{frontend/} $\rightarrow$ \texttt{web/dist/}
+  \item 提交并推送；Cloudflare 发布站点
+\end{enumerate}
+
+公开站：\url{https://www.deepresearcharena.com/}
+
+\section{一张图串起来}
+
+\begin{lstlisting}
+[冻结沙箱] shopping / reddit / wiki
+        ^
+        |  (理想: 只经 shim 搜/读)
+        v
+[agent lane]  --intent-->  搜/读/写  -->  report.md
+        |
+        |  (理想: /_mark + fetch 日志)
+        v
+[decidable scorer]
+   reach, fact, PoF, completeness, spec
+        |
+        v
+   truth = reach^1.5 * quality
+        |
+        +-----> truth board (主排序)
+        |
+[jury 对战] --> presentation 列 / 破平局
+        |
+        v
+   站点 leaderboard + changelog
+\end{lstlisting}
+
+\section{当前已知缺口（读流程时必须知道）}
+
+\begin{enumerate}[leftmargin=1.8em]
+  \item \textbf{读页观测不全}：多数 lane 直连沙箱站点，shim 记不到 FETCHED；硬 PoF 不能对所有 lane 默认开启。
+  \item \textbf{默认 PoF 仍是 text\_v1}：测「像不像页面」，不是「本次是否取回」；名实问题需在论文中正名或改仪器。
+  \item \textbf{/\_mark 主路径未完全落地}：无 run 括号时证据无法归因，易静默退回旧度量。
+  \item \textbf{Elo 未乘进 truth}：与「gate $\times$ quality $\times$ Elo」的产品设想尚未在代码中闭合。
+  \item \textbf{跨站 contradiction 真值大量为空}：不进 K6；也不应作为主卖点，除非先建成。
+  \item \textbf{answer key 噪声}：自动爬 + 关键词相关集需 curate；商品名匹配等工程脆弱点仍在。
+  \item \textbf{jury 与对外文档}：单判官比例、README 旧公式等需持续对齐。
+\end{enumerate}
+
+改善方向（摘要）：先给每次 run 打 \texttt{/\_mark}；再按 lane 把读页收敛到 shim；smoke 验证 fetch 日志；最后默认 \texttt{--require-transport-pof}（接不上就报错，禁止静默降级）。
+
+\section{常用命令速查}
+
+\begin{lstlisting}
+# 公平性预检
+python3 scripts/check_parity.py
+
+# 跑单题（示意）
+python3 scripts/run_deep_task.py --agent deerflow \
+  --task dr_cross_deep_0010 --backbone qwen3-8b
+
+# 建 truth 榜
+python3 scripts/build_truth_board.py \
+  --reports-dir path/to/reports \
+  --keys-dir data/golden/answer_keys \
+  --cache path/to/sandbox_cache.json \
+  --out truth_board.json
+
+# 强制要求 transport PoF（接线齐后再开）
+python3 scripts/build_truth_board.py ... --require-transport-pof
+\end{lstlisting}
+
+\section{文档与代码索引}
+
+\begin{center}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+路径 & 内容 \\
+\midrule
+\texttt{README.md} & 对外总览（已按 K6 更新） \\
+\texttt{config/lane\_protocol.yaml} & 公平性与 fetch 可观测声明 \\
+\texttt{src/eval/decidable\_scorer.py} & K6 打分 \\
+\texttt{src/eval/fetch\_log.py} & transport 证据定义 \\
+\texttt{scripts/build\_truth\_board.py} & truth 榜 \\
+\texttt{scripts/run\_usefulness\_jury.py} & 有用性陪审 \\
+\texttt{docs/LANE\_FAIRNESS\_AUDIT\_*.md} & 车道公平性审计 \\
+\texttt{internal/docs/FORMULA\_LOCK\_*.md} & 公式定稿（维护者） \\
+\texttt{internal/docs/FETCH\_PATH\_AUDIT\_*.md} & 取页路径审计（维护者） \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{结语}
+
+DRA 的完整故事不是「让模型写一篇漂亮长文」，而是：
+
+\begin{quote}
+在冻结世界里做调研 $\rightarrow$ 留下可检查的引用与事实 $\rightarrow$ 用可判定仪器量接地 $\rightarrow$ 用陪审另量有用性 $\rightarrow$ 诚实披露仪器边界。
+\end{quote}
+
+今天流程的骨架已经打通；最大的工程与方法学缺口，是把「读页」真正收进可归因的观测管道，让 PoF 从文本相似升级为取回证据。在此之前，对外叙述应与仪器能力严格对齐，避免名实不符。
+
+\vspace{1.5em}
+\noindent\textit{本文档由仓库当前代码与审计材料整理，日期 2026-07-09。若与后续 commit 冲突，以代码与 FORMULA\_LOCK / lane\_protocol 为准。}
+
+\end{document}

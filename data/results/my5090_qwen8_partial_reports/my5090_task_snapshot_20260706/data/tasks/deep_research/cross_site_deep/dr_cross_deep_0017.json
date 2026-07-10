@@ -1,0 +1,120 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0017",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "I work from cafes and trains three days a week and my full-size board simply doesn't fit the bag or the tiny tables. The compact 60 and 65 percent layouts look perfect, but I live on arrow keys and shortcuts, and I'm scared I'd hate the layer gymnastics. Wireless worries me too: does Bluetooth add typing lag I'd notice, and how do batteries hold up when a board gets tossed in a backpack daily? People who actually commute with one, what worked? I'd love to end with the specific board you'd buy for this life.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=GDPR+book",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 10,
+      "__REDDIT__": 30,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0017.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    },
+    "v1_deprecated_note": "v1-only artifact: pool/triples describe the pre-2026-07-03 topic of this task id and are NOT valid for task_version 2; v2 scoring reads data/golden/answer_keys/<task_id>.json exclusively"
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0017.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ],
+    "v1_deprecated_note": "v1-only artifact: pool/triples describe the pre-2026-07-03 topic of this task id and are NOT valid for task_version 2; v2 scoring reads data/golden/answer_keys/<task_id>.json exclusively"
+  },
+  "synthesis_requirements": {
+    "task_type": "enumeration",
+    "rights_min": 8,
+    "catalog_columns": [
+      "name",
+      "demand",
+      "legal_ref",
+      "response_time",
+      "penalty"
+    ],
+    "min_evidence_per_right": {
+      "shopping": 1,
+      "reddit": 1,
+      "wikipedia": 1
+    },
+    "request_letter_templates": 3
+  },
+  "coverage_checklist_path": "data/golden/checklists/dr_cross_deep_0017.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "mechanical_keyboards",
+  "intent_type": "Enumeration",
+  "intent_v1_legacy": "Produce an Enumeration / Catalog report cataloguing every GDPR data subject right (Articles 15-22) with: (a) the right's name, (b) what it lets the user demand, (c) the legal text reference, (d) typical company response time, (e) penalty for non-compliance. Then add a 'how to actually invoke each right' template section with sample request letters. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 books on GDPR / privacy law / data protection + price + rating. (B) `__REDDIT__` >= 30 threads from /f/europe, /f/privacy, /f/legaladvice, /f/eupersonalfinance, /f/GDPR, /f/dataisbeautiful covering real GDPR-request experience. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: General Data Protection Regulation, Right to be forgotten, Data portability, Data subject access request, Personal data, Information privacy, Schrems II, Privacy Shield, EU Data Protection Directive, ePrivacy Directive. Output a 8-row catalog table (one per GDPR right) + 'sample request letter templates' section (3 templates: erasure, access, portability). Format: markdown links only. Begin with catalog table.",
+  "task_version": 2,
+  "tri_source": {
+    "cluster": "mechanical_keyboards",
+    "category_ids": [
+      56
+    ],
+    "keyword_filter": "keyboard",
+    "forums": [
+      "mechanicalkeyboards",
+      "gaming"
+    ],
+    "wiki_topics": [
+      "Computer keyboard",
+      "Keyboard layout",
+      "Bluetooth"
+    ],
+    "archetype": "use-case-fit",
+    "angle": "Backpack commuter needs compact wireless: can a 60/65% layout replace daily arrow-key habits, and does Bluetooth lag or battery ruin it"
+  },
+  "coverage_checklist_path_v1_legacy": "data/tasks/deep_research/cross_site_deep/checklists_deep.json"
+}

@@ -1,0 +1,1 @@
+(claude-code error: CalledProcessError: Command '['scp', '-o', 'ServerAliveInterval=30', '/tmp/cc_driver_54742c73a178.ps1', 'my5090-win:C:/tools/cc_runner/driver_54742c73a178.ps1']' returned non-zero exit status 1.)

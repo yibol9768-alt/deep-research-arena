@@ -31,6 +31,23 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 
+class EmptyContradictionGoldError(ValueError):
+    """Raised when a caller asks for contradiction precision/recall on a key
+    whose ``gold_contradictions`` is empty.
+
+    Why this raises instead of returning 0.0 or 1.0: a rate computed from an
+    empty gold set is a claim-evidence break, not a measurement. Recall has no
+    gold denominator, and precision's "correct" set is undefined, so any number
+    returned would be an artefact of the *missing* ground truth rather than of
+    the report. Empty gold here means the closed world was never adjudicated for
+    this task, NOT that "zero contradictions exist". As of 2026-07 that is the
+    common case: 76 of 100 answer keys carry empty ``gold_contradictions`` and
+    all 100 carry empty ``decidable_verdicts``. A silent 0/1 from any of those
+    would poison any quantitative cross-site contradiction claim, so the only
+    honest behaviour is to refuse to produce a number.
+    """
+
+
 @dataclass
 class Entity:
     """One on-topic sandbox entity with its DB-true facts."""
@@ -75,6 +92,60 @@ class AnswerKey:
     decidable_verdicts: dict = field(default_factory=dict)  # claim_id -> verdict
     spec_requirements: list = field(default_factory=list)  # list[SpecRequirement]
     metadata: dict = field(default_factory=dict)
+
+    @property
+    def contradiction_scorable(self) -> bool:
+        """True only when this key carries real gold contradictions to score a
+        report against. Empty gold is treated as UNSCORABLE (undecided), not as
+        "zero contradictions". See EmptyContradictionGoldError for why the
+        distinction matters: contradiction currently does not enter the `truth`
+        score at all (decidable_scorer's quality = 0.39*fact + 0.28*pof +
+        0.33*completeness; completeness is vital-nugget recall, not
+        contradictions), and 76/100 keys are empty, so any downstream metric
+        must first check this flag."""
+        return bool(self.gold_contradictions)
+
+    @staticmethod
+    def _contradiction_id(c: dict) -> str:
+        """Stable identity for one gold/found contradiction. Prefers the
+        adjudicated candidate_id; falls back to (product_url, kind) then summary
+        so ill-formed entries still hash to something deterministic."""
+        cid = c.get("candidate_id")
+        if cid:
+            return str(cid)
+        url = c.get("product_url", "")
+        kind = c.get("kind", "")
+        if url or kind:
+            return f"{url}::{kind}"
+        return c.get("summary", "")
+
+    def contradiction_metrics(self, found: list) -> dict:
+        """Precision/recall of a report's surfaced contradictions against gold.
+
+        `found` is the list of contradictions the report claimed (same dict
+        shape as gold, matched by _contradiction_id). Raises
+        EmptyContradictionGoldError when this key is not contradiction_scorable,
+        because a rate over an empty gold set is undefined (see that class).
+        This is the single choke point: no caller can extract a 0.0/1.0 from an
+        unadjudicated key by accident."""
+        if not self.contradiction_scorable:
+            raise EmptyContradictionGoldError(
+                f"task {self.task_id!r} has empty gold_contradictions; "
+                "precision/recall are undefined (not 0.0 and not 1.0). "
+                "Check answer_key.contradiction_scorable before scoring."
+            )
+        gold_ids = {self._contradiction_id(c) for c in self.gold_contradictions}
+        found_ids = {self._contradiction_id(c) for c in (found or [])}
+        tp = len(found_ids & gold_ids)
+        precision = tp / len(found_ids) if found_ids else 0.0
+        recall = tp / len(gold_ids)  # gold_ids non-empty: scorable guaranteed it
+        return {
+            "true_positive": tp,
+            "n_found": len(found_ids),
+            "n_gold": len(gold_ids),
+            "precision": precision,
+            "recall": recall,
+        }
 
     def to_json(self) -> dict:
         return {

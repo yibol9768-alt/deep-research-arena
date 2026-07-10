@@ -60,7 +60,7 @@ def _to_wins_matrix(battles: list[dict], agents: list[str]) -> np.ndarray:
 
 
 def _neg_log_lik(r: np.ndarray, W: np.ndarray, *, l2: float = 1e-2) -> float:
-    """BT negative log-likelihood + L2 prior. r[0] pinned to 0 via caller.
+    """BT negative log-likelihood with a permutation-invariant L2 prior.
 
     The L2 prior (default ``λ=0.01``) prevents an unbounded MLE for an
     agent with zero wins — without it the rating diverges to -∞ and the
@@ -69,6 +69,12 @@ def _neg_log_lik(r: np.ndarray, W: np.ndarray, *, l2: float = 1e-2) -> float:
     (after the ELO_SCALE multiplication) so it's almost invisible for
     well-resolved agents but pulls floating zero-win agents toward 0.
     """
+    # BT likelihood depends only on pairwise differences. Regularising the raw
+    # vector while separately pinning one named agent to zero makes the prior
+    # depend on which agent sorts first. Centre before applying L2 so renaming or
+    # reordering agents cannot move their ratings.
+    r = np.asarray(r, dtype=float)
+    r = r - float(np.mean(r))
     n = len(r)
     ll = 0.0
     for i in range(n):
@@ -80,26 +86,71 @@ def _neg_log_lik(r: np.ndarray, W: np.ndarray, *, l2: float = 1e-2) -> float:
     return -ll + 0.5 * l2 * float(np.sum(r * r))
 
 
-def fit_bradley_terry(battles: list[dict]) -> dict[str, float]:
-    """Fit BT MLE and return Elo-scaled ratings per agent."""
-    agents = sorted({b.get("agent_a") for b in battles} | {b.get("agent_b") for b in battles})
-    agents = [a for a in agents if a]
+def _battle_agents(battles: list[dict]) -> list[str]:
+    """Agents from either battle schema accepted by :func:`_to_wins_matrix`."""
+    out: set[str] = set()
+    for b in battles:
+        for key in ("agent_a", "agent_b", "a1", "a2"):
+            value = b.get(key)
+            if value:
+                out.add(str(value))
+    return sorted(out)
+
+
+def _battle_components(W: np.ndarray) -> list[list[int]]:
+    """Undirected connected components of the observed comparison graph."""
+    n = int(W.shape[0])
+    unseen = set(range(n))
+    components: list[list[int]] = []
+    while unseen:
+        root = min(unseen)
+        unseen.remove(root)
+        stack = [root]
+        comp = []
+        while stack:
+            i = stack.pop()
+            comp.append(i)
+            neighbours = {
+                j for j in list(unseen)
+                if (W[i, j] + W[j, i]) > 0
+            }
+            unseen.difference_update(neighbours)
+            stack.extend(neighbours)
+        components.append(sorted(comp))
+    return components
+
+
+def fit_bradley_terry(
+    battles: list[dict], *, require_connected: bool = True
+) -> dict[str, float]:
+    """Fit BT MAP ratings and return Elo-scaled values per agent.
+
+    A disconnected comparison graph has no data-defined offset between its
+    components. By default that is a hard error rather than a leaderboard whose
+    cross-component order is supplied entirely by the prior.
+    """
+    agents = _battle_agents(battles)
     if len(agents) < 2:
         return {a: ELO_ANCHOR for a in agents}
 
     W = _to_wins_matrix(battles, agents)
+    components = _battle_components(W)
+    if require_connected and len(components) != 1:
+        named = [[agents[i] for i in comp] for comp in components]
+        raise ValueError(
+            "Bradley-Terry comparison graph is disconnected; ratings across "
+            f"components are not identified: {named}"
+        )
+
     n = len(agents)
-    # Pin r[0] = 0 for identifiability; optimize r[1..n-1].
-    x0 = np.zeros(n - 1)
-
-    def obj(x: np.ndarray) -> float:
-        r = np.concatenate([[0.0], x])
-        return _neg_log_lik(r, W)
-
-    res = minimize(obj, x0, method="L-BFGS-B")
-    r_full = np.concatenate([[0.0], res.x])
-    # Center at mean 0 then scale to Elo.
-    r_full = r_full - r_full.mean()
+    # Optimise every agent symmetrically. _neg_log_lik centres the vector before
+    # both likelihood and regularisation, so the otherwise-flat translation
+    # direction stays at its zero initial value without privileging an agent.
+    res = minimize(lambda x: _neg_log_lik(x, W), np.zeros(n), method="L-BFGS-B")
+    if not res.success or not np.all(np.isfinite(res.x)):
+        raise RuntimeError(f"Bradley-Terry optimisation failed: {res.message}")
+    r_full = np.asarray(res.x, dtype=float)
+    r_full = r_full - float(r_full.mean())
     elo = {a: float(ELO_ANCHOR + ELO_SCALE * r_full[i]) for i, a in enumerate(agents)}
     return elo
 
@@ -117,8 +168,7 @@ def bootstrap_ci(
     """
     rng = random.Random(seed)
     n = len(battles)
-    agents = sorted({b.get("agent_a") for b in battles} | {b.get("agent_b") for b in battles})
-    agents = [a for a in agents if a]
+    agents = _battle_agents(battles)
     draws: dict[str, list[float]] = defaultdict(list)
 
     for _ in range(n_boot):

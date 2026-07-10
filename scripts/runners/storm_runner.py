@@ -29,7 +29,7 @@ skip filter can never empty the outline.
 
 Usage (on westd, with shim+sandbox+ds_proxy running):
     export SHIM_URL=http://localhost:8081
-    export DS_PROXY_URL=http://localhost:8088/v1
+    export DS_PROXY_URL=http://localhost:8100/v1
     export OPENAI_API_KEY=anything
     python3 -c "
     import asyncio
@@ -38,7 +38,7 @@ Usage (on westd, with shim+sandbox+ds_proxy running):
         intent='Compare headphone prices across stores...',
         model='deepseek-v4-flash',
         shim_url='http://localhost:8081',
-        proxy_url='http://localhost:8088/v1',
+        proxy_url='http://localhost:8100/v1',
     )))
     "
 """
@@ -67,6 +67,7 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 import dspy
 import requests
 
+from . import _budget
 from .evidence_fallback import (
     error_stub,
     fallback_enabled,
@@ -80,15 +81,19 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-DEFAULT_NATIVE_TIMEOUT_S = int(os.environ.get("STORM_NATIVE_TIMEOUT_S", "420") or "420")
+# Unified default, identical for every lane (see scripts/runners/_budget.py):
+# None = no native self-abort, the no-progress watchdog terminates a stall.
+DEFAULT_NATIVE_TIMEOUT_S = _budget.native_timeout_default()
 
 
-def _native_timeout() -> int:
-    try:
-        configured = int(os.environ.get("STORM_NATIVE_TIMEOUT_S", "") or DEFAULT_NATIVE_TIMEOUT_S)
-    except (TypeError, ValueError):
-        configured = DEFAULT_NATIVE_TIMEOUT_S
-    return max(60, configured)
+def _native_timeout():
+    # Unified native timeout. Default identical to every lane (DRA_WALL_CLOCK_S);
+    # STORM_NATIVE_TIMEOUT_S still overrides. None (unlimited) means proc.join
+    # blocks until the worker finishes and the shared no-progress watchdog is
+    # what kills a wedged run. The old hard 420s default was a per-lane wall
+    # clock that aborted slow-backbone runs still making progress.
+    configured = _budget.resolve_native_timeout("STORM_NATIVE_TIMEOUT_S")
+    return None if configured is None else max(60, int(configured))
 
 
 # ---------------------------------------------------------------------------
@@ -108,7 +113,7 @@ class SandboxSearchRM(dspy.Retrieve):
     def __init__(
         self,
         shim_url: str = "http://localhost:8081",
-        k: int = 5,
+        k: int = 3,
         include_raw_content: bool = True,
         is_valid_source: Callable = None,
         api_key: str = "tvly-shim-fake",
@@ -438,7 +443,7 @@ def _build_storm_runner(
         api_key=api_key,
         api_base=proxy_url,
         max_tokens=8192,
-        temperature=0.7,
+        temperature=0.2,
     )
 
     lm_config = STORMWikiLMConfigs()
@@ -452,18 +457,21 @@ def _build_storm_runner(
         setter(LitellmModel(**llm_kwargs))
 
     # -- Runner arguments --
+    # Preserve STORMWikiRunnerArguments' native research budgets. The adapter
+    # previously raised search_top_k from 3 to 5 and cut max_thread_num from
+    # 10 to 2 without declaring either change in the lane protocol.
     args = STORMWikiRunnerArguments(
         output_dir=output_dir,
         max_conv_turn=3,
         max_perspective=3,
-        search_top_k=5,
-        max_thread_num=2,
+        search_top_k=3,
+        max_thread_num=10,
     )
 
     # -- Retrieval model: our custom subclass, no patching needed --
     rm = SandboxSearchRM(
         shim_url=shim_url,
-        k=5,
+        k=3,
         include_raw_content=True,
     )
 
@@ -519,7 +527,11 @@ def _storm_native_worker(
         )
         run_start_mtime = time.time() - 1.0
         runner.run(
-            topic=intent[:300],
+            # The task is the benchmark input.  Truncating it here silently
+            # removed constraints that every other lane received.  Scratch
+            # paths are UUID-based, so the old filesystem-safety rationale no
+            # longer applies.
+            topic=intent,
             do_research=True,
             do_generate_outline=True,
             do_generate_article=True,
@@ -619,21 +631,27 @@ def _extract_article(scratch_path: Path, run_start_mtime: float) -> str:
         candidates.sort(key=lambda p: p.stat().st_size, reverse=True)
         result = candidates[0].read_text()
         logger.info(f"STORM output: {candidates[0]} ({len(result)} chars)")
-        # Append a References section so the URL extractor can recover the
-        # bibliography STORM tracks separately in url_to_info.json.
+        # The harness used to append a "## References" section here, built from
+        # the bibliography STORM keeps in url_to_info.json, "so the URL
+        # extractor can recover" it. That is the same construct as ldr's
+        # `_attach_sources` and ii-researcher's deleted B1 graft: the harness
+        # writes the lane's URLs into the scored artifact. Counterfactual
+        # rescore with the block removed: storm macro reach 0.9609 -> 0.0000.
+        #
+        # Whether STORM "really" retrieved those URLs is beside the point. Every
+        # other framework must put its citations in its own report to be
+        # credited for them, and none of them get the harness to do it. Removed
+        # 2026-07-08 (fairness audit). The bibliography is logged, not appended.
         try:
             url_info_paths = list(candidates[0].parent.glob("url_to_info.json"))
             if not url_info_paths:
                 url_info_paths = list(scratch_path.rglob("url_to_info.json"))
             if url_info_paths:
                 url_to_idx = json.loads(url_info_paths[0].read_text()).get("url_to_unified_index", {})
-                refs = sorted(url_to_idx.items(), key=lambda kv: kv[1])
-                if refs:
-                    bibliography = "\n\n## References\n\n" + "\n".join(f"[{idx}] {url}" for url, idx in refs)
-                    result = result + bibliography
-                    logger.info(f"Appended {len(refs)} references from {url_info_paths[0]}")
+                logger.info("storm retrieved %d sources (diagnostic only, not appended)",
+                            len(url_to_idx))
         except Exception as e:
-            logger.warning(f"Failed to append references: {e}")
+            logger.warning(f"Failed to read storm bibliography: {e}")
         return result
 
     # Debug: list what STORM actually wrote.
@@ -659,7 +677,7 @@ async def run(
         intent: The research topic / query.
         model: LLM model name (e.g. 'deepseek-v4-flash').
         shim_url: Tavily-compatible search shim (e.g. 'http://localhost:8081').
-        proxy_url: OpenAI-compatible LLM proxy (e.g. 'http://localhost:8088/v1').
+        proxy_url: OpenAI-compatible LLM proxy (e.g. 'http://localhost:8100/v1').
         strict_sandbox: when True, installs an HTTP-layer gate that refuses
             any non-sandbox URL (belt-and-suspenders behind SandboxSearchRM
             which already only talks to the shim). Also forwards

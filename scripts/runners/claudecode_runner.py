@@ -31,9 +31,9 @@ Tooling lockdown (fairness with other DR baselines):
     - claude's native WebSearch + WebFetch are stripped via --disallowedTools
     - --append-system-prompt steers the model to issue
       `curl http://localhost:8081/search ...` via the Bash tool
-    - The three sandbox URLs (Magento 7770, Postmill 9999, Kiwix 8090) are
-      enumerated explicitly in the system prompt so the model knows the only
-      reachable network surface.
+    - The shim search/fetch recipes are supplied because the CLI has no native
+      benchmark search tool. The corpus modalities are not enumerated, so the
+      model receives no extra cross-source strategy beyond the shared task.
 """
 from __future__ import annotations
 
@@ -60,6 +60,7 @@ from .evidence_fallback import (
     keep_or_stub,
     synthesize_report,
 )
+from . import _egress
 
 logger = logging.getLogger(__name__)
 
@@ -70,14 +71,23 @@ AGENT_NAME = "claude-code"
 # claude-code supports `--allowed-tools` with argument patterns. Under
 # strict_sandbox=True we replace the disallowlist (WebSearch / WebFetch /
 # NotebookEdit) with a WHITELIST that admits only Read/Write/Edit/Glob/Grep
-# plus Bash patterns that match `curl http://localhost*` or
-# `curl http://127.0.0.1*`. This closes the long-standing Bash-curl gap
-# where the model could `curl https://en.wikipedia.org/...` from inside an
-# otherwise locked-down session because Bash itself was implicitly allowed.
+# plus Bash `curl` patterns scoped to the SHIM ORIGIN alone (:8081/:18081).
+# This closes two gaps at once: `curl https://en.wikipedia.org/...` (off-box)
+# AND `curl http://localhost:7770/...` (on-box but bypassing the shim's
+# record_fetch). Only the strict path converges fetch; under the default OPEN
+# policy Bash/curl is free, so this lane is fetch-observable ONLY when
+# strict_sandbox=True.
 STRICT_SANDBOX_ELIGIBLE = True
 
-DEFAULT_TIMEOUT_S = 1800
-DEFAULT_NATIVE_TIMEOUT_S = int(os.environ.get("CLAUDE_CODE_NATIVE_TIMEOUT_S", "420") or "420")
+try:
+    from . import _budget
+except ImportError:  # run as a bare script rather than a package module
+    import _budget  # type: ignore
+
+DEFAULT_TIMEOUT_S = _budget.native_timeout_default()
+# Unified default, identical for every lane (see scripts/runners/_budget.py):
+# None = no native self-abort, the no-progress watchdog terminates a stall.
+DEFAULT_NATIVE_TIMEOUT_S = _budget.native_timeout_default()
 REMOTE_DIR_WIN = os.environ.get("CLAUDE_CODE_REMOTE_DIR", "C:/tools/cc_runner")
 
 
@@ -116,10 +126,23 @@ REMOTE_DIR_WSL = Path(
 # actually-used router is recorded to stdout + a .provenance.json sidecar.
 # ---------------------------------------------------------------------------
 
-GATEWAY_CHAT_URL = os.environ.get(
-    "CLAUDE_CODE_GATEWAY_URL", "http://127.0.0.1:8100/v1/chat/completions"
+def _gateway_chat_url(proxy_url: str | None = None) -> str:
+    """Resolve the exact gateway used by the CCR provider at call time."""
+    raw = (
+        os.environ.get("CLAUDE_CODE_GATEWAY_URL")
+        or proxy_url
+        or os.environ.get("DS_PROXY_URL")
+        or "http://127.0.0.1:8100/v1"
+    ).rstrip("/")
+    if raw.endswith("/chat/completions"):
+        return raw
+    return raw + "/chat/completions"
+
+
+CCR_HOME_BASE = Path(
+    os.environ.get("CLAUDE_CODE_CCR_HOME_BASE")
+    or (Path(os.environ.get("HOME", "/tmp")) / ".dra-ccr-homes")
 )
-CCR_HOME_BASE = Path(os.environ.get("CLAUDE_CODE_CCR_HOME_BASE", "/root/ccr_homes"))
 
 _BACKBONE_CCR_PORTS = {
     "qwen3-8b": 3461,
@@ -149,7 +172,11 @@ def _ccr_config_path(home: Path) -> Path:
     return home / ".claude-code-router" / "config.json"
 
 
-def _build_ccr_config(model: str, port: int) -> dict:
+def _build_ccr_config(
+    model: str,
+    port: int,
+    gateway_chat_url: str | None = None,
+) -> dict:
     """Desired ccr config for one backbone: a single 'gateway' provider that
     forwards to the unified :8100 LLM gateway, every Router route pinned to
     this backbone, and the maxtoken transformer preserved (clamp 8192, the
@@ -165,7 +192,7 @@ def _build_ccr_config(model: str, port: int) -> dict:
         "Providers": [
             {
                 "name": "gateway",
-                "api_base_url": GATEWAY_CHAT_URL,
+                "api_base_url": gateway_chat_url or _gateway_chat_url(),
                 "api_key": "anything",
                 "models": [model],
                 "transformer": {"use": [["maxtoken", {"max_tokens": 8192}]]},
@@ -215,18 +242,33 @@ def _read_ccr_config(cfg_path: Path) -> dict:
         raise RuntimeError(f"unreadable ccr config at {cfg_path}: {e}") from e
 
 
-def _config_routes_model(cfg: dict, model: str) -> bool:
+def _config_routes_model(
+    cfg: dict,
+    model: str,
+    gateway_chat_url: str | None = None,
+) -> bool:
     providers = cfg.get("Providers") or cfg.get("providers") or []
     models: list[str] = []
+    endpoints: list[str] = []
     for p in providers:
         if isinstance(p, dict):
             models.extend(p.get("models") or [])
+            endpoints.append(str(p.get("api_base_url") or "").rstrip("/"))
     router = cfg.get("Router") or cfg.get("router") or {}
     default = str(router.get("default", ""))
-    return model in models and default.endswith(f",{model}")
+    endpoint_ok = (
+        gateway_chat_url is None
+        or str(gateway_chat_url).rstrip("/") in endpoints
+    )
+    return model in models and default.endswith(f",{model}") and endpoint_ok
 
 
-def _ensure_ccr_for_backbone(model: str, url: str, home: Path) -> Path:
+def _ensure_ccr_for_backbone(
+    model: str,
+    url: str,
+    home: Path,
+    gateway_chat_url: str | None = None,
+) -> Path:
     """Bring up the per-backbone ccr WITHOUT ever touching anyone else's.
 
     - Port not listening: idempotently write our config under ``home`` and
@@ -236,7 +278,12 @@ def _ensure_ccr_for_backbone(model: str, url: str, home: Path) -> Path:
       process squats the port; fail loud instead of killing it (shared-box
       rule: never kill/restart existing processes)."""
     cfg_path = _ccr_config_path(home)
-    desired = _build_ccr_config(model, _port_for_backbone(model))
+    gateway_chat_url = gateway_chat_url or _gateway_chat_url()
+    desired = _build_ccr_config(
+        model,
+        _port_for_backbone(model),
+        gateway_chat_url,
+    )
 
     if _tcp_listening(url):
         try:
@@ -247,7 +294,8 @@ def _ensure_ccr_for_backbone(model: str, url: str, home: Path) -> Path:
                 f"{cfg_path} does not exist: a process this runner does not "
                 "own is squatting the port; refusing to reuse or kill it"
             )
-        if int(current.get("PORT") or 0) != int(desired["PORT"]) or not _config_routes_model(current, model):
+        if (int(current.get("PORT") or 0) != int(desired["PORT"])
+                or not _config_routes_model(current, model, gateway_chat_url)):
             raise RuntimeError(
                 f"ccr at {url} (config {cfg_path}) does not route to "
                 f"backbone={model}; refusing to run mislabeled and refusing "
@@ -266,6 +314,7 @@ def _ensure_ccr_for_backbone(model: str, url: str, home: Path) -> Path:
         raise RuntimeError("ccr executable not found")
     log_path = Path(os.environ.get("CLAUDE_CODE_CCR_START_LOG", "/tmp/claude_code_router_start.log"))
     env = {**os.environ, "HOME": str(home)}
+    _egress.scrub_or_apply(env)
     with log_path.open("ab") as log:
         subprocess.Popen(
             ["ccr", "start"],
@@ -368,12 +417,18 @@ def _tcp_listening(url: str, *, timeout_s: float = 1.0) -> bool:
         return False
 
 
-def _native_timeout(timeout_s: int) -> int:
-    try:
-        configured = int(os.environ.get("CLAUDE_CODE_NATIVE_TIMEOUT_S", "") or DEFAULT_NATIVE_TIMEOUT_S)
-    except (TypeError, ValueError):
-        configured = DEFAULT_NATIVE_TIMEOUT_S
-    return max(60, min(timeout_s, configured))
+def _native_timeout(timeout_s):
+    # Unified native timeout. Default identical to every lane (DRA_WALL_CLOCK_S);
+    # CLAUDE_CODE_NATIVE_TIMEOUT_S still overrides for single-run debugging. The
+    # old hard 420s default was a per-lane wall clock that aborted slow-backbone
+    # runs that were still making progress; None (unlimited) defers termination
+    # to the shared no-progress watchdog and the outer subprocess cap.
+    configured = _budget.resolve_native_timeout("CLAUDE_CODE_NATIVE_TIMEOUT_S")
+    if configured is None:
+        return timeout_s
+    if timeout_s is None:
+        return max(60, int(configured))
+    return max(60, min(int(timeout_s), int(configured)))
 
 
 _PS_DRIVER_TEMPLATE = r"""param(
@@ -384,9 +439,16 @@ _PS_DRIVER_TEMPLATE = r"""param(
   [string]$ShimUrl,
   [string]$ShoppingUrl,
   [string]$RedditUrl,
-  [string]$WikipediaUrl
+  [string]$WikipediaUrl,
+  [string]$EgressProxyUrl
 )
 $ErrorActionPreference = 'Continue'
+if ($EgressProxyUrl) {
+  $env:HTTP_PROXY = $EgressProxyUrl
+  $env:HTTPS_PROXY = $EgressProxyUrl
+  $env:ALL_PROXY = $EgressProxyUrl
+  $env:NO_PROXY = ''
+}
 $env:ANTHROPIC_BASE_URL = '__CCR_URL__'
 $env:ANTHROPIC_AUTH_TOKEN = 'anything'
 $env:ANTHROPIC_API_KEY = 'anything'
@@ -405,45 +467,22 @@ Push-Location $WorkDir
 $intent = Get-Content -Raw -Path $IntentPath
 
 $systemPrompt = @"
-You are a deep research agent.  You have NO direct internet access.
-
-The ONLY network endpoints you can reach are:
-- Search shim (Tavily-compatible):   $ShimUrl
-- Magento sandbox (shopping):        $ShoppingUrl
-- Postmill sandbox (reddit-like):    $RedditUrl
-- Kiwix sandbox (offline Wikipedia): $WikipediaUrl
+You are a deep research agent.  You have NO direct internet access. Use the
+benchmark search shim for search and page reads.
 
 To search, use the Bash tool:
   curl -s -X POST $ShimUrl/search -H 'content-type: application/json' -d '{"query":"...","api_key":"tvly-shim-fake","max_results":10,"include_raw_content":true}'
 
-To fetch a page returned by search, use Bash:
-  curl -s -L '<sandbox URL>' | head -c 8000
-
-Methodology:
-1. Issue MULTIPLE search queries covering different angles of the task.
-2. For each promising result, fetch the page to extract specifics (prices, specs, quotes, dates).
-3. Cross-reference between Magento (products), Postmill (discussions), and Kiwix (encyclopedic background).
-4. Aim for >= 20 distinct sandbox URLs cited across all three sources.
+To fetch and read a page returned by search, use Bash (route it through the
+shim's /fetch so the read is recorded; a bare curl of the site URL is blocked):
+  curl -s "$ShimUrl/fetch?url=<sandbox URL>"
 
 	OUTPUT INSTRUCTIONS (read carefully — the evaluator reads ONLY this file):
 
-  Use the Bash tool ONE TIME with a quoted heredoc to save your complete
-  markdown report to:
+  Use the Write tool to save the task response to:
       $ReportPath
 
-  Example shape:
-	      cat > '$ReportPath' <<'END_MARKDOWN_REPORT'
-	      ...complete markdown report...
-	      END_MARKDOWN_REPORT
-
-The report MUST:
-- Be at least 2000 words.
-- Cite every factual claim inline as [anchor text](sandbox URL pointing at $ShoppingUrl / $RedditUrl / $WikipediaUrl).
-- Draw evidence from ALL THREE sandbox sources.
-- End with a "References" section listing every cited URL.
-- Start immediately with the report body (no preface, no chain-of-thought).
-
-After the Bash write command succeeds, your final text response should be ONLY:
+After the file write succeeds, your final text response should be ONLY:
   REPORT_WRITTEN
 
 Begin now.  Do not ask for clarification — act on the brief alone.
@@ -485,27 +524,29 @@ exit $rc
 #   patterns of the form `Bash(<pattern>)`; we list every URL prefix the
 #   sandbox can serve.
 _TOOL_POLICY_OPEN = "'--disallowedTools', 'WebSearch', 'WebFetch', 'NotebookEdit',"
+# Only the shim origin (:8081 and its alt :18081) is admitted. Direct
+# site curls (7770/17770/8090/9999) are DELETED: with them present a real
+# `curl http://localhost:7770/...` bypassed record_fetch, so the page never
+# hit the shim and the run showed FETCHED=empty -> pof=0 for a lane that had
+# actually read the page (the false-accusation window, FETCH_PATH_AUDIT §0).
+# 127.0.0.1 variants are dropped for the same reason (mount-namespace
+# passthrough risk). Fetch now goes through `curl -s "$ShimUrl/fetch?url=..."`,
+# which matches the `curl -s http://localhost:8081*` prefix below.
 _TOOL_POLICY_STRICT = (
     "'--allowed-tools', "
-    "'Read,Write,Edit,Glob,Grep,"
-    "Bash(curl http://localhost:7770*),"
-    "Bash(curl http://localhost:17770*),"
-    "Bash(curl http://localhost:8090*),"
-    "Bash(curl http://localhost:9999*),"
+    "'Write,Edit,"
     "Bash(curl http://localhost:8081*),"
     "Bash(curl http://localhost:18081*),"
-    "Bash(curl http://127.0.0.1:7770*),"
-    "Bash(curl http://127.0.0.1:17770*),"
-    "Bash(curl http://127.0.0.1:8090*),"
-    "Bash(curl http://127.0.0.1:9999*),"
     "Bash(curl http://127.0.0.1:8081*),"
     "Bash(curl http://127.0.0.1:18081*),"
-    "Bash(curl -s http://localhost:*),"
-    "Bash(curl -s http://127.0.0.1:*),"
-    "Bash(curl -sL http://localhost:*),"
-    "Bash(curl -sL http://127.0.0.1:*),"
+    "Bash(curl -s http://localhost:8081*),"
+    "Bash(curl -s http://localhost:18081*),"
+    "Bash(curl -s http://127.0.0.1:8081*),"
+    "Bash(curl -s http://127.0.0.1:18081*),"
     "Bash(curl -X POST http://localhost:8081*),"
     "Bash(curl -X POST http://localhost:18081*),"
+    "Bash(curl -X POST http://127.0.0.1:8081*),"
+    "Bash(curl -X POST http://127.0.0.1:18081*),"
     "Bash(curl -s -X POST http://localhost:8081*),"
     "Bash(curl -s -X POST http://localhost:18081*),"
     "Bash(curl -s -X POST http://127.0.0.1:8081*),"
@@ -514,7 +555,7 @@ _TOOL_POLICY_STRICT = (
 
 
 def _build_ps_driver(*, ccr_url: str, strict_sandbox: bool = False) -> str:
-    policy = _TOOL_POLICY_STRICT if strict_sandbox else _TOOL_POLICY_OPEN
+    policy = _TOOL_POLICY_STRICT
     return (
         _PS_DRIVER_TEMPLATE
         .replace("__CCR_URL__", ccr_url)
@@ -531,86 +572,55 @@ def _build_system_prompt(
     wikipedia_url: str,
 ) -> str:
     return f"""You are a deep research agent.  You have NO direct internet access.
-
-The ONLY network endpoints you can reach are:
-- Search shim (Tavily-compatible):   {shim_url}
-- Magento sandbox (shopping):        {shopping_url}
-- Postmill sandbox (reddit-like):    {reddit_url}
-- Kiwix sandbox (offline Wikipedia): {wikipedia_url}
+Use the benchmark search shim for search and page reads.
 
 To search, use the Bash tool:
   curl -s -X POST {shim_url}/search -H 'content-type: application/json' -d '{{"query":"...","api_key":"tvly-shim-fake","max_results":10,"include_raw_content":true}}'
 
-To fetch a page returned by search, use Bash:
-  curl -s -L '<sandbox URL>' | head -c 8000
-
-Methodology:
-1. Issue MULTIPLE search queries covering different angles of the task.
-2. For each promising result, fetch the page to extract specifics (prices, specs, quotes, dates).
-3. Cross-reference between Magento (products), Postmill (discussions), and Kiwix (encyclopedic background).
-4. Aim for >= 20 distinct sandbox URLs cited across all three sources.
+To fetch and read a page returned by search, use Bash (route it through the
+shim's /fetch so the read is recorded; a bare curl of the site URL is blocked):
+  curl -s "{shim_url}/fetch?url=<sandbox URL>"
 
 	OUTPUT INSTRUCTIONS (read carefully - the evaluator reads ONLY this file):
 
-  Use the Bash tool ONE TIME with a quoted heredoc to save your complete
-  markdown report to:
+  Use the Write tool to save the task response to:
       {report_path}
 
-  Example shape:
-	      cat > '{report_path}' <<'END_MARKDOWN_REPORT'
-	      ...complete markdown report...
-	      END_MARKDOWN_REPORT
-
-The report MUST:
-- Be at least 2000 words.
-- Cite every factual claim inline as [anchor text](sandbox URL pointing at {shopping_url} / {reddit_url} / {wikipedia_url}).
-- Draw evidence from ALL THREE sandbox sources.
-- End with a "References" section listing every cited URL.
-- Start immediately with the report body (no preface, no chain-of-thought).
-
-After the Bash write command succeeds, your final text response should be ONLY:
+After the file write succeeds, your final text response should be ONLY:
   REPORT_WRITTEN
 
 Begin now.  Do not ask for clarification - act on the brief alone.
 """
 
 
-def _local_tool_policy_args(*, strict_sandbox: bool) -> list[str]:
-    if not strict_sandbox:
-        return ["--allowed-tools", "Read,Write,Edit,Glob,Grep,Bash"]
+def _shim_bash_tools(shim_url: str) -> list[str]:
+    parsed = urlparse(str(shim_url or ""))
+    if parsed.scheme != "http" or not parsed.hostname:
+        raise ValueError(f"shim_url must be a plain HTTP URL: {shim_url!r}")
+    host = parsed.hostname
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
+    origin = f"http://{host}:{parsed.port or 80}"
+    return [
+        f"Bash(curl {origin}*)",
+        f"Bash(curl -s {origin}*)",
+        f"Bash(curl -X POST {origin}*)",
+        f"Bash(curl -s -X POST {origin}*)",
+    ]
+
+
+def _local_tool_policy_args(
+    *,
+    strict_sandbox: bool,
+    shim_url: str = "http://localhost:8081",
+) -> list[str]:
+    # Mandatory capability boundary: report writes plus shim curl only. Read,
+    # Glob, Grep and a general Bash would expose local answer-key files.
     return [
         "--allowed-tools",
-        ",".join(
-            [
-                "Read",
-                "Write",
-                "Edit",
-                "Glob",
-                "Grep",
-                "Bash(curl http://localhost:7770*)",
-                "Bash(curl http://localhost:17770*)",
-                "Bash(curl http://localhost:8090*)",
-                "Bash(curl http://localhost:9999*)",
-                "Bash(curl http://localhost:8081*)",
-                "Bash(curl http://localhost:18081*)",
-                "Bash(curl http://127.0.0.1:7770*)",
-                "Bash(curl http://127.0.0.1:17770*)",
-                "Bash(curl http://127.0.0.1:8090*)",
-                "Bash(curl http://127.0.0.1:9999*)",
-                "Bash(curl http://127.0.0.1:8081*)",
-                "Bash(curl http://127.0.0.1:18081*)",
-                "Bash(curl -s http://localhost:*)",
-                "Bash(curl -s http://127.0.0.1:*)",
-                "Bash(curl -sL http://localhost:*)",
-                "Bash(curl -sL http://127.0.0.1:*)",
-                "Bash(curl -X POST http://localhost:8081*)",
-                "Bash(curl -X POST http://localhost:18081*)",
-                "Bash(curl -s -X POST http://localhost:8081*)",
-                "Bash(curl -s -X POST http://localhost:18081*)",
-                "Bash(curl -s -X POST http://127.0.0.1:8081*)",
-                "Bash(curl -s -X POST http://127.0.0.1:18081*)",
-            ]
-        ),
+        "Write",
+        "Edit",
+        *_shim_bash_tools(shim_url),
     ]
 
 
@@ -643,6 +653,7 @@ async def _run_local_claude(
         return "(claude-code local unavailable: claude executable not found)"
 
     # Per-backbone router selection + hard pre-run identity assertion.
+    gateway_chat_url = _gateway_chat_url(proxy_url)
     ccr_url, ccr_home = _ccr_for_backbone(model)
     if ccr_home is None:
         # Env-override mode: never auto-start a shared router we do not own;
@@ -655,7 +666,12 @@ async def _run_local_claude(
             )
         cfg_path = None
     else:
-        cfg_path = _ensure_ccr_for_backbone(model, ccr_url, ccr_home)
+        cfg_path = _ensure_ccr_for_backbone(
+            model,
+            ccr_url,
+            ccr_home,
+            gateway_chat_url,
+        )
     router_default = _assert_ccr_model(cfg_path, ccr_url, model)
     _emit_provenance(model, ccr_url, cfg_path, router_default)
 
@@ -687,6 +703,13 @@ async def _run_local_claude(
                 "NO_COLOR": "1",
             }
         )
+        _egress.scrub_or_apply(env)
+        # The CCR listener lives inside this worker's network namespace. Sending
+        # its loopback hop through the host egress proxy targets the host's
+        # 127.0.0.1 instead and cannot reach the router. Exempt only numeric
+        # loopback; sandbox page identities use localhost and remain proxied.
+        env["NO_PROXY"] = "127.0.0.1"
+        env["no_proxy"] = "127.0.0.1"
 
         cmd = [
             "claude",
@@ -697,7 +720,10 @@ async def _run_local_claude(
             "--no-session-persistence",
             "--add-dir",
             str(workdir),
-            *_local_tool_policy_args(strict_sandbox=strict_sandbox),
+            *_local_tool_policy_args(
+                strict_sandbox=strict_sandbox,
+                shim_url=shim_url,
+            ),
             "--append-system-prompt",
             system_prompt,
         ]
@@ -728,8 +754,12 @@ async def _run_local_claude(
         report = ""
         if report_path.exists():
             report = report_path.read_text(encoding="utf-8", errors="replace").lstrip("﻿").strip()
-        if len(report) < 500 and stdout_text.strip():
-            report = stdout_text.strip()
+        if not report:
+            return _degrade(
+                "write",
+                "claude-code did not write the requested report file; "
+                f"stdout tail={stdout_text[-500:]}",
+            )
         if proc.returncode != 0:
             logger.warning(
                 "claude-code local exited %d after %.0fs; output tail: %s",
@@ -739,8 +769,6 @@ async def _run_local_claude(
             )
         if is_weak_report(report, min_chars=3000, min_urls=3):
             logger.warning("claude-code local report weak/empty")
-            if fallback_enabled():
-                return _degrade("write", "native report weak/under-threshold")
             # Weak-but-real output is claude-code's own report: save it verbatim
             # (the scorer judges quality); stub only genuinely empty/stub output.
             return keep_or_stub(
@@ -814,7 +842,7 @@ async def run(
     shim_url: str,
     proxy_url: str,
     *,
-    timeout_s: int = DEFAULT_TIMEOUT_S,
+    timeout_s: float | None = DEFAULT_TIMEOUT_S,
     strict_sandbox: bool = False,
 ) -> str:
     """Run claude-code locally (per-backbone ccr) and return the markdown report.
@@ -830,10 +858,10 @@ async def run(
         timeout_s: hard timeout for the remote subprocess.
         strict_sandbox: when True, the PowerShell driver swaps claude-code's
             `--disallowedTools` flag for `--allowed-tools <whitelist>` that
-            admits only Read/Write/Edit/Glob/Grep and Bash(curl <sandbox URL>).
-            Closes the Bash-curl gap where the model could previously
-            ``curl https://en.wikipedia.org/...`` despite WebSearch/WebFetch
-            being banned.
+            admits only Read/Write/Edit/Glob/Grep and Bash(curl <shim origin>).
+            Closes both the off-box gap (``curl https://en.wikipedia.org/...``)
+            and the on-box shim-bypass gap (``curl http://localhost:7770/...``),
+            so every page read is recorded by the shim's /fetch.
     """
     def _degrade(phase: str, reason: str) -> str:
         # Fairness rule: a claude-code failure must surface as the framework's
@@ -862,9 +890,15 @@ async def run(
             "is unset; ssh/Windows path skipped, using local claude"
         )
         use_windows = False
+    if use_windows and _egress.enforced() and not _egress.remote_enforced():
+        raise RuntimeError(
+            "claude-code Windows mode has no attested route to the bracketed "
+            "egress door (set DRA_REMOTE_EGRESS_PROXY and "
+            "DRA_REMOTE_EGRESS_ENFORCED=1 after remote isolation preflight)"
+        )
     ssh_fallback_allowed = bool(ssh_host) and (
         os.environ.get("CLAUDE_CODE_NO_WINDOWS_FALLBACK") != "1"
-    )
+    ) and (not _egress.enforced() or _egress.remote_enforced())
 
     if not use_windows:
         try:
@@ -876,28 +910,15 @@ async def run(
                 timeout_s=timeout_s,
                 strict_sandbox=strict_sandbox,
             )
-            if not is_weak_report(local_report, min_chars=3000, min_urls=3):
+            # Any completed local attempt is final, including an honest error
+            # stub. Retrying the same framework on Windows after a model/runtime
+            # failure gave this lane a second scored attempt. Only the explicit
+            # pre-dispatch "executable unavailable" condition is a transport
+            # fallback.
+            if not local_report.startswith("(claude-code local unavailable:"):
                 return local_report
-            logger.warning("claude-code local path returned short/error report: %s", local_report[:500])
             if not ssh_fallback_allowed:
-                if not ssh_host:
-                    logger.info(
-                        "[claude-code] ssh fallback skipped: CLAUDE_CODE_SSH_HOST "
-                        "unset (ssh path is default-disabled)"
-                    )
-                if fallback_enabled():
-                    return _degrade(
-                        "write",
-                        "local report weak/under-threshold and windows fallback disabled",
-                    )
-                # Weak-but-real local output: save it verbatim (the scorer
-                # judges quality); stub only genuinely empty/stub output.
-                return keep_or_stub(
-                    "claude-code",
-                    "write",
-                    "local report weak/under-threshold and windows fallback disabled",
-                    local_report,
-                )
+                return local_report
         except Exception as e:
             logger.exception("claude-code local path failed")
             if not ssh_fallback_allowed:
@@ -943,7 +964,8 @@ async def run(
             f'-IntentPath "{intent_remote}" -ReportPath "{report_remote}" '
             f'-StdoutPath "{stdout_remote}" -WorkDir "{workdir_remote}" '
             f'-ShimUrl "{shim_url}" -ShoppingUrl "{shopping_url}" '
-            f'-RedditUrl "{reddit_url}" -WikipediaUrl "{wikipedia_url}"'
+            f'-RedditUrl "{reddit_url}" -WikipediaUrl "{wikipedia_url}" '
+            f'-EgressProxyUrl "{_egress.remote_proxy()}"'
         )
 
         proc, elapsed = await asyncio.get_event_loop().run_in_executor(
@@ -964,20 +986,15 @@ async def run(
         if stdout_wsl.exists():
             stdout_text = stdout_wsl.read_text(encoding="utf-8", errors="replace")
 
-        # If the agent wrote the report via its Write tool, trust that file.
-        # Otherwise fall back to whatever it streamed to stdout (some prompts
-        # cause it to dump the report inline instead of Write-ing).
-        if len(report) < 500 and stdout_text.strip():
-            logger.info(
-                "claude-code: report file is %d chars, falling back to %d chars stdout",
-                len(report), len(stdout_text),
+        if not report:
+            return _degrade(
+                "write",
+                "claude-code did not write the requested report file; "
+                f"stdout tail={stdout_text[-500:]}",
             )
-            report = stdout_text.strip()
 
         if is_weak_report(report, min_chars=3000, min_urls=3):
             logger.warning("claude-code ssh report weak/empty")
-            if fallback_enabled():
-                return _degrade("write", "native report weak/under-threshold")
             # Weak-but-real output is claude-code's own report: save it verbatim
             # (the scorer judges quality); stub only genuinely empty/stub output.
             return keep_or_stub(
@@ -1012,7 +1029,7 @@ if __name__ == "__main__":
     parser.add_argument("intent")
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o")
     parser.add_argument("--strict-sandbox", action="store_true", default=False)

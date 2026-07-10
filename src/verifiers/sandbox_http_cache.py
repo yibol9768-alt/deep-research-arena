@@ -77,6 +77,24 @@ def _key(url: str) -> str:
     return (url or "").strip()
 
 
+# A cache miss during scoring used to trigger a live HTTP request, whose result
+# was then recorded as a hit. So a URL the model invented, but which happened to
+# exist, was fetched BY THE EVALUATOR at scoring time and counted as grounded.
+# The instrument confirmed the model's guess for it.
+#
+# With STRICT_NO_REFETCH on, a miss raises. Grounding must come from the bytes
+# the shim served the agent during the run (see integrations/search_shim/
+# evidence.py), never from a page the scorer went and got afterwards.
+#
+# Set DRA_ALLOW_SCORING_REFETCH=1 only for building a cache on purpose.
+STRICT_NO_REFETCH = os.environ.get("DRA_ALLOW_SCORING_REFETCH", "0").strip().lower() \
+    not in {"1", "true", "yes", "on"}
+
+
+class ScoringRefetchBlocked(RuntimeError):
+    """The scorer tried to open a socket. It must not."""
+
+
 def install(cache_path: str | None = None, store_text: bool = True) -> bool:
     """Monkeypatch requests.get to serve the cache. Idempotent. Returns True if active."""
     global _INSTALLED, _CACHE, _CACHE_PATH
@@ -99,6 +117,14 @@ def install(cache_path: str | None = None, store_text: bool = True) -> bool:
         hit = _CACHE.get(k)
         if hit is not None:
             return _FakeResponse(url, hit.get("status", 0), hit.get("text", "") if store_text else "")
+        if STRICT_NO_REFETCH:
+            raise ScoringRefetchBlocked(
+                f"cache miss for {url!r} during scoring. Refusing to fetch it: "
+                "a URL the model invented would then be confirmed by the "
+                "evaluator's own request. Grounding comes from the run's "
+                "evidence log, not from a page fetched after the fact. "
+                "Set DRA_ALLOW_SCORING_REFETCH=1 only when building a cache."
+            )
         # miss: real fetch, then record (cap text so the cache stays modest)
         try:
             r = _real_get(url, *args, **kwargs)

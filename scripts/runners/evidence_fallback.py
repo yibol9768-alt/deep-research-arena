@@ -105,7 +105,24 @@ def sandbox_url_count(text: str) -> int:
     return len(set(re.findall(r"https?://(?:localhost|127\.0\.0\.1):[0-9]+[^\s)\]]+", text or "")))
 
 
-def is_weak_report(text: str, *, min_chars: int = 3000, min_urls: int = 3) -> bool:
+def is_weak_report(text: str, *, min_chars: int = 3000, min_urls: int | None = None) -> bool:
+    """Is this output a failure rather than a report?
+
+    The predicate used to end with ``sandbox_url_count(text) < min_urls``, i.e.
+    the harness decided whether a lane had failed by measuring the very quantity
+    the scorer measures (sandbox URL count is reach's numerator). A framework
+    that retrieved nothing and wrote an honest ungrounded essay was reclassified
+    as "broken" and routed to the rescue writer, while the same essay from a
+    lane with rescue disabled was scored as-is. Worse, it made "cite more
+    sandbox URLs" a way to avoid harness intervention.
+
+    The criteria are now orthogonal to every scored axis: emptiness, length far
+    below any plausible report, and the runners' own failure markers. Grounding
+    is the scorer's business, not the capture layer's.
+
+    ``min_urls`` is accepted and ignored, so the ~10 call sites that still pass
+    it keep working; passing it has no effect on the verdict.
+    """
     if len((text or "").strip()) < min_chars:
         return True
     lowered = (text or "").lower()
@@ -118,9 +135,7 @@ def is_weak_report(text: str, *, min_chars: int = 3000, min_urls: int = 3) -> bo
         "no information",
         "not present in the sources",
     )
-    if any(p in lowered for p in bad_phrases):
-        return True
-    return sandbox_url_count(text) < min_urls
+    return any(p in lowered for p in bad_phrases)
 
 
 def _compact(text: str, limit: int) -> str:

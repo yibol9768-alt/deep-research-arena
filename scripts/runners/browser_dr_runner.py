@@ -20,6 +20,15 @@ from typing import Any
 
 AGENT_NAME = "browser-dr"
 
+# Standalone acquisition-modality pilot, not a framework x backbone lane. The
+# adapter currently constructs BrowserDRAgent without injecting a model policy;
+# BrowserDRAgent therefore uses MockPolicy and never calls the requested
+# ``model``. Registering it on a DeepSeek/Qwen/GLM board would mislabel a
+# deterministic baseline as that backbone. Keep the runner directly callable
+# for browser-modality tests until a real policy is injected and identity-probed.
+BENCHMARK_ENABLED = False
+BENCHMARK_DISABLED_REASON = "default BrowserDRAgent uses MockPolicy and ignores requested backbone"
+
 # The runner only constructs localhost sandbox hosts and passes the shim/proxy
 # endpoints supplied by run_deep_task.py. BrowserSandboxBackend resolves the
 # three sandbox sentinels to these hosts and never needs open-web access.

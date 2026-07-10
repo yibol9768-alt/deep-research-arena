@@ -377,6 +377,29 @@ def test_mark_end_closes_bracket(make_gw, tmp_path):
     assert "run_id" not in usage  # bracket closed
 
 
+def test_mark_end_cannot_clear_another_runs_bracket(make_gw):
+    _mod, client, _router = make_gw()
+    assert client.post("/_mark", json={
+        "phase": "start", "run_id": "owner", "lane": "storm",
+        "task": "t1", "backbone": "qwen3-8b",
+    }).status_code == 200
+
+    wrong = client.post("/_mark", json={"phase": "end", "run_id": "intruder"})
+    assert wrong.status_code == 409
+    assert wrong.json()["detail"]["error"] == "run_owner_mismatch"
+
+    second = client.post("/_mark", json={"phase": "start", "run_id": "second"})
+    assert second.status_code == 409
+    assert second.json()["detail"]["error"] == "run_already_active"
+
+    missing = client.post("/_mark", json={"phase": "end"})
+    assert missing.status_code == 400
+
+    closed = client.post("/_mark", json={"phase": "end", "run_id": "owner"})
+    assert closed.status_code == 200
+    assert closed.json()["closed"] == "owner"
+
+
 # ---------------------------------------------------------------------------
 # Introspection endpoints never leak keys
 # ---------------------------------------------------------------------------

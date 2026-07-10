@@ -1,0 +1,129 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0019",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "My phone is four years old and the battery barely makes it to lunch, so I'm finally replacing it. I can comfortably afford a mid-range model, but everyone tells me to stretch for a flagship because it'll \"last longer\". Money's tight after moving apartments, honestly. What am I actually giving up in the cheaper tier that would matter day to day, and does the battery in a pricier phone genuinely age better, or is that just a story we tell ourselves? I'd love to end with the phone you'd actually put in my cart, plus a new charger if my ancient one won't cut it.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=travel+guide",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 10,
+      "__REDDIT__": 30,
+      "__WIKIPEDIA__": 25
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0019.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    },
+    "v1_deprecated_note": "v1-only artifact: pool/triples describe the pre-2026-07-03 topic of this task id and are NOT valid for task_version 2; v2 scoring reads data/golden/answer_keys/<task_id>.json exclusively"
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0019.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ],
+    "v1_deprecated_note": "v1-only artifact: pool/triples describe the pre-2026-07-03 topic of this task id and are NOT valid for task_version 2; v2 scoring reads data/golden/answer_keys/<task_id>.json exclusively"
+  },
+  "synthesis_requirements": {
+    "task_type": "comparison",
+    "comparison_paths": [
+      "us",
+      "uk",
+      "jp",
+      "sg"
+    ],
+    "use_cases": [
+      "schengen",
+      "east_asia",
+      "se_asia",
+      "latin_america",
+      "africa"
+    ],
+    "matrix_cells_required": 20,
+    "min_evidence_per_cell": {
+      "shopping": 1,
+      "reddit": 1,
+      "wikipedia": 1
+    }
+  },
+  "coverage_checklist_path": "data/golden/checklists/dr_cross_deep_0019.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "smartphones",
+  "intent_type": "Comparison",
+  "intent_v1_legacy": "Produce a Comparison report on visa-free destinations for 4 passport tiers — (P1) US, (P2) UK, (P3) Japan, (P4) Singapore — across 5 destination categories: (D1) Schengen Europe, (D2) East Asia, (D3) Southeast Asia, (D4) Latin America, (D5) Africa. Each cell = number of visa-free destinations + max stay duration + any visa-on-arrival exceptions. Ground in >= 120 sandbox URLs, cite >= 60. (A) `__SHOPPING__` >= 10 travel guides / passport holders / luggage + price + rating. (B) `__REDDIT__` >= 30 threads from /f/travel, /f/digitalnomad, /f/onebag, /f/IWantOut, /f/expats, /f/JapanTravel, /f/solotravel. (C) `__WIKIPEDIA__` >= 25 articles, mandatory: Visa policy of the United States, Visa policy of Japan, Visa policy of Singapore, Visa policy of the United Kingdom, Henley Passport Index, Schengen Area, Visa on arrival, Electronic travel authorization, Travel visa, Visa-free entry. Output a 4 (passport) x 5 (region) matrix + 'best passport for digital nomads' analysis. Format: markdown links only. Begin with matrix.",
+  "task_version": 2,
+  "tri_source": {
+    "cluster": "smartphones",
+    "category_ids": [
+      12,
+      66,
+      204,
+      225
+    ],
+    "keyword_filter": null,
+    "forums": [
+      "iphone",
+      "technology",
+      "gadgets"
+    ],
+    "wiki_topics": [
+      "Smartphone",
+      "Lithium-ion battery",
+      "USB-C"
+    ],
+    "archetype": "buying-dilemma",
+    "angle": "Stretch to a flagship or settle for mid-range when the driver is a dying four-year-old battery"
+  },
+  "coverage_checklist_path_v1_legacy": "data/tasks/deep_research/cross_site_deep/checklists_deep.json"
+}

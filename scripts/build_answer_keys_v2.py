@@ -12,6 +12,9 @@ assembles an AnswerKey from the cluster's box-derived data:
                    complaint, all decidable against the DB) + one nugget per
                    wiki topic (concept coverage, checked as text presence);
   useful_nuggets = second-tier sentiment products;
+  forum requirement = one quoted, on-topic thread from the task-declared
+                   forums (stored as metadata and scored as one completeness
+                   slot; no unadjudicated thread is mislabeled as exact gold);
   spec           = archetype-derived output shape (decidable):
                    buying-dilemma/value-question -> shortlist section;
                    claim-check/community-vs-ratings -> verdict-style section;
@@ -49,6 +52,22 @@ KEYS_OUT = ROOT / "data/golden/answer_keys"
 CONTRA_DIR = ROOT / "data/golden/contradictions"
 VERDICTS_DIR = ROOT / "data/golden/verdicts"
 ALLOWED_VERDICT_VALUES = {"SUPPORTED", "REFUTED", "UNDETERMINED"}
+
+# Frozen-ZIM article ids are not always ``topic.replace(' ', '_')``.  Keep the
+# exceptions explicit and test every emitted vital URL against UrlRegistry.
+# The parenthesised ids deliberately remain parenthesised: citation parsing and
+# registry canonicalisation must preserve balanced URL data.
+WIKI_SOURCE_ALIASES = {
+    "Rollover (keyboard)": "Key_rollover",
+    "Qi (standard)": "Qi_(standard)",
+    "Ray tracing (graphics)": "Ray_tracing_(graphics)",
+}
+
+
+def wiki_source_url(topic: str) -> str:
+    article_id = WIKI_SOURCE_ALIASES.get(topic, topic.replace(" ", "_"))
+    return ("http://localhost:8090/content/wikipedia_en_all_nopic/A/"
+            + article_id)
 
 
 def load_adjudicated_gold() -> dict[str, list]:
@@ -127,11 +146,40 @@ should about really actually honestly just like want know been over under
 into been some more most them they still even only end buy pick spend
 """.split())
 
+_FORUM_QUERY_STOP = _INTENT_STOP | set("""first good real really people person
+thing things stuff better best worth price prices expensive cheap cheaper want
+need needs using used after before year years make makes made normal actual
+genuinely tell name pick picks question answer option options
+""".split())
+
 
 def _intent_tokens(intent: str) -> set:
     import re as _re
     return {t for t in _re.findall(r"[a-z][a-z']{3,}", (intent or "").lower())
             if t not in _INTENT_STOP}
+
+
+def _forum_terms(spec: dict) -> tuple[list[str], list[str]]:
+    """Conservative lexical relevance terms for the virtual forum slot.
+
+    The cluster supplies stable domain nouns; the human-written angle supplies
+    task-specific terms.  They are not a list of gold claims.  The scorer uses
+    them only to reject an arbitrary in-forum citation whose page is unrelated
+    to the task, while still requiring an in-text quote from the fetched page.
+    """
+    import re as _re
+
+    core = {
+        t for t in _re.findall(r"[a-z][a-z']{3,}",
+                               str(spec.get("cluster") or "").replace("_", " ").lower())
+        if t not in _FORUM_QUERY_STOP
+    }
+    query = {
+        t for t in _re.findall(r"[a-z][a-z']{3,}",
+                               str(spec.get("angle") or spec.get("intent") or "").lower())
+        if t not in _FORUM_QUERY_STOP and t not in core
+    }
+    return sorted(core), sorted(query)
 
 
 def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey:
@@ -208,7 +256,7 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
         vital.append(Nugget(
             text=f"Explains the factual core: {wt}",
             subject=wt, predicate="concept_coverage", object=wt,
-            source_url=f"http://localhost:8090/content/wikipedia_en_all_nopic/A/{wt.replace(' ', '_')}",
+            source_url=wiki_source_url(wt),
             importance="vital"))
 
     task_min_words = int(spec.get("min_words") or 300)
@@ -230,6 +278,9 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
             params={"keywords": ["claim", "verdict", "true", "myth",
                                  "actually", "evidence"]}))
 
+    forum_core, forum_query = _forum_terms(spec)
+    forums = [str(f).strip() for f in (spec.get("forums") or []) if str(f).strip()]
+
     return AnswerKey(
         task_id=task_id, relevant_set=entities,
         vital_nuggets=vital, useful_nuggets=useful,
@@ -237,6 +288,19 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
         metadata={"builder": "build_answer_keys_v2", "cluster": spec["cluster"],
                   "archetype": spec.get("archetype"), "angle": spec.get("angle"),
                   "wiki_topics": spec.get("wiki_topics"),
+                  # A task that explicitly asks for community experience must
+                  # not award full completeness to a shopping+wiki-only report.
+                  # This is a source requirement, not invented factual gold:
+                  # the scorer accepts any fetched, quoted, lexically on-topic
+                  # thread from one of these declared forums.
+                  "forums": forums,
+                  "forum_core_keywords": forum_core,
+                  "forum_query_keywords": forum_query,
+                  # Structured credit is claim-source bound. A correct number
+                  # or nugget without an inline citation remains diagnostically
+                  # correct, but it cannot fill fact/completeness recall.
+                  "inline_fact_citation_required": True,
+                  "inline_nugget_citation_required": True,
                   "n_relevant": len(entities),
                   "sentiment_products": len(ranked),
                   "source": "db_category_enumeration + review_sentiment_deriver"})
@@ -261,6 +325,7 @@ def main() -> int:
                 specs[tp.stem] = {"cluster": ts["cluster"],
                                   "archetype": ts.get("archetype"),
                                   "angle": ts.get("angle"),
+                                  "forums": ts.get("forums"),
                                   "wiki_topics": ts.get("wiki_topics"),
                                   "intent": t.get("intent", ""),
                                   "min_words": (t.get("markdown_spec") or {}).get("min_words")}

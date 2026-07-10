@@ -1,0 +1,564 @@
+{
+  "task": "dr_cross_deep_0047",
+  "answer_path": "data/results/deep/deerflow__dr_cross_deep_0047_matrix.md",
+  "answer_chars": 11481,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 6,
+      "must_cite_total": 141,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 365,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 1,
+        "__WIKIPEDIA__": 5
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 0.8333,
+    "passed": true,
+    "details": {
+      "cited_total": 6,
+      "cited_sandbox": 6,
+      "cited_off_sandbox": 0,
+      "probed": 6,
+      "http_200": 5,
+      "http_4xx": 1,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 0.8333,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 0.8333,
+    "passed": true,
+    "details": {
+      "claims_total": 12,
+      "claims_supported": 10,
+      "claims_unreachable": 2,
+      "match_rate": 0.8333,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/White_chocolate",
+          "supported": true,
+          "overlap": 0.357
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Caffeine",
+          "supported": true,
+          "overlap": 0.208
+        },
+        {
+          "url": "http://localhost:9999/f/gaming/126444",
+          "supported": true,
+          "overlap": 0.679
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/P%C3%A9trus_(restaurant",
+          "supported": false,
+          "reason": "unreachable"
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Jaffa_Cakes",
+          "supported": true,
+          "overlap": 0.143
+        },
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Mars_Inc",
+          "supported": true,
+          "overlap": 0.316
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 0.8,
+    "passed": true,
+    "details": {
+      "citation_precision": 0.8,
+      "citation_recall": 0.8,
+      "total_pairs": 5,
+      "supported_pairs": 4,
+      "fetch_failures": 1,
+      "sentences_with_cite": 5,
+      "sentences_with_supported_cite": 4,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "- White chocolate",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/White_chocolate",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- Caffeine",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Caffeine",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- Pétrus (restaurant))",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/P%C3%A9trus_(restaurant",
+          "supported": false,
+          "reason": "fetch_failed"
+        },
+        {
+          "claim": "- Jaffa Cakes",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Jaffa_Cakes",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- Mars Inc.",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Mars_Inc",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.8083,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 3,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.75,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=2"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": true,
+          "detail": "contradiction_paragraphs=3"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=2"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.229, total_paragraphs=35"
+        }
+      ],
+      "tier_b_passed": 5,
+      "tier_b_total": 6,
+      "tier_b_rate": 0.833,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies regulatory trends and consumer impact beyond mere listing."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains how regulations and consumer trends influence ratings and preferences."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": false,
+          "reason": "No explicit comparison across different source types is made."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Synthesizes regulatory, historical, and consumer data for insights."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Acknowledges data gaps and reliance on historical context as limitations."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Recommends diverse chocolate selection based on quality and consumer needs."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies regulatory trends and consumer impact beyond mere listing.  \n2. PASS - Explains how regulations and consumer trends influence ratings and preferences.  \n3. FAIL - No explicit comparison across different source types is made.  \n4. PASS - Synthesizes regulatory, historical, and consumer data for insights.  \n5. PASS - Acknowledges data gaps and reliance on historical context as limitations.  \n6. PASS - Recommends diverse chocolate selection based on quality and consumer needs."
+    }
+  },
+  "presentation": {
+    "score": 0.9333,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 5,
+      "tier_a_total": 6,
+      "tier_a_rate": 0.833,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=8"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=1.018, word_counts=[9, 65, 142, 146, 605, 302, 90, 64]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": false,
+          "detail": "flesch_reading_ease=20.8"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to background to analysis to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences between sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present in the report."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent formatting with citations and terminology."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings and provides recommendations."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone with no AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to background to analysis to conclusion.\n2. PASS. Smooth transitions with bridging sentences between sections.\n3. PASS. No empty meta-commentary present in the report.\n4. PASS. Consistent formatting with citations and terminology.\n5. PASS. Conclusion synthesizes findings and provides recommendations.\n6. PASS. Professional tone with no AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.2775,
+    "passed": false,
+    "details": {
+      "total_citations": 12,
+      "sandbox_citations": 12,
+      "distinct_domains": 2,
+      "subforums_cited": [
+        "gaming"
+      ],
+      "type_counts": {
+        "wiki": 10,
+        "reddit": 2
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.13333333333333333,
+        "wiki": 1.0
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 0.65,
+        "top1_share_score": 0.0,
+        "top1_share_raw": 0.8333,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.3333
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.1429,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "Regulatory Landscape for Chocolate Composition",
+        "Historical Changes and Consumer Preferences",
+        "Current Reviews and Ratings: A Data Gap",
+        "Evaluation of Reliability and Significance",
+        "**EU/UK/JP Chocolate Bars (High Quality, Authenticity)**",
+        "**US/AU/NZ Chocolate Bars (Cost-Effective, Convenience)**",
+        "**Specialty and Ethical Chocolate Bars (Growing Trend)**"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.1429,
+        "rows": [
+          {
+            "entity": "Regulatory Landscape for Chocolate Composition",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 1,
+            "ratio": 1.0,
+            "passed": true
+          },
+          {
+            "entity": "Historical Changes and Consumer Preferences",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Current Reviews and Ratings: A Data Gap",
+            "mentioned": true,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "Evaluation of Reliability and Significance",
+            "mentioned": true,
+            "positive": 1,
+            "negative": 0,
+            "ratio": 99.9,
+            "passed": false
+          },
+          {
+            "entity": "**EU/UK/JP Chocolate Bars (High Quality, Authenticity)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**US/AU/NZ Chocolate Bars (Cost-Effective, Convenience)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**Specialty and Ethical Chocolate Bars (Growing Trend)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.1429,
+        "rows": [
+          {
+            "entity": "Regulatory Landscape for Chocolate Composition",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Historical Changes and Consumer Preferences",
+            "verdict": "PASS"
+          },
+          {
+            "entity": "Current Reviews and Ratings: A Data Gap",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "Evaluation of Reliability and Significance",
+            "verdict": "FAIL"
+          },
+          {
+            "entity": "**EU/UK/JP Chocolate Bars (High Quality, Authenticity)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**US/AU/NZ Chocolate Bars (Cost-Effective, Convenience)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**Specialty and Ethical Chocolate Bars (Growing Trend)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no_extracted_facts",
+      "paragraphs_attempted": 2,
+      "extract_errors": 2,
+      "judge": "qwen3-8b"
+    }
+  },
+  "internal_consistency": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "applicable": true,
+      "sentence_count": 54,
+      "cluster_count": 3,
+      "pairs_tested": 9,
+      "contradictions": 0,
+      "min_score": 0.85,
+      "judge": "qwen3-8b",
+      "judge_error": null,
+      "cluster_summary": [
+        {
+          "entity": "new zealand",
+          "size": 4,
+          "pairs_tested": 6,
+          "contradictions": 0
+        },
+        {
+          "entity": "office selection",
+          "size": 3,
+          "pairs_tested": 3,
+          "contradictions": 0
+        },
+        {
+          "entity": "jaffa cakes mars inc",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        }
+      ],
+      "contradiction_rows": []
+    }
+  },
+  "markdown_spec": {
+    "word_count": 1510,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 12,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 35,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 0.3333,
+    "quality_score": 0.0667,
+    "truth_factor": 0.3819,
+    "qm_factor": 0.9166,
+    "nli_factor": 0.5,
+    "grounding_gate": 0.8333,
+    "raw_score_v3": 0.4475,
+    "citation_alignment": 0.8,
+    "analysis_depth": 0.8083,
+    "presentation": 0.9333,
+    "composite_v3": 0.3729,
+    "composite_score": 0.0255,
+    "composite_v2": 0.0255,
+    "composite_v1": 0.0556,
+    "legacy_composite": 0.05,
+    "composite_v4": 0.3921,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.2775,
+    "perspective_balance": 0.1429,
+    "factual_exactness": 0.0,
+    "internal_consistency": 1.0
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

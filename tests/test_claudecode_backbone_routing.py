@@ -34,6 +34,8 @@ def _clean_env(monkeypatch, tmp_path):
         "CLAUDE_CODE_CCR_URL",
         "CLAUDE_CODE_LOCAL_CCR_URL",
         "CLAUDE_CODE_SSH_HOST",
+        "CLAUDE_CODE_GATEWAY_URL",
+        "DS_PROXY_URL",
         "DEEP_RUN_REPORT_PATH",
     ):
         monkeypatch.delenv(var, raising=False)
@@ -75,6 +77,32 @@ def test_config_pins_every_route_to_backbone():
     assert provider["transformer"] == {"use": [["maxtoken", {"max_tokens": 8192}]]}
     for route in ("default", "background", "think", "longContext", "webSearch"):
         assert cfg["Router"][route] == "gateway,deepseek-v4-flash"
+
+
+def test_config_uses_runtime_worker_gateway_not_host_loopback():
+    gateway = "http://10.240.9.1:8100/v1"
+    chat = ccrun._gateway_chat_url(gateway)
+    assert chat == "http://10.240.9.1:8100/v1/chat/completions"
+    cfg = ccrun._build_ccr_config("deepseek-v4-flash", 3462, chat)
+    assert cfg["Providers"][0]["api_base_url"] == chat
+    assert ccrun._config_routes_model(cfg, "deepseek-v4-flash", chat)
+    assert not ccrun._config_routes_model(
+        cfg,
+        "deepseek-v4-flash",
+        "http://127.0.0.1:8100/v1/chat/completions",
+    )
+
+
+def test_local_tool_policy_uses_exact_runtime_shim_origin():
+    args = ccrun._local_tool_policy_args(
+        strict_sandbox=True,
+        shim_url="http://10.240.9.1:8081",
+    )
+    assert args[:3] == ["--allowed-tools", "Write", "Edit"]
+    bash_tools = args[3:]
+    assert bash_tools == ccrun._shim_bash_tools("http://10.240.9.1:8081")
+    assert bash_tools and all("10.240.9.1:8081" in item for item in bash_tools)
+    assert all("localhost" not in item for item in bash_tools)
 
 
 # ---------------------------------------------------------------------------

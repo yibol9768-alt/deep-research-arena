@@ -1,0 +1,692 @@
+{
+  "task": "dr_cross_deep_0043",
+  "answer_path": "data/results/deep/deerflow__dr_cross_deep_0043_matrix.md",
+  "answer_chars": 13075,
+  "url_coverage": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "cited_unique": 3,
+      "must_cite_total": 144,
+      "must_cite_hit": 0,
+      "must_cite_recall": 0.0,
+      "must_cite_recall_full": 0.0,
+      "curated_must_cite_n": 12,
+      "pool_total": 529,
+      "pool_hit": 0,
+      "pool_coverage": 0.0,
+      "per_domain_cited": {
+        "__SHOPPING__": 0,
+        "__REDDIT__": 2,
+        "__WIKIPEDIA__": 1
+      },
+      "per_domain_minimum": {
+        "__SHOPPING__": 30,
+        "__REDDIT__": 20,
+        "__WIKIPEDIA__": 15
+      },
+      "domain_balance": 0.0,
+      "threshold_must_cite_recall": 0.45,
+      "threshold_pool_coverage": 0.0,
+      "threshold_unique_cited": 60
+    }
+  },
+  "url_reachability": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "cited_total": 3,
+      "cited_sandbox": 3,
+      "cited_off_sandbox": 0,
+      "probed": 3,
+      "http_200": 3,
+      "http_4xx": 0,
+      "http_5xx": 0,
+      "net_fail": 0,
+      "reachability_rate": 1.0,
+      "threshold": 0.3,
+      "infra_failure": false,
+      "infra_warning": false
+    }
+  },
+  "quote_match": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "claims_total": 3,
+      "claims_supported": 3,
+      "claims_unreachable": 0,
+      "match_rate": 1.0,
+      "threshold": 0.3,
+      "jaccard_floor": 0.1,
+      "samples": [
+        {
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Pu'er_tea",
+          "supported": true,
+          "overlap": 0.278
+        },
+        {
+          "url": "http://localhost:9999/f/personalfinance/130947",
+          "supported": true,
+          "overlap": 0.231
+        },
+        {
+          "url": "http://localhost:9999/f/personalfinance/130925",
+          "supported": true,
+          "overlap": 0.238
+        }
+      ]
+    }
+  },
+  "claim_nli": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "golden has no quoted_span — run draft_quote_spans.py first",
+      "n_quotes": 0
+    }
+  },
+  "citation_alignment": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "total_pairs": 3,
+      "supported_pairs": 3,
+      "fetch_failures": 0,
+      "sentences_with_cite": 3,
+      "sentences_with_supported_cite": 3,
+      "threshold": 0.5,
+      "judge": {
+        "provider": "openai",
+        "model": "qwen3-8b",
+        "heavy_model": "qwen3-8b",
+        "base_url": "http://127.0.0.1:8001/v1"
+      },
+      "samples": [
+        {
+          "claim": "- Pu'er tea",
+          "url": "http://localhost:8090/content/wikipedia_en_all_nopic/Pu'er_tea",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- r/personalfinance: Tips on breaking bad spending habits?",
+          "url": "http://localhost:9999/f/personalfinance/130947",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        },
+        {
+          "claim": "- r/personalfinance: Whole Life Insurance - Cash Out?",
+          "url": "http://localhost:9999/f/personalfinance/130925",
+          "supported": true,
+          "verdict": "VERDICT: SUPPORTED"
+        }
+      ]
+    }
+  },
+  "analysis_depth": {
+    "score": 0.85,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 2,
+      "tier_a_total": 4,
+      "tier_a_rate": 0.5,
+      "tier_a_items": [
+        {
+          "criterion": "has_cross_source_section",
+          "passed": true,
+          "detail": "paragraphs_with_multi_domain_refs=1"
+        },
+        {
+          "criterion": "contradiction_count",
+          "passed": false,
+          "detail": "contradiction_paragraphs=0"
+        },
+        {
+          "criterion": "multi_evidence_chains",
+          "passed": false,
+          "detail": "multi_evidence_paragraphs=1"
+        },
+        {
+          "criterion": "comparative_language_density",
+          "passed": true,
+          "detail": "density=0.302, total_paragraphs=43"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "beyond_enumeration",
+          "passed": true,
+          "reason": "Identifies patterns in leaf grade, processing, and consumer perception."
+        },
+        {
+          "criterion": "causal_reasoning",
+          "passed": true,
+          "reason": "Explains why traditional methods and leaf grade affect price and quality."
+        },
+        {
+          "criterion": "source_triangulation",
+          "passed": true,
+          "reason": "Compares sources on leaf grade, processing, and consumer reviews."
+        },
+        {
+          "criterion": "novel_insight",
+          "passed": true,
+          "reason": "Synthesizes leaf grade, processing, and branding to suggest middle-tier options."
+        },
+        {
+          "criterion": "counterargument_awareness",
+          "passed": true,
+          "reason": "Acknowledges data limitations and mixed consumer perceptions."
+        },
+        {
+          "criterion": "actionable_conclusion",
+          "passed": true,
+          "reason": "Recommends middle-tier teas for daily consumption based on analysis."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS - Identifies patterns in leaf grade, processing, and consumer perception.  \n2. PASS - Explains why traditional methods and leaf grade affect price and quality.  \n3. PASS - Compares sources on leaf grade, processing, and consumer reviews.  \n4. PASS - Synthesizes leaf grade, processing, and branding to suggest middle-tier options.  \n5. PASS - Acknowledges data limitations and mixed consumer perceptions.  \n6. PASS - Recommends middle-tier teas for daily consumption based on analysis."
+    }
+  },
+  "presentation": {
+    "score": 1.0,
+    "passed": true,
+    "details": {
+      "tier_a_passed": 6,
+      "tier_a_total": 6,
+      "tier_a_rate": 1.0,
+      "tier_a_items": [
+        {
+          "criterion": "heading_hierarchy",
+          "passed": true,
+          "detail": "levels_found=[1, 2, 3]"
+        },
+        {
+          "criterion": "section_count",
+          "passed": true,
+          "detail": "h2_sections=9"
+        },
+        {
+          "criterion": "section_balance",
+          "passed": true,
+          "detail": "cv=1.199, word_counts=[12, 20, 120, 77, 826, 398, 188, 148]"
+        },
+        {
+          "criterion": "list_or_table_usage",
+          "passed": true,
+          "detail": ""
+        },
+        {
+          "criterion": "no_orphan_text",
+          "passed": true,
+          "detail": "orphan_blocks=0"
+        },
+        {
+          "criterion": "flesch_readability",
+          "passed": true,
+          "detail": "flesch_reading_ease=37.4"
+        }
+      ],
+      "tier_b_passed": 6,
+      "tier_b_total": 6,
+      "tier_b_rate": 1.0,
+      "tier_b_items": [
+        {
+          "criterion": "logical_flow",
+          "passed": true,
+          "reason": "Logical progression from intro to background to analysis to conclusion."
+        },
+        {
+          "criterion": "transition_quality",
+          "passed": true,
+          "reason": "Smooth transitions with bridging sentences between sections."
+        },
+        {
+          "criterion": "no_meta_filler",
+          "passed": true,
+          "reason": "No empty meta-commentary present in the report."
+        },
+        {
+          "criterion": "consistent_formatting",
+          "passed": true,
+          "reason": "Consistent formatting with citations, terminology, and style."
+        },
+        {
+          "criterion": "conclusion_synthesizes",
+          "passed": true,
+          "reason": "Conclusion synthesizes findings and provides implications."
+        },
+        {
+          "criterion": "professional_tone",
+          "passed": true,
+          "reason": "Professional tone with no AI filler phrases."
+        }
+      ],
+      "judge_model": "qwen3-8b",
+      "judge_provider": "openai",
+      "judge_error": null,
+      "raw_judge_output": "1. PASS. Logical progression from intro to background to analysis to conclusion.  \n2. PASS. Smooth transitions with bridging sentences between sections.  \n3. PASS. No empty meta-commentary present in the report.  \n4. PASS. Consistent formatting with citations, terminology, and style.  \n5. PASS. Conclusion synthesizes findings and provides implications.  \n6. PASS. Professional tone with no AI filler phrases."
+    }
+  },
+  "source_diversity": {
+    "score": 0.3714,
+    "passed": false,
+    "details": {
+      "total_citations": 3,
+      "sandbox_citations": 3,
+      "distinct_domains": 2,
+      "subforums_cited": [
+        "personalfinance"
+      ],
+      "type_counts": {
+        "wiki": 1,
+        "reddit": 2
+      },
+      "type_fills": {
+        "shopping": 0.0,
+        "reddit": 0.13333333333333333,
+        "wiki": 0.1
+      },
+      "min_per_type": {},
+      "min_subforums": 3,
+      "subscores": {
+        "domain_entropy": 0.9183,
+        "top1_share_score": 0.0,
+        "top1_share_raw": 0.6667,
+        "type_balance": 0.0,
+        "subforum_diversity": 0.3333
+      },
+      "weights": {
+        "domain_entropy": 0.35,
+        "top1_share": 0.25,
+        "type_balance": 0.25,
+        "subforum_diversity": 0.15
+      },
+      "min_score_gate": 0.5
+    }
+  },
+  "perspective_balance": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "applicable": true,
+      "entities": [
+        "**1. Leaf Grade and Quality as a Primary Determinant of Tea Price**",
+        "**2. Processing Methods Influence Quality and Price**",
+        "**3. Packaging and Branding as Drivers of Perceived Value**",
+        "**4. Middle-Tier Tea Options Offer a Balance Between Quality and Affordability**",
+        "**5. Consumer Perceptions of Value for Money Are Mixed**",
+        "**6. Limitations and Gaps in the Research**",
+        "**1. Tieguanyin (Chinese Oolong)**",
+        "**2. Lapsang Souchong (Black Tea)**",
+        "**3. Assam (Black Tea)**",
+        "**4. Twinings (Black, Green, and Herbal Teas)**",
+        "**5. PG Tips (Black Tea)**",
+        "**6. Tea Forte (Black, Green, and Herbal Teas)**"
+      ],
+      "tier_a": {
+        "weight": 0.4,
+        "rate": 0.0,
+        "rows": [
+          {
+            "entity": "**1. Leaf Grade and Quality as a Primary Determinant of Tea Price**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**2. Processing Methods Influence Quality and Price**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**3. Packaging and Branding as Drivers of Perceived Value**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**4. Middle-Tier Tea Options Offer a Balance Between Quality and Affordability**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**5. Consumer Perceptions of Value for Money Are Mixed**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**6. Limitations and Gaps in the Research**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**1. Tieguanyin (Chinese Oolong)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**2. Lapsang Souchong (Black Tea)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**3. Assam (Black Tea)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**4. Twinings (Black, Green, and Herbal Teas)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**5. PG Tips (Black Tea)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          },
+          {
+            "entity": "**6. Tea Forte (Black, Green, and Herbal Teas)**",
+            "mentioned": false,
+            "positive": 0,
+            "negative": 0,
+            "ratio": 0.0,
+            "passed": false
+          }
+        ]
+      },
+      "tier_b": {
+        "weight": 0.6,
+        "rate": 0.0,
+        "rows": [
+          {
+            "entity": "**1. Leaf Grade and Quality as a Primary Determinant of Tea Price**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**2. Processing Methods Influence Quality and Price**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**3. Packaging and Branding as Drivers of Perceived Value**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**4. Middle-Tier Tea Options Offer a Balance Between Quality and Affordability**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**5. Consumer Perceptions of Value for Money Are Mixed**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**6. Limitations and Gaps in the Research**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**1. Tieguanyin (Chinese Oolong)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**2. Lapsang Souchong (Black Tea)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**3. Assam (Black Tea)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**4. Twinings (Black, Green, and Herbal Teas)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**5. PG Tips (Black Tea)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          },
+          {
+            "entity": "**6. Tea Forte (Black, Green, and Herbal Teas)**",
+            "verdict": "FAIL",
+            "reason": "not_mentioned"
+          }
+        ],
+        "judge": "qwen3-8b",
+        "judge_error": null,
+        "n_errors": 0
+      }
+    }
+  },
+  "factual_exactness": {
+    "score": 0.0,
+    "passed": false,
+    "details": {
+      "reason": "no_extracted_facts",
+      "paragraphs_attempted": 1,
+      "extract_errors": 1,
+      "judge": "qwen3-8b"
+    }
+  },
+  "internal_consistency": {
+    "score": 0.9167,
+    "passed": true,
+    "details": {
+      "applicable": true,
+      "sentence_count": 97,
+      "cluster_count": 11,
+      "pairs_tested": 48,
+      "contradictions": 4,
+      "min_score": 0.85,
+      "judge": "qwen3-8b",
+      "judge_error": null,
+      "cluster_summary": [
+        {
+          "entity": "middle-tier",
+          "size": 9,
+          "pairs_tested": 12,
+          "contradictions": 0
+        },
+        {
+          "entity": "leaf grade",
+          "size": 6,
+          "pairs_tested": 12,
+          "contradictions": 4
+        },
+        {
+          "entity": "consumer perception",
+          "size": 6,
+          "pairs_tested": 12,
+          "contradictions": 0
+        },
+        {
+          "entity": "consumer experiences",
+          "size": 3,
+          "pairs_tested": 3,
+          "contradictions": 0
+        },
+        {
+          "entity": "lapsang souchong",
+          "size": 3,
+          "pairs_tested": 3,
+          "contradictions": 0
+        },
+        {
+          "entity": "higher-grade",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "consumer perceptions",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "high-grade",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "medium-grade",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "pg tips",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        },
+        {
+          "entity": "tea forte",
+          "size": 2,
+          "pairs_tested": 1,
+          "contradictions": 0
+        }
+      ],
+      "contradiction_rows": [
+        {
+          "entity": "leaf grade",
+          "i": 48,
+          "j": 53,
+          "s1_excerpt": "--- **Leaf Grade**: High-grade, with large, intact leaves.",
+          "s2_excerpt": "**Leaf Grade**: Medium-grade, with a strong, smoky flavor.",
+          "verdict": "CONTRADICT"
+        },
+        {
+          "entity": "leaf grade",
+          "i": 48,
+          "j": 68,
+          "s1_excerpt": "--- **Leaf Grade**: High-grade, with large, intact leaves.",
+          "s2_excerpt": "**Leaf Grade**: Medium-grade, with a strong, robust flavor.",
+          "verdict": "CONTRADICT"
+        },
+        {
+          "entity": "leaf grade",
+          "i": 53,
+          "j": 58,
+          "s1_excerpt": "**Leaf Grade**: Medium-grade, with a strong, smoky flavor.",
+          "s2_excerpt": "**Leaf Grade**: High-grade, with robust, full-bodied leaves.",
+          "verdict": "CONTRADICT"
+        },
+        {
+          "entity": "leaf grade",
+          "i": 58,
+          "j": 68,
+          "s1_excerpt": "**Leaf Grade**: High-grade, with robust, full-bodied leaves.",
+          "s2_excerpt": "**Leaf Grade**: Medium-grade, with a strong, robust flavor.",
+          "verdict": "CONTRADICT"
+        }
+      ]
+    }
+  },
+  "markdown_spec": {
+    "word_count": 1909,
+    "min_words": 3500,
+    "max_words": 8000,
+    "words_ok": false,
+    "citation_count": 3,
+    "min_citations": 60,
+    "citations_ok": false,
+    "paragraph_count": 42,
+    "min_paragraphs": 25,
+    "paragraphs_ok": true
+  },
+  "checklist": {
+    "verdicts": [],
+    "pass_rate": 0.0,
+    "judge_error": "no checklist"
+  },
+  "composite": {
+    "spec_pass_fraction": 0.3333,
+    "quality_score": 0.0667,
+    "truth_factor": 0.5,
+    "qm_factor": 1.0,
+    "nli_factor": 0.5,
+    "grounding_gate": 1.0,
+    "raw_score_v3": 0.5183,
+    "citation_alignment": 1.0,
+    "analysis_depth": 0.85,
+    "presentation": 1.0,
+    "composite_v3": 0.5183,
+    "composite_score": 0.0333,
+    "composite_v2": 0.0333,
+    "composite_v1": 0.0667,
+    "legacy_composite": 0.05,
+    "composite_v4": 0.4931,
+    "composite_v4_weights": {
+      "url_coverage": 0.1,
+      "spec": 0.05,
+      "checklist": 0.1,
+      "citation_alignment": 0.1,
+      "quote_match": 0.05,
+      "factual_exactness": 0.13,
+      "internal_consistency": 0.13,
+      "perspective_balance": 0.08,
+      "source_diversity": 0.06,
+      "analysis_depth": 0.1,
+      "presentation": 0.1
+    },
+    "source_diversity": 0.3714,
+    "perspective_balance": 0.0,
+    "factual_exactness": 0.0,
+    "internal_consistency": 0.9167
+  },
+  "judge_identity": {
+    "provider": "openai",
+    "model": "qwen3-8b",
+    "heavy_model": "qwen3-8b",
+    "base_url": "http://127.0.0.1:8001/v1"
+  }
+}

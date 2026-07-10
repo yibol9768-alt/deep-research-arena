@@ -41,6 +41,7 @@ import textwrap
 import time
 from pathlib import Path
 
+from . import _budget, _egress
 from ._runner_lock import runner_exclusive_lock
 from .evidence_fallback import error_stub, fallback_enabled, keep_or_stub, synthesize_report
 
@@ -54,7 +55,9 @@ LDR_PYTHON = str(ROOT / ".venv-ldr312" / "bin" / "python")
 # generation, so we allow a generous window.
 # ---------------------------------------------------------------------------
 DEFAULT_TIMEOUT_S = 1800
-DEFAULT_NATIVE_TIMEOUT_S = int(os.environ.get("LDR_NATIVE_TIMEOUT_S", "420") or "420")
+# Unified default, identical for every lane (see scripts/runners/_budget.py):
+# None = no native self-abort, the no-progress watchdog terminates a stall.
+DEFAULT_NATIVE_TIMEOUT_S = _budget.native_timeout_default()
 
 # ---------------------------------------------------------------------------
 # Sentinel markers for extracting the report from subprocess stdout.
@@ -101,24 +104,34 @@ _UNMASK_MAP = {v: k for k, v in _MASK_MAP.items()}
 
 
 def _needs_intent_masking(model: str | None) -> bool:
-    """Whether this backbone's provider safety filter refuses raw localhost URLs.
+    """Always False by default: the premise for masking was measured and is false.
 
-    The localhost -> neutral-description rewrite in ``_sanitize_intent`` was built
-    solely to keep DeepSeek V4 flash from refusing when it sees ``localhost`` in
-    the task. It is information-destroying: it deletes the three sandbox host
-    ROOTS (``localhost:17770/9999/8090``) that the shared task prompt hands every
-    other lane, which is a reverse handicap for any backbone that does not have
-    that filter (qwen, glm, ...).
+    The localhost -> neutral-description rewrite existed for one stated reason:
+    "DeepSeek V4 flash refuses to write reports that mention localhost URLs
+    (triggers safety filter)". The 2026-07-08 fairness audit tested that claim
+    against the live API. Four arms, N=10 each, same report-writing prompt with
+    only the URL host varied:
 
-    So the DEFAULT preserves information: masking is applied only for a DeepSeek
-    backbone. Override with ``LDR_INTENT_MASK=1`` (force on) / ``=0`` (force off).
+        A  localhost      0/10 refusals, 114 localhost URLs written
+        B  shop.internal  0/10 refusals, 130 .internal URLs written
+        C  rtings.com     0/10 refusals,  87 public URLs written
+        D  no URLs given  0/10 refusals,  61 public URLs invented
+
+    DeepSeek does not refuse localhost. It writes it faithfully. The real subset
+    corroborates: unpatched camel-ai and langchain-odr on deepseek wrote 10-33
+    localhost URLs per report with zero refusals.
+
+    Masking was therefore a lane-specific privilege resting on a false premise:
+    it deleted the sandbox host roots the shared prompt gives every other lane,
+    and (with the now-removed Wikipedia rewrite) converted off-sandbox drift
+    into sandbox grounding. It is off. ``LDR_INTENT_MASK=1`` still forces it on
+    for anyone investigating a provider that genuinely does refuse, but that
+    must be declared in the lane protocol, not switched on by backbone name.
     """
     override = os.environ.get("LDR_INTENT_MASK", "").strip().lower()
     if override in ("1", "true", "yes", "on"):
         return True
-    if override in ("0", "false", "no", "off"):
-        return False
-    return "deepseek" in (model or "").lower()
+    return False
 
 
 def _sanitize_intent(intent: str, model: str | None = None) -> str:
@@ -168,15 +181,17 @@ def _sanitize_intent(intent: str, model: str | None = None) -> str:
 
 
 def _augment_intent_for_sandbox_search(intent: str) -> str:
-    """Add LDR-specific grounding instructions after URL sanitization."""
-    return (
-        intent.strip()
-        + "\n\nBenchmark grounding requirements for this run:\n"
-        + "- Use the benchmark sandbox search corpus only: product catalog, discussion forum, and offline encyclopedia.\n"
-        + "- Run targeted searches for the exact product/category/entity names and user concerns from the task before drafting.\n"
-        + "- Fetch and cite evidence from all relevant sandbox source types; do not rely on general knowledge when a sandbox source is available.\n"
-        + "- Every recommendation or factual comparison must be tied to fetched source URLs, and the final report must include a References section."
-    )
+    """Prompt parity: LDR gets the shared task intent, nothing more.
+
+    This used to append four LDR-only instructions ("cite evidence from all
+    sandbox source types", "every comparison must be tied to fetched source
+    URLs", "the final report must include a References section"). Each of them
+    steers directly at a scored axis, and no other lane received them. Fairness
+    audit 2026-07-08 (B3, prompt equivalence): per-lane rubric injection is
+    removed everywhere. Whatever the task asks for is what every framework is
+    asked for.
+    """
+    return intent.strip()
 
 
 def _unmask_report(report: str) -> str:
@@ -193,29 +208,33 @@ def _unmask_report(report: str) -> str:
     text = text.replace("https://postmill.net", "http://localhost:9999")
     text = text.replace("https://kiwipedia.org", "http://localhost:8090")
 
-    # FIX P2.5: Rewrite off-sandbox Wikipedia URLs to Kiwix sandbox URLs.
-    # LDR's LLM may generate en.wikipedia.org/wiki/... URLs in its report text
-    # from model knowledge. These are off-sandbox. We rewrite them to the local
-    # Kiwix instance so they become valid sandbox URLs.
-    def _rewrite_wiki_url(m):
-        title = m.group(1)
-        return f"http://localhost:8090/content/wikipedia_en_all_nopic/A/{title}"
-
-    # Match both http and https variants
-    text = re.sub(
-        r"https?://en\.wikipedia\.org/wiki/([^\s)\]#\"']+)",
-        _rewrite_wiki_url,
-        text,
-    )
+    # The former "FIX P2.5" rewrote any `en.wikipedia.org/wiki/X` the model
+    # emitted into `localhost:8090/content/wikipedia_en_all_nopic/A/X`.
+    #
+    # That is not unmasking. Nothing in this harness ever showed the model
+    # `en.wikipedia.org`; the mask map above only ever substitutes
+    # localhost <-> onestopmarket.com / postmill.net / kiwipedia.org. A model
+    # emitting `en.wikipedia.org` is answering from parametric memory about the
+    # open web, which is precisely the off-sandbox drift the benchmark measures
+    # (BACKBONE_GAP_ANALYSIS, mechanism M2). Rewriting it into a valid sandbox
+    # URL converted that failure into perfect grounding, for this lane only.
+    #
+    # Removed 2026-07-08 (fairness audit). Only the round trip of masks this
+    # harness itself applied survives.
     return text
 
 
-def _native_timeout(timeout_s: int) -> int:
-    try:
-        configured = int(os.environ.get("LDR_NATIVE_TIMEOUT_S", "") or DEFAULT_NATIVE_TIMEOUT_S)
-    except (TypeError, ValueError):
-        configured = DEFAULT_NATIVE_TIMEOUT_S
-    return max(60, min(timeout_s, configured))
+def _native_timeout(timeout_s):
+    # Unified native timeout. Default identical to every lane (DRA_WALL_CLOCK_S);
+    # LDR_NATIVE_TIMEOUT_S still overrides. The old hard 420s default was a
+    # per-lane wall clock; None (unlimited) defers termination to the shared
+    # no-progress watchdog and the outer subprocess cap.
+    configured = _budget.resolve_native_timeout("LDR_NATIVE_TIMEOUT_S")
+    if configured is None:
+        return timeout_s
+    if timeout_s is None:
+        return max(60, int(configured))
+    return max(60, min(int(timeout_s), int(configured)))
 
 
 # Markers that mean LDR produced no usable report and the shared rescue writer
@@ -291,12 +310,13 @@ def _build_driver_script(
         \"\"\"Auto-generated LDR driver for benchmark runner.\"\"\"
         import os, sys, json, re, traceback
 
-        # === Layer 0: Environment cleanup ===
-        # Purge proxy env vars so LDR can only reach localhost services.
-        for _pv in list(os.environ):
-            if _pv.lower() in ('http_proxy', 'https_proxy', 'all_proxy', 'ftp_proxy'):
-                del os.environ[_pv]
-        os.environ['NO_PROXY'] = '*'
+        # === Layer 0: Environment policy ===
+        _DRA_EGRESS_ON = bool(os.environ.get('DRA_EGRESS_PROXY', '').strip())
+        if not _DRA_EGRESS_ON:
+            for _pv in list(os.environ):
+                if _pv.lower() in ('http_proxy', 'https_proxy', 'all_proxy', 'ftp_proxy'):
+                    del os.environ[_pv]
+            os.environ['NO_PROXY'] = '*'
 
         SHIM = {shim_url!r}
         PROXY = {proxy_url!r}
@@ -320,15 +340,10 @@ def _build_driver_script(
                 nurl = urlunparse(p._replace(scheme=sp.scheme, netloc=sp.netloc))
                 print(f'[ldr-intercept] TAVILY: {{url[:120]}} -> {{nurl[:120]}}')
                 return nurl
-            if 'en.wikipedia.org' in h and p.path.startswith('/wiki/'):
-                kiwix = os.environ.get('WIKIPEDIA_KIWIX_URL', 'http://localhost:8090')
-                kp = urlparse(kiwix)
-                title = p.path[len('/wiki/'):]
-                nurl = urlunparse(p._replace(
-                    scheme=kp.scheme, netloc=kp.netloc,
-                    path=f'/content/wikipedia_en_all_nopic/A/{{title}}', query=''))
-                print(f'[ldr-intercept] WIKI: {{url[:120]}} -> {{nurl[:120]}}')
-                return nurl
+            # No en.wikipedia.org -> kiwix rewrite. This lane's own comment at
+            # :211 explains why it was deleted, and the deletion did not reach
+            # this driver string. Rescuing parametric-memory drift into a corpus
+            # page manufactures grounding the lane did not earn.
             return url
 
         # Patch requests.Session.send
@@ -344,12 +359,12 @@ def _build_driver_script(
         except ImportError:
             pass
 
-        # Patch aiohttp -- force trust_env=False to prevent proxy leakage
+        # Patch aiohttp: trust the harness recording door, never ambient proxies.
         try:
             import aiohttp as _ah
             _orig_cs_init = _ah.ClientSession.__init__
             def _cs_init_patched(self, *a, **kw):
-                kw['trust_env'] = False
+                kw['trust_env'] = _DRA_EGRESS_ON
                 return _orig_cs_init(self, *a, **kw)
             _ah.ClientSession.__init__ = _cs_init_patched
             _orig_areq = _ah.ClientSession._request
@@ -525,9 +540,9 @@ def _build_driver_script(
         # Use LDR's official create_settings_snapshot + detailed_research interface.
         from local_deep_research.api import create_settings_snapshot, detailed_research
 
-        SEARCH_ITERATIONS = int(os.environ.get('LDR_SEARCH_ITERATIONS', '2') or '2')
-        QUESTIONS_PER_ITERATION = int(os.environ.get('LDR_QUESTIONS_PER_ITERATION', '2') or '2')
-        SEARCH_MAX_RESULTS = int(os.environ.get('LDR_SEARCH_MAX_RESULTS', '6') or '6')
+        SEARCH_ITERATIONS = int(os.environ.get('LDR_SEARCH_ITERATIONS', '3') or '3')
+        QUESTIONS_PER_ITERATION = int(os.environ.get('LDR_QUESTIONS_PER_ITERATION', '1') or '1')
+        SEARCH_MAX_RESULTS = int(os.environ.get('LDR_SEARCH_MAX_RESULTS', '50') or '50')
 
         settings = create_settings_snapshot(overrides={{
             "llm.provider": "openai_endpoint",
@@ -539,7 +554,7 @@ def _build_driver_script(
             "search.iterations": SEARCH_ITERATIONS,
             "search.questions_per_iteration": QUESTIONS_PER_ITERATION,
             "search.max_results": SEARCH_MAX_RESULTS,
-            "search.snippets_only": False,
+            "search.snippets_only": True,
         }})
 
         BASE_QUERY = '{intent_escaped}'
@@ -629,11 +644,7 @@ def _build_env(proxy_url: str, model: str, shim_url: str) -> dict:
     env["OPENAI_BASE_URL"] = proxy_url
     env["OPENAI_API_KEY"] = env.get("OPENAI_API_KEY", "anything")
 
-    # Remove HTTP proxies so LDR can only reach localhost services
-    for key in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
-                "ALL_PROXY", "all_proxy", "FTP_PROXY", "ftp_proxy"):
-        env.pop(key, None)
-    env["NO_PROXY"] = "*"
+    _egress.scrub_or_apply(env)
 
     # Disable optional integrations that would fail in sandbox
     env.pop("LANGSMITH_TRACING", None)
@@ -661,7 +672,7 @@ async def run(
         intent: The research query / task description.
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
-        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
+        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
         timeout_s: Subprocess timeout in seconds.
 
     Returns:
@@ -694,7 +705,7 @@ async def run(
 
     # Build the driver script
     driver_code = _build_driver_script(clean_intent, shim_url, proxy_url, model)
-    driver_path = ROOT / "scripts" / "_ldr_benchmark_driver.py"
+    driver_path = _egress.scratch_path("ldr-benchmark-driver")
 
     # Per-agent lock so parallel workers don't trample _ldr_benchmark_driver.py
     _lock_cm = runner_exclusive_lock("ldr")
@@ -741,15 +752,17 @@ async def run(
             logger.warning("No report extracted from LDR output")
             return _degrade("native", "no report extracted from LDR output")
 
-        # Re-attach LDR's own retrieved source URLs (all_links_of_system). LDR's
-        # narrative body cites sources as bracketed [N] only and keeps the URL
-        # table in a sibling field the old capture dropped, so every LDR report
-        # lost its localhost citations. This is faithful capture of what LDR
-        # produced, not fabricated grounding (see _attach_sources).
-        report = _attach_sources(report, _extract_sources(stdout))
+        # LDR's retrieved link table (all_links_of_system) is captured as a
+        # diagnostic, NOT appended to the report. See sources_diagnostic() for
+        # the measurement that killed the old `_attach_sources` behaviour: the
+        # lane's entire reach came from the harness-written block, and its own
+        # prose cited no sandbox URL on any task. The saved report is now
+        # exactly what LDR wrote.
+        _diag = sources_diagnostic(_extract_sources(stdout))
+        logger.info("ldr retrieved %d sources (diagnostic only, not scored)",
+                    _diag["n_sources_retrieved"])
 
-        # Belt-and-suspenders: unmask any .internal domains that survived, and
-        # normalize any off-sandbox Wikipedia URLs in the re-attached block.
+        # Round-trip only: undo the masks this harness applied before the call.
         report = _unmask_report(report)
         # FAIRNESS: capture LDR's real report even when it is light on sandbox
         # URLs. Only rescue genuine failures (empty output / driver error
@@ -824,52 +837,43 @@ def _extract_sources(stdout: str) -> list:
     return data if isinstance(data, list) else []
 
 
-def _attach_sources(report: str, sources: list) -> str:
-    """Append LDR's own retrieved source URLs to the report as a Sources section.
+def sources_diagnostic(sources: list) -> dict:
+    """Summarise LDR's retrieved link table WITHOUT writing it into the report.
 
-    LDR's ``detailed_research()`` returns the narrative in ``summary``
-    (current_knowledge), which cites sources by bracketed ``[N]`` index only;
-    the URL table LDR retrieved and threaded lives in the sibling ``sources``
-    field (``all_links_of_system``). The old capture read only the narrative and
-    so dropped every localhost URL regardless of backbone. Re-attaching LDR's
-    own link table is faithful capture, not fabrication:
+    `_attach_sources` used to append this table to the saved report as a
+    "### Sources" block, on the theory that LDR's model cites by bracketed
+    ``[N]`` index and the URL table lives in a sibling field, so re-attaching it
+    was "faithful capture, not fabrication".
 
-      - No URL is invented; every entry comes from LDR's ``all_links_of_system``.
-      - The ``[N]`` labels match the indices LDR assigned to its own citations.
-      - Nothing is added when LDR returned no sources, or when the model already
-        resolved its citations to sandbox (localhost) URLs inline.
+    The 2026-07-08 fairness audit measured what that block was worth. Deleting
+    it from the saved reports and rescoring with the real scorer:
 
-    This restores fidelity of capture; it does not compensate for a model or
-    framework weakness (a genuinely source-less run still yields no URLs).
+        qwen3-8b          macro reach 0.9519 -> 0.0000   (13/13 tasks)
+        deepseek-v4-flash macro reach 0.9868 -> 0.0000
+
+    with `before_block = 0`: LDR's own prose contained no sandbox URL at all, on
+    any task, under either backbone. The entire grounding score of the lane that
+    ranked #1 on both boards was written by this function.
+
+    That is the same construct the audit of 2026-07-06 deleted from
+    ii-researcher as publish blocker B1 ("harness-manufactured grounding, not
+    agent grounding"). Keeping one and deleting the other cannot be defended, so
+    this one is gone too. The link table is still captured, as a diagnostic
+    beside the report, where it can inform analysis without being scored.
     """
-    if not report or not isinstance(sources, list) or not sources:
-        return report
-    # If the narrative already resolved its citations to sandbox URLs, do not
-    # duplicate the table.
-    if "http://localhost:" in report:
-        return report
-
-    lines = []
-    seen = set()
-    for src in sources:
+    urls: list[str] = []
+    seen: set[str] = set()
+    for src in sources or []:
         if not isinstance(src, dict):
             continue
         url = src.get("url") or src.get("link")
         if not isinstance(url, str):
             continue
         url = url.strip()
-        if not url or url in seen:
-            continue
-        seen.add(url)
-        idx = src.get("index")
-        idx_str = str(idx).strip() if idx is not None else ""
-        label = f"[{idx_str}] " if idx_str else f"[{len(seen)}] "
-        title = str(src.get("title") or "Untitled").strip().replace("\n", " ") or "Untitled"
-        lines.append(f"{label}{title}\n   URL: {url}")
-
-    if not lines:
-        return report
-    return report.rstrip() + "\n\n### Sources\n\n" + "\n".join(lines) + "\n"
+        if url and url not in seen:
+            seen.add(url)
+            urls.append(url)
+    return {"n_sources_retrieved": len(urls), "urls_retrieved": urls}
 
 
 # ---------------------------------------------------------------------------
@@ -882,7 +886,7 @@ if __name__ == "__main__":
     parser.add_argument("intent", help="Research query")
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
     args = parser.parse_args()

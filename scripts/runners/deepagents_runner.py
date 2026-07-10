@@ -41,6 +41,7 @@ import textwrap
 import time
 from pathlib import Path
 
+from . import _egress
 from ._runner_lock import runner_exclusive_lock
 
 logger = logging.getLogger(__name__)
@@ -77,9 +78,20 @@ _MASK_MAP = {
 _UNMASK_MAP = {v: k for k, v in _MASK_MAP.items()}
 
 
+def _mask_enabled() -> bool:
+    """Off by default: the "DeepSeek refuses localhost" premise was measured false
+    on 2026-07-08 (0/10 refusals, 114 localhost URLs written). Masking deleted the
+    sandbox host roots every other lane keeps and its outbound reversal laundered a
+    model that emitted onestopmarket.com from memory into sandbox grounding.
+    ``DEEPAGENTS_INTENT_MASK=1`` still forces it on for a provider that genuinely
+    refuses, but that must be declared, not switched on by backbone name."""
+    return os.environ.get("DEEPAGENTS_INTENT_MASK", "").strip().lower() in (
+        "1", "true", "yes", "on")
+
+
 def _mask_localhost(text: str) -> str:
-    """Replace localhost:PORT URLs with neutral domains."""
-    if not isinstance(text, str):
+    """Replace localhost:PORT URLs with neutral domains (no-op unless enabled)."""
+    if not _mask_enabled() or not isinstance(text, str):
         return text
     for old, new in _MASK_MAP.items():
         text = text.replace(old, new)
@@ -89,15 +101,19 @@ def _mask_localhost(text: str) -> str:
 
 
 def _unmask_report(report: str) -> str:
-    """Reverse masked domains back to localhost:PORT in the final report."""
+    """Reverse the mask ROUND TRIP the harness itself applied, and nothing else.
+
+    No-op unless masking was enabled inbound. The https:// public-domain arms were
+    dropped 2026-07-08: reversing ``https://onestopmarket.com`` -> localhost turned
+    a model emitting that public domain from memory into valid sandbox grounding
+    for this lane only, which is off-sandbox drift the benchmark must measure.
+    """
+    if not _mask_enabled():
+        return report
     text = report
     for masked, original in _UNMASK_MAP.items():
         text = text.replace(masked, original)
     text = re.sub(r"sandbox-(\d+)\.internal", r"localhost:\1", text)
-    # Also catch https:// variants the LLM might have added
-    text = text.replace("https://onestopmarket.com", "http://localhost:7770")
-    text = text.replace("https://postmill.net", "http://localhost:9999")
-    text = text.replace("https://kiwipedia.org", "http://localhost:8090")
     return text
 
 
@@ -110,7 +126,8 @@ def _build_driver_script(
     """Build the Python driver script that runs DeepAgents.
 
     The driver:
-      1. Purges proxy env vars (sandbox-only network).
+      1. Applies the harness recording proxy (or scrubs ambient standalone
+         proxies when no door is configured).
       2. Patches httpx to mask localhost URLs in LLM request bodies
          and unmask them in responses (DeepSeek safety filter bypass).
       3. Creates a custom ``internet_search`` tool that queries our
@@ -126,27 +143,33 @@ def _build_driver_script(
         .replace("'", "\\'")
         .replace("\n", "\\n")
     )
+    # Off by default; the mask premise was measured false (see _mask_enabled).
+    mask_enabled = _mask_enabled()
 
     return textwrap.dedent(f"""\
         #!/usr/bin/env python3
         \"\"\"Auto-generated DeepAgents driver for benchmark runner.\"\"\"
         import os, sys, json, re, traceback
 
-        # === Layer 0: Environment cleanup ===
-        # Purge proxy env vars so the agent can only reach localhost services.
-        for _pv in list(os.environ):
-            if _pv.lower() in ('http_proxy', 'https_proxy', 'all_proxy', 'ftp_proxy'):
-                del os.environ[_pv]
-        os.environ['NO_PROXY'] = '*'
+        # === Layer 0: Environment policy ===
+        # Preserve the harness recording door; scrub only ambient standalone
+        # proxies. The parent has already installed canonical proxy_env values.
+        _DRA_EGRESS_ON = bool(os.environ.get('DRA_EGRESS_PROXY', '').strip())
+        if not _DRA_EGRESS_ON:
+            for _pv in list(os.environ):
+                if _pv.lower() in ('http_proxy', 'https_proxy', 'all_proxy', 'ftp_proxy'):
+                    del os.environ[_pv]
+            os.environ['NO_PROXY'] = '*'
 
         SHIM = {shim_url!r}
         PROXY = {proxy_url!r}
         MODEL = {model!r}
 
-        # === Layer 1: Localhost masking for LLM calls ===
-        # DeepSeek V4 refuses when it sees localhost URLs.
-        # Mask localhost -> neutral domains in LLM request bodies,
-        # unmask in responses.
+        # === Layer 1: Localhost masking for LLM calls (OFF by default) ===
+        # The "DeepSeek refuses localhost" premise was measured false 2026-07-08
+        # (0/10 refusals). Both directions no-op unless _MASK_ENABLED, so a model
+        # emitting a neutral domain from memory is not laundered into grounding.
+        _MASK_ENABLED = {mask_enabled!r}
         _MASK_MAP = {{
             'http://localhost:7770': 'http://onestopmarket.com',
             'http://localhost:9999': 'http://postmill.net',
@@ -160,7 +183,7 @@ def _build_driver_script(
         _UNMASK_MAP = {{v: k for k, v in _MASK_MAP.items()}}
 
         def _mask_text(text):
-            if not isinstance(text, str):
+            if not _MASK_ENABLED or not isinstance(text, str):
                 return text
             for old, new in _MASK_MAP.items():
                 text = text.replace(old, new)
@@ -168,7 +191,7 @@ def _build_driver_script(
             return text
 
         def _unmask_text(text):
-            if not isinstance(text, str):
+            if not _MASK_ENABLED or not isinstance(text, str):
                 return text
             for masked, original in _UNMASK_MAP.items():
                 text = text.replace(masked, original)
@@ -294,11 +317,7 @@ def _build_driver_script(
             topic: Literal["general", "news", "finance"] = "general",
             include_raw_content: bool = True,
         ) -> dict:
-            \"\"\"Search the web for information. Returns search results with titles, URLs, and content snippets.
-
-            Use this tool to find relevant web pages, product listings, forum
-            discussions, and encyclopedia articles. Always cite the URLs from
-            the results in your final report.
+            \"\"\"Search the benchmark index and return titles, URLs, and text.
 
             Args:
                 query: The search query string.
@@ -341,9 +360,7 @@ def _build_driver_script(
         # === Layer 3: Fetch/crawl tool ===
         # Give the agent a way to fetch full page content from sandbox URLs.
         def fetch_page(url: str) -> str:
-            \"\"\"Fetch the full content of a web page and return readable text.
-
-            Use this to get detailed content from URLs found via internet_search.
+            \"\"\"Read a URL returned by internet_search and return its text.
 
             Args:
                 url: The URL to fetch.
@@ -383,27 +400,9 @@ def _build_driver_script(
             timeout=120,
         )
 
-        SYSTEM_PROMPT = (
-            "You are an expert research agent. Your job is to conduct thorough, "
-            "comprehensive research and produce a detailed markdown report.\\n\\n"
-            "You have access to an internet search tool and a page fetcher. "
-            "Use them extensively to gather information from multiple sources.\\n\\n"
-            "Research methodology:\\n"
-            "1. Start by searching for the main topic with multiple queries.\\n"
-            "2. For each relevant result, use fetch_page to get detailed content.\\n"
-            "3. Cross-reference information across multiple sources.\\n"
-            "4. Search for subtopics, related products, discussions, and analyses.\\n"
-            "5. Aim for at least 20 different source URLs in your report.\\n\\n"
-            "Report requirements:\\n"
-            "- Write a comprehensive markdown report (2000+ words).\\n"
-            "- Cite ALL source URLs inline using markdown links: [text](url).\\n"
-            "- Include specific data points, prices, specifications, quotes, and statistics.\\n"
-            "- Organize with clear headings (##) and subheadings (###).\\n"
-            "- Include a References section at the end listing all cited URLs.\\n"
-            "- Every factual claim must be supported by a cited source URL.\\n"
-            "- Cover the topic from multiple angles: product details, user opinions, "
-            "expert analysis, comparisons."
-        )
+        # Capability delivery only.  Retrieval strategy and source breadth are
+        # the framework's decision, not an adapter-specific scoring nudge.
+        SYSTEM_PROMPT = "You are a deep-research agent."
 
         QUERY = '{intent_escaped}'
 
@@ -465,11 +464,9 @@ def _build_env(proxy_url: str, model: str) -> dict:
     env["OPENAI_BASE_URL"] = proxy_url
     env["OPENAI_API_KEY"] = env.get("OPENAI_API_KEY", "anything")
 
-    # Remove HTTP proxies so the agent can only reach localhost services
-    for key in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
-                "ALL_PROXY", "all_proxy", "FTP_PROXY", "ftp_proxy"):
-        env.pop(key, None)
-    env["NO_PROXY"] = "*"
+    # Final process-boundary policy: canonical recording door when configured,
+    # otherwise the historical standalone proxy scrub.
+    _egress.scrub_or_apply(env)
 
     # Disable optional integrations that would fail in sandbox
     env.pop("LANGSMITH_TRACING", None)
@@ -497,7 +494,7 @@ async def run(
         intent: The research query / task description.
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
-        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8088/v1").
+        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
         timeout_s: Subprocess timeout in seconds.
 
     Returns:
@@ -505,7 +502,7 @@ async def run(
     """
     # Write the driver script to a temp file
     driver_code = _build_driver_script(intent, model, shim_url, proxy_url)
-    driver_path = ROOT / "scripts" / "_deepagents_benchmark_driver.py"
+    driver_path = _egress.scratch_path("deepagents-benchmark-driver")
 
     # Per-agent lock so parallel workers don't trample the shared driver path.
     _lock_cm = runner_exclusive_lock("deepagents")
@@ -617,7 +614,7 @@ if __name__ == "__main__":
     parser.add_argument("intent", help="Research query")
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
     args = parser.parse_args()

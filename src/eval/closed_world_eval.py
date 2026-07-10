@@ -15,9 +15,13 @@ Decidable axes computed here (no model):
 
 Composition (see decidable_scorer.compose_truth; FORMULA_LOCK K6):
   quality = 0.39*fact + 0.28*pof + 0.33*completeness
-            (three evidence axes only, floor-if-active eps=0.05: a >0 axis is
-            buffered, a zero axis stays 0 so an empty shell has quality 0)
-  truth   = reach**gamma * quality            (reach UNfloored: the gate)
+            (three evidence axes only, no floor)
+  truth   = gate**gamma * quality
+
+For transport_v2 runs, gate is provenance: the fraction of cited in-corpus
+pages whose URL was searched, fetched, or linked from a fetched page. Raw reach
+remains a diagnostic. Legacy text_v1 runs cannot observe provenance and retain
+the old reach gate; the output stamps the distinction so boards cannot mix it.
 
 Spec (output shape) is NOT part of truth: it is reported as a separate
 "compliance" column. Presentation (the LLM jury) is likewise separate. Both may
@@ -48,16 +52,36 @@ def load_registry(registry_path=DEFAULT_REGISTRY_PATH):
 
 def evaluate(report_md: str, answer_key: AnswerKey, cache: dict | None = None,
              registry=None, gamma: float = ds.GAMMA_DEFAULT, **kw) -> dict:
+    """Score one report.
+
+    Pass ``evidence=`` (a ``src.eval.fetch_log.RunEvidence``) to score
+    ``grounding_proof_of_fetch`` from what the shim actually served this run.
+    Without it the axis falls back to the textual measure, is stamped
+    ``pof_semantics="text_v1"`` and emitted under the honest name
+    ``grounding_quote_support`` (NOT ``grounding_proof_of_fetch``, which would
+    assert a fetch nothing observed; see decidable_scorer._axis_key). Pass
+    ``require_transport_pof=True`` to make the fallback an error instead of a
+    silent change of meaning.
+    """
     s = ds.score_report(report_md, answer_key, cache or {}, registry=registry,
                         gamma=gamma, **kw)
-    return {
+    pof_sem = s.detail["pof_semantics"]
+    out = {
         "axes": {
             "grounding_reach": round(s.reach, 4),
-            "grounding_proof_of_fetch": round(s.proof_of_fetch, 4),
+            # KEY tracks the semantics (P1): transport_v2 witnesses a fetch and
+            # keeps `grounding_proof_of_fetch`; text_v1 witnesses none and is
+            # named `grounding_quote_support`. A text_v1 report NEVER emits the
+            # proof_of_fetch key. See decidable_scorer._axis_key.
+            ds._axis_key(pof_sem): round(s.proof_of_fetch, 4),
             "correctness_fact_support": round(s.fact_support, 4),
             "completeness": round(s.completeness, 4),
             "spec": round(s.spec, 4),
         },
+        "pof_semantics": pof_sem,
+        "gate_semantics": s.detail["gate_semantics"],
+        "gate_value": s.detail["gate_value"],
+        "quote_support": s.detail["quote_support"],
         "floors_applied": s.detail["floors_applied"],
         "reach_detail": s.detail["reach"],
         "pof_detail": s.detail["proof_of_fetch"],
@@ -67,6 +91,20 @@ def evaluate(report_md: str, answer_key: AnswerKey, cache: dict | None = None,
         "truth": round(s.truth, 6),
         "detail": s.detail,
     }
+    t = s.detail.get("transport")
+    if t and t.get("available"):
+        # Diagnostics, not truth components. `snippet_only` is a real page cited
+        # off the search snippet; `hallucinated_grounding` is a real page cited
+        # that was never searched and never opened, which only the model's
+        # parameters could have supplied.
+        out["transport"] = {
+            k: t[k] for k in
+            ("pof", "provenance", "snippet_only", "hallucinated_grounding", "fabrication",
+             "retrieval_utilization", "provenance_counts",
+             "n_cited", "n_fetched", "n_searches")
+            if k in t
+        }
+    return out
 
 
 def evaluate_task(report_md: str, task_id: str, cache: dict | None = None,

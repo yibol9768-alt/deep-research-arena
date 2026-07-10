@@ -121,9 +121,15 @@ services:
     environment:
       SHIM_LLM_UPSTREAM: "http://ds_proxy:8088/v1"
       # search_shim/backend.py reads these names directly:
+      # Dial address on the compose network. Magento answers only to its
+      # base_url, so the gateway must also be told that identity or the
+      # store 302s every search into a closed port and returns no hits.
       SHOPPING: "http://shopping:80"
+      SHOPPING_PUBLIC: "http://localhost:${SHOPPING_PORT:-7770}"
       REDDIT:   "http://reddit:80"
+      REDDIT_PUBLIC: "http://localhost:${REDDIT_PORT:-9999}"
       KIWIX:    "http://wiki:8080"
+      KIWIX_PUBLIC: "http://localhost:${WIKI_PORT:-8090}"
       KIWIX_BOOK: "${WIKI_KIWIX_BOOK:-wikipedia_en_simple_all_maxi}"
     depends_on:
       shopping:  { condition: service_healthy }

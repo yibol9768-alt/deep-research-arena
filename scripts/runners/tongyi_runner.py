@@ -41,7 +41,7 @@ Usage (standalone test):
         "Compare headphone prices across stores" \\
         --model deepseek-v4-flash \\
         --shim-url http://localhost:8081 \\
-        --proxy-url http://localhost:8088/v1
+        --proxy-url http://localhost:8100/v1
 """
 
 from __future__ import annotations
@@ -55,6 +55,7 @@ import textwrap
 import time
 from pathlib import Path
 
+from . import _egress
 from ._runner_lock import runner_exclusive_lock
 
 logger = logging.getLogger(__name__)
@@ -67,8 +68,9 @@ TONGYI_PYTHON = str(ROOT / ".venv-tongyi" / "bin" / "python")
 # Generous timeout: the ReAct loop can run many turns with slow models.
 DEFAULT_TIMEOUT_S = 1800
 
-# Max LLM calls per run (Tongyi default is 100, we cap at 50 for benchmark).
-MAX_LLM_CALLS = 50
+# Preserve Tongyi's native call budget. The old benchmark-specific cap of 50
+# gave this lane only half its upstream default while cost is already measured.
+MAX_LLM_CALLS = 100
 
 # Max tokens for context window management.
 MAX_CONTEXT_TOKENS = 100000
@@ -101,8 +103,9 @@ def _build_driver_script(
     """
     # Write intent to a temp file to avoid string escaping issues with long intents
     # The driver script reads it from this path.
-    intent_file = str(Path(TONGYI_ROOT) / "inference" / "_benchmark_intent.txt")
-    Path(intent_file).write_text(intent, encoding="utf-8")
+    intent_path = _egress.scratch_path("tongyi-benchmark-intent", ".txt")
+    intent_file = str(intent_path)
+    intent_path.write_text(intent, encoding="utf-8")
 
     return textwrap.dedent(f"""\
         #!/usr/bin/env python3
@@ -110,11 +113,14 @@ def _build_driver_script(
         import os, sys, json, json5, time, re, random
         from datetime import datetime
 
-        # Purge proxy env vars to prevent leaking to sandbox requests
-        for _pv in list(os.environ):
-            if _pv.lower() in ('http_proxy','https_proxy','all_proxy','no_proxy','ftp_proxy'):
-                del os.environ[_pv]
-        os.environ['NO_PROXY'] = '*'
+        # Preserve the recording door in harness mode; scrub only ambient
+        # standalone proxies.
+        _DRA_EGRESS_ON = bool(os.environ.get('DRA_EGRESS_PROXY', '').strip())
+        if not _DRA_EGRESS_ON:
+            for _pv in list(os.environ):
+                if _pv.lower() in ('http_proxy','https_proxy','all_proxy','no_proxy','ftp_proxy'):
+                    del os.environ[_pv]
+            os.environ['NO_PROXY'] = '*'
 
         # Prevent HuggingFace downloads
         os.environ['HF_HUB_OFFLINE'] = '1'
@@ -150,7 +156,7 @@ def _build_driver_script(
                         model=MODEL,
                         messages=messages,
                         stop=["\\n<tool_response>", "<tool_response>"],
-                        temperature=0.7,
+                        temperature=0.2,
                         max_tokens=8192,
                     )
                     content = resp.choices[0].message.content
@@ -170,7 +176,7 @@ def _build_driver_script(
                     resp = _client.chat.completions.create(
                         model=MODEL,
                         messages=messages,
-                        temperature=0.7,
+                        temperature=0.2,
                         max_tokens=4096,
                     )
                     content = resp.choices[0].message.content
@@ -222,7 +228,8 @@ def _build_driver_script(
                         link = r.get('url', '')
                         snippet = r.get('content', 'No snippet')
                         formatted.append(
-                            f"{{j}}. [{{title}}]({{link}})\\n"
+                            f"{{j}}. Title: {{title}}\\n"
+                            f"   URL: {{link}}\\n"
                             f"   Snippet: {{snippet}}"
                         )
                     if formatted:
@@ -351,11 +358,6 @@ def _build_driver_script(
 
         round_num = 0
         while num_calls > 0:
-            # Timeout check (30 min)
-            if time.time() - start_time > 1800:
-                print("[tongyi-dr] Timeout reached (30 min)", flush=True)
-                break
-
             round_num += 1
             num_calls -= 1
 
@@ -486,7 +488,7 @@ async def run(
         intent: The research query / task description.
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search shim (e.g. "http://localhost:8081").
-        proxy_url: OpenAI-compatible LLM proxy (e.g. "http://localhost:8088/v1").
+        proxy_url: OpenAI-compatible LLM proxy (e.g. "http://localhost:8100/v1").
         timeout_s: Subprocess timeout in seconds.
 
     Returns:
@@ -505,7 +507,7 @@ async def run(
 
     # Write the driver script
     driver_code = _build_driver_script(intent, shim_url, proxy_url, model, api_key)
-    driver_path = inference_dir / "_benchmark_driver.py"
+    driver_path = _egress.scratch_path("tongyi-benchmark-driver")
 
     # Per-agent lock so parallel workers don't trample the shared driver path.
     _lock_cm = runner_exclusive_lock("tongyi-dr")
@@ -517,12 +519,7 @@ async def run(
         # Build subprocess environment
         env = {**os.environ}
 
-        # Remove proxy env vars
-        for key in list(env.keys()):
-            if key.lower() in ('http_proxy', 'https_proxy', 'all_proxy',
-                                'ftp_proxy', 'no_proxy'):
-                del env[key]
-        env["NO_PROXY"] = "*"
+        _egress.scrub_or_apply(env)
 
         # Disable HuggingFace downloads
         env["HF_HUB_OFFLINE"] = "1"
@@ -609,7 +606,7 @@ if __name__ == "__main__":
     parser.add_argument("intent", help="Research query")
     parser.add_argument("--model", default="deepseek-v4-flash")
     parser.add_argument("--shim-url", default="http://localhost:8081")
-    parser.add_argument("--proxy-url", default="http://localhost:8088/v1")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
     parser.add_argument("--output", "-o", help="Write report to file")
     args = parser.parse_args()

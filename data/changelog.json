@@ -3,6 +3,233 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v22-2026-07-09",
+      "date": "2026-07-09",
+      "title": "A rescue that turned drift into grounding, an unreachable ceiling, and a rerun scored against the attempt that died",
+      "summary": "A fourth audit round found four more defects. One was introduced by the previous round's own fix, and the test written for that fix could not see it.",
+      "tags": [
+        "scoring",
+        "grounding",
+        "fairness",
+        "harness",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "The harness was rescuing lanes that drifted out of the sandbox",
+          "bullets": [
+            "A model emitting `en.wikipedia.org/wiki/X` is answering from parametric memory: the sandbox search never returns that host. Three live code paths rewrote the request into the sandbox Kiwix page and served it, converting drift into a page read and then into grounding the lane had not earned. Only lanes routed through those interceptors got the rescue.",
+            "`lane_protocol.yaml` forbids this and it had already been deleted from `ldr` and `local_deep_researcher` -- their comments still explain why. It survived in `src/shim_intercept.py`, in the driver source string `run_deep_task` injects into a subprocess venv, and in `ldr_runner`'s own driver string. `check_parity`'s rule matched none of them. The rule now anchors on what the rewrite must produce, and it found the third copy the audit had not named."
+          ]
+        },
+        {
+          "heading": "Axes and attempts",
+          "bullets": [
+            "`provenance` mixed the raw `search_returned` set back in while every other set was identity-mapped, so every wiki article and every forum thread dropped out of its numerator. A fetch-less framework citing three searched wiki pages scored `provenance = 0` while the same call reported `url_provenance = searched` for all three. Product pages were spared, so the axis also treated sources unequally. Introduced by the identity fix of the previous round; the test written for that fix used only a product fixture and could not see it.",
+            "`_index_evidence` keyed on `(lane, task)`, so a rerun's report could be scored against the evidence of the attempt that stalled -- a short FETCHED set, read as citing pages never opened. Reports are now pinned to their own `run_id`.",
+            "An abort before the agent ran (store 503, dark shim) wrote no sidecar, so the board read it as a framework that delivered nothing. It now writes `infra_abort`, which is rerunnable like `stalled`."
+          ]
+        },
+        {
+          "heading": "A ceiling no report could reach",
+          "bullets": [
+            "`completeness = min(covered/20, 1.0)`, and every one of the 100 tasks has a vital pool of 14-17. The saturating cap never activated: a report conveying EVERY vital fact scored 0.70-0.85, never 1.0, and the ceiling differed per task, so completeness was not comparable across tasks. Both the code docstring and the published board methodology promised a 1.0 no report could earn. The denominator is now `min(K*, |pool|)`."
+          ]
+        },
+        {
+          "heading": "Disclosed rather than hidden",
+          "bullets": [
+            "Every board now stamps `sources_scored`: `reach` and `pof` see all three sites, `fact` sees only the store, `completeness` sees store and wiki. The vital pool holds 1200 store and 278 wiki nuggets and zero forum ones, so a lane that never opens the forum forfeits nothing on 0.72 of the quality weight. The benchmark is presented as tri-source; `truth` is scored on two. Whether the forum should feed truth is an open maintainer decision.",
+            "`tongyi-dr`, `co-storm`, `deepagents`, `dzhng` and `local-deep-researcher` are wired in `run_deep_task` and declared in no protocol, so their prompts, budgets and samplers were never checked. The board now refuses (rc=8) to rank an undeclared lane against the governed twelve."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "v21-2026-07-09",
+      "date": "2026-07-09",
+      "title": "The two grounding axes disagreed about which URLs to count, and the sampler was equalised in the proxy nobody uses",
+      "summary": "A third audit round, run against the freshly fixed code, found four more defects. Two were introduced by the previous round's fixes.",
+      "tags": [
+        "scoring",
+        "grounding",
+        "fairness",
+        "harness",
+        "reproducibility"
+      ],
+      "sections": [
+        {
+          "heading": "Axes that disagreed",
+          "bullets": [
+            "A navigation page (`catalogsearch/result/?q=`, a forum listing) is real and reachable but carries no claim. `score_reachability` skips it; `transport_metrics` counted it in the `pof` denominator AND as fabrication, because `in_corpus` is None there and `bool(None)` is False. One honest browse citation cut `pof` in half and reported 50% fabrication on a report that fabricated nothing. Both stated invariants -- `fabrication == 1 - reach` and `provenance == reach - hallucinated_grounding` -- were false whenever a lane cited a page it had legitimately browsed."
+          ]
+        },
+        {
+          "heading": "Equalised where it counts",
+          "bullets": [
+            "The temperature fix landed in `llm_gateway` (:8100). `run_deep_task._setup_ds_backbone` points ELEVEN lanes at `ds_proxy` (:8088), which enforced no sampler at all. One lane was equalised. Both proxies now share `integrations/sampling_policy.py`, which reads the protocol.",
+            "`top_p` was declared nowhere and costorm passed 0.9. The protocol now declares 1.0 and both proxies force it.",
+            "`thinking: uniform` was a word nothing checked, and it is not uniform: qwen ON, glm ON (per the 2026-07-06 decision), deepseek OFF. Equalising it is a maintainer decision, so the protocol now declares the asymmetry, `preflight` asserts the code matches the declaration, and a cross-backbone comparison carries the disclosure instead of hiding the confound."
+          ]
+        },
+        {
+          "heading": "Reproducibility",
+          "bullets": [
+            "The manifest's corpus fingerprint hashed `url_registry.json` and not `wiki_bloom.bin`, which is what decides wiki membership for ~19M articles. A host missing the bloom scored the same reports with a different `reach`, and `truth = reach^1.5 * quality` moved with it, while `verify()` returned clean.",
+            "`verify()` recorded the scoring and harness file hashes and never compared them. An edit to `decidable_scorer.py` with no `FORMULA_VERSION` bump changed every number while every recorded field stayed equal."
+          ]
+        },
+        {
+          "heading": "Completeness credit",
+          "bullets": [
+            "817 of 1200 `buyer_sentiment` nuggets carry exactly `12rev`, so writing \"12 reviews\" beside any named product satisfied 68% of them without stating -- or while contradicting -- the sentiment. Only the rating conveys the sentiment; the count branch is gone.",
+            "`concept_coverage` credited a bare mention of a generic article title (`Bluetooth`, `Coffee`, `Smartphone`) with no wiki content checked, so a five-word shell scored 0.25 having read nothing. A concept is now covered only when the report cites the wiki article it comes from."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "v20-2026-07-09",
+      "date": "2026-07-09",
+      "title": "Guards that existed on paper and fired never: the stall policy, the manifest gate, and the identity two axes disagreed about",
+      "summary": "A second audit round found eight defects that each let a harness fault be scored as a framework's failure, or let a lane be credited for something it did not do. All are fixed with regression tests.",
+      "tags": [
+        "scoring",
+        "fairness",
+        "harness",
+        "grounding",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "False accusations removed",
+          "bullets": [
+            "`reach` and the transport axes disagreed about what one page is. The registry knows `/wiki/Bluetooth` and `/content/<book>/A/Bluetooth` are one article, and that a forum thread is identified by its id; `fetch_log.canonical` did not. A page the agent opened and cited under the other spelling scored pof=0 and hallucinated_grounding=1.0, an accusation of parametric recall. Transport metrics now use the registry's identity.",
+            "Records that land in `_unattributed.jsonl` (shim restart, lost bracket) leave a clean, parseable log with a short FETCHED set. `pof` is now withheld when any record fell unattributed inside a run's window, as it already was for a corrupted line.",
+            "The stall-rerun policy was dead code: `_run_status` read a nested sidecar path that nothing ever wrote, while `run_deep_task` writes it flat. Every watchdog kill was scored as a lane that delivered nothing. The board now finds the sidecar the harness actually writes."
+          ]
+        },
+        {
+          "heading": "Credit that was not earned",
+          "bullets": [
+            "`completeness` credited a buyer-sentiment nugget whenever any standalone number sat within 1.0 of the rating percent. A spec sentence (`85 dB`, `5 mics`) scored sentiment it never conveyed, and `SKU-85X` matched too. The number must now be presented as a rating or a review count, the same cue discipline `_PRICE_CUE` already imposed on price claims.",
+            "62 of 278 wiki concept nuggets (22.3%) were structurally uncoverable: generic-token stripping, derived from the shopping catalog, deleted the concept's own name. `Bluetooth`, `Headphones`, `Coffee`, `Tea` could never be covered by any report."
+          ]
+        },
+        {
+          "heading": "Guards wired to something",
+          "bullets": [
+            "`temperature` is declared uniform and was enforced nowhere. storm sampled all five stages at 0.7 while holding #1 on the qwen board; costorm and tongyi did the same; a lane sending none inherited the upstream default. The gateway now forces the protocol's value on every request, and `check_parity` gained a `sampling_parity` rule that reads the driver scripts an `ast` walk cannot see.",
+            "`run_manifest.verify()` says the scorer refuses on a dishonest manifest. No scorer called it. The board now refuses (rc=7) a report set with no manifest, or one naming another commit, host, or formula_version.",
+            "`source_check` was stamped into every run's meta and no board read it. The board now refuses (rc=6) to pool a run whose corpus was never proved reachable with runs that were.",
+            "The pre-run gate checked liveness only. A source can answer and still hand the agent URLs the scorer calls fabricated, which is the box's state today. The harness now classifies the search tool's own results against the registry and refuses to start."
+          ]
+        },
+        {
+          "heading": "Smaller",
+          "bullets": [
+            "The usefulness jury defaulted `--exclude-agents` to `claude-code`, silently dropping that lane from every battle. Default is now empty.",
+            "`check_parity`'s `citation_count` rule matched digits only, so \"cite at least five distinct source URLs\" passed the gate that guards reach's numerator.",
+            "`preflight` reported a clean instrument when the store contributed zero URLs to classify: the incident's own failure would have read green."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "v19-2026-07-09",
+      "date": "2026-07-09",
+      "title": "The store was never searched: a redirect made a dead source and an empty result set identical",
+      "summary": "The shim dialled Magento by a Host it does not answer to, followed the 302 into a closed port, and returned no results. This happened on every stack for the life of the project, and it is why the `fact` axis read zero on 92.7% of reports.",
+      "tags": [
+        "sandbox",
+        "scoring",
+        "fairness",
+        "harness",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "What was wrong",
+          "bullets": [
+            "The gateway reaches Magento as `http://shopping:80`; Magento answers only to its `base_url`, replying 302 and dropping the query string.",
+            "That address is a closed port inside the compose network, so `requests` raised and the handler returned `[]`.",
+            "The guard was `if r.status_code >= 400`, which a 302 never trips. A dead store and a store with no match produced byte-identical data.",
+            "`fact` grades price and rating claims only the store can support: it read 0 on 92.7% of reports, and that was written up as narrative style.",
+            "Separately, the store's links carried a host `url_registry` does not list, so an agent citing what it honestly read would be scored FABRICATED."
+          ]
+        },
+        {
+          "heading": "What changed",
+          "bullets": [
+            "`SHOPPING_PUBLIC` / `REDDIT_PUBLIC` / `KIWIX_PUBLIC` separate where a source is dialled from the origin it knows itself by.",
+            "One request path for all three sources: same-origin redirects are followed, a redirect that leaves the origin is a loud configuration fault, never an empty result.",
+            "`GET /_sources/health` probes every source; `run_deep_task` calls it before opening the run bracket and refuses to start when a source is down. The outcome is stamped into each run's meta.",
+            "`preflight.check_search_hits_are_in_corpus()` classifies every URL the search tool returns and fails if any would be scored as fabricated.",
+            "Task prompts now name the store at the host the registry blesses (7770, not 17770)."
+          ]
+        },
+        {
+          "heading": "Standing consequence",
+          "bullets": [
+            "No score published before this date used a three-site corpus. Two sites were up.",
+            "A source that answers with a partly failed fan-out is reported as `degraded`: it warns and is recorded, but does not block the run."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "v18-2026-07-08",
+      "date": "2026-07-08",
+      "title": "Proof-of-fetch becomes transport-layer evidence: the shim records what was actually retrieved, not what the text resembles",
+      "summary": "Grounding no longer trusts the report's prose. Every sandbox retrieval is now recorded at the search shim under a per-run bracket, so proof-of-fetch means the agent physically opened the page; a set of harness behaviours that manufactured or laundered grounding are removed. Because the meaning of pof changed, its absolute values drop and old boards are not comparable to new ones.",
+      "tags": [
+        "scoring",
+        "grounding",
+        "fairness",
+        "harness",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "Transport-layer proof-of-fetch",
+          "bullets": [
+            "The search shim is now the single chokepoint that records the success side of every retrieval: which URL each run actually fetched, content-addressed to the returned bytes, appended to a per-run jsonl keyed by run_id (re-entrant runs 409 instead of cross-contaminating)",
+            "proof-of-fetch is redefined as real retrieval (the run opened the page through the shim), replacing the old text-similarity check that compared the report against a page the scorer itself fetched after the fact; a model that guessed a correct URL from parametric memory and paraphrased the page can no longer earn pof",
+            "New diagnostics separate the failure modes: hallucinated_grounding (cited a real sandbox page that the run never opened), url_provenance (searched vs linked vs guessed), and retrieval_utilization (how much of what was fetched is actually used)"
+          ]
+        },
+        {
+          "heading": "No refetch at scoring time",
+          "bullets": [
+            "The sandbox HTTP cache now raises on a miss under STRICT_NO_REFETCH (default on): the scorer may only read evidence captured during the run, so it can no longer send a live request and record the agent's missing fetch as a hit"
+          ]
+        },
+        {
+          "heading": "Fairness: harness no longer manufactures or launders grounding",
+          "bullets": [
+            "Removed source-block injection that grafted grounding onto reports that had none: ldr's post-hoc source attachment and storm's References block are gone (counterfactual rescoring showed both were pure harness additions, not agent-earned citations)",
+            "Removed ldr's one-way en.wikipedia.org to localhost:8090 URL rewrite that turned public-web drift into perfect grounding, and its backbone-keyed intent masking (a live ablation disproved the premise that deepseek refuses localhost hosts)",
+            "Removed smolagents' citation/length/search quota prompts and its unique repair-retry loop that re-ran until sandbox URL count cleared a threshold; removed the citation and word-count quota prompts across the other lanes as well",
+            "Removed opencode's harness-side evidence prefetch (the harness had been searching and pasting results into the prompt) and the hand-written langchain-odr fallback writer; the harness weak-report gate no longer keys on sandbox URL count, which is a tested construct"
+          ]
+        },
+        {
+          "heading": "Board honesty and guardrails",
+          "bullets": [
+            "Missing tasks now score zero (missing_as_zero, default on) with per-agent coverage and low_coverage disclosed, so partial runs can no longer look strong by survivorship",
+            "Two preflight guardrails ship: check_parity.py scans the adapter layer for grounding-manufacturing patterns (AST-stripped, not regex), and preflight.py drives the evidence layer with a canary agent to assert pof / hallucinated_grounding / fabrication / url_provenance behave as specified"
+          ]
+        },
+        {
+          "heading": "Honest disclosure: cross-version comparability",
+          "bullets": [
+            "Transport-layer pof is strictly harder than the old text-similarity pof, so absolute pof values fall substantially under the new definition",
+            "Old runs (the 13-task diagnostic subset and the 55-task archive) have no per-run retrieval log, so their pof is not computable under the new definition and they survive only as diagnostic samples; pof and any truth score that includes it must not be compared across this version boundary"
+          ]
+        }
+      ]
+    },
+    {
       "version": "v17-2026-07-08",
       "date": "2026-07-08",
       "title": "Usefulness jury v1 ships: cross-family Bradley-Terry panel, bootstrap CIs, and a homepage matrix preview",

@@ -1,0 +1,135 @@
+{
+  "schema_version": "deep-1.0.0",
+  "task_id": "dr_cross_deep_0009",
+  "tier": "deep",
+  "sites": [
+    "shopping",
+    "reddit",
+    "wikipedia"
+  ],
+  "difficulty": 5,
+  "expected_steps": 80,
+  "intent": "I'm about to buy my first serious pair of headphones and I refuse to spend money on technology I don't understand. Everyone my age just assumes wireless, but my dad insists a cable will always sound better and that Bluetooth 'crushes' the music. How did we get from headphone jacks to everything being wireless, what actually happens to the audio when it goes over Bluetooth, and is the cable crowd still right today? Once I get the story, I'd like to know whether current buyers regret going one way or the other, and which pair you'd start me on.",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=ev+charger",
+  "storage_state": null,
+  "require_login": false,
+  "markdown_spec": {
+    "min_words": 3500,
+    "max_words": 8000,
+    "min_paragraphs": 25,
+    "min_citations": 60,
+    "min_pages_browsed": 120
+  },
+  "citation_policy": {
+    "required_for": [
+      "price",
+      "rating",
+      "thread_score",
+      "feature_claim",
+      "wiki_definition"
+    ],
+    "must_be_in_domain": [
+      "__SHOPPING__",
+      "__REDDIT__",
+      "__WIKIPEDIA__"
+    ],
+    "min_distinct_sources": 60,
+    "min_distinct_domains": 3,
+    "per_domain_minimum": {
+      "__SHOPPING__": 30,
+      "__REDDIT__": 20,
+      "__WIKIPEDIA__": 15
+    }
+  },
+  "url_coverage": {
+    "golden_pool_path": "data/golden/deep/dr_cross_deep_0009.json",
+    "min_unique_urls_browsed": 100,
+    "min_unique_urls_cited": 60,
+    "min_must_cite_recall": 0.45,
+    "min_expected_pool_coverage": 0.0,
+    "min_domain_balance": 0.8,
+    "weight_in_composite": 0.25,
+    "scoring_weights": {
+      "must_cite_recall": 0.55,
+      "pool_coverage": 0.15,
+      "domain_balance": 0.3
+    },
+    "v1_deprecated_note": "v1-only artifact: pool/triples describe the pre-2026-07-03 topic of this task id and are NOT valid for task_version 2; v2 scoring reads data/golden/answer_keys/<task_id>.json exclusively"
+  },
+  "url_reachability": {
+    "min_reachability_rate": 0.3,
+    "probe_timeout_seconds": 6.0
+  },
+  "golden": {
+    "triples_path": "data/golden/deep/dr_cross_deep_0009.json",
+    "expected_predicates": [
+      "price",
+      "rating",
+      "review_count",
+      "feature_claim",
+      "forum",
+      "thread_score",
+      "comment_count",
+      "thread_classification",
+      "wiki_defines"
+    ],
+    "v1_deprecated_note": "v1-only artifact: pool/triples describe the pre-2026-07-03 topic of this task id and are NOT valid for task_version 2; v2 scoring reads data/golden/answer_keys/<task_id>.json exclusively"
+  },
+  "synthesis_requirements": {
+    "task_type": "causal",
+    "causal_layers": [
+      "L1_chemistry",
+      "L2_thermal",
+      "L3_behaviour",
+      "L4_measured_impact"
+    ],
+    "min_wiki_per_layer": {
+      "L1_chemistry": 3,
+      "L2_thermal": 3
+    },
+    "min_reddit_per_layer": {
+      "L3_behaviour": 5,
+      "L4_measured_impact": 8
+    },
+    "l4_must_have_explicit_percent": true,
+    "mitigation_strategies_min": 5,
+    "min_evidence_per_strategy": {
+      "shopping": 1,
+      "reddit": 1
+    },
+    "model_ranking_min": 3,
+    "min_reddit_per_model": 3,
+    "explicitly_forbid_top10": true
+  },
+  "coverage_checklist_path": "data/golden/checklists/dr_cross_deep_0009.json",
+  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "domain": "headphones_audio",
+  "intent_type": "Causal",
+  "intent_v1_legacy": "Last winter my EV's range fell off a cliff, easily a third gone on sub-freezing mornings, and the dealer just shrugged and said 'batteries hate cold'. That's not an answer. I want to actually understand it: what happens inside the lithium-ion cells, how much the cabin heater and preconditioning eat, what I'm doing wrong as a driver, and what percentage drops other owners really see. Then, honestly, what actually helps, heat pumps, battery blankets, whatever, ranked by how much range it wins back? And which EVs do owners say handle winter best?",
+  "task_version": 2,
+  "tri_source": {
+    "cluster": "headphones_audio",
+    "category_ids": [
+      60,
+      222,
+      210,
+      242,
+      203,
+      219,
+      242
+    ],
+    "keyword_filter": null,
+    "forums": [
+      "headphones",
+      "technology"
+    ],
+    "wiki_topics": [
+      "Bluetooth",
+      "Audio codec",
+      "Headphones"
+    ],
+    "archetype": "evolution/explainer",
+    "angle": "Understanding how Bluetooth audio evolved and why wired vs wireless sound differs, as homework before a first serious headphone purchase"
+  },
+  "coverage_checklist_path_v1_legacy": "data/tasks/deep_research/cross_site_deep/checklists_deep.json"
+}

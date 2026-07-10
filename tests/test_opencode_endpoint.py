@@ -7,7 +7,7 @@ Regression guard for the box smoke failure where opencode reached vLLM
   1. The ds-shim `baseURL` defaults to the harness-wired proxy_url (the
      clamp proxy on the box), and is overridable, without hardcoding a
      box-specific port that would break GLM/CCR.
-  2. The generated opencode config caps output tokens at <= 3840 by default,
+  2. The generated opencode config caps output tokens at the shared 8192,
      independent of any proxy, so the request is safe even if the clamp is
      bypassed.
 """
@@ -27,6 +27,7 @@ from scripts.runners.opencode_runner import (  # noqa: E402
     _resolve_context_limit,
     _resolve_llm_base_url,
     _resolve_output_cap,
+    _shim_curl_patterns,
 )
 
 _ENDPOINT_ENV = (
@@ -71,11 +72,13 @@ def test_base_url_falls_back_to_ds_proxy_env(monkeypatch):
 
 
 def test_base_url_last_resort_default(monkeypatch):
-    assert _resolve_llm_base_url(None) == "http://localhost:8088/v1"
+    # Formal and standalone defaults share the multi-backbone gateway. The old
+    # :8088 ds_proxy is single-upstream and cannot route a three-backbone run.
+    assert _resolve_llm_base_url(None) == "http://localhost:8100/v1"
 
 
 def test_output_cap_default_is_safe():
-    assert _resolve_output_cap() == 3840
+    assert _resolve_output_cap() == 8192
 
 
 def test_output_cap_and_context_env_override(monkeypatch):
@@ -88,13 +91,13 @@ def test_output_cap_and_context_env_override(monkeypatch):
 def test_bad_env_values_fall_back(monkeypatch):
     monkeypatch.setenv("OPENCODE_MAX_OUTPUT_TOKENS", "garbage")
     monkeypatch.setenv("OPENCODE_CONTEXT_LIMIT", "")
-    assert _resolve_output_cap() == 3840
+    assert _resolve_output_cap() == 8192
     assert _resolve_context_limit() == 40960
 
 
 def test_generated_config_qwen3_8b_endpoint_and_cap(monkeypatch):
     # The concrete artifact the box consumes: base_url points at the clamp
-    # proxy and every model carries a <=3840 output cap + context window.
+    # proxy and every model carries the shared 8192 output cap + context window.
     base_url = _resolve_llm_base_url("http://127.0.0.1:8002/v1")
     cfg = _opencode_config("qwen3-8b", base_url, strict_sandbox=False)
     provider = cfg["provider"]["ds-shim"]
@@ -102,10 +105,37 @@ def test_generated_config_qwen3_8b_endpoint_and_cap(monkeypatch):
     models = provider["models"]
     assert "qwen3-8b" in models
     for model_id, spec in models.items():
-        assert spec["limit"]["output"] <= 3840, model_id
+        assert spec["limit"]["output"] == 8192, model_id
         assert spec["limit"]["context"] == 40960, model_id
-    # The failing smoke's total would now be 8961 + 3840 = 12801 < 40960.
+    # The failing smoke still fits while matching the cross-lane output budget.
     assert 8961 + models["qwen3-8b"]["limit"]["output"] < 40960
+    assert "commands" not in cfg
+    permission = cfg["permission"]
+    assert permission["*"] == "deny"
+    assert permission["edit"] == "allow"
+    assert permission["external_directory"] == "deny"
+    bash = permission["bash"]
+    assert bash["*"] == "deny"
+    allowed = [command for command, action in bash.items() if action == "allow"]
+    assert allowed and all(command.startswith("curl") for command in allowed)
+    assert not {"cat", "ls", "head", "tail"} & set(allowed)
+
+
+def test_generated_config_allows_exact_runtime_shim_origin():
+    shim = "http://10.240.12.1:8081"
+    cfg = _opencode_config(
+        "deepseek-v4-flash",
+        "http://10.240.12.1:8100/v1",
+        strict_sandbox=False,
+        shim_url=shim,
+    )
+    bash = cfg["permission"]["bash"]
+    assert list(bash)[0] == "*"
+    assert bash["*"] == "deny"
+    assert set(_shim_curl_patterns(shim)) == {
+        pattern for pattern, action in bash.items() if action == "allow"
+    }
+    assert all("localhost" not in pattern for pattern in bash if pattern != "*")
 
 
 def test_generated_config_has_no_hardcoded_box_port(monkeypatch):

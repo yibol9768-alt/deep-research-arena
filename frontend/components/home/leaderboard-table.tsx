@@ -130,7 +130,11 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
               <th className="px-4 py-3 text-center font-medium"><T en="Judge Elo · 95% CI" zh="判官 Elo · 95% 置信区间" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="Battles" zh="对战" /></th>
               <th className="px-4 py-3 text-center font-medium"><T en="W / L / D" zh="胜 / 负 / 平" /></th>
-              <th className="px-4 py-3 text-center font-medium"><T en="Grounding" zh="接地" /></th>
+              <th className="px-4 py-3 text-center font-medium">
+                <span title="URL-grounding proxy, not a proof of fetch. R = share of a report's cited URLs that exist in the sandbox corpus (membership, NOT a fetch). Q = verbatim quote overlap vs an evaluator-fetched copy. Neither R nor Q observes whether the agent actually opened a page.">
+                  <T en="URL grounding*" zh="URL 接地*" />
+                </span>
+              </th>
               <th className="w-10 px-4 py-3" />
             </tr>
           </thead>
@@ -185,7 +189,10 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                     {gate != null ? (
                       <span>
                         <span className={`font-semibold ${gate >= 40 ? 'text-good' : gate >= 15 ? 'text-warn' : 'text-bad'}`}>{gate.toFixed(0)}%</span>
-                        <span className="ml-1 text-[10px] text-muted">
+                        <span
+                          className="ml-1 text-[10px] text-muted"
+                          title="R = corpus-URL membership: a cited URL parses and exists in the sandbox corpus (NOT a fetch; a guessed real URL still scores). Q = verbatim quote overlap vs an evaluator-fetched copy (a lexical lower bound, not citation support). Neither witnesses that the agent opened the page."
+                        >
                           R{a.reachability_pct!.toFixed(0)} · Q{a.url_veracity_pct!.toFixed(0)}
                         </span>
                       </span>

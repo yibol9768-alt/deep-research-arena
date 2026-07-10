@@ -28,8 +28,21 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 # Public regex constants — kept exported so existing call sites can migrate
 # gradually without breaking.
-MD_LINK_RE = re.compile(r"\[(?P<label>[^\]]*)\]\((?P<url>https?://[^)\s]+)\)")
-BARE_URL_RE = re.compile(r"(?<![(\[])(?<!\]\()https?://[^\s<>\"'`)\]]+")
+# Kept for backward-compatible imports.  The authoritative markdown parser is
+# ``iter_markdown_links`` below: a regex cannot distinguish the ``)`` in
+# ``Qi_(standard)`` from the ``)`` that closes ``[label](destination)``.
+# One level of balanced brackets is allowed inside the label: CommonMark says
+# `[a [b] c](url)` is a link, every renderer shows it, and 35 store products
+# across 23 tasks carry literal "[Discontinued]"-style markers in their names.
+# With `[^\]]*` the extractor returned NO citation for a label that faithfully
+# copies such a product title, so the same-line citation requirement silently
+# made those nuggets uncoverable and the lane was scored as if it had not cited.
+MD_LINK_RE = re.compile(
+    r"\[(?P<label>(?:[^\[\]]|\[[^\]]*\])*)\]\((?P<url>https?://[^)\s]+)\)")
+# Include parentheses in the candidate and let ``strip_url_trail`` remove only
+# *unbalanced* closing punctuation.  This fixes bare Kiwix titles such as
+# ``.../Ray_tracing_(graphics)`` as well as markdown destinations.
+BARE_URL_RE = re.compile(r"(?<![(\[])(?<!\]\()https?://[^\s<>\"'`\]]+")
 NUMBERED_INLINE_RE = re.compile(r"\[(?P<n>\d{1,3})\]")
 NUMBERED_REF_LINE_RE = re.compile(
     r"^\s*\[(?P<n>\d{1,3})\]\s*\.?\s*(?:[-:.]\s*)?(?P<rest>.+)$",
@@ -50,6 +63,141 @@ BULLET_URL_RE = re.compile(
 )
 
 URL_TRAIL_PUNCT = ").,;:`'\"\\!?>]}"
+_URL_TRAIL_NONPAREN = ".,;:`'\"\\!?>]}"
+
+
+@dataclass(frozen=True)
+class MarkdownLink:
+    """One parsed inline markdown link with balanced destination brackets."""
+
+    label: str
+    url: str
+    start: int
+    end: int
+    url_start: int
+    url_end: int
+
+
+def iter_markdown_links(text: str):
+    """Yield inline markdown links while preserving balanced ``(...)`` URLs.
+
+    Python's regular-expression engine cannot recursively balance parentheses.
+    The previous ``[^)]`` pattern therefore truncated three shipped concept
+    sources at the first ``(``.  This small scanner treats parentheses inside
+    the destination as nested and the first unmatched ``)`` as markdown's
+    closing delimiter.  Whitespace remains illegal in a bare destination;
+    angle-bracket destinations are accepted as Markdown permits.
+    """
+    if not text:
+        return
+    pos = 0
+    n = len(text)
+    while pos < n:
+        lb = text.find("[", pos)
+        if lb < 0:
+            return
+        # CommonMark allows balanced brackets inside the label: `[a [b] c](u)`
+        # is a link in every renderer.  35 store products across 23 tasks carry
+        # literal "[Discontinued]"-style markers in their names; taking the
+        # FIRST `]` here dropped the citation of any agent that copied such a
+        # title faithfully, making its nugget silently uncoverable.
+        rb = -1
+        bdepth = 0
+        j = lb + 1
+        while j < n:
+            cj = text[j]
+            if cj == "\\":
+                j += 2
+                continue
+            if cj == "[":
+                bdepth += 1
+            elif cj == "]":
+                if bdepth == 0:
+                    rb = j
+                    break
+                bdepth -= 1
+            j += 1
+        if rb < 0:
+            return
+        p = rb + 1
+        while p < n and text[p] in " \t":
+            p += 1
+        if p >= n or text[p] != "(":
+            pos = lb + 1
+            continue
+        p += 1
+        while p < n and text[p] in " \t":
+            p += 1
+        angled = p < n and text[p] == "<"
+        if angled:
+            p += 1
+        url_start = p
+        if not text.startswith(("http://", "https://"), url_start):
+            pos = lb + 1
+            continue
+        depth = 0
+        escaped = False
+        i = url_start
+        url_end = end = None
+        while i < n:
+            ch = text[i]
+            if escaped:
+                escaped = False
+                i += 1
+                continue
+            if ch == "\\":
+                escaped = True
+                i += 1
+                continue
+            if angled:
+                if ch == ">":
+                    url_end = i
+                    j = i + 1
+                    while j < n and text[j] in " \t":
+                        j += 1
+                    if j < n and text[j] == ")":
+                        end = j + 1
+                    break
+                if ch in "\r\n":
+                    break
+            else:
+                if ch.isspace():
+                    break
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    if depth == 0:
+                        url_end, end = i, i + 1
+                        break
+                    depth -= 1
+            i += 1
+        if url_end is None or end is None:
+            pos = lb + 1
+            continue
+        raw = strip_url_trail(text[url_start:url_end])
+        if raw:
+            yield MarkdownLink(
+                label=text[lb + 1:rb], url=raw, start=lb, end=end,
+                url_start=url_start, url_end=url_end,
+            )
+        pos = end
+
+
+def replace_markdown_links(text: str, repl) -> str:
+    """Replace links parsed by :func:`iter_markdown_links` without regex drift.
+
+    ``repl`` may be a constant string or a callable receiving ``MarkdownLink``.
+    """
+    links = list(iter_markdown_links(text or ""))
+    if not links:
+        return text or ""
+    chunks, pos = [], 0
+    for link in links:
+        chunks.append(text[pos:link.start])
+        chunks.append(repl(link) if callable(repl) else repl)
+        pos = link.end
+    chunks.append(text[pos:])
+    return "".join(chunks)
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +254,7 @@ def canonicalize_url(url: str) -> str:
     * Sort query params.
     * Drop fragment (``#section``).
     """
-    s = (url or "").strip().rstrip(URL_TRAIL_PUNCT)
+    s = strip_url_trail((url or "").strip())
     if not s:
         return ""
     try:
@@ -145,8 +293,17 @@ def fuzzy_url_key(url: str) -> str:
 
 
 def strip_url_trail(url: str) -> str:
-    """Strip trailing punctuation only — does NOT canonicalise other parts."""
-    return (url or "").rstrip(URL_TRAIL_PUNCT)
+    """Strip sentence/markdown punctuation, preserving balanced ``(...)``.
+
+    A final ``)`` is URL data when it closes an opening parenthesis inside the
+    destination (Wikipedia titles are the common case).  It is punctuation only
+    when there are more closing than opening parentheses.  Applying this one
+    helper in extraction and canonicalisation prevents them from disagreeing.
+    """
+    s = (url or "").strip().rstrip(_URL_TRAIL_NONPAREN)
+    while s.endswith(")") and s.count(")") > s.count("("):
+        s = s[:-1].rstrip(_URL_TRAIL_NONPAREN)
+    return s
 
 
 # ---------------------------------------------------------------------------
@@ -219,7 +376,7 @@ def _claim_context(answer: str, span_start: int, window: int = 200) -> str:
     a = max(0, span_start - window)
     b = min(len(answer), span_start + window)
     chunk = answer[a:b]
-    chunk = MD_LINK_RE.sub(lambda m: m.group("label"), chunk)
+    chunk = replace_markdown_links(chunk, lambda m: m.label)
     chunk = re.sub(r"`[^`]*`", " ", chunk)
     chunk = re.sub(r"\s+", " ", chunk)
     return chunk.strip()
@@ -256,11 +413,11 @@ def _build_numbered_table(answer: str) -> dict[str, str]:
         url = None
         url_m = BARE_URL_RE.search(rest)
         if url_m:
-            url = url_m.group(0)
+            url = strip_url_trail(url_m.group(0))
         else:
-            inner_md = MD_LINK_RE.search(rest)
+            inner_md = next(iter_markdown_links(rest), None)
             if inner_md:
-                url = inner_md.group("url")
+                url = inner_md.url
         if url is None:
             # two-line continuation: look at the next few lines for a URL,
             # stopping at the next reference head so we bind the right entry.
@@ -274,7 +431,7 @@ def _build_numbered_table(answer: str) -> dict[str, str]:
                     break
                 bare_m = BARE_URL_RE.search(nxt)
                 if bare_m:
-                    url = bare_m.group(0)
+                    url = strip_url_trail(bare_m.group(0))
                     break
         if url:
             table[n] = strip_url_trail(url)
@@ -288,9 +445,9 @@ def _build_footnote_table(answer: str) -> dict[str, str]:
         rest = m.group("rest").strip()
         url_m = BARE_URL_RE.search(rest)
         if not url_m:
-            inner_md = MD_LINK_RE.search(rest)
+            inner_md = next(iter_markdown_links(rest), None)
             if inner_md:
-                table[m.group("n")] = strip_url_trail(inner_md.group("url"))
+                table[m.group("n")] = strip_url_trail(inner_md.url)
             continue
         table[m.group("n")] = strip_url_trail(url_m.group(0))
     return table
@@ -375,8 +532,8 @@ def extract_citations(
     # reported under that style instead of also surfacing as a bare URL.
 
     # 1. Markdown links: [label](url) — most explicit, definite citation.
-    for m in MD_LINK_RE.finditer(answer):
-        _maybe_emit(m.group("url"), m.start(), "markdown")
+    for m in iter_markdown_links(answer):
+        _maybe_emit(m.url, m.start, "markdown")
 
     # 2. "Source: <url>" / "URL: <url>" / "See: <url>" — explicit prefix.
     for m in SOURCE_PREFIX_RE.finditer(answer):
