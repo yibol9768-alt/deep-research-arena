@@ -296,3 +296,57 @@ def test_conforming_temperature_and_commented_out_value_do_not_trip():
         'r = create(model=M, temperature=0.2)\n'
     )
     assert _scan_sampling_text(src, {"temperature": 0.2}) == []
+
+
+# --- soft-quantifier citation steer (SPEC_ISSUES §2, citation_count entry) --
+#
+# _QTY requires a numeral, so "cite multiple distinct source URLs" -- the same
+# evasion class search_breadth closes for queries -- sailed past the rule that
+# guards reach's own numerator. Red on the old rule: the steer forms below
+# produced no citation_count hit.
+
+@pytest.mark.parametrize("steer", [
+    "You must cite multiple distinct source URLs.",
+    "Include several different citations.",
+    "The final report needs numerous sandbox URLs.",
+    "Write a summary with various source urls throughout.",
+])
+def test_soft_quantifier_citation_steer_is_caught(steer):
+    src = f'PROMPT = """\n{steer}\n"""\n'
+    assert "citation_count" in _scan_text(src)
+
+
+@pytest.mark.parametrize("prose", [
+    "the search returned various links to review",
+    "it found several pages about coffee",
+    "many results were empty",
+])
+def test_descriptive_soft_quantifier_does_not_false_positive(prose):
+    # Descriptive text about results is not a steer; only an instructing verb
+    # anchored to the quantity is. Otherwise the fix would be to reword honest
+    # tool descriptions rather than keep the rule.
+    src = f'DESC = """\n{prose}\n"""\n'
+    assert "citation_count" not in _scan_text(src)
+
+
+# --- backbone_keyed_behaviour: every spelling of "am I on backbone X?" ------
+#
+# The historical incident keyed intent masking on model.startswith("deepseek").
+# The original rule matched only the `"name" in model` form, so the incident's
+# own spelling would have re-entered unflagged (SPEC_ISSUES §2, backbone-rule
+# entry). Red on the old rule: the startswith/== forms produced no hit.
+
+@pytest.mark.parametrize("branch", [
+    'if model.startswith("deepseek"):\n    mask = True\n',
+    'if model.lower().startswith(("qwen", "glm")):\n    tweak()\n',
+    'if backbone == "glm-4.7-flash":\n    grant_budget()\n',
+    'if "deepseek" in model:\n    mask = True\n',  # original form still caught
+])
+def test_backbone_name_branch_is_caught_in_every_spelling(branch):
+    assert "backbone_keyed_behaviour" in _scan_text(branch)
+
+
+def test_backbone_name_as_plain_constant_is_not_a_branch():
+    # Naming a backbone is fine; BRANCHING on it is not.
+    src = 'DEFAULT_MODEL = "deepseek-v4-flash"\nTHINKING_OFF = "deepseek-v4"\n'
+    assert "backbone_keyed_behaviour" not in _scan_text(src)

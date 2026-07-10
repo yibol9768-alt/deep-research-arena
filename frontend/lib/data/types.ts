@@ -1,3 +1,19 @@
+/** A declared, board-disclosed way a lane differs from the shared protocol
+ *  (config/lane_protocol.yaml `deviations`). Property A / gate G0: every such
+ *  difference is footnoted on the leaderboard so no undisclosed asymmetry hides.
+ *  Carries the machine-readable disclosure only; the long-form provenance stays
+ *  in the protocol file. */
+export interface LaneDeviation {
+  /** Stable machine key, unique within the lane (e.g. "fetch_withhold"). */
+  code: string
+  /** Class of exception (budget / capability_delivery / fetch_withhold / ...). */
+  kind: string
+  /** One-line disclosure, Simplified Chinese. */
+  human_zh: string
+  /** One-line disclosure, English. */
+  human_en: string
+}
+
 /** Eight per-pillar Elo dimensions from the v3 schema. */
 export interface PerPillarElo {
   coverage: number
@@ -55,6 +71,8 @@ export interface RankedAgent {
    *  reachability% and quote-verified% / 100). The DEFAULT ranking — quality
    *  only counts to the extent the evidence is real. */
   gated_score?: number
+  /** Declared protocol deviations for this lane, rendered as row footnotes. */
+  deviations?: LaneDeviation[]
 }
 
 export interface PillarEloRow {

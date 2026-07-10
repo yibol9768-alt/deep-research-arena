@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from scripts import run_usefulness_jury as jury
@@ -37,7 +39,51 @@ def test_multi_backbone_panel_requires_explicit_choice():
     }
     with pytest.raises(ValueError, match="multiple backbones"):
         jury.panel_from_fit(result)
-    assert jury.panel_from_fit(result, backbone="bb1") == {"a": 0.9}
+    panel = jury.panel_from_fit(result, backbone="bb1")
+    prov = panel.pop("_provenance")
+    assert panel == {"a": 0.9}
+    assert prov["backbone"] == "bb1"
+
+
+def test_panel_from_fit_keeps_the_fit_provenance_stamps():
+    # SPEC_ISSUES §2 (presentation panel zero provenance binding): the panel
+    # used to strip the fit's protocol/rubric_hash/word_budget stamps, making
+    # --panel the only board input nothing could bind. Red on the old code,
+    # which returned bare {agent: float}.
+    result = {
+        "protocol": "uj_v1",
+        "rubric_hash": "abc123",
+        "word_budget": 900,
+        "generated_at": 1234.5,
+        "agents": {"a": {"winrate_vs_avg_opponent": 0.7}},
+    }
+    panel = jury.panel_from_fit(result)
+    prov = panel["_provenance"]
+    assert prov["protocol"] == "uj_v1"
+    assert prov["rubric_hash"] == "abc123"
+    assert prov["word_budget"] == 900
+    assert panel["a"] == 0.7
+
+
+def test_board_load_panel_splits_stamp_and_flags_unstamped(tmp_path):
+    import importlib
+    btb = importlib.import_module("scripts.build_truth_board")
+
+    stamped = tmp_path / "stamped.json"
+    stamped.write_text(json.dumps({
+        "a": 0.7, "_provenance": {"protocol": "uj_v1", "rubric_hash": "abc"},
+    }))
+    panel, prov = btb.load_panel(str(stamped))
+    assert panel == {"a": 0.7}          # agent lookups unaffected
+    assert prov["rubric_hash"] == "abc"
+
+    bare = tmp_path / "bare.json"
+    bare.write_text(json.dumps({"a": 0.7}))
+    panel, prov = btb.load_panel(str(bare))
+    assert panel == {"a": 0.7}
+    assert prov == {"unstamped": True, "source_file": str(bare)}
+
+    assert btb.load_panel(None) == ({}, None)
 
 
 def test_missing_report_is_a_loss_not_a_sit_out(tmp_path):

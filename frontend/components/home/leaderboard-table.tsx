@@ -5,7 +5,7 @@ import { motion } from 'motion/react'
 import Link from 'next/link'
 import { agentMeta } from '@/lib/providers'
 import { fmt, groundingGatePct, totalPairwiseBattles, truthScore } from '@/lib/format'
-import type { PerPillarElo, RankedAgent } from '@/lib/data/types'
+import type { LaneDeviation, PerPillarElo, RankedAgent } from '@/lib/data/types'
 import { Swords } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { T } from '@/components/i18n/t'
@@ -171,6 +171,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                         </span>
                       ) : null}
                       <span className="rounded-pill bg-surface-mid px-2 py-0.5 text-[11px] text-muted">{meta.backbone}</span>
+                      <DeviationBadge deviations={a.deviations} />
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -229,7 +230,10 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                 <span className={cn('w-7 text-center text-sm tnum', rank <= 3 ? 'font-semibold text-ink' : 'text-muted')}>{rank}</span>
                 <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: meta.color }} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-ink">{meta.display}</p>
+                  <p className="flex items-center gap-1.5 truncate text-sm font-medium text-ink">
+                    {meta.display}
+                    <DeviationBadge deviations={a.deviations} />
+                  </p>
                   <p className="truncate text-xs text-muted">
                     <T
                       en={<>{meta.backbone} · {a.n_battles} battles</>}
@@ -249,6 +253,46 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
         })}
       </ul>
     </section>
+  )
+}
+
+/**
+ * Restrained footnote badge disclosing a lane's declared protocol deviations
+ * (config/lane_protocol.yaml). Property A / gate G0: a lane that differs from the
+ * shared protocol (reads pages off the recording shim, swaps a retriever,
+ * truncates context) must be visible on the board, not silently folded into the
+ * ranking. Hover shows the one-line disclosures. The tooltip is emitted twice —
+ * once per language — and the site's CSS language toggle reveals exactly one,
+ * the same mechanism <T> uses (a `title` attribute cannot itself be toggled).
+ */
+function DeviationBadge({ deviations }: { deviations?: LaneDeviation[] }) {
+  if (!deviations || deviations.length === 0) return null
+  const n = deviations.length
+  const enTitle = deviations.map((d) => `• [${d.kind}] ${d.human_en}`).join('\n')
+  const zhTitle = deviations.map((d) => `• [${d.kind}] ${d.human_zh}`).join('\n')
+  const cls =
+    'cursor-help rounded-pill border border-hairline px-1.5 py-0.5 text-[10px] leading-none text-muted transition-colors hover:border-brand hover:text-brand'
+  return (
+    <>
+      <span data-lang="en" lang="en">
+        <span
+          className={cls}
+          title={enTitle}
+          aria-label={`${n} declared protocol deviation${n > 1 ? 's' : ''}; hover for details`}
+        >
+          ⚑ {n}
+        </span>
+      </span>
+      <span data-lang="zh" lang="zh-CN">
+        <span
+          className={cls}
+          title={zhTitle}
+          aria-label={`${n} 项已声明的协议差异,悬停查看`}
+        >
+          差异 {n}
+        </span>
+      </span>
+    </>
   )
 }
 

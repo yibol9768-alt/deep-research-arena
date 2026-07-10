@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import type { Leaderboard, PerPillarElo, RankedAgent } from './types'
+import type { Leaderboard, LaneDeviation, PerPillarElo, RankedAgent } from './types'
 
 // v3 schema: real per-pillar Elo + per-agent profile. Try this FIRST.
 const LEADERBOARD_V3_JSON = path.join(
@@ -42,6 +42,7 @@ interface PerAgentProfile {
   checklist_pass_rate?: number
   coverage_pct?: number
   reachability_pct?: number
+  deviations?: LaneDeviation[]
   synthetic_placeholder?: boolean
 }
 
@@ -208,6 +209,7 @@ export function rankedAgents(): RankedAgent[] {
       checklist_pass_rate: prof?.checklist_pass_rate,
       coverage_pct: prof?.coverage_pct,
       reachability_pct: prof?.reachability_pct,
+      deviations: Array.isArray(prof?.deviations) ? prof!.deviations : undefined,
       per_pillar: pillars,
       schema_version: c.schemaVersion,
       is_dry_run: c.isDryRun,

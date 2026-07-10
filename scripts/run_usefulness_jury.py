@@ -875,9 +875,18 @@ def cost_report(bank_records: list[dict]) -> dict:
     return {"per_judge": dict(per_judge), "total_cny": round(total_cny, 4)}
 
 
-def panel_from_fit(fit_result: dict, *, backbone: str | None = None) -> dict[str, float]:
-    """{agent: winrate} for build_truth_board.py --panel."""
-    out: dict[str, float] = {}
+def panel_from_fit(fit_result: dict, *, backbone: str | None = None) -> dict:
+    """{agent: winrate} for build_truth_board.py --panel, plus provenance.
+
+    The reserved "_provenance" key carries the fit's protocol / rubric_hash /
+    word_budget / backbone stamps into the panel file. The previous version
+    stripped them, making --panel the only board input with ZERO provenance
+    binding: any {agent: float} json could silently reorder tie-broken ranks
+    and board.json recorded nothing about where the numbers came from
+    (SPEC_ISSUES §2, presentation-panel entry). build_truth_board pops the key
+    (agent lookups are unaffected) and publishes it as `panel_provenance`.
+    """
+    out: dict = {}
     if "agents" in fit_result:
         for agent, row in fit_result["agents"].items():
             out[agent] = row["winrate_vs_avg_opponent"]
@@ -891,6 +900,13 @@ def panel_from_fit(fit_result: dict, *, backbone: str | None = None) -> dict[str
             raise ValueError(f"backbone {backbone!r} is absent from fit result")
         for agent, row in choices[backbone]["agents"].items():
             out[agent] = row["winrate_vs_avg_opponent"]
+    out["_provenance"] = {
+        "protocol": fit_result.get("protocol"),
+        "rubric_hash": fit_result.get("rubric_hash"),
+        "word_budget": fit_result.get("word_budget"),
+        "backbone": backbone,
+        "generated_at": fit_result.get("generated_at"),
+    }
     return out
 
 

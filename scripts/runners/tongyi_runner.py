@@ -55,7 +55,7 @@ import textwrap
 import time
 from pathlib import Path
 
-from . import _egress
+from . import _budget, _egress
 from ._runner_lock import runner_exclusive_lock
 
 logger = logging.getLogger(__name__)
@@ -65,8 +65,13 @@ TONGYI_ROOT = ROOT / "third_party" / "tongyi-deep-research"
 TONGYI_INFERENCE = TONGYI_ROOT / "inference"
 TONGYI_PYTHON = str(ROOT / ".venv-tongyi" / "bin" / "python")
 
-# Generous timeout: the ReAct loop can run many turns with slow models.
-DEFAULT_TIMEOUT_S = 1800
+# No runner-specific comparative wall clock (lane_protocol.yaml declares
+# wall_clock_s: null). The former hardcoded 1800s here was an UNDECLARED
+# per-lane hard wall: run_deep_task's manual dispatch passes no timeout_s, so
+# this default governed formal runs, and a slow backbone was scored as a
+# framework failure. The shared no-progress watchdog owns termination;
+# subprocess.run receives timeout=None unless an operator overrides.
+DEFAULT_TIMEOUT_S = _budget.native_timeout_default()
 
 # Preserve Tongyi's native call budget. The old benchmark-specific cap of 50
 # gave this lane only half its upstream default while cost is already measured.
@@ -480,7 +485,7 @@ async def run(
     shim_url: str,
     proxy_url: str,
     *,
-    timeout_s: int = DEFAULT_TIMEOUT_S,
+    timeout_s: float | None = DEFAULT_TIMEOUT_S,
 ) -> str:
     """Run Tongyi DeepResearch and return the markdown report.
 
@@ -489,7 +494,9 @@ async def run(
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search shim (e.g. "http://localhost:8081").
         proxy_url: OpenAI-compatible LLM proxy (e.g. "http://localhost:8100/v1").
-        timeout_s: Subprocess timeout in seconds.
+        timeout_s: Subprocess timeout in seconds; None (the protocol default,
+            wall_clock_s: null) means no wall clock and the shared no-progress
+            watchdog owns termination.
 
     Returns:
         The research report as a string, or an error string prefixed with

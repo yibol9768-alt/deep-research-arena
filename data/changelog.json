@@ -3,6 +3,53 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v23-2026-07-09",
+      "date": "2026-07-09",
+      "title": "Every way a lane differs from the shared protocol is now disclosed on the board, and four hidden wall clocks are gone",
+      "summary": "Gate G0: each lane's departures from the common protocol are declared in machine-readable bilingual form and rendered as leaderboard footnotes; the two LLM doors' policy differences are declared in full; and the four lanes that carried an undeclared 1800/1200-second hard wall now answer only to the shared watchdog.",
+      "tags": [
+        "fairness",
+        "harness",
+        "methodology",
+        "frontend"
+      ],
+      "sections": [
+        {
+          "heading": "Declared, not silently tolerated",
+          "bullets": [
+            "A comparison is only fair if the places it is not apples-to-apples are visible. Each lane in `config/lane_protocol.yaml` now carries a `deviations` list, and every entry is a `{kind, code, human_zh, human_en, detail}` record: the class of exception, a stable key, a one-line disclosure in both languages, and the authoritative provenance.",
+            "The existing store of differences was registered: framework budget and context knobs, gpt-researcher's TavilySearch retriever swapped for a sandbox shim-backed retriever, DeepAgents' adapter-injected web tools, and the twelve lanes whose page reads bypass the recording shim. Those twelve have proof-of-fetch WITHHELD (available=False with a reason), never scored 0, and the withhold is now a declared, board-visible deviation.",
+            "The three lanes with no page-read tool at all (storm, langchain-odr, co-storm consume search snippets only) now carry a `snippet_only` disclosure: a structurally different track the reader can see, distinct from the frozen semantic question of how the completeness fetch threshold should treat them (registered in `docs/SPEC_ISSUES.md`).",
+            "The two LLM doors' router-level policies are declared in full under `backbone.gateway_policy_disclosures`: the qwen-only fit-to-window rescue and its len//3 estimator, the glm max_tokens floor at the gateway door, and ds_proxy's transient retries, think-stripping, and json_schema downgrade that the gateway does not apply."
+          ]
+        },
+        {
+          "heading": "A gate that fails on any undeclared difference",
+          "bullets": [
+            "`scripts/check_disclosure.py` (wired into `preflight.py --disclosure` and `--all`) reconciles the declarations against the code and exits non-zero on any gap: every deviation is well-formed and bilingual with codes unique per lane; `fetch_observable=false` holds if and only if a `fetch_withhold` deviation exists; `fetch_mode=none` holds if and only if a `snippet_only` deviation exists; concrete adapter difference signals (a bound shim retriever, context-token truncation, adapter-injected tools) are each named for their lane; and every live door mechanism is declared, in both directions, so a stale disclosure fails too.",
+            "The signal scan is a text scan over stripped prose, not an AST walk, because two lanes build their agent loop and retriever as Python source strings and exec them in subprocess venvs.",
+            "Two `check_parity` rules were widened after the audit showed their coverage: the citation-count rule now catches numeral-free steers (\"cite multiple distinct source URLs\") while leaving descriptive text alone, and the backbone-branch rule now catches `model.startswith(...)` and `model == ...` spellings, not just the `in` form the original incident never used."
+          ]
+        },
+        {
+          "heading": "Fixes that matched code to what the protocol already declared",
+          "bullets": [
+            "Four lanes (tongyi-dr, deepagents, ldr at 1800s; local-deep-researcher at 1200s) carried a hardcoded subprocess wall clock while the protocol declares `wall_clock_s: null`; on a slow backbone the kill was scored as a framework that delivered nothing. All four now default to the shared uniform policy (no comparative wall; the no-progress watchdog owns termination).",
+            "ds_proxy's ops floor (OPENAI_PROXY_MIN_MAX_TOKENS) ran after the declared ceiling clamp with no bound, so an environment variable could hand every request more budget than the protocol allows. The floor is now bounded by the per-model ceiling, and both doors agree the declaration wins.",
+            "The codex model-identity probe resolved a loopback CODEX_DS_PROXY on the launcher while the lane's traffic resolves the same string on the SSH remote, attesting the wrong machine's proxy. The probe now fails closed on loopback endpoints for this lane, mirroring the claude-code override rule.",
+            "The presentation panel was the only board input with zero provenance binding. `panel_from_fit` now stamps protocol/rubric_hash/word_budget/backbone into the panel file, and the truth board publishes `panel_provenance` (an unstamped legacy file is accepted but loudly recorded as such).",
+            "The run manifest now fingerprints the gateway door: the LLM_GATEWAY_CONFIG file content is hashed and `--gateway URL` captures the serving process's live per-prefix policy, so a server-side policy edit can no longer change scores under a byte-identical manifest."
+          ]
+        },
+        {
+          "heading": "Rendered on the leaderboard",
+          "bullets": [
+            "The board build carries each lane's disclosure into `leaderboard_deep_v3.json`, and the leaderboard row shows a restrained footnote badge that reveals the one-line disclosures on hover, in the reader's language."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v22-2026-07-09",
       "date": "2026-07-09",
       "title": "A rescue that turned drift into grounding, an unreachable ceiling, and a rerun scored against the attempt that died",

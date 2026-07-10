@@ -75,6 +75,18 @@ _QTY = (r"(?:at least|no fewer than|not fewer than|no less than|minimum of|"
         r"a minimum of|at minimum|about|around|approximately|roughly|"
         r"aim for(?: at least)?|target|~|>=|≥|>|over|more than|upwards of)?\s*"
         + _NUMBER + r"\s*\+?")
+# A SOFT quantifier names an amount without a numeral. "cite multiple distinct
+# source URLs" steers reach's numerator exactly as "cite 5 URLs" does, and _QTY
+# (which REQUIRES a number) walked straight past it -- the same evasion class
+# search_breadth already closes for queries (SPEC_ISSUES §2, citation_count
+# entry). Mirroring search_breadth's design, the soft form must be anchored to
+# an instructing verb/requirement in the same clause: a descriptive "the search
+# returned various links" is not a steer, "cite various links" is.
+_SOFT_QTY = r"(?:multiple|several|many|numerous|various|diverse|plenty of|dozens of)"
+_SOFT_QTY_STEER = (
+    r"(?:cite|citing|cites|include|includes|including|provide|provides|use|"
+    r"list|produce|add|give|gather|collect|contain|contains|must have|"
+    r"should have|needs?|require[sd]?|with)\s+(?:at\s+)?" + _SOFT_QTY)
 
 RULES: list[tuple[str, str, str]] = [
     ("citation_count",
@@ -84,8 +96,11 @@ RULES: list[tuple[str, str, str]] = [
      # different source URLs" evasions slipped past the "at least N" form.
      # `\d+` alone let "cite at least five distinct source URLs" through: the
      # exact evasion class `_QTY` was built for, on the rule guarding reach's
-     # own numerator. Number words are spelled out here too.
-     _QTY + r"\s+(?:exact |distinct |different |separate )?"
+     # own numerator. Number words are spelled out here too. `_SOFT_QTY_STEER`
+     # closes the numeral-free form ("cite multiple distinct source URLs"),
+     # which _QTY cannot see because it requires a number.
+     r"(?:" + _QTY + r"|" + _SOFT_QTY_STEER + r")"
+     r"\s+(?:exact |distinct |different |separate )?"
      r"(?:sandbox |wikipedia |wiki |source )?"
      r"(?:url|citation|article citation|link|source url)s?",
      "tells one lane how many citations to produce; reach's numerator"),
@@ -161,8 +176,27 @@ RULES: list[tuple[str, str, str]] = [
      r"sandbox_url_count\(\w+\)\s*<\s*\w*min_urls",
      "harness gates capture on the quantity the scorer measures"),
     ("backbone_keyed_behaviour",
+     # Every way an adapter can spell "am I on backbone X?", not just the `in`
+     # form. The historical incident was `model.startswith("deepseek")` deciding
+     # intent masking; the original rule matched only `"name" in model`, so the
+     # incident's own spelling would have sailed past it on re-introduction
+     # (SPEC_ISSUES §2, backbone-rule entry). Covered forms:
+     #   "name" in model / backbone            (original)
+     #   model.startswith("name") / model.lower().startswith(("name", ...))
+     #   model == "name"  /  backbone == "name"
+     # NOTE the proxy directories (integrations/ds_proxy, integrations/
+     # llm_gateway) are deliberately NOT in SCANNED for this rule: their
+     # per-backbone branches implement the policy lane_protocol.yaml DECLARES
+     # (thinking per_backbone, max_output_tokens_exceptions), and
+     # preflight.check_backbone_sampling asserts code matches declaration there.
+     # This rule guards the ADAPTER surface, where no backbone branch is ever
+     # declared or legitimate.
      r"[\"']\s*(?:deepseek|qwen|glm|gpt-4|claude)[\w.-]*\s*[\"']\s*in\s+"
-     r"\(?\s*(?:model|backbone)",
+     r"\(?\s*(?:model|backbone)"
+     r"|(?:model|backbone)\w*(?:\.lower\(\))?\.startswith\(\s*\(?\s*"
+     r"[\"'](?:deepseek|qwen|glm|gpt-4|claude)"
+     r"|(?:model|backbone)\w*(?:\.lower\(\))?\s*==\s*"
+     r"[\"'](?:deepseek|qwen|glm|gpt-4|claude)",
      "branches on the backbone's NAME, so swapping the backbone also swaps the "
      "harness. 'same harness, change the model' stops being a one-variable "
      "experiment, and the cross-backbone board means nothing"),
