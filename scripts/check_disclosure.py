@@ -207,6 +207,18 @@ SIGNAL_RULES: list[dict] = [
                 "an adapter-layer retry the framework would not otherwise get; "
                 "it must be named in a deviation"),
     },
+    # character truncation of FETCHED PAGE text: the adapter caps how much of
+    # each page the model sees, moving completeness. deerflow's crawl_tool
+    # truncates the shim /extract text to 2000 chars.
+    {
+        "lane": "deerflow",
+        "file": "scripts/runners/deerflow_runner.py",
+        "signal": re.compile(r"\[:\s*2000\s*\]"),
+        "require": ("detail_token", "2000"),
+        "why": ("deerflow's crawl_tool truncates each fetched page's readable "
+                "text to 2000 characters ([:2000]); a per-page character cap "
+                "bounds completeness and must be named in a deviation"),
+    },
 ]
 
 

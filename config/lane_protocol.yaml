@@ -203,11 +203,22 @@ lanes:
   # because heterogeneous frameworks have no common step/token unit. The detail
   # states the exact env var, its value, and whether it is framework-required
   # (part of delivery) or harness-imposed (our own code).
+  # deerflow's only page-read affordance is crawl_tool, which the adapter routes
+  # through the recording shim's POST /extract (fetch_mode: shim_extract), the
+  # same path flowsearcher-ds uses. fetch_observable stays false pending an
+  # on-shim smoke proving recorded fetch rows > 0 for this lane end-to-end (the
+  # audit's fail-closed ordering rule); flipping it is a scoring change deferred
+  # to the next run. The old protocol wrongly said direct_requests/off-shim.
   deerflow:
     delivery: subprocess
     fetch_observable: false
-    fetch_mode: direct_requests
+    fetch_mode: shim_extract
     deviations:
+      - kind: budget
+        code: budget_page_chars
+        human_zh: "适配层 crawl_tool 将每页经 shim /extract 取回并去标签后的可读文本截断至 2000 字符(harness 施加),低于框架原生整页。"
+        human_en: "The adapter crawl_tool truncates each page's shim /extract tag-stripped readable text to 2000 characters (harness-imposed), below the framework's native full page."
+        detail: "scripts/runners/deerflow_runner.py _sandbox_crawl tag-strips the shim /extract raw_content and truncates it to 2000 characters ([:2000]). Harness-imposed by our replacement crawl tool; it bounds how much of each fetched page the model sees, moving completeness. Declared because a per-page character cap is a per-lane budget the prompt-parity rules never see."
       - kind: budget
         code: budget_token
         human_zh: "DeerFlow 的上下文压缩令牌阈值;默认不设,走框架自带的按模型名推断,默认榜上无 harness 额外上限。"
@@ -220,9 +231,9 @@ lanes:
         detail: "scripts/runners/deerflow_runner.py _build_conf_yaml writes BASIC_MODEL.max_retries=3 into the generated conf.yaml; DeerFlow's LLM client honours this retry count. It is adapter-imposed, not a framework default. Declared because an adapter-layer retry changes delivery reliability relative to a framework given none."
       - kind: fetch_withhold
         code: fetch_withhold
-        human_zh: "页面读取绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不因未观测而记 0。"
-        human_en: "Page reads bypass the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
-        detail: "Page reads go through requests.get direct to the site, bypassing the recording shim, so proof-of-fetch cannot be observed for this lane. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0 for lack of observation."
+        human_zh: "页面读取经记录 shim 的 POST /extract(fetch_mode: shim_extract);在冒烟证明本车道端到端记录到 fetch 行之前,fetch_observable 暂保持 false、proof-of-fetch 予以保留,绝不记 0(翻转观测属打分变更,留待下次跑)。"
+        human_en: "Page reads route through the recording shim's POST /extract (fetch_mode: shim_extract); fetch_observable is kept false and proof-of-fetch withheld until a smoke run proves recorded fetch rows > 0 for this lane end-to-end, and is never scored 0 (flipping observability is a scoring change deferred to the next run)."
+        detail: "deerflow's crawl_tool routes page reads through the recording shim's POST /extract (fetch_mode: shim_extract), so the mechanism is on-shim (flowsearcher-ds uses the same /extract path and is already observable). fetch_observable is kept false and pof withheld (available=False + reason) until a smoke run proves recorded fetch rows > 0 for this lane end-to-end -- the audit's fail-closed ordering rule. Flipping observability is a scoring change deferred to the next run; pof is never scored 0 for lack of observation."
   # storm and langchain-odr read no pages: their only affordance is shim /search,
   # so a pof of 0 is honest, not an accusation. Their real cited URLs land in
   # `snippet_only` (search returned them). fetch_observable stays true because

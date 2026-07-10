@@ -268,7 +268,10 @@ def test_signal_missing_file_fails_loud():
 # --- the REAL tool-missing (adapter-injected tools) rule, on real code -------
 
 def _deepagents_rule():
-    return [r for r in cd.SIGNAL_RULES if r["lane"] == "deepagents"]
+    # deepagents now has more than one signal rule (tool injection + adapter
+    # retry); this helper returns the tool-injection rule specifically.
+    return [r for r in cd.SIGNAL_RULES if r["lane"] == "deepagents"
+            and r["require"] == ("code", "capability_adapter_tools")]
 
 
 def test_tool_missing_rule_exists_and_targets_deepagents():
@@ -298,6 +301,39 @@ def test_tool_missing_signal_with_declaration_is_clean_on_real_code():
     text = (cd.ROOT / rule["file"]).read_text(encoding="utf-8", errors="replace")
     lanes = cd._load_lanes(cd.LANE_PROTOCOL)
     assert cd.reconcile_signals(lanes, {rule["file"]: text}, rules=[rule]) == []
+
+
+# --- deerflow transport truthfulness (fetch_mode + page truncation) ---------
+
+def test_deerflow_declares_its_real_shim_extract_transport():
+    """deerflow's crawl_tool routes page reads through the recording shim's
+    POST /extract, not requests direct. The old protocol lied
+    (fetch_mode: direct_requests) and never declared the 2000-char page cap."""
+    deerflow = cd._load_lanes(cd.LANE_PROTOCOL)["deerflow"]
+    assert deerflow["fetch_mode"] == "shim_extract"
+    assert any("2000" in str(d.get("detail", ""))
+               for d in deerflow["deviations"]), "2000-char page cap undeclared"
+
+
+def _deerflow_trunc_rule():
+    return [r for r in cd.SIGNAL_RULES if r["lane"] == "deerflow"
+            and r["require"] == ("detail_token", "2000")]
+
+
+def test_deerflow_page_truncation_signal_reconciles():
+    rules = _deerflow_trunc_rule()
+    assert len(rules) == 1, "deerflow 2000-char truncation rule must be present"
+    rule = rules[0]
+    text = (cd.ROOT / rule["file"]).read_text(encoding="utf-8", errors="replace")
+    lanes = cd._load_lanes(cd.LANE_PROTOCOL)
+    # present + declared => clean
+    assert cd.reconcile_signals(lanes, {rule["file"]: text}, rules=[rule]) == []
+    # strip the deviation naming 2000 => the live [:2000] is undeclared => flagged
+    devs = [d for d in lanes["deerflow"]["deviations"]
+            if "2000" not in str(d.get("detail", ""))]
+    stripped = {"deerflow": {**lanes["deerflow"], "deviations": devs}}
+    v = cd.reconcile_signals(stripped, {rule["file"]: text}, rules=[rule])
+    assert any(rid == "signal_reconciliation" for _, rid, _ in v)
 
 
 # --- gateway-policy disclosure (two LLM doors; SPEC_ISSUES §2) --------------
