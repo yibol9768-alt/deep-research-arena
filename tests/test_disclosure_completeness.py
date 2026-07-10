@@ -380,6 +380,30 @@ def test_langchain_odr_adapter_lives_in_run_deep_task_not_a_runner():
     assert files == {"scripts/run_deep_task.py"}
 
 
+def test_signal_scan_surface_covers_run_deep_task_and_all_adapter_classes():
+    """Item-6 class fix: the SIGNAL_RULES scan surface must include
+    run_deep_task.py (the embedded adapters) and reconcile every adapter-layer
+    signal class, so the langchain-odr / camel blind spots cannot reopen."""
+    files = {r["file"] for r in cd.SIGNAL_RULES}
+    assert "scripts/run_deep_task.py" in files, "embedded adapters must be scanned"
+
+    def matches(snippet: str) -> bool:
+        return any(r["signal"].search(snippet) for r in cd.SIGNAL_RULES)
+
+    # hardcoded slice clamps [:1] / [:2]
+    assert matches("x = most_recent_message.tool_calls[:1]")
+    assert matches("for q in queries[:2]:")
+    # character truncation of text the model sees
+    assert matches("text = raw.strip()[:2000]")
+    assert matches('content = c.replace("x", "")[:3500]')
+    # a fabricated ToolMessage injected for a clamped-out call
+    assert matches('ToolMessage(content="Skipped in this benchmark adapter ...")')
+    # a report post-processing regex on the scored text
+    assert matches("content = _sanitize_camel_report(content)")
+    # adapter-layer retry constants
+    assert matches("def call_llm(messages, max_retries=5):")
+
+
 # --- gateway-policy disclosure (two LLM doors; SPEC_ISSUES §2) --------------
 
 def _gw_entry(code):

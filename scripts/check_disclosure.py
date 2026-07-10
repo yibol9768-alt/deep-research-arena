@@ -37,11 +37,26 @@ declarations and exits non-zero on any undeclared difference:
                          from the frozen semantic question of how completeness's
                          fetch threshold should treat it (docs/SPEC_ISSUES.md).
   4. code signals     -- concrete difference signals in the adapter source
-                         (a bound shim retriever = tool substitution; a context
-                         window / context-token truncation; adapter-injected web
-                         tools a framework lacks natively = the tool-missing
-                         class) must each be named in a deviation for the mapped
-                         lane.
+                         must each be named in a deviation for the mapped lane.
+                         The scan surface is BOTH the dedicated scripts/runners/
+                         *_runner.py adapters AND scripts/run_deep_task.py, whose
+                         EMBEDDED adapters (camel-ai's report cleaner,
+                         langchain-odr's single-lane graph patch) were previously
+                         a structural blind spot: a *_runner.py-only rule set
+                         could not see them. The reconciled adapter-layer signal
+                         classes are:
+                           - framework/tool substitution (bound shim retriever)
+                           - context window / context-token / page truncation and
+                             character truncation ([:N]) of text the model sees
+                           - hardcoded slice CLAMPS ([:1] / [:2]) that bound
+                             tool/query/research breadth
+                           - a FABRICATED ToolMessage injected for a clamped-out
+                             call (a harness-authored tool result)
+                           - a report POST-PROCESSING regex on the scored text
+                           - adapter-layer RETRY constants (max_retries)
+                         Over-report then whitelist by declaring: a live signal
+                         with no matching deviation fails the gate, so a new
+                         undeclared clamp cannot slip in silently.
   5. gateway policy   -- router-level mechanisms in the two LLM doors
                          (llm_gateway :8100 / ds_proxy :8088) that go beyond the
                          shared sampler -- qwen-only fit_to_window rescue, the
