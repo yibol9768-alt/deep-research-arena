@@ -218,6 +218,15 @@ G3 首跑抓获并已修复的实现 bug（实现与其自身声明语义不符�
 - [ ] [来源:L3] forum_coverage 虚拟槽与 concept 同构的"线程页不在缓存→静默不可覆盖"尚未加可观测性：_forum_coverage_supported 对缓存缺失线程直接 continue，分母不动、detail 无 withhold 信号；本车道只修了 concept 路径的观测（forum 槽的候选线程集合开放，"哪个线程算被盲判"需先定义，属语义）；影响：声明 forums 的 v2 任务每题 1 槽；文件：src/eval/decidable_scorer.py（entry is None → continue）
 - [ ] [来源:L3] 概念页 cache fixture（主仓库提交 615d8b49）形态为 {url: 页面文本字符串}，打分器全链期望 {url: {"status":200,"text":...}}：字符串条目使 _concept_quote_supported / score_reachability(cache_status fallback) 直接 AttributeError 崩溃（响亮失败，非静默 0；但 G1 oracle 若直接喂该 fixture 会崩，须先转换形态或给 fixture 定 schema）；影响：G1/G5 供给链与任何消费该 fixture 的脚本；文件：src/eval/decidable_scorer.py（_cache_entry 原样透传字符串 / _concept_quote_supported）
 
+## F1（gates-F1-fixes 车道）备查条目（三镜头复审，仅记录不修）
+
+格式：`- [ ] [来源:F1] 问题;影响;文件:行号`。均为语义层/口径层观察，按冻结令不动，等用户拍板。行号以本车道基线 edf336cc 为准。
+
+- [ ] [来源:F1] aggregate() 混新旧 per-report JSON 时 micro_comp 可虚高：完备性分母 `comp_denom = tot.get("comp_k_effective") or (k_star*n)`，其中 comp_k_effective 是各报告 k_effective(=min(k_star,|pool|)) 之和；若聚合的 per-report JSON 里有旧格式报告不带 comp_k_effective，而 comp_covered 仍把它们的覆盖数累加进分子，则分母退回 k_star*n（20*n，普遍大于真实 Σk_effective≈14-17*n）——分子含全部报告、分母只按旧口径，方向不一致；同一 tot 内新旧混采时 micro_comp 偏高。影响：跨版本重聚合的宏观 completeness 列；文件：src/eval/decidable_scorer.py:2586（comp_denom fallback）。建议：聚合前拒绝无 comp_k_effective 的报告，或分子分母同源。判断：**口径一致性问题**（单版本内一致，仅跨版本混采时失真）。
+- [ ] [来源:F1] check_no_silent_zero 对第三方报告文件的 concept_axis_withheld 整轴豁免过宽：见到 `concept_axis_withheld: true` 即放行整条概念轴的 0，不再逐槽核对该 0 是否真的都来自缓存缺页；一个真实 miss 与一个 withhold 混在同轴时，withhold 标志会连带把真实的静默 0 一起豁免。影响：G6 静默零审计对第三方（非本管线产出）报告的概念轴放松；文件：scripts/check_no_silent_zero.py:184（`if sub.get("concept_axis_withheld")` 整轴短路）。建议：仅豁免带 withheld 计数覆盖的槽位数，剩余 0 仍需解释。判断：**审计口径过宽**（withhold 哲学的边界情形，待拍板收紧粒度）。
+- [ ] [来源:F1] oracle 镜像打分器排除谓词的双盲结构：oracle 侧 `_concept_subject_creditable` 与打分器 `_subject_discussed` 各自独立判定"该概念主题是否可被授信"，两处逻辑必须逐字同步，否则 G1 神谕会为一个打分器实际不授信的槽位生成"应满分"的期望（或反之），且没有任何断言对账两者；这是一个双盲：改了一侧不改另一侧不会红。影响：G1 oracle 顶格断言的可信度依赖两处手工同步；文件：src/eval/oracle_report.py:98（_concept_subject_creditable）与 src/eval/decidable_scorer.py（_subject_discussed）。建议：让 oracle 直接复用打分器的可授信判定，消除镜像。判断：**镜像同步脆弱性**（非当前 bug，是结构性隐患）。
+- [ ] [来源:F1] changelog v14 条目疑似重复：data/changelog.json 内 v14 与既有基线条目内容重叠，系基线合并既有，非本轮引入；仅备查，勿在冻结期擅动 changelog（CLAUDE.md 硬规则要求每次改动先登记，反复编辑历史条目风险大）。影响：/changelog 页面可能出现近重复条目；文件：data/changelog.json（v14）。判断：**已知重复**（基线既有，留待发布流程统一去重）。
+
 ---
 
 统计（并入四车道后）：真语义问题 12+2 条（wf-gates 新增 G1 车道 2 条）；实为实现 bug 25 条（按主闸门：G0×10、G1×1、G3×1、G4×5、G5×1、G6×7，其中 G3×1 四位数纯价漏检重现失败、已挂常驻 pin 测试待确认关闭）；已过时/已证伪 16 条。合计 55 条。此外：L3 车道增补 3 条 withhold 可观测性注记（见上节），82e-2 附录逐条记录 §2→G0 的 10 条实现处置。

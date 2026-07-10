@@ -860,6 +860,44 @@ def check_direct_sandbox_bypass(
     )]
 
 
+def check_gates_smoke() -> list[CheckResult]:
+    """GOAL_GATES_V1 permanent fixture: the goal-gate tests must be COLLECTIBLE
+    and non-empty.
+
+    The seven gates enforce the two leaderboard properties (docs/GOAL_GATES_V1.md).
+    A gate file present but with 0 tests is the bad state run_gates now FAILs on
+    (rc=5). This check catches that at preflight time without paying for the full
+    oracle sweep: it only `--collect-only`s the gate nodes declared in
+    run_gates.GATES and asserts collection succeeds and yields > 0 tests. A green
+    result here means the gate suite exists and can run; run_full_leaderboard.sh
+    additionally runs `run_gates.py --quick` (the real assertions) before a run.
+    """
+    from scripts.run_gates import GATES
+
+    nodes: list[str] = []
+    for _desc, gate_nodes, _skip in GATES.values():
+        if gate_nodes:
+            nodes.extend(gate_nodes)
+    if not nodes:
+        return [CheckResult("goal gates are collectible", False,
+                            "run_gates.GATES declares no pytest gate nodes")]
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q",
+         "--run-gates", *nodes],
+        cwd=str(ROOT), capture_output=True, text=True)
+    out = (proc.stdout or "") + "\n" + (proc.stderr or "")
+    # rc 5 == nothing collected. Count node ids robustly (one `::` line each)
+    # instead of parsing the version-specific summary line.
+    collected = sum(1 for line in out.splitlines() if "::" in line)
+    ok = proc.returncode == 0 and collected > 0
+    return [CheckResult(
+        "goal gates are collectible and non-empty", ok,
+        f"{collected} goal-gate tests collectible (run_full_leaderboard.sh runs "
+        "run_gates.py --quick before the run)" if ok
+        else f"gate collection failed (rc={proc.returncode}, {collected} "
+             f"collected); a gate file is missing or empty")]
+
+
 BOX_ONLY = [
     ("per-lane model identity probe",
      "must run on the box: probes each lane's actual endpoint and asserts the "
@@ -898,6 +936,7 @@ def main() -> int:
         results += check_bracket_self_heal()
         results += check_on_page_link_not_hallucinated()
     if args.all:
+        results += check_gates_smoke()
         results += _required(check_sandbox_hosts_agree())
         results += _required(check_sources_alive())
         results += _required(check_search_hits_are_in_corpus())

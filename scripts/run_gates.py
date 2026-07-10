@@ -81,9 +81,13 @@ def run_gate(gate: str, nodes: list[str], extra: list[str]) -> tuple[str, str]:
     tail = "\n".join((proc.stdout or "").strip().splitlines()[-15:])
     if proc.returncode == 0:
         return "PASS", f"{dt:.0f}s\n{tail}"
-    # pytest rc 5 == no tests collected
+    # pytest rc 5 == no tests collected. A gate here is mounted on a SPECIFIC
+    # test file/node: 0 tests collected means the file is present but empty (or
+    # was renamed away), which is a BAD state, not a legitimate skip. A skip
+    # would let a silently-emptied gate pass the runner green. Fail it.
     if proc.returncode == 5:
-        return "SKIP", f"no tests collected ({dt:.0f}s)\n{tail}"
+        return "FAIL", (f"no tests collected: a gate file is present but has 0 "
+                        f"tests ({dt:.0f}s)\n{tail}")
     return "FAIL", f"rc={proc.returncode} {dt:.0f}s\n{tail}\n" \
         + "\n".join((proc.stderr or "").strip().splitlines()[-5:])
 

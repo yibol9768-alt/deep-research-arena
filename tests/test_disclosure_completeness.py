@@ -268,7 +268,10 @@ def test_signal_missing_file_fails_loud():
 # --- the REAL tool-missing (adapter-injected tools) rule, on real code -------
 
 def _deepagents_rule():
-    return [r for r in cd.SIGNAL_RULES if r["lane"] == "deepagents"]
+    # deepagents now has more than one signal rule (tool injection + adapter
+    # retry); this helper returns the tool-injection rule specifically.
+    return [r for r in cd.SIGNAL_RULES if r["lane"] == "deepagents"
+            and r["require"] == ("code", "capability_adapter_tools")]
 
 
 def test_tool_missing_rule_exists_and_targets_deepagents():
@@ -298,6 +301,107 @@ def test_tool_missing_signal_with_declaration_is_clean_on_real_code():
     text = (cd.ROOT / rule["file"]).read_text(encoding="utf-8", errors="replace")
     lanes = cd._load_lanes(cd.LANE_PROTOCOL)
     assert cd.reconcile_signals(lanes, {rule["file"]: text}, rules=[rule]) == []
+
+
+# --- deerflow transport truthfulness (fetch_mode + page truncation) ---------
+
+def test_deerflow_declares_its_real_shim_extract_transport():
+    """deerflow's crawl_tool routes page reads through the recording shim's
+    POST /extract, not requests direct. The old protocol lied
+    (fetch_mode: direct_requests) and never declared the 2000-char page cap."""
+    deerflow = cd._load_lanes(cd.LANE_PROTOCOL)["deerflow"]
+    assert deerflow["fetch_mode"] == "shim_extract"
+    assert any("2000" in str(d.get("detail", ""))
+               for d in deerflow["deviations"]), "2000-char page cap undeclared"
+
+
+def _deerflow_trunc_rule():
+    return [r for r in cd.SIGNAL_RULES if r["lane"] == "deerflow"
+            and r["require"] == ("detail_token", "2000")]
+
+
+def test_deerflow_page_truncation_signal_reconciles():
+    rules = _deerflow_trunc_rule()
+    assert len(rules) == 1, "deerflow 2000-char truncation rule must be present"
+    rule = rules[0]
+    text = (cd.ROOT / rule["file"]).read_text(encoding="utf-8", errors="replace")
+    lanes = cd._load_lanes(cd.LANE_PROTOCOL)
+    # present + declared => clean
+    assert cd.reconcile_signals(lanes, {rule["file"]: text}, rules=[rule]) == []
+    # strip the deviation naming 2000 => the live [:2000] is undeclared => flagged
+    devs = [d for d in lanes["deerflow"]["deviations"]
+            if "2000" not in str(d.get("detail", ""))]
+    stripped = {"deerflow": {**lanes["deerflow"], "deviations": devs}}
+    v = cd.reconcile_signals(stripped, {rule["file"]: text}, rules=[rule])
+    assert any(rid == "signal_reconciliation" for _, rid, _ in v)
+
+
+# --- langchain-odr single-lane clamps (adapter embedded in run_deep_task.py) --
+
+def test_langchain_odr_drops_the_false_retired_claim():
+    """The old budget_native detail claimed the clamping adapter 'was retired'
+    while tool_calls[:1] / conduct_research_calls[:1] / queries[:2] are still
+    live. The correction removes the false claim and declares each clamp."""
+    devs = cd._load_lanes(cd.LANE_PROTOCOL)["langchain-odr"]["deviations"]
+    blob = " ".join(str(d.get("detail", "")) for d in devs)
+    assert ("was retired" not in blob) or ("false and is removed" in blob)
+    codes = {d.get("code") for d in devs}
+    assert {"clamp_researcher_tool_calls", "clamp_supervisor_research",
+            "clamp_search", "noop_summarize",
+            "bypass_write_research_brief"} <= codes
+
+
+def _odr_rules():
+    return [r for r in cd.SIGNAL_RULES if r["lane"] == "langchain-odr"]
+
+
+def test_langchain_odr_clamps_reconcile_against_the_live_embedded_adapter():
+    rules = _odr_rules()
+    assert len(rules) >= 6, "each single-lane clamp needs a signal rule"
+    lanes = cd._load_lanes(cd.LANE_PROTOCOL)
+    texts = cd._read_signal_files(rules)
+    # every clamp signal is live in run_deep_task.py AND declared => clean
+    assert cd.reconcile_signals(lanes, texts, rules=rules) == []
+    # strip every clamp/noop/bypass deviation: the live clamps become undeclared
+    # and every rule must fire (the run_deep_task.py blind spot made concrete).
+    stripped_devs = [d for d in lanes["langchain-odr"]["deviations"]
+                     if d.get("kind") not in ("clamp", "noop", "bypass")]
+    stripped = {**lanes, "langchain-odr": {
+        **lanes["langchain-odr"], "deviations": stripped_devs}}
+    v = cd.reconcile_signals(stripped, texts, rules=rules)
+    fired = {why for _, rid, why in v if rid == "signal_reconciliation"}
+    assert len(fired) == len(rules), "stripping the clamps must flag every one"
+
+
+def test_langchain_odr_adapter_lives_in_run_deep_task_not_a_runner():
+    """The signal-scan surface must include run_deep_task.py: langchain-odr's
+    clamps are embedded there, invisible to a *_runner.py-only scan."""
+    files = {r["file"] for r in _odr_rules()}
+    assert files == {"scripts/run_deep_task.py"}
+
+
+def test_signal_scan_surface_covers_run_deep_task_and_all_adapter_classes():
+    """Item-6 class fix: the SIGNAL_RULES scan surface must include
+    run_deep_task.py (the embedded adapters) and reconcile every adapter-layer
+    signal class, so the langchain-odr / camel blind spots cannot reopen."""
+    files = {r["file"] for r in cd.SIGNAL_RULES}
+    assert "scripts/run_deep_task.py" in files, "embedded adapters must be scanned"
+
+    def matches(snippet: str) -> bool:
+        return any(r["signal"].search(snippet) for r in cd.SIGNAL_RULES)
+
+    # hardcoded slice clamps [:1] / [:2]
+    assert matches("x = most_recent_message.tool_calls[:1]")
+    assert matches("for q in queries[:2]:")
+    # character truncation of text the model sees
+    assert matches("text = raw.strip()[:2000]")
+    assert matches('content = c.replace("x", "")[:3500]')
+    # a fabricated ToolMessage injected for a clamped-out call
+    assert matches('ToolMessage(content="Skipped in this benchmark adapter ...")')
+    # a report post-processing regex on the scored text
+    assert matches("content = _sanitize_camel_report(content)")
+    # adapter-layer retry constants
+    assert matches("def call_llm(messages, max_retries=5):")
 
 
 # --- gateway-policy disclosure (two LLM doors; SPEC_ISSUES §2) --------------

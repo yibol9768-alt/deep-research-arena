@@ -180,7 +180,30 @@ def test_is_failed_report_false_for_substantive_url_light_report() -> None:
     assert ldr._is_failed_report(report) is False
 
 
-def test_unmask_report_restores_sandbox_urls() -> None:
+def test_unmask_report_is_a_noop_when_masking_is_off(monkeypatch) -> None:
+    """With masking off (the default), _unmask_report must return the report
+    BYTE-FOR-BYTE. The old code ran an unconditional literal-`replace` tail that
+    rewrote onestopmarket.com / postmill.net / kiwipedia.org (and any
+    en.wikipedia.org/wiki/X) into localhost EVEN when nothing was masked, so a
+    model that emitted a public domain from parametric memory was laundered into
+    sandbox grounding, this lane only. Off => byte-identical."""
+    monkeypatch.delenv("LDR_INTENT_MASK", raising=False)
+    report = (
+        "See http://onestopmarket.com/p/1 and http://postmill.net/f/x and "
+        "http://kiwipedia.org/A/Y and https://en.wikipedia.org/wiki/Coffee ."
+    )
+    # No model / a local backbone => masking off => nothing was masked to undo.
+    assert ldr._unmask_report(report) == report
+    assert ldr._unmask_report(report, model="qwen3-8b") == report
+    assert ldr._unmask_report(report, model="deepseek-v4-flash") == report
+
+
+def test_unmask_report_round_trips_only_when_masking_is_on(monkeypatch) -> None:
+    """With LDR_INTENT_MASK on, the round trip reverses ONLY the masks this
+    harness itself applied (the _UNMASK_MAP domains). A model-emitted public
+    en.wikipedia.org URL is still left ALONE -- unmasking undoes masks, it does
+    not launder drift."""
+    monkeypatch.setenv("LDR_INTENT_MASK", "1")
     masked = (
         "See http://onestopmarket.com/p/1 and http://postmill.net/f/x and "
         "http://kiwipedia.org/A/Y and https://en.wikipedia.org/wiki/Coffee ."
@@ -188,10 +211,8 @@ def test_unmask_report_restores_sandbox_urls() -> None:
     out = ldr._unmask_report(masked)
     assert "postmill.net" not in out and "localhost:9999" in out
     assert "kiwipedia.org" not in out and "localhost:8090" in out
-    # A model-emitted public Wikipedia URL is left ALONE. The old code rewrote
-    # it into a valid Kiwix sandbox URL, turning off-sandbox drift (the very
-    # thing the benchmark measures) into perfect grounding, for this lane only.
-    # Unmasking may only undo masks this harness applied.
+    assert "onestopmarket.com" not in out and "localhost:" in out
+    # A model-emitted public Wikipedia URL is left ALONE even under masking.
     assert "https://en.wikipedia.org/wiki/Coffee" in out
     assert "wikipedia_en_all_nopic/A/Coffee" not in out
 

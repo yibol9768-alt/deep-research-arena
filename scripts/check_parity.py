@@ -160,6 +160,26 @@ RULES: list[tuple[str, str, str]] = [
      "rewrites model-emitted public URLs into sandbox URLs: a lane that drifted "
      "out of the sandbox on parametric memory is handed the corpus page and "
      "scored as if it had retrieved it"),
+    ("masked_domain_rewrite",
+     # The wiki rule above catches the en.wikipedia.org -> Kiwix laundering. The
+     # SHOPPING and FORUM sandboxes have the same trap in their two mask domains:
+     # onestopmarket.com (localhost:7770) and postmill.net (localhost:9999), plus
+     # kiwipedia.org (the wiki mask domain, localhost:8090). ldr_runner._unmask
+     # carried an UNCONDITIONAL literal-`replace` tail rewriting these three back
+     # to localhost even when masking was off, so a model emitting the public
+     # domain from parametric memory was handed the sandbox address and scored as
+     # grounded. The FROM-side is a hardcoded PUBLIC-domain literal: that shape
+     # rewrites arbitrary drift and is forbidden. The legitimate mask ROUND TRIP
+     # (declared `mask_round_trip`) reverses only what the harness masked and does
+     # so through the VARIABLE `_UNMASK_MAP` loop (replace(masked, original)),
+     # never a hardcoded public-domain literal -- so it does not match here, and a
+     # dict entry `"...": "http://onestopmarket.com"` (mask map value) has no
+     # `.replace(` before it either.
+     r"\.replace\(\s*['\"](?:https?://)?"
+     r"(?:onestopmarket\.com|postmill\.net|kiwipedia\.org)",
+     "rewrites a model-emitted sandbox mask domain (onestopmarket.com / "
+     "postmill.net / kiwipedia.org) into localhost off any mask round trip: "
+     "parametric drift laundered into sandbox grounding, this lane only"),
     ("attach_sources",
      r"def _attach_sources|\+ \"\\n\\n### Sources",
      "writes URLs into the report on the framework's behalf"),

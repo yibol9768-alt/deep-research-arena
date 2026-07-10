@@ -858,28 +858,33 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
 
 
 def _sanitize_camel_report(text: str) -> str:
-    """Strip model scaffolding from a camel-ai report BEFORE it is saved.
+    """Strip BALANCED framework XML markers from a camel-ai report before it is
+    saved. Declared in lane_protocol.yaml as camel-ai's `report_postprocess`
+    deviation so the board discloses this harness rewrite.
 
     Fairness audit 2026-07-06: camel saved the model's raw output including
     literal ``<think>...</think>`` reasoning and ``<tool_call>`` XML scaffolding
-    (archived reports 0013/0024/0037). We remove ONLY that scaffolding; all
-    prose and citations are preserved byte-for-byte otherwise. This changes the
-    saved artifact only, not camel's behavior, prompts, or termination. The
-    audit's model-capability verdict on camel's low grounding still stands.
+    (archived reports 0013/0024/0037). We remove ONLY BALANCED
+    ``<tag>...</tag>`` pairs; all prose and citations are preserved
+    byte-for-byte otherwise, and this changes the saved artifact only, not
+    camel's behavior, prompts, or termination.
+
+    An UNCLOSED opener is left in place, verbatim. The former version deleted
+    from any dangling ``<think>``/``<tool_call>``/``<tool_response>`` to the end
+    of the text (a ``.*`` with DOTALL): a single unclosed reasoning tag emitted
+    mid-report therefore erased the entire body below it -- turning a real,
+    scored camel report into a truncated stub. Preserving unclosed tags keeps
+    the report body intact and lets the scorer judge what camel actually wrote.
     """
     import re as _re
     s = str(text or "")
-    # Complete <think>...</think> reasoning blocks (multiline).
+    # Complete (BALANCED) <think>...</think> reasoning blocks (multiline).
     s = _re.sub(r"<think\b[^>]*>.*?</think\s*>", "", s, flags=_re.DOTALL | _re.IGNORECASE)
-    # Complete tool-call / tool-response scaffolding blocks.
+    # Complete (BALANCED) tool-call / tool-response scaffolding blocks.
     s = _re.sub(r"<tool_call\b[^>]*>.*?</tool_call\s*>", "", s, flags=_re.DOTALL | _re.IGNORECASE)
     s = _re.sub(r"<tool_response\b[^>]*>.*?</tool_response\s*>", "", s, flags=_re.DOTALL | _re.IGNORECASE)
-    # Dangling / unclosed openers run to the end of the text.
-    s = _re.sub(r"<think\b[^>]*>.*", "", s, flags=_re.DOTALL | _re.IGNORECASE)
-    s = _re.sub(r"<tool_call\b[^>]*>.*", "", s, flags=_re.DOTALL | _re.IGNORECASE)
-    s = _re.sub(r"<tool_response\b[^>]*>.*", "", s, flags=_re.DOTALL | _re.IGNORECASE)
-    # Orphan closing tags left behind by malformed emissions.
-    s = _re.sub(r"</?(?:think|tool_call|tool_response)\s*>", "", s, flags=_re.IGNORECASE)
+    # No dangling-opener or orphan-closer removal: an UNCLOSED tag is left as-is
+    # rather than deleting the report body to EOF (the disaster this fix kills).
     return s.strip()
 
 

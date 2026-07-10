@@ -112,6 +112,34 @@ def test_extract_citations_sees_all_sources_with_stray_bracket_and_nested_label(
     assert got == sorted([PROD, WIKI, FORUM])
 
 
+def test_extract_citations_survives_a_truly_unclosed_bracket_end_to_end():
+    """The end-to-end fixture above pairs a stray-looking `[draft — todo: expand]`
+    with the nested label, but that bracket is BALANCED. A genuinely unmatched
+    `[` (a `[4/5` in the prose) is the real stray-bracket failure mode: the first
+    scanner returned on it and dropped EVERY later markdown link.
+
+    Through `extract_citations` -- the path the scorer actually calls -- the three
+    source citations must all survive AS MARKDOWN. The bare-URL catchall must not
+    mask a markdown regression: it carries a `(?<!\\]\\()` lookbehind and so
+    cannot even reach a `](url)` destination, so if the markdown parse broke the
+    URLs would vanish entirely, not silently reappear as `bare`."""
+    report = (
+        "# Report\n\n"
+        "Buyers rate it [4/5 overall in the early reviews.\n\n"
+        f"The [{BRACKET_LABEL}]({PROD}) is discussed in "
+        f"[wireless charging]({WIKI}); owners agree in the "
+        f"[community thread]({FORUM})."
+    )
+    all_cites = extract_citations(report, sandbox_only=False)
+    md = sorted(c.raw_url for c in all_cites if c.style == "markdown")
+    assert md == sorted([PROD, WIKI, FORUM]), \
+        "a stray `[4/5` dropped the markdown citations that follow it"
+    # Pin that survival is via the markdown parser, NOT the bare-URL fallback.
+    bare = {c.raw_url for c in all_cites if c.style == "bare"}
+    assert not ({PROD, WIKI, FORUM} & bare), \
+        "a `](url)` destination cannot be a bare URL; markdown parse must hold"
+
+
 def test_scoring_credits_a_bracketed_product_name_nugget():
     """The real payoff: a completeness nugget whose product name carries
     ``[2020 Version]`` is covered when the report cites it under its true name.

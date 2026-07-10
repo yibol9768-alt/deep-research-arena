@@ -210,21 +210,37 @@ lanes:
   # because heterogeneous frameworks have no common step/token unit. The detail
   # states the exact env var, its value, and whether it is framework-required
   # (part of delivery) or harness-imposed (our own code).
+  # deerflow's only page-read affordance is crawl_tool, which the adapter routes
+  # through the recording shim's POST /extract (fetch_mode: shim_extract), the
+  # same path flowsearcher-ds uses. fetch_observable stays false pending an
+  # on-shim smoke proving recorded fetch rows > 0 for this lane end-to-end (the
+  # audit's fail-closed ordering rule); flipping it is a scoring change deferred
+  # to the next run. The old protocol wrongly said direct_requests/off-shim.
   deerflow:
     delivery: subprocess
     fetch_observable: false
-    fetch_mode: direct_requests
+    fetch_mode: shim_extract
     deviations:
+      - kind: budget
+        code: budget_page_chars
+        human_zh: "适配层 crawl_tool 将每页经 shim /extract 取回并去标签后的可读文本截断至 2000 字符(harness 施加),低于框架原生整页。"
+        human_en: "The adapter crawl_tool truncates each page's shim /extract tag-stripped readable text to 2000 characters (harness-imposed), below the framework's native full page."
+        detail: "scripts/runners/deerflow_runner.py _sandbox_crawl tag-strips the shim /extract raw_content and truncates it to 2000 characters ([:2000]). Harness-imposed by our replacement crawl tool; it bounds how much of each fetched page the model sees, moving completeness. Declared because a per-page character cap is a per-lane budget the prompt-parity rules never see."
       - kind: budget
         code: budget_token
         human_zh: "DeerFlow 的上下文压缩令牌阈值;默认不设,走框架自带的按模型名推断,默认榜上无 harness 额外上限。"
         human_en: "DeerFlow context-compression token threshold; default unset, so the framework's own model-name inference applies and no harness cap is imposed on the default board."
         detail: "DEERFLOW_TOKEN_LIMIT: DeerFlow context-compression threshold (scripts/runners/deerflow_runner.py:422). Env-overridable; default unset = None = DeerFlow's own model-name inference, the framework default. On the default board no harness cap is imposed, so this lane is on par; an operator override is the only way a per-lane token budget appears, and it is disclosed by this entry. Declared because a token/context window bounds how much a lane can read and write, and therefore moves completeness."
+      - kind: adapter_retry
+        code: adapter_retries
+        human_zh: "生成的 conf.yaml 设 BASIC_MODEL.max_retries=3:框架 LLM 客户端的适配层重试次数,原生不设。"
+        human_en: "The generated conf.yaml sets BASIC_MODEL.max_retries=3: an adapter-layer retry count for the framework's LLM client that it would not otherwise carry."
+        detail: "scripts/runners/deerflow_runner.py _build_conf_yaml writes BASIC_MODEL.max_retries=3 into the generated conf.yaml; DeerFlow's LLM client honours this retry count. It is adapter-imposed, not a framework default. Declared because an adapter-layer retry changes delivery reliability relative to a framework given none."
       - kind: fetch_withhold
         code: fetch_withhold
-        human_zh: "页面读取绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不因未观测而记 0。"
-        human_en: "Page reads bypass the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
-        detail: "Page reads go through requests.get direct to the site, bypassing the recording shim, so proof-of-fetch cannot be observed for this lane. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0 for lack of observation."
+        human_zh: "页面读取经记录 shim 的 POST /extract(fetch_mode: shim_extract);在冒烟证明本车道端到端记录到 fetch 行之前,fetch_observable 暂保持 false、proof-of-fetch 予以保留,绝不记 0(翻转观测属打分变更,留待下次跑)。"
+        human_en: "Page reads route through the recording shim's POST /extract (fetch_mode: shim_extract); fetch_observable is kept false and proof-of-fetch withheld until a smoke run proves recorded fetch rows > 0 for this lane end-to-end, and is never scored 0 (flipping observability is a scoring change deferred to the next run)."
+        detail: "deerflow's crawl_tool routes page reads through the recording shim's POST /extract (fetch_mode: shim_extract), so the mechanism is on-shim (flowsearcher-ds uses the same /extract path and is already observable). fetch_observable is kept false and pof withheld (available=False + reason) until a smoke run proves recorded fetch rows > 0 for this lane end-to-end -- the audit's fail-closed ordering rule. Flipping observability is a scoring change deferred to the next run; pof is never scored 0 for lack of observation."
   # storm and langchain-odr read no pages: their only affordance is shim /search,
   # so a pof of 0 is honest, not an accusation. Their real cited URLs land in
   # `snippet_only` (search returned them). fetch_observable stays true because
@@ -272,7 +288,12 @@ lanes:
     delivery: in_process
     fetch_observable: true
     fetch_mode: shim_extract
-    deviations: []
+    deviations:
+      - kind: report_postprocess
+        code: report_postprocess
+        human_zh: "保存前经 harness 剥除配平的 <think>/<tool_call>/<tool_response> 框架 XML 标记对;未闭合标签原样保留,正文与引用逐字不动。"
+        human_en: "Before saving, the harness strips BALANCED <think>/<tool_call>/<tool_response> framework XML marker pairs; unclosed tags are left as-is and prose/citations are byte-for-byte untouched."
+        detail: "scripts/run_deep_task.py _sanitize_camel_report removes only balanced <tag>...</tag> pairs (think/tool_call/tool_response) from the saved report. An unclosed opener is preserved verbatim; the former dangling-opener `.*` strip deleted the report body to EOF whenever a single reasoning tag was left open mid-report. This changes the saved artifact only, not camel's behavior/prompts/termination, and the audit's model-capability verdict on camel's grounding stands."
   # smolagents' VisitWebpageTool uses requests.get direct to the site. The
   # in-process gate can rewrite sandbox GETs to {shim}/fetch, but it is only
   # installed under --strict-sandbox today; on the default board the read is
@@ -310,9 +331,34 @@ lanes:
     deviations:
       - kind: budget
         code: budget_native
-        human_zh: "原生 open_deep_research 图保持框架默认预算(并发5、researcher 迭代6、react 工具调用10),各阶段输出仅夹到共享 8192 令牌上限。"
-        human_en: "The native open_deep_research graph keeps its framework defaults (concurrency 5, researcher iterations 6, react tool calls 10); stage outputs are clamped only to the shared 8192-token ceiling."
-        detail: "The native open_deep_research graph keeps its framework defaults max_concurrent_research_units=5, max_researcher_iterations=6, and max_react_tool_calls=10. All stage output caps are clamped only to the shared 8192-token ceiling. Tavily query count, result processing, supervisor decisions, compression, and report generation remain framework-native; the former adapter that kept only the first query/tool/research call was retired."
+        human_zh: "config 里 max_concurrent_research_units=5、max_researcher_iterations=6、max_react_tool_calls=10、各阶段 max_tokens=8192 沿用框架默认;但适配层另有单车道钳制,逐条见下方 clamp_*/noop_*/bypass_* 申报。"
+        human_en: "The config values max_concurrent_research_units=5, max_researcher_iterations=6, max_react_tool_calls=10 and per-stage max_tokens=8192 keep the framework defaults; the adapter ALSO applies single-lane clamps, declared one by one in the clamp_*/noop_*/bypass_* deviations below."
+        detail: "In scripts/run_deep_task.py the ODR cfg sets max_concurrent_research_units=5, max_researcher_iterations=6, max_react_tool_calls=10 and per-stage max_tokens=8192 -- the framework defaults. This does NOT mean the framework runs unmodified: the adapter patches the researcher/supervisor/search/summarizer/brief nodes to keep GLM-4.7-Flash single-lane and stable, and each patch is named in the clamp_*/noop_*/bypass_* deviations below. Runtime behaviour is frozen until #39; the earlier claim that 'the former adapter that kept only the first query/tool/research call was retired' was false and is removed."
+      - kind: clamp
+        code: clamp_researcher_tool_calls
+        human_zh: "researcher_tools 每轮只执行首个工具调用(tool_calls[:1]);其余工具调用被注入一条合成 ToolMessage('Skipped in this benchmark adapter'),并不真正执行。"
+        human_en: "researcher_tools executes only the FIRST tool call per turn (tool_calls[:1]); the remaining tool calls receive a synthetic ToolMessage ('Skipped in this benchmark adapter') and are not run."
+        detail: "scripts/run_deep_task.py _researcher_tools_single_lane processes most_recent_message.tool_calls[:1] and for every overflow tool call appends a fabricated ToolMessage whose content is 'Skipped in this benchmark adapter to keep GLM-4.7-Flash single-lane...'. This bounds per-turn tool breadth (moves reach/completeness) and injects a harness-authored tool result the model never produced. Kept for GLM stability, frozen until #39."
+      - kind: clamp
+        code: clamp_supervisor_research
+        human_zh: "supervisor_tools 每轮只运行首个 ConductResearch(conduct_research_calls[:1]);其余被注入一条合成 ToolMessage('Skipped in this benchmark adapter')。"
+        human_en: "supervisor_tools runs only the FIRST ConductResearch per turn (conduct_research_calls[:1]); the rest receive a synthetic ToolMessage ('Skipped in this benchmark adapter')."
+        detail: "scripts/run_deep_task.py _supervisor_tools_single_lane iterates conduct_research_calls[:1] and for every overflow research unit appends a fabricated ToolMessage 'Skipped in this benchmark adapter to keep GLM-4.7-Flash single-lane...'. This serialises the supervisor's fan-out to one researcher (moves reach/completeness) and injects a harness-authored tool result. Kept for GLM stability, frozen until #39."
+      - kind: clamp
+        code: clamp_search
+        human_zh: "适配层 tavily_search 每次仅取前 2 条 query(queries[:2])、每 query 结果上限 5(min(int(max_results or 5), 5));低于框架原生检索面。"
+        human_en: "The adapter tavily_search consumes only the first 2 queries per call (queries[:2]) and caps results-per-query at 5 (min(int(max_results or 5), 5)); below the framework's native retrieval breadth."
+        detail: "scripts/run_deep_task.py _tavily_search_no_summarize loops queries[:2] and requests max_results=min(int(max_results or 5), 5) from the shim per query. Both bound retrieval breadth and move reach/completeness. Kept for GLM 429-stability, frozen until #39."
+      - kind: noop
+        code: noop_summarize
+        human_zh: "ODR 对每条搜索结果的 LLM 摘要 pass 被替换为 no-op(_summarize_webpage_noop),直接返回原始内容前 3500 字符([:3500]);tavily 结果内容同样截断至 3500 字符。"
+        human_en: "ODR's per-result LLM summarizer pass is replaced by a no-op (_summarize_webpage_noop) returning the first 3500 chars of raw content ([:3500]); tavily result content is likewise truncated to 3500 chars."
+        detail: "scripts/run_deep_task.py sets _odr_utils.summarize_webpage = _summarize_webpage_noop, which returns webpage_content[:3500] instead of running an LLM summary over every result (avoids a GLM 429 retry storm), and _tavily_search_no_summarize truncates each result's content to [:3500]. This changes what the model sees per source and moves completeness. Kept for GLM stability, frozen until #39."
+      - kind: bypass
+        code: bypass_write_research_brief
+        human_zh: "write_research_brief 节点被 _write_research_brief_direct 替换:跳过 LLM 归一化,直接把原始任务 intent 交给 supervisor。"
+        human_en: "The write_research_brief node is replaced by _write_research_brief_direct: the LLM brief-normalisation step is skipped and the raw task intent is fed straight to the supervisor."
+        detail: "scripts/run_deep_task.py replaces graph node write_research_brief with _write_research_brief_direct, which feeds intent.strip() to research_supervisor directly instead of the LLM brief step (which GLM answered with the JSON schema itself, failing validation). Kept for GLM stability, frozen until #39."
       - kind: snippet_only
         code: snippet_only
         human_zh: "架构上无页面读取工具,仅消费搜索片段(fetch_mode: none);引用按 snippet_only 如实归类,与读页车道不同轨。"
@@ -553,3 +599,8 @@ lanes:
         human_zh: "visit 工具经 requests 直连加主干摘要、离记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
         human_en: "The visit tool reads via requests direct plus backbone summarization off the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
         detail: "tongyi's visit tool uses requests.get direct to the site plus backbone summarization, off the recording shim. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
+      - kind: adapter_retry
+        code: adapter_retries
+        human_zh: "适配层 ReAct 循环对 LLM 调用做有界退避重试(call_llm max_retries=5、call_llm_summarize max_retries=3);重试耗尽即抛出→本次运行记 infra 失败,错误串绝不进入被评分报告。"
+        human_en: "The adapter ReAct loop retries LLM calls with bounded backoff (call_llm max_retries=5, call_llm_summarize max_retries=3); on exhaustion it RAISES so the run is an infra failure and no error string enters the scored report."
+        detail: "scripts/runners/tongyi_runner.py call_llm(max_retries=5) and call_llm_summarize(max_retries=3): the reimplemented ReAct loop retries transient LLM failures with exponential backoff. On exhaustion call_llm now RAISES (it formerly returned the sentinel 'Error: LLM call failed after retries.', which was appended as an assistant turn and could reach the scored text); the raise crashes the driver with no report sentinel, so the outer runner records a tongyi-dr infra failure -- the same failure semantics as every other lane. Declared because an adapter-layer retry the framework would not otherwise get changes delivery reliability."

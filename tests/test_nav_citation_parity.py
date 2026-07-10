@@ -137,3 +137,84 @@ def test_wiki_and_product_citations_are_scored_by_the_same_rule(registry, search
     wiki = ds.transport_metrics_for([WIKI_CITED], searched_only, registry=registry)
     prod = ds.transport_metrics_for([product], prod_ev, registry=registry)
     assert wiki["provenance"] == prod["provenance"] == 1.0
+
+
+# --- forum thread IDENTITY: the slug is decorative -------------------------
+#
+# A Postmill thread's identity is its numeric id. `/f/<forum>/<id>/<slug>` (the
+# served spelling, carrying a title slug and possibly a decorative /-/comment
+# tail) and `/f/<forum>/<id>` (a bare citation) are ONE thread, and even a
+# different -- misattributed -- forum segment resolves to the same canonical id.
+# The product/wiki tests above could not exercise this: a product's served
+# spelling equals its registry canonical, and a wiki page varies only its path
+# alias, neither of which carries a per-thread decorative slug. Forum identity
+# had zero coverage (HANDOFF trap 1: vary the SOURCE, here down to the forum's
+# own slug shape). Fixture uses a real submission id from the frozen registry.
+
+FORUM_HOST = "http://localhost:9999"
+
+
+@pytest.fixture(scope="module")
+def forum_thread(registry):
+    """A real Postmill submission id and its registry-canonical forum."""
+    subs = getattr(registry, "submissions", None)
+    if not subs:
+        pytest.skip("registry has no forum submissions")
+    sub_id, canon_forum = next(iter(subs.items()))
+    return sub_id, canon_forum
+
+
+def test_forum_slug_and_no_slug_and_wrong_forum_share_one_identity(registry, forum_thread):
+    sub_id, forum = forum_thread
+    with_slug = registry.classify(f"{FORUM_HOST}/f/{forum}/{sub_id}/best-thread-ever")
+    no_slug = registry.classify(f"{FORUM_HOST}/f/{forum}/{sub_id}")
+    # A decorative WRONG forum segment (misattribution) + a slug: same id.
+    wrong_forum = registry.classify(f"{FORUM_HOST}/f/some-other-forum/{sub_id}/a-slug")
+    for c in (with_slug, no_slug, wrong_forum):
+        assert c["in_corpus"] is True and c["kind"] == "content"
+    assert with_slug["canonical"] == no_slug["canonical"] == wrong_forum["canonical"]
+    # The wrong-forum citation still resolves, but is flagged as a misattribution.
+    assert wrong_forum["forum_mismatch"] is True
+    assert no_slug["forum_mismatch"] is False
+
+
+def test_a_searched_forum_thread_cited_without_its_slug_has_provenance(
+        registry, forum_thread, tmp_path):
+    """The shim served the thread WITH its slug; the agent cited it WITHOUT.
+    Because identity is the id, `served` and `cited` must unify, so provenance
+    is credited exactly as for a product or a wiki page -- not dropped because
+    the two spellings differ (the `served` raw-spelling bug, on the forum side)."""
+    sub_id, forum = forum_thread
+    served = f"{FORUM_HOST}/f/{forum}/{sub_id}/the-thread-title-slug"
+    cited = f"{FORUM_HOST}/f/{forum}/{sub_id}"
+    log = tmp_path / "f.jsonl"
+    log.write_text("\n".join(json.dumps(r) for r in [
+        {"ts": 1.0, "run_id": "f", "lane": "L", "task": "T", "kind": "mark", "phase": "start"},
+        {"ts": 2.0, "run_id": "f", "kind": "search", "urls_returned": [served]},
+        {"ts": 3.0, "run_id": "f", "kind": "mark", "phase": "end"},
+    ]) + "\n")
+    ev = load_run_evidence(log)
+    m = ds.transport_metrics_for([cited], ev, registry=registry)
+    assert m["url_provenance"] == {registry.classify(cited)["canonical"]: "searched"}
+    assert m["provenance"] == 1.0
+    assert m["snippet_only"] == 1.0 and m["hallucinated_grounding"] == 0.0
+
+
+def test_forum_thread_scored_by_the_same_rule_as_product_and_wiki(
+        registry, forum_thread, searched_only, tmp_path):
+    """provenance must not depend on the source: a forum thread cited under a
+    decorative slug scores the same 1.0 a wiki page does."""
+    sub_id, forum = forum_thread
+    served = f"{FORUM_HOST}/f/{forum}/{sub_id}/slug-here"
+    cited = f"{FORUM_HOST}/f/{forum}/{sub_id}"
+    log = tmp_path / "ff.jsonl"
+    log.write_text("\n".join(json.dumps(r) for r in [
+        {"ts": 1.0, "run_id": "ff", "lane": "L", "task": "T", "kind": "mark", "phase": "start"},
+        {"ts": 2.0, "run_id": "ff", "kind": "search", "urls_returned": [served]},
+        {"ts": 3.0, "run_id": "ff", "kind": "mark", "phase": "end"},
+    ]) + "\n")
+    forum_ev = load_run_evidence(log)
+
+    forum_m = ds.transport_metrics_for([cited], forum_ev, registry=registry)
+    wiki_m = ds.transport_metrics_for([WIKI_CITED], searched_only, registry=registry)
+    assert forum_m["provenance"] == wiki_m["provenance"] == 1.0

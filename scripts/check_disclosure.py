@@ -37,11 +37,26 @@ declarations and exits non-zero on any undeclared difference:
                          from the frozen semantic question of how completeness's
                          fetch threshold should treat it (docs/SPEC_ISSUES.md).
   4. code signals     -- concrete difference signals in the adapter source
-                         (a bound shim retriever = tool substitution; a context
-                         window / context-token truncation; adapter-injected web
-                         tools a framework lacks natively = the tool-missing
-                         class) must each be named in a deviation for the mapped
-                         lane.
+                         must each be named in a deviation for the mapped lane.
+                         The scan surface is BOTH the dedicated scripts/runners/
+                         *_runner.py adapters AND scripts/run_deep_task.py, whose
+                         EMBEDDED adapters (camel-ai's report cleaner,
+                         langchain-odr's single-lane graph patch) were previously
+                         a structural blind spot: a *_runner.py-only rule set
+                         could not see them. The reconciled adapter-layer signal
+                         classes are:
+                           - framework/tool substitution (bound shim retriever)
+                           - context window / context-token / page truncation and
+                             character truncation ([:N]) of text the model sees
+                           - hardcoded slice CLAMPS ([:1] / [:2]) that bound
+                             tool/query/research breadth
+                           - a FABRICATED ToolMessage injected for a clamped-out
+                             call (a harness-authored tool result)
+                           - a report POST-PROCESSING regex on the scored text
+                           - adapter-layer RETRY constants (max_retries)
+                         Over-report then whitelist by declaring: a live signal
+                         with no matching deviation fails the gate, so a new
+                         undeclared clamp cannot slip in silently.
   5. gateway policy   -- router-level mechanisms in the two LLM doors
                          (llm_gateway :8100 / ds_proxy :8088) that go beyond the
                          shared sampler -- qwen-only fit_to_window rescue, the
@@ -151,6 +166,152 @@ SIGNAL_RULES: list[dict] = [
                 "supplied by our code -- the tool-missing class), which changes "
                 "what the lane can do; it must be declared so the board "
                 "discloses it"),
+    },
+    # --- adapter-layer signals embedded in run_deep_task.py / the runners -----
+    #
+    # The four rules above name framework-substitution signals in the dedicated
+    # *_runner.py adapters. But several lanes are driven by an adapter EMBEDDED
+    # inside scripts/run_deep_task.py (camel-ai's report cleaner, langchain-odr's
+    # single-lane graph patch), and two runners carry adapter-layer RETRY loops
+    # and page TRUNCATION that move nothing a framework declared. The signal
+    # classes below (report post-processing regex, hardcoded [:N] slice clamps,
+    # injected ToolMessages, character truncation, adapter retry constants) were
+    # structurally invisible because run_deep_task.py was never scanned here.
+    # Each is mapped to the lane it steers and the disclosure that lane carries.
+    {
+        "lane": "camel-ai",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"_sanitize_camel_report"),
+        "require": ("code", "report_postprocess"),
+        "why": ("camel-ai's saved report is rewritten by the harness "
+                "(_sanitize_camel_report strips balanced framework XML marker "
+                "pairs from the scored text); a report post-processing step must "
+                "be declared so the board discloses it"),
+    },
+    # adapter-layer retry constants: an adapter that retries LLM calls the
+    # framework would not otherwise retry changes delivery reliability. Every
+    # adapter file that carries a `max_retries` constant is reconciled here so
+    # the retry class has no silent blind spot (a `detail_token` match, since the
+    # constant appears as `max_retries=N` in a driver string and `max_retries: N`
+    # in generated yaml -- both invisible to an ast walk).
+    {
+        "lane": "tongyi-dr",
+        "file": "scripts/runners/tongyi_runner.py",
+        "signal": re.compile(r"max_retries\s*="),
+        "require": ("detail_token", "max_retries"),
+        "why": ("tongyi's reimplemented ReAct loop retries LLM calls with "
+                "backoff (call_llm max_retries=5, call_llm_summarize "
+                "max_retries=3); an adapter-layer retry no framework declared "
+                "must be named in a deviation"),
+    },
+    {
+        "lane": "deerflow",
+        "file": "scripts/runners/deerflow_runner.py",
+        "signal": re.compile(r"max_retries"),
+        "require": ("detail_token", "max_retries"),
+        "why": ("deerflow's generated conf.yaml sets BASIC_MODEL.max_retries=3, "
+                "an adapter-layer retry the framework would not otherwise get; "
+                "it must be named in a deviation"),
+    },
+    {
+        "lane": "deepagents",
+        "file": "scripts/runners/deepagents_runner.py",
+        "signal": re.compile(r"max_retries\s*="),
+        "require": ("detail_token", "max_retries"),
+        "why": ("deepagents' adapter constructs ChatOpenAI with max_retries=3, "
+                "an adapter-layer retry the framework would not otherwise get; "
+                "it must be named in a deviation"),
+    },
+    # character truncation of FETCHED PAGE text: the adapter caps how much of
+    # each page the model sees, moving completeness. deerflow's crawl_tool
+    # truncates the shim /extract text to 2000 chars.
+    {
+        "lane": "deerflow",
+        "file": "scripts/runners/deerflow_runner.py",
+        "signal": re.compile(r"\[:\s*2000\s*\]"),
+        "require": ("detail_token", "2000"),
+        "why": ("deerflow's crawl_tool truncates each fetched page's readable "
+                "text to 2000 characters ([:2000]); a per-page character cap "
+                "bounds completeness and must be named in a deviation"),
+    },
+    # langchain-odr's single-lane adapter is EMBEDDED in run_deep_task.py, not a
+    # dedicated *_runner.py, so the four families above never saw it. Each of its
+    # single-lane clamps (slice clamps, results cap, char truncation, injected
+    # ToolMessage, node bypass) is reconciled below against the clamp_*/noop_*/
+    # bypass_* deviations langchain-odr declares. Runtime is frozen until #39; the
+    # gate only forces every clamp to be WRITTEN DOWN where the board discloses it.
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"\.tool_calls\[:\s*1\s*\]"),
+        "require": ("detail_token", "tool_calls[:1]"),
+        "why": ("langchain-odr's researcher_tools processes only the first tool "
+                "call per turn (tool_calls[:1]); a hardcoded slice clamp that "
+                "bounds tool breadth must be named in a deviation"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"conduct_research_calls\[:\s*1\s*\]"),
+        "require": ("detail_token", "conduct_research_calls[:1]"),
+        "why": ("langchain-odr's supervisor_tools runs only the first "
+                "ConductResearch per turn (conduct_research_calls[:1]); a "
+                "hardcoded slice clamp that serialises fan-out must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"queries\[:\s*2\s*\]"),
+        "require": ("detail_token", "queries[:2]"),
+        "why": ("langchain-odr's tavily_search consumes only the first 2 queries "
+                "(queries[:2]); a hardcoded slice clamp on retrieval breadth "
+                "must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"min\(int\(max_results"),
+        "require": ("detail_token", "min(int(max_results or 5), 5)"),
+        "why": ("langchain-odr's tavily_search caps results-per-query at 5 "
+                "(min(int(max_results or 5), 5)); a results cap on retrieval "
+                "breadth must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"Skipped in this benchmark adapter"),
+        "require": ("detail_token", "Skipped in this benchmark adapter"),
+        "why": ("langchain-odr injects a fabricated 'Skipped in this benchmark "
+                "adapter' ToolMessage for every clamped-out tool/research call "
+                "(a harness-authored tool result the model never produced); the "
+                "injection must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"\[:\s*3500\s*\]"),
+        "require": ("detail_token", "[:3500]"),
+        "why": ("langchain-odr truncates per-result content to 3500 chars "
+                "([:3500]); a char truncation of the text the model sees bounds "
+                "completeness and must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"_summarize_webpage_noop"),
+        "require": ("detail_token", "_summarize_webpage_noop"),
+        "why": ("langchain-odr replaces ODR's per-result LLM summarizer with a "
+                "no-op (_summarize_webpage_noop); a node replacement that changes "
+                "what each source contributes must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"_write_research_brief_direct"),
+        "require": ("detail_token", "_write_research_brief_direct"),
+        "why": ("langchain-odr bypasses the write_research_brief node "
+                "(_write_research_brief_direct feeds the raw intent to the "
+                "supervisor); a node bypass must be declared"),
     },
 ]
 
