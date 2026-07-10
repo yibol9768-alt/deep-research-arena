@@ -212,6 +212,20 @@ seeded.
 - **No human reference reports.** Golden is crawled facts plus must-cite URLs,
   not human-written gold reports, and there are no shipped human preference
   labels.
+- **Citation-locality binds writing style, not just facts (a deliberate cost).**
+  Fact recall and completeness credit a claim only when its citation sits in the
+  *same sentence* (structured facts) or on the *same Markdown line* (vital
+  nuggets) as the claim. This is the strongest defence against "citation
+  dumping" (stating many claims, then listing sources at the end to launder
+  coverage), and the oracle report shows the requirement is achievable. But it
+  is a real cost paid by an argumentative writing style that states two or three
+  sentences and then gives one citation at the paragraph end: such a report is
+  systematically marked down on fact recall / completeness even when every claim
+  is true and sourced. The maintainer kept the sentence/line binding (ruling #4)
+  because paragraph-level windows reopen the laundering loophole; the stylistic
+  penalty is disclosed here rather than removed. Read a low fact-recall or
+  completeness score together with the report's citation *placement*, not only
+  its factual content.
 
 ---
 
