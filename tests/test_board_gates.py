@@ -86,6 +86,12 @@ def _run_board(args, cwd=ROOT):
     args = list(args)
     if "--reports-dir" in args and "--legacy-nested-layout" not in args:
         args.append("--legacy-nested-layout")
+    # These gate tests build without a page cache; run them in diagnostic mode
+    # so the SPEC_DECISIONS #2 fail-closed cache gate does not preempt the gate
+    # each test is actually exercising. The fail-closed gate itself is pinned by
+    # tests/test_truth_board_cache_policy.py.
+    if "--diagnostic" not in args and "--no-diagnostic" not in args:
+        args.append("--diagnostic")
     return subprocess.run([sys.executable, "scripts/build_truth_board.py", *args],
                           cwd=cwd, capture_output=True, text=True, timeout=180)
 

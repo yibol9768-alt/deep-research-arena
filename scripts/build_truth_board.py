@@ -819,6 +819,17 @@ def main() -> int:
                          "the rerun policy never fires.")
     ap.add_argument("--keys-dir", default="data/golden/answer_keys")
     ap.add_argument("--cache", default=None, help="sandbox page cache json")
+    ap.add_argument(
+        "--diagnostic", action=argparse.BooleanOptionalAction, default=False,
+        help="Build a DIAGNOSTIC (non-headline) board when no page cache is "
+             "supplied (SPEC_DECISIONS #2). Without this flag a board built "
+             "with no --cache (or an empty cache) is REFUSED fail-closed: the "
+             "concept/forum completeness slots cannot be grounded, so a formal "
+             "number would be produced while the instrument is half-blind. In "
+             "diagnostic mode the board is stamped cache_policy='diagnostic' "
+             "and that policy is threaded to the scorer so the missing slots "
+             "are withheld from the completeness denominator rather than "
+             "silently scored 0.")
     ap.add_argument("--panel", default=None,
                     help="presentation panel results json: {agent: score}")
     ap.add_argument("--manifest", default=None,
@@ -886,6 +897,40 @@ def main() -> int:
         print(f"no answer keys under {keys_dir}")
         return 2
     cache = json.loads(Path(args.cache).read_text()) if args.cache else {}
+    # Fail-closed cache policy (SPEC_DECISIONS #2). A formal (headline) board
+    # MUST be built against the sandbox page cache: without it the concept-quote
+    # and forum-coverage completeness slots have no page text to ground against
+    # and score 0 for every lane -- a silent, instrument-caused zero for ~a
+    # quarter of the completeness denominator, which is exactly the "0 must mean
+    # observed-and-bad, never blind" contract. So a strict build with an empty
+    # cache is refused here, before any number is produced. `--diagnostic`
+    # opts into a non-headline build that is stamped cache_policy='diagnostic'
+    # and threads that policy to the scorer, which withholds the ungroundable
+    # slots from the completeness denominator instead of zeroing them.
+    cache_policy = "diagnostic" if args.diagnostic else "strict"
+    if cache_policy == "strict" and not cache:
+        print(
+            "ERROR: refusing to build a formal truth board with no page cache. "
+            "Pass --cache <sandbox_cache.json> so the concept/forum completeness "
+            "slots can be grounded, or pass --diagnostic to build a non-headline "
+            "board (cache_policy='diagnostic') that withholds the ungroundable "
+            "slots from the denominator rather than silently scoring them 0.",
+            file=sys.stderr,
+        )
+        return 11
+    # Interface contract with the scorer lane (SPEC_DECISIONS #2): the diagnostic
+    # withhold behaviour lives in score_completeness(..., cache_policy=...),
+    # implemented on a separate lane. Thread the policy through evaluate() ->
+    # score_report() -> score_completeness only once the parameter exists, so
+    # this board stays runnable before that lane merges and activates the
+    # behaviour automatically after. The board is stamped with cache_policy
+    # regardless, so a reader always knows which regime produced the numbers.
+    import inspect as _inspect
+    _scorer_accepts_cache_policy = (
+        "cache_policy" in _inspect.signature(ds.score_report).parameters
+    )
+    _scorer_kw = ({"cache_policy": cache_policy}
+                  if _scorer_accepts_cache_policy else {})
     panel, panel_provenance = load_panel(args.panel)
     registry = load_registry()
     # build_page_stats(cache) is a document-frequency pass over the WHOLE
@@ -1178,6 +1223,7 @@ def main() -> int:
                                   if _meta.get("run_id")
                                   else ev_by_key.get((agent_name, tid))),
                         require_transport_pof=args.require_transport_pof,
+                        **_scorer_kw,
                     )
                 except ds.MissingEvidenceLog as exc:
                     unscorable[agent_name] = str(exc)
@@ -1610,6 +1656,13 @@ def main() -> int:
                   else f"floor-if-active eps={eps}")
     board = {
         "board": "truth_v2",
+        # Fail-closed cache regime (SPEC_DECISIONS #2). "strict" == a headline
+        # board built against the sandbox page cache (concept/forum slots
+        # grounded). "diagnostic" == a non-headline board built with no cache;
+        # the ungroundable slots are withheld from the completeness denominator
+        # by the scorer rather than scored 0. A diagnostic board must NOT be
+        # compared against a strict one.
+        "cache_policy": cache_policy,
         # Where the presentation column came from (or None without --panel;
         # {"unstamped": true} for a legacy stampless file). See load_panel.
         "panel_provenance": panel_provenance,
@@ -1712,6 +1765,11 @@ def main() -> int:
             "aggregation_version": "task-cluster-replicate-v1",
             "n_replicates": args.replicates,
             "n_task_replicates": len(keys) * args.replicates,
+            # Fail-closed cache regime (SPEC_DECISIONS #2). Boards carrying
+            # different cache_policy are NOT comparable: a diagnostic board
+            # withholds ungroundable concept/forum slots from the completeness
+            # denominator that a strict board grounds against the page cache.
+            "cache_policy": cache_policy,
         },
         "gate_semantics": gate_semantics,
         "artifact_layout": ("formal_flat_run_set" if formal_layout
