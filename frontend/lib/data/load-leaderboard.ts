@@ -42,8 +42,20 @@ interface PerAgentProfile {
   checklist_pass_rate?: number
   coverage_pct?: number
   reachability_pct?: number
+  // Grounding provenance diagnostics (ruling #8), percentages 0-100. Optional:
+  // present only when a run carried transport observation.
+  provenance_pct?: number
+  guessed_pct?: number
+  // Fact-support precision detail (ruling #9): supported / tested structured
+  // claims. Detail-only; fact_tested === 0 renders as n/a, never as 0.
+  fact_supported?: number
+  fact_tested?: number
   deviations?: LaneDeviation[]
   synthetic_placeholder?: boolean
+  // Structurally-unrunnable disclosure (ruling #12): declared but excluded at
+  // the isolation boundary (e.g. codex over SSH). Rendered as a badge.
+  excluded?: boolean
+  excluded_reason?: LaneDeviation
 }
 
 interface RankSignificance {
@@ -209,6 +221,12 @@ export function rankedAgents(): RankedAgent[] {
       checklist_pass_rate: prof?.checklist_pass_rate,
       coverage_pct: prof?.coverage_pct,
       reachability_pct: prof?.reachability_pct,
+      provenance_pct: prof?.provenance_pct,
+      guessed_pct: prof?.guessed_pct,
+      fact_supported: prof?.fact_supported,
+      fact_tested: prof?.fact_tested,
+      excluded: prof?.excluded,
+      excluded_reason: prof?.excluded_reason,
       deviations: Array.isArray(prof?.deviations) ? prof!.deviations : undefined,
       per_pillar: pillars,
       schema_version: c.schemaVersion,

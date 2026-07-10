@@ -77,6 +77,100 @@ def _axes_mean(cells, axis_keys, denom) -> dict:
         for a in axis_keys
     }
 
+
+def _provenance_columns(cells) -> dict:
+    """Diagnostic grounding columns for one lane (SPEC_DECISIONS #8, revised).
+
+    The truth gate is provenance under transport_v2 (a cited URL is credited only
+    when the run could have learned it: searched, linked from a read page, or
+    fetched) and stays reach under text_v1 (a URL is credited if it merely exists
+    in the corpus). The headline gate is NOT reach and is NOT changed here. This
+    helper publishes the three fractions SIDE BY SIDE per lane so a reader sees
+    both the strict gate (provenance) and the laundering it defends against:
+
+      reach_frac       mean cited-URL corpus membership (the OLD gate, kept only
+                       as a diagnostic: a guessed real URL scores reach=1).
+      provenance_frac  mean fraction of cited URLs the run could have learned
+                       (transport_v2 only; None under text_v1, which cannot
+                       observe provenance).
+      guessed_frac     mean fraction of cited URLs classed `guessed` by
+                       fetch_log.classify_provenance -- fetch-then-fabricate
+                       laundering the provenance gate exists to catch (transport
+                       only; None under text_v1).
+
+    Means are over the lane's SCORED reports. reach is always available; the two
+    transport fractions are None when no scored report carried a transport log,
+    so a text_v1 board never fabricates a provenance number.
+    """
+    cells = list(cells)
+    n = len(cells)
+    if not n:
+        return {"gate_semantics": None, "gate_value_mean": None,
+                "reach_frac": None, "provenance_frac": None,
+                "guessed_frac": None, "n_reports": 0, "n_reports_with_transport": 0}
+    # Which gate the truth number used for this lane, carried alongside the
+    # diagnostic columns so a reader never mistakes the reach column for the gate.
+    gate_set = {str(d.get("gate_semantics")) for d in cells if d.get("gate_semantics")}
+    gate_semantics = (next(iter(gate_set)) if len(gate_set) == 1
+                      else ("mixed" if gate_set else None))
+    gate_value_mean = round(
+        math.fsum(float(d.get("gate_value", 0.0)) for d in cells) / n, 4
+    )
+    reach_frac = round(
+        math.fsum(float(d["axes"].get("grounding_reach", 0.0)) for d in cells) / n, 4
+    )
+    transport_cells = [d for d in cells
+                       if isinstance(d.get("transport"), dict)
+                       and d["transport"].get("available") is not False]
+    m = len(transport_cells)
+    if not m:
+        return {"gate_semantics": gate_semantics, "gate_value_mean": gate_value_mean,
+                "reach_frac": reach_frac, "provenance_frac": None,
+                "guessed_frac": None, "n_reports": n, "n_reports_with_transport": 0}
+    prov = math.fsum(float(t["transport"].get("provenance", 0.0))
+                     for t in transport_cells) / m
+
+    def _guessed_frac(t: dict) -> float:
+        counts = t.get("provenance_counts") or {}
+        n_cited = int(t.get("n_cited", 0) or 0)
+        return (int(counts.get("guessed", 0) or 0) / n_cited) if n_cited else 0.0
+
+    guessed = math.fsum(_guessed_frac(t["transport"]) for t in transport_cells) / m
+    return {
+        "gate_semantics": gate_semantics,
+        "gate_value_mean": gate_value_mean,
+        "reach_frac": reach_frac,
+        "provenance_frac": round(prov, 4),
+        "guessed_frac": round(guessed, 4),
+        "n_reports": n,
+        "n_reports_with_transport": m,
+    }
+
+
+def _fact_precision(cells) -> dict:
+    """Fact-support precision as a DETAIL column (SPEC_DECISIONS #9).
+
+    fact-support's headline value already folds precision and recall-volume and
+    is 0 both when every claim was wrong AND when no checkable claim was made;
+    the headline truth number is NOT touched here. This surfaces the pooled
+    precision = supported / tested (tested = supported + contradicted) so a
+    reader can tell silence from wrong claims. tested == 0 yields precision=None
+    (rendered n/a, NEVER 0): a lane that made no checkable claim is not a lane
+    that made false ones.
+    """
+    supported = 0
+    tested = 0
+    for d in cells:
+        fd = (d.get("detail") or {}).get("fact") or {}
+        supported += int(fd.get("supported", 0) or 0)
+        tested += int(fd.get("claims_tested", 0) or 0)
+    return {
+        "supported": supported,
+        "tested": tested,
+        "precision": (round(supported / tested, 4) if tested else None),
+    }
+
+
 # D7: version stamp so a board can self-certify which scoring/extractor/formula
 # it was produced under. The three headline fields (formula_version,
 # extractor_commit, formula_commit) are the cross-version identity; the numeric
@@ -182,6 +276,34 @@ def _lane_fetch_modes() -> dict[str, str]:
                 for name, entry in lanes.items()}
     except Exception:  # noqa: BLE001
         return {}
+
+
+def _excluded_lanes() -> dict:
+    """Declared lanes that are structurally unrunnable (SPEC_DECISIONS #12).
+
+    A lane marked ``runnable: false`` in config/lane_protocol.yaml declared a
+    protocol but cannot run under the enforced isolation boundary (codex over
+    SSH: the remote-isolation-proof has no writer and netns blocks egress). The
+    board publishes its machine-readable ``excluded_reason`` so "never ran" is
+    distinguishable from "ran and did poorly", and so a lane-count claim can name
+    the runnable set honestly. Empty when the protocol file is absent.
+    """
+    try:
+        import yaml
+        doc = yaml.safe_load((ROOT / "config" / "lane_protocol.yaml").read_text(
+            encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001
+        return {}
+    out: dict = {}
+    for lane, spec in (doc.get("lanes") or {}).items():
+        if isinstance(spec, dict) and spec.get("runnable") is False:
+            out[lane] = spec.get("excluded_reason") or {
+                "kind": "unspecified",
+                "code": "unrunnable",
+                "human_zh": "声明但结构性不可跑,已排除。",
+                "human_en": "declared but structurally unrunnable; excluded.",
+            }
+    return out
 
 
 def _merge_evidence_fragments(items):
@@ -833,6 +955,17 @@ def main() -> int:
                          "the rerun policy never fires.")
     ap.add_argument("--keys-dir", default="data/golden/answer_keys")
     ap.add_argument("--cache", default=None, help="sandbox page cache json")
+    ap.add_argument(
+        "--diagnostic", action=argparse.BooleanOptionalAction, default=False,
+        help="Build a DIAGNOSTIC (non-headline) board when no page cache is "
+             "supplied (SPEC_DECISIONS #2). Without this flag a board built "
+             "with no --cache (or an empty cache) is REFUSED fail-closed: the "
+             "concept/forum completeness slots cannot be grounded, so a formal "
+             "number would be produced while the instrument is half-blind. In "
+             "diagnostic mode the board is stamped cache_policy='diagnostic' "
+             "and that policy is threaded to the scorer so the missing slots "
+             "are withheld from the completeness denominator rather than "
+             "silently scored 0.")
     ap.add_argument("--panel", default=None,
                     help="presentation panel results json: {agent: score}")
     ap.add_argument("--manifest", default=None,
@@ -900,6 +1033,40 @@ def main() -> int:
         print(f"no answer keys under {keys_dir}")
         return 2
     cache = json.loads(Path(args.cache).read_text()) if args.cache else {}
+    # Fail-closed cache policy (SPEC_DECISIONS #2). A formal (headline) board
+    # MUST be built against the sandbox page cache: without it the concept-quote
+    # and forum-coverage completeness slots have no page text to ground against
+    # and score 0 for every lane -- a silent, instrument-caused zero for ~a
+    # quarter of the completeness denominator, which is exactly the "0 must mean
+    # observed-and-bad, never blind" contract. So a strict build with an empty
+    # cache is refused here, before any number is produced. `--diagnostic`
+    # opts into a non-headline build that is stamped cache_policy='diagnostic'
+    # and threads that policy to the scorer, which withholds the ungroundable
+    # slots from the completeness denominator instead of zeroing them.
+    cache_policy = "diagnostic" if args.diagnostic else "strict"
+    if cache_policy == "strict" and not cache:
+        print(
+            "ERROR: refusing to build a formal truth board with no page cache. "
+            "Pass --cache <sandbox_cache.json> so the concept/forum completeness "
+            "slots can be grounded, or pass --diagnostic to build a non-headline "
+            "board (cache_policy='diagnostic') that withholds the ungroundable "
+            "slots from the denominator rather than silently scoring them 0.",
+            file=sys.stderr,
+        )
+        return 11
+    # Interface contract with the scorer lane (SPEC_DECISIONS #2): the diagnostic
+    # withhold behaviour lives in score_completeness(..., cache_policy=...),
+    # implemented on a separate lane. Thread the policy through evaluate() ->
+    # score_report() -> score_completeness only once the parameter exists, so
+    # this board stays runnable before that lane merges and activates the
+    # behaviour automatically after. The board is stamped with cache_policy
+    # regardless, so a reader always knows which regime produced the numbers.
+    import inspect as _inspect
+    _scorer_accepts_cache_policy = (
+        "cache_policy" in _inspect.signature(ds.score_report).parameters
+    )
+    _scorer_kw = ({"cache_policy": cache_policy}
+                  if _scorer_accepts_cache_policy else {})
     panel, panel_provenance = load_panel(args.panel)
     registry = load_registry()
     # build_page_stats(cache) is a document-frequency pass over the WHOLE
@@ -1197,6 +1364,10 @@ def main() -> int:
                         # from completeness's fetch requirement (read from the
                         # SAME protocol file G0 disclosure reads).
                         lane_fetch_mode=lane_fetch_modes.get(agent_name),
+                        # ruling #2: cache_policy is threaded only when the
+                        # scorer signature accepts it (feature-probed above);
+                        # after D1's score_report gained the param this activates.
+                        **_scorer_kw,
                     )
                 except ds.MissingEvidenceLog as exc:
                     unscorable[agent_name] = str(exc)
@@ -1393,6 +1564,16 @@ def main() -> int:
             "fact_active_rate": round(fact_active_rate, 4),
             "reach_zero_rate": round(reach_zero_rate, 4),
             "gate_zero_rate": round(gate_zero_rate, 4),
+            # SPEC_DECISIONS #8 (revised): reach / provenance / guessed side by
+            # side. The gate stays provenance under transport (unchanged); these
+            # are diagnostic columns that expose the fetch-then-fabricate
+            # laundering the provenance gate defends against. provenance/guessed
+            # are null on a text_v1 lane (no transport observation).
+            "grounding_provenance": _provenance_columns(per_cell.values()),
+            # SPEC_DECISIONS #9: fact-support precision as a DETAIL column only.
+            # supported/tested with precision=None (n/a) when tested==0, so
+            # silence is never shown as a wrong-claim 0. Headline truth unchanged.
+            "fact_precision": _fact_precision(per_cell.values()),
             # spec is OUT of truth (FORMULA_LOCK K6): surfaced as a separate
             # compliance column, never multiplied in. Kept in axes_mean too.
             "compliance": axes_mean_all_tasks.get("spec", 0.0),
@@ -1497,6 +1678,13 @@ def main() -> int:
                 "compliance_denominator_all_tasks": len(keys),
                 "compliance_denominator_all_task_replicates": len(keys),
                 "compliance_denominator_surviving": 0,
+                "grounding_provenance": {
+                    "gate_semantics": None, "gate_value_mean": None,
+                    "reach_frac": None, "provenance_frac": None,
+                    "guessed_frac": None, "n_reports": 0,
+                    "n_reports_with_transport": 0,
+                },
+                "fact_precision": {"supported": 0, "tested": 0, "precision": None},
                 "presentation": panel.get(agent),
                 "per_task": {},
                 "rank": next_rank,
@@ -1629,6 +1817,13 @@ def main() -> int:
                   else f"floor-if-active eps={eps}")
     board = {
         "board": "truth_v2",
+        # Fail-closed cache regime (SPEC_DECISIONS #2). "strict" == a headline
+        # board built against the sandbox page cache (concept/forum slots
+        # grounded). "diagnostic" == a non-headline board built with no cache;
+        # the ungroundable slots are withheld from the completeness denominator
+        # by the scorer rather than scored 0. A diagnostic board must NOT be
+        # compared against a strict one.
+        "cache_policy": cache_policy,
         # Where the presentation column came from (or None without --panel;
         # {"unstamped": true} for a legacy stampless file). See load_panel.
         "panel_provenance": panel_provenance,
@@ -1705,15 +1900,20 @@ def main() -> int:
                 "and claims_tested to distinguish silence from wrong claims. "
                 "NOT report-level correctness."),
             "completeness": (
-                f"SATURATING vital-fact recall over min(K*={ds.K_STAR_DEFAULT}, "
-                f"|ranked structured/concept pool + forum slot|). Every structured "
+                f"vital-fact recall over min(K*={ds.K_STAR_DEFAULT}, "
+                f"|ranked structured/concept pool + forum slot|). Saturation is "
+                "the design intent but does not fire: each task's vital pool "
+                "holds ~14-17 nuggets (below K*), so the denominator is |pool| "
+                "and the axis is in practice a CENSUS -- covering EVERY vital "
+                "fact the task offers scores 1.0 (ruling #5); K* is only an upper "
+                "cap and does not bind at current pool sizes. Every structured "
                 "nugget requires its source citation on the same Markdown line "
                 "as the subject/value and, when transport is "
                 "available, a fetch of that source page. A declared community "
                 "requirement adds one virtual slot covered only by a fetched, "
-                "quoted, task-relevant allowed-forum thread. Covering the effective "
-                "pool scores 1.0; detached source dumps, unrelated catalog rows, "
-                "or URL shells do not. NOT uncapped exhaustiveness."),
+                "quoted, task-relevant allowed-forum thread. Detached source "
+                "dumps, unrelated catalog rows, or URL shells do not count. NOT "
+                "uncapped exhaustiveness."),
             "spec": (
                 "output-shape compliance (format checks). Separate column, NOT in "
                 "truth. Row-level compliance is the all-task-replicate zero-padded mean; "
@@ -1731,6 +1931,11 @@ def main() -> int:
             "aggregation_version": "task-cluster-replicate-v1",
             "n_replicates": args.replicates,
             "n_task_replicates": len(keys) * args.replicates,
+            # Fail-closed cache regime (SPEC_DECISIONS #2). Boards carrying
+            # different cache_policy are NOT comparable: a diagnostic board
+            # withholds ungroundable concept/forum slots from the completeness
+            # denominator that a strict board grounds against the page cache.
+            "cache_policy": cache_policy,
         },
         "gate_semantics": gate_semantics,
         "artifact_layout": ("formal_flat_run_set" if formal_layout
@@ -1762,6 +1967,13 @@ def main() -> int:
         "require_transport_pof": bool(args.require_transport_pof),
         "max_stall_reruns": args.max_stall_reruns,
         "unscorable_lanes": unscorable,
+        # SPEC_DECISIONS #12: lanes that DECLARED a protocol but are structurally
+        # unrunnable at the enforced isolation boundary (codex over SSH). Each
+        # carries a machine-readable excluded_reason so "never ran" is
+        # distinguishable from "ran and did poorly", and the front end can render
+        # an "excluded at the isolation boundary" badge. This is distinct from
+        # `unscorable_lanes` (ran but PoF could not be observed).
+        "excluded_lanes": _excluded_lanes(),
         "n_answer_keys": len(keys),
         "rows": [{k: v for k, v in r.items() if k != "per_task"} for r in rows],
         "per_task": {r["agent"]: r["per_task"] for r in rows},

@@ -5,13 +5,15 @@
     {
       "version": "v24-2026-07-10",
       "date": "2026-07-10",
-      "title": "Maintainer rulings on the frozen semantic forks: scorer and jury updates",
-      "summary": "The twelve frozen semantic forks in docs/SPEC_ISSUES.md were adjudicated (docs/SPEC_DECISIONS.md). This entry logs the scorer- and jury-side changes: snippet-only lanes stop being charged a fetch they cannot make, off-topic-but-correct facts no longer inflate precision, jury walkovers separate framework failure from real non-delivery, and a diagnostic completeness mode withholds cache-blind slots instead of zeroing them.",
+      "title": "Maintainer rulings on the twelve frozen semantic forks: scorer, jury, board, front end, and docs",
+      "summary": "The twelve frozen semantic forks in docs/SPEC_ISSUES.md were adjudicated (docs/SPEC_DECISIONS.md) and land across the scorer, jury, board, front end, and docs, alongside a review pass that corrects lane disclosures. Snippet-only lanes stop being charged a fetch they cannot make, off-topic-but-correct facts no longer inflate precision, jury walkovers separate framework failure from real non-delivery, a diagnostic completeness mode withholds cache-blind slots instead of zeroing them, a formal board refuses to build with no page cache, and reach/provenance/guessed/fact-precision plus isolation-excluded lanes are disclosed on the board and site. No scoring formula, weight, or headline-gate change.",
       "tags": [
         "scoring",
         "fairness",
         "grounding",
-        "methodology"
+        "methodology",
+        "frontend",
+        "docs"
       ],
       "sections": [
         {
@@ -54,6 +56,75 @@
           "bullets": [
             "With the diagnostic cache_policy withholding the cache-blind forum slot and the short-topic fix crediting short concepts, the mechanically generated oracle report reaches literal completeness == 1.0 on 99 of 100 tasks. A new green G1 gate pins that the only tasks short of 1.0 are exactly those carrying a title-only stub concept page, and by the exact residual.",
             "The sole remaining task (dr_cross_deep_0038, 'Input lag') has a concept page that IS cached but whose whole body is shorter than the 400-char grounding window, so no report can quote it. That is a page-cache fixture defect to be excised at key-construction time (build_answer_keys), not a scorer change; GOAL_GATES_V1's literal-1.0-for-every-task assertion stays a documented xfail until then, red by exactly that one slot."
+          ]
+        },
+        {
+          "heading": "Fail-closed page cache (ruling #2)",
+          "bullets": [
+            "build_truth_board refuses (exit 11) to build a formal board with no --cache or an empty cache: the concept/forum completeness slots would ground against nothing and score 0 for every lane.",
+            "New --diagnostic flag builds a non-headline board stamped cache_policy='diagnostic' and threads that policy to the scorer, which withholds the ungroundable slots from the completeness denominator instead of zeroing them.",
+            "The board and its protocols block carry cache_policy so a strict board is never silently compared against a diagnostic one."
+          ]
+        },
+        {
+          "heading": "Completeness is a census, stated plainly (ruling #5)",
+          "bullets": [
+            "The docstring, README, and datasheet now say completeness covers the entire per-task vital pool (all ~14-17 nuggets) to score 1.0; the K*=20 saturation cap never binds at these pool sizes.",
+            "No number changes: the denominator was already min(K*, |pool|). K* is retained only as an upper cap, documented as such."
+          ]
+        },
+        {
+          "heading": "Honest scoring-source coverage (ruling #6)",
+          "bullets": [
+            "The README and datasheet now state plainly that the truth number is earned on shopping (fact) + shopping/Wikipedia (completeness, plus one virtual forum slot); the forum is a provenance dimension, not a scored vital-fact source.",
+            "The answer keys carry zero forum vital nuggets today; real forum vital nuggets (thread_score / comment_count predicates) are flagged as a scheduled v2.1 dataset task."
+          ]
+        },
+        {
+          "heading": "reach / provenance / guessed shown side by side (ruling #8)",
+          "bullets": [
+            "The truth gate stays provenance under transport (a cited URL is credited only when the run could have learned it -- searched, linked, or fetched); it is NOT rolled back to reach.",
+            "Each lane now publishes reach, provenance, and guessed fractions side by side (board grounding_provenance block; site shows P/G beside R/Q) so the fetch-then-fabricate laundering the provenance gate catches is visible; provenance/guessed are withheld (null) on a text_v1 lane rather than fabricated.",
+            "The gate_semantics stamp travels per lane and the rc=3 mixed-gate guard is confirmed; boards on different gates cannot be compared."
+          ]
+        },
+        {
+          "heading": "Fact precision as a detail column (ruling #9)",
+          "bullets": [
+            "The board and agent detail view add fact_precision = supported/tested structured claims; the headline truth score is unchanged.",
+            "tested == 0 renders n/a, never 0, so a lane that made no checkable claim is never shown as one that made false ones."
+          ]
+        },
+        {
+          "heading": "Budget unit disclosed (ruling #11)",
+          "bullets": [
+            "The lane protocol and README now state the output budget is each backbone's own tokenizer token; the same 8192-token cap buys ~10-15% different English text across the three tokenizers, so completeness ceilings shift slightly by backbone. Disclosure only."
+          ]
+        },
+        {
+          "heading": "Structurally-unrunnable lanes disclosed (ruling #12)",
+          "bullets": [
+            "codex is marked runnable:false in the lane protocol with a machine-readable excluded_reason; it declares a protocol but runs over SSH and cannot satisfy the enforced isolation boundary.",
+            "The board publishes an excluded_lanes block and the site renders an 'excluded at the isolation boundary' badge, so 'never ran' is never read as 'ran and did poorly'.",
+            "The README lane count is corrected to 17 declared / 16 runnable, naming the codex exclusion."
+          ]
+        },
+        {
+          "heading": "Citation-locality style cost disclosed (ruling #4)",
+          "bullets": [
+            "The datasheet's known limitations now record that same-sentence (facts) / same-line (nuggets) citation binding penalizes an argumentative 'cite at the paragraph end' style even when every claim is true and sourced.",
+            "The binding is kept (paragraph windows reopen citation-dumping laundering); the stylistic cost is disclosed rather than removed."
+          ]
+        },
+        {
+          "heading": "Review-pass corrections: honest lane disclosures and gate wiring (F1)",
+          "bullets": [
+            "langchain-odr: the false 'the former adapter was retired' claim is removed and the five real single-lane adapter patches are each declared (clamp_researcher_tool_calls, clamp_supervisor_research, clamp_search, noop_summarize, bypass_write_research_brief), so every clamp that moves reach/completeness to keep GLM-4.7-Flash single-lane is on record.",
+            "deerflow: the protocol is corrected from direct_requests/off-shim to shim_extract (page reads route through the recording shim's POST /extract), and the 2000-char per-page cap plus the conf.yaml max_retries=3 are declared; fetch_observable stays false pending an on-shim smoke, so flipping observability is deferred to the next run.",
+            "tongyi: the ReAct loop's adapter retries are declared and call_llm now RAISES on exhaustion instead of returning an 'Error: ...' sentinel that could reach the scored report, so an exhausted lane is an infra failure like every other lane, not scored text.",
+            "camel: the report sanitizer now strips only BALANCED <think>/<tool_call>/<tool_response> pairs; the former dangling-opener strip deleted the report body to EOF whenever a single reasoning tag was left open. Prose and citations are byte-for-byte preserved.",
+            "ldr: the report is unmasked only when masking was actually on, and citation parity is widened to the sandbox mask domains so a masked-domain citation is not miscounted.",
+            "Gates as an entry requirement: run_gates rc=5 (no tests collected on a mounted gate file) is now FAIL not SKIP, the goal gates run ahead of the expensive leaderboard build (run_full_leaderboard.sh, preflight), and check_disclosure's signal scan is extended to run_deep_task.py and covers 26 reconcilers."
           ]
         }
       ]

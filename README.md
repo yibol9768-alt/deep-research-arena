@@ -76,7 +76,7 @@ Stages in words:
 
 1. **Sandbox** brings up a frozen shopping site, forum, and Wikipedia, plus a search/LLM gateway. This is the only "web" agents may see in the closed-world setting.
 2. **Tasks** tell the agent what report to write. **Goldens / answer keys** record must-cite sources and checkable facts.
-3. **Agents** (12 framework lanes; see [§6](#6-lanes-and-fairness)) run against the sandbox and emit a cited Markdown report.
+3. **Agents** (17 lanes are declared in `config/lane_protocol.yaml`; **16 are runnable** in the closed-world sandbox — `codex` is declared but excluded at the isolation boundary; see [§6](#6-lanes-and-fairness)) run against the sandbox and emit a cited Markdown report.
 4. **Decidable scoring** computes reach, PoF, fact support, completeness, and composes `truth` (K6). Spec is reported as compliance, not multiplied in.
 5. **Jury** (optional panel) scores usefulness pairwise. On the truth board it is a separate column / tie-break only.
 6. **Site** publishes committed boards from `frontend/` → `web/dist/`.
@@ -166,7 +166,7 @@ truth   = reach^γ · quality          # γ = 1.5 by default
 | `reach` | Fraction of cited URLs that are in-corpus / reachable in the closed world | Anti-fabrication **gate**. Unfloored: `reach = 0` ⇒ `truth = 0`. |
 | `fact` | Structured claims checked against DB / answer-key truth | "Wrong claim" failure mode |
 | `PoF` | Proof-of-fetch / quote support against page text (default `text_v1`) | "Unread citation" failure mode; see caveats below |
-| `completeness` | Saturating recall over a ranked vital pool from the answer key | "Missing coverage" failure mode |
+| `completeness` | Vital-fact recall over the ranked vital pool from the answer key. Denominator is `min(K*, \|pool\|)`; because each task's vital pool holds ~14-17 nuggets (below `K*=20`), this is in practice a **census** — covering *every* vital fact the task offers scores 1.0. `K*` is retained only as an upper cap and does not bind at current pool sizes. | "Missing coverage" failure mode |
 | `spec` | Output-shape / format checks | **Compliance column only.** Never multiplied into truth. |
 
 Design constraints (enforced in code + tests):
@@ -202,6 +202,18 @@ Default PoF is **`text_v1`**: verbatim / page-level match between report context
 
 A transport-level alternative **`transport_v2`** (`|cited ∩ fetched| / |cited|` from shim evidence logs) exists in `src/eval/fetch_log.py` and can be required via `build_truth_board.py --require-transport-pof`, but only when runs have attributed evidence and the lane's page reads are observable (see [§6](#6-lanes-and-fairness) and [§12](#12-status-and-limitations)).
 
+### 5.5 Which sandbox sources actually earn score
+
+A task spans all three corpora, but the three grounding axes do **not** credit them symmetrically. Stated honestly (the board stamps this in `protocols.sources_scored`):
+
+| Axis | Sources that can move it |
+|---|---|
+| `reach`, `PoF` | source-agnostic (any cited sandbox URL) |
+| `fact` | **shopping only** — structured price / rating claims bound to a named product |
+| `completeness` | **shopping + Wikipedia** ranked vital pool, plus **one virtual forum slot** per task that declares community sources |
+
+So the truth number is earned on **shopping + Wikipedia**. The forum is a **provenance dimension**, not a vital-fact source: forum citations are classified (searched / linked / guessed) and a forum-declaring task gets a single virtual completeness slot covered by a quoted, task-relevant allowed-forum thread, but there are **no real forum vital nuggets** in the answer keys today. Building decidable forum vital nuggets (thread_score / comment_count predicates) is a **v2.1 dataset task** (see [`docs/DATASHEET.md`](docs/DATASHEET.md)). Do not read this benchmark as "three-source scoring".
+
 ---
 
 ## 6. Lanes and fairness
@@ -212,16 +224,18 @@ A transport-level alternative **`transport_v2`** (`|cited ∩ fetched| / |cited|
 > for a lane, and which lanes currently have `proof_of_fetch` withheld because
 > nothing observed whether they opened the pages they cite.
 
-The framework board uses **12 agent lanes**, each behind an adapter under `scripts/runners/` / `scripts/run_deep_task.py`:
+`config/lane_protocol.yaml` **declares 17 lanes**; **16 are runnable** in the closed-world sandbox and one (`codex`) is declared but excluded at the isolation boundary. Each runnable lane sits behind an adapter under `scripts/runners/` / `scripts/run_deep_task.py`:
 
 | Lane | Typical delivery | Notes |
 |---|---|---|
-| deerflow, gpt-researcher, camel-ai, smolagents, langchain-odr, storm, ii-researcher, flowsearcher-ds, ldr, qx-agents | Mostly open-source agent frameworks (in-process or subprocess) | Adapters must not inject citations or golden URLs |
+| deerflow, gpt-researcher, camel-ai, smolagents, langchain-odr, storm, co-storm, ii-researcher, flowsearcher-ds, ldr, qx-agents, deepagents, local-deep-researcher, tongyi-dr | Mostly open-source agent frameworks (in-process or subprocess) | Adapters must not inject citations or golden URLs |
 | opencode, claude-code | CLI products | Not the same class as in-process open-source DR frameworks; capability delivery differs (curl recipes, write-to-file paths) |
+| ~~codex~~ | CLI over SSH | **Excluded at the isolation boundary** (declared, structurally unrunnable: the remote-isolation-proof has no writer and netns blocks SSH egress). The board emits its machine-readable `excluded_reason` in `excluded_lanes` so "never ran" is never read as "ran and did poorly". |
 
 Fairness contract: [`config/lane_protocol.yaml`](config/lane_protocol.yaml).
 
 - Every lane gets the shared task intent plus a shared "return a markdown report" line. Prompt extras that teach citation counts, word counts, or example URLs are forbidden unless declared.
+- The output budget unit is each backbone's **own tokenizer token** (not characters or words); the same 8192-token cap buys ~10-15% different English text across the three tokenizers, so a report's completeness ceiling shifts slightly by backbone. Cost is likewise reported in each backbone's own tokens.
 - Harness must not graft URLs, rewrite model URLs into sandbox hits, or repair reports against scored axes.
 - Preflight: `python3 scripts/check_parity.py` (adapter surface vs protocol).
 - Historical fairness blockers (ii-researcher output URL graft; flowsearcher prior-run memory seed) are disabled by default; memory requires `FLOWSEARCHER_MEMORY=1`, evidence ghostwriting requires `EVIDENCE_FALLBACK_ENABLE=1`.

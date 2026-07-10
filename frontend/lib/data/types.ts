@@ -58,6 +58,18 @@ export interface RankedAgent {
   checklist_pass_rate?: number
   coverage_pct?: number
   reachability_pct?: number
+  /** Grounding provenance diagnostics (truth board grounding_provenance, ruling
+   *  #8). The gate stays provenance under transport; these are shown side by
+   *  side with reach so the fetch-then-fabricate laundering the provenance gate
+   *  defends against is visible. Percentages (0-100); absent on a text_v1 lane
+   *  that carried no transport observation. */
+  provenance_pct?: number
+  guessed_pct?: number
+  /** Fact-support precision detail (ruling #9): supported / tested structured
+   *  claims. A DETAIL-ONLY column; the headline truth score is unchanged.
+   *  fact_tested === 0 must render as n/a (silence), never as a wrong-claim 0. */
+  fact_supported?: number
+  fact_tested?: number
   /** v3 per-pillar Elo (8 dimensions). */
   per_pillar?: PerPillarElo
   /** Schema marker propagated for the dry-run banner / tooltips. */
@@ -73,6 +85,13 @@ export interface RankedAgent {
   gated_score?: number
   /** Declared protocol deviations for this lane, rendered as row footnotes. */
   deviations?: LaneDeviation[]
+  /** True when this lane declared a protocol but is structurally unrunnable at
+   *  the enforced isolation boundary (ruling #12), e.g. codex over SSH. Rendered
+   *  as an "excluded at the isolation boundary" badge, never a 0-score row. */
+  excluded?: boolean
+  /** Machine-readable reason for the exclusion (same bilingual shape as a lane
+   *  deviation). Present only when `excluded` is true. */
+  excluded_reason?: LaneDeviation
 }
 
 export interface PillarEloRow {

@@ -54,6 +54,21 @@ The deep tier requires all three sources in a single report; the cross-source
 synthesis section is where the difficulty lives (find product claims that lack
 or contradict Wikipedia backing, rank brands by forum sentiment, etc.).
 
+**Which sources actually earn a grounding score (be honest, not "three-source
+scoring").** The task spans all three corpora, but the decidable axes credit
+them asymmetrically: `fact` support is **shopping only**, `completeness` scores
+the **shopping + Wikipedia** ranked vital pool plus **one virtual forum slot**
+for tasks that declare community sources, and `reach` / proof-of-fetch are
+source-agnostic. The forum is therefore a **provenance dimension** (citations
+classify as searched / linked / guessed and a single virtual completeness slot
+can be covered by a quoted, task-relevant allowed-forum thread), **not** a
+source of decidable vital nuggets: the answer keys carry **zero forum vital
+nuggets** today. Building real forum vital nuggets — decidable predicates such
+as `thread_score` and `comment_count` on top-voted threads — is a scheduled
+**v2.1 dataset task**; until it ships, treat the forum dimension as provenance
+and virtual-slot coverage, and do not read the truth number as crediting three
+sources equally.
+
 ### What each instance is
 
 - **Task spec** (`data/tasks/.../dr_cross_deep_NNNN.json`): a JSON object with
@@ -69,7 +84,13 @@ or contradict Wikipedia backing, rank brands by forum sentiment, etc.).
   ground truth for grounding scoring. Keys: `task_id`, `generated_at`,
   `must_cite_urls` (the facts a strong report should cite), `expected_pool_urls`
   (the broader reachable pool, ~700-800 URLs), `triples` (subject-relation-object
-  facts), and `metadata`.
+  facts), and `metadata`. The ranked `triples` become the per-task **vital
+  pool** that the `completeness` axis scores against. Each pool holds ~14-17
+  vital nuggets, all below the `K*=20` saturation cap, so the axis is in
+  practice a **census**: covering every vital fact a task offers is what scores
+  `completeness = 1.0`, and the marginal value of one nugget floats per task at
+  `1/|pool|` (1/14 to 1/17). `K*` is retained only as an upper cap on the
+  denominator and does not bind at current pool sizes.
 - **Curated golden** (`data/golden/deep_clean/`): a cleaned, smaller-must-cite
   subset (49 of the 100 tasks at snapshot). The original whole-crawl
   `must_cite_urls` (often ~120 URLs/task) was structurally unreachable as a
@@ -191,6 +212,20 @@ seeded.
 - **No human reference reports.** Golden is crawled facts plus must-cite URLs,
   not human-written gold reports, and there are no shipped human preference
   labels.
+- **Citation-locality binds writing style, not just facts (a deliberate cost).**
+  Fact recall and completeness credit a claim only when its citation sits in the
+  *same sentence* (structured facts) or on the *same Markdown line* (vital
+  nuggets) as the claim. This is the strongest defence against "citation
+  dumping" (stating many claims, then listing sources at the end to launder
+  coverage), and the oracle report shows the requirement is achievable. But it
+  is a real cost paid by an argumentative writing style that states two or three
+  sentences and then gives one citation at the paragraph end: such a report is
+  systematically marked down on fact recall / completeness even when every claim
+  is true and sourced. The maintainer kept the sentence/line binding (ruling #4)
+  because paragraph-level windows reopen the laundering loophole; the stylistic
+  penalty is disclosed here rather than removed. Read a low fact-recall or
+  completeness score together with the report's citation *placement*, not only
+  its factual content.
 
 ---
 

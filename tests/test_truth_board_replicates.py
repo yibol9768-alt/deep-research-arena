@@ -183,6 +183,11 @@ def _run_board(
         "--out", str(out),
         "--no-require-manifest",
         "--no-require-transport-pof",
+        # No page cache is supplied here; build in diagnostic mode so the
+        # SPEC_DECISIONS #2 fail-closed cache gate does not refuse these
+        # aggregation/replicate tests. The gate is pinned separately in
+        # tests/test_truth_board_cache_policy.py.
+        "--diagnostic",
     ]
     if keys_dir is not None:
         command.extend(["--keys-dir", str(keys_dir)])

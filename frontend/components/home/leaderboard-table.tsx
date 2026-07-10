@@ -172,6 +172,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                       ) : null}
                       <span className="rounded-pill bg-surface-mid px-2 py-0.5 text-[11px] text-muted">{meta.backbone}</span>
                       <DeviationBadge deviations={a.deviations} />
+                      <ExcludedBadge agent={a} />
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -196,6 +197,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                         >
                           R{a.reachability_pct!.toFixed(0)} · Q{a.url_veracity_pct!.toFixed(0)}
                         </span>
+                        <ProvenanceCols agent={a} />
                       </span>
                     ) : (
                       <span className="text-muted">n/a</span>
@@ -293,6 +295,57 @@ function DeviationBadge({ deviations }: { deviations?: LaneDeviation[] }) {
         </span>
       </span>
     </>
+  )
+}
+
+/**
+ * Isolation-boundary exclusion badge (ruling #12). A lane that declared a
+ * protocol but is structurally unrunnable under the enforced isolation boundary
+ * (codex over SSH: no remote-proof writer, netns blocks egress) is disclosed
+ * here so "never ran" is never confused with a 0-score run. Bilingual title,
+ * same twin-span mechanism as DeviationBadge.
+ */
+function ExcludedBadge({ agent }: { agent: RankedAgent }) {
+  if (!agent.excluded) return null
+  const r = agent.excluded_reason
+  const enTitle = r ? `[${r.kind}] ${r.human_en}` : 'Declared but excluded at the isolation boundary'
+  const zhTitle = r ? `[${r.kind}] ${r.human_zh}` : '声明但因隔离边界排除'
+  const cls =
+    'cursor-help rounded-pill border border-warn/40 bg-warn/5 px-1.5 py-0.5 text-[10px] leading-none text-warn transition-colors'
+  return (
+    <>
+      <span data-lang="en" lang="en">
+        <span className={cls} title={enTitle} aria-label="excluded at the isolation boundary">
+          excluded (isolation)
+        </span>
+      </span>
+      <span data-lang="zh" lang="zh-CN">
+        <span className={cls} title={zhTitle} aria-label="因隔离边界排除">
+          因隔离边界排除
+        </span>
+      </span>
+    </>
+  )
+}
+
+/**
+ * Secondary grounding-provenance annotation (ruling #8). The truth gate is
+ * provenance under transport; this shows provenance (P) and guessed (G) side by
+ * side with reach so the fetch-then-fabricate laundering the provenance gate
+ * defends against is visible. Rendered only when transport observation exists;
+ * a text_v1 lane carries no provenance number and this stays hidden (never a
+ * fabricated 0). AA-style: quiet, secondary, non-numeric-dominant.
+ */
+function ProvenanceCols({ agent }: { agent: RankedAgent }) {
+  if (agent.provenance_pct == null && agent.guessed_pct == null) return null
+  return (
+    <span
+      className="ml-1 text-[10px] text-muted-2"
+      title="Provenance gate diagnostics (transport-observed). P = share of cited URLs the run could have learned (searched / linked / fetched) — this is the truth gate under transport. G = share classed 'guessed' (fetch-then-fabricate laundering the gate catches). Shown beside reach (R), which is only a membership diagnostic."
+    >
+      {agent.provenance_pct != null ? <> · P{agent.provenance_pct.toFixed(0)}</> : null}
+      {agent.guessed_pct != null ? <> · G{agent.guessed_pct.toFixed(0)}</> : null}
+    </span>
   )
 }
 
