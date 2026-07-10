@@ -118,7 +118,15 @@ def iter_markdown_links(text: str):
                 bdepth -= 1
             j += 1
         if rb < 0:
-            return
+            # This ``[`` has no balanced closing ``]`` (e.g. a stray "[4/5" or
+            # "[TODO" in the prose). CommonMark treats such an unmatched bracket
+            # as literal text, not a fatal parse error. Returning here -- as the
+            # first version of this scanner did -- silently dropped EVERY later
+            # markdown link in the report, so a single stray "[" zeroed a lane's
+            # citations (the old MD_LINK_RE.finditer never had this failure mode).
+            # Skip past this bracket and keep scanning.
+            pos = lb + 1
+            continue
         p = rb + 1
         while p < n and text[p] in " \t":
             p += 1
