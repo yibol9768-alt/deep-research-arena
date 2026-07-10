@@ -109,6 +109,115 @@
 - [ ] [R5 手检] "_run_status 平铺 glob 忽略 backbone"：HANDOFF 已标 REAL, fixed（fails loud 或 --backbone），且正式布局现带 integrity binding 校验（backbone/replicate/agent/task 全比对）。判断：**已过时（已修复）**。
 - [ ] [WF] "backbone 预算不均既无声明也无检查"（ae57 第 2 条的措辞部分）：声明与 preflight 披露现已存在（yaml:96-117 + check_backbone_sampling），残余的是否等化问题并入 §1 跨底模分叉。判断：**已过时（部分；实质并入 §1）**。
 
+## 4. G1-G3 闸门车道执行注记（2026-07-09，wf-gates-g1g2g3）
+
+新发现的语义问题（等拍板，实现未动）：
+
+- [ ] [G1车道] 短主题概念结构性不可覆盖：`_subject_discussed`（src/eval/decidable_scorer.py:364-376）要求
+  主体 token 中至少一个"强 token"（≥4 字符或含数字），"Tea" 这类单短词概念永远判 not discussed，
+  该 concept 槽位对**所有报告**（含神谕报告：页面已缓存、词面引文已通过 `_concept_quote_supported`）死锁为 0。
+  实测跨 100 题共 11 个槽位受影响。历史修复（`_subject_tokens` 对 concept 豁免 generic 剥离，见 §3
+  "generic 标题使主体检查空转"条）只解决了 token 被剥空，没解决强 token 要求。
+  建议选项 A=concept_coverage 主体豁免强 token 要求（概念身份就是它的头词，与 `_subject_tokens`
+  已有豁免同理），B=维持规则、把受影响 nugget 重新键到多词主体。
+  判断：**真语义问题**。过渡处置：oracle_report 的 plan 把这类槽位单列
+  `concept_uncreditable_urls`、不计入可达上限，G1 按可达上限断言。
+
+- [ ] [G1车道] GOAL_GATES_V1 的 G1 字面 "completeness = 1.0" 在冻结语义下对任何报告不可达：
+  (a) 论坛虚拟槽无任何缓存论坛线程页可 ground（联动 §1 "论坛是否入分"与 §2 "page cache 供给链失修"）；
+  (b) 上条短主题概念；(c) 概念页 cache fixture 里存在标题级 stub 页（Input_lag 全文 4 词），短于打分器
+  400 字符包含窗，任何引文都不可能 ground（fixture 采集质量，联动 §2 供给链条目；plan 单列
+  `concept_stub_page_urls`）。实测 100 题神谕报告可达上限 0.87-0.94，无一题可达字面 1.0。
+  建议选项 A=把 G1 验收口径改为"可达上限精确相等"（当前测试的绿色断言），B=先补论坛线程页进
+  cache fixture、拍板短主题概念与 stub 页处置后，再要求字面 1.0。
+  判断：**真语义问题**（口径归属用户）。过渡处置：tests/test_gate_oracle.py 绿色闸门=
+  完备性与逐 predicate 覆盖数与 by-construction plan **精确相等**（多一分=幻影记分、少一分=静默归零），
+  字面 1.0 断言以 xfail 挂起（test_g1_oracle_completeness_literal_one）指回本条。
+
+G3 首跑抓获并已修复的实现 bug（实现与其自身声明语义不符，非语义变更；changelog v23-2026-07-10）：
+
+- [x] [G3车道] buyer_sentiment 窗口检查把**评论数**当评分：`_typed_value_in_window` 对窗口内任何
+  孤立数字按 rat 或 rat/20 匹配，而 "across N reviews" 的 N 恰在 "positive" 线索词 24 字符内，
+  凡 N == rating/20（60.0%/3rev、100.0%/5rev 等）错误百分比照样 covered——同函数注释明言
+  "The review COUNT is not the sentiment"。修复=数字后紧跟计数名词（reviews/ratings/reviewers/buyers）
+  即排除；±40 窗口切边把 "5 reviews" 截成 "5 rev" 导致守卫失明，守卫改读窗口外 16 字符尾巴
+  （只用于分类，只可能减分不可能加分）。
+- [x] [G3车道] 商品名身份数字被当评分值：完整书写的标题（"... iWatch SE Series 7 6 5 4 3 2 1"）
+  内的孤立 "4" 落在 "rated" 线索词 24 字符内，4 == 80/20 使 80.0% nugget 无论报告写什么百分比
+  都 covered。fact 轴对同类早有明文纪律（`_mask_numbers_in_spans`，"identity, not claims"），
+  completeness 现比照掩蔽 exact-name span 内数字后再取值。
+- 证据：G3 全量 100 题首跑 3 题（0030/0044/0100）腐蚀不降分；回归测试
+  tests/test_sentiment_window_fix.py 在旧代码上 3 红、修复后 7 绿（含正向对照与 /5 星级分支存活，
+  fixture 引商品/维基/论坛三源）。
+
+对既有条目的处置注记（不改原文）：
+
+- §2 "[R5][HANDOFF 手检衍生] fact 轴四位数纯数字价格被静默漏检"（转 G3）：按"先写重现再修"执行，
+  对真实 ≥1000 价格实体以 6 种措辞（$整数/$两位小数/price 词无 $/costs 句尾句点/千分位逗号/表格行）
+  尝试重现，当前基线（084de62f + 本车道）全部 supported=1、contradicted=0，报告的
+  supported=0/contradicted=0 签名**不可重现**——疑似已被 `_NUM_RE` 千分位修复连带修复或原始观察
+  误描述。已加常驻 pin 回归测试 tests/test_gate_perturbation.py::test_fact_axis_supports_four_digit_plain_price
+  （报告同时引商品/维基/论坛三源，防单源解析不对称），`_NUM_RE`/`_standalone_number` 任何回退即红。
+  条目保留，等用户确认后移 §3。
+
+- §2 "[R5] 93/100 任务的 start_url 与 intent_v1_legacy 仍指 re-theme 前旧题"（转 G1）：核实其
+  不在答案键打分路径上（deep 榜只读 v2 intent；G1 神谕闸门只消费 data/golden/answer_keys/*.json），
+  G1 闸门测试不受影响、保持绿色。修复属任务数据卫生，不在 G1-G3 车道范围，维持原条目低优先待办。
+
+- §1 "[已知][WF] 无 page cache 时概念/论坛槽位静默不可覆盖"：G1/G3 闸门侧的过渡处置=
+  概念 cache fixture（data/golden/concept_page_cache.json.gz，98 页）存在时全量断言概念份额，
+  缺失时 pytest.skip 显式给出原因（绝不静默通过、也绝不打 0），论坛槽计入不可达份额。
+
+## 附:G0 车道处置记录(2026-07-10,commit 见 git log)
+
+§2 中标"→ G0"的 10 条,逐条处置如下(每处修复配旧代码上会红的回归测试):
+
+1. **四条车道暗藏硬墙钟**:已修:tongyi/deepagents/ldr/local-deep-researcher 四个 runner 的
+   `DEFAULT_TIMEOUT_S` 改为 `_budget.native_timeout_default()`(=协议 wall_clock_s: null),
+   subprocess 收 timeout=None,由共享 watchdog 终止。回归:tests/test_no_hidden_wall_clock.py。
+   (击杀改判 infra/rerunnable 的部分属 G4/G6 车道。)
+2. **presentation panel 零出处绑定**:已修:`panel_from_fit` 保留 protocol/rubric_hash/word_budget/backbone
+   戳(保留字段 `_provenance`),`build_truth_board.load_panel` 拆出并在 board JSON 发布
+   `panel_provenance`;无戳文件接受但大声告警并记 `{"unstamped": true}`(是否硬拒绝留维护者)。
+   回归:tests/test_usefulness_jury_integrity.py。
+3. **check_parity backbone 规则只抓 2/10 种改写**:已修(规则面):新增 `startswith` / `==` 拼法,
+   历史事故拼法(`model.startswith("deepseek")`)现被抓。SCANNED 仍不含两个代理目录,系有意:
+   代理侧 per-backbone 分支实现的是协议 backbone 段**已声明**的政策,由 preflight
+   `check_backbone_sampling` 对账;代理政策分歧另行全量申报(见第 8/9 条)。
+   回归:tests/test_parity_checker.py。
+4. **citation_count 未复用量词集**:部分已过时(基线已用 _QTY,search_breadth 已抓
+   "MULTIPLE queries"),残留缺口 = 无数字软量词("cite multiple distinct source URLs")。
+   已修:`_SOFT_QTY_STEER`(锚定指令动词,描述性文本不误报)。回归:tests/test_parity_checker.py。
+5. **codex 身份门探错主机**:已修(fail-closed):`_model_probe_endpoint("codex")` 对 loopback
+   端点拒绝出证(与 claude-code override 同一律),两端可达的非 loopback 端点照常探。
+   真·远端探针(经 SSH 在 CODEX_SSH_HOST 上打)属 ops 工程,本机不可验,留待箱上任务。
+   回归:tests/test_lane_hidden_asymmetry.py。
+6. **qwen fit_to_window len//3 估算高估**:按 SPEC 许可路径"机制申报":
+   `backbone.gateway_policy_disclosures.gw_fit_to_window` 全文披露(含估算偏差与仅 qwen 生效),
+   check_disclosure 双向对账。估算修正=行为变更,留维护者。
+7. **floor/ceiling 两门各错一处**:ds_proxy 侧已修:`_apply_min_max_tokens` 将运维下限以
+   声明 ceiling 封顶(回归:tests/test_sampling_policy.py)。gateway 的 glm floor 不动
+   (SPEC 自注"floor 本身去留属 §1"),以 `gw_max_tokens_floor` 全文申报。
+8. **两门政策全面分歧(重试/剥think/json_schema)**:按 SPEC 许可路径"全量申报":
+   `dsp_transient_retries` / `dsp_think_strip` / `dsp_json_schema_downgrade` 三条披露,
+   check_disclosure `gateway_policy` 族双向对账(未声明差异红,失效披露亦红)。
+9. **上下文溢出救援仅 qwen**:并入 `gw_fit_to_window` 申报(同一机制)。补齐两家措辞=行为变更,留维护者。
+10. **manifest 不采集在役 gateway 活策略**:已修:manifest 新增 `gateway` 节
+    (LLM_GATEWAY_CONFIG 内容哈希 + `--gateway URL` 经 /healthz 采集活策略,采集失败拒写)。
+    verify() 是否强制要求该节(旧 manifest 无此节)留维护者。回归:tests/test_run_manifest.py。
+
+另:coordinator 点名的 snippet-only 披露已落地(storm/langchain-odr/co-storm 各加
+`snippet_only` deviation;check_disclosure 增 fetch_mode:none <=> snippet_only 双向对账);
+其 completeness 语义分叉仍在 §1 第 1 条,未动。
+
+## L3(G4 withhold)车道增量（gates-L3-withhold，合并时并入权威清单）
+
+格式：`- [ ] [来源:L3] 问题;影响;文件:行号`。行号以合并后 src/eval/decidable_scorer.py 为准（withhold 元组化/枚举后有偏移）。
+
+- [ ] [来源:L3] concept/forum 槽位"评测缓存缺页即计 0"的 withhold 语义未定（权威清单 §1 第 2 条已登记同一分叉）：本车道按冻结令不动分数与分母，只加可观测性——concept 路径现输出 detail 字段 concept_axis_withheld / concept_withheld_count / concept_nuggets_total / concept_axis_withheld_reason=concept_page_not_cached；拍板选"withhold 出分母"口径时改 score_completeness 的 denom 一处即可；影响：completeness（0.33 权重）概念槽约 278 条；文件：src/eval/decidable_scorer.py（盲判分支/ withheld 计数 / detail 字段）
+- [ ] [来源:L3] forum_coverage 虚拟槽与 concept 同构的"线程页不在缓存→静默不可覆盖"尚未加可观测性：_forum_coverage_supported 对缓存缺失线程直接 continue，分母不动、detail 无 withhold 信号；本车道只修了 concept 路径的观测（forum 槽的候选线程集合开放，"哪个线程算被盲判"需先定义，属语义）；影响：声明 forums 的 v2 任务每题 1 槽；文件：src/eval/decidable_scorer.py（entry is None → continue）
+- [ ] [来源:L3] 概念页 cache fixture（主仓库提交 615d8b49）形态为 {url: 页面文本字符串}，打分器全链期望 {url: {"status":200,"text":...}}：字符串条目使 _concept_quote_supported / score_reachability(cache_status fallback) 直接 AttributeError 崩溃（响亮失败，非静默 0；但 G1 oracle 若直接喂该 fixture 会崩，须先转换形态或给 fixture 定 schema）；影响：G1/G5 供给链与任何消费该 fixture 的脚本；文件：src/eval/decidable_scorer.py（_cache_entry 原样透传字符串 / _concept_quote_supported）
+
 ---
 
-统计：真语义问题 12 条；实为实现 bug 25 条（按主闸门：G0×10、G1×1、G3×1、G4×5、G5×1、G6×7）；已过时/已证伪 16 条。合计 53 条。
+统计（并入四车道后）：真语义问题 12+2 条（wf-gates 新增 G1 车道 2 条）；实为实现 bug 25 条（按主闸门：G0×10、G1×1、G3×1、G4×5、G5×1、G6×7，其中 G3×1 四位数纯价漏检重现失败、已挂常驻 pin 测试待确认关闭）；已过时/已证伪 16 条。合计 55 条。此外：L3 车道增补 3 条 withhold 可观测性注记（见上节），82e-2 附录逐条记录 §2→G0 的 10 条实现处置。
