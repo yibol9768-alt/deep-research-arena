@@ -324,9 +324,34 @@ lanes:
     deviations:
       - kind: budget
         code: budget_native
-        human_zh: "原生 open_deep_research 图保持框架默认预算(并发5、researcher 迭代6、react 工具调用10),各阶段输出仅夹到共享 8192 令牌上限。"
-        human_en: "The native open_deep_research graph keeps its framework defaults (concurrency 5, researcher iterations 6, react tool calls 10); stage outputs are clamped only to the shared 8192-token ceiling."
-        detail: "The native open_deep_research graph keeps its framework defaults max_concurrent_research_units=5, max_researcher_iterations=6, and max_react_tool_calls=10. All stage output caps are clamped only to the shared 8192-token ceiling. Tavily query count, result processing, supervisor decisions, compression, and report generation remain framework-native; the former adapter that kept only the first query/tool/research call was retired."
+        human_zh: "config 里 max_concurrent_research_units=5、max_researcher_iterations=6、max_react_tool_calls=10、各阶段 max_tokens=8192 沿用框架默认;但适配层另有单车道钳制,逐条见下方 clamp_*/noop_*/bypass_* 申报。"
+        human_en: "The config values max_concurrent_research_units=5, max_researcher_iterations=6, max_react_tool_calls=10 and per-stage max_tokens=8192 keep the framework defaults; the adapter ALSO applies single-lane clamps, declared one by one in the clamp_*/noop_*/bypass_* deviations below."
+        detail: "In scripts/run_deep_task.py the ODR cfg sets max_concurrent_research_units=5, max_researcher_iterations=6, max_react_tool_calls=10 and per-stage max_tokens=8192 -- the framework defaults. This does NOT mean the framework runs unmodified: the adapter patches the researcher/supervisor/search/summarizer/brief nodes to keep GLM-4.7-Flash single-lane and stable, and each patch is named in the clamp_*/noop_*/bypass_* deviations below. Runtime behaviour is frozen until #39; the earlier claim that 'the former adapter that kept only the first query/tool/research call was retired' was false and is removed."
+      - kind: clamp
+        code: clamp_researcher_tool_calls
+        human_zh: "researcher_tools 每轮只执行首个工具调用(tool_calls[:1]);其余工具调用被注入一条合成 ToolMessage('Skipped in this benchmark adapter'),并不真正执行。"
+        human_en: "researcher_tools executes only the FIRST tool call per turn (tool_calls[:1]); the remaining tool calls receive a synthetic ToolMessage ('Skipped in this benchmark adapter') and are not run."
+        detail: "scripts/run_deep_task.py _researcher_tools_single_lane processes most_recent_message.tool_calls[:1] and for every overflow tool call appends a fabricated ToolMessage whose content is 'Skipped in this benchmark adapter to keep GLM-4.7-Flash single-lane...'. This bounds per-turn tool breadth (moves reach/completeness) and injects a harness-authored tool result the model never produced. Kept for GLM stability, frozen until #39."
+      - kind: clamp
+        code: clamp_supervisor_research
+        human_zh: "supervisor_tools 每轮只运行首个 ConductResearch(conduct_research_calls[:1]);其余被注入一条合成 ToolMessage('Skipped in this benchmark adapter')。"
+        human_en: "supervisor_tools runs only the FIRST ConductResearch per turn (conduct_research_calls[:1]); the rest receive a synthetic ToolMessage ('Skipped in this benchmark adapter')."
+        detail: "scripts/run_deep_task.py _supervisor_tools_single_lane iterates conduct_research_calls[:1] and for every overflow research unit appends a fabricated ToolMessage 'Skipped in this benchmark adapter to keep GLM-4.7-Flash single-lane...'. This serialises the supervisor's fan-out to one researcher (moves reach/completeness) and injects a harness-authored tool result. Kept for GLM stability, frozen until #39."
+      - kind: clamp
+        code: clamp_search
+        human_zh: "适配层 tavily_search 每次仅取前 2 条 query(queries[:2])、每 query 结果上限 5(min(int(max_results or 5), 5));低于框架原生检索面。"
+        human_en: "The adapter tavily_search consumes only the first 2 queries per call (queries[:2]) and caps results-per-query at 5 (min(int(max_results or 5), 5)); below the framework's native retrieval breadth."
+        detail: "scripts/run_deep_task.py _tavily_search_no_summarize loops queries[:2] and requests max_results=min(int(max_results or 5), 5) from the shim per query. Both bound retrieval breadth and move reach/completeness. Kept for GLM 429-stability, frozen until #39."
+      - kind: noop
+        code: noop_summarize
+        human_zh: "ODR 对每条搜索结果的 LLM 摘要 pass 被替换为 no-op(_summarize_webpage_noop),直接返回原始内容前 3500 字符([:3500]);tavily 结果内容同样截断至 3500 字符。"
+        human_en: "ODR's per-result LLM summarizer pass is replaced by a no-op (_summarize_webpage_noop) returning the first 3500 chars of raw content ([:3500]); tavily result content is likewise truncated to 3500 chars."
+        detail: "scripts/run_deep_task.py sets _odr_utils.summarize_webpage = _summarize_webpage_noop, which returns webpage_content[:3500] instead of running an LLM summary over every result (avoids a GLM 429 retry storm), and _tavily_search_no_summarize truncates each result's content to [:3500]. This changes what the model sees per source and moves completeness. Kept for GLM stability, frozen until #39."
+      - kind: bypass
+        code: bypass_write_research_brief
+        human_zh: "write_research_brief 节点被 _write_research_brief_direct 替换:跳过 LLM 归一化,直接把原始任务 intent 交给 supervisor。"
+        human_en: "The write_research_brief node is replaced by _write_research_brief_direct: the LLM brief-normalisation step is skipped and the raw task intent is fed straight to the supervisor."
+        detail: "scripts/run_deep_task.py replaces graph node write_research_brief with _write_research_brief_direct, which feeds intent.strip() to research_supervisor directly instead of the LLM brief step (which GLM answered with the JSON schema itself, failing validation). Kept for GLM stability, frozen until #39."
       - kind: snippet_only
         code: snippet_only
         human_zh: "架构上无页面读取工具,仅消费搜索片段(fetch_mode: none);引用按 snippet_only 如实归类,与读页车道不同轨。"

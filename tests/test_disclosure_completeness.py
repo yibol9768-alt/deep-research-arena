@@ -336,6 +336,50 @@ def test_deerflow_page_truncation_signal_reconciles():
     assert any(rid == "signal_reconciliation" for _, rid, _ in v)
 
 
+# --- langchain-odr single-lane clamps (adapter embedded in run_deep_task.py) --
+
+def test_langchain_odr_drops_the_false_retired_claim():
+    """The old budget_native detail claimed the clamping adapter 'was retired'
+    while tool_calls[:1] / conduct_research_calls[:1] / queries[:2] are still
+    live. The correction removes the false claim and declares each clamp."""
+    devs = cd._load_lanes(cd.LANE_PROTOCOL)["langchain-odr"]["deviations"]
+    blob = " ".join(str(d.get("detail", "")) for d in devs)
+    assert ("was retired" not in blob) or ("false and is removed" in blob)
+    codes = {d.get("code") for d in devs}
+    assert {"clamp_researcher_tool_calls", "clamp_supervisor_research",
+            "clamp_search", "noop_summarize",
+            "bypass_write_research_brief"} <= codes
+
+
+def _odr_rules():
+    return [r for r in cd.SIGNAL_RULES if r["lane"] == "langchain-odr"]
+
+
+def test_langchain_odr_clamps_reconcile_against_the_live_embedded_adapter():
+    rules = _odr_rules()
+    assert len(rules) >= 6, "each single-lane clamp needs a signal rule"
+    lanes = cd._load_lanes(cd.LANE_PROTOCOL)
+    texts = cd._read_signal_files(rules)
+    # every clamp signal is live in run_deep_task.py AND declared => clean
+    assert cd.reconcile_signals(lanes, texts, rules=rules) == []
+    # strip every clamp/noop/bypass deviation: the live clamps become undeclared
+    # and every rule must fire (the run_deep_task.py blind spot made concrete).
+    stripped_devs = [d for d in lanes["langchain-odr"]["deviations"]
+                     if d.get("kind") not in ("clamp", "noop", "bypass")]
+    stripped = {**lanes, "langchain-odr": {
+        **lanes["langchain-odr"], "deviations": stripped_devs}}
+    v = cd.reconcile_signals(stripped, texts, rules=rules)
+    fired = {why for _, rid, why in v if rid == "signal_reconciliation"}
+    assert len(fired) == len(rules), "stripping the clamps must flag every one"
+
+
+def test_langchain_odr_adapter_lives_in_run_deep_task_not_a_runner():
+    """The signal-scan surface must include run_deep_task.py: langchain-odr's
+    clamps are embedded there, invisible to a *_runner.py-only scan."""
+    files = {r["file"] for r in _odr_rules()}
+    assert files == {"scripts/run_deep_task.py"}
+
+
 # --- gateway-policy disclosure (two LLM doors; SPEC_ISSUES §2) --------------
 
 def _gw_entry(code):

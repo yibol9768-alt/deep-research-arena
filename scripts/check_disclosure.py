@@ -219,6 +219,85 @@ SIGNAL_RULES: list[dict] = [
                 "text to 2000 characters ([:2000]); a per-page character cap "
                 "bounds completeness and must be named in a deviation"),
     },
+    # langchain-odr's single-lane adapter is EMBEDDED in run_deep_task.py, not a
+    # dedicated *_runner.py, so the four families above never saw it. Each of its
+    # single-lane clamps (slice clamps, results cap, char truncation, injected
+    # ToolMessage, node bypass) is reconciled below against the clamp_*/noop_*/
+    # bypass_* deviations langchain-odr declares. Runtime is frozen until #39; the
+    # gate only forces every clamp to be WRITTEN DOWN where the board discloses it.
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"\.tool_calls\[:\s*1\s*\]"),
+        "require": ("detail_token", "tool_calls[:1]"),
+        "why": ("langchain-odr's researcher_tools processes only the first tool "
+                "call per turn (tool_calls[:1]); a hardcoded slice clamp that "
+                "bounds tool breadth must be named in a deviation"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"conduct_research_calls\[:\s*1\s*\]"),
+        "require": ("detail_token", "conduct_research_calls[:1]"),
+        "why": ("langchain-odr's supervisor_tools runs only the first "
+                "ConductResearch per turn (conduct_research_calls[:1]); a "
+                "hardcoded slice clamp that serialises fan-out must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"queries\[:\s*2\s*\]"),
+        "require": ("detail_token", "queries[:2]"),
+        "why": ("langchain-odr's tavily_search consumes only the first 2 queries "
+                "(queries[:2]); a hardcoded slice clamp on retrieval breadth "
+                "must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"min\(int\(max_results"),
+        "require": ("detail_token", "min(int(max_results or 5), 5)"),
+        "why": ("langchain-odr's tavily_search caps results-per-query at 5 "
+                "(min(int(max_results or 5), 5)); a results cap on retrieval "
+                "breadth must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"Skipped in this benchmark adapter"),
+        "require": ("detail_token", "Skipped in this benchmark adapter"),
+        "why": ("langchain-odr injects a fabricated 'Skipped in this benchmark "
+                "adapter' ToolMessage for every clamped-out tool/research call "
+                "(a harness-authored tool result the model never produced); the "
+                "injection must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"\[:\s*3500\s*\]"),
+        "require": ("detail_token", "[:3500]"),
+        "why": ("langchain-odr truncates per-result content to 3500 chars "
+                "([:3500]); a char truncation of the text the model sees bounds "
+                "completeness and must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"_summarize_webpage_noop"),
+        "require": ("detail_token", "_summarize_webpage_noop"),
+        "why": ("langchain-odr replaces ODR's per-result LLM summarizer with a "
+                "no-op (_summarize_webpage_noop); a node replacement that changes "
+                "what each source contributes must be declared"),
+    },
+    {
+        "lane": "langchain-odr",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"_write_research_brief_direct"),
+        "require": ("detail_token", "_write_research_brief_direct"),
+        "why": ("langchain-odr bypasses the write_research_brief node "
+                "(_write_research_brief_direct feeds the raw intent to the "
+                "supervisor); a node bypass must be declared"),
+    },
 ]
 
 
