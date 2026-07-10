@@ -52,6 +52,10 @@ interface PerAgentProfile {
   fact_tested?: number
   deviations?: LaneDeviation[]
   synthetic_placeholder?: boolean
+  // Structurally-unrunnable disclosure (ruling #12): declared but excluded at
+  // the isolation boundary (e.g. codex over SSH). Rendered as a badge.
+  excluded?: boolean
+  excluded_reason?: LaneDeviation
 }
 
 interface RankSignificance {
@@ -221,6 +225,8 @@ export function rankedAgents(): RankedAgent[] {
       guessed_pct: prof?.guessed_pct,
       fact_supported: prof?.fact_supported,
       fact_tested: prof?.fact_tested,
+      excluded: prof?.excluded,
+      excluded_reason: prof?.excluded_reason,
       deviations: Array.isArray(prof?.deviations) ? prof!.deviations : undefined,
       per_pillar: pillars,
       schema_version: c.schemaVersion,

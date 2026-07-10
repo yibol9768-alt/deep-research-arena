@@ -449,6 +449,20 @@ lanes:
   # disabled gemini-cli runner, which can only use its provider-native models.
   codex:
     delivery: cli
+    # STRUCTURALLY UNRUNNABLE under the enforced isolation boundary (ruling #12).
+    # codex executes `codex exec` over SSH on CODEX_SSH_HOST; the strict-sandbox
+    # remote-isolation-proof schema has a reader but no writer, and netns does
+    # not allow SSH egress, so remote_enforced() can never be satisfied and this
+    # lane is always withheld/absent. It is DECLARED (so its protocol is on
+    # record) but EXCLUDED from the board: the board publishes excluded_reason so
+    # "never ran" is distinguishable from "ran and did poorly". Building the
+    # remote-proof writer end is optional future ops work, not a board blocker.
+    runnable: false
+    excluded_reason:
+      kind: isolation_boundary
+      code: remote_isolation_unrunnable
+      human_zh: "codex 经 SSH 在远端执行,强制隔离边界下结构性不可跑(remote-isolation-proof 只有读者无写者,netns 不放行 SSH 出站),故声明但排除上榜;因隔离边界排除。"
+      human_en: "codex executes over SSH on a remote host; under the enforced isolation boundary it is structurally unrunnable (the remote-isolation-proof schema has a reader but no writer, and netns blocks SSH egress), so it is declared but excluded from the board -- excluded at the isolation boundary."
     fetch_observable: false
     fetch_mode: direct_curl
     deviations:

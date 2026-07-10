@@ -85,6 +85,13 @@ export interface RankedAgent {
   gated_score?: number
   /** Declared protocol deviations for this lane, rendered as row footnotes. */
   deviations?: LaneDeviation[]
+  /** True when this lane declared a protocol but is structurally unrunnable at
+   *  the enforced isolation boundary (ruling #12), e.g. codex over SSH. Rendered
+   *  as an "excluded at the isolation boundary" badge, never a 0-score row. */
+  excluded?: boolean
+  /** Machine-readable reason for the exclusion (same bilingual shape as a lane
+   *  deviation). Present only when `excluded` is true. */
+  excluded_reason?: LaneDeviation
 }
 
 export interface PillarEloRow {

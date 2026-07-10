@@ -172,6 +172,7 @@ export function LeaderboardTable({ agents }: { agents: RankedAgent[] }) {
                       ) : null}
                       <span className="rounded-pill bg-surface-mid px-2 py-0.5 text-[11px] text-muted">{meta.backbone}</span>
                       <DeviationBadge deviations={a.deviations} />
+                      <ExcludedBadge agent={a} />
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -291,6 +292,36 @@ function DeviationBadge({ deviations }: { deviations?: LaneDeviation[] }) {
           aria-label={`${n} 项已声明的协议差异,悬停查看`}
         >
           差异 {n}
+        </span>
+      </span>
+    </>
+  )
+}
+
+/**
+ * Isolation-boundary exclusion badge (ruling #12). A lane that declared a
+ * protocol but is structurally unrunnable under the enforced isolation boundary
+ * (codex over SSH: no remote-proof writer, netns blocks egress) is disclosed
+ * here so "never ran" is never confused with a 0-score run. Bilingual title,
+ * same twin-span mechanism as DeviationBadge.
+ */
+function ExcludedBadge({ agent }: { agent: RankedAgent }) {
+  if (!agent.excluded) return null
+  const r = agent.excluded_reason
+  const enTitle = r ? `[${r.kind}] ${r.human_en}` : 'Declared but excluded at the isolation boundary'
+  const zhTitle = r ? `[${r.kind}] ${r.human_zh}` : '声明但因隔离边界排除'
+  const cls =
+    'cursor-help rounded-pill border border-warn/40 bg-warn/5 px-1.5 py-0.5 text-[10px] leading-none text-warn transition-colors'
+  return (
+    <>
+      <span data-lang="en" lang="en">
+        <span className={cls} title={enTitle} aria-label="excluded at the isolation boundary">
+          excluded (isolation)
+        </span>
+      </span>
+      <span data-lang="zh" lang="zh-CN">
+        <span className={cls} title={zhTitle} aria-label="因隔离边界排除">
+          因隔离边界排除
         </span>
       </span>
     </>

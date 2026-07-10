@@ -264,6 +264,34 @@ def _declared_lanes() -> set[str]:
         return set()
 
 
+def _excluded_lanes() -> dict:
+    """Declared lanes that are structurally unrunnable (SPEC_DECISIONS #12).
+
+    A lane marked ``runnable: false`` in config/lane_protocol.yaml declared a
+    protocol but cannot run under the enforced isolation boundary (codex over
+    SSH: the remote-isolation-proof has no writer and netns blocks egress). The
+    board publishes its machine-readable ``excluded_reason`` so "never ran" is
+    distinguishable from "ran and did poorly", and so a lane-count claim can name
+    the runnable set honestly. Empty when the protocol file is absent.
+    """
+    try:
+        import yaml
+        doc = yaml.safe_load((ROOT / "config" / "lane_protocol.yaml").read_text(
+            encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001
+        return {}
+    out: dict = {}
+    for lane, spec in (doc.get("lanes") or {}).items():
+        if isinstance(spec, dict) and spec.get("runnable") is False:
+            out[lane] = spec.get("excluded_reason") or {
+                "kind": "unspecified",
+                "code": "unrunnable",
+                "human_zh": "声明但结构性不可跑,已排除。",
+                "human_en": "declared but structurally unrunnable; excluded.",
+            }
+    return out
+
+
 def _merge_evidence_fragments(items):
     """Merge shim and owned-egress fragments for exactly one ``run_id``.
 
@@ -1917,6 +1945,13 @@ def main() -> int:
         "require_transport_pof": bool(args.require_transport_pof),
         "max_stall_reruns": args.max_stall_reruns,
         "unscorable_lanes": unscorable,
+        # SPEC_DECISIONS #12: lanes that DECLARED a protocol but are structurally
+        # unrunnable at the enforced isolation boundary (codex over SSH). Each
+        # carries a machine-readable excluded_reason so "never ran" is
+        # distinguishable from "ran and did poorly", and the front end can render
+        # an "excluded at the isolation boundary" badge. This is distinct from
+        # `unscorable_lanes` (ran but PoF could not be observed).
+        "excluded_lanes": _excluded_lanes(),
         "n_answer_keys": len(keys),
         "rows": [{k: v for k, v in r.items() if k != "per_task"} for r in rows],
         "per_task": {r["agent"]: r["per_task"] for r in rows},

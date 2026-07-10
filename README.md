@@ -76,7 +76,7 @@ Stages in words:
 
 1. **Sandbox** brings up a frozen shopping site, forum, and Wikipedia, plus a search/LLM gateway. This is the only "web" agents may see in the closed-world setting.
 2. **Tasks** tell the agent what report to write. **Goldens / answer keys** record must-cite sources and checkable facts.
-3. **Agents** (12 framework lanes; see [§6](#6-lanes-and-fairness)) run against the sandbox and emit a cited Markdown report.
+3. **Agents** (17 lanes are declared in `config/lane_protocol.yaml`; **16 are runnable** in the closed-world sandbox — `codex` is declared but excluded at the isolation boundary; see [§6](#6-lanes-and-fairness)) run against the sandbox and emit a cited Markdown report.
 4. **Decidable scoring** computes reach, PoF, fact support, completeness, and composes `truth` (K6). Spec is reported as compliance, not multiplied in.
 5. **Jury** (optional panel) scores usefulness pairwise. On the truth board it is a separate column / tie-break only.
 6. **Site** publishes committed boards from `frontend/` → `web/dist/`.
@@ -224,12 +224,13 @@ So the truth number is earned on **shopping + Wikipedia**. The forum is a **prov
 > for a lane, and which lanes currently have `proof_of_fetch` withheld because
 > nothing observed whether they opened the pages they cite.
 
-The framework board uses **12 agent lanes**, each behind an adapter under `scripts/runners/` / `scripts/run_deep_task.py`:
+`config/lane_protocol.yaml` **declares 17 lanes**; **16 are runnable** in the closed-world sandbox and one (`codex`) is declared but excluded at the isolation boundary. Each runnable lane sits behind an adapter under `scripts/runners/` / `scripts/run_deep_task.py`:
 
 | Lane | Typical delivery | Notes |
 |---|---|---|
-| deerflow, gpt-researcher, camel-ai, smolagents, langchain-odr, storm, ii-researcher, flowsearcher-ds, ldr, qx-agents | Mostly open-source agent frameworks (in-process or subprocess) | Adapters must not inject citations or golden URLs |
+| deerflow, gpt-researcher, camel-ai, smolagents, langchain-odr, storm, co-storm, ii-researcher, flowsearcher-ds, ldr, qx-agents, deepagents, local-deep-researcher, tongyi-dr | Mostly open-source agent frameworks (in-process or subprocess) | Adapters must not inject citations or golden URLs |
 | opencode, claude-code | CLI products | Not the same class as in-process open-source DR frameworks; capability delivery differs (curl recipes, write-to-file paths) |
+| ~~codex~~ | CLI over SSH | **Excluded at the isolation boundary** (declared, structurally unrunnable: the remote-isolation-proof has no writer and netns blocks SSH egress). The board emits its machine-readable `excluded_reason` in `excluded_lanes` so "never ran" is never read as "ran and did poorly". |
 
 Fairness contract: [`config/lane_protocol.yaml`](config/lane_protocol.yaml).
 
