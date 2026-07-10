@@ -141,3 +141,42 @@ def test_max_tokens_enforcement_can_be_disabled(monkeypatch):
     body = {"model": "deepseek-v4-flash", "max_tokens": 999_999}
     assert sp.apply_max_tokens(body) == []
     assert body["max_tokens"] == 999_999
+
+
+# --- ops floor may never override the declared ceiling (SPEC_ISSUES §2) ------
+#
+# OPENAI_PROXY_MIN_MAX_TOKENS ran AFTER apply_max_tokens with no bound, so an
+# ops env could push every ds_proxy request past the declared ceiling while the
+# gateway door still enforced it: the same request left the two doors with
+# different budgets, and the declaration stopped being the last word. The floor
+# is now bounded by the per-model ceiling. Red on the old code: the first test
+# read 200000.
+
+def test_ds_proxy_ops_floor_is_bounded_by_the_declared_ceiling(monkeypatch):
+    monkeypatch.setattr(dsp, "MIN_MAX_TOKENS", 200_000)
+    body = {"model": "deepseek-v4-flash", "max_tokens": 256}
+    dsp._apply_min_max_tokens(body)
+    assert body["max_tokens"] == 8192  # raised to the ceiling, not past it
+
+
+def test_ds_proxy_ops_floor_below_ceiling_still_rescues_a_starved_budget(monkeypatch):
+    # The floor's declared purpose (room for CoT + answer) survives the bound.
+    monkeypatch.setattr(dsp, "MIN_MAX_TOKENS", 4096)
+    body = {"model": "deepseek-v4-flash", "max_tokens": 256}
+    dsp._apply_min_max_tokens(body)
+    assert body["max_tokens"] == 4096
+
+
+def test_ds_proxy_ops_floor_respects_the_glm_exception_ceiling(monkeypatch):
+    # Per-model ceiling, not the base: glm's declared exception is 131072.
+    monkeypatch.setattr(dsp, "MIN_MAX_TOKENS", 200_000)
+    body = {"model": "glm-4.7-flash", "max_tokens": 100}
+    dsp._apply_min_max_tokens(body)
+    assert body["max_tokens"] == 131_072
+
+
+def test_ds_proxy_ops_floor_off_is_a_no_op(monkeypatch):
+    monkeypatch.setattr(dsp, "MIN_MAX_TOKENS", 0)
+    body = {"model": "deepseek-v4-flash", "max_tokens": 256}
+    dsp._apply_min_max_tokens(body)
+    assert body["max_tokens"] == 256

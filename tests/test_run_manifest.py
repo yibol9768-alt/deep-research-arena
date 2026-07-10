@@ -495,3 +495,78 @@ def test_manifest_enforces_the_key_file_hashes_it_records(tmp_path):
     m2["key_files"][victim] = "0" * 64
     reasons = rm.verify(m2, rm.ROOT / "data" / "golden")
     assert any("without a FORMULA_VERSION bump" in r for r in reasons), reasons
+
+
+# --- gateway policy fingerprint (SPEC_ISSUES §2, manifest entry) -------------
+#
+# The manifest recorded only the launcher's env and disk hashes; the gateway's
+# ACTIVE per-prefix policy lived in a long-running process, and the
+# LLM_GATEWAY_CONFIG file was named in env but its CONTENT was never hashed. A
+# server-side policy edit, or an edited config the server had not reloaded,
+# changed scores under a byte-identical manifest. Red on the old code: generate()
+# had no "gateway" section at all.
+
+def test_generate_hashes_the_gateway_config_content(tmp_path, monkeypatch):
+    from scripts.run_manifest import generate, _sha256_bytes
+
+    cfg = tmp_path / "gateway.json"
+    body = b'{"models": [{"prefix": "qwen", "fit_to_window": true}]}'
+    cfg.write_bytes(body)
+    env = {"LLM_GATEWAY_CONFIG": str(cfg)}
+    m = generate(env=env, now=datetime(2026, 7, 9, tzinfo=timezone.utc))
+    gw = m["gateway"]
+    assert gw["config_path"] == str(cfg)
+    assert gw["config_sha256"] == _sha256_bytes(body)
+    assert gw["live_policy"] is None  # not captured unless the caller asks
+
+    # An edited config is a different fingerprint, not a byte-identical manifest.
+    cfg.write_bytes(b'{"models": []}')
+    m2 = generate(env=env, now=datetime(2026, 7, 9, tzinfo=timezone.utc))
+    assert m2["gateway"]["config_sha256"] != gw["config_sha256"]
+
+
+def test_generate_without_gateway_config_records_the_absence(tmp_path):
+    from scripts.run_manifest import generate
+
+    m = generate(env={}, now=datetime(2026, 7, 9, tzinfo=timezone.utc))
+    assert m["gateway"] == {
+        "config_path": None, "config_sha256": None, "live_policy": None,
+    }
+
+
+def test_capture_gateway_policy_records_the_live_registry():
+    from scripts.run_manifest import capture_gateway_policy
+
+    doc = {"ok": True, "models": [
+        {"prefix": "qwen3-8b", "fit_to_window": True, "max_tokens_floor": None},
+        {"prefix": "glm-4.7-flash", "max_tokens_floor": 131072},
+    ]}
+    got = capture_gateway_policy(
+        "http://gw:8100", transport=lambda u: doc)
+    assert got["ok"] is True
+    assert got["url"] == "http://gw:8100/healthz"
+    assert got["models"][1]["max_tokens_floor"] == 131072
+
+
+def test_capture_gateway_policy_failure_is_recorded_not_raised():
+    from scripts.run_manifest import capture_gateway_policy
+
+    def boom(u):
+        raise ConnectionError("down")
+
+    got = capture_gateway_policy("http://gw:8100/healthz", transport=boom)
+    assert got["ok"] is False and "down" in got["error"]
+
+    got2 = capture_gateway_policy(
+        "http://gw:8100", transport=lambda u: {"ok": True})
+    assert got2["ok"] is False and "models" in got2["error"]
+
+
+def test_generate_embeds_a_passed_live_policy(tmp_path):
+    from scripts.run_manifest import generate
+
+    live = {"url": "http://gw:8100/healthz", "ok": True,
+            "models": [{"prefix": "qwen3-8b"}], "error": None}
+    m = generate(env={}, now=datetime(2026, 7, 9, tzinfo=timezone.utc),
+                 gateway_policy=live)
+    assert m["gateway"]["live_policy"] == live

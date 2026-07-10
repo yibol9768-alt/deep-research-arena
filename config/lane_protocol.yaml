@@ -121,6 +121,48 @@ backbone:
   top_p: 1.0
   gateway: llm_gateway         # unified three-backbone endpoint on :8100
 
+  # --- gateway_policy_disclosures (G0, added 2026-07-09) --------------------
+  # The two LLM doors (llm_gateway :8100, used by claude-code; ds_proxy :8088,
+  # used by eleven lanes) apply router-level policy BEYOND the shared sampler
+  # above, and the two doors do not apply the same policy. SPEC_ISSUES §2 ruled:
+  # unify OR declare in full -- this block is the full declaration, and
+  # scripts/check_disclosure.py reconciles each mechanism's code signal against
+  # it, so a new undeclared door behaviour (or a stale entry for a removed one)
+  # fails the preflight. Whether any of these SHOULD be unified or removed is
+  # the maintainer's (several tie into the §1 cross-backbone fork); this block
+  # only guarantees none of them is silent.
+  gateway_policy_disclosures:
+    - kind: routing
+      code: gw_fit_to_window
+      human_zh: "仅 qwen 条目启用 fit_to_window:按 len//3 估算提示词令牌并夹紧 max_tokens 以塞进上下文窗,越窗时几何收缩重试;该估算对 ASCII 高估约 33%,可把预算削到共享上限之下。deepseek/glm 无此救援。"
+      human_en: "fit_to_window is enabled for the qwen entry only: prompt tokens are estimated at len//3 and max_tokens is clamped to fit the context window, with a geometric shrink-and-retry on overflow. The estimator overestimates ASCII by ~33% and can cut the budget below the shared ceiling. deepseek/glm get no such rescue."
+      detail: "integrations/llm_gateway/app.py: _approx prompt-size heuristic len(json.dumps(messages))//3, fit_to_window policy step, and the bounded geometric refit loop keyed on vLLM's overflow message. Enabled only for the qwen registry entry; a same-size overflow on deepseek/glm fails without rescue, and the ASCII overestimate can shrink a long-prompt qwen request's visible budget below max_output_tokens. Registered in SPEC_ISSUES §2 (estimator correction or mechanism declaration); declared here until the maintainer rules."
+    - kind: routing
+      code: gw_max_tokens_floor
+      human_zh: "gateway 对 glm 条目设 max_tokens_floor=131072,将小额请求抬满;与上文 clamp-never-raise 相悖,floor 的去留属跨底模语义分叉(SPEC_ISSUES §1),在裁决前如实申报。"
+      human_en: "The gateway sets max_tokens_floor=131072 for the glm entry, raising small requests to the full budget; this contradicts the clamp-never-raise wording above. The floor's fate belongs to the cross-backbone fork (SPEC_ISSUES §1) and is declared honestly until ruled."
+      detail: "integrations/llm_gateway/app.py DEFAULT_REGISTRY glm-4.7-flash entry: max_tokens_floor=131072 (policy order floor -> cap -> fit -> thinking). The floor exists because glm keeps thinking ON (2026-07-06) and thinking spends from the same max_tokens budget. It raises requests, which the sampling_policy docstring says never happens; removing it or keeping it is the SPEC_ISSUES §1 cross-backbone equalisation fork. ds_proxy has no glm floor, so the same glm request leaves the two doors with different budgets unless the operator matches OPENAI_PROXY_MIN_MAX_TOKENS."
+    - kind: routing
+      code: dsp_transient_retries
+      human_zh: "ds_proxy 对瞬态上游故障(超时/可重试报文)做有界退避重试;gateway 门超时直接上抛。两门传输可靠性不同。"
+      human_en: "ds_proxy retries transient upstream failures (timeouts / retryable payloads) in a bounded backoff loop; the gateway door raises timeouts immediately. The two doors differ in transport reliability."
+      detail: "integrations/ds_proxy/app.py _retry_pause/_retry_exhausted bounded loop (D13 bounded after an earlier unbounded version); integrations/llm_gateway/app.py has no equivalent for generic transient failures (its only retry is the qwen fit refit). A lane behind ds_proxy survives an upstream blip that fails a gateway lane."
+    - kind: routing
+      code: dsp_think_strip
+      human_zh: "ds_proxy 从响应中剥除显式 <think> 包裹后转发;gateway 不做。"
+      human_en: "ds_proxy strips explicit <think> wrappers from responses before forwarding; the gateway does not."
+      detail: "integrations/ds_proxy/app.py _strip_think removes an explicit leading <think>...</think> block from response content (and _strip_json_fence unwraps code fences) before the client sees it. The gateway forwards content untouched, so a thinking-leaky upstream reads differently through the two doors."
+    - kind: routing
+      code: dsp_json_schema_downgrade
+      human_zh: "ds_proxy 对 deepseek/glm 把 response_format=json_schema 降级为 json_object,并把 schema 作为系统提示注入;gateway 不做。"
+      human_en: "ds_proxy downgrades response_format=json_schema to json_object for deepseek/glm and injects the schema as a system-prompt nudge; the gateway does not."
+      detail: "integrations/ds_proxy/app.py: for models starting deepseek-v4/glm-, a json_schema response_format is rewritten to json_object and the schema text (truncated to 4000 chars) is prepended/merged into the system message. This is a request rewrite one door performs and the other does not; frameworks relying on structured output behave differently per door."
+    - kind: budget
+      code: dsp_min_max_tokens
+      human_zh: "ds_proxy 的运维下限 OPENAI_PROXY_MIN_MAX_TOKENS 可把过小的 max_tokens 抬高,但以声明上限封顶(修复后),绝不越过协议 ceiling。"
+      human_en: "ds_proxy's ops floor OPENAI_PROXY_MIN_MAX_TOKENS may raise a too-small max_tokens, but is capped at the declared ceiling (post-fix) and can never exceed the protocol's max_output_tokens."
+      detail: "integrations/ds_proxy/app.py _apply_min_max_tokens: the env floor rescues reasoning models from a starved CoT budget. It formerly ran AFTER apply_max_tokens with no bound, letting an ops env exceed the declared ceiling (SPEC_ISSUES §2, fixed 2026-07-09: floor is now min(floor, per-model ceiling)). Default 0 = off; when set, it is an operator-visible knob recorded by the manifest env snapshot."
+
 # fetch_observable / fetch_mode: whether a lane's PAGE READS pass through the
 # recording shim, and by what mechanism. This is the transport-level provenance
 # contract added 2026-07-08. The harness reads `fetch_observable` here and sends
@@ -161,27 +203,144 @@ lanes:
   # because heterogeneous frameworks have no common step/token unit. The detail
   # states the exact env var, its value, and whether it is framework-required
   # (part of delivery) or harness-imposed (our own code).
-  deerflow:        {delivery: subprocess,  fetch_observable: false, fetch_mode: direct_requests, deviations: [{kind: budget, detail: "DEERFLOW_TOKEN_LIMIT: DeerFlow context-compression threshold (scripts/runners/deerflow_runner.py:422). Env-overridable; default unset = None = DeerFlow's own model-name inference, the framework default. On the default board no harness cap is imposed, so this lane is on par; an operator override is the only way a per-lane token budget appears, and it is disclosed by this entry. Declared because a token/context window bounds how much a lane can read and write, and therefore moves completeness."}]}
+  deerflow:
+    delivery: subprocess
+    fetch_observable: false
+    fetch_mode: direct_requests
+    deviations:
+      - kind: budget
+        code: budget_token
+        human_zh: "DeerFlow 的上下文压缩令牌阈值;默认不设,走框架自带的按模型名推断,默认榜上无 harness 额外上限。"
+        human_en: "DeerFlow context-compression token threshold; default unset, so the framework's own model-name inference applies and no harness cap is imposed on the default board."
+        detail: "DEERFLOW_TOKEN_LIMIT: DeerFlow context-compression threshold (scripts/runners/deerflow_runner.py:422). Env-overridable; default unset = None = DeerFlow's own model-name inference, the framework default. On the default board no harness cap is imposed, so this lane is on par; an operator override is the only way a per-lane token budget appears, and it is disclosed by this entry. Declared because a token/context window bounds how much a lane can read and write, and therefore moves completeness."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "页面读取绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不因未观测而记 0。"
+        human_en: "Page reads bypass the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+        detail: "Page reads go through requests.get direct to the site, bypassing the recording shim, so proof-of-fetch cannot be observed for this lane. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0 for lack of observation."
   # storm and langchain-odr read no pages: their only affordance is shim /search,
   # so a pof of 0 is honest, not an accusation. Their real cited URLs land in
   # `snippet_only` (search returned them). fetch_observable stays true because
   # there is no off-shim read to miss; withholding here would drop the honest
   # snippet_only classification.
-  storm:           {delivery: in_process,  fetch_observable: true,  fetch_mode: none, deviations: [{kind: capability_delivery, detail: "STORM's post-retrieval SentenceTransformer index is replaced with a deterministic lexical scorer because the formal offline worker has no embedding-model download channel. Research budgets remain native: max_conv_turn=3, max_perspective=3, search_top_k=3, retrieve_top_k=3, and max_thread_num=10. The lexical ranking substitution can change which already-collected snippets reach article generation and must be disclosed on comparative boards until a pinned read-only native embedding cache is mounted."}]}
-  qx-agents:       {delivery: subprocess,  fetch_observable: false, fetch_mode: direct_aiohttp, deviations: [{kind: capability_delivery, detail: "The native qx DeepResearcher pipeline uses its SearchXNG interface through a local shim translator and the requested local OpenAI-compatible backbone. A parser shim removes only explicit <think> wrappers before qx's normal schema validation; it does not fabricate fallback objects."}, {kind: budget, detail: "Framework-native budgets: max_iterations=5, max_time_minutes=10, openai-agents max_turns=10, and SearchXNG pageLength default 10. The former harness-specific 1 iteration / 4 minute / 12 turn mix was removed."}]}
+  storm:
+    delivery: in_process
+    fetch_observable: true
+    fetch_mode: none
+    deviations:
+      - kind: capability_delivery
+        code: capability_lexical_rank
+        human_zh: "STORM 检索后的 SentenceTransformer 索引被替换为确定性词法打分器(离线 worker 无嵌入模型下载通道);其余检索预算保持框架原生。"
+        human_en: "STORM's post-retrieval SentenceTransformer index is replaced by a deterministic lexical scorer (the offline worker has no embedding-model download channel); other research budgets stay framework-native."
+        detail: "STORM's post-retrieval SentenceTransformer index is replaced with a deterministic lexical scorer because the formal offline worker has no embedding-model download channel. Research budgets remain native: max_conv_turn=3, max_perspective=3, search_top_k=3, retrieve_top_k=3, and max_thread_num=10. The lexical ranking substitution can change which already-collected snippets reach article generation and must be disclosed on comparative boards until a pinned read-only native embedding cache is mounted."
+      - kind: snippet_only
+        code: snippet_only
+        human_zh: "架构上无页面读取工具,仅消费搜索片段(fetch_mode: none);引用按 snippet_only 如实归类,与读页车道不同轨。"
+        human_en: "No page-read tool by architecture; consumes search snippets only (fetch_mode: none). Citations classify honestly as snippet_only, a different track from page-reading lanes."
+        detail: "STORM's only affordance is shim /search: it reads no pages, by architecture. pof=0 is honest here (there is no off-shim read to miss) and its real cited URLs land in the snippet_only provenance class. This is a structural difference from page-reading lanes that the board must disclose. How score_completeness's fetch threshold should treat declared fetch_mode:none lanes is a frozen semantic fork registered in docs/SPEC_ISSUES.md (section 1, first entry), pending the maintainer's ruling; this deviation only discloses the architecture."
+  qx-agents:
+    delivery: subprocess
+    fetch_observable: false
+    fetch_mode: direct_aiohttp
+    deviations:
+      - kind: capability_delivery
+        code: capability_searxng_shim
+        human_zh: "原生 qx DeepResearcher 经本地 shim 翻译层接入 SearchXNG,解析 shim 仅剥除 <think> 包裹,不伪造回退对象。"
+        human_en: "Native qx DeepResearcher reaches SearchXNG through a local shim translator; the parser shim strips only <think> wrappers and fabricates no fallback objects."
+        detail: "The native qx DeepResearcher pipeline uses its SearchXNG interface through a local shim translator and the requested local OpenAI-compatible backbone. A parser shim removes only explicit <think> wrappers before qx's normal schema validation; it does not fabricate fallback objects."
+      - kind: budget
+        code: budget_native
+        human_zh: "框架原生预算:max_iterations=5、max_time_minutes=10、max_turns=10、SearchXNG pageLength=10。"
+        human_en: "Framework-native budgets: max_iterations=5, max_time_minutes=10, openai-agents max_turns=10, SearchXNG pageLength=10."
+        detail: "Framework-native budgets: max_iterations=5, max_time_minutes=10, openai-agents max_turns=10, and SearchXNG pageLength default 10. The former harness-specific 1 iteration / 4 minute / 12 turn mix was removed."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "页面读取经 aiohttp 直连、绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
+        human_en: "Page reads go via aiohttp direct to the site, bypassing the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+        detail: "Page reads use an aiohttp session.get direct to the site, bypassing the recording shim, so proof-of-fetch cannot be observed for this lane. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
   # camel-ai's only page-read channel is the shim /extract tool (used when the
   # model calls tavily_extract); it has no direct-fetch bypass, so metrics are
   # trustworthy even though a given run may not fetch at all.
-  camel-ai:        {delivery: in_process,  fetch_observable: true,  fetch_mode: shim_extract, deviations: []}
+  camel-ai:
+    delivery: in_process
+    fetch_observable: true
+    fetch_mode: shim_extract
+    deviations: []
   # smolagents' VisitWebpageTool uses requests.get direct to the site. The
   # in-process gate can rewrite sandbox GETs to {shim}/fetch, but it is only
   # installed under --strict-sandbox today; on the default board the read is
   # off-shim. Keep false until the gate is installed on this path AND a smoke run
   # shows fetch rows > 0, per the audit's ordering rule.
-  smolagents:      {delivery: in_process,  fetch_observable: false, fetch_mode: direct_requests, deviations: [{kind: budget, detail: "SMOLAGENTS_MAX_STEPS=20: smolagents ToolCallingAgent agentic-loop cap (scripts/run_deep_task.py). This is the framework constructor's native default, restored after the adapter-specific grant of 24 steps was removed. The env name remains declared because any operator override changes retrieval capacity and is rejected for formal runs."}, {kind: budget, detail: "SMOLAGENTS_SEARCH_MAX_RESULTS=6: results-per-search our ShimSearchTool wrapper passes to shim /search (scripts/run_deep_task.py). Harness-imposed by our tool code. 6 is lower than the 10 several CLI and native lanes request; results-per-search is not uniform across heterogeneous frameworks."}, {kind: budget, detail: "SMOLAGENTS_SEARCH_SNIPPET_CHARS=650: per-result snippet length our ShimSearchTool wrapper passes. It bounds how much of each result the model sees. SMOLAGENTS_MIN_REPORT_CHARS=3500 is diagnostic only: keep_or_stub preserves every non-stub native output verbatim, so this threshold cannot replace a short real report. Both values are recorded by run_manifest and operator overrides are rejected for formal runs."}]}
-  langchain-odr:   {delivery: in_process,  fetch_observable: true,  fetch_mode: none, deviations: [{kind: budget, detail: "The native open_deep_research graph keeps its framework defaults max_concurrent_research_units=5, max_researcher_iterations=6, and max_react_tool_calls=10. All stage output caps are clamped only to the shared 8192-token ceiling. Tavily query count, result processing, supervisor decisions, compression, and report generation remain framework-native; the former adapter that kept only the first query/tool/research call was retired."}]}
-  ldr:             {delivery: subprocess,  fetch_observable: false, fetch_mode: unknown, deviations: [{kind: mask_round_trip, detail: "localhost <-> onestopmarket.com etc, applied before the call and undone after; off by default (LDR_INTENT_MASK)"}, {kind: budget, detail: "LDR uses its installed framework defaults: search.iterations=3, search.questions_per_iteration=1, search.max_results=50, and search.snippets_only=true. The former adapter-specific 2/2/6/full-page override was removed. LDR_SEARCH_ITERATIONS, LDR_QUESTIONS_PER_ITERATION, and LDR_SEARCH_MAX_RESULTS remain env-addressable for debugging but every override is rejected for formal runs."}]}
-  ii-researcher:   {delivery: subprocess,  fetch_observable: false, fetch_mode: direct_requests, deviations: []}
+  smolagents:
+    delivery: in_process
+    fetch_observable: false
+    fetch_mode: direct_requests
+    deviations:
+      - kind: budget
+        code: budget_steps
+        human_zh: "SMOLAGENTS_MAX_STEPS=20:smolagents ToolCallingAgent 的原生代理循环步数上限(框架构造器默认)。"
+        human_en: "SMOLAGENTS_MAX_STEPS=20: the smolagents ToolCallingAgent agentic-loop cap (the framework constructor's native default)."
+        detail: "SMOLAGENTS_MAX_STEPS=20: smolagents ToolCallingAgent agentic-loop cap (scripts/run_deep_task.py). This is the framework constructor's native default, restored after the adapter-specific grant of 24 steps was removed. The env name remains declared because any operator override changes retrieval capacity and is rejected for formal runs."
+      - kind: budget
+        code: budget_search_results
+        human_zh: "SMOLAGENTS_SEARCH_MAX_RESULTS=6:我们 ShimSearchTool 每次 /search 传入的结果条数(harness 施加),低于若干 CLI/原生车道请求的 10。"
+        human_en: "SMOLAGENTS_SEARCH_MAX_RESULTS=6: results-per-search our ShimSearchTool wrapper passes to shim /search (harness-imposed), lower than the 10 several CLI and native lanes request."
+        detail: "SMOLAGENTS_SEARCH_MAX_RESULTS=6: results-per-search our ShimSearchTool wrapper passes to shim /search (scripts/run_deep_task.py). Harness-imposed by our tool code. 6 is lower than the 10 several CLI and native lanes request; results-per-search is not uniform across heterogeneous frameworks."
+      - kind: budget
+        code: budget_snippet
+        human_zh: "SMOLAGENTS_SEARCH_SNIPPET_CHARS=650:每条结果模型可见的片段长度;SMOLAGENTS_MIN_REPORT_CHARS=3500 仅作诊断,不替代真实报告。"
+        human_en: "SMOLAGENTS_SEARCH_SNIPPET_CHARS=650: per-result snippet length the model sees; SMOLAGENTS_MIN_REPORT_CHARS=3500 is diagnostic only and cannot replace a short real report."
+        detail: "SMOLAGENTS_SEARCH_SNIPPET_CHARS=650: per-result snippet length our ShimSearchTool wrapper passes. It bounds how much of each result the model sees. SMOLAGENTS_MIN_REPORT_CHARS=3500 is diagnostic only: keep_or_stub preserves every non-stub native output verbatim, so this threshold cannot replace a short real report. Both values are recorded by run_manifest and operator overrides are rejected for formal runs."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "VisitWebpageTool 走 requests 直连;重写门仅在 --strict-sandbox 下安装,默认榜上读取离 shim,proof-of-fetch 予以保留,绝不记 0。"
+        human_en: "The VisitWebpageTool reads via requests direct; the rewrite gate is installed only under --strict-sandbox, so on the default board the read is off-shim and proof-of-fetch is withheld, never scored 0."
+        detail: "smolagents' VisitWebpageTool uses requests.get direct to the site; the in-process rewrite gate is installed only under --strict-sandbox, so on the default board the read is off-shim. pof is withheld (available=False + reason) until the gate is installed on this path and a smoke run shows fetch rows > 0; it is never scored 0."
+  langchain-odr:
+    delivery: in_process
+    fetch_observable: true
+    fetch_mode: none
+    deviations:
+      - kind: budget
+        code: budget_native
+        human_zh: "原生 open_deep_research 图保持框架默认预算(并发5、researcher 迭代6、react 工具调用10),各阶段输出仅夹到共享 8192 令牌上限。"
+        human_en: "The native open_deep_research graph keeps its framework defaults (concurrency 5, researcher iterations 6, react tool calls 10); stage outputs are clamped only to the shared 8192-token ceiling."
+        detail: "The native open_deep_research graph keeps its framework defaults max_concurrent_research_units=5, max_researcher_iterations=6, and max_react_tool_calls=10. All stage output caps are clamped only to the shared 8192-token ceiling. Tavily query count, result processing, supervisor decisions, compression, and report generation remain framework-native; the former adapter that kept only the first query/tool/research call was retired."
+      - kind: snippet_only
+        code: snippet_only
+        human_zh: "架构上无页面读取工具,仅消费搜索片段(fetch_mode: none);引用按 snippet_only 如实归类,与读页车道不同轨。"
+        human_en: "No page-read tool by architecture; consumes search snippets only (fetch_mode: none). Citations classify honestly as snippet_only, a different track from page-reading lanes."
+        detail: "langchain-odr's only affordance is shim /search: it reads no pages, by architecture. pof=0 is honest here (there is no off-shim read to miss) and its real cited URLs land in the snippet_only provenance class. This is a structural difference from page-reading lanes that the board must disclose. How score_completeness's fetch threshold should treat declared fetch_mode:none lanes is a frozen semantic fork registered in docs/SPEC_ISSUES.md (section 1, first entry), pending the maintainer's ruling; this deviation only discloses the architecture."
+  ldr:
+    delivery: subprocess
+    fetch_observable: false
+    fetch_mode: unknown
+    deviations:
+      - kind: mask_round_trip
+        code: mask_round_trip
+        human_zh: "localhost <-> onestopmarket.com 等的掩码,调用前施加、返回后还原;默认关闭(LDR_INTENT_MASK)。"
+        human_en: "localhost <-> onestopmarket.com etc masking, applied before the call and undone after; off by default (LDR_INTENT_MASK)."
+        detail: "localhost <-> onestopmarket.com etc, applied before the call and undone after; off by default (LDR_INTENT_MASK)"
+      - kind: budget
+        code: budget_native
+        human_zh: "LDR 使用安装的框架默认:search.iterations=3、questions_per_iteration=1、max_results=50、snippets_only=true;正式运行拒绝任何覆盖。"
+        human_en: "LDR uses its installed framework defaults: search.iterations=3, questions_per_iteration=1, max_results=50, snippets_only=true; every override is rejected for formal runs."
+        detail: "LDR uses its installed framework defaults: search.iterations=3, search.questions_per_iteration=1, search.max_results=50, and search.snippets_only=true. The former adapter-specific 2/2/6/full-page override was removed. LDR_SEARCH_ITERATIONS, LDR_QUESTIONS_PER_ITERATION, and LDR_SEARCH_MAX_RESULTS remain env-addressable for debugging but every override is rejected for formal runs."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "页面读取传输尚未证明经记录 shim(FETCH_FULL_PAGE 为上游行为),proof-of-fetch 予以保留,待传输冒烟证明后再计,绝不记 0。"
+        human_en: "The page-read transport is not yet proven to pass through the recording shim (FETCH_FULL_PAGE is upstream), so proof-of-fetch is withheld until a transport smoke proves it, and is never scored 0."
+        detail: "LDR's page-read transport is not yet proven to pass through the recording shim (FETCH_FULL_PAGE is an upstream behavior). pof is withheld (available=False + reason) until a transport smoke shows recorded fetch rows > 0; it is never scored 0."
+  ii-researcher:
+    delivery: subprocess
+    fetch_observable: false
+    fetch_mode: direct_requests
+    deviations:
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "页面读取经 requests 直连、绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
+        human_en: "Page reads go via requests direct to the site, bypassing the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+        detail: "Page reads use requests.get direct to the site, bypassing the recording shim, so proof-of-fetch cannot be observed for this lane. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
   # flowsearcher-ds fetches every page via POST {shim}/extract unconditionally;
   # once the /_mark bracket exists it is fully observable.
   flowsearcher-ds:
@@ -190,13 +349,68 @@ lanes:
     fetch_mode: shim_extract
     deviations:
       - kind: budget
+        code: budget_native
+        human_zh: "FlowSearcher-DS 框架原生预算(每子目标最多3页、每页3000字符、证据总量25000字符、planner 3000令牌、报告8192令牌),内容中立。"
+        human_en: "Framework-native FlowSearcher-DS budgets (<=3 pages per subgoal, 3000 chars/page, 25000 total evidence chars, planner 3000 tokens, report 8192 tokens); content-neutral."
         detail: "Framework-native FlowSearcher-DS budgets: search max_results=10, up to 3 fetched pages per subgoal, 3000 characters per fetched page, 25000 total evidence characters, planner max_tokens=3000, and report max_tokens=8192. These remain content-neutral; the former scorer-shaped query/source/word/citation quotas were removed."
-  gpt-researcher:  {delivery: in_process,  fetch_observable: false, fetch_mode: direct_requests, deviations: []}
+  gpt-researcher:
+    delivery: in_process
+    fetch_observable: false
+    fetch_mode: direct_requests
+    deviations:
+      - kind: capability_delivery
+        code: retriever_shim
+        human_zh: "gpt-researcher 的 TavilySearch 检索器被替换为绑定的 shim 后端检索类,使其无法触达真实网络,只经沙盒 shim /search 取结果。"
+        human_en: "gpt-researcher's TavilySearch retriever is replaced by a bound shim-backed retriever class, so it cannot reach the real web and retrieves only through the sandbox shim /search."
+        detail: "gpt-researcher resolves its retriever by the RETRIEVER name and runs a late `from gpt_researcher.retrievers import TavilySearch` at construction time. The adapter binds a self-contained shim-backed `_ShimTavilyRetriever` onto that exact name (in both `gpt_researcher.retrievers` and `gpt_researcher.retrievers.tavily.tavily_search`) so the retriever cannot reach the real web at all and returns only sandbox shim /search results. See scripts/runners/gpt_researcher_runner.py `_build_shim_retriever_block`."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "绑定的 shim 检索器只喂片段,任何页面读取仍是 requests 直连、离记录 shim,proof-of-fetch 予以保留,绝不记 0。"
+        human_en: "The bound shim retriever feeds snippets, but any page read is requests direct to the site off the recording shim, so proof-of-fetch is withheld and never scored 0."
+        detail: "gpt-researcher's bound shim retriever feeds snippets, but any page read is requests.get direct to the site, off the recording shim. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
   # opencode is taught the {shim}/fetch recipe, but its command allowlist also
   # permits curl to localhost:*, so the model can read the site off-shim. Treat
   # as unobservable until the allowlist is tightened (C3).
-  opencode:        {delivery: cli,         fetch_observable: false, fetch_mode: shim_fetch, deviations: [{kind: capability_delivery, detail: "no search tool; shim curl recipe + write-to-file path in system prompt"}, {kind: budget, detail: "OPENCODE_CONTEXT_LIMIT=40960: context window opencode is told to assume for the inline model (scripts/runners/opencode_runner.py:143). Framework-required delivery; the opencode CLI manages its own context and must be given a window. 40960 is chosen to match the backbone's real usable window, so on par rather than an advantage. Declared because the assumed context window bounds how much a lane can hold and write, moving completeness."}]}
-  claude-code:     {delivery: cli,         fetch_observable: false, fetch_mode: direct_curl, deviations: [{kind: capability_delivery, detail: "no search tool; shim curl recipe + write-to-file path in system prompt"}, {kind: routing, detail: "per-backbone CCR instance; identity asserted pre-run"}]}
+  opencode:
+    delivery: cli
+    fetch_observable: false
+    fetch_mode: shim_fetch
+    deviations:
+      - kind: capability_delivery
+        code: capability_cli_recipe
+        human_zh: "无搜索工具;系统提示提供 shim curl 配方与写文件路径。"
+        human_en: "No search tool; the system prompt supplies the shim curl recipe plus a write-to-file path."
+        detail: "no search tool; shim curl recipe + write-to-file path in system prompt"
+      - kind: budget
+        code: budget_context
+        human_zh: "OPENCODE_CONTEXT_LIMIT=40960:告知内联模型的上下文窗口(框架要求的交付),取值匹配主干真实可用窗口,故为对等而非优势。"
+        human_en: "OPENCODE_CONTEXT_LIMIT=40960: the context window opencode is told to assume for the inline model (framework-required delivery); chosen to match the backbone's real usable window, so on par rather than an advantage."
+        detail: "OPENCODE_CONTEXT_LIMIT=40960: context window opencode is told to assume for the inline model (scripts/runners/opencode_runner.py:143). Framework-required delivery; the opencode CLI manages its own context and must be given a window. 40960 is chosen to match the backbone's real usable window, so on par rather than an advantage. Declared because the assumed context window bounds how much a lane can hold and write, moving completeness."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "被教了 shim /fetch 配方,但命令白名单也放行 curl localhost,页面可能离 shim 读取;proof-of-fetch 予以保留,待白名单收紧,绝不记 0。"
+        human_en: "Taught the shim /fetch recipe, but its command allowlist also permits curl to localhost, so a page can be read off-shim; proof-of-fetch is withheld until the allowlist is tightened, and never scored 0."
+        detail: "opencode is taught the shim /fetch recipe, but its command allowlist also permits curl to localhost, so a page can be read off-shim. pof is withheld (available=False + reason) until the allowlist is tightened (C3); it is never scored 0."
+  claude-code:
+    delivery: cli
+    fetch_observable: false
+    fetch_mode: direct_curl
+    deviations:
+      - kind: capability_delivery
+        code: capability_cli_recipe
+        human_zh: "无搜索工具;系统提示提供 shim curl 配方与写文件路径。"
+        human_en: "No search tool; the system prompt supplies the shim curl recipe plus a write-to-file path."
+        detail: "no search tool; shim curl recipe + write-to-file path in system prompt"
+      - kind: routing
+        code: routing_ccr
+        human_zh: "每主干一个 CCR 实例;运行前断言身份。"
+        human_en: "Per-backbone CCR instance; identity asserted pre-run."
+        detail: "per-backbone CCR instance; identity asserted pre-run"
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "页面读取经 shell curl 直连、离记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
+        human_en: "Page reads go via shell curl direct to the site off the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+        detail: "claude-code reads pages via shell curl direct to the site, off the recording shim. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
 
   # Co-STORM is invoked in this Python process. Its SandboxSearchRM only POSTs
   # to shim /search and returns snippets/raw_content; there is no page-read tool.
@@ -207,9 +421,20 @@ lanes:
     fetch_mode: none
     deviations:
       - kind: budget
+        code: budget_native
+        human_zh: "Co-STORM 硬编码预算(retrieve_top_k=5、max_search_queries=2、total_conv_turn=10 等),为框架特有单位,不可用 env 覆盖。"
+        human_en: "Hardcoded Co-STORM budgets (retrieve_top_k=5, max_search_queries=2, total_conv_turn=10, ...); framework-specific units, not env-overridable."
         detail: "Hardcoded Co-STORM budgets: retrieve_top_k=5, max_search_queries=2, total_conv_turn=10, max_search_queries_per_turn=3, warmstart_max_num_experts=3, warmstart_max_turn_per_experts=2, max_thread_num=3, and per-stage max_tokens=4096. These are framework-specific units and are not env-overridable."
       - kind: capability_delivery
+        code: capability_local_embed
+        human_zh: "Co-STORM 的嵌入 Encoder 被替换为本地 paraphrase-MiniLM-L6-v2(共享主干无嵌入端点)。"
+        human_en: "Co-STORM's embedding Encoder is replaced with the local paraphrase-MiniLM-L6-v2 SentenceTransformer (the shared backbone exposes no embedding endpoint)."
         detail: "Co-STORM's embedding Encoder is replaced with the local paraphrase-MiniLM-L6-v2 SentenceTransformer because the shared backbone exposes no embedding endpoint."
+      - kind: snippet_only
+        code: snippet_only
+        human_zh: "架构上无页面读取工具,仅消费搜索片段(fetch_mode: none);引用按 snippet_only 如实归类,与读页车道不同轨。"
+        human_en: "No page-read tool by architecture; consumes search snippets only (fetch_mode: none). Citations classify honestly as snippet_only, a different track from page-reading lanes."
+        detail: "Co-STORM's SandboxSearchRM only POSTs to shim /search and returns snippets/raw_content; there is no page-read tool, by architecture. pof=0 is honest here (no off-shim read to miss) and its real cited URLs land in the snippet_only provenance class. This is a structural difference from page-reading lanes that the board must disclose. How score_completeness's fetch threshold should treat declared fetch_mode:none lanes is a frozen semantic fork registered in docs/SPEC_ISSUES.md (section 1, first entry), pending the maintainer's ruling; this deviation only discloses the architecture."
 
   # Codex runs on the configured SSH host and invokes `codex exec` there. It is
   # eligible because the runner defines a custom OpenAI-compatible provider at
@@ -221,9 +446,20 @@ lanes:
     fetch_mode: direct_curl
     deviations:
       - kind: capability_delivery
+        code: capability_cli_recipe
+        human_zh: "无原生基准搜索工具;CLI 提示提供 shim /search 与 /fetch curl 配方及每次运行的报告文件路径;codex exec 无每主机 shell 白名单,localhost 直连 curl 仍可能。"
+        human_en: "No native benchmark search tool; the CLI prompt supplies shim /search and /fetch curl recipes plus a per-run report-file path; codex exec has no per-host shell allowlist, so direct localhost curl remains possible."
         detail: "No native benchmark search tool; the CLI prompt supplies shim /search and /fetch curl recipes plus a per-run report-file path. codex exec has no per-host shell allowlist, so direct localhost curl remains possible."
       - kind: routing
+        code: routing_ssh
+        human_zh: "经 SSH 在 CODEX_SSH_HOST 上运行,定义 model_provider=deepseek 与 CODEX_DS_PROXY;正式运行前须在该远端探测模型身份。"
+        human_en: "Runs by SSH on CODEX_SSH_HOST with model_provider=deepseek and CODEX_DS_PROXY; the exact requested model must be identity-probed on that remote endpoint before a formal run."
         detail: "Runs by SSH on CODEX_SSH_HOST and defines model_provider=deepseek with CODEX_DS_PROXY; the exact requested model is passed with -m and must be identity-probed on that remote endpoint before a formal run."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "codex exec 无 shell 白名单,localhost 直连 curl 会离记录 shim 读页,proof-of-fetch 予以保留,绝不记 0。"
+        human_en: "codex exec has no shell allowlist, so direct localhost curl reads pages off the recording shim; proof-of-fetch is withheld and never scored 0."
+        detail: "codex exec has no per-host shell allowlist, so direct localhost curl reads pages off the recording shim. pof is withheld (available=False + reason) until the transport is constrained; it is never scored 0."
 
   deepagents:
     delivery: subprocess
@@ -231,11 +467,25 @@ lanes:
     fetch_mode: direct_requests
     deviations:
       - kind: capability_delivery
+        code: capability_adapter_tools
+        human_zh: "DeepAgents 无内建 web 工具;适配层提供 internet_search(shim POST /search)与 fetch_page(requests 直连返回的站点 URL)。"
+        human_en: "DeepAgents has no built-in web tools; the adapter supplies internet_search (shim POST /search) and fetch_page (requests.get direct to the returned site URL)."
         detail: "DeepAgents has no built-in web tools; the adapter supplies internet_search (shim POST /search) and fetch_page (requests.get direct to the returned site URL)."
       - kind: budget
+        code: budget_native
+        human_zh: "适配层硬编码预算:search 默认 max_results=10 且 include_raw_content=true;fetch_page 最多返回 8000 字符;LangGraph recursion_limit=120;ChatOpenAI max_tokens=8192、max_retries=3。"
+        human_en: "Hardcoded adapter budgets: internet_search defaults to max_results=10 with include_raw_content=true; fetch_page returns at most 8000 characters; LangGraph recursion_limit=120; ChatOpenAI max_tokens=8192 and max_retries=3."
         detail: "Hardcoded adapter budgets: internet_search defaults to max_results=10 with include_raw_content=true; fetch_page returns at most 8000 characters; LangGraph recursion_limit=120; ChatOpenAI max_tokens=8192 and max_retries=3."
       - kind: mask_round_trip
+        code: mask_round_trip
+        human_zh: "DEEPAGENTS_INTENT_MASK 可在 LLM 调用前施加 localhost->中性域掩码并仅还原该往返;默认关闭。"
+        human_en: "DEEPAGENTS_INTENT_MASK optionally applies localhost-to-neutral-domain masking before LLM calls and reverses only that round trip; off by default."
         detail: "DEEPAGENTS_INTENT_MASK optionally applies localhost-to-neutral-domain masking before LLM calls and reverses only that round trip in the report; it is off by default."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "fetch_page 经 requests 直连、离记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
+        human_en: "fetch_page reads via requests direct to the site off the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+        detail: "DeepAgents' fetch_page uses requests.get direct to the site, off the recording shim. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
 
   # Upstream local-deep-researcher is loaded only inside its dedicated venv.
   # The adapter pins Tavily search to the shim, but FETCH_FULL_PAGE is an
@@ -247,9 +497,20 @@ lanes:
     fetch_mode: unknown
     deviations:
       - kind: budget
+        code: budget_native
+        human_zh: "MAX_WEB_RESEARCH_LOOPS=3 由 harness 设置,FETCH_FULL_PAGE=True 在子进程环境与图配置中强制;三轮上限约束检索与完整度。"
+        human_en: "MAX_WEB_RESEARCH_LOOPS=3 is set by the harness and FETCH_FULL_PAGE=True is forced in both the subprocess environment and graph configuration; the three-loop cap bounds retrieval and completeness."
         detail: "MAX_WEB_RESEARCH_LOOPS=3 is set by the harness and FETCH_FULL_PAGE=True is forced in both the subprocess environment and graph configuration. The three-loop cap bounds retrieval and completeness."
       - kind: mask_round_trip
+        code: mask_round_trip
+        human_zh: "LCDR_INTENT_MASK 可施加 localhost->中性描述掩码并仅还原该往返;默认关闭。"
+        human_en: "LCDR_INTENT_MASK optionally applies localhost-to-neutral-description masking and reverses only that round trip; off by default."
         detail: "LCDR_INTENT_MASK optionally applies localhost-to-neutral-description masking and reverses only that round trip in the report; it is off by default."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "页面读取传输尚未证明为记录 shim 端点(FETCH_FULL_PAGE 上游行为),proof-of-fetch 予以保留,待传输冒烟证明,绝不记 0。"
+        human_en: "The page-read transport is not yet proven to be a recorded shim endpoint (FETCH_FULL_PAGE upstream), so proof-of-fetch is withheld until a transport smoke proves it, and never scored 0."
+        detail: "local-deep-researcher's page-read transport is not yet proven to be a recorded shim endpoint (FETCH_FULL_PAGE upstream). pof is withheld (available=False + reason) until a transport smoke proves it; it is never scored 0."
 
   tongyi-dr:
     delivery: subprocess
@@ -257,6 +518,17 @@ lanes:
     fetch_mode: direct_requests
     deviations:
       - kind: capability_delivery
+        code: capability_react_reimpl
+        human_zh: "适配层重实现 Tongyi 的 ReAct 循环:search 走 shim /search,visit 用 requests 直连加主干摘要,上游 Scholar、Python、文件解析工具被禁用。"
+        human_en: "The adapter reimplements Tongyi's ReAct loop: search POSTs to shim /search, visit uses direct requests.get plus backbone summarization, and the upstream Scholar, Python, and file-parser tools are disabled."
         detail: "The adapter reimplements Tongyi's ReAct loop: search POSTs to shim /search, visit uses direct requests.get plus backbone summarization, and the upstream Scholar, Python, and file-parser tools are disabled."
       - kind: budget
+        code: budget_native
+        human_zh: "适配层硬编码预算:MAX_LLM_CALLS=100、MAX_CONTEXT_TOKENS=100000、search max_results=10、抓取 HTML 截断至 80000 字符、visit 摘要 max_tokens=4096、终稿 max_tokens=8192;原车道 1800 秒自中止已移除,交由共享看门狗。"
+        human_en: "Hardcoded adapter budgets: MAX_LLM_CALLS=100, MAX_CONTEXT_TOKENS=100000, search max_results=10, fetched HTML truncated to 80000 characters, visit summarizer max_tokens=4096, final calls max_tokens=8192; the former lane-specific 1800-second self-abort was removed for the shared watchdog."
         detail: "Hardcoded adapter budgets: MAX_LLM_CALLS=100 (the upstream default), MAX_CONTEXT_TOKENS=100000, search max_results=10, fetched HTML truncated to 80000 characters, visit summarizer max_tokens=4096, and final calls max_tokens=8192. The former lane-specific 1800-second self-abort was removed; the shared watchdog now owns termination."
+      - kind: fetch_withhold
+        code: fetch_withhold
+        human_zh: "visit 工具经 requests 直连加主干摘要、离记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
+        human_en: "The visit tool reads via requests direct plus backbone summarization off the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+        detail: "tongyi's visit tool uses requests.get direct to the site plus backbone summarization, off the recording shim. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."

@@ -26,6 +26,40 @@ _SINGLE = ROOT / "data" / "results" / "real" / "leaderboard_judge_elo.json"
 SRC = _JURY if _JURY.exists() else _SINGLE
 GROUND = ROOT / "data" / "results" / "grounding_uniform2.json"
 OUT = ROOT / "data" / "results" / "deep_v3" / "leaderboard_deep_v3.json"
+LANE_PROTOCOL = ROOT / "config" / "lane_protocol.yaml"
+
+
+def _lane_deviations() -> dict[str, list[dict]]:
+    """Machine-readable, bilingual disclosure per lane, for the board footnotes.
+
+    Carries the DISCLOSURE fields only ({code, kind, human_zh, human_en}); the
+    long-form `detail` is internal provenance, not a board string. Property A /
+    gate G0: every declared lane difference is surfaced on the leaderboard so a
+    reader sees where the comparison is not apples-to-apples. Kept in lockstep
+    with scripts/check_disclosure.py, which fails the preflight if a lane differs
+    without declaring it here."""
+    try:
+        import yaml
+    except Exception:
+        return {}
+    try:
+        doc = yaml.safe_load(LANE_PROTOCOL.read_text(encoding="utf-8")) or {}
+    except OSError:
+        return {}
+    out: dict[str, list[dict]] = {}
+    for lane, entry in (doc.get("lanes") or {}).items():
+        devs = []
+        for d in (entry or {}).get("deviations") or []:
+            if not isinstance(d, dict):
+                continue
+            devs.append({
+                "code": d.get("code"),
+                "kind": d.get("kind"),
+                "human_zh": d.get("human_zh"),
+                "human_en": d.get("human_en"),
+            })
+        out[lane] = devs
+    return out
 
 
 def _jury_from_checkpoint(src: Path) -> list[str]:
@@ -81,6 +115,8 @@ def main() -> int:
         acc[a]["reach"] += r.get("reachability", 0) or 0
         acc[a]["quote"] += r.get("quote_match", 0) or 0
 
+    lane_devs = _lane_deviations()
+
     elo_ci = {}
     profile = {}
     for a, v in agents.items():
@@ -98,6 +134,9 @@ def main() -> int:
         profile[a] = {
             "reachability_pct": round(100 * ga["reach"] / ga["n"], 1) if ga and ga["n"] else None,
             "url_veracity_pct": round(100 * ga["quote"] / ga["n"], 1) if ga and ga["n"] else None,
+            # Protocol deviations for this lane (G0 disclosure): the frontend
+            # renders these as hover footnotes so no undisclosed difference hides.
+            "deviations": lane_devs.get(a, []),
             "synthetic_placeholder": False,
         }
 

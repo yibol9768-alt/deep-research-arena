@@ -48,7 +48,7 @@ import textwrap
 import time
 from pathlib import Path
 
-from . import _egress
+from . import _budget, _egress
 from ._runner_lock import runner_exclusive_lock
 
 logger = logging.getLogger(__name__)
@@ -57,10 +57,13 @@ ROOT = Path(__file__).resolve().parents[2]
 LCDR_PYTHON = str(ROOT / ".venv-lcdr" / "bin" / "python")
 
 # ---------------------------------------------------------------------------
-# Timeout for one run.  The graph does multi-iteration search + summarize,
-# so we allow a generous window.
+# No runner-specific comparative wall clock (lane_protocol.yaml declares
+# wall_clock_s: null). The former hardcoded 1200s here was an UNDECLARED
+# per-lane hard wall, the tightest of the four offenders: run_deep_task's
+# manual dispatch passes no timeout_s, so this default governed formal runs.
+# The shared no-progress watchdog owns termination.
 # ---------------------------------------------------------------------------
-DEFAULT_TIMEOUT_S = 1200
+DEFAULT_TIMEOUT_S = _budget.native_timeout_default()
 
 # ---------------------------------------------------------------------------
 # Sentinel markers for extracting the report from subprocess stdout.
@@ -556,7 +559,7 @@ async def run(
     shim_url: str,
     proxy_url: str,
     *,
-    timeout_s: int = DEFAULT_TIMEOUT_S,
+    timeout_s: float | None = DEFAULT_TIMEOUT_S,
     strict_sandbox: bool = False,
 ) -> str:
     """Run LangChain local-deep-researcher and return the markdown report.
@@ -566,7 +569,9 @@ async def run(
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
         proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
-        timeout_s: Subprocess timeout in seconds.
+        timeout_s: Subprocess timeout in seconds; None (the protocol default,
+            wall_clock_s: null) means no wall clock and the shared no-progress
+            watchdog owns termination.
 
     Returns:
         The markdown report, or an error string.

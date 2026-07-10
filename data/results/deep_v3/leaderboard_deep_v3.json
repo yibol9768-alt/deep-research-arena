@@ -3,7 +3,7 @@
  "_dry_run": false,
  "synthetic_placeholder": false,
  "source": "real",
- "composite_formula": "headline = TRUTH-GATED Elo: pairwise LLM-judge Bradley-Terry Elo (3-judge PoLL jury [deepseek-v4-flash, qwen3-max, glm-5], majority vote, position-debiased, 2615 battles) scaled by the grounding gate (mean of reachability% and quote-verified%). Every agent is scored -- nobody is excluded -- but fluent fabrication cannot top the board. Raw judge Elo and grounding are shown alongside so high-quality but weakly grounded reports are visible rather than hidden.",
+ "composite_formula": "headline = TRUTH-GATED Elo: pairwise LLM-judge Bradley-Terry Elo (3-judge PoLL jury [deepseek-v4-flash, qwen3-max, glm-5], majority vote, position-debiased, 2615 battles) scaled by the grounding gate (mean of reachability% and quote-verified%). Every agent is scored -- nobody is excluded -- but fluent fabrication cannot top the board. Raw judge Elo and grounding are shown alongside; their divergence (raw #1 has ~4% reachable citations) is the headline finding.",
  "jury": [
   "deepseek-v4-flash",
   "qwen3-max",
@@ -150,61 +150,240 @@
   "camel-ai": {
    "reachability_pct": 60.0,
    "url_veracity_pct": 50.1,
+   "deviations": [],
    "synthetic_placeholder": false
   },
   "claude-code": {
    "reachability_pct": 90.1,
    "url_veracity_pct": 86.8,
+   "deviations": [
+    {
+     "code": "capability_cli_recipe",
+     "kind": "capability_delivery",
+     "human_zh": "\u65e0\u641c\u7d22\u5de5\u5177;\u7cfb\u7edf\u63d0\u793a\u63d0\u4f9b shim curl \u914d\u65b9\u4e0e\u5199\u6587\u4ef6\u8def\u5f84\u3002",
+     "human_en": "No search tool; the system prompt supplies the shim curl recipe plus a write-to-file path."
+    },
+    {
+     "code": "routing_ccr",
+     "kind": "routing",
+     "human_zh": "\u6bcf\u4e3b\u5e72\u4e00\u4e2a CCR \u5b9e\u4f8b;\u8fd0\u884c\u524d\u65ad\u8a00\u8eab\u4efd\u3002",
+     "human_en": "Per-backbone CCR instance; identity asserted pre-run."
+    },
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "\u9875\u9762\u8bfb\u53d6\u7ecf shell curl \u76f4\u8fde\u3001\u79bb\u8bb0\u5f55 shim,proof-of-fetch \u4e88\u4ee5\u4fdd\u7559(available=False + \u539f\u56e0\u7801),\u7edd\u4e0d\u8bb0 0\u3002",
+     "human_en": "Page reads go via shell curl direct to the site off the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "deerflow": {
    "reachability_pct": 60.2,
    "url_veracity_pct": 48.2,
+   "deviations": [
+    {
+     "code": "budget_token",
+     "kind": "budget",
+     "human_zh": "DeerFlow \u7684\u4e0a\u4e0b\u6587\u538b\u7f29\u4ee4\u724c\u9608\u503c;\u9ed8\u8ba4\u4e0d\u8bbe,\u8d70\u6846\u67b6\u81ea\u5e26\u7684\u6309\u6a21\u578b\u540d\u63a8\u65ad,\u9ed8\u8ba4\u699c\u4e0a\u65e0 harness \u989d\u5916\u4e0a\u9650\u3002",
+     "human_en": "DeerFlow context-compression token threshold; default unset, so the framework's own model-name inference applies and no harness cap is imposed on the default board."
+    },
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "\u9875\u9762\u8bfb\u53d6\u7ed5\u8fc7\u8bb0\u5f55 shim,proof-of-fetch \u4e88\u4ee5\u4fdd\u7559(available=False + \u539f\u56e0\u7801),\u7edd\u4e0d\u56e0\u672a\u89c2\u6d4b\u800c\u8bb0 0\u3002",
+     "human_en": "Page reads bypass the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "flowsearcher-ds": {
    "reachability_pct": 45.6,
    "url_veracity_pct": 42.5,
+   "deviations": [
+    {
+     "code": "budget_native",
+     "kind": "budget",
+     "human_zh": "FlowSearcher-DS \u6846\u67b6\u539f\u751f\u9884\u7b97(\u6bcf\u5b50\u76ee\u6807\u6700\u591a3\u9875\u3001\u6bcf\u98753000\u5b57\u7b26\u3001\u8bc1\u636e\u603b\u91cf25000\u5b57\u7b26\u3001planner 3000\u4ee4\u724c\u3001\u62a5\u544a8192\u4ee4\u724c),\u5185\u5bb9\u4e2d\u7acb\u3002",
+     "human_en": "Framework-native FlowSearcher-DS budgets (<=3 pages per subgoal, 3000 chars/page, 25000 total evidence chars, planner 3000 tokens, report 8192 tokens); content-neutral."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "gpt-researcher": {
    "reachability_pct": 4.3,
    "url_veracity_pct": 2.2,
+   "deviations": [
+    {
+     "code": "retriever_shim",
+     "kind": "capability_delivery",
+     "human_zh": "gpt-researcher \u7684 TavilySearch \u68c0\u7d22\u5668\u88ab\u66ff\u6362\u4e3a\u7ed1\u5b9a\u7684 shim \u540e\u7aef\u68c0\u7d22\u7c7b,\u4f7f\u5176\u65e0\u6cd5\u89e6\u8fbe\u771f\u5b9e\u7f51\u7edc,\u53ea\u7ecf\u6c99\u76d2 shim /search \u53d6\u7ed3\u679c\u3002",
+     "human_en": "gpt-researcher's TavilySearch retriever is replaced by a bound shim-backed retriever class, so it cannot reach the real web and retrieves only through the sandbox shim /search."
+    },
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "\u7ed1\u5b9a\u7684 shim \u68c0\u7d22\u5668\u53ea\u5582\u7247\u6bb5,\u4efb\u4f55\u9875\u9762\u8bfb\u53d6\u4ecd\u662f requests \u76f4\u8fde\u3001\u79bb\u8bb0\u5f55 shim,proof-of-fetch \u4e88\u4ee5\u4fdd\u7559,\u7edd\u4e0d\u8bb0 0\u3002",
+     "human_en": "The bound shim retriever feeds snippets, but any page read is requests direct to the site off the recording shim, so proof-of-fetch is withheld and never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "ii-researcher": {
    "reachability_pct": 26.5,
    "url_veracity_pct": 22.4,
+   "deviations": [
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "\u9875\u9762\u8bfb\u53d6\u7ecf requests \u76f4\u8fde\u3001\u7ed5\u8fc7\u8bb0\u5f55 shim,proof-of-fetch \u4e88\u4ee5\u4fdd\u7559(available=False + \u539f\u56e0\u7801),\u7edd\u4e0d\u8bb0 0\u3002",
+     "human_en": "Page reads go via requests direct to the site, bypassing the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "langchain-odr": {
    "reachability_pct": 35.8,
    "url_veracity_pct": 24.7,
+   "deviations": [
+    {
+     "code": "budget_native",
+     "kind": "budget",
+     "human_zh": "\u539f\u751f open_deep_research \u56fe\u4fdd\u6301\u6846\u67b6\u9ed8\u8ba4\u9884\u7b97(\u5e76\u53d15\u3001researcher \u8fed\u4ee36\u3001react \u5de5\u5177\u8c03\u752810),\u5404\u9636\u6bb5\u8f93\u51fa\u4ec5\u5939\u5230\u5171\u4eab 8192 \u4ee4\u724c\u4e0a\u9650\u3002",
+     "human_en": "The native open_deep_research graph keeps its framework defaults (concurrency 5, researcher iterations 6, react tool calls 10); stage outputs are clamped only to the shared 8192-token ceiling."
+    },
+    {
+     "code": "snippet_only",
+     "kind": "snippet_only",
+     "human_zh": "\u67b6\u6784\u4e0a\u65e0\u9875\u9762\u8bfb\u53d6\u5de5\u5177,\u4ec5\u6d88\u8d39\u641c\u7d22\u7247\u6bb5(fetch_mode: none);\u5f15\u7528\u6309 snippet_only \u5982\u5b9e\u5f52\u7c7b,\u4e0e\u8bfb\u9875\u8f66\u9053\u4e0d\u540c\u8f68\u3002",
+     "human_en": "No page-read tool by architecture; consumes search snippets only (fetch_mode: none). Citations classify honestly as snippet_only, a different track from page-reading lanes."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "ldr": {
    "reachability_pct": 1.9,
    "url_veracity_pct": 23.6,
+   "deviations": [
+    {
+     "code": "mask_round_trip",
+     "kind": "mask_round_trip",
+     "human_zh": "localhost <-> onestopmarket.com \u7b49\u7684\u63a9\u7801,\u8c03\u7528\u524d\u65bd\u52a0\u3001\u8fd4\u56de\u540e\u8fd8\u539f;\u9ed8\u8ba4\u5173\u95ed(LDR_INTENT_MASK)\u3002",
+     "human_en": "localhost <-> onestopmarket.com etc masking, applied before the call and undone after; off by default (LDR_INTENT_MASK)."
+    },
+    {
+     "code": "budget_native",
+     "kind": "budget",
+     "human_zh": "LDR \u4f7f\u7528\u5b89\u88c5\u7684\u6846\u67b6\u9ed8\u8ba4:search.iterations=3\u3001questions_per_iteration=1\u3001max_results=50\u3001snippets_only=true;\u6b63\u5f0f\u8fd0\u884c\u62d2\u7edd\u4efb\u4f55\u8986\u76d6\u3002",
+     "human_en": "LDR uses its installed framework defaults: search.iterations=3, questions_per_iteration=1, max_results=50, snippets_only=true; every override is rejected for formal runs."
+    },
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "\u9875\u9762\u8bfb\u53d6\u4f20\u8f93\u5c1a\u672a\u8bc1\u660e\u7ecf\u8bb0\u5f55 shim(FETCH_FULL_PAGE \u4e3a\u4e0a\u6e38\u884c\u4e3a),proof-of-fetch \u4e88\u4ee5\u4fdd\u7559,\u5f85\u4f20\u8f93\u5192\u70df\u8bc1\u660e\u540e\u518d\u8ba1,\u7edd\u4e0d\u8bb0 0\u3002",
+     "human_en": "The page-read transport is not yet proven to pass through the recording shim (FETCH_FULL_PAGE is upstream), so proof-of-fetch is withheld until a transport smoke proves it, and is never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "opencode": {
    "reachability_pct": 94.1,
    "url_veracity_pct": 86.8,
+   "deviations": [
+    {
+     "code": "capability_cli_recipe",
+     "kind": "capability_delivery",
+     "human_zh": "\u65e0\u641c\u7d22\u5de5\u5177;\u7cfb\u7edf\u63d0\u793a\u63d0\u4f9b shim curl \u914d\u65b9\u4e0e\u5199\u6587\u4ef6\u8def\u5f84\u3002",
+     "human_en": "No search tool; the system prompt supplies the shim curl recipe plus a write-to-file path."
+    },
+    {
+     "code": "budget_context",
+     "kind": "budget",
+     "human_zh": "OPENCODE_CONTEXT_LIMIT=40960:\u544a\u77e5\u5185\u8054\u6a21\u578b\u7684\u4e0a\u4e0b\u6587\u7a97\u53e3(\u6846\u67b6\u8981\u6c42\u7684\u4ea4\u4ed8),\u53d6\u503c\u5339\u914d\u4e3b\u5e72\u771f\u5b9e\u53ef\u7528\u7a97\u53e3,\u6545\u4e3a\u5bf9\u7b49\u800c\u975e\u4f18\u52bf\u3002",
+     "human_en": "OPENCODE_CONTEXT_LIMIT=40960: the context window opencode is told to assume for the inline model (framework-required delivery); chosen to match the backbone's real usable window, so on par rather than an advantage."
+    },
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "\u88ab\u6559\u4e86 shim /fetch \u914d\u65b9,\u4f46\u547d\u4ee4\u767d\u540d\u5355\u4e5f\u653e\u884c curl localhost,\u9875\u9762\u53ef\u80fd\u79bb shim \u8bfb\u53d6;proof-of-fetch \u4e88\u4ee5\u4fdd\u7559,\u5f85\u767d\u540d\u5355\u6536\u7d27,\u7edd\u4e0d\u8bb0 0\u3002",
+     "human_en": "Taught the shim /fetch recipe, but its command allowlist also permits curl to localhost, so a page can be read off-shim; proof-of-fetch is withheld until the allowlist is tightened, and never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "qx-agents": {
    "reachability_pct": 2.6,
    "url_veracity_pct": 0.0,
+   "deviations": [
+    {
+     "code": "capability_searxng_shim",
+     "kind": "capability_delivery",
+     "human_zh": "\u539f\u751f qx DeepResearcher \u7ecf\u672c\u5730 shim \u7ffb\u8bd1\u5c42\u63a5\u5165 SearchXNG,\u89e3\u6790 shim \u4ec5\u5265\u9664 <think> \u5305\u88f9,\u4e0d\u4f2a\u9020\u56de\u9000\u5bf9\u8c61\u3002",
+     "human_en": "Native qx DeepResearcher reaches SearchXNG through a local shim translator; the parser shim strips only <think> wrappers and fabricates no fallback objects."
+    },
+    {
+     "code": "budget_native",
+     "kind": "budget",
+     "human_zh": "\u6846\u67b6\u539f\u751f\u9884\u7b97:max_iterations=5\u3001max_time_minutes=10\u3001max_turns=10\u3001SearchXNG pageLength=10\u3002",
+     "human_en": "Framework-native budgets: max_iterations=5, max_time_minutes=10, openai-agents max_turns=10, SearchXNG pageLength=10."
+    },
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "\u9875\u9762\u8bfb\u53d6\u7ecf aiohttp \u76f4\u8fde\u3001\u7ed5\u8fc7\u8bb0\u5f55 shim,proof-of-fetch \u4e88\u4ee5\u4fdd\u7559(available=False + \u539f\u56e0\u7801),\u7edd\u4e0d\u8bb0 0\u3002",
+     "human_en": "Page reads go via aiohttp direct to the site, bypassing the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "smolagents": {
    "reachability_pct": 37.2,
    "url_veracity_pct": 41.3,
+   "deviations": [
+    {
+     "code": "budget_steps",
+     "kind": "budget",
+     "human_zh": "SMOLAGENTS_MAX_STEPS=20:smolagents ToolCallingAgent \u7684\u539f\u751f\u4ee3\u7406\u5faa\u73af\u6b65\u6570\u4e0a\u9650(\u6846\u67b6\u6784\u9020\u5668\u9ed8\u8ba4)\u3002",
+     "human_en": "SMOLAGENTS_MAX_STEPS=20: the smolagents ToolCallingAgent agentic-loop cap (the framework constructor's native default)."
+    },
+    {
+     "code": "budget_search_results",
+     "kind": "budget",
+     "human_zh": "SMOLAGENTS_SEARCH_MAX_RESULTS=6:\u6211\u4eec ShimSearchTool \u6bcf\u6b21 /search \u4f20\u5165\u7684\u7ed3\u679c\u6761\u6570(harness \u65bd\u52a0),\u4f4e\u4e8e\u82e5\u5e72 CLI/\u539f\u751f\u8f66\u9053\u8bf7\u6c42\u7684 10\u3002",
+     "human_en": "SMOLAGENTS_SEARCH_MAX_RESULTS=6: results-per-search our ShimSearchTool wrapper passes to shim /search (harness-imposed), lower than the 10 several CLI and native lanes request."
+    },
+    {
+     "code": "budget_snippet",
+     "kind": "budget",
+     "human_zh": "SMOLAGENTS_SEARCH_SNIPPET_CHARS=650:\u6bcf\u6761\u7ed3\u679c\u6a21\u578b\u53ef\u89c1\u7684\u7247\u6bb5\u957f\u5ea6;SMOLAGENTS_MIN_REPORT_CHARS=3500 \u4ec5\u4f5c\u8bca\u65ad,\u4e0d\u66ff\u4ee3\u771f\u5b9e\u62a5\u544a\u3002",
+     "human_en": "SMOLAGENTS_SEARCH_SNIPPET_CHARS=650: per-result snippet length the model sees; SMOLAGENTS_MIN_REPORT_CHARS=3500 is diagnostic only and cannot replace a short real report."
+    },
+    {
+     "code": "fetch_withhold",
+     "kind": "fetch_withhold",
+     "human_zh": "VisitWebpageTool \u8d70 requests \u76f4\u8fde;\u91cd\u5199\u95e8\u4ec5\u5728 --strict-sandbox \u4e0b\u5b89\u88c5,\u9ed8\u8ba4\u699c\u4e0a\u8bfb\u53d6\u79bb shim,proof-of-fetch \u4e88\u4ee5\u4fdd\u7559,\u7edd\u4e0d\u8bb0 0\u3002",
+     "human_en": "The VisitWebpageTool reads via requests direct; the rewrite gate is installed only under --strict-sandbox, so on the default board the read is off-shim and proof-of-fetch is withheld, never scored 0."
+    }
+   ],
    "synthetic_placeholder": false
   },
   "storm": {
    "reachability_pct": 12.7,
    "url_veracity_pct": 8.3,
+   "deviations": [
+    {
+     "code": "capability_lexical_rank",
+     "kind": "capability_delivery",
+     "human_zh": "STORM \u68c0\u7d22\u540e\u7684 SentenceTransformer \u7d22\u5f15\u88ab\u66ff\u6362\u4e3a\u786e\u5b9a\u6027\u8bcd\u6cd5\u6253\u5206\u5668(\u79bb\u7ebf worker \u65e0\u5d4c\u5165\u6a21\u578b\u4e0b\u8f7d\u901a\u9053);\u5176\u4f59\u68c0\u7d22\u9884\u7b97\u4fdd\u6301\u6846\u67b6\u539f\u751f\u3002",
+     "human_en": "STORM's post-retrieval SentenceTransformer index is replaced by a deterministic lexical scorer (the offline worker has no embedding-model download channel); other research budgets stay framework-native."
+    },
+    {
+     "code": "snippet_only",
+     "kind": "snippet_only",
+     "human_zh": "\u67b6\u6784\u4e0a\u65e0\u9875\u9762\u8bfb\u53d6\u5de5\u5177,\u4ec5\u6d88\u8d39\u641c\u7d22\u7247\u6bb5(fetch_mode: none);\u5f15\u7528\u6309 snippet_only \u5982\u5b9e\u5f52\u7c7b,\u4e0e\u8bfb\u9875\u8f66\u9053\u4e0d\u540c\u8f68\u3002",
+     "human_en": "No page-read tool by architecture; consumes search snippets only (fetch_mode: none). Citations classify honestly as snippet_only, a different track from page-reading lanes."
+    }
+   ],
    "synthetic_placeholder": false
   }
  },

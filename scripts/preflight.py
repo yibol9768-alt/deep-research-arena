@@ -662,6 +662,21 @@ def check_parity() -> list[CheckResult]:
                         detail[0] if detail else f"exit {proc.returncode}")]
 
 
+def check_disclosure() -> list[CheckResult]:
+    """Every lane difference is declared so the board can footnote it (G0).
+
+    A green parity check proves no lane re-introduced a forbidden steer; this
+    proves no lane differs from the shared protocol WITHOUT saying so (off-shim
+    fetch withhold, a swapped retriever, a truncated context). Undeclared
+    difference => the comparison silently stops being apples-to-apples."""
+    proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "check_disclosure.py")],
+                          capture_output=True, text=True)
+    ok = proc.returncode == 0
+    out = (proc.stdout or proc.stderr).strip().splitlines()
+    return [CheckResult("lane difference disclosure", ok,
+                        out[0] if out else f"exit {proc.returncode}")]
+
+
 def check_no_refetch_at_scoring() -> list[CheckResult]:
     """The scorer must never open a socket. If it can, a URL the model invented
     but which happens to exist gets fetched at scoring time and counted as
@@ -858,6 +873,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--canary", action="store_true")
     ap.add_argument("--parity", action="store_true")
+    ap.add_argument("--disclosure", action="store_true")
     ap.add_argument("--manifest", action="store_true")
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--production", action="store_true",
@@ -865,8 +881,8 @@ def main() -> int:
     args = ap.parse_args()
     if args.production:
         args.all = True
-    if not (args.canary or args.parity or args.manifest or args.all
-            or args.production):
+    if not (args.canary or args.parity or args.disclosure or args.manifest
+            or args.all or args.production):
         args.all = True
 
     results: list[CheckResult] = []
@@ -876,6 +892,8 @@ def main() -> int:
         results += check_manifest()
     if args.parity or args.all:
         results += check_parity()
+    if args.disclosure or args.parity or args.all:
+        results += check_disclosure()
     if args.canary or args.all:
         results += check_bracket_self_heal()
         results += check_on_page_link_not_hallucinated()

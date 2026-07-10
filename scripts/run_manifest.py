@@ -356,10 +356,21 @@ def _git_state(root: Path) -> dict:
     return state
 
 
+def _gateway_fingerprint(env: dict[str, str],
+                         gateway_policy: dict | None) -> dict:
+    cfg = (env.get("LLM_GATEWAY_CONFIG") or "").strip()
+    return {
+        "config_path": cfg or None,
+        "config_sha256": _sha256_file(Path(cfg)) if cfg else None,
+        "live_policy": gateway_policy,
+    }
+
+
 # --- generate --------------------------------------------------------------
 def generate(root: Path | str = ROOT, *, env: dict[str, str] | None = None,
              now: datetime | None = None,
-             model_identity: list[dict] | None = None) -> dict:
+             model_identity: list[dict] | None = None,
+             gateway_policy: dict | None = None) -> dict:
     """Build the manifest for a run executing on THIS host, right now.
 
     `env`, `now`, `model_identity` are injectable so the manifest is fully
@@ -403,6 +414,13 @@ def generate(root: Path | str = ROOT, *, env: dict[str, str] | None = None,
             "wiki_bloom_sha256": _sha256_file(root / _WIKI_BLOOM),
         },
         "model_identity": list(model_identity or []),
+        # The gateway door's policy is part of a run's identity too: the same
+        # request leaves it with a different budget/thinking under a different
+        # registry. `config_sha256` pins the file the NEXT restart would load;
+        # `live_policy` (capture_gateway_policy) pins what the serving process
+        # says it is running NOW. Recording both lets drift between them fail
+        # a comparison loudly instead of changing scores silently.
+        "gateway": _gateway_fingerprint(env, gateway_policy),
     }
 
 
@@ -475,6 +493,46 @@ def _requests_transport(timeout_s: float):
         r.raise_for_status()
         return r.json()
     return _call
+
+
+def capture_gateway_policy(url: str, *, transport=None,
+                           timeout_s: float = 10.0) -> dict:
+    """Snapshot the IN-SERVICE gateway's live policy from its /healthz.
+
+    The manifest used to record only the launcher process's env and disk
+    hashes; the gateway's ACTIVE registry (per-prefix context_window /
+    fit_to_window / max_tokens cap+floor / thinking_off) lived in a long-running
+    process, so a server-side policy edit -- or an edited config the server had
+    not reloaded -- changed scores under a byte-identical manifest
+    (SPEC_ISSUES §2, manifest entry). This captures what the serving process
+    SAYS it is running, next to the config-file hash generate() records, so the
+    two can disagree loudly instead of silently.
+
+    `transport(url) -> dict` is injectable like probe_model_identity's; the
+    default is a lazy requests GET. Never raises: a failed capture is recorded
+    as ok=False for the caller to treat as fatal or not.
+    """
+    if transport is None:
+        def transport(u: str) -> dict:  # pragma: no cover - thin wire adapter
+            import requests  # lazy: keeps the module import-light
+            r = requests.get(u, timeout=timeout_s)
+            r.raise_for_status()
+            return r.json()
+    healthz = url.rstrip("/")
+    if not healthz.endswith("/healthz"):
+        healthz += "/healthz"
+    out: dict = {"url": healthz, "ok": False, "models": None, "error": None}
+    try:
+        doc = transport(healthz)
+    except Exception as exc:  # noqa: BLE001 - the capture records, never raises
+        out["error"] = f"{type(exc).__name__}: {exc}"
+        return out
+    if not isinstance(doc, dict) or "models" not in doc:
+        out["error"] = "healthz response carried no `models` registry"
+        return out
+    out["ok"] = True
+    out["models"] = doc.get("models")
+    return out
 
 
 # --- verify ----------------------------------------------------------------
@@ -717,6 +775,13 @@ def main(argv: list[str] | None = None) -> int:
               "the name of an environment variable; its secret value is never "
               "written to the manifest."),
     )
+    ap.add_argument(
+        "--gateway", metavar="URL", default=None,
+        help=("capture the in-service gateway's live policy from URL/healthz "
+              "into the manifest. A failed capture refuses to write, like a "
+              "failed model probe: asking for the fingerprint and shipping "
+              "without it would be the silent gap this flag exists to close."),
+    )
     args = ap.parse_args(argv)
 
     if args.verify:
@@ -772,7 +837,18 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 3
 
-    manifest = generate(model_identity=probes)
+    gateway_policy = None
+    if args.gateway:
+        gateway_policy = capture_gateway_policy(args.gateway)
+        if not gateway_policy.get("ok"):
+            print(
+                f"gateway policy capture failed for {args.gateway}: "
+                f"{gateway_policy.get('error')}",
+                file=sys.stderr,
+            )
+            return 3
+
+    manifest = generate(model_identity=probes, gateway_policy=gateway_policy)
     generation_errors: list[str] = []
     if manifest.get("git", {}).get("clean") is not True:
         generation_errors.append("the run checkout is not clean")

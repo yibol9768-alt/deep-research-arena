@@ -692,6 +692,36 @@ def _load_lane_info(manifest_path: Path) -> dict[str, dict]:
     return info
 
 
+def load_panel(path: str | None) -> tuple[dict, dict | None]:
+    """Load the --panel file and split out its provenance stamp.
+
+    The presentation panel was the ONLY board input with zero provenance
+    binding: any {agent: float} json reordered tie-broken ranks and board.json
+    recorded nothing (SPEC_ISSUES §2). run_usefulness_jury.panel_from_fit now
+    stamps a reserved "_provenance" key (protocol / rubric_hash / word_budget /
+    backbone); this pops it so agent lookups are unaffected and returns it for
+    publication as `panel_provenance`. An unstamped panel is still accepted --
+    refusing is a maintainer call -- but it is called out loudly and the board
+    records `{"unstamped": true}` so the omission is disclosed, not silent.
+    """
+    if not path:
+        return {}, None
+    panel = json.loads(Path(path).read_text())
+    if not isinstance(panel, dict):
+        raise SystemExit(f"--panel {path}: expected a JSON object")
+    prov = panel.pop("_provenance", None)
+    if isinstance(prov, dict) and prov.get("rubric_hash"):
+        prov = dict(prov, source_file=str(path))
+        return panel, prov
+    print(
+        f"WARNING: --panel {path} carries no _provenance stamp; the board "
+        "will record panel_provenance={'unstamped': true}. Regenerate it with "
+        "run_usefulness_jury.py --fit --panel-out.",
+        file=sys.stderr,
+    )
+    return panel, {"unstamped": True, "source_file": str(path)}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     layout = ap.add_mutually_exclusive_group(required=True)
@@ -856,7 +886,7 @@ def main() -> int:
         print(f"no answer keys under {keys_dir}")
         return 2
     cache = json.loads(Path(args.cache).read_text()) if args.cache else {}
-    panel = json.loads(Path(args.panel).read_text()) if args.panel else {}
+    panel, panel_provenance = load_panel(args.panel)
     registry = load_registry()
     # build_page_stats(cache) is a document-frequency pass over the WHOLE
     # cache; it is the same for every report in this run, so compute it once
@@ -1580,6 +1610,9 @@ def main() -> int:
                   else f"floor-if-active eps={eps}")
     board = {
         "board": "truth_v2",
+        # Where the presentation column came from (or None without --panel;
+        # {"unstamped": true} for a legacy stampless file). See load_panel.
+        "panel_provenance": panel_provenance,
         "composition": (f"truth = "
                         f"{'provenance' if gate_semantics == 'provenance_v2' else 'reach'}"
                         f"^gamma * (0.39 fact + 0.28 pof + "

@@ -2443,12 +2443,30 @@ def _model_probe_endpoint(agent: str) -> tuple[str, str]:
             "opencode-gateway",
         )
     if agent == "codex":
-        return (
+        # codex executes on CODEX_SSH_HOST and its driver resolves
+        # CODEX_DS_PROXY against the REMOTE loopback. Probing a loopback URL
+        # from THIS host would attest a different machine's proxy than the one
+        # the lane's traffic uses (lane_protocol codex `routing_ssh` deviation:
+        # "must be identity-probed on that remote endpoint"). Same fail-closed
+        # discipline as the claude-code override above: refuse to certify the
+        # wrong door. A launcher-and-remote-reachable (non-loopback) endpoint
+        # is attestable and proceeds.
+        endpoint = (
             os.environ.get("CODEX_DS_PROXY")
             or os.environ.get("DS_PROXY_URL")
-            or "http://localhost:8100/v1",
-            "codex-gateway",
+            or "http://localhost:8100/v1"
         )
+        from urllib.parse import urlparse as _urlparse
+        host = (_urlparse(endpoint).hostname or "").lower()
+        if host in ("localhost", "127.0.0.1", "::1"):
+            raise RuntimeError(
+                "codex model identity is not attestable from this host: "
+                f"CODEX_DS_PROXY={endpoint!r} is a loopback URL, but the lane "
+                "runs on CODEX_SSH_HOST where that address is a DIFFERENT "
+                "machine. Point CODEX_DS_PROXY at an endpoint reachable from "
+                "both hosts (and identical on both), or probe on the remote."
+            )
+        return endpoint, "codex-gateway"
     if agent == "flowsearcher-ds":
         return (
             os.environ.get("FLOWSEARCHER_LLM_BASE_URL")

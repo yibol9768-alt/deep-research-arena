@@ -192,3 +192,31 @@ def test_returned_error_stubs_cannot_be_recorded_as_pass():
     assert classify_at < status_at
     assert 'if report_class != "ok"' in main_source
     assert "runner returned {report_class}" in main_source
+
+
+def test_codex_probe_fails_closed_on_loopback_endpoint(monkeypatch):
+    """SPEC_ISSUES §2 (codex probe wrong host): codex executes on
+    CODEX_SSH_HOST, where a loopback CODEX_DS_PROXY resolves to a DIFFERENT
+    machine than the launcher probing it. Attesting the launcher's proxy while
+    the lane's traffic uses the remote one certifies the wrong door; the
+    protocol's own codex deviation says the probe belongs on the remote
+    endpoint. Red on the old code, which returned the loopback tuple happily.
+    """
+    import pytest
+    import scripts.run_deep_task as rdt
+
+    monkeypatch.setenv("CODEX_DS_PROXY", "http://localhost:8100/v1")
+    with pytest.raises(RuntimeError, match="not attestable"):
+        rdt._model_probe_endpoint("codex")
+
+    # The launcher-side default (no env at all) is loopback too: same refusal.
+    monkeypatch.delenv("CODEX_DS_PROXY", raising=False)
+    monkeypatch.delenv("DS_PROXY_URL", raising=False)
+    with pytest.raises(RuntimeError, match="not attestable"):
+        rdt._model_probe_endpoint("codex")
+
+    # A both-hosts-reachable endpoint is attestable and proceeds unchanged.
+    monkeypatch.setenv("CODEX_DS_PROXY", "http://my5090:8088/v1")
+    assert rdt._model_probe_endpoint("codex") == (
+        "http://my5090:8088/v1", "codex-gateway"
+    )

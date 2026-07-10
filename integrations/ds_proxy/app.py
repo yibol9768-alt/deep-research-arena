@@ -384,6 +384,30 @@ def _needs_thinking_off(model: str) -> bool:
     return model.startswith(THINKING_OFF_PREFIXES)
 
 
+def _apply_min_max_tokens(body: dict) -> None:
+    """Raise a too-small max_tokens to the OPS floor, NEVER above the declared
+    ceiling.
+
+    The former code ran this floor AFTER _sampling.apply_max_tokens with no
+    bound, so an operator env (OPENAI_PROXY_MIN_MAX_TOKENS) could push every
+    request past the ceiling lane_protocol.yaml declares ("clamp, never raise")
+    -- the declared budget stopped being the last word on this door while the
+    gateway door still enforced it (SPEC_ISSUES §2, floor/ceiling entry). The
+    floor is now bounded by the declared per-model ceiling: it can rescue a
+    reasoning model from a starved CoT budget but can never grant more than the
+    protocol allows, and both proxy doors agree the declaration wins.
+    """
+    if MIN_MAX_TOKENS <= 0:
+        return
+    floor = MIN_MAX_TOKENS
+    ceiling = _sampling.max_output_tokens_for(str(body.get("model", "")))
+    if ceiling is not None:
+        floor = min(floor, ceiling)
+    cur = body.get("max_tokens")
+    if cur is None or int(cur) < floor:
+        body["max_tokens"] = floor
+
+
 async def _forward(path: str, request: Request) -> Any:
     body_bytes = await request.body()
     try:
@@ -409,11 +433,9 @@ async def _forward(path: str, request: Request) -> Any:
         if not REWRITE_MODEL.lower().startswith("deepseek-v4"):
             body.pop("thinking", None)
 
-    # Ensure reasoning models have room for both CoT and answer.
-    if MIN_MAX_TOKENS > 0:
-        cur = body.get("max_tokens")
-        if cur is None or int(cur) < MIN_MAX_TOKENS:
-            body["max_tokens"] = MIN_MAX_TOKENS
+    # Ensure reasoning models have room for both CoT and answer -- bounded by
+    # the declared ceiling (see _apply_min_max_tokens).
+    _apply_min_max_tokens(body)
 
     # DeepSeek v4 only supports `{"type":"json_object"}` for structured output.
     # Downgrade `json_schema` (LangChain's `with_structured_output(method="json_schema")`)

@@ -51,13 +51,14 @@ ROOT = Path(__file__).resolve().parents[2]
 LDR_PYTHON = str(ROOT / ".venv-ldr312" / "bin" / "python")
 
 # ---------------------------------------------------------------------------
-# Timeout for one LDR run.  LDR does multi-iteration search + report
-# generation, so we allow a generous window.
-# ---------------------------------------------------------------------------
-DEFAULT_TIMEOUT_S = 1800
 # Unified default, identical for every lane (see scripts/runners/_budget.py):
 # None = no native self-abort, the no-progress watchdog terminates a stall.
+# The former hardcoded DEFAULT_TIMEOUT_S = 1800 was an UNDECLARED per-lane hard
+# wall (lane_protocol.yaml declares wall_clock_s: null): run_deep_task's manual
+# dispatch passes no timeout_s, so that default governed formal runs.
+# ---------------------------------------------------------------------------
 DEFAULT_NATIVE_TIMEOUT_S = _budget.native_timeout_default()
+DEFAULT_TIMEOUT_S = DEFAULT_NATIVE_TIMEOUT_S
 
 # ---------------------------------------------------------------------------
 # Sentinel markers for extracting the report from subprocess stdout.
@@ -664,7 +665,7 @@ async def run(
     shim_url: str,
     proxy_url: str,
     *,
-    timeout_s: int = DEFAULT_TIMEOUT_S,
+    timeout_s: float | None = DEFAULT_TIMEOUT_S,
 ) -> str:
     """Run LDR and return the markdown report.
 
@@ -673,7 +674,9 @@ async def run(
         model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
         shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
         proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
-        timeout_s: Subprocess timeout in seconds.
+        timeout_s: Subprocess timeout in seconds; None (the protocol default,
+            wall_clock_s: null) means no wall clock and the shared no-progress
+            watchdog owns termination.
 
     Returns:
         The markdown report produced by LDR, or an error string.
