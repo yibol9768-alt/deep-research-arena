@@ -363,9 +363,19 @@ def test_real_config_declares_every_live_door_mechanism():
 
 # --- red-on-old proof ------------------------------------------------------
 
+# The pre-gate protocol is pinned to the base snapshot the gate lanes forked
+# from. It was originally spelled `HEAD:`, which was only the pre-gate file
+# while the disclosure change sat uncommitted in the lane's worktree; the
+# moment the lane was committed (and after the merge), HEAD carries the
+# DISCLOSED protocol and the red-on-old proof would dissolve into a green-on-new
+# no-op. 084de62f = "wip(gates-v1): base snapshot before parallel gate build".
+PRE_GATE_COMMIT = "084de62f"
+
+
 def test_disclosure_gate_is_red_on_the_pre_gate_protocol(tmp_path, monkeypatch):
     old = subprocess.check_output(
-        ["git", "show", "HEAD:config/lane_protocol.yaml"], cwd=ROOT)
+        ["git", "show", f"{PRE_GATE_COMMIT}:config/lane_protocol.yaml"],
+        cwd=ROOT)
     p = tmp_path / "old_lane_protocol.yaml"
     p.write_bytes(old)
     monkeypatch.setattr(cd, "LANE_PROTOCOL", p)

@@ -3,35 +3,63 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
-      "version": "v23-2026-07-09",
-      "date": "2026-07-09",
-      "title": "Every zero explains itself: reason codes end to end, and a no-silent-zero gate",
-      "summary": "A published 0 must mean 'observed and genuinely that bad', never 'the instrument saw nothing'. The scorer now stamps a machine-readable reason on every zero it emits, the board carries it through aggregation, and a deterministic gate script fails any result set containing a NaN or an unexplained zero.",
+      "version": "v23-2026-07-10",
+      "date": "2026-07-10",
+      "title": "Seven goal gates go live: every zero explains itself, a withhold is never a zero, and every protocol deviation is disclosed",
+      "summary": "The G0-G6 goal-gate suite lands in one branch. The scorer now stamps a machine-readable reason on every zero it emits and a withhold code wherever the instrument was blind; each lane's departures from the shared protocol are declared and rendered on the board; and deterministic gate scripts fail any NaN, unexplained zero, or undeclared difference. Scoring formulas are unchanged -- three scorer implementation bugs were fixed only where the code disagreed with its own declared semantics.",
       "tags": [
         "scoring",
         "gates",
         "fairness",
-        "methodology"
+        "grounding",
+        "methodology",
+        "frontend"
       ],
       "sections": [
         {
-          "heading": "Reason codes for every scored zero (G6)",
+          "heading": "Seven gates, one runner (G0-G6)",
           "bullets": [
-            "Each decidable axis now names its zero: no_citations / all_citations_off_corpus (reach), no_citable_pages / no_quote_support / no_page_fetched (grounding fidelity), no_checkable_claims / no_supported_claims / no_recall_volume (fact), empty_vital_pool / no_vital_covered (completeness), no_spec_requirement_passed (compliance). score_report and evaluate() surface the full map as axis_reasons; the truth board keeps it per replicate, and a missing run's zeros carry the run outcome (missing/stalled/infra_abort/timeout) as their reason.",
-            "scripts/check_no_silent_zero.py is the gate: for every (lane, axis) unit in a results directory it asserts no NaN and no unexplained 0 (withheld axes are exempt: withhold-not-zero stands). Non-zero exit plus a violation list on failure.",
-            "Scores are unchanged by the reason pipeline itself: fields were added, no formula, weight, or gate moved."
+            "docs/GOAL_GATES_V1.md defines seven acceptance gates; scripts/run_gates.py runs the workstation-runnable ones in order and prints one PASS/FAIL/SKIP line each: G0 protocol parity + disclosure, G1 oracle tops out, G2 shell zeroes, G3 perturbation must lose, G4 withhold-never-zero, G6 no-silent-zero. G5 (box preflight) stays a documented SKIP until the sandbox smoke runs.",
+            "Gate tests that sweep all 100 answer keys carry a `gates` pytest marker and are deselected from a normal `pytest tests/` run; they run under --run-gates via the runner."
           ]
         },
         {
-          "heading": "Implementation bugs fixed against declared semantics (SPEC_ISSUES G6)",
+          "heading": "Reason codes for every scored zero (G6)",
           "bullets": [
-            "A lane mixing pof semantics crashed the board builder with a KeyError before the rc=3 mixed-semantics refusal could fire; the board now reaches its declared machine-readable rejection, and the gate script flags the mix in any already-written result set.",
+            "Each decidable axis now names its zero: no_citations / all_citations_off_corpus (reach), no_citable_pages / no_quote_support / no_page_fetched (grounding fidelity), no_checkable_claims / no_supported_claims / no_recall_volume (fact), empty_vital_pool / no_vital_covered (completeness), no_spec_requirement_passed (compliance). score_report and evaluate() surface the full map as axis_reasons; the truth board keeps it per replicate, and a missing run's zeros carry the run outcome as their reason.",
+            "scripts/check_no_silent_zero.py is the gate: for every (lane, axis) unit in a results directory it asserts no NaN and no unexplained 0 (withheld axes are exempt -- withhold-not-zero stands). Non-zero exit plus a violation list on failure."
+          ]
+        },
+        {
+          "heading": "A withhold is never a zero (G4)",
+          "bullets": [
+            "A single canonical WithholdReason enum (18 codes -- no_evidence_log, fetch_not_observable, concept_page_not_cached, ...) is stamped beside the frozen human reason wherever the instrument could not observe an axis; check_no_silent_zero imports it directly so the gate can never drift from what a withhold path emits.",
+            "Fixed a fetch guilt-by-association bug: completeness required the concept/forum page in fetched_ok whenever an evidence log merely existed, so an off-shim or damaged run (where proof-of-fetch is correctly WITHHELD) had its impeccable, quoted, in-cache concepts scored 0. Completeness now gates on transport usability and falls back to the cache-quote criterion the instrument can actually adjudicate.",
+            "A concept nugget whose source page the evaluator never cached is now marked withheld (concept_axis_withheld / concept_withheld_count) rather than read as an earned miss. Score and denominator are unchanged; only observability was added (the denominator question is registered in SPEC_ISSUES, not decided here)."
+          ]
+        },
+        {
+          "heading": "Gate G3 catch: review counts and product-name digits can no longer stand in for a sentiment rating",
+          "bullets": [
+            "The perturbation gate found that a report stating a WRONG buyer-sentiment percentage stayed fully covered on 3/100 tasks: the window check credited any standalone number near a rating cue, so a review count ('across 3 reviews') passed as a rating whenever count == rating/20, and standalone digits inside a written-out product title counted as rating values.",
+            "Fix (semantics unchanged, the checks now enforce their own docstrings): numbers immediately followed by a count noun are excluded from rating credit (the guard reads a 16-char tail past the window edge, classification only), and completeness masks digits inside exact-subject-name spans before value extraction, mirroring the fact axis. Regression tests are red on the pre-fix scorer."
+          ]
+        },
+        {
+          "heading": "Every way a lane differs from the shared protocol is now disclosed (G0)",
+          "bullets": [
+            "Each lane in config/lane_protocol.yaml carries a machine-readable, bilingual `deviations` list ({kind, code, human_zh, human_en, detail}): framework budget/context knobs, a swapped retriever, adapter-injected tools, the lanes whose page reads bypass the recording shim (proof-of-fetch WITHHELD, never 0), and the snippet-only lanes with no page-read tool. The two LLM doors' router-level policy differences are declared in full.",
+            "scripts/check_disclosure.py (wired into preflight --disclosure/--all) reconciles the declarations against the code and exits non-zero on any gap, in both directions, so a stale disclosure fails too. check_parity's citation-count and backbone-branch rules were widened to catch the rewrites the original incident used.",
+            "Four lanes carried a hardcoded 1800/1200-second subprocess wall clock while the protocol declares wall_clock_s: null; on a slow backbone the kill was scored as a framework that delivered nothing. All four now answer only to the shared no-progress watchdog. The board build carries each lane's disclosure into leaderboard_deep_v3.json and renders a restrained footnote badge that reveals the one-line disclosures on hover, in the reader's language."
+          ]
+        },
+        {
+          "heading": "Scorer / board implementation bugs fixed against declared semantics (SPEC_ISSUES)",
+          "bullets": [
             "reach deduplicated off-corpus URLs by raw string while transport used fetch_log.canonical, so spelling variants of one fabricated URL broke the declared fabrication == 1 - reach identity; both now share one identity.",
             "aggregate()'s micro view let contradicted claims buy fact volume and divided completeness by k_star*n; it now pools distinct supported facts and the per-report k_effective denominators, matching the per-report axes.",
-            "The usefulness jury's verdict was a plurality that ignored tie ballots ({tie,tie,A} crowned A); it is now the majority vote the design doc declares.",
-            "A jury fit pooled judge votes across report-pair generations in the bank; it now scores only the latest generation per pairing and reports how many older generations were superseded.",
-            "A battle whose task file was missing was judged over an empty question and banked as clean data; it now refuses with a machine-readable task_intent_missing error.",
-            "Bradley-Terry bootstrap CIs injected a 1000-anchor pseudo-draw whenever a sparse agent fell out of a resample, dragging its published CI toward the anchor, and silently discarded failed fits; draws now come only from resamples the agent is actually in, and failed fits are counted in the output."
+            "The usefulness jury's verdict was a plurality that ignored tie ballots ({tie,tie,A} crowned A); it is now the declared majority vote. A jury fit pooled votes across report-pair generations; it now scores only the latest generation per pairing. A battle whose task file was missing was judged over an empty question; it now refuses with task_intent_missing.",
+            "Bradley-Terry bootstrap CIs injected a 1000-anchor pseudo-draw whenever a sparse agent fell out of a resample and silently discarded failed fits; draws now come only from resamples the agent is actually in, and failed fits are counted. The presentation panel now stamps protocol/rubric_hash/word_budget/backbone provenance, and the run manifest fingerprints the live gateway door."
           ]
         }
       ]

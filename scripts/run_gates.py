@@ -2,9 +2,12 @@
 """Run the workstation-runnable goal gates (docs/GOAL_GATES_V1.md) in order
 and print one PASS / FAIL / SKIP(reason) line per gate.
 
-Currently wired: G1 (oracle tops out), G2 (shell zeroes), G3 (perturbation
-must lose). The remaining gates are listed with an explicit SKIP reason so the
-report always covers all seven; they flip to wired as their lanes land.
+Wired: G0 (protocol parity + difference disclosure, via check_parity.py +
+check_disclosure.py), G1 (oracle tops out), G2 (shell zeroes), G3 (perturbation
+must lose), G4 (withhold never zero, test_gate_withhold.py), G6 (no silent zero
+in the scoring pipeline, test_gate_silent_zero.py). G5 (box preflight) is the
+only SKIP: it needs the my5090 sandbox and points at its captured evidence file.
+The G6 pipeline gate is green here; the end-to-end box smoke is a separate step.
 
 Usage:
     python3 scripts/run_gates.py            # full 100-task sweep (~10-15 min)
@@ -45,12 +48,25 @@ GATES: dict[str, tuple[str, list[str] | None, str]] = {
     "G3": ("扰动必降",
            ["tests/test_gate_perturbation.py"],
            ""),
-    "G4": ("withhold 不打 0", None,
-           "not wired in this lane (withhold-path enumeration lane)"),
+    "G4": ("withhold 不打 0",
+           ["tests/test_gate_withhold.py"],
+           ""),
     "G5": ("箱上 preflight 真实通过", None,
-           "box-only: requires the my5090 sandbox, cannot run on the workstation"),
-    "G6": ("端到端冒烟无静默零", None,
-           "not wired in this lane (needs live backbone endpoints)"),
+           "box-only: my5090 sandbox preflight; evidence "
+           "data/results/gates/G5_box_preflight_20260709.txt"),
+    "G6": ("无静默零(打分管线;端到端箱上冒烟待跑)",
+           ["tests/test_gate_silent_zero.py"],
+           ""),
+}
+
+# Script gates: gates enforced by a standalone checker (exit 0 = pass) rather
+# than pytest nodes. G0 (protocol parity + difference disclosure) runs the two
+# deterministic reconciler scripts; the gate passes only if BOTH exit 0.
+SCRIPT_GATES: dict[str, list[list[str]]] = {
+    "G0": [
+        [sys.executable, "scripts/check_parity.py"],
+        [sys.executable, "scripts/check_disclosure.py"],
+    ],
 }
 
 
@@ -69,6 +85,25 @@ def run_gate(gate: str, nodes: list[str], extra: list[str]) -> tuple[str, str]:
         return "SKIP", f"no tests collected ({dt:.0f}s)\n{tail}"
     return "FAIL", f"rc={proc.returncode} {dt:.0f}s\n{tail}\n" \
         + "\n".join((proc.stderr or "").strip().splitlines()[-5:])
+
+
+def run_script_gate(cmds: list[list[str]]) -> tuple[str, str]:
+    """Run one gate's standalone checker script(s); PASS only if ALL exit 0."""
+    t0 = time.time()
+    lines = []
+    ok = True
+    for cmd in cmds:
+        proc = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+        name = Path(cmd[-1]).name
+        out = (proc.stdout or "").strip().splitlines()
+        tail = out[-1] if out else ""
+        lines.append(f"{name}: rc={proc.returncode} {tail}")
+        if proc.returncode != 0:
+            ok = False
+            lines.extend("  " + l for l in
+                         (proc.stderr or "").strip().splitlines()[-4:])
+    dt = time.time() - t0
+    return ("PASS" if ok else "FAIL"), f"{dt:.0f}s\n" + "\n".join(lines)
 
 
 def main() -> int:
@@ -99,6 +134,16 @@ def main() -> int:
             print(f"{gate}: SKIP (unknown gate id)")
             continue
         desc, nodes, skip_reason = GATES[gate]
+        if gate in SCRIPT_GATES:
+            print(f"{gate} [{desc}]: running ...", flush=True)
+            status, detail = run_script_gate(SCRIPT_GATES[gate])
+            results[gate] = (status, detail)
+            print(f"{gate} [{desc}]: {status} ({detail.splitlines()[0]})",
+                  flush=True)
+            if status == "FAIL":
+                failed = True
+                print("  " + "\n  ".join(detail.splitlines()[1:]), flush=True)
+            continue
         if nodes is None:
             results[gate] = ("SKIP", skip_reason)
             print(f"{gate} [{desc}]: SKIP ({skip_reason})", flush=True)
