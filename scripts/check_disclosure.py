@@ -152,6 +152,27 @@ SIGNAL_RULES: list[dict] = [
                 "what the lane can do; it must be declared so the board "
                 "discloses it"),
     },
+    # --- adapter-layer signals embedded in run_deep_task.py / the runners -----
+    #
+    # The four rules above name framework-substitution signals in the dedicated
+    # *_runner.py adapters. But several lanes are driven by an adapter EMBEDDED
+    # inside scripts/run_deep_task.py (camel-ai's report cleaner, langchain-odr's
+    # single-lane graph patch), and two runners carry adapter-layer RETRY loops
+    # and page TRUNCATION that move nothing a framework declared. The signal
+    # classes below (report post-processing regex, hardcoded [:N] slice clamps,
+    # injected ToolMessages, character truncation, adapter retry constants) were
+    # structurally invisible because run_deep_task.py was never scanned here.
+    # Each is mapped to the lane it steers and the disclosure that lane carries.
+    {
+        "lane": "camel-ai",
+        "file": "scripts/run_deep_task.py",
+        "signal": re.compile(r"_sanitize_camel_report"),
+        "require": ("code", "report_postprocess"),
+        "why": ("camel-ai's saved report is rewritten by the harness "
+                "(_sanitize_camel_report strips balanced framework XML marker "
+                "pairs from the scored text); a report post-processing step must "
+                "be declared so the board discloses it"),
+    },
 ]
 
 

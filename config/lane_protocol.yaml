@@ -265,7 +265,12 @@ lanes:
     delivery: in_process
     fetch_observable: true
     fetch_mode: shim_extract
-    deviations: []
+    deviations:
+      - kind: report_postprocess
+        code: report_postprocess
+        human_zh: "保存前经 harness 剥除配平的 <think>/<tool_call>/<tool_response> 框架 XML 标记对;未闭合标签原样保留,正文与引用逐字不动。"
+        human_en: "Before saving, the harness strips BALANCED <think>/<tool_call>/<tool_response> framework XML marker pairs; unclosed tags are left as-is and prose/citations are byte-for-byte untouched."
+        detail: "scripts/run_deep_task.py _sanitize_camel_report removes only balanced <tag>...</tag> pairs (think/tool_call/tool_response) from the saved report. An unclosed opener is preserved verbatim; the former dangling-opener `.*` strip deleted the report body to EOF whenever a single reasoning tag was left open mid-report. This changes the saved artifact only, not camel's behavior/prompts/termination, and the audit's model-capability verdict on camel's grounding stands."
   # smolagents' VisitWebpageTool uses requests.get direct to the site. The
   # in-process gate can rewrite sandbox GETs to {shim}/fetch, but it is only
   # installed under --strict-sandbox today; on the default board the read is
