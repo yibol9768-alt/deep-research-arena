@@ -161,13 +161,27 @@ def _protocols(gamma: float, task_ids, pof_semantics: str = "text_v1",
 
 def _declared_lanes() -> set[str]:
     """Lanes `config/lane_protocol.yaml` governs. Empty when the file is absent."""
+    return set(_lane_fetch_modes().keys())
+
+
+def _lane_fetch_modes() -> dict[str, str]:
+    """Per-lane declared `fetch_mode` from `config/lane_protocol.yaml`.
+
+    Ruling #1: a lane declaring `fetch_mode: none` (storm / langchain-odr /
+    co-storm read no pages by architecture) is exempted from completeness's
+    fetch requirement. The board reads the declaration here and passes it to the
+    scorer so the exemption is driven by the SAME protocol file G0's disclosure
+    checks read -- no scorer-side hard-coded lane list. Empty when the file is
+    absent."""
     try:
         import yaml
         doc = yaml.safe_load((ROOT / "config" / "lane_protocol.yaml").read_text(
             encoding="utf-8")) or {}
-        return set((doc.get("lanes") or {}).keys())
+        lanes = doc.get("lanes") or {}
+        return {name: str((entry or {}).get("fetch_mode"))
+                for name, entry in lanes.items()}
     except Exception:  # noqa: BLE001
-        return set()
+        return {}
 
 
 def _merge_evidence_fragments(items):
@@ -984,7 +998,8 @@ def main() -> int:
     unverified: list[str] = []
     report_integrity_errors: list[str] = []
     report_hash_owners: dict[str, list[tuple[str, str, int]]] = {}
-    declared_lanes = _declared_lanes()
+    lane_fetch_modes = _lane_fetch_modes()
+    declared_lanes = set(lane_fetch_modes.keys())
     undeclared: set[str] = set()
     requested_agents = {
         lane.strip()
@@ -1178,6 +1193,10 @@ def main() -> int:
                                   if _meta.get("run_id")
                                   else ev_by_key.get((agent_name, tid))),
                         require_transport_pof=args.require_transport_pof,
+                        # ruling #1: a lane declaring fetch_mode:none is exempt
+                        # from completeness's fetch requirement (read from the
+                        # SAME protocol file G0 disclosure reads).
+                        lane_fetch_mode=lane_fetch_modes.get(agent_name),
                     )
                 except ds.MissingEvidenceLog as exc:
                     unscorable[agent_name] = str(exc)

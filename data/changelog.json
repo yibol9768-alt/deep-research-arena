@@ -3,6 +3,27 @@
   "_notes": "Most recent entry first. Append new entries to the top of `entries`. Schema: {version, date, title, summary, tags[], sections:[{heading,bullets[]}], links?:[{label,href}]}. Versions follow 'v<MAJOR>-<YYYY-MM-DD>'. Keep summaries to 1-2 sentences and bullets terse; this is what users read on /changelog.",
   "entries": [
     {
+      "version": "v24-2026-07-10",
+      "date": "2026-07-10",
+      "title": "Maintainer rulings on the frozen semantic forks: scorer and jury updates",
+      "summary": "The twelve frozen semantic forks in docs/SPEC_ISSUES.md were adjudicated (docs/SPEC_DECISIONS.md). This entry logs the scorer- and jury-side changes: snippet-only lanes stop being charged a fetch they cannot make, off-topic-but-correct facts no longer inflate precision, jury walkovers separate framework failure from real non-delivery, and a diagnostic completeness mode withholds cache-blind slots instead of zeroing them.",
+      "tags": [
+        "scoring",
+        "fairness",
+        "grounding",
+        "methodology"
+      ],
+      "sections": [
+        {
+          "heading": "Snippet-only lanes are exempt from the completeness fetch requirement (ruling #1)",
+          "bullets": [
+            "A lane that declares fetch_mode:none in config/lane_protocol.yaml (storm, langchain-odr, co-storm read no pages by architecture) no longer needs its concept/forum source page in fetched_ok to earn completeness. Coverage falls back to the same cache-quote criterion the L3 off-shim/damaged fallback already uses; grounding is still metered separately by proof-of-fetch and reach.",
+            "The exemption is driven by the lane's own protocol declaration (build_truth_board reads fetch_mode and passes it to the scorer), not a hard-coded lane list. Without the exemption the board was effectively ranking 'has a page-read tool' on the 0.33-weight completeness axis, contradicting how pof already treats snippet_only citations honestly."
+          ]
+        }
+      ]
+    },
+    {
       "version": "v23-2026-07-10",
       "date": "2026-07-10",
       "title": "Seven goal gates go live: every zero explains itself, a withhold is never a zero, and every protocol deviation is disclosed",

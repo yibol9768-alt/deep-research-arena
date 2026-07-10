@@ -1839,6 +1839,20 @@ def _concept_quote_supported(md: str, source_url: str, cache: dict,
     return supported, True
 
 
+def _fetch_mode_none(lane_fetch_mode) -> bool:
+    """Ruling #1 (docs/SPEC_DECISIONS.md): a lane that DECLARES it reads no pages
+    (`config/lane_protocol.yaml` `fetch_mode: none`, e.g. storm / langchain-odr /
+    co-storm) is exempted from completeness's fetch requirement. Its facts are
+    legitimately obtained from search snippets, its pof is already 0-honest and
+    grounding is metered separately by pof/reach; charging completeness a fetch it
+    cannot make by architecture would rank "has a page-read tool", not the answer.
+    The exemption reuses the L3 fallback (see `_transport_fetch_usable`): the fetch
+    requirement drops and coverage falls back to the cache-quote criterion, exactly
+    as an off-shim/damaged run does. `None` means "lane not declared" (default), a
+    distinct value from the string `"none"`."""
+    return str(lane_fetch_mode) == "none"
+
+
 def _transport_fetch_usable(evidence) -> bool:
     """Is the run's transport evidence usable to DECIDE whether a page was
     fetched?
@@ -1873,7 +1887,8 @@ def _transport_fetch_usable(evidence) -> bool:
 
 def _forum_coverage_supported(md: str, answer_key, cache: dict,
                               page_stats: dict | None = None,
-                              registry=None, evidence=None) -> tuple[bool, str | None]:
+                              registry=None, evidence=None,
+                              snippet_only: bool = False) -> tuple[bool, str | None]:
     """Accept one fetched, quoted and task-relevant forum thread.
 
     The answer key declares allowed forums plus conservative domain/query terms
@@ -1899,8 +1914,9 @@ def _forum_coverage_supported(md: str, answer_key, cache: dict,
     # Gate on transport USABILITY, not merely a well-bracketed log: an off-shim
     # or damaged run has an empty/short fetched_ok for an instrument reason, and
     # requiring the thread there would withhold-then-zero it (see
-    # _transport_fetch_usable / G4).
-    require_fetch = _transport_fetch_usable(evidence)
+    # _transport_fetch_usable / G4). A lane that declares fetch_mode:none reads no
+    # pages by architecture, so it is exempted too (ruling #1 / _fetch_mode_none).
+    require_fetch = _transport_fetch_usable(evidence) and not snippet_only
     fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
                if require_fetch else set())
 
@@ -1962,7 +1978,7 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
                        pool_size: int | None = None,
                        generic: set | None = None, cache: dict | None = None,
                        page_stats: dict | None = None, registry=None,
-                       evidence=None) -> tuple[float, dict]:
+                       evidence=None, lane_fetch_mode=None) -> tuple[float, dict]:
     """axis 3: SATURATING recall over the ranked vital pool (T1/T2/M-H1/H2).
 
     completeness = min(covered_vital / K_star, 1). K_star defaults to 20,
@@ -2003,8 +2019,10 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     # not zeroed) this falls back to the cache-quote criterion instead of
     # demanding a fetch the instrument never observed (see _transport_fetch_usable
     # / G4). Was gated on evidence.available, which zeroed impeccable concepts on
-    # every fetch_observable=false lane.
-    require_concept_fetch = _transport_fetch_usable(evidence)
+    # every fetch_observable=false lane. A lane that DECLARES fetch_mode:none
+    # reads no pages by architecture and is exempted too (ruling #1).
+    snippet_only = _fetch_mode_none(lane_fetch_mode)
+    require_concept_fetch = _transport_fetch_usable(evidence) and not snippet_only
     fetched = ({_page_identity(u, registry) for u in evidence.fetched_ok}
                if require_concept_fetch else set())
     require_nugget_citation = bool(
@@ -2116,7 +2134,8 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
     forum_hit, forum_url = (False, None)
     if forum_slot:
         forum_hit, forum_url = _forum_coverage_supported(
-            md, answer_key, cache or {}, page_stats, registry, evidence)
+            md, answer_key, cache or {}, page_stats, registry, evidence,
+            snippet_only=snippet_only)
         if forum_hit:
             covered += 1
             covered_by_predicate["forum_coverage"] = 1
@@ -2138,6 +2157,10 @@ def score_completeness(md: str, answer_key, k_star: int = K_STAR_DEFAULT,
         "k_star": k_star, "k_effective": denom,
         "covered": covered, "covered_by_predicate": covered_by_predicate,
         "concept_transport_required": require_concept_fetch,
+        # ruling #1: this lane declared fetch_mode:none, so the concept/forum
+        # fetch requirement was dropped (coverage falls back to the cache-quote
+        # criterion). None-declared lanes carry False.
+        "fetch_mode_none_exempt": snippet_only,
         "inline_nugget_citation_required": require_nugget_citation,
         # G4 observability: a concept nugget whose source page the evaluator
         # never cached cannot be scored, so its 0 is a WITHHOLD (blind
@@ -2349,7 +2372,8 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
                  eps: float = EPS_FLOOR,
                  page_stats: dict | None = None,
                  evidence=None,
-                 require_transport_pof: bool = False) -> AxisScores:
+                 require_transport_pof: bool = False,
+                 lane_fetch_mode=None) -> AxisScores:
     """Compute all decidable axes and the composed truth score.
 
     Returns axes + truth ONLY (M-C1): presentation is a separate column,
@@ -2394,6 +2418,7 @@ def score_report(md: str, answer_key, cache: dict, registry=None,
     comp, cd = score_completeness(
         md, answer_key, k_star=k_star, generic=generic, cache=cache,
         page_stats=stats, registry=registry, evidence=evidence,
+        lane_fetch_mode=lane_fetch_mode,
     )
     spec, sd = score_spec(md, answer_key)
 
