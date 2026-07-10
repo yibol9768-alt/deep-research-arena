@@ -54,6 +54,21 @@ The deep tier requires all three sources in a single report; the cross-source
 synthesis section is where the difficulty lives (find product claims that lack
 or contradict Wikipedia backing, rank brands by forum sentiment, etc.).
 
+**Which sources actually earn a grounding score (be honest, not "three-source
+scoring").** The task spans all three corpora, but the decidable axes credit
+them asymmetrically: `fact` support is **shopping only**, `completeness` scores
+the **shopping + Wikipedia** ranked vital pool plus **one virtual forum slot**
+for tasks that declare community sources, and `reach` / proof-of-fetch are
+source-agnostic. The forum is therefore a **provenance dimension** (citations
+classify as searched / linked / guessed and a single virtual completeness slot
+can be covered by a quoted, task-relevant allowed-forum thread), **not** a
+source of decidable vital nuggets: the answer keys carry **zero forum vital
+nuggets** today. Building real forum vital nuggets — decidable predicates such
+as `thread_score` and `comment_count` on top-voted threads — is a scheduled
+**v2.1 dataset task**; until it ships, treat the forum dimension as provenance
+and virtual-slot coverage, and do not read the truth number as crediting three
+sources equally.
+
 ### What each instance is
 
 - **Task spec** (`data/tasks/.../dr_cross_deep_NNNN.json`): a JSON object with

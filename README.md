@@ -202,6 +202,18 @@ Default PoF is **`text_v1`**: verbatim / page-level match between report context
 
 A transport-level alternative **`transport_v2`** (`|cited ∩ fetched| / |cited|` from shim evidence logs) exists in `src/eval/fetch_log.py` and can be required via `build_truth_board.py --require-transport-pof`, but only when runs have attributed evidence and the lane's page reads are observable (see [§6](#6-lanes-and-fairness) and [§12](#12-status-and-limitations)).
 
+### 5.5 Which sandbox sources actually earn score
+
+A task spans all three corpora, but the three grounding axes do **not** credit them symmetrically. Stated honestly (the board stamps this in `protocols.sources_scored`):
+
+| Axis | Sources that can move it |
+|---|---|
+| `reach`, `PoF` | source-agnostic (any cited sandbox URL) |
+| `fact` | **shopping only** — structured price / rating claims bound to a named product |
+| `completeness` | **shopping + Wikipedia** ranked vital pool, plus **one virtual forum slot** per task that declares community sources |
+
+So the truth number is earned on **shopping + Wikipedia**. The forum is a **provenance dimension**, not a vital-fact source: forum citations are classified (searched / linked / guessed) and a forum-declaring task gets a single virtual completeness slot covered by a quoted, task-relevant allowed-forum thread, but there are **no real forum vital nuggets** in the answer keys today. Building decidable forum vital nuggets (thread_score / comment_count predicates) is a **v2.1 dataset task** (see [`docs/DATASHEET.md`](docs/DATASHEET.md)). Do not read this benchmark as "three-source scoring".
+
 ---
 
 ## 6. Lanes and fairness
