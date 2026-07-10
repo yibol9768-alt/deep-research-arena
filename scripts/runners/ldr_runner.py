@@ -195,33 +195,30 @@ def _augment_intent_for_sandbox_search(intent: str) -> str:
     return intent.strip()
 
 
-def _unmask_report(report: str) -> str:
-    """Reverse masked domains back to localhost:PORT in the final report."""
+def _unmask_report(report: str, model: str | None = None) -> str:
+    """Reverse the mask ROUND TRIP the harness itself applied, and nothing else.
+
+    Only meaningful when masking was enabled inbound (``_needs_intent_masking``).
+    With masking off (the default) nothing was ever masked, so reversing masked
+    domains here would only LAUNDER a model that emitted onestopmarket.com /
+    postmill.net / kiwipedia.org from parametric memory into valid sandbox
+    grounding -- the exact off-sandbox drift the benchmark measures. The former
+    unconditional tail did precisely that: a literal ``replace`` of the three
+    public domains (``https://``/``http://`` variants) into localhost, plus a
+    ``en.wikipedia.org/wiki/X`` -> Kiwix rewrite, all applied even when masking
+    was OFF. That converted drift into perfect grounding, for this lane only.
+
+    Removed 2026-07-09 (fairness audit), mirroring
+    ``local_deep_researcher_runner._unmask_report``: the guard runs first, so
+    with masking off the report is byte-identical, and only the round trip of
+    masks this harness itself applied (the ``_UNMASK_MAP`` reversal) survives.
+    """
+    if not _needs_intent_masking(model):
+        return report
     text = report
     for masked, original in _UNMASK_MAP.items():
         text = text.replace(masked, original)
-    # Reverse the catch-all pattern for other ports
     text = re.sub(r"sandbox-(\d+)\.internal", r"localhost:\1", text)
-    # Also catch https:// variants the LLM might have added
-    shopping = os.environ.get("SHOPPING", "http://localhost:17770").rstrip("/")
-    text = text.replace("https://onestopmarket.com", shopping)
-    text = text.replace("http://onestopmarket.com", shopping)
-    text = text.replace("https://postmill.net", "http://localhost:9999")
-    text = text.replace("https://kiwipedia.org", "http://localhost:8090")
-
-    # The former "FIX P2.5" rewrote any `en.wikipedia.org/wiki/X` the model
-    # emitted into `localhost:8090/content/wikipedia_en_all_nopic/A/X`.
-    #
-    # That is not unmasking. Nothing in this harness ever showed the model
-    # `en.wikipedia.org`; the mask map above only ever substitutes
-    # localhost <-> onestopmarket.com / postmill.net / kiwipedia.org. A model
-    # emitting `en.wikipedia.org` is answering from parametric memory about the
-    # open web, which is precisely the off-sandbox drift the benchmark measures
-    # (BACKBONE_GAP_ANALYSIS, mechanism M2). Rewriting it into a valid sandbox
-    # URL converted that failure into perfect grounding, for this lane only.
-    #
-    # Removed 2026-07-08 (fairness audit). Only the round trip of masks this
-    # harness itself applied survives.
     return text
 
 
@@ -766,7 +763,9 @@ async def run(
                     _diag["n_sources_retrieved"])
 
         # Round-trip only: undo the masks this harness applied before the call.
-        report = _unmask_report(report)
+        # With masking off (the default) this is a no-op, so a model-emitted
+        # public domain is left ALONE instead of being laundered into grounding.
+        report = _unmask_report(report, model)
         # FAIRNESS: capture LDR's real report even when it is light on sandbox
         # URLs. Only rescue genuine failures (empty output / driver error
         # markers / a stub far below any plausible length). Substituting a
