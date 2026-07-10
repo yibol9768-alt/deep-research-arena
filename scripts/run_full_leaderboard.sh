@@ -124,17 +124,6 @@ if ! command -v "$PYTHON" >/dev/null 2>&1 && [ ! -x "$PYTHON" ]; then
     exit 2
 fi
 
-# GOAL_GATES_V1 permanent fixture (docs/GOAL_GATES_V1.md): the two leaderboard
-# properties are enforced by the deterministic goal gates, and a formal run may
-# not start unless the workstation-runnable gates are green. This is the hard
-# automated entry point the goal doc calls a "常驻项". --quick is the 13-task
-# subset; rc!=0 aborts here, before any isolation setup or lane process.
-echo "== goal gates (run_gates.py --quick) =="
-if ! "$PYTHON" scripts/run_gates.py --quick; then
-    echo "ERROR: goal gates are not green; refusing to start (GOAL_GATES_V1)" >&2
-    exit 5
-fi
-
 # Build two disjoint origin sets. Corpus origins are the only responses that
 # count as page evidence. Shim/model/router/QX origins stay reachable through
 # the door but can never manufacture proof-of-fetch. Both loopback spellings
@@ -214,6 +203,19 @@ fi
 case "$REPLICATES" in
     ''|*[!0-9]*|0) echo "ERROR: REPLICATES must be a positive integer" >&2; exit 2 ;;
 esac
+
+# GOAL_GATES_V1 permanent fixture (docs/GOAL_GATES_V1.md): the two leaderboard
+# properties are enforced by the deterministic goal gates, and a formal run may
+# not start unless the workstation-runnable gates are green. This is the hard
+# automated entry point the goal doc calls a "常驻项". Placed after the cheap
+# arg/origin/queue fail-fast checks (so those keep their exit codes) but before
+# any isolation setup or lane process. --quick is the 13-task subset; rc!=0
+# aborts here.
+echo "== goal gates (run_gates.py --quick) =="
+if ! "$PYTHON" scripts/run_gates.py --quick; then
+    echo "ERROR: goal gates are not green; refusing to start (GOAL_GATES_V1)" >&2
+    exit 5
+fi
 
 # Build a real production boundary before any manifest probe or lane process.
 # The worker namespace has no default route. Its nftables policy permits only
