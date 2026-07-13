@@ -39,6 +39,8 @@ no clock, no randomness.
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 import src.eval.decidable_scorer as ds
@@ -265,7 +267,12 @@ def test_g1_stub_slot_excised_observable_and_neighbours_intact(oracle_runs,
         pytest.skip(NO_CACHE_SKIP)
     runs = {r["tid"]: r for r in oracle_runs}
     r = runs.get("dr_cross_deep_0038")
-    assert r is not None, "dr_cross_deep_0038 not in the gate sweep"
+    if r is None:
+        if os.environ.get("DRA_GATES_TASK_LIMIT"):
+            pytest.skip(
+                "dr_cross_deep_0038 is outside the explicitly limited gate sweep"
+            )
+        pytest.fail("dr_cross_deep_0038 not in the full gate sweep")
 
     stub_urls = set(r["plan"]["concept_stub_page_urls"])
     assert stub_urls, ("expected dr_cross_deep_0038 to carry a stub concept page; "
