@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 
 import pytest
 
@@ -14,6 +15,15 @@ def test_default_matrix_is_the_requested_twelve_harnesses():
     assert {"deerflow", "qx-agents", "claude-code", "opencode"}.issubset(
         smoke.DEFAULT_HARNESSES
     )
+
+
+def test_default_smoke_fuses_cover_native_qx_without_becoming_unbounded(
+    monkeypatch,
+):
+    monkeypatch.setattr(sys, "argv", ["run_harness_smoke_matrix.py"])
+    args = smoke._parse_args()
+    assert args.max_calls == 256
+    assert args.max_total_tokens == 750_000
 
 
 def test_smoke_source_routes_separate_dial_address_from_public_identity():

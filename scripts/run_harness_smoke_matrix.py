@@ -374,7 +374,12 @@ def _parse_args() -> argparse.Namespace:
         help="repeat for a subset; default is the full 12-harness matrix",
     )
     parser.add_argument("--upstream-slots", type=int, default=2)
-    parser.add_argument("--max-calls", type=int, default=160)
+    # QX's unmodified multi-section planner legitimately admitted 160 calls
+    # before all parallel section writers had finished (formal qx9 evidence),
+    # without any schema retry.  Keep a finite uniform fuse, but leave enough
+    # headroom for that native topology; the independent 750k-token ceiling
+    # still stops high-context runaways such as the earlier DeerFlow failure.
+    parser.add_argument("--max-calls", type=int, default=256)
     parser.add_argument("--max-total-tokens", type=int, default=750_000)
     parser.add_argument("--launch-stagger-s", type=float, default=1.0)
     parser.add_argument("--model-probe-timeout-s", type=int, default=900)
