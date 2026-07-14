@@ -2432,9 +2432,10 @@ def _model_probe_endpoint(agent: str) -> tuple[str, str]:
                 "claude-code endpoint override is not identity-attestable for "
                 f"a comparative run: {override}"
             )
-        raw = os.environ.get(
-            "CLAUDE_CODE_GATEWAY_URL",
-            "http://127.0.0.1:8100/v1/chat/completions",
+        raw = (
+            os.environ.get("CLAUDE_CODE_GATEWAY_URL")
+            or os.environ.get("DS_PROXY_URL")
+            or "http://127.0.0.1:8100/v1/chat/completions"
         ).rstrip("/")
         if raw.endswith("/chat/completions"):
             raw = raw[: -len("/chat/completions")]

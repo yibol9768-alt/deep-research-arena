@@ -40,6 +40,25 @@ def test_model_probe_uses_the_real_lane_door(monkeypatch):
     )
 
 
+def test_claude_probe_falls_back_to_the_runner_proxy(monkeypatch):
+    monkeypatch.delenv("CLAUDE_CODE_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("CLAUDE_CODE_LOCAL_CCR_URL", raising=False)
+    monkeypatch.delenv("CLAUDE_CODE_CCR_URL", raising=False)
+    monkeypatch.setenv("DS_PROXY_URL", "http://worker-proxy:8088/v1")
+    assert rdt._model_probe_endpoint("claude-code") == (
+        "http://worker-proxy:8088/v1", "claude-code-gateway"
+    )
+
+
+def test_opencode_checks_local_binary_before_requiring_ssh():
+    source = (
+        Path(rdt.ROOT) / "scripts" / "runners" / "opencode_runner.py"
+    ).read_text(encoding="utf-8")
+    local = source.index('shutil.which("opencode")')
+    remote = source.index('if not SSH_HOST:', local)
+    assert local < remote
+
+
 def test_timeout_override_is_explicitly_nonproduction(monkeypatch):
     monkeypatch.setenv("DRA_WALL_CLOCK_S", "123")
     contract = rdt._timeout_contract()

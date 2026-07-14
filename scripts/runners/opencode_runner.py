@@ -596,10 +596,6 @@ async def run(
             is rejected by opencode's own command gate — the soft prompt
             is no longer the gate.
     """
-    if not SSH_HOST:
-        raise RuntimeError(
-            "OPENCODE_SSH_HOST unset; the remote path is opt-in. Set it to the ssh "
-            "alias (my5090), never a bare port number.")
     # Caller may pass a bare "deepseek-v4-flash" or the full "ds-shim/deepseek-v4-flash"
     # form. Both map to the per-run ds-shim provider defined in the driver.
     if model and "/" in model:
@@ -650,6 +646,13 @@ async def run(
                     "local opencode failed and the Windows fallback has no "
                     "attested route to the bracketed egress door"
                 ) from e
+
+    if not SSH_HOST:
+        raise RuntimeError(
+            "local opencode is unavailable and OPENCODE_SSH_HOST is unset; "
+            "the remote path is opt-in. Set it to an ssh alias, never a bare "
+            "port number."
+        )
 
     if _egress.enforced() and not _egress.remote_enforced():
         raise RuntimeError(
