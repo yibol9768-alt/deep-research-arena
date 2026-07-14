@@ -89,8 +89,9 @@ MIN_REPORT_CHARS = int(os.environ.get("QX_AGENTS_MIN_REPORT_CHARS", "3000"))
 # path, never guided JSON. qwen3-8b wraps replies in <think> blocks or echoes
 # the pydantic JSON schema (input_value={'description': ..., 'type': 'object'}),
 # so create_type_parser raises ValidationError and the run aborts at iteration 1
-# with a one-line stub. This strips only the transport wrapper. Genuine JSON or
-# schema failures still raise through qx's normal parser and remain observable.
+# with a one-line stub. This strips only the transport wrapper. A schema-invalid
+# internal response gets one native format retry; persistent failures still
+# raise through qx's normal parser and remain observable.
 # Plain string (literal braces); inserted verbatim at module scope in the driver.
 _ROBUST_PARSER_SRC = '''# ---- robust structured-output parsing for local reasoning backbones ----
 import json as _rp_json
@@ -161,7 +162,7 @@ for _rp_mod in (
             _rp_m.parse_json_output = _rp_parse_json
     except Exception:
         pass
-print("[qx-parser] installed safe JSON extraction; schema failures remain fatal")'''
+print("[qx-parser] installed safe JSON extraction; persistent schema failures remain fatal")'''
 
 
 def _build_driver_script(
@@ -270,11 +271,47 @@ def _build_driver_script(
         # to always inject max_turns into kwargs.
         try:
             import deep_researcher.agents.baseclass as _bc
+            import json as _qx_json
+            from pydantic import ValidationError as _QXPydanticValidationError
+            from deep_researcher.agents.utils.parse_output import (
+                OutputParserError as _QXOutputParserError,
+            )
+            _QX_SCHEMA_ERRORS = (
+                _QXOutputParserError,
+                _QXPydanticValidationError,
+                _qx_json.JSONDecodeError,
+            )
             _orig_bc_run = _bc.ResearchRunner.run
             @classmethod
             async def _bc_patched_run(cls, *args, **kwargs):
                 kwargs['max_turns'] = _MAX_T
-                return await _orig_bc_run.__func__(cls, *args, **kwargs)
+                current_args = list(args)
+                current_kwargs = dict(kwargs)
+                for _schema_attempt in range(2):
+                    try:
+                        return await _orig_bc_run.__func__(
+                            cls, *current_args, **current_kwargs
+                        )
+                    except _QX_SCHEMA_ERRORS as _schema_exc:
+                        if _schema_attempt:
+                            raise
+                        print(
+                            '[qx-parser] retrying one schema-invalid native '
+                            'agent response: ' + type(_schema_exc).__name__,
+                            file=sys.stderr,
+                        )
+                        _schema_note = (
+                            '\\n\\nYour preceding response did not match the '
+                            'required output schema. Return only valid JSON '
+                            'matching the exact schema in your instructions, '
+                            'with no markdown fence or commentary.'
+                        )
+                        if len(current_args) > 1 and isinstance(current_args[1], str):
+                            current_args[1] = current_args[1] + _schema_note
+                        elif isinstance(current_kwargs.get('input'), str):
+                            current_kwargs['input'] += _schema_note
+                        else:
+                            raise
             _bc.ResearchRunner.run = _bc_patched_run
         except Exception:
             pass
@@ -346,6 +383,22 @@ def _extract_report(stdout: str) -> str:
     if si == -1 or ei == -1 or ei <= si:
         return ""
     return stdout[si + len(start):ei].strip()
+
+
+def _persist_native_diagnostics(stdout: str, stderr: str) -> Path | None:
+    """Persist a failed native subprocess transcript outside scored artifacts."""
+    raw_root = os.environ.get("DEEP_RUN_OUT_DIR", "").strip()
+    if not raw_root:
+        return None
+    try:
+        target = Path(raw_root) / ".diagnostics" / "qx-native"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "stdout.log").write_text(stdout, encoding="utf-8")
+        (target / "stderr.log").write_text(stderr, encoding="utf-8")
+        return target
+    except OSError as exc:
+        logger.warning("could not persist qx native diagnostics: %s", exc)
+        return None
 
 
 def _chat_completions_url(proxy_url: str) -> str:
@@ -486,13 +539,28 @@ async def run(
         stderr = proc.stderr or ""
 
         if proc.returncode != 0:
+            diagnostic_dir = _persist_native_diagnostics(stdout, stderr)
             logger.warning(
-                "qx-agents exited %d after %.0fs\nstderr tail: %s",
-                proc.returncode, elapsed, stderr[-1000:],
+                "qx-agents exited %d after %.0fs; diagnostics=%s\n"
+                "stderr tail: %s",
+                proc.returncode, elapsed, diagnostic_dir, stderr[-1000:],
             )
 
         # Extract the report
         report = _extract_report(stdout)
+
+        if proc.returncode != 0:
+            native_error = " ".join(report.split())[:500] if report else "no error payload"
+            reason = (
+                f"native qx exited {proc.returncode} after {elapsed:.0f}s: "
+                f"{native_error}"
+            )
+            return await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: _fallback_report(
+                    intent, model, shim_url, proxy_url, "native", reason
+                ),
+            )
 
         if not report:
             logger.warning("No report extracted from qx-agents output")

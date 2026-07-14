@@ -5,7 +5,7 @@ import types
 
 import pytest
 
-from scripts.runners.qx_runner import _ROBUST_PARSER_SRC
+from scripts.runners.qx_runner import _ROBUST_PARSER_SRC, _persist_native_diagnostics
 
 
 class _OutputParserError(Exception):
@@ -52,3 +52,12 @@ def test_qx_parser_reports_invalid_text_without_index_error(monkeypatch):
     with pytest.raises(_OutputParserError, match="Failed to parse output as JSON"):
         parse("plain text with no structured result")
 
+
+def test_failed_native_transcript_is_persisted_outside_scored_files(
+    tmp_path, monkeypatch,
+):
+    monkeypatch.setenv("DEEP_RUN_OUT_DIR", str(tmp_path))
+    target = _persist_native_diagnostics("native stdout", "native stderr")
+    assert target == tmp_path / ".diagnostics" / "qx-native"
+    assert (target / "stdout.log").read_text() == "native stdout"
+    assert (target / "stderr.log").read_text() == "native stderr"

@@ -66,6 +66,9 @@ def test_framework_native_budgets_are_not_silently_overridden():
     assert "return typ.model_validate(_rp_po.parse_json_output(_rp_strip(output)))" in qx
     assert 'decoder.raw_decode(cleaned[index:])' in qx
     assert 'split("```")[1]' not in qx
+    assert "for _schema_attempt in range(2)" in qx
+    assert "retrying one schema-invalid native" in qx
+    assert "_QX_SCHEMA_ERRORS" in qx
 
     tongyi = _source("scripts/runners/tongyi_runner.py")
     assert "MAX_LLM_CALLS = 100" in tongyi
