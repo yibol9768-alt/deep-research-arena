@@ -460,13 +460,14 @@ def main() -> int:
                 "OPENAI_PROXY_SHARED_SLOTS": str(args.upstream_slots),
                 "DSPROXY_MAX_CALLS": str(args.max_calls),
                 "DSPROXY_MAX_TOTAL_TOKENS": str(args.max_total_tokens),
+                "DSPROXY_ALLOWED_CLIENT_CIDRS": "127.0.0.0/8,10.240.0.0/16",
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),
                 "DRA_WORKER_ID": str(lane.worker_id),
             })
             _start(
                 lane,
                 [python, "-m", "uvicorn", "integrations.ds_proxy.app:app",
-                 "--host", "127.0.0.1", "--port", str(lane.dsproxy_port)],
+                 "--host", "0.0.0.0", "--port", str(lane.dsproxy_port)],
                 ds_env,
                 lane.dsproxy_log,
                 "dsproxy",
@@ -490,7 +491,7 @@ def main() -> int:
             _start(
                 lane,
                 [python, "-m", "uvicorn", "integrations.search_shim.app:app",
-                 "--host", "127.0.0.1", "--port", str(lane.shim_port)],
+                 "--host", "0.0.0.0", "--port", str(lane.shim_port)],
                 shim_env,
                 lane.shim_log,
                 "shim",
@@ -536,6 +537,7 @@ def main() -> int:
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),
                 "DSPROXY_MAX_CALLS": str(args.max_calls),
                 "DSPROXY_MAX_TOTAL_TOKENS": str(args.max_total_tokens),
+                "DSPROXY_ALLOWED_CLIENT_CIDRS": "127.0.0.0/8,10.240.0.0/16",
                 "OPENAI_PROXY_CHAT_READ_TIMEOUT_S": str(args.upstream_read_timeout_s),
                 "OPENAI_PROXY_RETRY_MAX_ATTEMPTS": "3",
                 "OPENAI_PROXY_SHARED_SLOTS_DIR": str(shared_slots_dir),

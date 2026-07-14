@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 
 from integrations.ds_proxy import app
 
@@ -43,3 +44,14 @@ def test_smoke_budget_stops_after_calls_and_tokens(monkeypatch):
 
     monkeypatch.setattr(app, "MAX_CALLS", 0)
     assert "token limit" in (app._budget_admit() or "")
+
+
+def test_client_network_gate_allows_only_declared_worker_cidr(monkeypatch):
+    monkeypatch.setattr(app, "ALLOWED_CLIENT_NETWORKS", (
+        ipaddress.ip_network("127.0.0.0/8"),
+        ipaddress.ip_network("10.240.0.0/16"),
+    ))
+    assert app._client_ip_allowed("127.0.0.1")
+    assert app._client_ip_allowed("10.240.23.2")
+    assert not app._client_ip_allowed("172.30.0.1")
+    assert not app._client_ip_allowed("not-an-ip")

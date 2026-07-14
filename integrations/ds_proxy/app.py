@@ -19,6 +19,7 @@ import os
 import re
 import asyncio
 import fcntl
+import ipaddress
 import threading
 import time
 from typing import Any
@@ -165,6 +166,9 @@ MAX_CALLS = int(os.environ.get("DSPROXY_MAX_CALLS", "0") or "0")
 MAX_TOTAL_TOKENS = int(
     os.environ.get("DSPROXY_MAX_TOTAL_TOKENS", "0") or "0"
 )
+_ALLOWED_CLIENT_CIDRS_RAW = os.environ.get(
+    "DSPROXY_ALLOWED_CLIENT_CIDRS", ""
+).strip()
 if SHARED_SLOTS < 0:
     raise ValueError("OPENAI_PROXY_SHARED_SLOTS must be non-negative")
 if SHARED_SLOTS and not SHARED_SLOTS_DIR:
@@ -181,6 +185,15 @@ if MAX_CALLS < 0 or MAX_TOTAL_TOKENS < 0:
 _BUDGET_LOCK = threading.Lock()
 _ACCEPTED_CALLS = 0
 _OBSERVED_TOTAL_TOKENS = 0
+
+try:
+    ALLOWED_CLIENT_NETWORKS = tuple(
+        ipaddress.ip_network(item.strip(), strict=False)
+        for item in _ALLOWED_CLIENT_CIDRS_RAW.split(",")
+        if item.strip()
+    )
+except ValueError as exc:
+    raise ValueError(f"invalid DSPROXY_ALLOWED_CLIENT_CIDRS: {exc}") from exc
 
 # The comment above described slicing a SERIAL timeline into runs. The harness
 # is not serial: measured over the 312-run 13-task subset, max concurrency is 2
@@ -365,6 +378,30 @@ def _budget_record_tokens(usage: dict | None) -> None:
         _OBSERVED_TOTAL_TOKENS += max(0, total)
 
 
+def _client_ip_allowed(raw: str | None) -> bool:
+    """Restrict a non-loopback listener to host and attested worker veths."""
+    if not ALLOWED_CLIENT_NETWORKS:
+        return True
+    try:
+        address = ipaddress.ip_address(str(raw or ""))
+    except ValueError:
+        return False
+    return any(address in network for network in ALLOWED_CLIENT_NETWORKS)
+
+
+def _client_denied(request: Request) -> JSONResponse | None:
+    peer = request.client.host if request.client else None
+    if _client_ip_allowed(peer):
+        return None
+    return JSONResponse(
+        status_code=403,
+        content={"error": {
+            "message": "ds_proxy client network is not allowed",
+            "type": "client_network_denied",
+        }},
+    )
+
+
 def _contains_code(obj: Any, code: str) -> bool:
     if isinstance(obj, dict):
         for k in ("code", "error_code", "status_code"):
@@ -537,6 +574,9 @@ def _apply_min_max_tokens(body: dict) -> None:
 
 
 async def _forward(path: str, request: Request) -> Any:
+    denied = _client_denied(request)
+    if denied is not None:
+        return denied
     body_bytes = await request.body()
     try:
         body = json.loads(body_bytes) if body_bytes else {}
@@ -777,6 +817,9 @@ async def completions(request: Request):
 async def embeddings(request: Request):
     """Forward embedding requests to DashScope text-embedding-v4 (chat upstream
     doesn't have embeddings). Strip unsupported model name and force v4."""
+    denied = _client_denied(request)
+    if denied is not None:
+        return denied
     body_bytes = await request.body()
     try:
         body = json.loads(body_bytes) if body_bytes else {}
@@ -805,6 +848,9 @@ async def embeddings(request: Request):
 
 @app.get("/v1/models")
 async def models(request: Request):
+    denied = _client_denied(request)
+    if denied is not None:
+        return denied
     headers = {"Authorization": f"Bearer {UPSTREAM_KEY}"} if UPSTREAM_KEY else {
         "Authorization": request.headers.get("authorization", "")
     }
@@ -821,6 +867,7 @@ async def healthz():
         "inject_thinking_off": INJECT_THINKING_DISABLED,
         "shared_upstream_slots": SHARED_SLOTS or None,
         "shared_slots_enabled": bool(SHARED_SLOTS),
+        "client_network_gate": bool(ALLOWED_CLIENT_NETWORKS),
         "smoke_budget": {
             "max_calls": MAX_CALLS or None,
             "accepted_calls": _ACCEPTED_CALLS,
