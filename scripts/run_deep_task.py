@@ -1826,11 +1826,19 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
         return await _degrade("native", f"native path exceeded {timeout_s}s timeout")
     finally:
         driver.unlink(missing_ok=True)
+    if proc.returncode != 0:
+        print(
+            f"ii-researcher exited {proc.returncode}; stderr tail:\n"
+            f"{(proc.stderr or '')[-4000:]}"
+        )
     if "===REPORT===" in proc.stdout:
         report = proc.stdout.split("===REPORT===", 1)[1].strip()
         if not is_weak_report(report, min_chars=3000, min_urls=3):
             return report
         print("ii-researcher native report weak")
+        print(f"ii-researcher weak report preview: {report[:1500]!r}")
+        if proc.stderr:
+            print(f"ii-researcher stderr tail:\n{proc.stderr[-4000:]}")
         # Weak-but-real output is ii-researcher's own report: save it verbatim
         # (the scorer judges quality); stub only genuinely empty/stub output.
         return keep_or_stub("ii-researcher", "write", "native report weak/under-threshold", report)

@@ -22,7 +22,12 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from integrations.egress_proxy.app import proxy_env  # noqa: E402
+from integrations.egress_proxy.app import (  # noqa: E402
+    CORPUS_READ_TIMEOUT,
+    SERVICE_READ_TIMEOUT,
+    _read_timeout,
+    proxy_env,
+)
 from scripts import run_deep_task  # noqa: E402
 from scripts.runners import _egress  # noqa: E402
 from scripts.runners.deepagents_runner import (  # noqa: E402
@@ -192,6 +197,16 @@ def test_proxy_env_is_explicit_full_proxy_policy():
                 "all_proxy", "ALL_PROXY"):
         assert env[key] == "http://127.0.0.1:12345"
     assert env["no_proxy"] == env["NO_PROXY"] == ""
+
+
+def test_service_requests_have_a_separate_long_read_timeout(origins, monkeypatch):
+    from integrations.egress_proxy import app as egress_app
+
+    service_origin = origins["service"].removeprefix("http://")
+    monkeypatch.setattr(egress_app, "SERVICE_ORIGINS", {service_origin})
+    assert SERVICE_READ_TIMEOUT > CORPUS_READ_TIMEOUT
+    assert _read_timeout(_corpus_url(origins)) == CORPUS_READ_TIMEOUT
+    assert _read_timeout(origins["service"] + "/v1/chat/completions") == SERVICE_READ_TIMEOUT
 
 
 def test_final_runner_env_cannot_erase_configured_door(monkeypatch):

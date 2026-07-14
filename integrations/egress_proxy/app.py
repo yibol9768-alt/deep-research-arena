@@ -111,7 +111,16 @@ CORPUS_ORIGINS, SERVICE_ORIGINS = _configured_origins()
 ALLOWED = CORPUS_ORIGINS | SERVICE_ORIGINS
 
 MAX_BODY = int(os.environ.get("DRA_EGRESS_MAX_BODY", str(2_000_000)))
-UPSTREAM_READ_TIMEOUT = float(os.environ.get("DRA_EGRESS_READ_TIMEOUT_S", "60"))
+# Corpus pages are local, small, and expected to fail quickly when unhealthy.
+# Model/router service requests are different: the upstream proxy can perform
+# credential cooldown and retry for several minutes before returning a valid
+# response.  Using one 60 second timeout for both classes made the recording
+# door synthesize a 504 while ds_proxy and CLIProxyAPI were still working on a
+# request that later completed with HTTP 200.
+CORPUS_READ_TIMEOUT = float(os.environ.get("DRA_EGRESS_READ_TIMEOUT_S", "60"))
+SERVICE_READ_TIMEOUT = float(
+    os.environ.get("DRA_EGRESS_SERVICE_READ_TIMEOUT_S", "600")
+)
 _CANONICAL_RAW = os.environ.get("DRA_EGRESS_CANONICAL_EVIDENCE_DIR", "").strip()
 CANONICAL_EVIDENCE_DIR = Path(_CANONICAL_RAW).resolve() if _CANONICAL_RAW else None
 
@@ -129,6 +138,13 @@ def _is_allowed(url: str) -> bool:
 
 def _is_recordable(url: str) -> bool:
     return _netloc(url) in CORPUS_ORIGINS
+
+
+def _read_timeout(url: str) -> float:
+    """Return the timeout for the already-allowlisted target class."""
+    if _netloc(url) in SERVICE_ORIGINS:
+        return SERVICE_READ_TIMEOUT
+    return CORPUS_READ_TIMEOUT
 
 
 def _links_from(body: bytes, page_url: str) -> list[str]:
@@ -214,6 +230,10 @@ async def _control(target: str, method: str, body: bytes,
         _reply(200, {"ok": True, "active_run": ctx.run_id if ctx else None,
                      "recording": evidence.enabled(),
                      "server_merge": CANONICAL_EVIDENCE_DIR is not None,
+                     "read_timeouts_s": {
+                         "corpus": CORPUS_READ_TIMEOUT,
+                         "service": SERVICE_READ_TIMEOUT,
+                     },
                      "counters": evidence.counters()})
         await writer.drain()
         return
@@ -368,13 +388,14 @@ async def _handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) ->
         # would hang this read forever, and with it the agent's request. The
         # sandbox services honour it, but a proxy that trusts the origin to be
         # well behaved is a proxy that can wedge a whole run.
+        read_timeout = _read_timeout(target)
         try:
-            raw = await asyncio.wait_for(up_r.read(), timeout=UPSTREAM_READ_TIMEOUT)
+            raw = await asyncio.wait_for(up_r.read(), timeout=read_timeout)
         except asyncio.TimeoutError:
             if recordable:
                 evidence.record_fetch(
                     target, 0, b"", endpoint="/egress",
-                    error=f"upstream read timeout after {UPSTREAM_READ_TIMEOUT}s",
+                    error=f"upstream read timeout after {read_timeout}s",
                 )
             up_w.close()
             writer.write(b"HTTP/1.1 504 Gateway Timeout\r\nContent-Length: 0\r\n\r\n")

@@ -117,3 +117,28 @@ def test_shell_origin_contract_separates_corpus_from_services():
     assert 'out.add(f"localhost:{port}")' in text
     assert 'out.add(f"127.0.0.1:{port}")' in text
     assert "egress corpus/service origins overlap" in text
+
+
+def test_shell_selects_composite_runtime_and_checks_queued_imports():
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert ".venv-dra-runtime/bin/python" in text
+    assert ".venv-camel/bin/python" in text
+    for module in ("camel", "open_deep_research", "smolagents", "dspy"):
+        assert f"RUNTIME_MODULES+=({module})" in text
+
+
+def test_shell_binds_nonpass_outcomes_before_final_audit():
+    text = SCRIPT.read_text(encoding="utf-8")
+    run_failed = text.index('if [ "$run_rc" -ne 0 ]')
+    bind_outcome = text.index('scripts/verify_run_set.py bind-outcome', run_failed)
+    final_audit = text.index('scripts/verify_run_set.py audit', bind_outcome)
+    assert run_failed < bind_outcome < final_audit
+    assert "OUTCOME_STATUS=stalled" in text
+    assert "OUTCOME_STATUS=timeout" in text
+    assert "OUTCOME_STATUS=infra_abort" in text
+
+
+def test_shell_uses_long_service_timeout_without_weakening_corpus_timeout():
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert 'DRA_MODEL_PROBE_TIMEOUT_S=${DRA_MODEL_PROBE_TIMEOUT_S:-360}' in text
+    assert 'DRA_EGRESS_SERVICE_READ_TIMEOUT_S=${DRA_EGRESS_SERVICE_READ_TIMEOUT_S:-600}' in text

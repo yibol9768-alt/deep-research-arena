@@ -93,6 +93,7 @@ MIN_REPORT_CHARS = int(os.environ.get("QX_AGENTS_MIN_REPORT_CHARS", "3000"))
 # schema failures still raise through qx's normal parser and remain observable.
 # Plain string (literal braces); inserted verbatim at module scope in the driver.
 _ROBUST_PARSER_SRC = '''# ---- robust structured-output parsing for local reasoning backbones ----
+import json as _rp_json
 import re as _rp_re
 import importlib as _rp_il
 import deep_researcher.agents.utils.parse_output as _rp_po
@@ -105,9 +106,37 @@ def _rp_strip(s):
         s = s.split("<think>")[0]
     return s.strip()
 
-_rp_orig_parse = _rp_po.parse_json_output
 def _rp_parse_json(output):
-    return _rp_orig_parse(_rp_strip(output))
+    cleaned = _rp_strip(output)
+    if not isinstance(cleaned, str):
+        return cleaned
+
+    # Native qx tries json.loads, then unconditionally indexes the second code-
+    # fence segment. A valid JSON object surrounded by prose has no fence, so it raises
+    # IndexError before its own balanced-brace fallback can run. Try strict JSON,
+    # fenced JSON, then JSONDecoder.raw_decode at each object/array opener.
+    candidates = [cleaned]
+    candidates.extend(
+        match.group(1).strip()
+        for match in _rp_re.finditer(
+            r"```(?:json|JSON)?\\s*(.*?)```", cleaned, flags=_rp_re.DOTALL
+        )
+    )
+    for candidate in candidates:
+        try:
+            return _rp_json.loads(candidate)
+        except (TypeError, _rp_json.JSONDecodeError):
+            pass
+    decoder = _rp_json.JSONDecoder()
+    for index, char in enumerate(cleaned):
+        if char not in "[{":
+            continue
+        try:
+            value, _ = decoder.raw_decode(cleaned[index:])
+            return value
+        except _rp_json.JSONDecodeError:
+            continue
+    raise _rp_po.OutputParserError("Failed to parse output as JSON", output)
 _rp_po.parse_json_output = _rp_parse_json
 
 def _rp_make_parser(typ):
@@ -132,7 +161,7 @@ for _rp_mod in (
             _rp_m.parse_json_output = _rp_parse_json
     except Exception:
         pass
-print("[qx-parser] installed think-wrapper stripping; schema failures remain fatal")'''
+print("[qx-parser] installed safe JSON extraction; schema failures remain fatal")'''
 
 
 def _build_driver_script(

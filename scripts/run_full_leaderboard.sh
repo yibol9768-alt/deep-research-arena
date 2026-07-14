@@ -5,6 +5,8 @@
 # code version can therefore never satisfy this run's cache check.
 set -uo pipefail
 
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)
+
 QUEUE=data/results/run_queue.tsv
 if [ "$#" -gt 0 ] && [ "$1" != "--model-probe" ]; then
     QUEUE=$1
@@ -113,11 +115,27 @@ export DEEP_RUN_OUT_DIR=$RAW_DIR
 export DRA_RUN_SET_ID=$RUN_SET_ID
 export DRA_RUN_MANIFEST=$MANIFEST
 
-PYTHON=${PYTHON:-python3}
+if [ -n "${PYTHON:-}" ]; then
+    : # Explicit operator selection wins.
+elif [ -x "${REPO_ROOT}/.venv-dra-runtime/bin/python" ]; then
+    PYTHON=${REPO_ROOT}/.venv-dra-runtime/bin/python
+elif [ -x "${REPO_ROOT}/.venv-camel/bin/python" ]; then
+    # my5090's composite supervisor environment. Frameworks with dedicated
+    # venvs still launch those venvs from their runner; this Python supplies
+    # only the in-process adapters (camel, smolagents, STORM and ODR).
+    PYTHON=${REPO_ROOT}/.venv-camel/bin/python
+else
+    PYTHON=python3
+fi
 REPLICATES=${REPLICATES:-1}
 # No comparative wall-clock by default. A positive operator override is
 # recorded in the manifest and must not be presented as the standard protocol.
 RUN_TIMEOUT=${RUN_TIMEOUT:-0}
+# CLIProxyAPI can legitimately finish after credential cooldown/reselection.
+# Keep the identity client below the service door, while both remain above the
+# observed four-minute tail. Corpus reads retain their separate 60s default.
+export DRA_MODEL_PROBE_TIMEOUT_S=${DRA_MODEL_PROBE_TIMEOUT_S:-360}
+export DRA_EGRESS_SERVICE_READ_TIMEOUT_S=${DRA_EGRESS_SERVICE_READ_TIMEOUT_S:-600}
 
 if ! command -v "$PYTHON" >/dev/null 2>&1 && [ ! -x "$PYTHON" ]; then
     echo "ERROR: Python executable not found: $PYTHON" >&2
@@ -203,6 +221,34 @@ fi
 case "$REPLICATES" in
     ''|*[!0-9]*|0) echo "ERROR: REPLICATES must be a positive integer" >&2; exit 2 ;;
 esac
+
+# Several adapters run in this supervisor interpreter rather than in their
+# framework-specific subprocess venv. Refuse before gates, namespaces and API
+# probes if the selected runtime cannot import what the queued lanes need.
+RUNTIME_MODULES=()
+while IFS=$'\t' read -r RUNTIME_AGENT _; do
+    case "$RUNTIME_AGENT" in
+        camel-ai) RUNTIME_MODULES+=(camel) ;;
+        langchain-odr) RUNTIME_MODULES+=(open_deep_research) ;;
+        smolagents) RUNTIME_MODULES+=(smolagents) ;;
+        storm) RUNTIME_MODULES+=(dspy) ;;
+    esac
+done < "$QUEUE"
+if [ "${#RUNTIME_MODULES[@]}" -gt 0 ]; then
+    "$PYTHON" - "${RUNTIME_MODULES[@]}" <<'PY' || exit 2
+import importlib.util
+import sys
+
+missing = sorted({name for name in sys.argv[1:] if importlib.util.find_spec(name) is None})
+if missing:
+    raise SystemExit(
+        "selected formal runtime cannot import queued adapter dependencies: "
+        + ", ".join(missing)
+        + f" (python={sys.executable})"
+    )
+print(f"formal runtime OK: python={sys.executable}; modules={','.join(sorted(set(sys.argv[1:])))}")
+PY
+fi
 
 # GOAL_GATES_V1 permanent fixture (docs/GOAL_GATES_V1.md): the two leaderboard
 # properties are enforced by the deterministic goal gates, and a formal run may
@@ -514,11 +560,38 @@ while IFS=$'\t' read -r AGENT TASK; do
         if [ "$run_rc" -ne 0 ]; then
             failed=$((failed + 1))
             echo "$(date '+%FT%T') RUN-FAILED $AGENT $TASK rep=$REP rc=$run_rc" >> "$ERRORS"
+            OUTCOME_ARGS=(
+                --meta "$META" --manifest "$MANIFEST"
+                --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE"
+                --replicate "$REP" --agent "$AGENT" --task "$TASK"
+            )
+            if [ ! -f "$META" ]; then
+                case "$run_rc" in
+                    3) OUTCOME_STATUS=stalled ;;
+                    4|124|137|143) OUTCOME_STATUS=timeout ;;
+                    *) OUTCOME_STATUS=infra_abort ;;
+                esac
+                OUTCOME_ARGS+=(--status "$OUTCOME_STATUS" --error "outer runner rc=$run_rc")
+            fi
+            if ! "$PYTHON" scripts/verify_run_set.py bind-outcome "${OUTCOME_ARGS[@]}"; then
+                echo "$(date '+%FT%T') OUTCOME-BIND-FAILED $AGENT $TASK rep=$REP rc=$run_rc" >> "$ERRORS"
+            fi
             continue
         fi
         if [ ! -f "$REPORT" ]; then
             failed=$((failed + 1))
             echo "$(date '+%FT%T') NO-REPORT $AGENT $TASK rep=$REP" >> "$ERRORS"
+            OUTCOME_ARGS=(
+                --meta "$META" --manifest "$MANIFEST"
+                --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE"
+                --replicate "$REP" --agent "$AGENT" --task "$TASK"
+            )
+            if [ ! -f "$META" ]; then
+                OUTCOME_ARGS+=(--status infra_abort --error "runner exited zero without report or metadata")
+            fi
+            if ! "$PYTHON" scripts/verify_run_set.py bind-outcome "${OUTCOME_ARGS[@]}"; then
+                echo "$(date '+%FT%T') OUTCOME-BIND-FAILED $AGENT $TASK rep=$REP rc=0" >> "$ERRORS"
+            fi
             continue
         fi
         if [ ! -f "$META" ] || \

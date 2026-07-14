@@ -64,6 +64,8 @@ def test_framework_native_budgets_are_not_silently_overridden():
     assert "IterativeResearcher" not in qx
     assert "def _rp_fallback" not in qx
     assert "return typ.model_validate(_rp_po.parse_json_output(_rp_strip(output)))" in qx
+    assert 'decoder.raw_decode(cleaned[index:])' in qx
+    assert 'split("```")[1]' not in qx
 
     tongyi = _source("scripts/runners/tongyi_runner.py")
     assert "MAX_LLM_CALLS = 100" in tongyi
