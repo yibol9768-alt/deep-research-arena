@@ -431,7 +431,10 @@ def _prepare_safe_repo_views(
 
     safe_scripts = safe / "scripts"
     safe_scripts.mkdir()
-    for name in ("__init__.py", "run_deep_task.py", "production_isolation.py"):
+    for name in (
+        "__init__.py", "run_deep_task.py", "run_manifest.py",
+        "production_isolation.py",
+    ):
         source = repository / "scripts" / name
         if source.exists():
             shutil.copy2(source, safe_scripts / name)
@@ -446,7 +449,10 @@ def _prepare_safe_repo_views(
 
     safe_verifiers = safe / "src-verifiers"
     safe_verifiers.mkdir()
-    for name in ("__init__.py", "citation_format.py", "sandbox_compliance_verifier.py"):
+    # The repository initializer imports the complete scoring stack.  Workers
+    # only need these deterministic modules, so expose an inert package root.
+    (safe_verifiers / "__init__.py").write_text("", encoding="utf-8")
+    for name in ("citation_format.py", "sandbox_compliance_verifier.py"):
         source = repository / "src" / "verifiers" / name
         if source.exists():
             shutil.copy2(source, safe_verifiers / name)

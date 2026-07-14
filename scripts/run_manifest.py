@@ -427,7 +427,7 @@ def generate(root: Path | str = ROOT, *, env: dict[str, str] | None = None,
 # --- model identity probe --------------------------------------------------
 def probe_model_identity(endpoint: str, api_key: str, declared: str, *,
                          transport=None, model_for_request: str | None = None,
-                         timeout_s: float = 20.0) -> dict:
+                         timeout_s: float | None = None) -> dict:
     """Ask an OpenAI-compatible endpoint what model it actually is and assert it
     equals `declared`. Catches the claude-code-lane accident where qwen3-8b
     output was filed under deepseek.
@@ -436,6 +436,10 @@ def probe_model_identity(endpoint: str, api_key: str, declared: str, *,
     so this is unit-testable and NEVER hits the wire in tests or preflight. When
     `transport` is None a real requests-based call is built lazily, so importing
     this module costs nothing and needs no `requests`."""
+    if timeout_s is None:
+        timeout_s = float(os.environ.get("DRA_MODEL_PROBE_TIMEOUT_S", "20"))
+    if timeout_s <= 0:
+        raise ValueError("model identity probe timeout must be positive")
     if transport is None:
         transport = _requests_transport(timeout_s)
 

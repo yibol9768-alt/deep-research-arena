@@ -148,3 +148,5 @@ def test_formal_launcher_uses_kernel_exec_and_live_probe():
     assert "os.chroot(rootfs)" in source
     assert "hidden_gold_read_attempts" in source
     assert '"safe_data"' in source and '"safe_scripts"' in source
+    assert '"run_manifest.py"' in source
+    assert '(safe_verifiers / "__init__.py").write_text("", encoding="utf-8")' in source

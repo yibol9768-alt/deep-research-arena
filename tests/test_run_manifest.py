@@ -189,6 +189,20 @@ def test_probe_records_transport_failure_without_raising():
     assert "ConnectionError" in r["error"]
 
 
+def test_probe_timeout_can_be_recorded_run_parameter(monkeypatch):
+    seen = {}
+
+    def fake_transport_factory(timeout_s):
+        seen["timeout_s"] = timeout_s
+        return lambda *_args: {"model": "model-a"}
+
+    monkeypatch.setenv("DRA_MODEL_PROBE_TIMEOUT_S", "120")
+    monkeypatch.setattr(rm, "_requests_transport", fake_transport_factory)
+    result = rm.probe_model_identity("http://x/v1", "k", "model-a")
+    assert result["ok"] is True
+    assert seen["timeout_s"] == 120.0
+
+
 def test_task_set_hash_is_stable_and_order_independent(tmp_path):
     root = _init_repo(tmp_path)
     h1 = rm.task_set_hash(root)
