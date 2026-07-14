@@ -361,11 +361,15 @@ finally:
 PY
 
 EGRESS_LOG=${LOG_DIR}/egress-worker-${WORKER_ID}.log
+# Bash applies assignment prefixes from left to right.  Snapshot the canonical
+# shim directory before temporarily pointing the egress process at its private
+# recorder directory, or the merge target becomes the egress directory itself.
+CANONICAL_SHIM_EVIDENCE_DIR=$SHIM_EVIDENCE_DIR
 SHIM_EVIDENCE_DIR="$DRA_EGRESS_EVIDENCE_DIR" \
 SHIM_EVIDENCE=1 \
 DRA_EGRESS_CORPUS="$DRA_EGRESS_CORPUS" \
 DRA_EGRESS_SERVICES="$DRA_EGRESS_SERVICES" \
-DRA_EGRESS_CANONICAL_EVIDENCE_DIR="$SHIM_EVIDENCE_DIR" \
+DRA_EGRESS_CANONICAL_EVIDENCE_DIR="$CANONICAL_SHIM_EVIDENCE_DIR" \
     "$PYTHON" -m integrations.egress_proxy.app \
         --host "$ISOLATION_GATEWAY" --port "$EGRESS_PORT" >>"$EGRESS_LOG" 2>&1 &
 EGRESS_PID=$!

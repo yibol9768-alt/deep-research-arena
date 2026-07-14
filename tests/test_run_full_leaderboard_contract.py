@@ -73,7 +73,11 @@ def test_shell_owns_one_separate_egress_recorder_per_worker():
     assert "export DRA_EGRESS_EVIDENCE_DIR=${EVIDENCE_ROOT}/egress-worker-${WORKER_ID}" in text
     assert 'SHIM_EVIDENCE_DIR="$DRA_EGRESS_EVIDENCE_DIR" \\\nSHIM_EVIDENCE=1 \\' in text
     assert '"$PYTHON" -m integrations.egress_proxy.app' in text
-    assert 'DRA_EGRESS_CANONICAL_EVIDENCE_DIR="$SHIM_EVIDENCE_DIR"' in text
+    assert "CANONICAL_SHIM_EVIDENCE_DIR=$SHIM_EVIDENCE_DIR" in text
+    assert (
+        'DRA_EGRESS_CANONICAL_EVIDENCE_DIR="$CANONICAL_SHIM_EVIDENCE_DIR"'
+        in text
+    )
     assert "trap cleanup_production_boundary EXIT" in text
 
 
