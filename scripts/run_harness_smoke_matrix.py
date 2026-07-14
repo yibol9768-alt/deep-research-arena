@@ -385,6 +385,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--model-probe-timeout-s", type=int, default=900)
     parser.add_argument("--service-read-timeout-s", type=int, default=1200)
     parser.add_argument("--upstream-read-timeout-s", type=int, default=600)
+    parser.add_argument("--score-timeout-s", type=int, default=1800)
     return parser.parse_args()
 
 
@@ -396,7 +397,11 @@ def main() -> int:
         raise SystemExit("composite supervisor runtime .venv-camel is missing")
     if args.upstream_slots <= 0:
         raise SystemExit("--upstream-slots must be positive")
-    if args.max_calls < 0 or args.max_total_tokens < 0:
+    if (
+        args.max_calls < 0
+        or args.max_total_tokens < 0
+        or args.score_timeout_s < 0
+    ):
         raise SystemExit("smoke budgets must be non-negative")
 
     tag = args.tag or (
@@ -537,6 +542,7 @@ def main() -> int:
                 "DRA_QX_ADAPTER_PORT": str(lane.qx_port),
                 "DRA_MODEL_PROBE_TIMEOUT_S": str(args.model_probe_timeout_s),
                 "DRA_EGRESS_SERVICE_READ_TIMEOUT_S": str(args.service_read_timeout_s),
+                "DRA_SCORE_TIMEOUT_S": str(args.score_timeout_s),
                 "DRA_SMOKE_SCOPE": f"{len(lanes)}-harness-x-1-task",
                 "DRA_SMOKE_TASK": args.task,
                 "DS_PROXY_URL": f"http://127.0.0.1:{lane.dsproxy_port}/v1",

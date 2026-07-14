@@ -12,6 +12,7 @@ from scripts.verify_run_set import (
     assert_lane_registry_parity,
     audit_run_set,
     bind_entry,
+    is_bound_report_resumable,
     is_entry_resumable,
     read_queue,
     validate_entry,
@@ -184,6 +185,9 @@ def test_resume_requires_every_binding_dimension_and_current_report(tmp_path):
         task="dr_cross_deep_0001",
     )
     assert is_entry_resumable(score, meta, report, manifest, **common)
+    score.unlink()
+    assert is_bound_report_resumable(meta, report, manifest, **common)
+    score.write_text("{}")
     assert not is_entry_resumable(
         score, meta, report, manifest, **{**common, "replicate": 2}
     )
@@ -193,6 +197,7 @@ def test_resume_requires_every_binding_dimension_and_current_report(tmp_path):
 
     report.write_text(report.read_text() + "tampered")
     assert not is_entry_resumable(score, meta, report, manifest, **common)
+    assert not is_bound_report_resumable(meta, report, manifest, **common)
 
 
 def test_resume_rejects_manifest_drift_after_binding(tmp_path):

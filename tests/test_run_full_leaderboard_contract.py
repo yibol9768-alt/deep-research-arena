@@ -153,6 +153,16 @@ def test_shell_binds_nonpass_outcomes_before_final_audit():
     assert "OUTCOME_STATUS=infra_abort" in text
 
 
+def test_shell_resumes_bound_report_at_scoring_without_rerunning_agent():
+    text = SCRIPT.read_text(encoding="utf-8")
+    resume_check = text.index("verify-bound-report")
+    resume_flag = text.index("RESUME_SCORE_ONLY=1", resume_check)
+    native_guard = text.index('if [ "$RESUME_SCORE_ONLY" -eq 0 ]', resume_flag)
+    scorer = text.index("scripts/score_deep_answer.py", native_guard)
+    assert resume_check < resume_flag < native_guard < scorer
+    assert "DRA_SCORE_TIMEOUT_S=${DRA_SCORE_TIMEOUT_S:-1800}" in text
+
+
 def test_shell_uses_long_service_timeout_without_weakening_corpus_timeout():
     text = SCRIPT.read_text(encoding="utf-8")
     assert 'DRA_MODEL_PROBE_TIMEOUT_S=${DRA_MODEL_PROBE_TIMEOUT_S:-360}' in text

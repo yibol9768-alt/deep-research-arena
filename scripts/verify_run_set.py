@@ -952,6 +952,46 @@ def entry_resume_violations(
     return []
 
 
+def bound_report_resume_violations(
+    meta_path: Path,
+    report_path: Path,
+    manifest_path: Path,
+    *,
+    run_set_id: str,
+    backbone: str,
+    replicate: int,
+    agent: str | None = None,
+    task: str | None = None,
+) -> list[str]:
+    """Validate a completed, bound report independently of its score.
+
+    Scoring is a separate, restartable supervisor phase.  If it is interrupted,
+    a cryptographically bound pass report must be reusable without spending the
+    framework's native API calls again.  This deliberately performs every
+    report/meta/manifest check used by a full entry while omitting only the
+    not-yet-created score checks.
+    """
+    try:
+        validate_entry(
+            report_path,
+            meta_path,
+            manifest_path,
+            run_set_id=run_set_id,
+            backbone=backbone,
+            replicate=replicate,
+            agent=agent,
+            task=task,
+            require_binding=True,
+        )
+    except IntegrityError as exc:
+        return [str(exc)]
+    return []
+
+
+def is_bound_report_resumable(*args, **kwargs) -> bool:
+    return not bound_report_resume_violations(*args, **kwargs)
+
+
 def is_entry_resumable(*args, **kwargs) -> bool:
     return not entry_resume_violations(*args, **kwargs)
 
@@ -1196,6 +1236,16 @@ def main(argv: list[str] | None = None) -> int:
     p_entry.add_argument("--agent")
     p_entry.add_argument("--task")
 
+    p_report = sub.add_parser("verify-bound-report")
+    p_report.add_argument("--report", type=Path, required=True)
+    p_report.add_argument("--meta", type=Path, required=True)
+    p_report.add_argument("--manifest", type=Path, required=True)
+    p_report.add_argument("--run-set-id", required=True)
+    p_report.add_argument("--backbone", required=True)
+    p_report.add_argument("--replicate", type=int, required=True)
+    p_report.add_argument("--agent")
+    p_report.add_argument("--task")
+
     p_audit = sub.add_parser("audit")
     p_audit.add_argument("--run-set-dir", type=Path, required=True)
     p_audit.add_argument("--out", type=Path)
@@ -1287,6 +1337,20 @@ def main(argv: list[str] | None = None) -> int:
             if violations:
                 raise IntegrityError("; ".join(violations))
             print("entry binding OK")
+        elif args.command == "verify-bound-report":
+            violations = bound_report_resume_violations(
+                args.meta,
+                args.report,
+                args.manifest,
+                run_set_id=args.run_set_id,
+                backbone=args.backbone,
+                replicate=args.replicate,
+                agent=args.agent,
+                task=args.task,
+            )
+            if violations:
+                raise IntegrityError("; ".join(violations))
+            print("bound report OK; scoring may resume")
         elif args.command == "audit":
             result = audit_run_set(args.run_set_dir)
             rendered = json.dumps(result, indent=2, ensure_ascii=False) + "\n"

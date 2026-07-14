@@ -131,6 +131,14 @@ REPLICATES=${REPLICATES:-1}
 # No comparative wall-clock by default. A positive operator override is
 # recorded in the manifest and must not be presented as the standard protocol.
 RUN_TIMEOUT=${RUN_TIMEOUT:-0}
+# Scoring is restartable and can legitimately exceed ten minutes for a long
+# native report (QX produced 93,989 chars and was killed while still making
+# judge progress at the former fixed 600s ceiling). Keep a recorded, uniform
+# ceiling with a generous default; 0 explicitly means no scoring wall clock.
+export DRA_SCORE_TIMEOUT_S=${DRA_SCORE_TIMEOUT_S:-1800}
+case "$DRA_SCORE_TIMEOUT_S" in
+    ''|*[!0-9]*) echo "ERROR: DRA_SCORE_TIMEOUT_S must be a non-negative integer" >&2; exit 2 ;;
+esac
 # CLIProxyAPI can legitimately finish after credential cooldown/reselection.
 # Keep the identity client below the service door, while both remain above the
 # observed four-minute tail. Corpus reads retain their separate 60s default.
@@ -560,70 +568,92 @@ while IFS=$'\t' read -r AGENT TASK; do
         # report/meta. It can never be a cache hit after verify-entry rejected
         # it, so remove only this generated score artifact before execution.
         rm -f "$SCORE"
-        if [ "$RUN_TIMEOUT" -gt 0 ] 2>/dev/null; then
-            timeout "$RUN_TIMEOUT" "$PYTHON" scripts/production_isolation.py exec \
-                --state "$ISOLATION_STATE" -- \
-                "$PYTHON" scripts/run_deep_task.py --agent "$AGENT" \
-                --task "$TASK" --backbone "$BACKBONE" --out-suffix "$SUFFIX"
-        else
-            "$PYTHON" scripts/production_isolation.py exec \
-                --state "$ISOLATION_STATE" -- \
-                "$PYTHON" scripts/run_deep_task.py --agent "$AGENT" \
-                --task "$TASK" --backbone "$BACKBONE" --out-suffix "$SUFFIX"
+        RESUME_SCORE_ONLY=0
+        if [ -f "$REPORT" ] && [ -f "$META" ] && \
+           "$PYTHON" scripts/production_isolation.py verify-meta \
+                --proof-dir "$ISOLATION_PROOF_DIR" --meta "$META" >/dev/null && \
+           "$PYTHON" scripts/verify_run_set.py verify-bound-report \
+                --report "$REPORT" --meta "$META" --manifest "$MANIFEST" \
+                --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE" \
+                --replicate "$REP" --agent "$AGENT" --task "$TASK" >/dev/null
+        then
+            RESUME_SCORE_ONLY=1
+            echo "$(date '+%FT%T') RESUME-SCORE $AGENT $TASK rep=$REP" >> "$PROGRESS"
         fi
-        run_rc=$?
-        if [ "$run_rc" -ne 0 ]; then
-            failed=$((failed + 1))
-            echo "$(date '+%FT%T') RUN-FAILED $AGENT $TASK rep=$REP rc=$run_rc" >> "$ERRORS"
-            OUTCOME_ARGS=(
-                --meta "$META" --manifest "$MANIFEST"
-                --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE"
-                --replicate "$REP" --agent "$AGENT" --task "$TASK"
-            )
-            if [ ! -f "$META" ]; then
-                case "$run_rc" in
-                    3) OUTCOME_STATUS=stalled ;;
-                    4|124|137|143) OUTCOME_STATUS=timeout ;;
-                    *) OUTCOME_STATUS=infra_abort ;;
-                esac
-                OUTCOME_ARGS+=(--status "$OUTCOME_STATUS" --error "outer runner rc=$run_rc")
+
+        if [ "$RESUME_SCORE_ONLY" -eq 0 ]; then
+            if [ "$RUN_TIMEOUT" -gt 0 ] 2>/dev/null; then
+                timeout "$RUN_TIMEOUT" "$PYTHON" scripts/production_isolation.py exec \
+                    --state "$ISOLATION_STATE" -- \
+                    "$PYTHON" scripts/run_deep_task.py --agent "$AGENT" \
+                    --task "$TASK" --backbone "$BACKBONE" --out-suffix "$SUFFIX"
+            else
+                "$PYTHON" scripts/production_isolation.py exec \
+                    --state "$ISOLATION_STATE" -- \
+                    "$PYTHON" scripts/run_deep_task.py --agent "$AGENT" \
+                    --task "$TASK" --backbone "$BACKBONE" --out-suffix "$SUFFIX"
             fi
-            if ! "$PYTHON" scripts/verify_run_set.py bind-outcome "${OUTCOME_ARGS[@]}"; then
-                echo "$(date '+%FT%T') OUTCOME-BIND-FAILED $AGENT $TASK rep=$REP rc=$run_rc" >> "$ERRORS"
+            run_rc=$?
+            if [ "$run_rc" -ne 0 ]; then
+                failed=$((failed + 1))
+                echo "$(date '+%FT%T') RUN-FAILED $AGENT $TASK rep=$REP rc=$run_rc" >> "$ERRORS"
+                OUTCOME_ARGS=(
+                    --meta "$META" --manifest "$MANIFEST"
+                    --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE"
+                    --replicate "$REP" --agent "$AGENT" --task "$TASK"
+                )
+                if [ ! -f "$META" ]; then
+                    case "$run_rc" in
+                        3) OUTCOME_STATUS=stalled ;;
+                        4|124|137|143) OUTCOME_STATUS=timeout ;;
+                        *) OUTCOME_STATUS=infra_abort ;;
+                    esac
+                    OUTCOME_ARGS+=(--status "$OUTCOME_STATUS" --error "outer runner rc=$run_rc")
+                fi
+                if ! "$PYTHON" scripts/verify_run_set.py bind-outcome "${OUTCOME_ARGS[@]}"; then
+                    echo "$(date '+%FT%T') OUTCOME-BIND-FAILED $AGENT $TASK rep=$REP rc=$run_rc" >> "$ERRORS"
+                fi
+                continue
             fi
-            continue
-        fi
-        if [ ! -f "$REPORT" ]; then
-            failed=$((failed + 1))
-            echo "$(date '+%FT%T') NO-REPORT $AGENT $TASK rep=$REP" >> "$ERRORS"
-            OUTCOME_ARGS=(
-                --meta "$META" --manifest "$MANIFEST"
-                --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE"
-                --replicate "$REP" --agent "$AGENT" --task "$TASK"
-            )
-            if [ ! -f "$META" ]; then
-                OUTCOME_ARGS+=(--status infra_abort --error "runner exited zero without report or metadata")
+            if [ ! -f "$REPORT" ]; then
+                failed=$((failed + 1))
+                echo "$(date '+%FT%T') NO-REPORT $AGENT $TASK rep=$REP" >> "$ERRORS"
+                OUTCOME_ARGS=(
+                    --meta "$META" --manifest "$MANIFEST"
+                    --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE"
+                    --replicate "$REP" --agent "$AGENT" --task "$TASK"
+                )
+                if [ ! -f "$META" ]; then
+                    OUTCOME_ARGS+=(--status infra_abort --error "runner exited zero without report or metadata")
+                fi
+                if ! "$PYTHON" scripts/verify_run_set.py bind-outcome "${OUTCOME_ARGS[@]}"; then
+                    echo "$(date '+%FT%T') OUTCOME-BIND-FAILED $AGENT $TASK rep=$REP rc=0" >> "$ERRORS"
+                fi
+                continue
             fi
-            if ! "$PYTHON" scripts/verify_run_set.py bind-outcome "${OUTCOME_ARGS[@]}"; then
-                echo "$(date '+%FT%T') OUTCOME-BIND-FAILED $AGENT $TASK rep=$REP rc=0" >> "$ERRORS"
+            if [ ! -f "$META" ] || \
+               ! "$PYTHON" scripts/production_isolation.py verify-meta \
+                    --proof-dir "$ISOLATION_PROOF_DIR" --meta "$META" || \
+               ! "$PYTHON" scripts/verify_run_set.py bind-entry \
+                --report "$REPORT" --meta "$META" --manifest "$MANIFEST" \
+                --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE" \
+                --replicate "$REP" --agent "$AGENT" --task "$TASK"; then
+                failed=$((failed + 1))
+                echo "$(date '+%FT%T') INTEGRITY-FAILED $AGENT $TASK rep=$REP" >> "$ERRORS"
+                continue
             fi
-            continue
-        fi
-        if [ ! -f "$META" ] || \
-           ! "$PYTHON" scripts/production_isolation.py verify-meta \
-                --proof-dir "$ISOLATION_PROOF_DIR" --meta "$META" || \
-           ! "$PYTHON" scripts/verify_run_set.py bind-entry \
-            --report "$REPORT" --meta "$META" --manifest "$MANIFEST" \
-            --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE" \
-            --replicate "$REP" --agent "$AGENT" --task "$TASK"; then
-            failed=$((failed + 1))
-            echo "$(date '+%FT%T') INTEGRITY-FAILED $AGENT $TASK rep=$REP" >> "$ERRORS"
-            continue
         fi
         SCORE_TMP=${SCORE}.tmp.$$
         rm -f "$SCORE_TMP"
-        if timeout 600 "$PYTHON" scripts/score_deep_answer.py \
-            --task "$TASK" --answer "$REPORT" --out "$SCORE_TMP" && \
+        score_rc=0
+        if [ "$DRA_SCORE_TIMEOUT_S" -eq 0 ]; then
+            "$PYTHON" scripts/score_deep_answer.py \
+                --task "$TASK" --answer "$REPORT" --out "$SCORE_TMP" || score_rc=$?
+        else
+            timeout "$DRA_SCORE_TIMEOUT_S" "$PYTHON" scripts/score_deep_answer.py \
+                --task "$TASK" --answer "$REPORT" --out "$SCORE_TMP" || score_rc=$?
+        fi
+        if [ "$score_rc" -eq 0 ] && \
            "$PYTHON" scripts/verify_run_set.py verify-entry \
             --score "$SCORE_TMP" --meta "$META" --report "$REPORT" \
             --manifest "$MANIFEST" --run-set-id "$RUN_SET_ID" \

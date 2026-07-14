@@ -24,6 +24,7 @@ def test_default_smoke_fuses_cover_native_qx_without_becoming_unbounded(
     args = smoke._parse_args()
     assert args.max_calls == 256
     assert args.max_total_tokens == 750_000
+    assert args.score_timeout_s == 1800
 
 
 def test_smoke_source_routes_separate_dial_address_from_public_identity():
