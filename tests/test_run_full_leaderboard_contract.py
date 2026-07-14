@@ -127,6 +127,21 @@ def test_shell_selects_composite_runtime_and_checks_queued_imports():
         assert f"RUNTIME_MODULES+=({module})" in text
 
 
+def test_odr_uses_attested_worktree_source_not_stale_editable_checkout():
+    task_runner = (ROOT / "scripts" / "run_deep_task.py").read_text(
+        encoding="utf-8"
+    )
+    source_decl = task_runner.index(
+        'ODR_SOURCE_ROOT = ROOT / "third_party" / '
+        '"langchain-open-deep-research" / "src"'
+    )
+    path_insert = task_runner.index("sys.path.insert(0, odr_source)")
+    native_import = task_runner.index(
+        "import open_deep_research.deep_researcher as odr"
+    )
+    assert source_decl < path_insert < native_import
+
+
 def test_shell_binds_nonpass_outcomes_before_final_audit():
     text = SCRIPT.read_text(encoding="utf-8")
     run_failed = text.index('if [ "$run_rc" -ne 0 ]')

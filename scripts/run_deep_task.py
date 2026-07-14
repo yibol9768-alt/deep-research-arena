@@ -31,6 +31,14 @@ from typing import Optional
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+# The my5090 composite runtime installs open_deep_research editable.  Its
+# generated PEP-660 finder records the checkout path that existed at install
+# time (normally /opt/deep_reserch).  Formal smokes run from an immutable clean
+# worktree mounted at /opt/deep_reserch-smoke, while the worker chroot exposes
+# only that attested repository.  Put the attested source tree on sys.path so
+# the native ODR graph never depends on an inaccessible/stale editable path.
+ODR_SOURCE_ROOT = ROOT / "third_party" / "langchain-open-deep-research" / "src"
+
 DEEP_TASK_DIR = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep"
 OUT_DIR = ROOT / "data" / "results" / "deep"
 
@@ -1113,6 +1121,13 @@ async def _run_langchain_odr_graph(intent: str, model: str) -> str:
     os.environ["DEFAULT_MODEL"] = model
     os.environ["OPENAI_MODEL_NAME"] = model
 
+    if not (ODR_SOURCE_ROOT / "open_deep_research").is_dir():
+        raise RuntimeError(
+            f"open_deep_research source tree missing: {ODR_SOURCE_ROOT}"
+        )
+    odr_source = str(ODR_SOURCE_ROOT)
+    if odr_source not in sys.path:
+        sys.path.insert(0, odr_source)
     import open_deep_research.deep_researcher as odr
 
     # Compatibility only: some local backbones return the requested brief under
