@@ -77,6 +77,7 @@ class Lane:
     dsproxy_log: Path
     worker_log: Path
     usage_log: Path
+    max_calls: int = 256
     max_total_tokens: int = 750_000
     shim_proc: subprocess.Popen | None = None
     dsproxy_proc: subprocess.Popen | None = None
@@ -382,6 +383,16 @@ def _parse_args() -> argparse.Namespace:
     # still stops high-context runaways unless an explicitly named harness has
     # been granted an uncapped token budget for a documented repair run.
     parser.add_argument("--max-calls", type=int, default=256)
+    parser.add_argument(
+        "--harness-max-calls",
+        action="append",
+        default=[],
+        metavar="HARNESS=N",
+        help=(
+            "repeat to raise or lower one harness's call fuse while keeping "
+            "the uniform default for every other harness"
+        ),
+    )
     parser.add_argument("--max-total-tokens", type=int, default=750_000)
     parser.add_argument(
         "--unlimited-token-harness",
@@ -401,8 +412,34 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _parse_call_overrides(values: list[str]) -> dict[str, int]:
+    overrides: dict[str, int] = {}
+    for raw in values:
+        harness, separator, limit_text = str(raw).partition("=")
+        if not separator or harness not in DEFAULT_HARNESSES:
+            raise ValueError(
+                "--harness-max-calls must be HARNESS=N with a maintained harness"
+            )
+        try:
+            limit = int(limit_text)
+        except ValueError as exc:
+            raise ValueError(
+                f"--harness-max-calls has a non-integer limit: {raw!r}"
+            ) from exc
+        if limit < 0:
+            raise ValueError("--harness-max-calls limits must be non-negative")
+        if harness in overrides:
+            raise ValueError(f"duplicate --harness-max-calls for {harness}")
+        overrides[harness] = limit
+    return overrides
+
+
 def main() -> int:
     args = _parse_args()
+    try:
+        call_overrides = _parse_call_overrides(args.harness_max_calls)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     if os.geteuid() != 0:
         raise SystemExit("formal smoke matrix must run as root")
     if not (ROOT / ".venv-camel/bin/python").is_file():
@@ -458,6 +495,7 @@ def main() -> int:
             dsproxy_log=control / f"service-dsproxy-{harness}.log",
             worker_log=control / f"worker-{harness}.log",
             usage_log=run_dir / "logs" / f"dsproxy-worker-{worker_id}.usage.jsonl",
+            max_calls=call_overrides.get(harness, args.max_calls),
             max_total_tokens=(
                 0 if harness in args.unlimited_token_harness
                 else args.max_total_tokens
@@ -497,7 +535,7 @@ def main() -> int:
                 "OPENAI_PROXY_RETRY_MAX_ATTEMPTS": "3",
                 "OPENAI_PROXY_SHARED_SLOTS_DIR": str(shared_slots_dir),
                 "OPENAI_PROXY_SHARED_SLOTS": str(args.upstream_slots),
-                "DSPROXY_MAX_CALLS": str(args.max_calls),
+                "DSPROXY_MAX_CALLS": str(lane.max_calls),
                 "DSPROXY_MAX_TOTAL_TOKENS": str(lane.max_total_tokens),
                 "DSPROXY_ALLOWED_CLIENT_CIDRS": "127.0.0.0/8,10.240.0.0/16",
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),
@@ -572,7 +610,7 @@ def main() -> int:
                 **SANDBOX_SOURCE_ENV,
                 "WIKIPEDIA": "http://127.0.0.1:8090",
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),
-                "DSPROXY_MAX_CALLS": str(args.max_calls),
+                "DSPROXY_MAX_CALLS": str(lane.max_calls),
                 "DSPROXY_MAX_TOTAL_TOKENS": str(lane.max_total_tokens),
                 "DSPROXY_ALLOWED_CLIENT_CIDRS": "127.0.0.0/8,10.240.0.0/16",
                 "OPENAI_PROXY_CHAT_READ_TIMEOUT_S": str(args.upstream_read_timeout_s),

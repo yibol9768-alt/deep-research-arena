@@ -23,6 +23,7 @@ def test_default_smoke_fuses_cover_native_qx_without_becoming_unbounded(
     monkeypatch.setattr(sys, "argv", ["run_harness_smoke_matrix.py"])
     args = smoke._parse_args()
     assert args.max_calls == 256
+    assert args.harness_max_calls == []
     assert args.max_total_tokens == 750_000
     assert args.unlimited_token_harness == []
     assert args.score_timeout_s == 1800
@@ -44,6 +45,21 @@ def test_one_harness_can_receive_unlimited_tokens_without_disabling_call_fuse(
     assert args.unlimited_token_harness == ["langchain-odr"]
     assert args.max_calls == 256
     assert args.max_total_tokens == 750_000
+
+
+def test_one_harness_can_receive_a_larger_call_fuse():
+    assert smoke._parse_call_overrides(["langchain-odr=512"]) == {
+        "langchain-odr": 512,
+    }
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["unknown=512", "langchain-odr", "langchain-odr=bad", "langchain-odr=-1"],
+)
+def test_harness_call_override_rejects_malformed_values(value):
+    with pytest.raises(ValueError):
+        smoke._parse_call_overrides([value])
 
 
 def test_smoke_source_routes_separate_dial_address_from_public_identity():
