@@ -77,6 +77,7 @@ class Lane:
     dsproxy_log: Path
     worker_log: Path
     usage_log: Path
+    max_total_tokens: int = 750_000
     shim_proc: subprocess.Popen | None = None
     dsproxy_proc: subprocess.Popen | None = None
     worker_proc: subprocess.Popen | None = None
@@ -378,9 +379,20 @@ def _parse_args() -> argparse.Namespace:
     # before all parallel section writers had finished (formal qx9 evidence),
     # without any schema retry.  Keep a finite uniform fuse, but leave enough
     # headroom for that native topology; the independent 750k-token ceiling
-    # still stops high-context runaways such as the earlier DeerFlow failure.
+    # still stops high-context runaways unless an explicitly named harness has
+    # been granted an uncapped token budget for a documented repair run.
     parser.add_argument("--max-calls", type=int, default=256)
     parser.add_argument("--max-total-tokens", type=int, default=750_000)
+    parser.add_argument(
+        "--unlimited-token-harness",
+        action="append",
+        choices=DEFAULT_HARNESSES,
+        default=[],
+        help=(
+            "repeat to disable only that harness's aggregate token fuse; "
+            "the call fuse and shared upstream admission limit remain active"
+        ),
+    )
     parser.add_argument("--launch-stagger-s", type=float, default=1.0)
     parser.add_argument("--model-probe-timeout-s", type=int, default=900)
     parser.add_argument("--service-read-timeout-s", type=int, default=1200)
@@ -446,6 +458,10 @@ def main() -> int:
             dsproxy_log=control / f"service-dsproxy-{harness}.log",
             worker_log=control / f"worker-{harness}.log",
             usage_log=run_dir / "logs" / f"dsproxy-worker-{worker_id}.usage.jsonl",
+            max_total_tokens=(
+                0 if harness in args.unlimited_token_harness
+                else args.max_total_tokens
+            ),
         )
         for port in (lane.shim_port, lane.dsproxy_port, lane.egress_port, lane.qx_port):
             _assert_port_free(port)
@@ -482,7 +498,7 @@ def main() -> int:
                 "OPENAI_PROXY_SHARED_SLOTS_DIR": str(shared_slots_dir),
                 "OPENAI_PROXY_SHARED_SLOTS": str(args.upstream_slots),
                 "DSPROXY_MAX_CALLS": str(args.max_calls),
-                "DSPROXY_MAX_TOTAL_TOKENS": str(args.max_total_tokens),
+                "DSPROXY_MAX_TOTAL_TOKENS": str(lane.max_total_tokens),
                 "DSPROXY_ALLOWED_CLIENT_CIDRS": "127.0.0.0/8,10.240.0.0/16",
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),
                 "DRA_WORKER_ID": str(lane.worker_id),
@@ -557,7 +573,7 @@ def main() -> int:
                 "WIKIPEDIA": "http://127.0.0.1:8090",
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),
                 "DSPROXY_MAX_CALLS": str(args.max_calls),
-                "DSPROXY_MAX_TOTAL_TOKENS": str(args.max_total_tokens),
+                "DSPROXY_MAX_TOTAL_TOKENS": str(lane.max_total_tokens),
                 "DSPROXY_ALLOWED_CLIENT_CIDRS": "127.0.0.0/8,10.240.0.0/16",
                 "OPENAI_PROXY_CHAT_READ_TIMEOUT_S": str(args.upstream_read_timeout_s),
                 "OPENAI_PROXY_RETRY_MAX_ATTEMPTS": "3",

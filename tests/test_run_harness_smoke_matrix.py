@@ -24,7 +24,26 @@ def test_default_smoke_fuses_cover_native_qx_without_becoming_unbounded(
     args = smoke._parse_args()
     assert args.max_calls == 256
     assert args.max_total_tokens == 750_000
+    assert args.unlimited_token_harness == []
     assert args.score_timeout_s == 1800
+
+
+def test_one_harness_can_receive_unlimited_tokens_without_disabling_call_fuse(
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "run_harness_smoke_matrix.py",
+            "--unlimited-token-harness",
+            "langchain-odr",
+        ],
+    )
+    args = smoke._parse_args()
+    assert args.unlimited_token_harness == ["langchain-odr"]
+    assert args.max_calls == 256
+    assert args.max_total_tokens == 750_000
 
 
 def test_smoke_source_routes_separate_dial_address_from_public_identity():
