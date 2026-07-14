@@ -91,6 +91,8 @@ class _StallWatchdog(threading.Thread):
         per-process tally of search+fetch chokepoint hits).
       * egress call count -- GET {DRA_EGRESS_CONTROL_URL}/healthz .counters
         (direct page reads made outside the shim).
+      * ds_proxy health counters -- GET {DS_PROXY_URL origin}/healthz
+        .smoke_budget (accepted requests and completed-token growth).
       * ds_proxy usage-log growth -- os.path.getsize(DSPROXY_USAGE_LOG); one
         appended line per upstream LLM call.
 
@@ -124,6 +126,7 @@ class _StallWatchdog(threading.Thread):
         wall_clock_s: Optional[float],
         shim_url: str,
         egress_url: Optional[str],
+        dsproxy_url: Optional[str],
         usage_log: Optional[str],
         meta_writer,
         t0: float,
@@ -135,6 +138,7 @@ class _StallWatchdog(threading.Thread):
         self._wall = wall_clock_s
         self._shim_url = shim_url.rstrip("/")
         self._egress_url = (egress_url or "").rstrip("/") or None
+        self._dsproxy_url = (dsproxy_url or "").rstrip("/") or None
         self._usage_log = usage_log or None
         self._meta_writer = meta_writer
         self._on_kill = on_kill
@@ -181,7 +185,40 @@ class _StallWatchdog(threading.Thread):
                 )
             except Exception:
                 pass
-        return (shim_calls, egress_calls, usage_bytes)
+        dsproxy_calls = 0
+        dsproxy_tokens = 0
+        if self._dsproxy_url:
+            try:
+                from urllib.parse import urlsplit, urlunsplit
+
+                parsed = urlsplit(self._dsproxy_url)
+                path = parsed.path.rstrip("/")
+                if path.endswith("/v1"):
+                    path = path[:-3]
+                health_url = urlunsplit((
+                    parsed.scheme,
+                    parsed.netloc,
+                    path + "/healthz",
+                    "",
+                    "",
+                ))
+                import requests
+
+                session = requests.Session()
+                session.trust_env = False
+                health = session.get(health_url, timeout=5).json() or {}
+                smoke = health.get("smoke_budget") or {}
+                dsproxy_calls = int(smoke.get("accepted_calls") or 0)
+                dsproxy_tokens = int(smoke.get("observed_total_tokens") or 0)
+            except Exception:
+                pass
+        return (
+            shim_calls,
+            egress_calls,
+            usage_bytes,
+            dsproxy_calls,
+            dsproxy_tokens,
+        )
 
     def run(self) -> None:
         last = self._progress()
@@ -3046,6 +3083,7 @@ async def main() -> int:
             wall_clock_s=budget["wall_clock_s"],
             shim_url=os.environ.get("SHIM_URL", "http://localhost:8081"),
             egress_url=egress_control_url or None,
+            dsproxy_url=os.environ.get("DS_PROXY_URL") or None,
             usage_log=os.environ.get("DSPROXY_USAGE_LOG") or None,
             meta_writer=_watchdog_meta,
             t0=t0,

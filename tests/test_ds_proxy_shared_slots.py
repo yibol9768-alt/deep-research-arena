@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import json
 
 from integrations.ds_proxy import app
 
@@ -55,3 +56,22 @@ def test_client_network_gate_allows_only_declared_worker_cidr(monkeypatch):
     assert app._client_ip_allowed("10.240.23.2")
     assert not app._client_ip_allowed("172.30.0.1")
     assert not app._client_ip_allowed("not-an-ip")
+
+
+def test_usage_write_keeps_admission_context_after_bracket_closes(
+    tmp_path, monkeypatch,
+):
+    usage = tmp_path / "usage.jsonl"
+    monkeypatch.setattr(app, "USAGE_LOG", str(usage))
+    monkeypatch.setattr(app, "_RUN_CTX", {})
+
+    admitted = {"run_id": "run-before-close", "lane": "qx-agents"}
+    app._usage_write(
+        {"model": "gpt-5.6-luna", "total_tokens": 17},
+        run_ctx=admitted,
+    )
+
+    row = json.loads(usage.read_text())
+    assert row["run_id"] == "run-before-close"
+    assert row["lane"] == "qx-agents"
+    assert row["total_tokens"] == 17

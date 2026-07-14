@@ -294,12 +294,18 @@ def _upstream_headers(request: Request) -> dict[str, str]:
     return headers
 
 
-def _usage_write(record: dict) -> None:
+def _usage_write(record: dict, *, run_ctx: dict[str, Any] | None = None) -> None:
     if not USAGE_LOG:
         return
     try:
         record.setdefault("ts", round(time.time(), 3))
-        for k, v in _run_ctx().items():
+        # Attribute a request using the bracket that was open when it was
+        # admitted. A watchdog/operator can close the live bracket while an
+        # already-admitted upstream request is still completing; consulting
+        # only the live context here would turn that billable completion into
+        # an `_untagged` call.
+        context = _run_ctx() if run_ctx is None else run_ctx
+        for k, v in context.items():
             record.setdefault(k, v)
         with open(USAGE_LOG, "a") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -307,7 +313,9 @@ def _usage_write(record: dict) -> None:
         pass
 
 
-async def _shared_slot_acquire() -> int | None:
+async def _shared_slot_acquire(
+    *, run_ctx: dict[str, Any] | None = None,
+) -> int | None:
     """Acquire one process-shared upstream slot without blocking asyncio."""
     if not SHARED_SLOTS:
         return None
@@ -330,7 +338,7 @@ async def _shared_slot_acquire() -> int | None:
                     "admission_wait": True,
                     "slot": index,
                     "wait_s": round(waited, 3),
-                })
+                }, run_ctx=run_ctx)
             return fd
         now = time.monotonic()
         if now - last_heartbeat >= SHARED_SLOT_HEARTBEAT_S:
@@ -338,7 +346,7 @@ async def _shared_slot_acquire() -> int | None:
                 "non_call_event": True,
                 "admission_waiting": True,
                 "wait_s": round(now - started, 3),
-            })
+            }, run_ctx=run_ctx)
             last_heartbeat = now
         await asyncio.sleep(SHARED_SLOT_POLL_S)
 
@@ -430,21 +438,29 @@ def _retryable_payload(status_code: int, content: bytes | None) -> tuple[bool, s
     return False, ""
 
 
-async def _retry_pause(reason: str, attempt: int, delay: float, model: str | None) -> float:
+async def _retry_pause(
+    reason: str,
+    attempt: int,
+    delay: float,
+    model: str | None,
+    *,
+    run_ctx: dict[str, Any] | None = None,
+) -> float:
     _usage_write({
         "retry": True,
         "reason": reason,
         "attempt": attempt,
         "sleep_s": delay,
         "model": model,
-    })
+    }, run_ctx=run_ctx)
     await asyncio.sleep(delay)
     return min(RETRY_MAX_S, max(delay * 2, RETRY_INITIAL_S))
 
 
 def _retry_exhausted(reason: str, attempt: int, model: str | None,
                      upstream_status: int | None = None,
-                     upstream_body: bytes | None = None) -> JSONResponse:
+                     upstream_body: bytes | None = None, *,
+                     run_ctx: dict[str, Any] | None = None) -> JSONResponse:
     """Give up after RETRY_MAX_ATTEMPTS and return an explicit gateway error
     instead of looping forever. Logged to the usage stream so the run
     aggregator can see which requests were dropped."""
@@ -453,7 +469,7 @@ def _retry_exhausted(reason: str, attempt: int, model: str | None,
         "reason": reason,
         "attempts": attempt,
         "model": model,
-    })
+    }, run_ctx=run_ctx)
     err: dict[str, Any] = {
         "message": (f"ds_proxy: upstream retry limit reached after {attempt} "
                     f"attempt(s) (last reason: {reason})"),
@@ -583,13 +599,18 @@ async def _forward(path: str, request: Request) -> Any:
     except Exception:
         body = {}
 
+    # This immutable snapshot follows the request through queueing, retries and
+    # streaming finalizers even if /_mark end clears the worker's live bracket
+    # before the upstream response arrives.
+    request_run_ctx = _run_ctx()
+
     budget_error = _budget_admit()
     if budget_error:
         _usage_write({
             "non_call_event": True,
             "budget_exhausted": True,
             "reason": budget_error,
-        })
+        }, run_ctx=request_run_ctx)
         return JSONResponse(
             status_code=400,
             content={
@@ -662,7 +683,7 @@ async def _forward(path: str, request: Request) -> Any:
         while True:
             attempt += 1
             client = httpx.AsyncClient(timeout=timeout)
-            slot_fd = await _shared_slot_acquire()
+            slot_fd = await _shared_slot_acquire(run_ctx=request_run_ctx)
             try:
                 req = client.build_request("POST", url, json=body, headers=headers)
                 upstream_resp = await client.send(req, stream=True)
@@ -670,8 +691,14 @@ async def _forward(path: str, request: Request) -> Any:
                 _shared_slot_release(slot_fd)
                 await client.aclose()
                 if attempt >= RETRY_MAX_ATTEMPTS:
-                    return _retry_exhausted("timeout", attempt, req_model)
-                delay = await _retry_pause("timeout", attempt, delay, req_model)
+                    return _retry_exhausted(
+                        "timeout", attempt, req_model,
+                        run_ctx=request_run_ctx,
+                    )
+                delay = await _retry_pause(
+                    "timeout", attempt, delay, req_model,
+                    run_ctx=request_run_ctx,
+                )
                 continue
             except BaseException:
                 _shared_slot_release(slot_fd)
@@ -687,9 +714,15 @@ async def _forward(path: str, request: Request) -> Any:
                     await upstream_resp.aclose()
                     await client.aclose()
                     if attempt >= RETRY_MAX_ATTEMPTS:
-                        return _retry_exhausted(reason, attempt, req_model,
-                                                upstream_resp.status_code, content)
-                    delay = await _retry_pause(reason, attempt, delay, req_model)
+                        return _retry_exhausted(
+                            reason, attempt, req_model,
+                            upstream_resp.status_code, content,
+                            run_ctx=request_run_ctx,
+                        )
+                    delay = await _retry_pause(
+                        reason, attempt, delay, req_model,
+                        run_ctx=request_run_ctx,
+                    )
                     continue
                 await upstream_resp.aclose()
                 await client.aclose()
@@ -729,10 +762,11 @@ async def _forward(path: str, request: Request) -> Any:
                             "prompt_tokens": usage.get("prompt_tokens"),
                             "completion_tokens": usage.get("completion_tokens"),
                             "total_tokens": usage.get("total_tokens"),
-                        })
+                        }, run_ctx=request_run_ctx)
                     else:
                         _usage_write({"model": req_model, "stream": True,
-                                      "usage_missing": True})
+                                      "usage_missing": True},
+                                     run_ctx=request_run_ctx)
 
         return StreamingResponse(
             _stream(),
@@ -745,14 +779,20 @@ async def _forward(path: str, request: Request) -> Any:
     async with httpx.AsyncClient(timeout=timeout) as client:
         while True:
             attempt += 1
-            slot_fd = await _shared_slot_acquire()
+            slot_fd = await _shared_slot_acquire(run_ctx=request_run_ctx)
             try:
                 r = await client.post(url, json=body, headers=headers)
             except httpx.TimeoutException:
                 _shared_slot_release(slot_fd)
                 if attempt >= RETRY_MAX_ATTEMPTS:
-                    return _retry_exhausted("timeout", attempt, req_model)
-                delay = await _retry_pause("timeout", attempt, delay, req_model)
+                    return _retry_exhausted(
+                        "timeout", attempt, req_model,
+                        run_ctx=request_run_ctx,
+                    )
+                delay = await _retry_pause(
+                    "timeout", attempt, delay, req_model,
+                    run_ctx=request_run_ctx,
+                )
                 continue
             except BaseException:
                 _shared_slot_release(slot_fd)
@@ -762,9 +802,14 @@ async def _forward(path: str, request: Request) -> Any:
             if not retry:
                 break
             if attempt >= RETRY_MAX_ATTEMPTS:
-                return _retry_exhausted(reason, attempt, req_model,
-                                        r.status_code, r.content)
-            delay = await _retry_pause(reason, attempt, delay, req_model)
+                return _retry_exhausted(
+                    reason, attempt, req_model, r.status_code, r.content,
+                    run_ctx=request_run_ctx,
+                )
+            delay = await _retry_pause(
+                reason, attempt, delay, req_model,
+                run_ctx=request_run_ctx,
+            )
         if r.headers.get("content-type", "").startswith("application/json"):
             data = r.json()
             # Whole-run token accounting (see header). No-op when unset.
@@ -777,7 +822,7 @@ async def _forward(path: str, request: Request) -> Any:
                     "prompt_tokens": _u.get("prompt_tokens"),
                     "completion_tokens": _u.get("completion_tokens"),
                     "total_tokens": _u.get("total_tokens"),
-                })
+                }, run_ctx=request_run_ctx)
             # Strip <think>...</think> from reasoning-model output so client
             # frameworks see a clean answer. Preserve the original (with
             # thinking) in `reasoning_content` so judge_client._call_openai
