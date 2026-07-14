@@ -93,6 +93,24 @@ def test_same_run_id_reopen_is_allowed(usage_log):
     assert ctx.get("task") == "t9"
 
 
+def test_upstream_headers_attach_open_run_as_session_id(usage_log):
+    class Request:
+        headers = {"authorization": "Bearer incoming"}
+
+    app._run_ctx_set({"run_id": "arena-run-123", "lane": "storm"})
+    headers = app._upstream_headers(Request())
+
+    assert headers["X-Session-ID"] == "arena-run-123"
+    assert headers["Content-Type"] == "application/json"
+
+
+def test_upstream_headers_omit_session_id_outside_run_bracket(usage_log):
+    class Request:
+        headers = {"authorization": "Bearer incoming"}
+
+    assert "X-Session-ID" not in app._upstream_headers(Request())
+
+
 def test_run_id_is_required(usage_log):
     with pytest.raises(ValueError):
         app._run_ctx_set({"lane": "storm"})

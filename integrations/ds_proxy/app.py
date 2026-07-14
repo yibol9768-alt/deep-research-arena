@@ -224,6 +224,28 @@ def _run_ctx() -> dict:
         return dict(_RUN_CTX)
 
 
+def _upstream_headers(request: Request) -> dict[str, str]:
+    """Build chat/completions headers, including the active run identity.
+
+    CLIProxyAPI uses ``X-Session-ID`` for session affinity. The harness already
+    owns the exact run identity through the per-worker ``/_mark`` bracket, so
+    this proxy is the one transport-independent place to attach it for every
+    framework. Identity probes occur outside the bracket and therefore make no
+    run-affinity claim.
+    """
+    headers = {"Content-Type": "application/json"}
+    if UPSTREAM_KEY:
+        headers["Authorization"] = f"Bearer {UPSTREAM_KEY}"
+    else:
+        incoming = request.headers.get("authorization")
+        if incoming:
+            headers["Authorization"] = incoming
+    run_id = str(_run_ctx().get("run_id") or "").strip()
+    if run_id:
+        headers["X-Session-ID"] = run_id
+    return headers
+
+
 def _usage_write(record: dict) -> None:
     if not USAGE_LOG:
         return
@@ -457,13 +479,7 @@ async def _forward(path: str, request: Request) -> Any:
             else:
                 messages.insert(0, {"role": "system", "content": nudge})
 
-    headers = {"Content-Type": "application/json"}
-    if UPSTREAM_KEY:
-        headers["Authorization"] = f"Bearer {UPSTREAM_KEY}"
-    else:
-        incoming = request.headers.get("authorization")
-        if incoming:
-            headers["Authorization"] = incoming
+    headers = _upstream_headers(request)
 
     url = f"{UPSTREAM}{path}"
     stream = bool(body.get("stream"))
