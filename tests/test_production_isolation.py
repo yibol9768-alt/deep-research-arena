@@ -85,6 +85,56 @@ def test_state_and_proof_digests_detect_mutation():
     assert state["state_digest"] != isolation._state_digest(state)
 
 
+def test_default_route_ignores_ipv6_null_entry(tmp_path, monkeypatch):
+    ipv4 = tmp_path / "route"
+    ipv4.write_text(
+        "Iface Destination Gateway Flags RefCnt Use Metric Mask MTU Window IRTT\n",
+        encoding="utf-8",
+    )
+    ipv6 = tmp_path / "ipv6_route"
+    ipv6.write_text(
+        "0" * 32 + " 00 " + "0" * 32 + " 00 " + "0" * 32
+        + " ffffffff 00000001 00000000 00200200 lo\n",
+        encoding="utf-8",
+    )
+    real_read_text = pathlib.Path.read_text
+
+    def fake_read_text(path, *args, **kwargs):
+        if str(path) == "/proc/net/route":
+            return real_read_text(ipv4, *args, **kwargs)
+        if str(path) == "/proc/net/ipv6_route":
+            return real_read_text(ipv6, *args, **kwargs)
+        return real_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(pathlib.Path, "read_text", fake_read_text)
+    assert isolation._has_default_route() is False
+
+
+def test_default_route_detects_usable_ipv6_default(tmp_path, monkeypatch):
+    ipv4 = tmp_path / "route"
+    ipv4.write_text(
+        "Iface Destination Gateway Flags RefCnt Use Metric Mask MTU Window IRTT\n",
+        encoding="utf-8",
+    )
+    ipv6 = tmp_path / "ipv6_route"
+    ipv6.write_text(
+        "0" * 32 + " 00 " + "0" * 32 + " 00 " + "0" * 32
+        + " 00000400 00000000 00000000 00000003 eth0\n",
+        encoding="utf-8",
+    )
+    real_read_text = pathlib.Path.read_text
+
+    def fake_read_text(path, *args, **kwargs):
+        if str(path) == "/proc/net/route":
+            return real_read_text(ipv4, *args, **kwargs)
+        if str(path) == "/proc/net/ipv6_route":
+            return real_read_text(ipv6, *args, **kwargs)
+        return real_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(pathlib.Path, "read_text", fake_read_text)
+    assert isolation._has_default_route() is True
+
+
 def test_formal_launcher_uses_kernel_exec_and_live_probe():
     text = (ROOT / "scripts" / "run_full_leaderboard.sh").read_text(encoding="utf-8")
     assert "production_isolation.py setup" in text

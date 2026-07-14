@@ -181,7 +181,16 @@ def _has_default_route() -> bool:
     try:
         for raw in pathlib.Path("/proc/net/ipv6_route").read_text().splitlines():
             parts = raw.split()
-            if len(parts) >= 2 and parts[0] == "0" * 32 and parts[1] == "00":
+            # Linux exposes its IPv6 null-entry as ``::/0 metric ffffffff
+            # dev lo`` even in a namespace with no usable default route.  It
+            # is a reject sink, not an egress path; treating it as a route
+            # makes every correctly isolated worker fail the live probe.
+            if (
+                len(parts) >= 10
+                and parts[0] == "0" * 32
+                and parts[1] == "00"
+                and parts[5].lower() != "ffffffff"
+            ):
                 return True
     except FileNotFoundError:
         pass
