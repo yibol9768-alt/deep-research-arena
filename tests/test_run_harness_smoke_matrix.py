@@ -16,6 +16,14 @@ def test_default_matrix_is_the_requested_twelve_harnesses():
     )
 
 
+def test_smoke_source_routes_separate_dial_address_from_public_identity():
+    routes = smoke.SANDBOX_SOURCE_ENV
+    assert routes["SHOPPING"] == "http://127.0.0.1:7770"
+    assert routes["SHOPPING_PUBLIC"] == "http://localhost:7770"
+    assert routes["REDDIT_PUBLIC"] == "http://localhost:9999"
+    assert routes["KIWIX_PUBLIC"] == "http://localhost:8090"
+
+
 @pytest.mark.skipif(os.geteuid() != 0, reason="production key file is root-owned")
 def test_client_env_parser_never_needs_to_source_a_shell(tmp_path):
     path = tmp_path / "client.env"

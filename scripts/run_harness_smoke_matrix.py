@@ -47,6 +47,19 @@ DEFAULT_HARNESSES = (
 )
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
 
+# The host-side services are dialled over loopback, while Magento and the URL
+# registry identify the public sandbox as ``localhost``.  Keep transport and
+# identity separate: using 127.0.0.1 as Magento's Host triggers a canonical
+# 302 and makes the trusted source preflight (correctly) fail.
+SANDBOX_SOURCE_ENV = {
+    "SHOPPING": "http://127.0.0.1:7770",
+    "SHOPPING_PUBLIC": "http://localhost:7770",
+    "REDDIT": "http://127.0.0.1:9999",
+    "REDDIT_PUBLIC": "http://localhost:9999",
+    "KIWIX": "http://127.0.0.1:8090",
+    "KIWIX_PUBLIC": "http://localhost:8090",
+}
+
 
 @dataclass
 class Lane:
@@ -484,9 +497,7 @@ def main() -> int:
                     lane.run_dir / "evidence" / f"worker-{lane.worker_id}"
                 ),
                 "SHIM_LLM_UPSTREAM": f"http://127.0.0.1:{lane.dsproxy_port}/v1",
-                "SHOPPING": "http://127.0.0.1:7770",
-                "REDDIT": "http://127.0.0.1:9999",
-                "KIWIX": "http://127.0.0.1:8090",
+                **SANDBOX_SOURCE_ENV,
             })
             _start(
                 lane,
@@ -531,8 +542,7 @@ def main() -> int:
                 "JUDGE_PROVIDER": "openai",
                 "JUDGE_API_KEY": "worker-uses-server-side-key",
                 "SHIM_URL": f"http://127.0.0.1:{lane.shim_port}",
-                "SHOPPING": "http://127.0.0.1:7770",
-                "REDDIT": "http://127.0.0.1:9999",
+                **SANDBOX_SOURCE_ENV,
                 "WIKIPEDIA": "http://127.0.0.1:8090",
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),
                 "DSPROXY_MAX_CALLS": str(args.max_calls),
