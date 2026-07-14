@@ -44,6 +44,9 @@ def main() -> int:
     ap.add_argument("--log", required=True, help="ds_proxy usage JSONL")
     ap.add_argument("--prices", default=str(ROOT / "data" / "model_prices.json"))
     ap.add_argument("--out", help="write per-run JSON here (default: stdout table only)")
+    ap.add_argument("--run-set-id", default=None)
+    ap.add_argument("--backbone", default=None)
+    ap.add_argument("--worker", default=None)
     args = ap.parse_args()
 
     prices, aliases = load_prices(Path(args.prices))
@@ -144,8 +147,36 @@ def main() -> int:
         b["cost_complete"] = cost_complete and currency is not None
         out_runs.append(b)
 
-    doc = {"log": args.log, "n_log_lines": n_lines, "runs": out_runs,
-           "warnings": warnings}
+    totals = {
+        "n_calls": sum(row["n_calls"] for row in out_runs),
+        "prompt_tokens": sum(row["prompt_tokens"] for row in out_runs),
+        "completion_tokens": sum(row["completion_tokens"] for row in out_runs),
+        "total_tokens": sum(row["total_tokens"] for row in out_runs),
+        "usage_missing_calls": sum(row["usage_missing_calls"] for row in out_runs),
+    }
+    priced_rows = [row for row in out_runs if row["cost"] is not None]
+    currencies = {row["cost_currency"] for row in priced_rows}
+    totals["known_cost"] = round(sum(row["cost"] for row in priced_rows), 6)
+    totals["cost_currency"] = next(iter(currencies)) if len(currencies) == 1 else None
+    totals["cost_complete"] = bool(out_runs) and all(
+        row["cost_complete"] for row in out_runs
+    ) and totals["usage_missing_calls"] == 0 and len(currencies) == 1
+    totals["cost"] = totals["known_cost"] if totals["cost_complete"] else None
+    totals["pricing_status"] = (
+        "complete" if totals["cost_complete"]
+        else "partial" if priced_rows
+        else "unpriced"
+    )
+    doc = {
+        "log": args.log,
+        "run_set_id": args.run_set_id,
+        "backbone": args.backbone,
+        "worker": args.worker,
+        "n_log_lines": n_lines,
+        "totals": totals,
+        "runs": out_runs,
+        "warnings": warnings,
+    }
     if args.out:
         Path(args.out).write_text(json.dumps(doc, indent=2, ensure_ascii=False)
                                   + "\n")

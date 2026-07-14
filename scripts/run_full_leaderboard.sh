@@ -233,6 +233,16 @@ ISOLATION_AUDIT=${RUN_DIR}/isolation/isolation_audit.json
 WORKER_HOME=${RUN_DIR}/isolation/worker-home-${WORKER_ID}
 EGRESS_PID=""
 ISOLATION_READY=0
+COST_LEDGER=${RUN_DIR}/api_costs.worker-${WORKER_ID}.json
+
+write_cost_ledger() {
+    if [ -n "${DSPROXY_USAGE_LOG:-}" ] && [ -f "$DSPROXY_USAGE_LOG" ]; then
+        "$PYTHON" scripts/aggregate_run_costs.py \
+            --log "$DSPROXY_USAGE_LOG" --out "$COST_LEDGER" \
+            --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE" \
+            --worker "$WORKER_ID" >/dev/null 2>&1 || true
+    fi
+}
 
 cleanup_production_boundary() {
     if [ -n "${EGRESS_PID:-}" ]; then
@@ -247,6 +257,7 @@ cleanup_production_boundary() {
             --state "$ISOLATION_STATE" >/dev/null 2>&1 || true
         ISOLATION_READY=0
     fi
+    write_cost_ledger
 }
 trap cleanup_production_boundary EXIT
 trap 'exit 130' INT
