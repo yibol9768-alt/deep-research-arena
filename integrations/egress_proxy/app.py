@@ -125,6 +125,10 @@ _CANONICAL_RAW = os.environ.get("DRA_EGRESS_CANONICAL_EVIDENCE_DIR", "").strip()
 CANONICAL_EVIDENCE_DIR = Path(_CANONICAL_RAW).resolve() if _CANONICAL_RAW else None
 
 
+class ClientDisconnected(RuntimeError):
+    """The downstream caller abandoned a request before the origin replied."""
+
+
 def _netloc(url: str) -> str:
     p = urlparse(url)
     host = (p.hostname or "").lower()
@@ -211,6 +215,53 @@ async def _read_body(reader: asyncio.StreamReader, headers: bytes) -> bytes:
             except Exception:
                 n = 0
     return await reader.readexactly(n) if n else b""
+
+
+async def _read_upstream_or_client_disconnect(
+    client_reader: asyncio.StreamReader,
+    upstream_reader: asyncio.StreamReader,
+    *,
+    timeout: float,
+) -> bytes:
+    """Read one origin response while propagating downstream cancellation.
+
+    The worker can cancel an LLM call while this proxy is waiting on the
+    service plane. Without racing the downstream socket, the proxy keeps its
+    DS Proxy connection alive and a request the framework abandoned can wait
+    for a shared upstream slot and incur tokens minutes later.
+    """
+    upstream_task = asyncio.create_task(upstream_reader.read())
+    disconnect_task = asyncio.create_task(client_reader.read(1))
+    started = asyncio.get_running_loop().time()
+    try:
+        done, _pending = await asyncio.wait(
+            {upstream_task, disconnect_task},
+            timeout=timeout,
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        if not done:
+            raise asyncio.TimeoutError
+        if upstream_task in done:
+            return upstream_task.result()
+
+        # EOF is the only downstream signal relevant to this one-request-per-
+        # connection proxy. A non-empty byte is pipelined data, which the door
+        # does not serve, but it must not be mistaken for cancellation.
+        if disconnect_task.result() == b"":
+            raise ClientDisconnected("downstream client closed before response")
+        remaining = timeout - (asyncio.get_running_loop().time() - started)
+        if remaining <= 0:
+            raise asyncio.TimeoutError
+        return await asyncio.wait_for(upstream_task, timeout=remaining)
+    finally:
+        for task in (upstream_task, disconnect_task):
+            if not task.done():
+                task.cancel()
+        await asyncio.gather(
+            upstream_task,
+            disconnect_task,
+            return_exceptions=True,
+        )
 
 
 async def _control(target: str, method: str, body: bytes,
@@ -390,7 +441,23 @@ async def _handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) ->
         # well behaved is a proxy that can wedge a whole run.
         read_timeout = _read_timeout(target)
         try:
-            raw = await asyncio.wait_for(up_r.read(), timeout=read_timeout)
+            raw = await _read_upstream_or_client_disconnect(
+                reader,
+                up_r,
+                timeout=read_timeout,
+            )
+        except ClientDisconnected:
+            if recordable:
+                evidence.record_fetch(
+                    target, 0, b"", endpoint="/egress",
+                    error="downstream client disconnected before response",
+                )
+            up_w.close()
+            try:
+                await up_w.wait_closed()
+            except Exception:
+                pass
+            return
         except asyncio.TimeoutError:
             if recordable:
                 evidence.record_fetch(

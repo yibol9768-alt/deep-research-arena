@@ -23,8 +23,10 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from integrations.egress_proxy.app import (  # noqa: E402
+    ClientDisconnected,
     CORPUS_READ_TIMEOUT,
     SERVICE_READ_TIMEOUT,
+    _read_upstream_or_client_disconnect,
     _read_timeout,
     proxy_env,
 )
@@ -37,6 +39,36 @@ from scripts.runners.deepagents_runner import (  # noqa: E402
 from src.eval.fetch_log import linked_urls, load_run_evidence  # noqa: E402
 
 PAGE = b'<html><a href="/A/Betamax">b</a><a href="../A/Walkman">w</a>body</html>'
+
+
+def test_service_wait_propagates_downstream_disconnect():
+    async def exercise():
+        client = asyncio.StreamReader()
+        upstream = asyncio.StreamReader()
+        client.feed_eof()
+        with pytest.raises(ClientDisconnected):
+            await _read_upstream_or_client_disconnect(
+                client,
+                upstream,
+                timeout=1,
+            )
+
+    asyncio.run(exercise())
+
+
+def test_service_wait_returns_upstream_response_before_disconnect():
+    async def exercise():
+        client = asyncio.StreamReader()
+        upstream = asyncio.StreamReader()
+        upstream.feed_data(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok")
+        upstream.feed_eof()
+        return await _read_upstream_or_client_disconnect(
+            client,
+            upstream,
+            timeout=1,
+        )
+
+    assert asyncio.run(exercise()).endswith(b"ok")
 
 
 def _free_port() -> int:
