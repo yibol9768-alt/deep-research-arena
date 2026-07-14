@@ -476,7 +476,7 @@ def _prepare_safe_repo_views(
     safe_scripts = safe / "scripts"
     safe_scripts.mkdir()
     for name in (
-        "__init__.py", "run_deep_task.py", "run_manifest.py",
+        "__init__.py", "run_deep_task.py", "run_flowsearcher.py", "run_manifest.py",
         "production_isolation.py",
     ):
         source = repository / "scripts" / name

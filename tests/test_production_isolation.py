@@ -131,6 +131,37 @@ def test_hidden_path_mask_rejects_symlink(tmp_path, monkeypatch):
         isolation._mount_hidden_path(empty_dir, empty_file, link)
 
 
+def test_safe_worker_view_includes_flowsearcher_runtime_module(tmp_path, monkeypatch):
+    repository = tmp_path / "repo"
+    runtime = tmp_path / "runtime"
+    (repository / "data" / "tasks").mkdir(parents=True)
+    (repository / "scripts" / "runners").mkdir(parents=True)
+    (repository / "src" / "eval").mkdir(parents=True)
+    (repository / "src" / "verifiers").mkdir(parents=True)
+    for relative in (
+        "scripts/__init__.py",
+        "scripts/run_deep_task.py",
+        "scripts/run_flowsearcher.py",
+        "scripts/run_manifest.py",
+        "scripts/production_isolation.py",
+        "scripts/runners/__init__.py",
+        "src/eval/__init__.py",
+        "src/eval/report_stubs.py",
+        "src/verifiers/citation_format.py",
+        "src/verifiers/sandbox_compliance_verifier.py",
+    ):
+        (repository / relative).write_text(relative, encoding="utf-8")
+    monkeypatch.setattr(isolation, "_make_read_only_tree", lambda _path: None)
+
+    safe = isolation._prepare_safe_repo_views(repository, runtime)
+
+    exposed = pathlib.Path(safe["safe_scripts"])
+    assert (exposed / "run_flowsearcher.py").is_file()
+    assert (exposed / "run_flowsearcher.py").read_text() == (
+        repository / "scripts" / "run_flowsearcher.py"
+    ).read_text()
+
+
 def test_private_worker_shm_mount_is_writable_but_hardened(tmp_path, monkeypatch):
     target = tmp_path / "dev" / "shm"
     target.mkdir(parents=True)
