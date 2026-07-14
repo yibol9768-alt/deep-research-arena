@@ -142,3 +142,11 @@ def test_shell_uses_long_service_timeout_without_weakening_corpus_timeout():
     text = SCRIPT.read_text(encoding="utf-8")
     assert 'DRA_MODEL_PROBE_TIMEOUT_S=${DRA_MODEL_PROBE_TIMEOUT_S:-360}' in text
     assert 'DRA_EGRESS_SERVICE_READ_TIMEOUT_S=${DRA_EGRESS_SERVICE_READ_TIMEOUT_S:-600}' in text
+
+
+def test_stdout_sensitive_control_plane_uses_quiet_stdlib_python():
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert 'CONTROL_PYTHON=${DRA_CONTROL_PYTHON:-python3}' in text
+    assert 'ORIGIN_OUTPUT=$("$CONTROL_PYTHON" -' in text
+    assert 'ISOLATION_TOKEN=$("$CONTROL_PYTHON" -' in text
+    assert 'PROOF_PATH=$("$CONTROL_PYTHON" scripts/production_isolation.py probe' in text

@@ -142,11 +142,23 @@ if ! command -v "$PYTHON" >/dev/null 2>&1 && [ ! -x "$PYTHON" ]; then
     exit 2
 fi
 
+# Framework venvs may install sitecustomize hooks. my5090's composite runtime
+# imports LiteLLM there and writes provider hints to stdout on every startup.
+# That output must never enter substitutions that compute origins, namespace
+# tokens or proof paths. Keep adapters on dependency-rich PYTHON and use a
+# quiet stdlib interpreter for control-plane calculations and the stdlib-only
+# production_isolation.py helpers.
+CONTROL_PYTHON=${DRA_CONTROL_PYTHON:-python3}
+if ! command -v "$CONTROL_PYTHON" >/dev/null 2>&1 && [ ! -x "$CONTROL_PYTHON" ]; then
+    echo "ERROR: control Python executable not found: $CONTROL_PYTHON" >&2
+    exit 2
+fi
+
 # Build two disjoint origin sets. Corpus origins are the only responses that
 # count as page evidence. Shim/model/router/QX origins stay reachable through
 # the door but can never manufacture proof-of-fetch. Both loopback spellings
 # are included because framework URLs use both.
-ORIGIN_OUTPUT=$("$PYTHON" - \
+ORIGIN_OUTPUT=$("$CONTROL_PYTHON" - \
     "$SHOPPING" "$REDDIT" "$WIKIPEDIA" \
     "$SHIM_URL" "$DS_PROXY_URL" "$OPENAI_BASE_URL" "$JUDGE_BASE_URL" \
     "$DRA_QX_ADAPTER_PORT" <<'PY'
@@ -267,7 +279,7 @@ fi
 # The worker namespace has no default route. Its nftables policy permits only
 # the root-owned recording door and explicit host service ports, and the lane
 # later runs as a dedicated non-root uid with no capabilities.
-ISOLATION_TOKEN=$("$PYTHON" - "$RUN_SET_ID" "$BACKBONE" "$WORKER_ID" <<'PY'
+ISOLATION_TOKEN=$("$CONTROL_PYTHON" - "$RUN_SET_ID" "$BACKBONE" "$WORKER_ID" <<'PY'
 import hashlib, sys
 print(hashlib.sha256("\0".join(sys.argv[1:]).encode()).hexdigest()[:16])
 PY
@@ -321,7 +333,7 @@ trap 'exit 143' TERM
     --corpus-origins "$DRA_EGRESS_CORPUS" \
     --service-origins "$DRA_EGRESS_SERVICES" || exit 6
 ISOLATION_READY=1
-ISOLATION_GATEWAY=$("$PYTHON" scripts/production_isolation.py get \
+ISOLATION_GATEWAY=$("$CONTROL_PYTHON" scripts/production_isolation.py get \
     --state "$ISOLATION_STATE" --field gateway) || exit 6
 export DRA_EGRESS_PROXY=http://${ISOLATION_GATEWAY}:${EGRESS_PORT}
 export DRA_EGRESS_CONTROL_URL=$DRA_EGRESS_PROXY
@@ -332,7 +344,7 @@ export DRA_EGRESS_SERVER_MERGE=1
 # intentionally private and cannot address host services.
 PUBLIC_SHIM_URL=$SHIM_URL
 rewrite_loopback_url() {
-    "$PYTHON" - "$1" "$ISOLATION_GATEWAY" <<'PY'
+    "$CONTROL_PYTHON" - "$1" "$ISOLATION_GATEWAY" <<'PY'
 import sys
 from urllib.parse import urlsplit, urlunsplit
 p = urlsplit(sys.argv[1])
@@ -345,7 +357,7 @@ export SHIM_URL=$(rewrite_loopback_url "$SHIM_URL") || exit 6
 export DS_PROXY_URL=$(rewrite_loopback_url "$DS_PROXY_URL") || exit 6
 export OPENAI_BASE_URL=$(rewrite_loopback_url "$OPENAI_BASE_URL") || exit 6
 export JUDGE_BASE_URL=$(rewrite_loopback_url "$JUDGE_BASE_URL") || exit 6
-export DRA_EGRESS_SERVICES=$("$PYTHON" - "$DRA_EGRESS_SERVICES" "$ISOLATION_GATEWAY" <<'PY'
+export DRA_EGRESS_SERVICES=$("$CONTROL_PYTHON" - "$DRA_EGRESS_SERVICES" "$ISOLATION_GATEWAY" <<'PY'
 import sys
 origins = {item for item in sys.argv[1].split(",") if item}
 gateway = sys.argv[2]
@@ -401,7 +413,7 @@ fi
 # Never reuse a process already listening on this worker's door. /healthz does
 # not expose its evidence directory, so a healthy foreign process is still
 # unverifiable and must fail closed.
-"$PYTHON" - "$ISOLATION_GATEWAY" "$EGRESS_PORT" <<'PY' || exit 6
+"$CONTROL_PYTHON" - "$ISOLATION_GATEWAY" "$EGRESS_PORT" <<'PY' || exit 6
 import socket
 import sys
 
@@ -441,7 +453,7 @@ for _ in $(seq 1 300); do
     fi
     EGRESS_HEALTH=$(curl --noproxy '*' -fsS --max-time 1 \
         "${DRA_EGRESS_CONTROL_URL%/}/healthz" 2>/dev/null) || EGRESS_HEALTH=""
-    if [ -n "$EGRESS_HEALTH" ] && "$PYTHON" -c '
+    if [ -n "$EGRESS_HEALTH" ] && "$CONTROL_PYTHON" -c '
 import json, sys
 health = json.loads(sys.argv[1])
 raise SystemExit(0 if health.get("ok") is True
@@ -465,7 +477,7 @@ fi
 SHIM_STATUS=$(curl --noproxy '*' -fsS --max-time 10 "${SHIM_URL%/}/_evidence/status") || {
     echo "ERROR: shim unavailable at $SHIM_URL" >&2; exit 6;
 }
-"$PYTHON" - "$SHIM_STATUS" "$SHIM_EVIDENCE_DIR" <<'PY' || exit 6
+"$CONTROL_PYTHON" - "$SHIM_STATUS" "$SHIM_EVIDENCE_DIR" <<'PY' || exit 6
 import json, os, sys
 got = os.path.realpath(json.loads(sys.argv[1]).get("dir") or "")
 want = os.path.realpath(sys.argv[2])
@@ -491,7 +503,7 @@ export DRA_SUPERVISOR_SOURCE_CHECK=1
 # used by every lane. Corpus liveness is first proven through the recorder.
 # Then curl --noproxy, requests trust_env=False, raw sockets, host/container
 # aliases, public HTTP/HTTPS/DNS, and recorder-file mutation must all fail.
-PROOF_PATH=$("$PYTHON" scripts/production_isolation.py probe \
+PROOF_PATH=$("$CONTROL_PYTHON" scripts/production_isolation.py probe \
     --state "$ISOLATION_STATE" \
     --egress-control-url "$DRA_EGRESS_CONTROL_URL" \
     --shim-control-url "$SHIM_URL" \
