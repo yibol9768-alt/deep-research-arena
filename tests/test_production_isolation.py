@@ -85,6 +85,51 @@ def test_state_and_proof_digests_detect_mutation():
     assert state["state_digest"] != isolation._state_digest(state)
 
 
+def test_hidden_path_mask_supports_checkout_directory_and_worktree_gitfile(
+    tmp_path, monkeypatch,
+):
+    empty_dir = tmp_path / "empty-dir"
+    empty_dir.mkdir()
+    empty_file = tmp_path / "empty-file"
+    empty_file.touch()
+    checkout_git = tmp_path / "checkout-git"
+    checkout_git.mkdir()
+    worktree_git = tmp_path / "worktree-git"
+    worktree_git.write_text("gitdir: /some/common/worktree\n", encoding="utf-8")
+    calls = []
+
+    def record(source, target, *, readonly):
+        calls.append((source, target, readonly))
+
+    monkeypatch.setattr(isolation, "_mount_bind", record)
+    isolation._mount_hidden_path(empty_dir, empty_file, checkout_git)
+    isolation._mount_hidden_path(empty_dir, empty_file, worktree_git)
+
+    assert calls == [
+        (empty_dir, checkout_git, True),
+        (empty_file, worktree_git, True),
+    ]
+
+
+def test_hidden_path_mask_rejects_symlink(tmp_path, monkeypatch):
+    empty_dir = tmp_path / "empty-dir"
+    empty_dir.mkdir()
+    empty_file = tmp_path / "empty-file"
+    empty_file.touch()
+    target = tmp_path / "outside"
+    target.mkdir()
+    link = tmp_path / "git-link"
+    link.symlink_to(target, target_is_directory=True)
+    monkeypatch.setattr(
+        isolation,
+        "_mount_bind",
+        lambda *_args, **_kwargs: pytest.fail("symlink must not be mounted"),
+    )
+
+    with pytest.raises(isolation.IsolationError, match="non-regular"):
+        isolation._mount_hidden_path(empty_dir, empty_file, link)
+
+
 def test_default_route_ignores_ipv6_null_entry(tmp_path, monkeypatch):
     ipv4 = tmp_path / "route"
     ipv4.write_text(

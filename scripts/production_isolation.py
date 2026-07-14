@@ -459,6 +459,8 @@ def _prepare_safe_repo_views(
 
     empty = safe / "empty"
     empty.mkdir()
+    empty_file = safe / "empty-file"
+    empty_file.touch()
     _make_read_only_tree(safe)
     return {
         "safe_data": str(safe_data),
@@ -466,6 +468,7 @@ def _prepare_safe_repo_views(
         "safe_eval": str(safe_eval),
         "safe_verifiers": str(safe_verifiers),
         "empty_mask": str(empty),
+        "empty_file_mask": str(empty_file),
     }
 
 
@@ -786,6 +789,31 @@ def _mount_rbind_readonly(source: pathlib.Path, target: pathlib.Path) -> None:
         _run(["mount", "-o", "remount,bind,ro", str(mountpoint)])
 
 
+def _mount_hidden_path(
+    empty_dir: pathlib.Path,
+    empty_file: pathlib.Path,
+    target: pathlib.Path,
+) -> None:
+    """Mask a repository path without assuming it is a directory.
+
+    A normal checkout exposes ``.git`` as a directory; a linked Git worktree
+    exposes it as a regular gitfile.  Mounting a directory mask over that file
+    first calls ``mkdir`` and aborts the worker before its live isolation
+    probe.  Select a same-kind empty mount and reject exotic/symlink targets so
+    masking can never follow a repository-controlled path outside the root.
+    """
+    info = target.lstat()
+    if stat.S_ISDIR(info.st_mode):
+        source = empty_dir
+    elif stat.S_ISREG(info.st_mode):
+        source = empty_file
+    else:
+        raise IsolationError(
+            f"refusing to mask non-regular repository path: {target}"
+        )
+    _mount_bind(source, target, readonly=True)
+
+
 def mount_exec(state_path: pathlib.Path, command: Sequence[str]) -> int:
     """Build a read-only chroot in the already-created worker netns."""
     _require_root()
@@ -840,10 +868,11 @@ def mount_exec(state_path: pathlib.Path, command: Sequence[str]) -> int:
             repository_target / "src" / "verifiers", readonly=True,
         )
         empty = pathlib.Path(safe["empty_mask"])
+        empty_file = pathlib.Path(safe["empty_file_mask"])
         for relative in (".git", "internal", "docs", "tests"):
             target = repository_target / relative
             if target.exists():
-                _mount_bind(empty, target, readonly=True)
+                _mount_hidden_path(empty, empty_file, target)
 
         output = rootfs / "output"
         _mount_bind(pathlib.Path(state["raw_dir"]), output, readonly=False)
