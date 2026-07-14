@@ -105,6 +105,11 @@ def main() -> int:
                     runs[current]["ended_ts"] = rec.get("ts")
                 current = None
             continue
+        # Queue/admission telemetry is useful in the same append-only stream,
+        # but it is not an upstream API call and must not inflate leaderboard
+        # call counts or token costs.
+        if rec.get("non_call_event"):
+            continue
         b = bucket(current if current is not None else "_untagged")
         b["n_calls"] += 1
         if rec.get("usage_missing"):

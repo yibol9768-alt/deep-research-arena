@@ -432,7 +432,10 @@ DRA_EGRESS_CANONICAL_EVIDENCE_DIR="$CANONICAL_SHIM_EVIDENCE_DIR" \
 EGRESS_PID=$!
 
 EGRESS_READY=0
-for _ in $(seq 1 100); do
+# Twelve workers import the composite supervisor concurrently on WSL. Give the
+# owned door enough startup time under that CPU/IO burst; request timeouts are
+# enforced separately by the door itself.
+for _ in $(seq 1 300); do
     if ! kill -0 "$EGRESS_PID" 2>/dev/null; then
         break
     fi

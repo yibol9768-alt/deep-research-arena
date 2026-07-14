@@ -366,7 +366,11 @@ def check_egress_captures_every_transport() -> list[CheckResult]:
                 finally:
                     conn.close()
 
-            deadline = _time.monotonic() + 5
+            # Importing the composite supervisor environment is measurably
+            # slower on WSL's /opt filesystem than on the workstation. Five
+            # seconds produced a false negative while the child was alive and
+            # still importing; this is startup allowance, not request timeout.
+            deadline = _time.monotonic() + 20
             while True:
                 try:
                     if _control("GET", "/healthz")[0] == 200:

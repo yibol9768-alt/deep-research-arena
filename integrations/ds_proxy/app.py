@@ -18,6 +18,7 @@ import json
 import os
 import re
 import asyncio
+import fcntl
 import threading
 import time
 from typing import Any
@@ -147,6 +148,40 @@ EMB_FORCE_MODEL = os.environ.get("OPENAI_PROXY_EMB_MODEL", "text-embedding-v4")
 USAGE_LOG = os.environ.get("DSPROXY_USAGE_LOG", "")
 STREAM_USAGE = os.environ.get("DSPROXY_STREAM_USAGE", "1") != "0"
 
+# Several credential files may still share one upstream account and allowance.
+# Keep every worker's own proxy/usage ledger while admitting only a declared
+# number of cross-process requests into that shared account at once. Advisory
+# flock locks are released automatically if a worker dies. This is opt-in, so
+# existing deployments retain their current transport policy.
+SHARED_SLOTS_DIR = os.environ.get("OPENAI_PROXY_SHARED_SLOTS_DIR", "").strip()
+SHARED_SLOTS = int(os.environ.get("OPENAI_PROXY_SHARED_SLOTS", "0") or "0")
+SHARED_SLOT_POLL_S = float(
+    os.environ.get("OPENAI_PROXY_SHARED_SLOT_POLL_S", "0.1") or "0.1"
+)
+SHARED_SLOT_HEARTBEAT_S = float(
+    os.environ.get("OPENAI_PROXY_SHARED_SLOT_HEARTBEAT_S", "30") or "30"
+)
+MAX_CALLS = int(os.environ.get("DSPROXY_MAX_CALLS", "0") or "0")
+MAX_TOTAL_TOKENS = int(
+    os.environ.get("DSPROXY_MAX_TOTAL_TOKENS", "0") or "0"
+)
+if SHARED_SLOTS < 0:
+    raise ValueError("OPENAI_PROXY_SHARED_SLOTS must be non-negative")
+if SHARED_SLOTS and not SHARED_SLOTS_DIR:
+    raise ValueError(
+        "OPENAI_PROXY_SHARED_SLOTS_DIR is required when shared slots are enabled"
+    )
+if SHARED_SLOT_POLL_S <= 0:
+    raise ValueError("OPENAI_PROXY_SHARED_SLOT_POLL_S must be positive")
+if SHARED_SLOT_HEARTBEAT_S <= 0:
+    raise ValueError("OPENAI_PROXY_SHARED_SLOT_HEARTBEAT_S must be positive")
+if MAX_CALLS < 0 or MAX_TOTAL_TOKENS < 0:
+    raise ValueError("DSPROXY smoke budgets must be non-negative")
+
+_BUDGET_LOCK = threading.Lock()
+_ACCEPTED_CALLS = 0
+_OBSERVED_TOTAL_TOKENS = 0
+
 # The comment above described slicing a SERIAL timeline into runs. The harness
 # is not serial: measured over the 312-run 13-task subset, max concurrency is 2
 # (always cross-backbone). Two concurrent workers interleave their marks in one
@@ -257,6 +292,77 @@ def _usage_write(record: dict) -> None:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception:
         pass
+
+
+async def _shared_slot_acquire() -> int | None:
+    """Acquire one process-shared upstream slot without blocking asyncio."""
+    if not SHARED_SLOTS:
+        return None
+    os.makedirs(SHARED_SLOTS_DIR, mode=0o755, exist_ok=True)
+    started = time.monotonic()
+    last_heartbeat = started
+    while True:
+        for index in range(SHARED_SLOTS):
+            path = os.path.join(SHARED_SLOTS_DIR, f"slot-{index}.lock")
+            fd = os.open(path, os.O_CREAT | os.O_RDWR, 0o644)
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                os.close(fd)
+                continue
+            waited = time.monotonic() - started
+            if waited >= SHARED_SLOT_POLL_S:
+                _usage_write({
+                    "non_call_event": True,
+                    "admission_wait": True,
+                    "slot": index,
+                    "wait_s": round(waited, 3),
+                })
+            return fd
+        now = time.monotonic()
+        if now - last_heartbeat >= SHARED_SLOT_HEARTBEAT_S:
+            _usage_write({
+                "non_call_event": True,
+                "admission_waiting": True,
+                "wait_s": round(now - started, 3),
+            })
+            last_heartbeat = now
+        await asyncio.sleep(SHARED_SLOT_POLL_S)
+
+
+def _shared_slot_release(fd: int | None) -> None:
+    if fd is None:
+        return
+    try:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+    finally:
+        os.close(fd)
+
+
+def _budget_admit() -> str | None:
+    """Admit one logical proxy request or return a stable exhaustion reason."""
+    global _ACCEPTED_CALLS
+    with _BUDGET_LOCK:
+        if MAX_CALLS and _ACCEPTED_CALLS >= MAX_CALLS:
+            return f"call limit reached ({_ACCEPTED_CALLS}/{MAX_CALLS})"
+        if MAX_TOTAL_TOKENS and _OBSERVED_TOTAL_TOKENS >= MAX_TOTAL_TOKENS:
+            return (
+                "token limit reached "
+                f"({_OBSERVED_TOTAL_TOKENS}/{MAX_TOTAL_TOKENS})"
+            )
+        _ACCEPTED_CALLS += 1
+    return None
+
+
+def _budget_record_tokens(usage: dict | None) -> None:
+    global _OBSERVED_TOTAL_TOKENS
+    if not isinstance(usage, dict):
+        return
+    prompt = int(usage.get("prompt_tokens") or 0)
+    completion = int(usage.get("completion_tokens") or 0)
+    total = int(usage.get("total_tokens") or (prompt + completion))
+    with _BUDGET_LOCK:
+        _OBSERVED_TOTAL_TOKENS += max(0, total)
 
 
 def _contains_code(obj: Any, code: str) -> bool:
@@ -437,6 +543,23 @@ async def _forward(path: str, request: Request) -> Any:
     except Exception:
         body = {}
 
+    budget_error = _budget_admit()
+    if budget_error:
+        _usage_write({
+            "non_call_event": True,
+            "budget_exhausted": True,
+            "reason": budget_error,
+        })
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": {
+                    "message": f"ds_proxy smoke budget exhausted: {budget_error}",
+                    "type": "smoke_budget_exhausted",
+                }
+            },
+        )
+
     model = body.get("model", "")
     # The declared sampler, stamped where every lane's request must pass.
     # `run_deep_task._setup_ds_backbone` points ELEVEN lanes here; only
@@ -499,19 +622,26 @@ async def _forward(path: str, request: Request) -> Any:
         while True:
             attempt += 1
             client = httpx.AsyncClient(timeout=timeout)
+            slot_fd = await _shared_slot_acquire()
             try:
                 req = client.build_request("POST", url, json=body, headers=headers)
                 upstream_resp = await client.send(req, stream=True)
             except httpx.TimeoutException:
+                _shared_slot_release(slot_fd)
                 await client.aclose()
                 if attempt >= RETRY_MAX_ATTEMPTS:
                     return _retry_exhausted("timeout", attempt, req_model)
                 delay = await _retry_pause("timeout", attempt, delay, req_model)
                 continue
+            except BaseException:
+                _shared_slot_release(slot_fd)
+                await client.aclose()
+                raise
 
             ctype = upstream_resp.headers.get("content-type", "")
             if upstream_resp.status_code != 200 or ctype.startswith("application/json"):
                 content = await upstream_resp.aread()
+                _shared_slot_release(slot_fd)
                 retry, reason = _retryable_payload(upstream_resp.status_code, content)
                 if retry:
                     await upstream_resp.aclose()
@@ -546,11 +676,13 @@ async def _forward(path: str, request: Request) -> Any:
             finally:
                 await upstream_resp.aclose()
                 await client.aclose()
+                _shared_slot_release(slot_fd)
                 if USAGE_LOG:
                     if tail.strip():
                         sse_lines.append(tail)
                     usage = _scan_sse_usage(sse_lines)
                     if usage:
+                        _budget_record_tokens(usage)
                         _usage_write({
                             "model": req_model,
                             "stream": True,
@@ -573,13 +705,19 @@ async def _forward(path: str, request: Request) -> Any:
     async with httpx.AsyncClient(timeout=timeout) as client:
         while True:
             attempt += 1
+            slot_fd = await _shared_slot_acquire()
             try:
                 r = await client.post(url, json=body, headers=headers)
             except httpx.TimeoutException:
+                _shared_slot_release(slot_fd)
                 if attempt >= RETRY_MAX_ATTEMPTS:
                     return _retry_exhausted("timeout", attempt, req_model)
                 delay = await _retry_pause("timeout", attempt, delay, req_model)
                 continue
+            except BaseException:
+                _shared_slot_release(slot_fd)
+                raise
+            _shared_slot_release(slot_fd)
             retry, reason = _retryable_payload(r.status_code, r.content)
             if not retry:
                 break
@@ -592,6 +730,7 @@ async def _forward(path: str, request: Request) -> Any:
             # Whole-run token accounting (see header). No-op when unset.
             _u = data.get("usage") if isinstance(data, dict) else None
             if _u:
+                _budget_record_tokens(_u)
                 _usage_write({
                     "model": body.get("model"),
                     "stream": False,
@@ -676,4 +815,16 @@ async def models(request: Request):
 
 @app.get("/healthz")
 async def healthz():
-    return {"ok": True, "upstream": UPSTREAM, "inject_thinking_off": INJECT_THINKING_DISABLED}
+    return {
+        "ok": True,
+        "upstream": UPSTREAM,
+        "inject_thinking_off": INJECT_THINKING_DISABLED,
+        "shared_upstream_slots": SHARED_SLOTS or None,
+        "shared_slots_enabled": bool(SHARED_SLOTS),
+        "smoke_budget": {
+            "max_calls": MAX_CALLS or None,
+            "accepted_calls": _ACCEPTED_CALLS,
+            "max_total_tokens": MAX_TOTAL_TOKENS or None,
+            "observed_total_tokens": _OBSERVED_TOTAL_TOKENS,
+        },
+    }

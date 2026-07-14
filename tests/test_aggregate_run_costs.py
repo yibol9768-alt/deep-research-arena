@@ -14,6 +14,8 @@ def test_cost_ledger_totals_and_unpriced_status(tmp_path):
     records = [
         {"model": "gpt-5.6-luna", "prompt_tokens": 100,
          "completion_tokens": 20, "total_tokens": 120, "ts": 1},
+        {"non_call_event": True, "admission_wait": True,
+         "wait_s": 2.5, "ts": 1.5},
         {"mark": True, "phase": "start", "run_id": "r1", "ts": 2},
         {"model": "gpt-5.6-luna", "prompt_tokens": 300,
          "completion_tokens": 40, "total_tokens": 340, "ts": 3},
@@ -46,4 +48,3 @@ def test_cost_ledger_totals_and_unpriced_status(tmp_path):
         "cost": None,
         "pricing_status": "unpriced",
     }
-
