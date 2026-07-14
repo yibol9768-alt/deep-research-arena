@@ -121,6 +121,14 @@ def test_exception_stubs(text):
     assert is_stub(text)
 
 
+def test_native_odr_provider_error_is_not_a_report():
+    text = (
+        "Error generating final report: Error code: 400 - "
+        "{'error': {'message': 'ds_proxy smoke budget exhausted: call limit reached'}}"
+    )
+    assert classify_report(text) == "stub_exception"
+
+
 @pytest.mark.parametrize("text", _TOO_SHORT)
 def test_too_short_stubs(text):
     assert classify_report(text) == "too_short"

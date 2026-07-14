@@ -6,6 +6,8 @@ import asyncio
 import ipaddress
 import json
 
+import pytest
+
 from integrations.ds_proxy import app
 
 
@@ -29,6 +31,21 @@ def test_shared_upstream_slot_serializes_callers(tmp_path, monkeypatch):
 def test_shared_upstream_slot_disabled(monkeypatch):
     monkeypatch.setattr(app, "SHARED_SLOTS", 0)
     assert asyncio.run(app._shared_slot_acquire()) is None
+
+
+def test_disconnected_client_is_removed_from_shared_slot_queue(tmp_path, monkeypatch):
+    monkeypatch.setattr(app, "SHARED_SLOTS_DIR", str(tmp_path / "slots"))
+    monkeypatch.setattr(app, "SHARED_SLOTS", 1)
+
+    class GoneRequest:
+        async def is_disconnected(self):
+            return True
+
+    async def exercise():
+        with pytest.raises(app.ClientDisconnectedBeforeAdmission):
+            await app._shared_slot_acquire(request=GoneRequest())
+
+    asyncio.run(exercise())
 
 
 def test_smoke_budget_stops_after_calls_and_tokens(monkeypatch):

@@ -218,6 +218,10 @@ class RunOwnerMismatch(RuntimeError):
     """An `/_mark end` caller does not own the currently open run."""
 
 
+class ClientDisconnectedBeforeAdmission(RuntimeError):
+    """The caller went away while waiting for an upstream slot."""
+
+
 def _run_ctx_set(body: dict) -> dict:
     run_id = str(body.get("run_id") or "").strip()
     if not run_id:
@@ -314,7 +318,9 @@ def _usage_write(record: dict, *, run_ctx: dict[str, Any] | None = None) -> None
 
 
 async def _shared_slot_acquire(
-    *, run_ctx: dict[str, Any] | None = None,
+    *,
+    run_ctx: dict[str, Any] | None = None,
+    request: Request | None = None,
 ) -> int | None:
     """Acquire one process-shared upstream slot without blocking asyncio."""
     if not SHARED_SLOTS:
@@ -323,6 +329,16 @@ async def _shared_slot_acquire(
     started = time.monotonic()
     last_heartbeat = started
     while True:
+        if request is not None and await request.is_disconnected():
+            waited = time.monotonic() - started
+            _usage_write({
+                "non_call_event": True,
+                "client_disconnected_before_admission": True,
+                "wait_s": round(waited, 3),
+            }, run_ctx=run_ctx)
+            raise ClientDisconnectedBeforeAdmission(
+                "client disconnected before an upstream slot became available"
+            )
         for index in range(SHARED_SLOTS):
             path = os.path.join(SHARED_SLOTS_DIR, f"slot-{index}.lock")
             fd = os.open(path, os.O_CREAT | os.O_RDWR, 0o644)
@@ -373,6 +389,39 @@ def _budget_admit() -> str | None:
             )
         _ACCEPTED_CALLS += 1
     return None
+
+
+def _budget_exhausted_response(
+    reason: str,
+    *,
+    run_ctx: dict[str, Any],
+) -> JSONResponse:
+    _usage_write({
+        "non_call_event": True,
+        "budget_exhausted": True,
+        "reason": reason,
+    }, run_ctx=run_ctx)
+    return JSONResponse(
+        status_code=400,
+        content={
+            "error": {
+                "message": f"ds_proxy smoke budget exhausted: {reason}",
+                "type": "smoke_budget_exhausted",
+            }
+        },
+    )
+
+
+def _client_disconnected_response() -> JSONResponse:
+    return JSONResponse(
+        status_code=499,
+        content={
+            "error": {
+                "message": "client disconnected before upstream admission",
+                "type": "client_disconnected",
+            }
+        },
+    )
 
 
 def _budget_record_tokens(usage: dict | None) -> None:
@@ -604,23 +653,6 @@ async def _forward(path: str, request: Request) -> Any:
     # before the upstream response arrives.
     request_run_ctx = _run_ctx()
 
-    budget_error = _budget_admit()
-    if budget_error:
-        _usage_write({
-            "non_call_event": True,
-            "budget_exhausted": True,
-            "reason": budget_error,
-        }, run_ctx=request_run_ctx)
-        return JSONResponse(
-            status_code=400,
-            content={
-                "error": {
-                    "message": f"ds_proxy smoke budget exhausted: {budget_error}",
-                    "type": "smoke_budget_exhausted",
-                }
-            },
-        )
-
     model = body.get("model", "")
     # The declared sampler, stamped where every lane's request must pass.
     # `run_deep_task._setup_ds_backbone` points ELEVEN lanes here; only
@@ -680,10 +712,28 @@ async def _forward(path: str, request: Request) -> Any:
             body["stream_options"] = {"include_usage": True}
         delay = RETRY_INITIAL_S
         attempt = 0
+        budget_admitted = False
         while True:
             attempt += 1
             client = httpx.AsyncClient(timeout=timeout)
-            slot_fd = await _shared_slot_acquire(run_ctx=request_run_ctx)
+            try:
+                slot_fd = await _shared_slot_acquire(
+                    run_ctx=request_run_ctx,
+                    request=request,
+                )
+            except ClientDisconnectedBeforeAdmission:
+                await client.aclose()
+                return _client_disconnected_response()
+            if not budget_admitted:
+                budget_error = _budget_admit()
+                if budget_error:
+                    _shared_slot_release(slot_fd)
+                    await client.aclose()
+                    return _budget_exhausted_response(
+                        budget_error,
+                        run_ctx=request_run_ctx,
+                    )
+                budget_admitted = True
             try:
                 req = client.build_request("POST", url, json=body, headers=headers)
                 upstream_resp = await client.send(req, stream=True)
@@ -776,10 +826,26 @@ async def _forward(path: str, request: Request) -> Any:
 
     delay = RETRY_INITIAL_S
     attempt = 0
+    budget_admitted = False
     async with httpx.AsyncClient(timeout=timeout) as client:
         while True:
             attempt += 1
-            slot_fd = await _shared_slot_acquire(run_ctx=request_run_ctx)
+            try:
+                slot_fd = await _shared_slot_acquire(
+                    run_ctx=request_run_ctx,
+                    request=request,
+                )
+            except ClientDisconnectedBeforeAdmission:
+                return _client_disconnected_response()
+            if not budget_admitted:
+                budget_error = _budget_admit()
+                if budget_error:
+                    _shared_slot_release(slot_fd)
+                    return _budget_exhausted_response(
+                        budget_error,
+                        run_ctx=request_run_ctx,
+                    )
+                budget_admitted = True
             try:
                 r = await client.post(url, json=body, headers=headers)
             except httpx.TimeoutException:

@@ -55,6 +55,14 @@ _RUNNER_EXCEPTION_PREFIX_RE = re.compile(
     r"^\(\s*[A-Za-z][\w\- ]*\s+(error|stderr)\s*:",
     re.IGNORECASE,
 )
+# Native open_deep_research returns these strings as ordinary graph values
+# when its final/compression model call fails. They are framework exceptions,
+# not terse research reports, even when the embedded provider payload pushes
+# them above the generic short-output floor.
+_NATIVE_EXCEPTION_PREFIX_RE = re.compile(
+    r"^Error\s+(generating\s+final|synthesizing\s+research)\s+report\s*:",
+    re.IGNORECASE,
+)
 # Raw parenthesized single-line runner message: the entire answer is one
 # parenthesized line, e.g. "(opencode timeout after 360s)",
 # "(empty flowsearcher report)", "(qx-agents produced no report)". The
@@ -81,6 +89,7 @@ _MARKDOWN_STRUCTURE_RE = re.compile(
 _STUB_PREFIX_CLASSIFIERS = (
     (_RUNNER_FAILURE_PREFIX_RE, "stub_runner_failure"),
     (_RUNNER_EXCEPTION_PREFIX_RE, "stub_exception"),
+    (_NATIVE_EXCEPTION_PREFIX_RE, "stub_exception"),
     (_TIMEOUT_STUB_RE, "stub_timeout"),
 )
 
