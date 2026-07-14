@@ -100,7 +100,8 @@ class _StallWatchdog(threading.Thread):
       * egress call count -- GET {DRA_EGRESS_CONTROL_URL}/healthz .counters
         (direct page reads made outside the shim).
       * ds_proxy health counters -- GET {DS_PROXY_URL origin}/healthz
-        .smoke_budget (accepted requests and completed-token growth).
+        .smoke_budget plus .usage_log_bytes (accepted requests, completed-token
+        growth, and admission/retry heartbeats while shared slots are busy).
       * ds_proxy usage-log growth -- os.path.getsize(DSPROXY_USAGE_LOG); one
         appended line per upstream LLM call.
 
@@ -195,6 +196,7 @@ class _StallWatchdog(threading.Thread):
                 pass
         dsproxy_calls = 0
         dsproxy_tokens = 0
+        dsproxy_usage_bytes = 0
         if self._dsproxy_url:
             try:
                 from urllib.parse import urlsplit, urlunsplit
@@ -218,6 +220,7 @@ class _StallWatchdog(threading.Thread):
                 smoke = health.get("smoke_budget") or {}
                 dsproxy_calls = int(smoke.get("accepted_calls") or 0)
                 dsproxy_tokens = int(smoke.get("observed_total_tokens") or 0)
+                dsproxy_usage_bytes = int(health.get("usage_log_bytes") or 0)
             except Exception:
                 pass
         return (
@@ -226,6 +229,7 @@ class _StallWatchdog(threading.Thread):
             usage_bytes,
             dsproxy_calls,
             dsproxy_tokens,
+            dsproxy_usage_bytes,
         )
 
     def run(self) -> None:

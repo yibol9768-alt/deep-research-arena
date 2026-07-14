@@ -8,6 +8,7 @@ from scripts.run_deep_task import _StallWatchdog
 class _Response:
     def json(self):
         return {
+            "usage_log_bytes": 8910,
             "smoke_budget": {
                 "accepted_calls": 23,
                 "observed_total_tokens": 4567,
@@ -44,7 +45,7 @@ def test_watchdog_uses_dsproxy_health_when_host_usage_path_is_hidden(
 
     progress = watchdog._progress()
 
-    assert progress[-2:] == (23, 4567)
+    assert progress[-3:] == (23, 4567, 8910)
     assert _Session.requested == [
         ("http://10.240.1.1:18510/healthz", 5, False),
     ]

@@ -75,3 +75,14 @@ def test_usage_write_keeps_admission_context_after_bracket_closes(
     assert row["run_id"] == "run-before-close"
     assert row["lane"] == "qx-agents"
     assert row["total_tokens"] == 17
+
+
+def test_health_exposes_only_host_usage_ledger_size(tmp_path, monkeypatch):
+    usage = tmp_path / "usage.jsonl"
+    usage.write_bytes(b"1234567")
+    monkeypatch.setattr(app, "USAGE_LOG", str(usage))
+
+    health = asyncio.run(app.healthz())
+
+    assert health["usage_log_bytes"] == 7
+    assert str(usage) not in str(health)

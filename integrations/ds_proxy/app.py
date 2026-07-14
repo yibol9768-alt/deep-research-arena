@@ -906,6 +906,12 @@ async def models(request: Request):
 
 @app.get("/healthz")
 async def healthz():
+    usage_log_bytes = 0
+    if USAGE_LOG:
+        try:
+            usage_log_bytes = os.path.getsize(USAGE_LOG)
+        except OSError:
+            pass
     return {
         "ok": True,
         "upstream": UPSTREAM,
@@ -913,6 +919,10 @@ async def healthz():
         "shared_upstream_slots": SHARED_SLOTS or None,
         "shared_slots_enabled": bool(SHARED_SLOTS),
         "client_network_gate": bool(ALLOWED_CLIENT_NETWORKS),
+        # The worker chroot cannot stat the host-side ledger directly. Expose
+        # only its byte count so the uniform watchdog can observe admission
+        # heartbeat/retry/completion progress without exposing ledger content.
+        "usage_log_bytes": usage_log_bytes,
         "smoke_budget": {
             "max_calls": MAX_CALLS or None,
             "accepted_calls": _ACCEPTED_CALLS,
