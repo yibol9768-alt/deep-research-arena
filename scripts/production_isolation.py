@@ -199,6 +199,43 @@ def _has_default_route() -> bool:
     return False
 
 
+def _dev_shm_details(host_device: int | None) -> dict[str, Any]:
+    """Describe the worker's private POSIX shared-memory mount."""
+    path = pathlib.Path("/dev/shm")
+    try:
+        info = path.stat()
+        mount_row: list[str] | None = None
+        for raw in pathlib.Path("/proc/self/mountinfo").read_text().splitlines():
+            fields = raw.split()
+            if len(fields) > 6 and fields[4].replace("\\040", " ") == str(path):
+                mount_row = fields
+        if mount_row is None or "-" not in mount_row:
+            raise IsolationError("/dev/shm is not a distinct mount")
+        separator = mount_row.index("-")
+        options = set(mount_row[5].split(","))
+        options.update(mount_row[separator + 3].split(","))
+        return {
+            "device": info.st_dev,
+            "private": host_device is not None and info.st_dev != int(host_device),
+            "writable": os.access(path, os.W_OK),
+            "mode": stat.S_IMODE(info.st_mode),
+            "fs_type": mount_row[separator + 1],
+            "secure_options": all(
+                item in options for item in ("rw", "nosuid", "nodev", "noexec")
+            ),
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "device": None,
+            "private": False,
+            "writable": False,
+            "mode": None,
+            "fs_type": None,
+            "secure_options": False,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+
 def current_context_details(
     env: Mapping[str, str] | None = None,
 ) -> dict[str, Any]:
@@ -218,6 +255,7 @@ def current_context_details(
         no_new_privs = int(status_fields.get("NoNewPrivs", "0"))
         netns_inode = os.stat("/proc/self/ns/net").st_ino
         mountns_inode = os.stat("/proc/self/ns/mnt").st_ino
+        dev_shm = _dev_shm_details(proof.get("host_dev_shm_device"))
         proxy = str(source.get("DRA_EGRESS_PROXY", "")).rstrip("/")
         checks = {
             "active_marker": str(source.get("DRA_ISOLATION_ACTIVE", "")) == "1",
@@ -240,6 +278,11 @@ def current_context_details(
                 str(proof["repository_root"]), os.W_OK,
             ),
             "output_writable": os.access("/output", os.W_OK),
+            "dev_shm_private": dev_shm["private"],
+            "dev_shm_writable": dev_shm["writable"],
+            "dev_shm_tmpfs": dev_shm["fs_type"] == "tmpfs",
+            "dev_shm_mode_1777": dev_shm["mode"] == 0o1777,
+            "dev_shm_secure_options": dev_shm["secure_options"],
         }
         for hidden_path in proof.get("hidden_canary_paths", []):
             checks[f"hidden_unreadable:{hidden_path}"] = not os.access(hidden_path, os.R_OK)
@@ -257,6 +300,7 @@ def current_context_details(
             "mountns_inode": mountns_inode,
             "cap_eff": f"{caps:x}",
             "no_new_privs": no_new_privs,
+            "dev_shm": dev_shm,
             "checks": checks,
         })
         failed = sorted(name for name, ok in checks.items() if not ok)
@@ -662,6 +706,7 @@ def setup(args: argparse.Namespace) -> int:
                 "netns_inode": netns_inode,
                 "host_netns_inode": host_netns_inode,
                 "host_mountns_inode": os.stat("/proc/self/ns/mnt").st_ino,
+                "host_dev_shm_device": os.stat("/dev/shm").st_dev,
                 "nft_sha256": hashlib.sha256(nft_text.encode()).hexdigest(),
                 "nft_rules": rules,
                 "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -789,6 +834,18 @@ def _mount_rbind_readonly(source: pathlib.Path, target: pathlib.Path) -> None:
         _run(["mount", "-o", "remount,bind,ro", str(mountpoint)])
 
 
+def _mount_private_worker_shm(rootfs: pathlib.Path) -> None:
+    """Overlay the read-only host /dev/shm with a private worker tmpfs."""
+    target = rootfs / "dev" / "shm"
+    if not target.is_dir():
+        raise IsolationError("host /dev/shm mountpoint is unavailable")
+    _run([
+        "mount", "-t", "tmpfs", "-o",
+        "mode=1777,size=64m,nosuid,nodev,noexec",
+        "tmpfs", str(target),
+    ])
+
+
 def _mount_hidden_path(
     empty_dir: pathlib.Path,
     empty_file: pathlib.Path,
@@ -841,6 +898,7 @@ def mount_exec(state_path: pathlib.Path, command: Sequence[str]) -> int:
         _mount_bind(pathlib.Path("/etc"), rootfs / "etc", readonly=True)
         if pathlib.Path("/dev").exists():
             _mount_rbind_readonly(pathlib.Path("/dev"), rootfs / "dev")
+            _mount_private_worker_shm(rootfs)
         if pathlib.Path("/sys").exists():
             _mount_rbind_readonly(pathlib.Path("/sys"), rootfs / "sys")
         (rootfs / "proc").mkdir()
@@ -1017,13 +1075,13 @@ def _worker_probe_payload(
             "/", "/usr", "/etc", str(state["repository_root"]),
             str(pathlib.Path(state["repository_root"]) / "scripts"),
             str(pathlib.Path(state["repository_root"]) / "data" / "tasks"),
-            "/dev/shm",
         ],
-        "writable_paths": ["/output", "/tmp"],
+        "writable_paths": ["/output", "/tmp", "/dev/shm"],
         "expected": {
             "uid": state["worker_uid"], "gid": state["worker_gid"],
             "netns_inode": state["netns_inode"], "host_netns_inode": state["host_netns_inode"],
             "host_mountns_inode": state["host_mountns_inode"],
+            "host_dev_shm_device": state["host_dev_shm_device"],
         },
     }
 
@@ -1064,6 +1122,8 @@ def worker_probe(input_path: pathlib.Path) -> int:
         "chroot_active": os.environ.get("DRA_CHROOT_ACTIVE") == "1",
         "hidden_gold_masked": os.environ.get("DRA_HIDDEN_GOLD_MASKED") == "1",
     }
+    dev_shm = _dev_shm_details(expected.get("host_dev_shm_device"))
+    context["dev_shm"] = dev_shm
     context_ok = (
         context["uid"] == int(expected["uid"]) != 0
         and context["gid"] == int(expected["gid"])
@@ -1075,6 +1135,11 @@ def worker_probe(input_path: pathlib.Path) -> int:
         and not context["has_default_route"]
         and context["chroot_active"]
         and context["hidden_gold_masked"]
+        and dev_shm["private"]
+        and dev_shm["writable"]
+        and dev_shm["fs_type"] == "tmpfs"
+        and dev_shm["mode"] == 0o1777
+        and dev_shm["secure_options"]
     )
 
     hidden_reads: list[dict[str, str]] = []
@@ -1391,6 +1456,7 @@ def probe(args: argparse.Namespace) -> int:
         "netns_inode": state["netns_inode"],
         "host_netns_inode": state["host_netns_inode"],
         "host_mountns_inode": state["host_mountns_inode"],
+        "host_dev_shm_device": state["host_dev_shm_device"],
         "repository_root": state["repository_root"],
         "hidden_canary_paths": state["hidden_canary_paths"],
         "network": state["network"],

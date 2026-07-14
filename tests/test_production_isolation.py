@@ -6,6 +6,7 @@ import json
 import os
 import pathlib
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -128,6 +129,50 @@ def test_hidden_path_mask_rejects_symlink(tmp_path, monkeypatch):
 
     with pytest.raises(isolation.IsolationError, match="non-regular"):
         isolation._mount_hidden_path(empty_dir, empty_file, link)
+
+
+def test_private_worker_shm_mount_is_writable_but_hardened(tmp_path, monkeypatch):
+    target = tmp_path / "dev" / "shm"
+    target.mkdir(parents=True)
+    calls = []
+    monkeypatch.setattr(isolation, "_run", lambda argv: calls.append(argv))
+
+    isolation._mount_private_worker_shm(tmp_path)
+
+    assert calls == [[
+        "mount", "-t", "tmpfs", "-o",
+        "mode=1777,size=64m,nosuid,nodev,noexec",
+        "tmpfs", str(target),
+    ]]
+
+
+def test_worker_probe_requires_private_writable_dev_shm(monkeypatch):
+    monkeypatch.setattr(isolation, "_host_aliases", lambda _state: [])
+    state = {
+        "corpus_origins": ["127.0.0.1:7770"],
+        "proxy_url": "http://10.240.1.1:18099",
+        "evidence_dir": "/evidence",
+        "canonical_evidence_dir": "/canonical",
+        "hidden_canary_paths": [],
+        "repository_root": "/repo",
+        "worker_uid": 60001,
+        "worker_gid": 60001,
+        "netns_inode": 12,
+        "host_netns_inode": 11,
+        "host_mountns_inode": 10,
+        "host_dev_shm_device": 99,
+    }
+    args = SimpleNamespace(
+        corpus_url="http://example.invalid/corpus",
+        service_url="http://example.invalid/service",
+        service_direct_url="http://127.0.0.1:18099/healthz",
+    )
+
+    payload = isolation._worker_probe_payload(state, args, "probe")
+
+    assert "/dev/shm" in payload["writable_paths"]
+    assert "/dev/shm" not in payload["read_only_paths"]
+    assert payload["expected"]["host_dev_shm_device"] == 99
 
 
 def test_default_route_ignores_ipv6_null_entry(tmp_path, monkeypatch):
