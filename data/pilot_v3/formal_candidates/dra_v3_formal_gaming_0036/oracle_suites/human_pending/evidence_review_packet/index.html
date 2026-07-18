@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>77b392807ea0935a66bdc1c6246cadbf2b366328c4bddca338b3997bac105a7f</code></p>
+<p>待审项 26 个，其中语义项 13 个、结构化项 0 个；冻结来源 27 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_ps3_160gb_offer_scope"><header><h3>assert_ps3_160gb_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07D9VTVXM at 247.99 dollars with seller claims for 160 GB, Wi-Fi, and a Blu-ray player but no listed controller or exact refurbishment test&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen PlayStation 3 160 GB renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ps3_160gb_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_assertions_not_controller_inclusion_or_observed_exact_unit_condition&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07D9VTVXM at 247.99 dollars with seller claims for 160 GB, Wi-Fi, and a Blu-ray player but no listed controller or exact refurbishment test&quot;,
+  &quot;predicate&quot;: &quot;asserts_exact_offer_and_platform_features&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation 3 160 GB renewed seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ps3_160gb_offer_scope_1</code> | bytes [0, 41) | <code>fa4ec0f6c14e61d0e806bdd9d8b3e25e19e8773e9056b83228011d50ce24ee7f</code></div><pre class="context"><span></span><mark>Sony Playstation 3 160GB System (Renewed)</mark><span>
+
+In stock SKU B07D9VTVXM Be the first to review this product $247.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look With the PlayStation 3 160GB system, you get free PlayStation Network membership, built-in Wi-Fi and 160GB of hard disk drive storage for games, music, videos and photos. And every PS3 system comes with a built-in </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/sony-playstation-3-160gb-system-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/sony-playstation-3-160gb-system-renewed.html</a></p><p>冻结文件: <a href="sources/2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030" target="_blank">sources/2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030</a></p><p>内容 SHA-256: <code>2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ps3_controller_interface_scope"><header><h3>assert_ps3_controller_interface_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;DualShock 3 wireless mini-USB charging, Sixaxis and vibration plus generic USB controllers that may lack required inputs&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for PlayStation 3 controller and accessory interfaces&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ps3_controller_interface_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;interface_history_not_exact_controller_battery_condition_or_title_compatibility&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;DualShock 3 wireless mini-USB charging, Sixaxis and vibration plus generic USB controllers that may lack required inputs&quot;,
+  &quot;predicate&quot;: &quot;have_feature_and_input_compatibility_boundaries&quot;,
+  &quot;subject&quot;: &quot;PlayStation 3 controller and accessory interfaces&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ps3_controller_interface_scope_1</code> | bytes [2747, 2887) | <code>c3222edb3f2c722ab87135ecad004e4ddc109fd38d2a402410827b63364bbd6c</code></div><pre class="context"><span>xaxis, with the only differences being that &quot;DUALSHOCK 3&quot; is printed on the top (with the original &quot;SIXAXIS&quot; label moved down) and that the body is made of opaque plastic rather than the slightly translucent plastic used on the Sixaxis. The vibration function does not interfere with the motion sensing function, and both functions can be used at once. [ 1 ] </span><mark>Like the Sixaxis, it is a wireless controller with a mini-USB port on the rear that is used for charging, as well as playing while charging.</mark><span> Released alongside new PlayStation 3 models in Japan on January 11, 2008, the DualShock 3 was initially available in Black and Ceramic White colors, matching the color options for the new console models. [ 2 ] On March 6, a Satin Silver DualShock 3 was released in Japan, again alongside a new console color. [ 3 ] The black DualShock 3 was released in the</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_3_accessories" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_3_accessories</a></p><p>冻结文件: <a href="sources/f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b" target="_blank">sources/f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b</a></p><p>内容 SHA-256: <code>f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ps3_controller_offer_scope"><header><h3>assert_ps3_controller_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B00BWBTJOE at 57.31 dollars with a 60-percent-of-100 aggregate over twelve reviews and seller claims for Bluetooth, USB charging, Sixaxis, vibration, and an included lithium-ion battery&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen PlayStation 3 DualShock 3 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ps3_controller_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_and_aggregate_not_exact_battery_health_or_durability&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B00BWBTJOE at 57.31 dollars with a 60-percent-of-100 aggregate over twelve reviews and seller claims for Bluetooth, USB charging, Sixaxis, vibration, and an included lithium-ion battery&quot;,
+  &quot;predicate&quot;: &quot;asserts_controller_offer_features_and_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation 3 DualShock 3 seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ps3_controller_offer_scope_1</code> | bytes [0, 61) | <code>a596ebf6a1dd82bf9a358a40ce3f47654b07d03f1db1655dab1ba2262a0321a0</code></div><pre class="context"><span></span><mark>PlayStation 3 DualShock 3 wireless controller - Metallic Grey</mark><span>
+
+In stock SKU B00BWBTJOE Rating: 60 % of 100 12 Reviews Add Your Review $57.31 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look The DUALSHOCK 3 wireless controller for the PlayStation 3 system provides the most intuitive game play experience with pressure sensors in each action button and the inclusion of the highly sensitive SIXA</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/playstation-3-dualshock-3-wireless-controller-metallic-grey.html" target="_blank" rel="noreferrer">http://localhost:7770/playstation-3-dualshock-3-wireless-controller-metallic-grey.html</a></p><p>冻结文件: <a href="sources/c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543" target="_blank">sources/c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543</a></p><p>内容 SHA-256: <code>c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_retro_controller_replacement_question_scope"><header><h3>assert_retro_controller_replacement_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;what happens if retro console controllers break and whether new controllers will always be made&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one retro-controller replacement-supply question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_retro_controller_replacement_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_not_breakage_rate_supply_finding_or_platform_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;what happens if retro console controllers break and whether new controllers will always be made&quot;,
+  &quot;predicate&quot;: &quot;asks_about_future_new_oem_supply&quot;,
+  &quot;subject&quot;: &quot;one retro-controller replacement-supply question&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_retro_controller_replacement_question_scope_1</code> | bytes [134, 414) | <code>dfa68b6d56d64ca4b0ba5127940e4c410fc1ec94a2511fac95bdab74ab46289e</code></div><pre class="context"><span>Are there any brand new PS1 controllers out there OEM? Or will there always be new video game controllers made for consoles and PCs?
+
+</span><mark>I’m a console and PC player. But I prefer using a controller too a keyboard and mouse too play my games and was wondering would they’re always be new video game controllers made ? For each new Console generation? And what happens if all the retro console controllers break ? 4</mark><span>
+
+No they won&#x27;t.. End of &quot;replacement parts&quot; will be a bit before fanbase of specific devices will go down on numbers. After that, only fanmade devices will be aviliable.
+
+So u don’t think for future console releases they will always make new controllers ?
+
+I&#x27;m sorry.. What? 😅
+
+Sorry I guess my question is u no how consoles themselves can break down ? A</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/59836/are-there-any-brand-new-ps1-controllers-out-there-oem-or" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/59836/are-there-any-brand-new-ps1-controllers-out-there-oem-or</a></p><p>冻结文件: <a href="sources/5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84" target="_blank">sources/5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84</a></p><p>内容 SHA-256: <code>5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_second_hand_just_dance_question_scope"><header><h3>assert_second_hand_just_dance_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a low-cost second-hand setup for a six-year-old to play Just Dance with Wii Sports as a bonus and no DVD need&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one second-hand Just Dance family question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_second_hand_just_dance_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_requirements_not_offer_game_version_accessory_or_durability_result&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a low-cost second-hand setup for a six-year-old to play Just Dance with Wii Sports as a bonus and no DVD need&quot;,
+  &quot;predicate&quot;: &quot;states_budget_motion_game_and_child_constraints&quot;,
+  &quot;subject&quot;: &quot;one second-hand Just Dance family question&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_second_hand_just_dance_question_scope_1</code> | bytes [31, 541) | <code>32a4589bb49c9e13027971da7baf5565e5d7827274696cfdea4925d0f2816999</code></div><pre class="context"><span>Cheap console for Just Dance?
+
+</span><mark>Hi everone Im looking for advice on a budget solution as I would like to buy my 6y daughter a console to play Just Dance for xmas. It doesnt have to be the 2022 edition and I would like to buy a second-hand console to keep cost low (and realistic for us). I&#x27;m not a console guy but it would be a bonus if you suggestion could support a game like Wii sports, which was the hottest thing last time I touched a console :-) We dont own any DVDs so thats it not a requirement. Thanks for any advice you may have. 14</mark><span>
+
+the wii
+
+Wii has every one of the games on and it&#x27;s cheap
+
+I&#x27;d suggest getting an Xbox one with a Kinect camera. Both can be picked up on the cheap. Just dance is a blast with this setup and totally hands free
+
+If the year of just dance doesn&#x27;t matter I would say go nintendo wii. I see those all the times for less than 20 dollars.
+
+The Wii is your best bet</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/17998/cheap-console-for-just-dance" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/17998/cheap-console-for-just-dance</a></p><p>冻结文件: <a href="sources/a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6" target="_blank">sources/a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6</a></p><p>内容 SHA-256: <code>a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_seventh_generation_platform_scope"><header><h3>assert_seventh_generation_platform_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;contemporaneous platforms with HD, Blu-ray, and motion-control emphases plus model-dependent compatibility and production histories&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for seventh-generation Xbox 360 PlayStation 3 and Wii platform history&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_seventh_generation_platform_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;platform_history_not_exact_unit_survival_or_complete_local_multiplayer_catalog&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;contemporaneous platforms with HD, Blu-ray, and motion-control emphases plus model-dependent compatibility and production histories&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_platform_emphases_and_revision_boundaries&quot;,
+  &quot;subject&quot;: &quot;seventh-generation Xbox 360 PlayStation 3 and Wii platform history&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_seventh_generation_platform_scope_1</code> | bytes [1194, 1328) | <code>5e77e9a44478830f6452561489c7cd6f52862e4263e708d6230ba5c4d86b330c</code></div><pre class="context"><span> of genres History of East Asian role-playing video games History of Western role-playing video games History of online games History of real-time strategy games History of tactical role-playing games History of single-player video games History of multiplayer video games History of massively multiplayer online games Lists List of video games in development </span><mark>The seventh generation of home video game consoles began on November 22, 2005, with the release of Microsoft &#x27;s Xbox 360 home console.</mark><span> This was followed by the release of Sony &#x27;s PlayStation 3 on November 17, 2006, and Nintendo &#x27;s Wii on November 19, 2006. Each new console introduced new technologies. The Xbox 360 offered games rendered natively at high-definition video (HD) resolutions, the PlayStation 3 offered HD movie playback via a built-in 3D Blu-ray Disc player, and the Wii focused </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Seventh_generation_of_video_game_consoles" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Seventh_generation_of_video_game_consoles</a></p><p>冻结文件: <a href="sources/dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7" target="_blank">sources/dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7</a></p><p>内容 SHA-256: <code>dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_two_child_local_play_question_scope"><header><h3>assert_two_child_local_play_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;two five-to-six-year-old children require two-player games&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one two-child console question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_two_child_local_play_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_requirements_not_tested_catalog_safety_or_platform_result&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;two five-to-six-year-old children require two-player games&quot;,
+  &quot;predicate&quot;: &quot;states_age_and_two_player_constraint&quot;,
+  &quot;subject&quot;: &quot;one two-child console question&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_two_child_local_play_question_scope_1</code> | bytes [33, 262) | <code>3d8cf324db4a3054121856e12fc288ce224865366b30fc2733cc185976825f0a</code></div><pre class="context"><span>Which console for 5- year olds?
+
+</span><mark>I have not owned a console since Super Nintendo was the big thing which is quite a few years ago. Which of the consoles is the most suitable for young 5-6-year-old kids (2x girls)? So it would require 2 player games. View Poll 33</mark><span>
+
+[deleted]
+
+Isnt the switch controller pretty limited with a couple of buttons? How would Minecraft work out in a 2-player split mode? Or would it require 4 controllers?
+
+For Minecraft it requires two pairs of controllers or a pair of controllers and a pro controller or two pro controllers
+
+Super thanks.👍
+
+I actually have to really discourage from mine c</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/59842/which-console-for-5-year-olds" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/59842/which-console-for-5-year-olds</a></p><p>冻结文件: <a href="sources/4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df" target="_blank">sources/4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df</a></p><p>内容 SHA-256: <code>4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_wii_accessory_bundle_offer_scope"><header><h3>assert_wii_accessory_bundle_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07YJQWYB9 at 19.98 dollars with a 57-percent-of-100 aggregate over twelve reviews and seller claims for an AC adapter, composite AV cable, and wired sensor bar&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Wii power video and sensor-bar bundle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_wii_accessory_bundle_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_observed_safety_signal_quality_or_exact_console_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07YJQWYB9 at 19.98 dollars with a 57-percent-of-100 aggregate over twelve reviews and seller claims for an AC adapter, composite AV cable, and wired sensor bar&quot;,
+  &quot;predicate&quot;: &quot;asserts_accessory_bundle_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Wii power video and sensor-bar bundle seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_wii_accessory_bundle_offer_scope_1</code> | bytes [0, 114) | <code>0928ad7f760a83595f37d0c345b1e8f4ac851793631e66e2ff06d585ec658998</code></div><pre class="context"><span></span><mark>3 in 1 Wii AC Power Adapter + Composite Audio Video Cable and Wired Motion Sensor Bar Compatible with Nintendo Wii</mark><span>
+
+In stock SKU B07YJQWYB9 Rating: 57 % of 100 12 Reviews Add Your Review $19.98 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description SSIOIZZ Wii Accessories Bundle High End gold-plated Connectors high speed extension supports 480p, 576p, 720p, 1080i, nintendo wire give you a secure interference and distortion free connection, stop usi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/3-in-1-wii-ac-power-adapter-composite-audio-video-cable-and-wired-motion-sensor-bar-compatible-with-nintendo-wii.html" target="_blank" rel="noreferrer">http://localhost:7770/3-in-1-wii-ac-power-adapter-composite-audio-video-cable-and-wired-motion-sensor-bar-compatible-with-nintendo-wii.html</a></p><p>冻结文件: <a href="sources/5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d" target="_blank">sources/5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d</a></p><p>内容 SHA-256: <code>5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_wii_remote_interface_safety_scope"><header><h3>assert_wii_remote_interface_safety_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;motion sensing, Nunchuk and other attachments, counterfeit build-quality concerns, wrist-strap warnings, and revised straps&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Wii Remote interface attachment and safety history&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_wii_remote_interface_safety_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;interface_and_safety_history_not_exact_remote_condition_or_child_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;motion sensing, Nunchuk and other attachments, counterfeit build-quality concerns, wrist-strap warnings, and revised straps&quot;,
+  &quot;predicate&quot;: &quot;requires_motion_attachments_and_scoped_safety_checks&quot;,
+  &quot;subject&quot;: &quot;Wii Remote interface attachment and safety history&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_wii_remote_interface_safety_scope_1</code> | bytes [785, 1039) | <code>84bde78fea69c1171e26dbf773c666241f722719fd10f430a2c37429ad31ddae</code></div><pre class="context"><span>ensor 8 digital buttons (A, B, â, +, HOME, 1, 2, POWER) D-pad Connectivity Bluetooth 2.0 Accessory connector port (400 kHz IÂ²C ) Power 2 Ã AA battery Predecessor GameCube controller Successor Wii U GamePad The Wii Remote , [ a ] colloquially abbreviated as the Wiimote , is the primary game controller for Nintendo &#x27;s Wii home video game console . </span><mark>An essential capability of the Wii Remote is its motion sensing capability, which allows the user to interact with and manipulate items on screen via motion sensing, gesture recognition , and pointing using an accelerometer and optical sensor technology.</mark><span> It is expandable by adding attachments. The attachment bundled with the Wii console is the Nunchuk , which complements the Wii Remote by providing functions similar to those in gamepad controllers. Some other attachments include the Classic Controller , Wii Zapper , and the Wii Wheel , which was originally released with the racing game Mario Kart Wii . The </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Wii_Remote" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Wii_Remote</a></p><p>冻结文件: <a href="sources/fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813" target="_blank">sources/fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813</a></p><p>内容 SHA-256: <code>fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_wii_remote_offer_scope"><header><h3>assert_wii_remote_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B087412R9J at 43.99 dollars with seller claims about renewed inspection, an original standard remote, bulk packaging, no batteries, and a replacement-or-refund guarantee&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen black Wii Remote renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_wii_remote_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_observed_authenticity_strap_motionplus_or_condition&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B087412R9J at 43.99 dollars with seller claims about renewed inspection, an original standard remote, bulk packaging, no batteries, and a replacement-or-refund guarantee&quot;,
+  &quot;predicate&quot;: &quot;asserts_remote_offer_and_packaging_fields&quot;,
+  &quot;subject&quot;: &quot;frozen black Wii Remote renewed seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_wii_remote_offer_scope_1</code> | bytes [0, 48) | <code>5e78a7fc48a3325e414b185daf1f9165300b27c086648e977dc0469de012f497</code></div><pre class="context"><span></span><mark>Nintendo Wii Remote Controller - Black (Renewed)</mark><span>
+
+In stock SKU B087412R9J Be the first to review this product $43.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look This pre-owned or refurbished product has been professionally inspected and tested to work and look like new. How a product becomes part of Amazon Renewed, your destination for pre-owned, refurbished products: A cus</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/nintendo-wii-remote-controller-black-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/nintendo-wii-remote-controller-black-renewed.html</a></p><p>冻结文件: <a href="sources/442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99" target="_blank">sources/442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99</a></p><p>内容 SHA-256: <code>442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_xbox_360_controller_offer_scope"><header><h3>assert_xbox_360_controller_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07FTWMTCK at 47.99 dollars with seller claims for certified refurbishment, a minimum 90-day warranty, four-controller support, and two AA batteries required&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Xbox 360 wireless-controller renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_xbox_360_controller_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_observed_authenticity_condition_or_durability&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07FTWMTCK at 47.99 dollars with seller claims for certified refurbishment, a minimum 90-day warranty, four-controller support, and two AA batteries required&quot;,
+  &quot;predicate&quot;: &quot;asserts_controller_offer_refurbishment_and_power_fields&quot;,
+  &quot;subject&quot;: &quot;frozen Xbox 360 wireless-controller renewed seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_xbox_360_controller_offer_scope_1</code> | bytes [0, 57) | <code>909301ca1cbf83a669dcff149f6df41fbfef487a7d6cdb65f407f5f7523dc039</code></div><pre class="context"><span></span><mark>Xbox 360 Wireless Controller Black by Microsoft (Renewed)</mark><span>
+
+In stock SKU B07FTWMTCK Be the first to review this product $47.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Integrated 2.4GHz high-performance wireless technology with 30&#x27; rangeImproved ergonomic design gives you maximum fortPlug the Xbox 360 headset into the controller for full duplex voice municationAdjustable vibration</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/xbox-360-wireless-controller-black-by-microsoft-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/xbox-360-wireless-controller-black-by-microsoft-renewed.html</a></p><p>冻结文件: <a href="sources/c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e" target="_blank">sources/c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e</a></p><p>内容 SHA-256: <code>c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_xbox_360_e_offer_scope"><header><h3>assert_xbox_360_e_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07S5YN1H9 at 249.99 dollars with seller claims about renewed inspection, 250 GB, one controller, Wi-Fi, AV cable, power supply, and a replacement-or-refund guarantee&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Xbox 360 E renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_xbox_360_e_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_assertions_not_observed_exact_unit_condition_or_market_value&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07S5YN1H9 at 249.99 dollars with seller claims about renewed inspection, 250 GB, one controller, Wi-Fi, AV cable, power supply, and a replacement-or-refund guarantee&quot;,
+  &quot;predicate&quot;: &quot;asserts_exact_offer_and_inclusions&quot;,
+  &quot;subject&quot;: &quot;frozen Xbox 360 E renewed seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_xbox_360_e_offer_scope_1</code> | bytes [0, 44) | <code>e7ca55558c30e394b3d1de706a9f2a507cec35ed699e6ef1c8dfeb262d0daf7c</code></div><pre class="context"><span></span><mark>Microsoft XBOX 360 E 250GB Console (Renewed)</mark><span>
+
+In stock SKU B07S5YN1H9 Be the first to review this product $249.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look This pre-owned or refurbished product has been professionally inspected and tested to work and look like new. How a product becomes part of Amazon Renewed, your destination for pre-owned, refurbished products: A cu</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/microsoft-xbox-360-e-250gb-console-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/microsoft-xbox-360-e-250gb-console-renewed.html</a></p><p>冻结文件: <a href="sources/1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a" target="_blank">sources/1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a</a></p><p>内容 SHA-256: <code>1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_xbox_360_revision_failure_scope"><header><h3>assert_xbox_360_revision_failure_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;conflicting family estimates, early red-ring and disc problems, later design improvements, and disc scratching that persisted in S and E models&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for historical Xbox 360 family failures&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_xbox_360_revision_failure_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;historical_family_evidence_not_exact_e_unit_probability_or_cross_platform_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;object&quot;: &quot;conflicting family estimates, early red-ring and disc problems, later design improvements, and disc scratching that persisted in S and E models&quot;,
+  &quot;predicate&quot;: &quot;vary_by_failure_mode_and_hardware_revision&quot;,
+  &quot;subject&quot;: &quot;historical Xbox 360 family failures&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_xbox_360_revision_failure_scope_1</code> | bytes [518, 602) | <code>797be279bd720f3524527643bc7bdd0bd1752398b072e5a7e074eb8ca5f9dbb9</code></div><pre class="context"><span>d failures, some as a result of design flaws. Some issues could be identified by a pattern of red lights on the front face of the console; these colloquially became known as the &quot; Red Ring of Death &quot; or the &quot; RRoD &quot;. [ 1 ] [ 2 ] There were also other issues, such as discs becoming scratched in the drive and &quot; bricking &quot; of consoles due to dashboard updates. </span><mark>There were many conflicting estimates of the console&#x27;s unusually high failure rate .</mark><span> [ 3 ] [ 4 ] [ 5 ] The warranty provider SquareTrade estimated it at 23.7% in 2009, [ 6 ] while a Game Informer survey reported 54.2%. [ 7 ] Among the consoles owned by employees of Joystiq , which saw heavy use for games journalism purposes, the failure rate had reached 90% by the end of 2007. [ 8 ] The crisis was ultimately abated from 2009 by design revis</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Xbox_360_technical_problems" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Xbox_360_technical_problems</a></p><p>冻结文件: <a href="sources/9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23" target="_blank">sources/9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23</a></p><p>内容 SHA-256: <code>9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ps3_160gb_offer_scope"><header><h3>prop_ps3_160gb_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07D9VTVXM at 247.99 dollars with seller claims for 160 GB, Wi-Fi, and a Blu-ray player but no listed controller or exact refurbishment test&quot;,
+  &quot;predicate&quot;: &quot;asserts_exact_offer_and_platform_features&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation 3 160 GB renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ps3_160gb_offer_scope_1</code> | bytes [0, 41) | <code>fa4ec0f6c14e61d0e806bdd9d8b3e25e19e8773e9056b83228011d50ce24ee7f</code></div><pre class="context"><span></span><mark>Sony Playstation 3 160GB System (Renewed)</mark><span>
+
+In stock SKU B07D9VTVXM Be the first to review this product $247.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look With the PlayStation 3 160GB system, you get free PlayStation Network membership, built-in Wi-Fi and 160GB of hard disk drive storage for games, music, videos and photos. And every PS3 system comes with a built-in </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps3_160gb_offer_scope_2</code> | bytes [43, 158) | <code>14af526e6fd281bfa406ca3ccd49f25be6b96e0798d15be3b93efcba5b29e7c4</code></div><pre class="context"><span>Sony Playstation 3 160GB System (Renewed)
+
+</span><mark>In stock SKU B07D9VTVXM Be the first to review this product $247.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look With the PlayStation 3 160GB system, you get free PlayStation Network membership, built-in Wi-Fi and 160GB of hard disk drive storage for games, music, videos and photos. And every PS3 system comes with a built-in Blu-ray player to give you pristine picture quality and the best high-definition viewing experience available. Whethe</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps3_160gb_offer_scope_3</code> | bytes [187, 357) | <code>95e6d75b589d93f1b96c6050b1a4595e6bed9bbb20ee8c1831b5462c6dc0deab</code></div><pre class="context"><span>Sony Playstation 3 160GB System (Renewed)
+
+In stock SKU B07D9VTVXM Be the first to review this product $247.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look </span><mark>With the PlayStation 3 160GB system, you get free PlayStation Network membership, built-in Wi-Fi and 160GB of hard disk drive storage for games, music, videos and photos.</mark><span> And every PS3 system comes with a built-in Blu-ray player to give you pristine picture quality and the best high-definition viewing experience available. Whether it&#x27;s gaming, Blu-ray movies, music or online services, experience it all with the PlayStation 3 system. Internet Ready With Built-in Wi-Fi with a Cell Broadband Engine Advanced Microprocessor When </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/sony-playstation-3-160gb-system-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/sony-playstation-3-160gb-system-renewed.html</a></p><p>冻结文件: <a href="sources/2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030" target="_blank">sources/2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030</a></p><p>内容 SHA-256: <code>2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_assertions_not_controller_inclusion_or_observed_exact_unit_condition&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen PlayStation 3 page is SKU B07D9VTVXM at 247.99 dollars and its seller copy describes 160 GB storage, Wi-Fi, and a Blu-ray player; the page does not list a controller, define an exact-unit refurbishment test, supply observed drive or port results, authenticate the exact unit, or establish matched market value.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ps3_controller_interface_scope"><header><h3>prop_ps3_controller_interface_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;DualShock 3 wireless mini-USB charging, Sixaxis and vibration plus generic USB controllers that may lack required inputs&quot;,
+  &quot;predicate&quot;: &quot;have_feature_and_input_compatibility_boundaries&quot;,
+  &quot;subject&quot;: &quot;PlayStation 3 controller and accessory interfaces&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ps3_controller_interface_scope_1</code> | bytes [2747, 2887) | <code>c3222edb3f2c722ab87135ecad004e4ddc109fd38d2a402410827b63364bbd6c</code></div><pre class="context"><span>xaxis, with the only differences being that &quot;DUALSHOCK 3&quot; is printed on the top (with the original &quot;SIXAXIS&quot; label moved down) and that the body is made of opaque plastic rather than the slightly translucent plastic used on the Sixaxis. The vibration function does not interfere with the motion sensing function, and both functions can be used at once. [ 1 ] </span><mark>Like the Sixaxis, it is a wireless controller with a mini-USB port on the rear that is used for charging, as well as playing while charging.</mark><span> Released alongside new PlayStation 3 models in Japan on January 11, 2008, the DualShock 3 was initially available in Black and Ceramic White colors, matching the color options for the new console models. [ 2 ] On March 6, a Satin Silver DualShock 3 was released in Japan, again alongside a new console color. [ 3 ] The black DualShock 3 was released in the</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps3_controller_interface_scope_2</code> | bytes [10312, 10514) | <code>2b4128a9f6314edd3cf80bc8b6b2c01cd657b00d4cb360fc04fab9a893b95b60</code></div><pre class="context"><span> Hawk: Shred (and Ride ) games. Replaces the previous Tony Hawk Ride Board, also by Activision. (The Ride board is not forward compatible with Shred .) USB controllers Most commercial USB controllers are compatible with the PlayStation 3 as it supports standard USB human interface devices . This includes gamepads , joysticks and steering wheel controllers . </span><mark>A limitation of this is that not all such controllers provide the same range of inputs as a Sixaxis/DualShock 3 controller (fewer buttons or joysticks for example), so may not be practical in all games.</mark><span> When any such controller is used with games which require sixaxis functionality or the use of the analog buttons usability is also limited. Many PlayStation 2 games which were programmed to use the analog functionality of the PlayStation 2 controllers buttons will not accept non-analog input therefore Sixaxis or DualShock 3 controllers must be used (though </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_3_accessories" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_3_accessories</a></p><p>冻结文件: <a href="sources/f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b" target="_blank">sources/f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b</a></p><p>内容 SHA-256: <code>f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;interface_history_not_exact_controller_battery_condition_or_title_compatibility&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The PlayStation 3 accessories page describes DualShock 3 wireless operation, rear mini-USB charging while playing, Sixaxis and vibration, and warns that generic USB controllers may lack required inputs; it does not verify the frozen controller&#x27;s battery, pairing, sticks, buttons, authenticity, exact-game compatibility, or durability.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ps3_controller_offer_scope"><header><h3>prop_ps3_controller_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B00BWBTJOE at 57.31 dollars with a 60-percent-of-100 aggregate over twelve reviews and seller claims for Bluetooth, USB charging, Sixaxis, vibration, and an included lithium-ion battery&quot;,
+  &quot;predicate&quot;: &quot;asserts_controller_offer_features_and_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation 3 DualShock 3 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ps3_controller_offer_scope_1</code> | bytes [0, 61) | <code>a596ebf6a1dd82bf9a358a40ce3f47654b07d03f1db1655dab1ba2262a0321a0</code></div><pre class="context"><span></span><mark>PlayStation 3 DualShock 3 wireless controller - Metallic Grey</mark><span>
+
+In stock SKU B00BWBTJOE Rating: 60 % of 100 12 Reviews Add Your Review $57.31 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look The DUALSHOCK 3 wireless controller for the PlayStation 3 system provides the most intuitive game play experience with pressure sensors in each action button and the inclusion of the highly sensitive SIXA</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps3_controller_offer_scope_2</code> | bytes [63, 188) | <code>0be3db308076d0fe3267868fcb6bf51dde020d6dbfe1219e83c7ce79ff3a66c2</code></div><pre class="context"><span>PlayStation 3 DualShock 3 wireless controller - Metallic Grey
+
+</span><mark>In stock SKU B00BWBTJOE Rating: 60 % of 100 12 Reviews Add Your Review $57.31 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The DUALSHOCK 3 wireless controller for the PlayStation 3 system provides the most intuitive game play experience with pressure sensors in each action button and the inclusion of the highly sensitive SIXAXIS motion sensing technology. Each hit, crash and explosion is more realistic when you feel the rumble right in the palm of yo</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps3_controller_offer_scope_3</code> | bytes [689, 876) | <code>9a30c64c49f4b4a7e707b40eb7b045f7f7c88fb3533d08d5849d6c5a15fac792</code></div><pre class="context"><span>e with pressure sensors in each action button and the inclusion of the highly sensitive SIXAXIS motion sensing technology. Each hit, crash and explosion is more realistic when you feel the rumble right in the palm of your hand. It can even detect natural movements for real-time and high precision interactive play, acting as a natural extension of your body. </span><mark>DUALSHOCK 3 utilizes Bluetooth technology for wireless game play and the controller&#x27;s USB cable to seamlessly and automatically charge the controller through the PlayStation 3 at anytime.</mark><span> By integrating all of these features into the popular PlayStation controller design, the DUALSHOCK 3 will further enhance the advanced game play experience only available on the PlayStation 3 system. Charging - Charge the DUALSHOCK 3 with the PlayStation 3 system using the controller&#x27;s USB cable. And you can even plug it in during game play, so you&#x27;ll never</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/playstation-3-dualshock-3-wireless-controller-metallic-grey.html" target="_blank" rel="noreferrer">http://localhost:7770/playstation-3-dualshock-3-wireless-controller-metallic-grey.html</a></p><p>冻结文件: <a href="sources/c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543" target="_blank">sources/c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543</a></p><p>内容 SHA-256: <code>c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_and_aggregate_not_exact_battery_health_or_durability&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen DualShock 3 page is SKU B00BWBTJOE at 57.31 dollars with a 60-percent-of-100 aggregate over twelve reviews and seller claims for Bluetooth, USB charging, Sixaxis, vibration, and an included lithium-ion battery; the page and aggregate do not prove exact battery health, stick and button condition, pairing, authenticity, title-specific compatibility, or durability.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_retro_controller_replacement_question_scope"><header><h3>prop_retro_controller_replacement_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;what happens if retro console controllers break and whether new controllers will always be made&quot;,
+  &quot;predicate&quot;: &quot;asks_about_future_new_oem_supply&quot;,
+  &quot;subject&quot;: &quot;one retro-controller replacement-supply question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_retro_controller_replacement_question_scope_1</code> | bytes [134, 414) | <code>dfa68b6d56d64ca4b0ba5127940e4c410fc1ec94a2511fac95bdab74ab46289e</code></div><pre class="context"><span>Are there any brand new PS1 controllers out there OEM? Or will there always be new video game controllers made for consoles and PCs?
+
+</span><mark>I’m a console and PC player. But I prefer using a controller too a keyboard and mouse too play my games and was wondering would they’re always be new video game controllers made ? For each new Console generation? And what happens if all the retro console controllers break ? 4</mark><span>
+
+No they won&#x27;t.. End of &quot;replacement parts&quot; will be a bit before fanbase of specific devices will go down on numbers. After that, only fanmade devices will be aviliable.
+
+So u don’t think for future console releases they will always make new controllers ?
+
+I&#x27;m sorry.. What? 😅
+
+Sorry I guess my question is u no how consoles themselves can break down ? A</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/59836/are-there-any-brand-new-ps1-controllers-out-there-oem-or" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/59836/are-there-any-brand-new-ps1-controllers-out-there-oem-or</a></p><p>冻结文件: <a href="sources/5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84" target="_blank">sources/5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84</a></p><p>内容 SHA-256: <code>5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_not_breakage_rate_supply_finding_or_platform_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author asks whether new controllers will continue to be made and what happens if retro controllers break; the post identifies a replacement-supply concern but supplies no breakage rate, inventory finding, exact controller result, or Xbox 360, PlayStation 3, or Wii durability comparison.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_second_hand_just_dance_question_scope"><header><h3>prop_second_hand_just_dance_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a low-cost second-hand setup for a six-year-old to play Just Dance with Wii Sports as a bonus and no DVD need&quot;,
+  &quot;predicate&quot;: &quot;states_budget_motion_game_and_child_constraints&quot;,
+  &quot;subject&quot;: &quot;one second-hand Just Dance family question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_second_hand_just_dance_question_scope_1</code> | bytes [31, 541) | <code>32a4589bb49c9e13027971da7baf5565e5d7827274696cfdea4925d0f2816999</code></div><pre class="context"><span>Cheap console for Just Dance?
+
+</span><mark>Hi everone Im looking for advice on a budget solution as I would like to buy my 6y daughter a console to play Just Dance for xmas. It doesnt have to be the 2022 edition and I would like to buy a second-hand console to keep cost low (and realistic for us). I&#x27;m not a console guy but it would be a bonus if you suggestion could support a game like Wii sports, which was the hottest thing last time I touched a console :-) We dont own any DVDs so thats it not a requirement. Thanks for any advice you may have. 14</mark><span>
+
+the wii
+
+Wii has every one of the games on and it&#x27;s cheap
+
+I&#x27;d suggest getting an Xbox one with a Kinect camera. Both can be picked up on the cheap. Just dance is a blast with this setup and totally hands free
+
+If the year of just dance doesn&#x27;t matter I would say go nintendo wii. I see those all the times for less than 20 dollars.
+
+The Wii is your best bet</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/17998/cheap-console-for-just-dance" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/17998/cheap-console-for-just-dance</a></p><p>冻结文件: <a href="sources/a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6" target="_blank">sources/a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6</a></p><p>内容 SHA-256: <code>a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_requirements_not_offer_game_version_accessory_or_durability_result&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author seeks a low-cost second-hand console for a six-year-old to play Just Dance, mentions Wii Sports as a bonus, and says DVD playback is unnecessary; the post supplies scenario constraints but no exact offer, game edition, controller set, safety test, hardware inspection, or durability outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_seventh_generation_platform_scope"><header><h3>prop_seventh_generation_platform_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;contemporaneous platforms with HD, Blu-ray, and motion-control emphases plus model-dependent compatibility and production histories&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_platform_emphases_and_revision_boundaries&quot;,
+  &quot;subject&quot;: &quot;seventh-generation Xbox 360 PlayStation 3 and Wii platform history&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_seventh_generation_platform_scope_1</code> | bytes [1194, 1328) | <code>5e77e9a44478830f6452561489c7cd6f52862e4263e708d6230ba5c4d86b330c</code></div><pre class="context"><span> of genres History of East Asian role-playing video games History of Western role-playing video games History of online games History of real-time strategy games History of tactical role-playing games History of single-player video games History of multiplayer video games History of massively multiplayer online games Lists List of video games in development </span><mark>The seventh generation of home video game consoles began on November 22, 2005, with the release of Microsoft &#x27;s Xbox 360 home console.</mark><span> This was followed by the release of Sony &#x27;s PlayStation 3 on November 17, 2006, and Nintendo &#x27;s Wii on November 19, 2006. Each new console introduced new technologies. The Xbox 360 offered games rendered natively at high-definition video (HD) resolutions, the PlayStation 3 offered HD movie playback via a built-in 3D Blu-ray Disc player, and the Wii focused </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_seventh_generation_platform_scope_2</code> | bytes [1329, 1450) | <code>4a40d83d2ae784f81c1683172fd60e7a2946b3d5bfa9f6601a6eed303b2e1e0c</code></div><pre class="context"><span>f real-time strategy games History of tactical role-playing games History of single-player video games History of multiplayer video games History of massively multiplayer online games Lists List of video games in development The seventh generation of home video game consoles began on November 22, 2005, with the release of Microsoft &#x27;s Xbox 360 home console. </span><mark>This was followed by the release of Sony &#x27;s PlayStation 3 on November 17, 2006, and Nintendo &#x27;s Wii on November 19, 2006.</mark><span> Each new console introduced new technologies. The Xbox 360 offered games rendered natively at high-definition video (HD) resolutions, the PlayStation 3 offered HD movie playback via a built-in 3D Blu-ray Disc player, and the Wii focused on integrating controllers with movement sensors as well as joysticks . [ 1 ] Some Wii controllers could be moved about to</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_seventh_generation_platform_scope_3</code> | bytes [1451, 1496) | <code>011de1dafbe763d1e0e0a6eee127b3931e1f6d4f3e727ab9613c414300e12c47</code></div><pre class="context"><span>yer video games History of massively multiplayer online games Lists List of video games in development The seventh generation of home video game consoles began on November 22, 2005, with the release of Microsoft &#x27;s Xbox 360 home console. This was followed by the release of Sony &#x27;s PlayStation 3 on November 17, 2006, and Nintendo &#x27;s Wii on November 19, 2006. </span><mark>Each new console introduced new technologies.</mark><span> The Xbox 360 offered games rendered natively at high-definition video (HD) resolutions, the PlayStation 3 offered HD movie playback via a built-in 3D Blu-ray Disc player, and the Wii focused on integrating controllers with movement sensors as well as joysticks . [ 1 ] Some Wii controllers could be moved about to control in-game actions, which enabled player</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Seventh_generation_of_video_game_consoles" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Seventh_generation_of_video_game_consoles</a></p><p>冻结文件: <a href="sources/dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7" target="_blank">sources/dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7</a></p><p>内容 SHA-256: <code>dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;platform_history_not_exact_unit_survival_or_complete_local_multiplayer_catalog&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The captured seventh-generation page places Xbox 360, PlayStation 3, and Wii in the same generation and describes different HD, Blu-ray, and motion-control emphases plus revision-dependent platform histories; those platform facts do not test a surviving exact unit, compare current used-unit condition, or enumerate every target game&#x27;s local-player and peripheral requirements.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_two_child_local_play_question_scope"><header><h3>prop_two_child_local_play_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;two five-to-six-year-old children require two-player games&quot;,
+  &quot;predicate&quot;: &quot;states_age_and_two_player_constraint&quot;,
+  &quot;subject&quot;: &quot;one two-child console question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_two_child_local_play_question_scope_1</code> | bytes [33, 262) | <code>3d8cf324db4a3054121856e12fc288ce224865366b30fc2733cc185976825f0a</code></div><pre class="context"><span>Which console for 5- year olds?
+
+</span><mark>I have not owned a console since Super Nintendo was the big thing which is quite a few years ago. Which of the consoles is the most suitable for young 5-6-year-old kids (2x girls)? So it would require 2 player games. View Poll 33</mark><span>
+
+[deleted]
+
+Isnt the switch controller pretty limited with a couple of buttons? How would Minecraft work out in a 2-player split mode? Or would it require 4 controllers?
+
+For Minecraft it requires two pairs of controllers or a pair of controllers and a pro controller or two pro controllers
+
+Super thanks.👍
+
+I actually have to really discourage from mine c</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/59842/which-console-for-5-year-olds" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/59842/which-console-for-5-year-olds</a></p><p>冻结文件: <a href="sources/4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df" target="_blank">sources/4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df</a></p><p>内容 SHA-256: <code>4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_requirements_not_tested_catalog_safety_or_platform_result&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author asks which console suits two five-to-six-year-old children and explicitly requires two-player games; this supplies a family scenario and local-play requirement, not a tested game catalog, child-safety result, hardware failure rate, or platform recommendation.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_wii_accessory_bundle_offer_scope"><header><h3>prop_wii_accessory_bundle_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07YJQWYB9 at 19.98 dollars with a 57-percent-of-100 aggregate over twelve reviews and seller claims for an AC adapter, composite AV cable, and wired sensor bar&quot;,
+  &quot;predicate&quot;: &quot;asserts_accessory_bundle_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Wii power video and sensor-bar bundle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_wii_accessory_bundle_offer_scope_1</code> | bytes [0, 114) | <code>0928ad7f760a83595f37d0c345b1e8f4ac851793631e66e2ff06d585ec658998</code></div><pre class="context"><span></span><mark>3 in 1 Wii AC Power Adapter + Composite Audio Video Cable and Wired Motion Sensor Bar Compatible with Nintendo Wii</mark><span>
+
+In stock SKU B07YJQWYB9 Rating: 57 % of 100 12 Reviews Add Your Review $19.98 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description SSIOIZZ Wii Accessories Bundle High End gold-plated Connectors high speed extension supports 480p, 576p, 720p, 1080i, nintendo wire give you a secure interference and distortion free connection, stop usi</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_wii_accessory_bundle_offer_scope_2</code> | bytes [116, 241) | <code>39bc5cceef921f1e7f151a131531d31378df1a8eac2799948b0fafb8e3c23b95</code></div><pre class="context"><span>3 in 1 Wii AC Power Adapter + Composite Audio Video Cable and Wired Motion Sensor Bar Compatible with Nintendo Wii
+
+</span><mark>In stock SKU B07YJQWYB9 Rating: 57 % of 100 12 Reviews Add Your Review $19.98 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description SSIOIZZ Wii Accessories Bundle High End gold-plated Connectors high speed extension supports 480p, 576p, 720p, 1080i, nintendo wire give you a secure interference and distortion free connection, stop using old cords and buy the high quality wii component cable to play games with a crystal clear picture. Read more Easy to use Eas</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_wii_accessory_bundle_offer_scope_3</code> | bytes [2984, 3087) | <code>e7f4176ed370ef75a744fff02d9c607c57a227806ac37b005e71c26fd397f07b</code></div><pre class="context"><span>i: Equipped with 56kΩ pull-up resistor and 22 wire core. To ensure safe use with your Nintendo Wii system, the charger built-in &quot;smart PD (Power Delivery) IC&quot; &amp; the thermal material design protect your devices against overcurrent, overvoltage and overcharge. The combination of safety features offers reliable performance and promotes ultimate peace of mind. </span><mark>What You Wii Get - 1 x AC Power Adapter for Wii; 1 x AV Cord for for Wii; 1 x Wired Sensor Bar for Wii.</mark><span> This is truly a necessity for a games master. NOTE:Power Supply AC Adapter only compatible with Nintendo Wii Package Dimensions 9.6 x 6.3 x 2.2 inches Item Weight 10.4 ounces Manufacturer SSIOIZZ Date First Available September 29, 2019 Reviews 12 Write Your Own Review You&#x27;re reviewing: 3 in 1 Wii AC Power Adapter + Composite Audio Video Cable and Wired Moti</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/3-in-1-wii-ac-power-adapter-composite-audio-video-cable-and-wired-motion-sensor-bar-compatible-with-nintendo-wii.html" target="_blank" rel="noreferrer">http://localhost:7770/3-in-1-wii-ac-power-adapter-composite-audio-video-cable-and-wired-motion-sensor-bar-compatible-with-nintendo-wii.html</a></p><p>冻结文件: <a href="sources/5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d" target="_blank">sources/5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d</a></p><p>内容 SHA-256: <code>5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_observed_safety_signal_quality_or_exact_console_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Wii accessory bundle is SKU B07YJQWYB9 at 19.98 dollars with a 57-percent-of-100 aggregate over twelve reviews and seller claims for an AC adapter, composite AV cable, and wired sensor bar; this does not independently verify electrical safety, signal quality, exact-console fit, cable condition, longevity, or a complete Wii setup.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_wii_remote_interface_safety_scope"><header><h3>prop_wii_remote_interface_safety_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;motion sensing, Nunchuk and other attachments, counterfeit build-quality concerns, wrist-strap warnings, and revised straps&quot;,
+  &quot;predicate&quot;: &quot;requires_motion_attachments_and_scoped_safety_checks&quot;,
+  &quot;subject&quot;: &quot;Wii Remote interface attachment and safety history&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_wii_remote_interface_safety_scope_1</code> | bytes [785, 1039) | <code>84bde78fea69c1171e26dbf773c666241f722719fd10f430a2c37429ad31ddae</code></div><pre class="context"><span>ensor 8 digital buttons (A, B, â, +, HOME, 1, 2, POWER) D-pad Connectivity Bluetooth 2.0 Accessory connector port (400 kHz IÂ²C ) Power 2 Ã AA battery Predecessor GameCube controller Successor Wii U GamePad The Wii Remote , [ a ] colloquially abbreviated as the Wiimote , is the primary game controller for Nintendo &#x27;s Wii home video game console . </span><mark>An essential capability of the Wii Remote is its motion sensing capability, which allows the user to interact with and manipulate items on screen via motion sensing, gesture recognition , and pointing using an accelerometer and optical sensor technology.</mark><span> It is expandable by adding attachments. The attachment bundled with the Wii console is the Nunchuk , which complements the Wii Remote by providing functions similar to those in gamepad controllers. Some other attachments include the Classic Controller , Wii Zapper , and the Wii Wheel , which was originally released with the racing game Mario Kart Wii . The </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_wii_remote_interface_safety_scope_2</code> | bytes [1080, 1237) | <code>2e41d554e1a5160ce8dec67fa03f38233ec9831199fc96033f05a0d84101e253</code></div><pre class="context"><span>ry game controller for Nintendo &#x27;s Wii home video game console . An essential capability of the Wii Remote is its motion sensing capability, which allows the user to interact with and manipulate items on screen via motion sensing, gesture recognition , and pointing using an accelerometer and optical sensor technology. It is expandable by adding attachments. </span><mark>The attachment bundled with the Wii console is the Nunchuk , which complements the Wii Remote by providing functions similar to those in gamepad controllers.</mark><span> Some other attachments include the Classic Controller , Wii Zapper , and the Wii Wheel , which was originally released with the racing game Mario Kart Wii . The controller was revealed at the Tokyo Game Show on September 14, 2005, with the name &quot;Wii Remote&quot; announced April 27, 2006. The finalized version of the controller was later shown at E3 2006 . It rec</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_wii_remote_interface_safety_scope_3</code> | bytes [8602, 8729) | <code>49d01ddc04ca880c132f2c4a1d971b0d651d95af0ae6c855ca5c2618672e55b9</code></div><pre class="context"><span>d an early Dreamcast controller prototype. [ 17 ] In the Red Steel trailer shown at E3 2006, the Wii Remote had a smaller circular shaped image sensor instead of the larger opaque IR filters shown on other versions. [ 18 ] In the initial teaser video that revealed the controller at Tokyo Game Show 2005, the 1 and 2 buttons were labeled X and Y. [ 19 ] Strap </span><mark>The Wii Remote has a wrist strap attached to the bottom to prevent it from flying away during game action if not held securely.</mark><span> The wrist strap is tied with a cow hitch knot .  Every Wii game contains safety warnings concerning wrist strap use during its startup sequence [ 20 ] and also at or near the beginning of its instruction booklet (even if the game does not use motion controls). [ 21 ] The latter is a word-for-word reproduction of a standard wrist strap warning notice establi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Wii_Remote" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Wii_Remote</a></p><p>冻结文件: <a href="sources/fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813" target="_blank">sources/fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813</a></p><p>内容 SHA-256: <code>fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;interface_and_safety_history_not_exact_remote_condition_or_child_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Wii Remote page describes motion sensing, the Nunchuk and other attachments, counterfeit build-quality concerns, wrist-strap warnings, and revised straps; it defines attachment and safety checks but does not verify the frozen remote&#x27;s authenticity, exact condition, MotionPlus or Nunchuk inclusion, strap state, child fit, or durability.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_wii_remote_offer_scope"><header><h3>prop_wii_remote_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B087412R9J at 43.99 dollars with seller claims about renewed inspection, an original standard remote, bulk packaging, no batteries, and a replacement-or-refund guarantee&quot;,
+  &quot;predicate&quot;: &quot;asserts_remote_offer_and_packaging_fields&quot;,
+  &quot;subject&quot;: &quot;frozen black Wii Remote renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_wii_remote_offer_scope_1</code> | bytes [0, 48) | <code>5e78a7fc48a3325e414b185daf1f9165300b27c086648e977dc0469de012f497</code></div><pre class="context"><span></span><mark>Nintendo Wii Remote Controller - Black (Renewed)</mark><span>
+
+In stock SKU B087412R9J Be the first to review this product $43.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look This pre-owned or refurbished product has been professionally inspected and tested to work and look like new. How a product becomes part of Amazon Renewed, your destination for pre-owned, refurbished products: A cus</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_wii_remote_offer_scope_2</code> | bytes [50, 164) | <code>dcae4816824f37c3bb3706e2d595c9ff2f5952ff5264454368b144d05e17e5df</code></div><pre class="context"><span>Nintendo Wii Remote Controller - Black (Renewed)
+
+</span><mark>In stock SKU B087412R9J Be the first to review this product $43.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look This pre-owned or refurbished product has been professionally inspected and tested to work and look like new. How a product becomes part of Amazon Renewed, your destination for pre-owned, refurbished products: A customer buys a new product and returns it or trades it in for a newer or different model. That product is inspected an</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_wii_remote_offer_scope_3</code> | bytes [784, 911) | <code>9b60652643a7f8abed8c91f0aa2be853a4c32b0661930e36dfa6da28321d6220</code></div><pre class="context"><span> product and returns it or trades it in for a newer or different model. That product is inspected and tested to work and look like new by Amazon-qualified suppliers. Then, the product is sold as an Amazon Renewed product on Amazon. If not satisfied with the purchase, renewed products are eligible for replacement or refund under the Amazon Renewed Guarantee. </span><mark>Original Standard Nintendo Wii Controller - Black Bulk Packaging - Does Not Include Retail Packaging Does not include batteries</mark><span> Pricing The strikethrough price is the List Price. Savings represents a discount off the List Price. Package Dimensions 6.9 x 3.5 x 1.7 inches; 3.21 Ounces Binding Video Game Is Discontinued By Manufacturer No Item Weight 3.2 ounces Manufacturer Nintendo Date First Available April 15, 2020 Reviews Write Your Own Review You&#x27;re reviewing: Nintendo Wii Remote </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/nintendo-wii-remote-controller-black-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/nintendo-wii-remote-controller-black-renewed.html</a></p><p>冻结文件: <a href="sources/442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99" target="_blank">sources/442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99</a></p><p>内容 SHA-256: <code>442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_observed_authenticity_strap_motionplus_or_condition&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Wii Remote page is SKU B087412R9J at 43.99 dollars and seller copy claims renewed inspection, an original standard black remote in bulk packaging, no included batteries, and replacement-or-refund eligibility; it does not independently verify authenticity, exact button, motion, speaker, pairing, battery-contact, strap, jacket, MotionPlus, Nunchuk, or durability condition.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_xbox_360_controller_offer_scope"><header><h3>prop_xbox_360_controller_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07FTWMTCK at 47.99 dollars with seller claims for certified refurbishment, a minimum 90-day warranty, four-controller support, and two AA batteries required&quot;,
+  &quot;predicate&quot;: &quot;asserts_controller_offer_refurbishment_and_power_fields&quot;,
+  &quot;subject&quot;: &quot;frozen Xbox 360 wireless-controller renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_xbox_360_controller_offer_scope_1</code> | bytes [0, 57) | <code>909301ca1cbf83a669dcff149f6df41fbfef487a7d6cdb65f407f5f7523dc039</code></div><pre class="context"><span></span><mark>Xbox 360 Wireless Controller Black by Microsoft (Renewed)</mark><span>
+
+In stock SKU B07FTWMTCK Be the first to review this product $47.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Integrated 2.4GHz high-performance wireless technology with 30&#x27; rangeImproved ergonomic design gives you maximum fortPlug the Xbox 360 headset into the controller for full duplex voice municationAdjustable vibration</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xbox_360_controller_offer_scope_2</code> | bytes [59, 173) | <code>11bef06b4fc70a69a16f7c285ad026a039ed73c8ec252b5fb8b64d369689627e</code></div><pre class="context"><span>Xbox 360 Wireless Controller Black by Microsoft (Renewed)
+
+</span><mark>In stock SKU B07FTWMTCK Be the first to review this product $47.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Integrated 2.4GHz high-performance wireless technology with 30&#x27; rangeImproved ergonomic design gives you maximum fortPlug the Xbox 360 headset into the controller for full duplex voice municationAdjustable vibration feedback for longer battery life This Certified Refurbished product is tested and certified to look and work like n</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xbox_360_controller_offer_scope_3</code> | bytes [905, 985) | <code>79e84604b2bfc4364ffb53e0da24f41a985fd465192e37f50e17c301ac79dbba</code></div><pre class="context"><span>rbishing process includes functionality testing, basic cleaning, inspection, and repackaging. The product ships with all relevant accessories, a minimum 90-day warranty, and may arrive in a generic box. Only select sellers who maintain a high performance bar may offer Certified Refurbished products on Amazon.com 2.4GHz wireless technology with 30-foot range </span><mark>Use up to four controllers simultaneously on one console,Requires 2 AA Batteries</mark><span> Adjustable vibration feedback for longer battery life Integrated headset port for Xbox LIVE play Brand ‎Microsoft Item model number ‎NSF00023-cr Hardware Platform ‎Microsoft_xbox_360, Xbox 360 Operating System ‎Xbox 360 Item Weight ‎10.8 ounces Product Dimensions ‎8.1 x 6.8 x 2.5 inches Item Dimensions LxWxH ‎8.1 x 6.8 x 2.5 inches Color ‎Bl</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/xbox-360-wireless-controller-black-by-microsoft-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/xbox-360-wireless-controller-black-by-microsoft-renewed.html</a></p><p>冻结文件: <a href="sources/c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e" target="_blank">sources/c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e</a></p><p>内容 SHA-256: <code>c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_observed_authenticity_condition_or_durability&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Xbox 360 controller page is SKU B07FTWMTCK at 47.99 dollars and seller copy claims certified refurbishment, a minimum 90-day warranty, up to four simultaneous controllers, and two required AA batteries; it does not independently establish authenticity, exact stick, button, pairing, battery-contact, or sustained-use condition, title-specific compatibility, or durability.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_xbox_360_e_offer_scope"><header><h3>prop_xbox_360_e_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07S5YN1H9 at 249.99 dollars with seller claims about renewed inspection, 250 GB, one controller, Wi-Fi, AV cable, power supply, and a replacement-or-refund guarantee&quot;,
+  &quot;predicate&quot;: &quot;asserts_exact_offer_and_inclusions&quot;,
+  &quot;subject&quot;: &quot;frozen Xbox 360 E renewed seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_xbox_360_e_offer_scope_1</code> | bytes [0, 44) | <code>e7ca55558c30e394b3d1de706a9f2a507cec35ed699e6ef1c8dfeb262d0daf7c</code></div><pre class="context"><span></span><mark>Microsoft XBOX 360 E 250GB Console (Renewed)</mark><span>
+
+In stock SKU B07S5YN1H9 Be the first to review this product $249.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look This pre-owned or refurbished product has been professionally inspected and tested to work and look like new. How a product becomes part of Amazon Renewed, your destination for pre-owned, refurbished products: A cu</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xbox_360_e_offer_scope_2</code> | bytes [46, 161) | <code>a6e7caea801fe44a05637c57c15f4af88eb3272d0cee22570950d942e2567ed2</code></div><pre class="context"><span>Microsoft XBOX 360 E 250GB Console (Renewed)
+
+</span><mark>In stock SKU B07S5YN1H9 Be the first to review this product $249.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look This pre-owned or refurbished product has been professionally inspected and tested to work and look like new. How a product becomes part of Amazon Renewed, your destination for pre-owned, refurbished products: A customer buys a new product and returns it or trades it in for a newer or different model. That product is inspected an</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xbox_360_e_offer_scope_3</code> | bytes [781, 867) | <code>969efe396624e27b734ea639cbf6982b2d08cf29508fc3d556d82b5158605115</code></div><pre class="context"><span> product and returns it or trades it in for a newer or different model. That product is inspected and tested to work and look like new by Amazon-qualified suppliers. Then, the product is sold as an Amazon Renewed product on Amazon. If not satisfied with the purchase, renewed products are eligible for replacement or refund under the Amazon Renewed Guarantee. </span><mark>250 GB hard drive 1 Black Wireless Controller Built in Wi-Fi AV cable and power supply</mark><span> Pricing The strikethrough price is the List Price. Savings represents a discount off the List Price. Product Dimensions 12 x 6 x 24 inches; 9.2 Pounds Binding Video Game Is Discontinued By Manufacturer No Item Weight 9.18 pounds Manufacturer Microsoft Games Date First Available May 23, 2019 Reviews Write Your Own Review You&#x27;re reviewing: Microsoft XBOX 360 </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/microsoft-xbox-360-e-250gb-console-renewed.html" target="_blank" rel="noreferrer">http://localhost:7770/microsoft-xbox-360-e-250gb-console-renewed.html</a></p><p>冻结文件: <a href="sources/1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a" target="_blank">sources/1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a</a></p><p>内容 SHA-256: <code>1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_assertions_not_observed_exact_unit_condition_or_market_value&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Xbox 360 E seller page is SKU B07S5YN1H9 at 249.99 dollars and claims renewed inspection, a 250 GB drive, one black wireless controller, built-in Wi-Fi, an AV cable, a power supply, and replacement-or-refund eligibility; these are seller-page assertions, not an observed test of the exact unit, serial, drive, ports, controller, sustained load, authenticity, or matched market value.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_xbox_360_revision_failure_scope"><header><h3>prop_xbox_360_revision_failure_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;conflicting family estimates, early red-ring and disc problems, later design improvements, and disc scratching that persisted in S and E models&quot;,
+  &quot;predicate&quot;: &quot;vary_by_failure_mode_and_hardware_revision&quot;,
+  &quot;subject&quot;: &quot;historical Xbox 360 family failures&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_xbox_360_revision_failure_scope_1</code> | bytes [518, 602) | <code>797be279bd720f3524527643bc7bdd0bd1752398b072e5a7e074eb8ca5f9dbb9</code></div><pre class="context"><span>d failures, some as a result of design flaws. Some issues could be identified by a pattern of red lights on the front face of the console; these colloquially became known as the &quot; Red Ring of Death &quot; or the &quot; RRoD &quot;. [ 1 ] [ 2 ] There were also other issues, such as discs becoming scratched in the drive and &quot; bricking &quot; of consoles due to dashboard updates. </span><mark>There were many conflicting estimates of the console&#x27;s unusually high failure rate .</mark><span> [ 3 ] [ 4 ] [ 5 ] The warranty provider SquareTrade estimated it at 23.7% in 2009, [ 6 ] while a Game Informer survey reported 54.2%. [ 7 ] Among the consoles owned by employees of Joystiq , which saw heavy use for games journalism purposes, the failure rate had reached 90% by the end of 2007. [ 8 ] The crisis was ultimately abated from 2009 by design revis</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xbox_360_revision_failure_scope_2</code> | bytes [904, 1051) | <code>027b114a463e5fcadf56b630992bbe4b5ab079f80ba69d4a70f0c5432c18fb04</code></div><pre class="context"><span>g estimates of the console&#x27;s unusually high failure rate . [ 3 ] [ 4 ] [ 5 ] The warranty provider SquareTrade estimated it at 23.7% in 2009, [ 6 ] while a Game Informer survey reported 54.2%. [ 7 ] Among the consoles owned by employees of Joystiq , which saw heavy use for games journalism purposes, the failure rate had reached 90% by the end of 2007. [ 8 ] </span><mark>The crisis was ultimately abated from 2009 by design revisions to the later-produced Xbox models; the S model in particular was far more resilient.</mark><span> By 2012 the failure rate for the Xbox 360 family was comparable to the PS3 failure rate. [ 9 ] The issues proved extremely damaging for Microsoft . Repairs and shipping of replacement hardware cost the company US$1.15 billion. The issues triggered multiple lawsuits , [ 10 ] cost the  Xbox ground in the console wars and threatened the long term viability of </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xbox_360_revision_failure_scope_3</code> | bytes [11425, 11550) | <code>ee2d13484f249384187d07dc36bbe7f609105e0f18a8dce148ab1b73de441e2a</code></div><pre class="context"><span>ed so it would dissipate more heat. [ 39 ] [ 40 ] The Guardian also claimed that using Xbox Kinect with an old Xenon generation Xbox would cause the Red Ring, but this was denied by Microsoft. [ 41 ] Scratched discs The design of the disc drive was flawed, and could cause scratches on discs, particularly if the console was moved while the disc was spinning. </span><mark>Unlike the Red Ring issues, the disc scratching was not resolved by hardware revisions and was present in the S and E models.</mark><span> Those versions shipped with a sticker informing users that moving the console while powered on posed a risk. [ 42 ] Even on static footing however, normal floor vibrations that would occur in a household environment were enough to cause disc scratches. [ 43 ] The issue was particularly prevalent in 2006 models. The issue was subject to multiple independent </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Xbox_360_technical_problems" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Xbox_360_technical_problems</a></p><p>冻结文件: <a href="sources/9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23" target="_blank">sources/9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23</a></p><p>内容 SHA-256: <code>9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;historical_family_evidence_not_exact_e_unit_probability_or_cross_platform_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;seventh_generation_family_couch_survivorship_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Xbox 360 technical-problems page reports conflicting historical family failure estimates, says later design revisions and the S model improved resilience, and says disc scratching persisted in S and E models; this makes exact revision and failure-mode inspection necessary but does not give the exact frozen E unit&#x27;s survival probability or a comparable Xbox 360-versus-PS3-versus-Wii ranking.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_family_console_0036</td><td>case_spec</td><td><a href="sources/eee7c5b9cfcffb9a0f6777158efbf59a9ca4fb32a6e45574da112f8a48e3e4ed">eee7c5b9cfcffb9a0f6777158efbf59a9ca4fb32a6e45574da112f8a48e3e4ed</a></td><td><a href="http://case-spec.local/dra_v3_formal_gaming_0036" target="_blank" rel="noreferrer">来源 URL</a></td><td>11281</td></tr><tr><td>reg_magento_ps3_160gb_renewed</td><td>magento</td><td><a href="sources/2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030">2d011c709d8c18baabec69b58287c4d8eef95b36e120864f44fd777ff95dc030</a></td><td><a href="http://localhost:7770/sony-playstation-3-160gb-system-renewed.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1374</td></tr><tr><td>reg_magento_ps3_dualshock3_metallic_grey</td><td>magento</td><td><a href="sources/c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543">c74b3c90f46d134545e864e565200d5c0c7125a1e6e56e9da69da860ce9bc543</a></td><td><a href="http://localhost:7770/playstation-3-dualshock-3-wireless-controller-metallic-grey.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2128</td></tr><tr><td>reg_magento_wii_power_av_sensor_bundle</td><td>magento</td><td><a href="sources/5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d">5f4ac80f33aa16b5fc91e4f27c1ecd3eac5a8cf704df639b48c4c535501e406d</a></td><td><a href="http://localhost:7770/3-in-1-wii-ac-power-adapter-composite-audio-video-cable-and-wired-motion-sensor-bar-compatible-with-nintendo-wii.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3585</td></tr><tr><td>reg_magento_wii_remote_renewed</td><td>magento</td><td><a href="sources/442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99">442227245fa14197db0ace75d964966f69ddd2a9a0e082306d49c18224a24c99</a></td><td><a href="http://localhost:7770/nintendo-wii-remote-controller-black-renewed.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1395</td></tr><tr><td>reg_magento_xbox_360_controller_renewed</td><td>magento</td><td><a href="sources/c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e">c766ff8545e2119301f9140e2527907c49aef8959c487388b613df410d9a557e</a></td><td><a href="http://localhost:7770/xbox-360-wireless-controller-black-by-microsoft-renewed.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1690</td></tr><tr><td>reg_magento_xbox_360_e_renewed</td><td>magento</td><td><a href="sources/1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a">1c146269e03aa510e79f09cfb6e102d9bdc1c86c31634037ef29b99d893f9f6a</a></td><td><a href="http://localhost:7770/microsoft-xbox-360-e-250gb-console-renewed.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1348</td></tr><tr><td>reg_postmill_retro_controller_replacement_concern</td><td>postmill</td><td><a href="sources/5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84">5d4540c54a0faaf5548a394b01ad1148f759b0dbec560876e45557e102678a84</a></td><td><a href="http://localhost:9999/f/consoles/59836/are-there-any-brand-new-ps1-controllers-out-there-oem-or" target="_blank" rel="noreferrer">来源 URL</a></td><td>2713</td></tr><tr><td>reg_postmill_second_hand_just_dance</td><td>postmill</td><td><a href="sources/a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6">a54105082cff34d048f77dc8d2a0ccba2edf0b5300e9be8ba3770ef0e8f95aa6</a></td><td><a href="http://localhost:9999/f/consoles/17998/cheap-console-for-just-dance" target="_blank" rel="noreferrer">来源 URL</a></td><td>3134</td></tr><tr><td>reg_postmill_two_five_year_olds</td><td>postmill</td><td><a href="sources/4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df">4db58f14cb78fd4124343c19eb1c157c61c013ea7f0c8b7b00d4b4eedfc4f6df</a></td><td><a href="http://localhost:9999/f/consoles/59842/which-console-for-5-year-olds" target="_blank" rel="noreferrer">来源 URL</a></td><td>11882</td></tr><tr><td>reg_search_just_dance</td><td>search_result</td><td><a href="sources/3c8ec48ad7d311079e99848891f5d1889efe25817fe7528dd3cb2ea7ce51ea41">3c8ec48ad7d311079e99848891f5d1889efe25817fe7528dd3cb2ea7ce51ea41</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=dde15788-f2fd-4dc2-9149-96c1066b8b62" target="_blank" rel="noreferrer">来源 URL</a></td><td>64243</td></tr><tr><td>reg_search_ps3_160gb</td><td>search_result</td><td><a href="sources/b2115a49f6e08460565de34f72a4a35be27b0687df6f44e4b9df17449d2cfd9c">b2115a49f6e08460565de34f72a4a35be27b0687df6f44e4b9df17449d2cfd9c</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=fa5dc7c8-c63e-47a8-a00a-895a8066c477" target="_blank" rel="noreferrer">来源 URL</a></td><td>5391</td></tr><tr><td>reg_search_ps3_accessories</td><td>search_result</td><td><a href="sources/8e500b78a276a22383f49e32fe154a6516024f850411d014a4a4c84a46939d89">8e500b78a276a22383f49e32fe154a6516024f850411d014a4a4c84a46939d89</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=8a61b38d-113e-4064-9178-4077a3be92ea" target="_blank" rel="noreferrer">来源 URL</a></td><td>11330</td></tr><tr><td>reg_search_ps3_controller</td><td>search_result</td><td><a href="sources/f9f0dd17eeee0246b6906f8bac0121798e655c404ba406e9755c8583b5763267">f9f0dd17eeee0246b6906f8bac0121798e655c404ba406e9755c8583b5763267</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=aecb50c0-b0cb-493c-bebf-44446d1fe225" target="_blank" rel="noreferrer">来源 URL</a></td><td>6867</td></tr><tr><td>reg_search_retro_replacement</td><td>search_result</td><td><a href="sources/2a077e892a5e15fbaf25d2304c596fb19e83aa59c09a3ee4483cedf8a2b5f564">2a077e892a5e15fbaf25d2304c596fb19e83aa59c09a3ee4483cedf8a2b5f564</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=5d3c3eb2-8719-42da-bb9f-afe9052d3271" target="_blank" rel="noreferrer">来源 URL</a></td><td>57986</td></tr><tr><td>reg_search_seventh_generation</td><td>search_result</td><td><a href="sources/1cf4f052810b3bf40ac725d7879fd2e56cf6bad1040ed933a0a969fe62a68c5c">1cf4f052810b3bf40ac725d7879fd2e56cf6bad1040ed933a0a969fe62a68c5c</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=8066eb05-e596-4a68-973c-a32c5e1fb028" target="_blank" rel="noreferrer">来源 URL</a></td><td>54683</td></tr><tr><td>reg_search_two_children</td><td>search_result</td><td><a href="sources/9f6c1def241f5db10b69280372e349816a0d83f15a50b92fc8cd4e1ae3cad6ac">9f6c1def241f5db10b69280372e349816a0d83f15a50b92fc8cd4e1ae3cad6ac</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=85abd1ad-1014-4f9a-abab-4f71dacaf68a" target="_blank" rel="noreferrer">来源 URL</a></td><td>63369</td></tr><tr><td>reg_search_wii_bundle</td><td>search_result</td><td><a href="sources/fe8863c9520d07c1ff9a99d19c11ffa6115a0fb9d3f86848d6225c72266edc1c">fe8863c9520d07c1ff9a99d19c11ffa6115a0fb9d3f86848d6225c72266edc1c</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=47cc97e9-4a1e-45ea-8daa-ae8006e12840" target="_blank" rel="noreferrer">来源 URL</a></td><td>7478</td></tr><tr><td>reg_search_wii_remote</td><td>search_result</td><td><a href="sources/ae67d947fe56a1deb57c0e28006fc6ea1fbac3d61420c070c5220de24aa799b1">ae67d947fe56a1deb57c0e28006fc6ea1fbac3d61420c070c5220de24aa799b1</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=d7e24b65-6895-4149-9ac7-362f9064eb45" target="_blank" rel="noreferrer">来源 URL</a></td><td>5641</td></tr><tr><td>reg_search_wii_remote_concept</td><td>search_result</td><td><a href="sources/98d9621b1ddfe64e3ed2bd12f7efb2a12927f5b98ac426301ba9e3d0307a6e8d">98d9621b1ddfe64e3ed2bd12f7efb2a12927f5b98ac426301ba9e3d0307a6e8d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=a9190475-4732-46b7-93a2-25204e0353cc" target="_blank" rel="noreferrer">来源 URL</a></td><td>818</td></tr><tr><td>reg_search_xbox_360_e</td><td>search_result</td><td><a href="sources/22e4476f6a55039b043721a992cb51c10fba4293b2f4997628def9c88d2f4665">22e4476f6a55039b043721a992cb51c10fba4293b2f4997628def9c88d2f4665</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=b30c2fac-b0db-4310-a8d1-b0b949ddc8bc" target="_blank" rel="noreferrer">来源 URL</a></td><td>5342</td></tr><tr><td>reg_search_xbox_controller</td><td>search_result</td><td><a href="sources/7d449139a3d2a6ba1e03ba8de647b807f86dbe4c384fccde6763d5292a986699">7d449139a3d2a6ba1e03ba8de647b807f86dbe4c384fccde6763d5292a986699</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=8c308e74-662c-4948-b602-bc2f34ded93a" target="_blank" rel="noreferrer">来源 URL</a></td><td>5038</td></tr><tr><td>reg_search_xbox_failures</td><td>search_result</td><td><a href="sources/818b8812ad4a33884f5b72058edb649a22729d1c320a79c9676d38f68c81b1b5">818b8812ad4a33884f5b72058edb649a22729d1c320a79c9676d38f68c81b1b5</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1&amp;request_id=720743de-9eaa-4433-ba70-cfdeeef0ab6a" target="_blank" rel="noreferrer">来源 URL</a></td><td>12447</td></tr><tr><td>reg_wiki_playstation_3_accessories</td><td>wikipedia</td><td><a href="sources/f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b">f374bd976305615fa2eb994dc2035944fa2348f11718defc1cf2768775f0029b</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_3_accessories" target="_blank" rel="noreferrer">来源 URL</a></td><td>20051</td></tr><tr><td>reg_wiki_seventh_generation_consoles</td><td>wikipedia</td><td><a href="sources/dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7">dddacf32b92d6a1f7469810d3b2e7a1c85319601c9645cf564bf6c60a89045f7</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Seventh_generation_of_video_game_consoles" target="_blank" rel="noreferrer">来源 URL</a></td><td>20135</td></tr><tr><td>reg_wiki_wii_remote</td><td>wikipedia</td><td><a href="sources/fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813">fc2925b0f3a7176d1c2b7db4a6fda4da2b90150fc0e65aac1205657d2aca9813</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Wii_Remote" target="_blank" rel="noreferrer">来源 URL</a></td><td>20030</td></tr><tr><td>reg_wiki_xbox_360_technical_problems</td><td>wikipedia</td><td><a href="sources/9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23">9c6b09c43e7f4a2e5190e35ca8de873c2512ff8bd52590aec475e5f5ef778c23</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Xbox_360_technical_problems" target="_blank" rel="noreferrer">来源 URL</a></td><td>20006</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-gaming-0036-used-console-survivorship-boundary-20260716-r1";
+const graphHash = "77b392807ea0935a66bdc1c6246cadbf2b366328c4bddca338b3997bac105a7f";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

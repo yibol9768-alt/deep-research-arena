@@ -1,0 +1,82 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0006
+query_sha256: "4442339225c2ac07ee0918be33e089218dd2c0b5a7a1a623d586654dc4fef123"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 判断真无线耳塞的电池衰减和连接衰减是否真的严重。
+
+  Q2: 覆盖市面上的无线耳塞，要近期有时效性。
+
+  Q3: 解释/验证电池衰减和连接衰减的影响原理。
+
+  Q4: 必须要有之前其他用户的经验。
+
+  Q5: 确实明确要求有拥有者或社区的经验。
+
+  Q6: 每一项都需要覆盖。
+
+  Q7: 没有模糊的部分。
+
+initial_requirements:
+  - 判断电池衰减和连接衰减是物理必然还是少数个案
+  - 推荐最耐用的耳塞产品（时效性）
+  - 解释电池衰减和连接衰减的原理
+  - 包含长期拥有者的真实使用经验
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 解释真无线耳塞电池衰减和连接衰减的影响机制和物理原理
+    necessity_reason: |-
+      Query 问"is the battery and connection decay a physical inevitability of the format"，
+      需要先解释原理才能回答"是否物理必然"；
+      省略原理解析则后续结论缺乏科学依据。
+    query_basis: "Is the battery and connection decay a physical inevitability of the format?"
+    output_form: explain
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 包含长期拥有者的真实使用经验（覆盖正反两面：好评中的长期使用反馈 vs 发烧友的"一次性产品"说法，如使用一年后的续航衰减、断连情况等）
+    necessity_reason: |-
+      Query 呈现了两类矛盾信息——"近五星好评"和"hobbyist crowd keeps repeating all true wireless buds are disposable"，
+      省略任何一面的真实用户经验则结论偏颇，用户无法判断该信哪个。
+    query_basis: "\"thousands of happy reviews\" + \"the hobbyist crowd keeps repeating that all true wireless buds are basically disposable\""
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 明确引用"hobbyist crowd"和"thousands of happy reviews"两类社区经验，拥有者反馈在此不可替代
+
+  - local_id: R3
+    requirement: 综合原理解析和用户真实经验，给出诚实结论：电池/连接衰减是真无线形态的物理必然还是被放大的少数个案
+    necessity_reason: Query 直接提问"those are two totally different pictures and I don't know which to believe"，省略结论则用户的根本困惑未解决
+    query_basis: "Is the battery and connection decay a physical inevitability of the format or just a few loud horror stories?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R4
+    requirement: 基于结论推荐一款最耐用的真无线耳塞产品，必须是近期在售的
+    necessity_reason: Query 明确要求"plus which pair holds up best if I go ahead"，分析之后需要落地到具体可购买的产品
+    query_basis: "plus which pair holds up best if I go ahead"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "battery fade"
+    note: 电池衰减到什么程度算严重？不同使用习惯（充电频率/温度）差异大
+  - phrase: "by year two you're rebuying"
+    note: "\"两年\"是确切的时间节点还是夸张说法？不同标注者可能解读不同"
+  - phrase: "a few loud horror stories"
+    note: "\"少数被放大的恐怖故事\"——多少个案算\"少数\"不明确"
+
+unresolved: []
+
+evidence_answerability: not_assessed

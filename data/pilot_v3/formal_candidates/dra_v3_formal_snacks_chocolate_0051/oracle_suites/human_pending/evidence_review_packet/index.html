@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>66d65fff9f48e1ebbd09bd2aa0eecb19634d9ad53d2ba1ec9620103ca88bb775</code></p>
+<p>待审项 32 个，其中语义项 16 个、结构化项 0 个；冻结来源 33 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_clean_label_ambiguity_scope"><header><h3>assert_clean_label_ambiguity_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;clean labels omit perceived undesirable ingredients and may display natural claims but need not be additive-free and have no exact universal definition&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for clean-label concept&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_clean_label_ambiguity_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_label_context_not_exact_formula_health_or_safety_audit&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;clean labels omit perceived undesirable ingredients and may display natural claims but need not be additive-free and have no exact universal definition&quot;,
+  &quot;predicate&quot;: &quot;describes_marketing_claims_without_one_exact_ingredient_definition&quot;,
+  &quot;subject&quot;: &quot;clean-label concept&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_clean_label_ambiguity_scope_1</code> | bytes [0, 110) | <code>2a5abcfd51a386d108a7cd51357f953cda7bdbc56b7dc8cc5378791fff135425</code></div><pre class="context"><span></span><mark>A clean label is a label on a food, not listing ingredients that may be perceived by consumers as undesirable.</mark><span> Substances having a negative connotation, for example food additives like food colouring, flavours or preservatives are avoided. The packaging may explicitly display positive claims like &#x27;natural&#x27;, &#x27;without colouring and preservatives&#x27;, &#x27;no artificial preservatives&#x27;, etcetera. [ 1 ] The pursued use of clean labels is called clean labelling . The purpose is </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Clean_label" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Clean_label</a></p><p>冻结文件: <a href="sources/036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a" target="_blank">sources/036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a</a></p><p>内容 SHA-256: <code>036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_fisher_no_artificial_scope"><header><h3>assert_fisher_no_artificial_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B01NAER8CP at 20.69 dollars with six title-declared 5.5-ounce pouches and Package Dimensions of 5.5 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Fisher seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_fisher_no_artificial_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_verified_formula_total_net_or_health_result&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B01NAER8CP at 20.69 dollars with six title-declared 5.5-ounce pouches and Package Dimensions of 5.5 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_no_artificial_color_or_flavor_wording_and_quantity_ambiguity&quot;,
+  &quot;subject&quot;: &quot;frozen Fisher seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_fisher_no_artificial_scope_1</code> | bytes [0, 102) | <code>d6d879cfd133991140d7413bf89c84fff71a8d6444d82054ff3171fa9b45e956</code></div><pre class="context"><span></span><mark>Fisher Snack Smoke and Bacon Flavored Almonds, 5.5 Ounces (Pack of 6), No Artificial Colors or Flavors</mark><span>
+
+In stock SKU B01NAER8CP Be the first to review this product $20.69 Flavor Name Cinnamon Cocoa Mocha Smoke &amp; Bacon Size 5 Ounce (Pack of 6) 5.5 Ounce (Pack of 6) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Peanuts Almonds Cashews Pecans Mixed Nuts Variety 1 Honey Roast Whole Natural Whole Roasted Salted Deluxe Va</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/fisher-snack-smoke-and-bacon-flavored-almonds-5-5-ounces-pack-of-6-no-artificial-colors-or-flavors.html" target="_blank" rel="noreferrer">http://localhost:7770/fisher-snack-smoke-and-bacon-flavored-almonds-5-5-ounces-pack-of-6-no-artificial-colors-or-flavors.html</a></p><p>冻结文件: <a href="sources/b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa" target="_blank">sources/b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa</a></p><p>内容 SHA-256: <code>b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_flavoring_source_class_scope"><header><h3>assert_flavoring_source_class_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;flavorings improve taste or smell and nature-identical compounds can be chemically equivalent to natural compounds while synthesized&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for food flavoring&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_flavoring_source_class_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_function_and_source_class_not_exact_product_or_health_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;flavorings improve taste or smell and nature-identical compounds can be chemically equivalent to natural compounds while synthesized&quot;,
+  &quot;predicate&quot;: &quot;defines_flavor_function_and_nature_identical_source_class&quot;,
+  &quot;subject&quot;: &quot;food flavoring&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_flavoring_source_class_scope_1</code> | bytes [104, 260) | <code>9f07e14d4edc44c580b4c26dabcc5620c9ac366eb7a58ec4518dc8ec36fe8afc</code></div><pre class="context"><span>This article is about flavorings in food. For flavor as the perception of an aroma or odor, see Taste . </span><mark>A flavoring (or flavouring ), [ a ] also known as flavor (or flavour ) or flavorant , is a food additive that is used to improve the taste or smell of food.</mark><span> It changes the perceptual impression of food as determined primarily by the chemoreceptors of the gustatory and olfactory systems . [ 1 ] [ 2 ] Along with additives, other components, like sugars, determine the taste of food. A flavoring is defined as a substance that gives another substance taste, altering the characteristics of the solute, causing it to b</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Flavoring" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Flavoring</a></p><p>冻结文件: <a href="sources/a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c" target="_blank">sources/a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c</a></p><p>内容 SHA-256: <code>a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_food_additive_function_scope"><header><h3>assert_food_additive_function_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;additives can preserve or alter sensory qualities, may have natural or artificial origins and can have overlapping functions&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for food additives&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_food_additive_function_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_function_class_not_exact_formula_or_whole_product_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;additives can preserve or alter sensory qualities, may have natural or artificial origins and can have overlapping functions&quot;,
+  &quot;predicate&quot;: &quot;span_multiple_functions_origins_and_overlapping_categories&quot;,
+  &quot;subject&quot;: &quot;food additives&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_food_additive_function_scope_1</code> | bytes [0, 120) | <code>5ab69b93024ace2b1a538428a1050de0279deee83a9ad7d88d7eed8e34798fe7</code></div><pre class="context"><span></span><mark>Food additives are substances added to food to preserve flavor or enhance taste, appearance, or other sensory qualities.</mark><span> Some additives, such as vinegar ( pickling ), salt ( salting ), smoke ( smoking ) and sugar ( crystallization ), have been used for centuries to preserve food . This allows for longer-lasting foods, such as bacon, sweets, and wines. With the advent of ultra-processed foods in the late 20th century, many additives having both natural and artificial origin we</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_additive" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Food_additive</a></p><p>冻结文件: <a href="sources/99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c" target="_blank">sources/99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c</a></p><p>内容 SHA-256: <code>99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_food_coloring_function_scope"><header><h3>assert_food_coloring_function_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a colorant imparts color, may be natural or synthesized, and can offset loss, stabilize variation or identify flavor&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for food coloring&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_food_coloring_function_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_color_function_not_exact_formula_or_source_risk_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a colorant imparts color, may be natural or synthesized, and can offset loss, stabilize variation or identify flavor&quot;,
+  &quot;predicate&quot;: &quot;defines_colorants_and_multiple_appearance_functions&quot;,
+  &quot;subject&quot;: &quot;food coloring&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_food_coloring_function_scope_1</code> | bytes [0, 136) | <code>6a74df714681d5c8cce207ccaa66280c7b6140e5cb6bde424a66b981e037a734</code></div><pre class="context"><span></span><mark>Food coloring , color additive or colorant is any dye , pigment , or substance that imparts color when it is added to food or beverages.</mark><span> Colorants can be supplied as liquids, powders, gels , or pastes . Food coloring is commonly used in commercial products and in domestic cooking. Food colorants are also used in various non-food applications, including cosmetics, pharmaceuticals , home craft projects, and medical devices. [ 1 ] Some colorings may be natural, such as with carotenoids and anth</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_coloring" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Food_coloring</a></p><p>冻结文件: <a href="sources/4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d" target="_blank">sources/4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d</a></p><p>内容 SHA-256: <code>4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_front_label_discussion_scope"><header><h3>assert_front_label_discussion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;participants argue that a front claim may not disclose proportions and recommend checking ingredient and nutrition details&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for whole-wheat ELI5 community thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_front_label_discussion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;thread_scoped_label_reasoning_not_current_law_or_exact_offer_audit&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;participants argue that a front claim may not disclose proportions and recommend checking ingredient and nutrition details&quot;,
+  &quot;predicate&quot;: &quot;debates_front_label_wording_and_detail_panels&quot;,
+  &quot;subject&quot;: &quot;whole-wheat ELI5 community thread&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_front_label_discussion_scope_1</code> | bytes [0, 127) | <code>d7bd4749e2a2bce57f335185020e4b25b3ac06cd99eddb88cb46eeedcfefaf71</code></div><pre class="context"><span></span><mark>ELI5: What do food product labels that say “whole wheat” or “100% whole grain wheat” mean? Are these better for health?</mark><span>
+
+0
+
+That standard white wheat flour you see everywhere is processed flour. Wheat seed has 3 parts - they&#x27;re called bran, endosperm, and germ. When processing the flour, bran and germ are removed, leaving only the endosperm. Naturally, removing parts of the seed also removes the nutrients, which makes processed white flour nutritionally poorer. Whole wheat f</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/39199/eli5-what-do-food-product-labels-that-say-whole-wheat-or-100" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/39199/eli5-what-do-food-product-labels-that-say-whole-wheat-or-100</a></p><p>冻结文件: <a href="sources/4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467" target="_blank">sources/4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467</a></p><p>内容 SHA-256: <code>4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_glutamate_flavoring_scope"><header><h3>assert_glutamate_flavoring_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;glutamic acid and glutamates occur in aged foods and yeast extract and the flavor-relevant ion can arise from different starting compounds&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for glutamate flavoring&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_glutamate_flavoring_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_chemistry_not_exact_no_msg_claim_adjudication_or_health_result&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;glutamic acid and glutamates occur in aged foods and yeast extract and the flavor-relevant ion can arise from different starting compounds&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_broader_glutamate_sources_from_msg&quot;,
+  &quot;subject&quot;: &quot;glutamate flavoring&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_glutamate_flavoring_scope_1</code> | bytes [492, 577) | <code>4b07626a741457994da1cb969da6804ffa4e95e33dda0375078c2763a8016c8c</code></div><pre class="context"><span>its neurological role, see glutamate (neurotransmitter) . &quot;Glutamate sensitivity&quot; redirects here. Not to be confused with disorders related to gluten , a natural ingredient in many cereals. Glutamate flavoring is the generic name for flavor-enhancing compounds based on glutamic acid and its salts (glutamates). These compounds provide a savory taste to food. </span><mark>Glutamic acid and glutamates are natural constituents of many fermented or aged foods</mark><span>, including soy sauce , fermented bean paste , and cheese . They can also be found in hydrolyzed proteins such as yeast extract . The sodium salt of glutamic acid, monosodium glutamate (MSG), is manufactured on a large scale and widely used in the food industry . Glutamic acid versus glutamates When glutamic acid or any of its salts are dissolved in water, t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Glutamate_flavoring" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Glutamate_flavoring</a></p><p>冻结文件: <a href="sources/8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27" target="_blank">sources/8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27</a></p><p>内容 SHA-256: <code>8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_kids_survey_method_scope"><header><h3>assert_kids_survey_method_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;comments describe 1,135 online parent responses with at least about twenty per state and criticize sampling, self-report, outliers and missing intervals&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for child-snack visualization discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_kids_survey_method_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;method_criticism_not_validated_state_or_child_consumption_estimate&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;comments describe 1,135 online parent responses with at least about twenty per state and criticize sampling, self-report, outliers and missing intervals&quot;,
+  &quot;predicate&quot;: &quot;identifies_small_online_self_report_and_uncertainty_problems&quot;,
+  &quot;subject&quot;: &quot;child-snack visualization discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_kids_survey_method_scope_1</code> | bytes [1521, 1658) | <code>ff2cac5bb38ac378d62a8645caef0a6e2cece152d58474ab8b06497b9ca3b67b</code></div><pre class="context"><span>hat answered an online form. At those small numbers, state averages could easily be swayed by a couple outliers.
+
+They asked a tiny sample of parents how much sugary snacks their kids eat. Could be titled states where parents fib about what their kids eat.
+
+PA represent. Hanover pa, snack capital of the worlllllllld star world star
+
+Not to mention Hershey!
+
+</span><mark>This presents on-line survey data of parents about the sweet foods their children consume, n = 1,135, with a minimum of n = 20 per state.</mark><span> Ignoring the obvious sampling issues, it&#x27;d be interesting to see confidence intervals of the mean for each state. Also, I&#x27;m not sure why the data is presented twice: per day , and per week , which is simply 7 times the daily figure.
+
+U.S. states = United States states 🤷🏻‍♂️
+
+U.States
+
+Yinzers can print this and hang it above their cookie table.
+</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/dataisbeautiful/103915/the-u-s-states-where-children-consume-the-most-sugary-snacks" target="_blank" rel="noreferrer">http://localhost:9999/f/dataisbeautiful/103915/the-u-s-states-where-children-consume-the-most-sugary-snacks</a></p><p>冻结文件: <a href="sources/c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1" target="_blank">sources/c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1</a></p><p>内容 SHA-256: <code>c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_msg_community_debate_scope"><header><h3>assert_msg_community_debate_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;participants offer conflicting explanations of MSG taste, public fear, yeast extract, sodium and alleged outcomes&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for MSG ELI5 community thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_msg_community_debate_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;conflicting_thread_not_authoritative_medical_or_exact_product_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;participants offer conflicting explanations of MSG taste, public fear, yeast extract, sodium and alleged outcomes&quot;,
+  &quot;predicate&quot;: &quot;contains_competing_umami_sodium_and_health_explanations&quot;,
+  &quot;subject&quot;: &quot;MSG ELI5 community thread&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_msg_community_debate_scope_1</code> | bytes [0, 83) | <code>c178bc42ea249c7ed82a9bcc55d47dd3fc9b3d2c5e8f4d0a149cfde1971a19b8</code></div><pre class="context"><span></span><mark>ELI5: Why does MSG make food taste so irresistible? And why is everyone against it?</mark><span>
+
+74
+
+MSG contains glutamic acid, which is what causes things to taste savory, a flavor known as &quot;umami.&quot; Umami is a major flavor profile in a lot of asian foods. In the USA it was difficult for people cooking asian foods to get their hands on natural sources of umami that are traditionally used, so a lot of asian restaurants, specifically Chinese restaurant</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/18622/eli5-why-does-msg-make-food-taste-so-irresistible-and-why-is" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/18622/eli5-why-does-msg-make-food-taste-so-irresistible-and-why-is</a></p><p>冻结文件: <a href="sources/15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50" target="_blank">sources/15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50</a></p><p>内容 SHA-256: <code>15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_msg_identity_umami_scope"><header><h3>assert_msg_identity_umami_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;MSG is the sodium salt of glutamic acid and can enhance savory or umami perception&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for monosodium glutamate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_msg_identity_umami_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;identity_and_flavor_mechanism_only_not_medical_safety_or_exposure&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;MSG is the sodium salt of glutamic acid and can enhance savory or umami perception&quot;,
+  &quot;predicate&quot;: &quot;identifies_a_glutamic_acid_salt_and_umami_flavor_function&quot;,
+  &quot;subject&quot;: &quot;monosodium glutamate&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_msg_identity_umami_scope_1</code> | bytes [1568, 1667) | <code>4972d549e240e640eb0cda5d7183e4625c6a35747be9c9d697e5b86ea9019ee7</code></div><pre class="context"><span>int 232 Â°C (450 Â°F; 505 K) Solubility in water 740 g/L Hazards NFPA 704 (fire diamond) 0 0 0 Lethal dose or concentration (LD, LC): LD 50 ( median dose ) 16600 mg/kg (oral, rat) [ 1 ] Except where otherwise noted, data are given for materials in their standard state (at 25 Â°C [77 Â°F], 100 kPa). Y verify (what is Y N ?) Infobox references </span><mark>Monosodium glutamate ( MSG ), also known as sodium glutamate ,  is a sodium salt of glutamic acid .</mark><span>  MSG is found naturally in some foods including tomatoes and cheese in this glutamic acid form. [ 2 ] [ 3 ] [ 4 ] MSG is used in cooking as a flavor enhancer with a savory taste that intensifies the umami flavor of food, as naturally occurring glutamate does in foods such as stews and meat soups. [ 5 ] [ 6 ] MSG was first prepared in 1908 by Japanese bioche</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Monosodium_glutamate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Monosodium_glutamate</a></p><p>冻结文件: <a href="sources/77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae" target="_blank">sources/77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae</a></p><p>内容 SHA-256: <code>77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_muya_no_msg_natural_scope"><header><h3>assert_muya_no_msg_natural_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07Z259WY2 at 50.54 dollars with a four-times-38-gram title, no-MSG and natural wording, and Item Weight of 1.34 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Muya seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_muya_no_msg_natural_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_verified_formula_or_child_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07Z259WY2 at 50.54 dollars with a four-times-38-gram title, no-MSG and natural wording, and Item Weight of 1.34 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_no_msg_natural_marketing_and_quantity_ambiguity&quot;,
+  &quot;subject&quot;: &quot;frozen Muya seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_muya_no_msg_natural_scope_1</code> | bytes [0, 174) | <code>d061df4fe59f3c58ffc08beac61f38f847c864709ee62889c9336be4aa322d6d</code></div><pre class="context"><span></span><mark>Muya Crispy Banana Fruit Chips High Fibre Low Carb No MSG Non GMO Healthy Snack (4 x 38grams) Tom Yum Flavour - Gluten Free Healthy Snacks Perfect for Adults &amp; Kids (4 Packs)</mark><span>
+
+In stock SKU B07Z259WY2 Be the first to review this product $50.54 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Our Muya Banana Chips in Tom Yum flavor combined the exotic unique flavor exceptional to Thailand and brings a delicious chill relaxing taste of healthy snack. One bold bite and you will never forget the moment, exp</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/muya-crispy-banana-fruit-chips-high-fibre-low-carb-no-msg-non-gmo-healthy-snack-4-x-38grams-tom-yum-flavour-gluten-free-healthy-snacks-perfect-for-adults-kids-4-packs.html" target="_blank" rel="noreferrer">http://localhost:7770/muya-crispy-banana-fruit-chips-high-fibre-low-carb-no-msg-non-gmo-healthy-snack-4-x-38grams-tom-yum-flavour-gluten-free-healthy-snacks-perfect-for-adults-kids-4-packs.html</a></p><p>冻结文件: <a href="sources/3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae" target="_blank">sources/3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae</a></p><p>内容 SHA-256: <code>3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_natural_cheetos_scope"><header><h3>assert_natural_cheetos_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B002W4IZ4K at 39.93 dollars with three title-declared 8-ounce bags and no-MSG wording&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Natural Cheetos seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_natural_cheetos_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_matched_formula_or_current_premium_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B002W4IZ4K at 39.93 dollars with three title-declared 8-ounce bags and no-MSG wording&quot;,
+  &quot;predicate&quot;: &quot;shows_a_no_msg_three_bag_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Natural Cheetos seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_natural_cheetos_scope_1</code> | bytes [0, 73) | <code>487c5e5d517489d5e78e200369578679cd86e2ba02aeefc40bcf8717076bdd5f</code></div><pre class="context"><span></span><mark>Frito Lay Natural Cheetos White Cheddar Cheese Puffs, 8 Ounce (Pack of 3)</mark><span>
+
+In stock SKU B002W4IZ4K Be the first to review this product $39.93 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Natural Cheetos White Cheddar Cheese Puffs is a cheese flavored snack that is baked to perfection. It is free of MSG, gluten, soy and porcine. Contains zero grams of trans fats. Pack of three, 8-ounce per unit(a tot</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/frito-lay-natural-cheetos-white-cheddar-cheese-puffs-8-ounce-pack-of-3.html" target="_blank" rel="noreferrer">http://localhost:7770/frito-lay-natural-cheetos-white-cheddar-cheese-puffs-8-ounce-pack-of-3.html</a></p><p>冻结文件: <a href="sources/237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0" target="_blank">sources/237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0</a></p><p>内容 SHA-256: <code>237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_natural_food_label_scope"><header><h3>assert_natural_food_label_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;natural and all-natural are marketing terms with several definitions and consumer assumptions that vary by context&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for natural-food labeling&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_natural_food_label_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_label_ambiguity_not_current_legal_advice_or_product_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;natural and all-natural are marketing terms with several definitions and consumer assumptions that vary by context&quot;,
+  &quot;predicate&quot;: &quot;has_several_definitions_and_is_distinct_from_whole_or_organic&quot;,
+  &quot;subject&quot;: &quot;natural-food labeling&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_natural_food_label_scope_1</code> | bytes [166, 265) | <code>cc0c98313c9f76c5b56a0210589b5fb23be67899a853c518470b00560ad18a3a</code></div><pre class="context"><span>This article is about food advertised as &quot;natural&quot;. For food that complies with standards of organic farming, see Organic food . Not to be confused with whole food . </span><mark>Natural food and all-natural food are terms in food labeling and marketing with several definitions</mark><span>, generally denoting foods that are not manufactured by processing . In some countries like the United Kingdom , the term &quot;natural&quot; is defined and regulated; [ 2 ] in others, such as the United States , the term natural is not enforced for food labels, although there is USDA regulation of organic labeling. [ 3 ] The term is assumed to describe foods having i</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Natural_food" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Natural_food</a></p><p>冻结文件: <a href="sources/0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d" target="_blank">sources/0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d</a></p><p>内容 SHA-256: <code>0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_orchard_no_artificial_scope"><header><h3>assert_orchard_no_artificial_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07YQMF126 at 28.23 dollars with eight title-declared 3.75-ounce packs and Product Dimensions of 2.76 pounds&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Orchard Valley seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_orchard_no_artificial_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_and_mass_conflict_not_verified_formula_or_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07YQMF126 at 28.23 dollars with eight title-declared 3.75-ounce packs and Product Dimensions of 2.76 pounds&quot;,
+  &quot;predicate&quot;: &quot;shows_no_artificial_ingredient_wording_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Orchard Valley seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_orchard_no_artificial_scope_1</code> | bytes [0, 105) | <code>a0fa594fafd2076b4f5134787eff044e24d42ffe226d185c243105d0b8e02014</code></div><pre class="context"><span></span><mark>Orchard Valley Harvest, Chickpea Chips, Chili Lime, 3.75oz (Pack of 8) Non-GMO, No Artificial Ingredients</mark><span>
+
+In stock SKU B07YQMF126 Be the first to review this product $28.23 Flavor Name Chili Lime Garlic &amp; Chives Original with Sea Salt Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Orchard Valley Harvest Chickpea Chips Chili Lime Non-GMO Project Verified Certificate # 657226, Issued 2019. See Nutrition Information on pa</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/orchard-valley-harvest-chickpea-chips-chili-lime-3-75oz-pack-of-8-non-gmo-no-artificial-ingredients.html" target="_blank" rel="noreferrer">http://localhost:7770/orchard-valley-harvest-chickpea-chips-chili-lime-3-75oz-pack-of-8-non-gmo-no-artificial-ingredients.html</a></p><p>冻结文件: <a href="sources/7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef" target="_blank">sources/7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef</a></p><p>内容 SHA-256: <code>7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_regular_cheetos_scope"><header><h3>assert_regular_cheetos_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B00E3A24F2 at 49.94 dollars with twelve title-declared 2.38-ounce Jumbo Puffs bags&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen regular Cheetos seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_regular_cheetos_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;different_offer_not_matched_clean_label_control&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B00E3A24F2 at 49.94 dollars with twelve title-declared 2.38-ounce Jumbo Puffs bags&quot;,
+  &quot;predicate&quot;: &quot;shows_a_twelve_bag_category_comparator&quot;,
+  &quot;subject&quot;: &quot;frozen regular Cheetos seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_regular_cheetos_scope_1</code> | bytes [0, 68) | <code>8ba113247037ba97e27b952686203088499b04103c4dcb2dc00eaba2dde0f692</code></div><pre class="context"><span></span><mark>Cheetos Cheese Flavored Snacks, Jumbo Puffs, 2.38 Ounce (Pack of 12)</mark><span>
+
+In stock SKU B00E3A24F2 Be the first to review this product $49.94 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Cheetos Puffs Cheese Flavored Snacks Enjoy all the fun of CHEETOS Puffs Cheese Flavored Snacks in a convenient size. Made with real cheese, they’re packed with flavor that satisfies. These single serve bags are no</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/cheetos-cheese-flavored-snacks-jumbo-puffs-2-38-ounce-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/cheetos-cheese-flavored-snacks-jumbo-puffs-2-38-ounce-pack-of-12.html</a></p><p>冻结文件: <a href="sources/c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2" target="_blank">sources/c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2</a></p><p>内容 SHA-256: <code>c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_til_msg_natural_debate_scope"><header><h3>assert_til_msg_natural_debate_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the thread asserts MSG occurs naturally in tomatoes while one reply warns that natural occurrence alone signifies nothing&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for naturally occurring MSG community thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_til_msg_natural_debate_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;thread_scoped_debate_not_authoritative_chemistry_or_safety_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;the thread asserts MSG occurs naturally in tomatoes while one reply warns that natural occurrence alone signifies nothing&quot;,
+  &quot;predicate&quot;: &quot;contains_a_title_claim_and_a_counterpoint_about_natural_occurrence&quot;,
+  &quot;subject&quot;: &quot;naturally occurring MSG community thread&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_til_msg_natural_debate_scope_1</code> | bytes [0, 58) | <code>c868082980d2a980f2c36011544357fa7e8c01575f2dda0411cf2cdc6f2c0352</code></div><pre class="context"><span></span><mark>TIL MSG occurs naturally in tomatoes and other vegetables.</mark><span>
+
+93
+
+MSG - mono sodium glutamate - one sodium atom with a very basic amino acid, used in most proteins, and the actual savory molecule that the word umami refers to The fear mongering was entirely racism/classism based, the stuff is nutritious unless you&#x27;re just eating spoons of it
+
+IIRC it was based off a shitty study of people who consumed MSG on a freque</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/todayilearned/135635/til-msg-occurs-naturally-in-tomatoes-and-other-vegetables" target="_blank" rel="noreferrer">http://localhost:9999/f/todayilearned/135635/til-msg-occurs-naturally-in-tomatoes-and-other-vegetables</a></p><p>冻结文件: <a href="sources/f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120" target="_blank">sources/f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120</a></p><p>内容 SHA-256: <code>f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_clean_label_ambiguity_scope"><header><h3>prop_clean_label_ambiguity_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;clean labels omit perceived undesirable ingredients and may display natural claims but need not be additive-free and have no exact universal definition&quot;,
+  &quot;predicate&quot;: &quot;describes_marketing_claims_without_one_exact_ingredient_definition&quot;,
+  &quot;subject&quot;: &quot;clean-label concept&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_clean_label_ambiguity_scope_1</code> | bytes [0, 110) | <code>2a5abcfd51a386d108a7cd51357f953cda7bdbc56b7dc8cc5378791fff135425</code></div><pre class="context"><span></span><mark>A clean label is a label on a food, not listing ingredients that may be perceived by consumers as undesirable.</mark><span> Substances having a negative connotation, for example food additives like food colouring, flavours or preservatives are avoided. The packaging may explicitly display positive claims like &#x27;natural&#x27;, &#x27;without colouring and preservatives&#x27;, &#x27;no artificial preservatives&#x27;, etcetera. [ 1 ] The pursued use of clean labels is called clean labelling . The purpose is </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_clean_label_ambiguity_scope_2</code> | bytes [557, 625) | <code>fff896bd8069171e3e5be8e38fad020ab7206fde563c8fb4743e7441562aa1ab</code></div><pre class="context"><span>ng, flavours or preservatives are avoided. The packaging may explicitly display positive claims like &#x27;natural&#x27;, &#x27;without colouring and preservatives&#x27;, &#x27;no artificial preservatives&#x27;, etcetera. [ 1 ] The pursued use of clean labels is called clean labelling . The purpose is to give food products a natural, healthy appearance and to stimulate the sale of them. </span><mark>It does not necessarily mean that the product is free from additives</mark><span>, as they can be hidden in substituting ingredients. Background The primary purpose of clean labels is to address the consumer&#x27;s concerns about substances in food that may adversely affect their health. Manufacturers want to present their product as natural and healthful. From the consumer&#x27;s perspective, a clean label is a label that is easy to read, without</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_clean_label_ambiguity_scope_3</code> | bytes [1598, 1703) | <code>65e7fb930d7d2471596a5aae05120814f402344ae21fa6c553ba32b0533f912b</code></div><pre class="context"><span>ging. Consumers distrust colour additives , preservatives , flavourings and additives in general. Manufacturers may just try to follow the consumer&#x27;s demands and deliver a healthy product. A clean label may also list deliberately used substituting ingredients that contain the same additives that consumers don&#x27;t like, for example fruit or vegetable extracts. </span><mark>There is no exact definition of which ingredients precisely may be included or excluded in a clean label.</mark><span> It might be a product made of just a few ingredients, or that is free from food additives, or from artificial or synthetic ingredients. In European regulation, only existing general rules concerning food additives apply to clean labels. Belgium, however, considered to define a clean label as &quot;â¦ a label that does not include nor contain E-number or lega</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Clean_label" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Clean_label</a></p><p>冻结文件: <a href="sources/036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a" target="_blank">sources/036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a</a></p><p>内容 SHA-256: <code>036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_label_context_not_exact_formula_health_or_safety_audit&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The clean-label page describes omitting ingredients perceived as undesirable and displaying natural or no-artificial claims, but says this need not mean additive-free and has no exact included-or-excluded ingredient definition. It is general marketing and formulation context, not an audit or a health or safety result for an exact offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_fisher_no_artificial_scope"><header><h3>prop_fisher_no_artificial_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B01NAER8CP at 20.69 dollars with six title-declared 5.5-ounce pouches and Package Dimensions of 5.5 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_no_artificial_color_or_flavor_wording_and_quantity_ambiguity&quot;,
+  &quot;subject&quot;: &quot;frozen Fisher seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_fisher_no_artificial_scope_1</code> | bytes [0, 102) | <code>d6d879cfd133991140d7413bf89c84fff71a8d6444d82054ff3171fa9b45e956</code></div><pre class="context"><span></span><mark>Fisher Snack Smoke and Bacon Flavored Almonds, 5.5 Ounces (Pack of 6), No Artificial Colors or Flavors</mark><span>
+
+In stock SKU B01NAER8CP Be the first to review this product $20.69 Flavor Name Cinnamon Cocoa Mocha Smoke &amp; Bacon Size 5 Ounce (Pack of 6) 5.5 Ounce (Pack of 6) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Peanuts Almonds Cashews Pecans Mixed Nuts Variety 1 Honey Roast Whole Natural Whole Roasted Salted Deluxe Va</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_fisher_no_artificial_scope_2</code> | bytes [104, 170) | <code>b17bd488e879c83cbe78299ac537e987ef1be8201aec904ef063cf37af360580</code></div><pre class="context"><span>Fisher Snack Smoke and Bacon Flavored Almonds, 5.5 Ounces (Pack of 6), No Artificial Colors or Flavors
+
+</span><mark>In stock SKU B01NAER8CP Be the first to review this product $20.69</mark><span> Flavor Name Cinnamon Cocoa Mocha Smoke &amp; Bacon Size 5 Ounce (Pack of 6) 5.5 Ounce (Pack of 6) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Peanuts Almonds Cashews Pecans Mixed Nuts Variety 1 Honey Roast Whole Natural Whole Roasted Salted Deluxe Variety 2 Party Roasted Salted Halves &amp; Pieces Honey Roast With Peanut</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_fisher_no_artificial_scope_3</code> | bytes [4130, 4194) | <code>18c6101fa05b2c558bba8afce3b4f1ae77935018f233f0efe5e524ebcb4de513</code></div><pre class="context"><span>that signature crunch you crave. Our resealable pouches make it convenient and easy to fit wholesome snacking into your on-the-go lifestyle For 100 years, Fisher Nuts has been committed to bringing their customers the highest quality nuts. We oversee the whole journey of our products, from orchard to our classic, clear canisters and pouches, to your kitchen </span><mark>Package Dimensions ‏ ‎ 8.23 x 7.72 x 5.35 inches; 5.5 Ounces</mark><span> Manufacturer ‏ ‎ Fisher ASIN ‏ ‎ B01NAER8CP Country of Origin ‏ ‎ USA Domestic Shipping Currently, item can be shipped only within the U.S. and to APO/FPO addresses. For APO/FPO shipments, please check with the manufacturer regarding warranty and support issues. International Shipping This item is not eligible for international shipping.Learn Mo</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/fisher-snack-smoke-and-bacon-flavored-almonds-5-5-ounces-pack-of-6-no-artificial-colors-or-flavors.html" target="_blank" rel="noreferrer">http://localhost:7770/fisher-snack-smoke-and-bacon-flavored-almonds-5-5-ounces-pack-of-6-no-artificial-colors-or-flavors.html</a></p><p>冻结文件: <a href="sources/b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa" target="_blank">sources/b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa</a></p><p>内容 SHA-256: <code>b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_verified_formula_total_net_or_health_result&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Fisher page shows SKU B01NAER8CP at 20.69 dollars with no reviews shown and six title-declared 5.5-ounce pouches with no artificial colors or flavors, while Package Dimensions says 5.5 ounces. Conditional title arithmetic is about 0.63 dollars per declared ounce; formula, allergens, total net quantity and health or safety implications remain unresolved.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_flavoring_source_class_scope"><header><h3>prop_flavoring_source_class_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;flavorings improve taste or smell and nature-identical compounds can be chemically equivalent to natural compounds while synthesized&quot;,
+  &quot;predicate&quot;: &quot;defines_flavor_function_and_nature_identical_source_class&quot;,
+  &quot;subject&quot;: &quot;food flavoring&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_flavoring_source_class_scope_1</code> | bytes [104, 260) | <code>9f07e14d4edc44c580b4c26dabcc5620c9ac366eb7a58ec4518dc8ec36fe8afc</code></div><pre class="context"><span>This article is about flavorings in food. For flavor as the perception of an aroma or odor, see Taste . </span><mark>A flavoring (or flavouring ), [ a ] also known as flavor (or flavour ) or flavorant , is a food additive that is used to improve the taste or smell of food.</mark><span> It changes the perceptual impression of food as determined primarily by the chemoreceptors of the gustatory and olfactory systems . [ 1 ] [ 2 ] Along with additives, other components, like sugars, determine the taste of food. A flavoring is defined as a substance that gives another substance taste, altering the characteristics of the solute, causing it to b</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_flavoring_source_class_scope_2</code> | bytes [1003, 1207) | <code>b1749c69f8fa97dcf0a10227729e3728e4dda6149b9a9037d9095a5f38368cb2</code></div><pre class="context"><span>ngy , etc. Although the term, in common language, denotes the combined chemical sensations of taste and smell, the same term is used in the fragrance and flavors industry to refer to edible chemicals and extracts that alter the flavor of food and food products through the sense of smell. Owing to the high cost, or unavailability, of natural flavor extracts, </span><mark>most commercial flavorings are &quot;nature-identical&quot;, which means that they are the chemical equivalent of natural flavors, but chemically synthesized rather than having been extracted from source materials.</mark><span> Identification of components of natural foods, for example a raspberry , may be done using technology such as headspace techniques , so the flavorist can imitate the flavor by using a few of the same chemicals present. In the EU legislation, the term &quot;natural-identical flavoring&quot; does not exist. The legislation is specified on what is a &quot;flavoring&quot; and a &quot;n</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Flavoring" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Flavoring</a></p><p>冻结文件: <a href="sources/a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c" target="_blank">sources/a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c</a></p><p>内容 SHA-256: <code>a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_function_and_source_class_not_exact_product_or_health_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The flavoring page defines flavorings by taste or smell function and describes nature-identical compounds as chemically equivalent to natural flavors while synthesized. These classifications do not identify an exact formula or make natural, artificial or nature-identical flavoring an automatic health, safety or quality rank.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_food_additive_function_scope"><header><h3>prop_food_additive_function_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;additives can preserve or alter sensory qualities, may have natural or artificial origins and can have overlapping functions&quot;,
+  &quot;predicate&quot;: &quot;span_multiple_functions_origins_and_overlapping_categories&quot;,
+  &quot;subject&quot;: &quot;food additives&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_food_additive_function_scope_1</code> | bytes [0, 120) | <code>5ab69b93024ace2b1a538428a1050de0279deee83a9ad7d88d7eed8e34798fe7</code></div><pre class="context"><span></span><mark>Food additives are substances added to food to preserve flavor or enhance taste, appearance, or other sensory qualities.</mark><span> Some additives, such as vinegar ( pickling ), salt ( salting ), smoke ( smoking ) and sugar ( crystallization ), have been used for centuries to preserve food . This allows for longer-lasting foods, such as bacon, sweets, and wines. With the advent of ultra-processed foods in the late 20th century, many additives having both natural and artificial origin we</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_additive_function_scope_2</code> | bytes [421, 494) | <code>2aaab20acf2c2991db660281a8b0043a587d37949c1be3b46e343c3727d3b7b7</code></div><pre class="context"><span>r or enhance taste, appearance, or other sensory qualities. Some additives, such as vinegar ( pickling ), salt ( salting ), smoke ( smoking ) and sugar ( crystallization ), have been used for centuries to preserve food . This allows for longer-lasting foods, such as bacon, sweets, and wines. With the advent of ultra-processed foods in the late 20th century, </span><mark>many additives having both natural and artificial origin were introduced.</mark><span> Food additives also include substances that may be introduced to food indirectly (called &quot;indirect additives&quot;) in the manufacturing process through packaging , storage or transport. [ 1 ] In Europe and internationally, many additives are designated with E numbers , while in the United States, additives in amounts deemed safe for human consumption are design</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_additive_function_scope_3</code> | bytes [2229, 2361) | <code>b004948953c86eae56c04eb1887a54434a88027e0c9835a5ff62520fbde0e3f2</code></div><pre class="context"><span>t without the prefix &quot;E&quot;. [ 4 ] The United States Food and Drug Administration (FDA) lists these items as GRAS; [ 5 ] they are listed under both their Chemical Abstracts Service number and FDA regulation under the United States Code of Federal Regulations . [ 6 ] [ 7 ] The FDA publishes a list of food additives for all approved ingredients. [ 8 ] Categories </span><mark>Food additives can be divided into several groups, although there is some overlap because some additives exert more than one effect.</mark><span>  For example, salt is both a preservative as well as a flavor. [ 9 ] [ 10 ] Acidulants confer sour or acid taste. Common acidulants include vinegar, citric acid , tartaric acid , malic acid , fumaric acid , and lactic acid . Acidity regulators are used for controlling the pH of foods for stability or to affect activity of enzymes. Anticaking agents keep pow</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_additive" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Food_additive</a></p><p>冻结文件: <a href="sources/99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c" target="_blank">sources/99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c</a></p><p>内容 SHA-256: <code>99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_function_class_not_exact_formula_or_whole_product_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The food-additive page describes preservation and sensory functions, natural and artificial origins, and category overlap. A claim excluding one additive class does not disclose an exact complete formula or establish that a whole product is additive-free, healthier, safer or better.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_food_coloring_function_scope"><header><h3>prop_food_coloring_function_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a colorant imparts color, may be natural or synthesized, and can offset loss, stabilize variation or identify flavor&quot;,
+  &quot;predicate&quot;: &quot;defines_colorants_and_multiple_appearance_functions&quot;,
+  &quot;subject&quot;: &quot;food coloring&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_food_coloring_function_scope_1</code> | bytes [0, 136) | <code>6a74df714681d5c8cce207ccaa66280c7b6140e5cb6bde424a66b981e037a734</code></div><pre class="context"><span></span><mark>Food coloring , color additive or colorant is any dye , pigment , or substance that imparts color when it is added to food or beverages.</mark><span> Colorants can be supplied as liquids, powders, gels , or pastes . Food coloring is commonly used in commercial products and in domestic cooking. Food colorants are also used in various non-food applications, including cosmetics, pharmaceuticals , home craft projects, and medical devices. [ 1 ] Some colorings may be natural, such as with carotenoids and anth</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_coloring_function_scope_2</code> | bytes [432, 461) | <code>c01046284babf973a3ff037d44f82e6c79e2b9c6aac81f7d1bc49da065d5e5dc</code></div><pre class="context"><span>stance that imparts color when it is added to food or beverages. Colorants can be supplied as liquids, powders, gels , or pastes . Food coloring is commonly used in commercial products and in domestic cooking. Food colorants are also used in various non-food applications, including cosmetics, pharmaceuticals , home craft projects, and medical devices. [ 1 ] </span><mark>Some colorings may be natural</mark><span>, such as with carotenoids and anthocyanins extracted from plants or cochineal from insects, or may be synthesized, such as tartrazine yellow. In the manufacturing of foods, beverages and cosmetics, the safety of colorants is under constant scientific review and certification by national regulatory agencies , such as the European Food Safety Authority (EFSA)</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_coloring_function_scope_3</code> | bytes [554, 575) | <code>b3537e92a4da246e92edd8a1c49651ee554ce6667f405f311d89c1dfcb472cba</code></div><pre class="context"><span>pastes . Food coloring is commonly used in commercial products and in domestic cooking. Food colorants are also used in various non-food applications, including cosmetics, pharmaceuticals , home craft projects, and medical devices. [ 1 ] Some colorings may be natural, such as with carotenoids and anthocyanins extracted from plants or cochineal from insects, </span><mark>or may be synthesized</mark><span>, such as tartrazine yellow. In the manufacturing of foods, beverages and cosmetics, the safety of colorants is under constant scientific review and certification by national regulatory agencies , such as the European Food Safety Authority (EFSA) and US Food and Drug Administration (FDA), and by international reviewers, such as the Joint FAO/WHO Expert Commi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_coloring" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Food_coloring</a></p><p>冻结文件: <a href="sources/4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d" target="_blank">sources/4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d</a></p><p>内容 SHA-256: <code>4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_color_function_not_exact_formula_or_source_risk_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The food-coloring page defines a colorant as a substance that imparts color and notes that colorings may be natural or synthesized and serve several appearance functions. Source class and function do not reveal an exact snack formula or automatically rank whole-product quality, health or safety.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_front_label_discussion_scope"><header><h3>prop_front_label_discussion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;participants argue that a front claim may not disclose proportions and recommend checking ingredient and nutrition details&quot;,
+  &quot;predicate&quot;: &quot;debates_front_label_wording_and_detail_panels&quot;,
+  &quot;subject&quot;: &quot;whole-wheat ELI5 community thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_front_label_discussion_scope_1</code> | bytes [0, 127) | <code>d7bd4749e2a2bce57f335185020e4b25b3ac06cd99eddb88cb46eeedcfefaf71</code></div><pre class="context"><span></span><mark>ELI5: What do food product labels that say “whole wheat” or “100% whole grain wheat” mean? Are these better for health?</mark><span>
+
+0
+
+That standard white wheat flour you see everywhere is processed flour. Wheat seed has 3 parts - they&#x27;re called bran, endosperm, and germ. When processing the flour, bran and germ are removed, leaving only the endosperm. Naturally, removing parts of the seed also removes the nutrients, which makes processed white flour nutritionally poorer. Whole wheat f</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_front_label_discussion_scope_2</code> | bytes [3108, 3188) | <code>71ea8ad02aa4ae7eb8e5e35d0c4246367763479c9593dc1143e423e921eeb94d</code></div><pre class="context"><span>better&quot; depends on what you want to make. For most comercial products finer grain is usually better and it also tastes sweeter, which is what most people like.
+
+I do nutritional labeling...the FDA&#x27;s(U.S.) stance on this(wheat) is merely a recommendation and does not decipher how the wheat was processed, just that it was used at some point during production. </span><mark>Reading the ingredients/nutritional facts is the only way to determine &quot;health.&quot;</mark><span> It comes down to lack of regulation, lazy consumerism and nothing but a buzz word/phrase, the front of the package is to lure you, the back is to inform you. Edit: I own a printing company who&#x27;s main focus is the printing. It is not my job to consult nor verify the proposed information on the label/packaging as this is the sole responsibility of the manufac</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_front_label_discussion_scope_3</code> | bytes [3279, 3346) | <code>99900037d05a9d8df057affc7f54aa054ea19c63c7fff3338b43ccd8aecaba75</code></div><pre class="context"><span>tional labeling...the FDA&#x27;s(U.S.) stance on this(wheat) is merely a recommendation and does not decipher how the wheat was processed, just that it was used at some point during production. Reading the ingredients/nutritional facts is the only way to determine &quot;health.&quot; It comes down to lack of regulation, lazy consumerism and nothing but a buzz word/phrase, </span><mark>the front of the package is to lure you, the back is to inform you.</mark><span> Edit: I own a printing company who&#x27;s main focus is the printing. It is not my job to consult nor verify the proposed information on the label/packaging as this is the sole responsibility of the manufacturer. What we will not do is veer from the nutritional facts and ingredients that have been approved in regards to the information on the back of the product</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/39199/eli5-what-do-food-product-labels-that-say-whole-wheat-or-100" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/39199/eli5-what-do-food-product-labels-that-say-whole-wheat-or-100</a></p><p>冻结文件: <a href="sources/4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467" target="_blank">sources/4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467</a></p><p>内容 SHA-256: <code>4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;thread_scoped_label_reasoning_not_current_law_or_exact_offer_audit&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The whole-wheat community thread debates front-label wording versus ingredient and nutrition details. It motivates auditing complete exact labels rather than inferring composition from a prominent phrase, but it is not current legal advice, a clean-label definition or evidence about the five snack formulas.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_glutamate_flavoring_scope"><header><h3>prop_glutamate_flavoring_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;glutamic acid and glutamates occur in aged foods and yeast extract and the flavor-relevant ion can arise from different starting compounds&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_broader_glutamate_sources_from_msg&quot;,
+  &quot;subject&quot;: &quot;glutamate flavoring&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_glutamate_flavoring_scope_1</code> | bytes [492, 577) | <code>4b07626a741457994da1cb969da6804ffa4e95e33dda0375078c2763a8016c8c</code></div><pre class="context"><span>its neurological role, see glutamate (neurotransmitter) . &quot;Glutamate sensitivity&quot; redirects here. Not to be confused with disorders related to gluten , a natural ingredient in many cereals. Glutamate flavoring is the generic name for flavor-enhancing compounds based on glutamic acid and its salts (glutamates). These compounds provide a savory taste to food. </span><mark>Glutamic acid and glutamates are natural constituents of many fermented or aged foods</mark><span>, including soy sauce , fermented bean paste , and cheese . They can also be found in hydrolyzed proteins such as yeast extract . The sodium salt of glutamic acid, monosodium glutamate (MSG), is manufactured on a large scale and widely used in the food industry . Glutamic acid versus glutamates When glutamic acid or any of its salts are dissolved in water, t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_glutamate_flavoring_scope_2</code> | bytes [637, 706) | <code>5ccddb58c8d91cb351adbe42e3fe02ed83d4c70f9ecbdfe5ae657264820c903c</code></div><pre class="context"><span>uten , a natural ingredient in many cereals. Glutamate flavoring is the generic name for flavor-enhancing compounds based on glutamic acid and its salts (glutamates). These compounds provide a savory taste to food. Glutamic acid and glutamates are natural constituents of many fermented or aged foods, including soy sauce , fermented bean paste , and cheese . </span><mark>They can also be found in hydrolyzed proteins such as yeast extract .</mark><span> The sodium salt of glutamic acid, monosodium glutamate (MSG), is manufactured on a large scale and widely used in the food industry . Glutamic acid versus glutamates When glutamic acid or any of its salts are dissolved in water, they form a solution of separate negative ions , called glutamates , and positive ions like H 3 O + or Na + . The result is actual</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_glutamate_flavoring_scope_3</code> | bytes [1360, 1489) | <code>b11fe6e1f252be5e0fa7b9e6d6b21a51a7efc895bdbad48c89196b79e4b3d930</code></div><pre class="context"><span>es , and positive ions like H 3 O + or Na + . The result is actually a chemical equilibrium among several ionized forms, including zwitterions , that depends on the pH (acidity) of the solution. Within the common pH range of foods, the prevailing ion can be described as â OOC-C( NH + 3 )-( CH 2 ) 2 -COO â , which has an electric charge of â1. </span><mark>Only the glutamate ion is responsible for the umami flavor, so the effect does not depend significantly on the starting compound.</mark><span> However, some crystalline salts such as monosodium glutamate dissolve much better and faster than crystalline glutamic acid. This has proven to be an important factor in the implementation of substances as flavor enhancers. Discovery Although they occur naturally in many foods, glutamic acid and other amino acid flavor contributions were not scientifically </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Glutamate_flavoring" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Glutamate_flavoring</a></p><p>冻结文件: <a href="sources/8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27" target="_blank">sources/8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27</a></p><p>内容 SHA-256: <code>8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_chemistry_not_exact_no_msg_claim_adjudication_or_health_result&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The glutamate-flavoring page says glutamic acid and glutamates occur in fermented or aged foods and hydrolyzed proteins such as yeast extract, and that the flavor-relevant glutamate ion can arise from different starting compounds. This distinguishes broader glutamate flavoring from MSG without adjudicating an exact no-MSG claim or proving a health or safety result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_kids_survey_method_scope"><header><h3>prop_kids_survey_method_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;comments describe 1,135 online parent responses with at least about twenty per state and criticize sampling, self-report, outliers and missing intervals&quot;,
+  &quot;predicate&quot;: &quot;identifies_small_online_self_report_and_uncertainty_problems&quot;,
+  &quot;subject&quot;: &quot;child-snack visualization discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_kids_survey_method_scope_1</code> | bytes [1521, 1658) | <code>ff2cac5bb38ac378d62a8645caef0a6e2cece152d58474ab8b06497b9ca3b67b</code></div><pre class="context"><span>hat answered an online form. At those small numbers, state averages could easily be swayed by a couple outliers.
+
+They asked a tiny sample of parents how much sugary snacks their kids eat. Could be titled states where parents fib about what their kids eat.
+
+PA represent. Hanover pa, snack capital of the worlllllllld star world star
+
+Not to mention Hershey!
+
+</span><mark>This presents on-line survey data of parents about the sweet foods their children consume, n = 1,135, with a minimum of n = 20 per state.</mark><span> Ignoring the obvious sampling issues, it&#x27;d be interesting to see confidence intervals of the mean for each state. Also, I&#x27;m not sure why the data is presented twice: per day , and per week , which is simply 7 times the daily figure.
+
+U.S. states = United States states 🤷🏻‍♂️
+
+U.States
+
+Yinzers can print this and hang it above their cookie table.
+</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_kids_survey_method_scope_2</code> | bytes [2659, 2757) | <code>9593aaa7891f1f43d82b70a1be91bab94ad463d86ee42c9ff4291266d2c37680</code></div><pre class="context"><span>1135 parents were surveyed via google forums survey. Is this a large enough sample size? I feel like there would need to be tens of thousands of participants in order to make these claims. Also what’s to keep a parent from lying? It’s an average of TWENTY parents who IDENTIFY as parents.
+
+This sample size is meager, and this sampling process is sketchy. </span><mark>People who answer on-line surveys are not a representative sample of parents in the United States.</mark><span>
+
+Oh wow, I misread the title in an amazingly funny way. I came here thinking these data were showing states where children consumed more snacks immediately prior to, during, or post surgery . So, I was thinking: are more sacks consumed by kids in states where they need more surgeries? why are these states giving kids snacks during surgery? why didn’t I ge</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/dataisbeautiful/103915/the-u-s-states-where-children-consume-the-most-sugary-snacks" target="_blank" rel="noreferrer">http://localhost:9999/f/dataisbeautiful/103915/the-u-s-states-where-children-consume-the-most-sugary-snacks</a></p><p>冻结文件: <a href="sources/c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1" target="_blank">sources/c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1</a></p><p>内容 SHA-256: <code>c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;method_criticism_not_validated_state_or_child_consumption_estimate&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The visualization discussion describes online self-report from 1,135 parents with a minimum of about twenty per state and criticizes representativeness, outliers and missing uncertainty. It is a scoped method critique, not a validated state ranking, child consumption estimate or evidence about an exact household.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_msg_community_debate_scope"><header><h3>prop_msg_community_debate_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;participants offer conflicting explanations of MSG taste, public fear, yeast extract, sodium and alleged outcomes&quot;,
+  &quot;predicate&quot;: &quot;contains_competing_umami_sodium_and_health_explanations&quot;,
+  &quot;subject&quot;: &quot;MSG ELI5 community thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_msg_community_debate_scope_1</code> | bytes [0, 83) | <code>c178bc42ea249c7ed82a9bcc55d47dd3fc9b3d2c5e8f4d0a149cfde1971a19b8</code></div><pre class="context"><span></span><mark>ELI5: Why does MSG make food taste so irresistible? And why is everyone against it?</mark><span>
+
+74
+
+MSG contains glutamic acid, which is what causes things to taste savory, a flavor known as &quot;umami.&quot; Umami is a major flavor profile in a lot of asian foods. In the USA it was difficult for people cooking asian foods to get their hands on natural sources of umami that are traditionally used, so a lot of asian restaurants, specifically Chinese restaurant</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_msg_community_debate_scope_2</code> | bytes [89, 188) | <code>3efa6fb1234e8db017411a46477ea6c88370726026a11a32b28bfe5c61f5f16b</code></div><pre class="context"><span>ELI5: Why does MSG make food taste so irresistible? And why is everyone against it?
+
+74
+
+</span><mark>MSG contains glutamic acid, which is what causes things to taste savory, a flavor known as &quot;umami.&quot;</mark><span> Umami is a major flavor profile in a lot of asian foods. In the USA it was difficult for people cooking asian foods to get their hands on natural sources of umami that are traditionally used, so a lot of asian restaurants, specifically Chinese restaurants, started to use MSG to get that savoriness. MSG was really not used in the USA or Europe to that point,</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_msg_community_debate_scope_3</code> | bytes [3704, 3810) | <code>c6859a166bac64d32cb8a250f096c572ec1114c25b797825afa85b5b9c1f255c</code></div><pre class="context"><span>h.
+
+Also the research was more along the lines of &quot;the sodium contained in msg does not contribute to raised blood/system sodium levels&quot; similar to the cholesterol in eggs being found not to significantly raise blood levels
+
+&gt; Also the research was more along the lines of &quot;the sodium contained in msg does not contribute to raised blood/system sodium levels&quot; </span><mark>That doesn&#x27;t sound very plausible. When MSG dissolves, it dissociates into sodium ions and glutamate ions.</mark><span> The sodium ions are exactly the same as the ions from, e.g., sodium chloride - they don&#x27;t &quot;remember&quot; that they used to be attached to glutamate ions. And surely any MSG that you eat will dissolve pretty quickly as it goes through your digestive system? The controversial health claims about MSG are that it has some other mysterious effect that makes people f</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/18622/eli5-why-does-msg-make-food-taste-so-irresistible-and-why-is" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/18622/eli5-why-does-msg-make-food-taste-so-irresistible-and-why-is</a></p><p>冻结文件: <a href="sources/15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50" target="_blank">sources/15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50</a></p><p>内容 SHA-256: <code>15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;conflicting_thread_not_authoritative_medical_or_exact_product_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The MSG ELI5 thread contains competing community explanations about umami, sodium, yeast extract, public fear and alleged health effects. It can identify beliefs and questions to check, but cannot serve as authoritative chemistry, medicine, exact product formula, exposure or safety evidence.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_msg_identity_umami_scope"><header><h3>prop_msg_identity_umami_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;MSG is the sodium salt of glutamic acid and can enhance savory or umami perception&quot;,
+  &quot;predicate&quot;: &quot;identifies_a_glutamic_acid_salt_and_umami_flavor_function&quot;,
+  &quot;subject&quot;: &quot;monosodium glutamate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_msg_identity_umami_scope_1</code> | bytes [1568, 1667) | <code>4972d549e240e640eb0cda5d7183e4625c6a35747be9c9d697e5b86ea9019ee7</code></div><pre class="context"><span>int 232 Â°C (450 Â°F; 505 K) Solubility in water 740 g/L Hazards NFPA 704 (fire diamond) 0 0 0 Lethal dose or concentration (LD, LC): LD 50 ( median dose ) 16600 mg/kg (oral, rat) [ 1 ] Except where otherwise noted, data are given for materials in their standard state (at 25 Â°C [77 Â°F], 100 kPa). Y verify (what is Y N ?) Infobox references </span><mark>Monosodium glutamate ( MSG ), also known as sodium glutamate ,  is a sodium salt of glutamic acid .</mark><span>  MSG is found naturally in some foods including tomatoes and cheese in this glutamic acid form. [ 2 ] [ 3 ] [ 4 ] MSG is used in cooking as a flavor enhancer with a savory taste that intensifies the umami flavor of food, as naturally occurring glutamate does in foods such as stews and meat soups. [ 5 ] [ 6 ] MSG was first prepared in 1908 by Japanese bioche</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_msg_identity_umami_scope_2</code> | bytes [1782, 1887) | <code>e4ac79c1bcfe84263df1c39667b566c442e32a061d9d2c727422af3e868c8d39</code></div><pre class="context"><span>ise noted, data are given for materials in their standard state (at 25 Â°C [77 Â°F], 100 kPa). Y verify (what is Y N ?) Infobox references Monosodium glutamate ( MSG ), also known as sodium glutamate ,  is a sodium salt of glutamic acid .  MSG is found naturally in some foods including tomatoes and cheese in this glutamic acid form. [ 2 ] [ 3 ] [ 4 ] </span><mark>MSG is used in cooking as a flavor enhancer with a savory taste that intensifies the umami flavor of food</mark><span>, as naturally occurring glutamate does in foods such as stews and meat soups. [ 5 ] [ 6 ] MSG was first prepared in 1908 by Japanese biochemist Kikunae Ikeda , who tried to isolate and duplicate the savory taste of kombu , an edible seaweed used as a broth ( dashi )  ingredient in Japanese cuisine . MSG balances, blends, and rounds the perception of other t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_msg_identity_umami_scope_3</code> | bytes [2189, 2253) | <code>d2b3ee1fed62043480a1ff545592b8341f5523dc7f9b575ee251cc09c76b56e4</code></div><pre class="context"><span>h a savory taste that intensifies the umami flavor of food, as naturally occurring glutamate does in foods such as stews and meat soups. [ 5 ] [ 6 ] MSG was first prepared in 1908 by Japanese biochemist Kikunae Ikeda , who tried to isolate and duplicate the savory taste of kombu , an edible seaweed used as a broth ( dashi )  ingredient in Japanese cuisine . </span><mark>MSG balances, blends, and rounds the perception of other tastes.</mark><span> [ 7 ] [ 8 ] MSG, along with disodium ribonucleotides , is commonly used and found in stock (bouillon) cubes , soups , ramen , gravy , stews , condiments , savory snacks , etc. The U.S. Food and Drug Administration has given MSG its generally recognized as safe (GRAS) designation. [ 9 ] It is a popular misconception that MSG can cause headaches and other fee</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Monosodium_glutamate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Monosodium_glutamate</a></p><p>冻结文件: <a href="sources/77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae" target="_blank">sources/77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae</a></p><p>内容 SHA-256: <code>77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;identity_and_flavor_mechanism_only_not_medical_safety_or_exposure&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The MSG page identifies monosodium glutamate as the sodium salt of glutamic acid and describes a savory or umami flavor-enhancing function. These are identity and flavor-mechanism facts only; they do not establish an exact snack formula, amount, exposure, child-specific outcome, medical conclusion or product safety ranking.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_muya_no_msg_natural_scope"><header><h3>prop_muya_no_msg_natural_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07Z259WY2 at 50.54 dollars with a four-times-38-gram title, no-MSG and natural wording, and Item Weight of 1.34 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_no_msg_natural_marketing_and_quantity_ambiguity&quot;,
+  &quot;subject&quot;: &quot;frozen Muya seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_muya_no_msg_natural_scope_1</code> | bytes [0, 174) | <code>d061df4fe59f3c58ffc08beac61f38f847c864709ee62889c9336be4aa322d6d</code></div><pre class="context"><span></span><mark>Muya Crispy Banana Fruit Chips High Fibre Low Carb No MSG Non GMO Healthy Snack (4 x 38grams) Tom Yum Flavour - Gluten Free Healthy Snacks Perfect for Adults &amp; Kids (4 Packs)</mark><span>
+
+In stock SKU B07Z259WY2 Be the first to review this product $50.54 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Our Muya Banana Chips in Tom Yum flavor combined the exotic unique flavor exceptional to Thailand and brings a delicious chill relaxing taste of healthy snack. One bold bite and you will never forget the moment, exp</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_muya_no_msg_natural_scope_2</code> | bytes [176, 242) | <code>bdce61d4450f38b38384992e9eacd9ca5bc89e9bcb6318b30a4d403b00db0d0f</code></div><pre class="context"><span>Muya Crispy Banana Fruit Chips High Fibre Low Carb No MSG Non GMO Healthy Snack (4 x 38grams) Tom Yum Flavour - Gluten Free Healthy Snacks Perfect for Adults &amp; Kids (4 Packs)
+
+</span><mark>In stock SKU B07Z259WY2 Be the first to review this product $50.54</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Our Muya Banana Chips in Tom Yum flavor combined the exotic unique flavor exceptional to Thailand and brings a delicious chill relaxing taste of healthy snack. One bold bite and you will never forget the moment, experience our Crispy Banana Chips in together with the culture and emb</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_muya_no_msg_natural_scope_3</code> | bytes [1674, 1705) | <code>f957076781edeb50bbcc7243f970889e8b4d1fea4acf1d28aff205f05045994e</code></div><pre class="context"><span>ein and vitamins. PERFECT FOR KIDS &amp; ADULTS - Ever struggle getting your kids (or may be yourself) to eat healthy? This low calorie snack is dangerously addictive taste just like &quot;potato chips&quot;, yet they come with nutritional benefits of banana! HEALTHY SNACK - No MSG, NO Cholesterol, No Trans Fat, No Preservative, Low Carbohydrate, High Fibre, Gluten Free, </span><mark>Item Weight ‏ ‎ 1.34 Ounces</mark><span> Date First Available ‏ ‎ December 5, 2019 Manufacturer ‏ ‎ Muya Snack ASIN ‏ ‎ B07Z259WY2 Reviews Write Your Own Review You&#x27;re reviewing: Muya Crispy Banana Fruit Chips High Fibre Low Carb No MSG Non GMO Healthy Snack (4 x 38grams) Tom Yum Flavour - Gluten Free Healthy Snacks Perfect for Adults &amp; Kids (4 Packs) Your Rating Rating 1 star 2 stars </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/muya-crispy-banana-fruit-chips-high-fibre-low-carb-no-msg-non-gmo-healthy-snack-4-x-38grams-tom-yum-flavour-gluten-free-healthy-snacks-perfect-for-adults-kids-4-packs.html" target="_blank" rel="noreferrer">http://localhost:7770/muya-crispy-banana-fruit-chips-high-fibre-low-carb-no-msg-non-gmo-healthy-snack-4-x-38grams-tom-yum-flavour-gluten-free-healthy-snacks-perfect-for-adults-kids-4-packs.html</a></p><p>冻结文件: <a href="sources/3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae" target="_blank">sources/3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae</a></p><p>内容 SHA-256: <code>3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_not_verified_formula_or_child_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Muya page shows SKU B07Z259WY2 at 50.54 dollars with no reviews shown, a title-declared four times 38 grams, and seller wording including natural and no MSG, while Item Weight says 1.34 ounces. Conditional title arithmetic is about 9.43 dollars per declared ounce; formula, claim definition, allergens, serving panel and child outcome are unverified.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_natural_cheetos_scope"><header><h3>prop_natural_cheetos_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B002W4IZ4K at 39.93 dollars with three title-declared 8-ounce bags and no-MSG wording&quot;,
+  &quot;predicate&quot;: &quot;shows_a_no_msg_three_bag_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Natural Cheetos seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_natural_cheetos_scope_1</code> | bytes [0, 73) | <code>487c5e5d517489d5e78e200369578679cd86e2ba02aeefc40bcf8717076bdd5f</code></div><pre class="context"><span></span><mark>Frito Lay Natural Cheetos White Cheddar Cheese Puffs, 8 Ounce (Pack of 3)</mark><span>
+
+In stock SKU B002W4IZ4K Be the first to review this product $39.93 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Natural Cheetos White Cheddar Cheese Puffs is a cheese flavored snack that is baked to perfection. It is free of MSG, gluten, soy and porcine. Contains zero grams of trans fats. Pack of three, 8-ounce per unit(a tot</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_natural_cheetos_scope_2</code> | bytes [75, 141) | <code>c0af643b526c1294c38a495e05dd5f284c99f0ae56835676fb01d0a423a1254e</code></div><pre class="context"><span>Frito Lay Natural Cheetos White Cheddar Cheese Puffs, 8 Ounce (Pack of 3)
+
+</span><mark>In stock SKU B002W4IZ4K Be the first to review this product $39.93</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Natural Cheetos White Cheddar Cheese Puffs is a cheese flavored snack that is baked to perfection. It is free of MSG, gluten, soy and porcine. Contains zero grams of trans fats. Pack of three, 8-ounce per unit(a total of 24 ounces) Cheese flavored snack that is baked to perfection F</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_natural_cheetos_scope_3</code> | bytes [500, 536) | <code>165ae79f1c5d31304b268222a06dff458fb6ca1e01527305d58c2950f933ab39</code></div><pre class="context"><span>3 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Natural Cheetos White Cheddar Cheese Puffs is a cheese flavored snack that is baked to perfection. It is free of MSG, gluten, soy and porcine. Contains zero grams of trans fats. Pack of three, 8-ounce per unit(a total of 24 ounces) Cheese flavored snack that is baked to perfection </span><mark>Free of MSG, gluten, soy and porcine</mark><span> Contains zero grams of trans fats Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 14.48 x 9.72 x 7.99 inches; 1.59 Pounds UPC ‏ ‎ 028400071659 ASIN ‏ ‎ B002W4IZ4K #194 in Puffed Snacks Reviews Write Your Own Review You&#x27;re reviewing: Frito Lay Natural Cheetos White Cheddar Cheese Puffs, 8 Ounce (Pack of 3) Your Rating Rating 1 s</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/frito-lay-natural-cheetos-white-cheddar-cheese-puffs-8-ounce-pack-of-3.html" target="_blank" rel="noreferrer">http://localhost:7770/frito-lay-natural-cheetos-white-cheddar-cheese-puffs-8-ounce-pack-of-3.html</a></p><p>冻结文件: <a href="sources/237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0" target="_blank">sources/237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0</a></p><p>内容 SHA-256: <code>237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_matched_formula_or_current_premium_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Natural Cheetos page shows SKU B002W4IZ4K at 39.93 dollars with no reviews shown, three title-declared 8-ounce bags and seller wording free of MSG. Conditional title arithmetic is about 1.66 dollars per declared ounce; the exact formula and claim definition are absent and this is not a matched control for regular Jumbo Puffs.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_natural_food_label_scope"><header><h3>prop_natural_food_label_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;natural and all-natural are marketing terms with several definitions and consumer assumptions that vary by context&quot;,
+  &quot;predicate&quot;: &quot;has_several_definitions_and_is_distinct_from_whole_or_organic&quot;,
+  &quot;subject&quot;: &quot;natural-food labeling&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_natural_food_label_scope_1</code> | bytes [166, 265) | <code>cc0c98313c9f76c5b56a0210589b5fb23be67899a853c518470b00560ad18a3a</code></div><pre class="context"><span>This article is about food advertised as &quot;natural&quot;. For food that complies with standards of organic farming, see Organic food . Not to be confused with whole food . </span><mark>Natural food and all-natural food are terms in food labeling and marketing with several definitions</mark><span>, generally denoting foods that are not manufactured by processing . In some countries like the United Kingdom , the term &quot;natural&quot; is defined and regulated; [ 2 ] in others, such as the United States , the term natural is not enforced for food labels, although there is USDA regulation of organic labeling. [ 3 ] The term is assumed to describe foods having i</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_natural_food_label_scope_2</code> | bytes [129, 165) | <code>2c964b001e20927bec3d383be2143802e1bd1bf19dcf497745a023af736fbb55</code></div><pre class="context"><span>This article is about food advertised as &quot;natural&quot;. For food that complies with standards of organic farming, see Organic food . </span><mark>Not to be confused with whole food .</mark><span> Natural food and all-natural food are terms in food labeling and marketing with several definitions, generally denoting foods that are not manufactured by processing . In some countries like the United Kingdom , the term &quot;natural&quot; is defined and regulated; [ 2 ] in others, such as the United States , the term natural is not enforced for food labels, althoug</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_natural_food_label_scope_3</code> | bytes [1372, 1434) | <code>7aa87fc02b1080627839cfc206f862c0e2324e35ad44e7399cc56641af907218</code></div><pre class="context"><span> , preservatives , or flavorings that were not originally in the food. [ 7 ] In fact, many people (63%) when surveyed showed a preference for products labeled &quot;natural&quot; compared to the unmarked counterparts, based on the common belief (86% of polled consumers) that the term &quot;natural&quot; indicated that the food does not contain any artificial ingredients. [ 8 ] </span><mark>The term is variously misused on labels and in advertisements.</mark><span> [ 9 ] The international Food and Agriculture Organization &#x27;s Codex Alimentarius does not recognize the term &#x27;natural&#x27; but does have a standard for organic foods . [ 10 ] History The origin of the concept of &quot;natural foods&quot; has been traced to Sylvester Graham , for whom Graham crackers are named, in the 1830s. [ 11 ] Graham argued that processed foods contra</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Natural_food" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Natural_food</a></p><p>冻结文件: <a href="sources/0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d" target="_blank">sources/0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d</a></p><p>内容 SHA-256: <code>0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_label_ambiguity_not_current_legal_advice_or_product_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The natural-food page calls natural and all-natural labeling and marketing terms with several definitions, distinguishes the topic from whole food, and says the term is variously misused. This frozen background does not audit current law or an exact label and does not make natural synonymous with organic, healthy or safe.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_orchard_no_artificial_scope"><header><h3>prop_orchard_no_artificial_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07YQMF126 at 28.23 dollars with eight title-declared 3.75-ounce packs and Product Dimensions of 2.76 pounds&quot;,
+  &quot;predicate&quot;: &quot;shows_no_artificial_ingredient_wording_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Orchard Valley seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_orchard_no_artificial_scope_1</code> | bytes [0, 105) | <code>a0fa594fafd2076b4f5134787eff044e24d42ffe226d185c243105d0b8e02014</code></div><pre class="context"><span></span><mark>Orchard Valley Harvest, Chickpea Chips, Chili Lime, 3.75oz (Pack of 8) Non-GMO, No Artificial Ingredients</mark><span>
+
+In stock SKU B07YQMF126 Be the first to review this product $28.23 Flavor Name Chili Lime Garlic &amp; Chives Original with Sea Salt Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Orchard Valley Harvest Chickpea Chips Chili Lime Non-GMO Project Verified Certificate # 657226, Issued 2019. See Nutrition Information on pa</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_orchard_no_artificial_scope_2</code> | bytes [107, 173) | <code>f4099fb37b7354030a047fc84b863c1c50dc51a82afd63e5568f8b53d6f37e08</code></div><pre class="context"><span>Orchard Valley Harvest, Chickpea Chips, Chili Lime, 3.75oz (Pack of 8) Non-GMO, No Artificial Ingredients
+
+</span><mark>In stock SKU B07YQMF126 Be the first to review this product $28.23</mark><span> Flavor Name Chili Lime Garlic &amp; Chives Original with Sea Salt Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Orchard Valley Harvest Chickpea Chips Chili Lime Non-GMO Project Verified Certificate # 657226, Issued 2019. See Nutrition Information on package. See Nutrition Information on package. Read more Orchard Valle</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_orchard_no_artificial_scope_3</code> | bytes [2832, 2898) | <code>faf833c7c089275447546477a8136c554f3ad31cc3c9e9be97278d6222fd8c70</code></div><pre class="context"><span>s Made with real chickpeas Orchard Valley Harvest is dedicated to finding pure and simple plant based snacks that support your active lifestyle All Orchard Valley Harvest products are Non-GMO Project Verified and do not contain any artificial ingredients, colors, flavors or preservatives Resealable pack is perfect for enjoying at home, at work, or on-the-go </span><mark>Product Dimensions ‏ ‎ 15.68 x 9.18 x 9.37 inches; 2.76 Pounds</mark><span> Manufacturer ‏ ‎ AmazonUs/BU3YO ASIN ‏ ‎ B07YQMF126 #476 in Vegetable Chips &amp; Crisps Reviews Write Your Own Review You&#x27;re reviewing: Orchard Valley Harvest, Chickpea Chips, Chili Lime, 3.75oz (Pack of 8) Non-GMO, No Artificial Ingredients Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Submit Review</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/orchard-valley-harvest-chickpea-chips-chili-lime-3-75oz-pack-of-8-non-gmo-no-artificial-ingredients.html" target="_blank" rel="noreferrer">http://localhost:7770/orchard-valley-harvest-chickpea-chips-chili-lime-3-75oz-pack-of-8-non-gmo-no-artificial-ingredients.html</a></p><p>冻结文件: <a href="sources/7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef" target="_blank">sources/7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef</a></p><p>内容 SHA-256: <code>7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_and_mass_conflict_not_verified_formula_or_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Orchard page shows SKU B07YQMF126 at 28.23 dollars with no reviews shown and eight title-declared 3.75-ounce packs with no-artificial wording, while Product Dimensions says 2.76 pounds. Conditional title arithmetic is about 0.94 dollars per declared ounce; the mass conflict, exact formula, allergens and outcome remain unresolved.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_regular_cheetos_scope"><header><h3>prop_regular_cheetos_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B00E3A24F2 at 49.94 dollars with twelve title-declared 2.38-ounce Jumbo Puffs bags&quot;,
+  &quot;predicate&quot;: &quot;shows_a_twelve_bag_category_comparator&quot;,
+  &quot;subject&quot;: &quot;frozen regular Cheetos seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_regular_cheetos_scope_1</code> | bytes [0, 68) | <code>8ba113247037ba97e27b952686203088499b04103c4dcb2dc00eaba2dde0f692</code></div><pre class="context"><span></span><mark>Cheetos Cheese Flavored Snacks, Jumbo Puffs, 2.38 Ounce (Pack of 12)</mark><span>
+
+In stock SKU B00E3A24F2 Be the first to review this product $49.94 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Cheetos Puffs Cheese Flavored Snacks Enjoy all the fun of CHEETOS Puffs Cheese Flavored Snacks in a convenient size. Made with real cheese, they’re packed with flavor that satisfies. These single serve bags are no</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_regular_cheetos_scope_2</code> | bytes [70, 136) | <code>4c4018f35db73236404219cd5f20a2e5d52b27af60e4cf74df224ad996f2fb9f</code></div><pre class="context"><span>Cheetos Cheese Flavored Snacks, Jumbo Puffs, 2.38 Ounce (Pack of 12)
+
+</span><mark>In stock SKU B00E3A24F2 Be the first to review this product $49.94</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Cheetos Puffs Cheese Flavored Snacks Enjoy all the fun of CHEETOS Puffs Cheese Flavored Snacks in a convenient size. Made with real cheese, they’re packed with flavor that satisfies. These single serve bags are not only easy to take with you, they’re also just what you need to r</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_regular_cheetos_scope_3</code> | bytes [652, 701) | <code>a3507f24c60ffbe309c4b2c5c2d18e677e19192d9e4cb09c757d036b611bdb01</code></div><pre class="context"><span>Flavored Snacks in a convenient size. Made with real cheese, they’re packed with flavor that satisfies. These single serve bags are not only easy to take with you, they’re also just what you need to recharge and curb your hunger in the middle of the day. • Conveniently portioned snack size • Made with real cheese • Baked, not fried • Gluten free </span><mark>Pack of twelve, 2.38 ounce (Total of 28.56 ounce)</mark><span> Cheese flavored puffed snacks in a conveniently portioned snack size Made with real cheese Baked not fried Gluten free Package Dimensions ‏ ‎ 6 x 5 x 4 inches; 1.79 Pounds UPC ‏ ‎ 028400078917 Manufacturer ‏ ‎ Cheetos ASIN ‏ ‎ B00E3A24F2 #726 in Puffed Snacks Reviews Write Your Own Review You&#x27;re reviewing: Cheetos Cheese Flavored Snacks, Jum</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/cheetos-cheese-flavored-snacks-jumbo-puffs-2-38-ounce-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/cheetos-cheese-flavored-snacks-jumbo-puffs-2-38-ounce-pack-of-12.html</a></p><p>冻结文件: <a href="sources/c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2" target="_blank">sources/c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2</a></p><p>内容 SHA-256: <code>c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;different_offer_not_matched_clean_label_control&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen regular Cheetos page shows SKU B00E3A24F2 at 49.94 dollars with no reviews shown and twelve title-declared 2.38-ounce Jumbo Puffs bags. Conditional title arithmetic is about 1.75 dollars per declared ounce, but flavor, formula, bag size and count differ from Natural Cheetos, so the pair cannot isolate a clean-label premium.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_til_msg_natural_debate_scope"><header><h3>prop_til_msg_natural_debate_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the thread asserts MSG occurs naturally in tomatoes while one reply warns that natural occurrence alone signifies nothing&quot;,
+  &quot;predicate&quot;: &quot;contains_a_title_claim_and_a_counterpoint_about_natural_occurrence&quot;,
+  &quot;subject&quot;: &quot;naturally occurring MSG community thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_til_msg_natural_debate_scope_1</code> | bytes [0, 58) | <code>c868082980d2a980f2c36011544357fa7e8c01575f2dda0411cf2cdc6f2c0352</code></div><pre class="context"><span></span><mark>TIL MSG occurs naturally in tomatoes and other vegetables.</mark><span>
+
+93
+
+MSG - mono sodium glutamate - one sodium atom with a very basic amino acid, used in most proteins, and the actual savory molecule that the word umami refers to The fear mongering was entirely racism/classism based, the stuff is nutritious unless you&#x27;re just eating spoons of it
+
+IIRC it was based off a shitty study of people who consumed MSG on a freque</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_til_msg_natural_debate_scope_2</code> | bytes [1708, 1753) | <code>94f9e19c897bbf20671cb06e6bbae4cef02c0d255361d05a403b13445136f359</code></div><pre class="context"><span>sane cravings for tomatoes sometimes?
+
+It also contains less salt than...salt. Literally a healthier substitute.
+
+[removed]
+
+So they come armed &amp; ready? Edit: No Michael Schenker Group fans here apparently.. 🤣
+
+So did I when this exact this was posted 2 days ago. Thanks Mr Bot!
+
+So that&#x27;s how we get pot noodles, from inside vegetables!?
+
+So does cyanide. </span><mark>Naturally occurring doesn&#x27;t signify anything.</mark><span> We have had to breed out toxic traits from many plants for domestication. Just because a chemical can be found in food we consume doesn&#x27;t mean anything besides we have allowed it to remain.
+
+There is no scientific backing for that MSG is dangerous. None of the claims have been proven. We know clearly that cyanide is dangerous.
+
+The fact that msg is not dang</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_til_msg_natural_debate_scope_3</code> | bytes [1828, 1943) | <code>61047690b2f84c8a176f769faea681a85276dc2a175d54ad007847c58e640c51</code></div><pre class="context"><span>ed]
+
+So they come armed &amp; ready? Edit: No Michael Schenker Group fans here apparently.. 🤣
+
+So did I when this exact this was posted 2 days ago. Thanks Mr Bot!
+
+So that&#x27;s how we get pot noodles, from inside vegetables!?
+
+So does cyanide. Naturally occurring doesn&#x27;t signify anything. We have had to breed out toxic traits from many plants for domestication. </span><mark>Just because a chemical can be found in food we consume doesn&#x27;t mean anything besides we have allowed it to remain.</mark><span>
+
+There is no scientific backing for that MSG is dangerous. None of the claims have been proven. We know clearly that cyanide is dangerous.
+
+The fact that msg is not dangerous is independent of the fact that it&#x27;s naturally occurring in our food. Like I said, our food also naturally has cyanide in it. Naturally occurring is not significant in something&#x27;s harm</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/todayilearned/135635/til-msg-occurs-naturally-in-tomatoes-and-other-vegetables" target="_blank" rel="noreferrer">http://localhost:9999/f/todayilearned/135635/til-msg-occurs-naturally-in-tomatoes-and-other-vegetables</a></p><p>冻结文件: <a href="sources/f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120" target="_blank">sources/f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120</a></p><p>内容 SHA-256: <code>f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;thread_scoped_debate_not_authoritative_chemistry_or_safety_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;clean_label_snack_premium_formula_and_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The community thread title says MSG occurs naturally in tomatoes and vegetables, while a reply says natural occurrence alone signifies nothing. This is scoped debate about naturalness rhetoric, not an authoritative exact-formula audit, medical conclusion or safety result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_clean_label_snacks_0051</td><td>case_spec</td><td><a href="sources/95fa0dcb4a5866f240d120c6998b82d5d9d3c4d53f99fc7c5ce47eb30028b1d3">95fa0dcb4a5866f240d120c6998b82d5d9d3c4d53f99fc7c5ce47eb30028b1d3</a></td><td><a href="http://case-spec.local/dra_v3_formal_snacks_chocolate_0051" target="_blank" rel="noreferrer">来源 URL</a></td><td>12000</td></tr><tr><td>reg_magento_fisher_no_artificial_0051</td><td>magento</td><td><a href="sources/b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa">b8503426e425b69ecd5b8598b0d58f0482bef4ab48677ac4ff3caddce914e9fa</a></td><td><a href="http://localhost:7770/fisher-snack-smoke-and-bacon-flavored-almonds-5-5-ounces-pack-of-6-no-artificial-colors-or-flavors.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4832</td></tr><tr><td>reg_magento_muya_no_msg_0051</td><td>magento</td><td><a href="sources/3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae">3dbf47340b928764a6daff5af4b202dfc4b1f5d0edbb24cff4ffc03f04c48bae</a></td><td><a href="http://localhost:7770/muya-crispy-banana-fruit-chips-high-fibre-low-carb-no-msg-non-gmo-healthy-snack-4-x-38grams-tom-yum-flavour-gluten-free-healthy-snacks-perfect-for-adults-kids-4-packs.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2126</td></tr><tr><td>reg_magento_natural_cheetos_0051</td><td>magento</td><td><a href="sources/237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0">237b21e5603630e59da4e662c68bb96ce6dffc14a5dfddbbb4b5a5b5ed2857e0</a></td><td><a href="http://localhost:7770/frito-lay-natural-cheetos-white-cheddar-cheese-puffs-8-ounce-pack-of-3.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>969</td></tr><tr><td>reg_magento_orchard_no_artificial_0051</td><td>magento</td><td><a href="sources/7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef">7a83a9ef0c4126c9cb86774e0855e573cef0232e616a1e4e77ab3f2807a1e6ef</a></td><td><a href="http://localhost:7770/orchard-valley-harvest-chickpea-chips-chili-lime-3-75oz-pack-of-8-non-gmo-no-artificial-ingredients.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3241</td></tr><tr><td>reg_magento_regular_cheetos_0051</td><td>magento</td><td><a href="sources/c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2">c54b05486f0f913d249ac76184fe047814a5b4ab94f5e9c721676b6bb74f9bc2</a></td><td><a href="http://localhost:7770/cheetos-cheese-flavored-snacks-jumbo-puffs-2-38-ounce-pack-of-12.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1190</td></tr><tr><td>reg_postmill_front_label_0051</td><td>postmill</td><td><a href="sources/4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467">4e221468602999c2bb8fdfd248a0ea43d085700ff9602018d63a06ed5a532467</a></td><td><a href="http://localhost:9999/f/explainlikeimfive/39199/eli5-what-do-food-product-labels-that-say-whole-wheat-or-100" target="_blank" rel="noreferrer">来源 URL</a></td><td>6617</td></tr><tr><td>reg_postmill_kids_survey_0051</td><td>postmill</td><td><a href="sources/c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1">c23d4858ae58bd8e24f438f93a0cef13f7e2d99ca2fed62fc637600758c329b1</a></td><td><a href="http://localhost:9999/f/dataisbeautiful/103915/the-u-s-states-where-children-consume-the-most-sugary-snacks" target="_blank" rel="noreferrer">来源 URL</a></td><td>4920</td></tr><tr><td>reg_postmill_msg_fear_0051</td><td>postmill</td><td><a href="sources/15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50">15a12b074543a535c838ab69caefa8c178196f8f93127c11a365914940beda50</a></td><td><a href="http://localhost:9999/f/explainlikeimfive/18622/eli5-why-does-msg-make-food-taste-so-irresistible-and-why-is" target="_blank" rel="noreferrer">来源 URL</a></td><td>11467</td></tr><tr><td>reg_postmill_msg_natural_0051</td><td>postmill</td><td><a href="sources/f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120">f53f865d7f598d2c486962b30e95badf3d872a111118ba50608df8a296e36120</a></td><td><a href="http://localhost:9999/f/todayilearned/135635/til-msg-occurs-naturally-in-tomatoes-and-other-vegetables" target="_blank" rel="noreferrer">来源 URL</a></td><td>2456</td></tr><tr><td>reg_search_clean_label</td><td>search_result</td><td><a href="sources/b16862096c02be4bb7be0e66808f4c49d5fce4423bb2da98eebfb4b911d18173">b16862096c02be4bb7be0e66808f4c49d5fce4423bb2da98eebfb4b911d18173</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=b7bb0737-6482-489d-b395-93fa80955db0" target="_blank" rel="noreferrer">来源 URL</a></td><td>61757</td></tr><tr><td>reg_search_fisher</td><td>search_result</td><td><a href="sources/23b4e7eb54a420a674a3616db89b4ed29775bdb80c480b6c4cc6e41d4215aabe">23b4e7eb54a420a674a3616db89b4ed29775bdb80c480b6c4cc6e41d4215aabe</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=e661544b-6940-4551-9e33-7155dbaa44fa" target="_blank" rel="noreferrer">来源 URL</a></td><td>7042</td></tr><tr><td>reg_search_flavoring</td><td>search_result</td><td><a href="sources/1fa1afc71982970bbb9e4d4437da5a49f8fe3bed41316d3383fac809be25fc41">1fa1afc71982970bbb9e4d4437da5a49f8fe3bed41316d3383fac809be25fc41</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=3bc9754a-825a-42a4-8a9a-e8c2fbbeb1a7" target="_blank" rel="noreferrer">来源 URL</a></td><td>61494</td></tr><tr><td>reg_search_food_additive</td><td>search_result</td><td><a href="sources/6cef99131dc23e7cf4b6e1f390116d27ab496ae993f8969f526175535f521938">6cef99131dc23e7cf4b6e1f390116d27ab496ae993f8969f526175535f521938</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=5a124685-147a-42e0-bf23-57ff3b12a309" target="_blank" rel="noreferrer">来源 URL</a></td><td>61554</td></tr><tr><td>reg_search_food_coloring</td><td>search_result</td><td><a href="sources/c833f573cb7391c4f820a6adf823849c827fad894d8ae306c3b0d8b585efe1f1">c833f573cb7391c4f820a6adf823849c827fad894d8ae306c3b0d8b585efe1f1</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=f87721d0-bbe7-49ff-85d6-ea6a333c636a" target="_blank" rel="noreferrer">来源 URL</a></td><td>60549</td></tr><tr><td>reg_search_front_label</td><td>search_result</td><td><a href="sources/79852e984011a7c57abdb777ffcf13e5ea0f2179a3e6997c6373c8cea6498069">79852e984011a7c57abdb777ffcf13e5ea0f2179a3e6997c6373c8cea6498069</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=b75b5bce-8b8a-42bd-a713-5e4d7efb6a9c" target="_blank" rel="noreferrer">来源 URL</a></td><td>59200</td></tr><tr><td>reg_search_glutamate</td><td>search_result</td><td><a href="sources/da7ff0abbed04cf0678b8c0d4e1fc25b807b3c3a18dc911c23beeee93e9eb141">da7ff0abbed04cf0678b8c0d4e1fc25b807b3c3a18dc911c23beeee93e9eb141</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=7c314449-a880-4e0f-bfea-6b5abcd343e6" target="_blank" rel="noreferrer">来源 URL</a></td><td>60772</td></tr><tr><td>reg_search_kids_survey</td><td>search_result</td><td><a href="sources/8d5706a96ac758e923d286fca5a9b07856944ed1ffdfee67f187fecd9c2ab024">8d5706a96ac758e923d286fca5a9b07856944ed1ffdfee67f187fecd9c2ab024</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=d8aa32e8-0fb6-4489-94a2-6134c698bc4e" target="_blank" rel="noreferrer">来源 URL</a></td><td>63881</td></tr><tr><td>reg_search_msg</td><td>search_result</td><td><a href="sources/14d533e7193fe3c87b39191f4ef39ebf6eadca8566e09680dbbdefd5ef441d36">14d533e7193fe3c87b39191f4ef39ebf6eadca8566e09680dbbdefd5ef441d36</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=7265a3ba-fb71-403f-9623-212b464b1319" target="_blank" rel="noreferrer">来源 URL</a></td><td>59616</td></tr><tr><td>reg_search_msg_eli5</td><td>search_result</td><td><a href="sources/7116712555a318d49970f1dd7d53dba7d958b8ccd5170d424dccc4befb9934c2">7116712555a318d49970f1dd7d53dba7d958b8ccd5170d424dccc4befb9934c2</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=1c888c5b-7064-4e01-a8bc-c0253e8099d7" target="_blank" rel="noreferrer">来源 URL</a></td><td>57392</td></tr><tr><td>reg_search_muya</td><td>search_result</td><td><a href="sources/777f160d08da9d1b5c27105d508d58661872650aea0d98c845766d43520e87f8">777f160d08da9d1b5c27105d508d58661872650aea0d98c845766d43520e87f8</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=da710de8-5039-41c1-acb4-5b1bcee2a660" target="_blank" rel="noreferrer">来源 URL</a></td><td>6035</td></tr><tr><td>reg_search_natural_cheetos</td><td>search_result</td><td><a href="sources/5d64976f1cd45bff68c31f142c83c0d331559c9b638322edce004ce41050f681">5d64976f1cd45bff68c31f142c83c0d331559c9b638322edce004ce41050f681</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=bc184cf3-7aed-48b0-889a-365849aaf06d" target="_blank" rel="noreferrer">来源 URL</a></td><td>4890</td></tr><tr><td>reg_search_natural_food</td><td>search_result</td><td><a href="sources/33426f38edf92b806b18faf8a995d3d517ac7189565f65189f8316217ef78a2e">33426f38edf92b806b18faf8a995d3d517ac7189565f65189f8316217ef78a2e</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=996acdc3-c231-4c17-b0e0-3d9b0f15084d" target="_blank" rel="noreferrer">来源 URL</a></td><td>61928</td></tr><tr><td>reg_search_orchard</td><td>search_result</td><td><a href="sources/792a0d5fb4eb25fd6857835efb389efe42b1b7eb7741d640409c146445b3cd6f">792a0d5fb4eb25fd6857835efb389efe42b1b7eb7741d640409c146445b3cd6f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=14c712ee-90aa-45ad-bbfe-0b46f1adaf30" target="_blank" rel="noreferrer">来源 URL</a></td><td>6670</td></tr><tr><td>reg_search_regular_cheetos</td><td>search_result</td><td><a href="sources/b457f33e84b01d5097f2061d48f1564d9f9c059fe7e1b0150b2351b0fae0dd14">b457f33e84b01d5097f2061d48f1564d9f9c059fe7e1b0150b2351b0fae0dd14</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=9993ecb9-348c-4af1-ad58-1be974de8505" target="_blank" rel="noreferrer">来源 URL</a></td><td>4226</td></tr><tr><td>reg_search_til_msg</td><td>search_result</td><td><a href="sources/58a1868abfcea0330ebf56250765582ab483b9a3965da3f92dc75f195723afd7">58a1868abfcea0330ebf56250765582ab483b9a3965da3f92dc75f195723afd7</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1&amp;request_id=353fc861-964a-43b0-aae1-c9b20494f4ac" target="_blank" rel="noreferrer">来源 URL</a></td><td>54821</td></tr><tr><td>reg_wikipedia_clean_label_0051</td><td>wikipedia</td><td><a href="sources/036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a">036cff31d1efb6654d65188a57bfca29d720d94101e178b6ec8e59ce963cd25a</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Clean_label" target="_blank" rel="noreferrer">来源 URL</a></td><td>4262</td></tr><tr><td>reg_wikipedia_flavoring_0051</td><td>wikipedia</td><td><a href="sources/a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c">a1d427192d79b2c60a6499b2141348c8bf635de6f801aa27971f4ec03936b01c</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Flavoring" target="_blank" rel="noreferrer">来源 URL</a></td><td>20013</td></tr><tr><td>reg_wikipedia_food_additive_0051</td><td>wikipedia</td><td><a href="sources/99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c">99101f1460d3aeccec94e15c1ea9152c2dde05e97072ba84711e843e58ea899c</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_additive" target="_blank" rel="noreferrer">来源 URL</a></td><td>19434</td></tr><tr><td>reg_wikipedia_food_coloring_0051</td><td>wikipedia</td><td><a href="sources/4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d">4c90cc34109537238a935f3ce3ae5091ed0cc1a3eb4d5046242cf33a5796d88d</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_coloring" target="_blank" rel="noreferrer">来源 URL</a></td><td>20061</td></tr><tr><td>reg_wikipedia_glutamate_flavoring_0051</td><td>wikipedia</td><td><a href="sources/8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27">8defe4a971a033db4ee257d2717f8d653e16b32ef7628c9f8339a5cd9ce67c27</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Glutamate_flavoring" target="_blank" rel="noreferrer">来源 URL</a></td><td>20028</td></tr><tr><td>reg_wikipedia_msg_0051</td><td>wikipedia</td><td><a href="sources/77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae">77954911c9134d463f29851a2b28fd486c9672a78b480bd98847b82accf7adae</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Monosodium_glutamate" target="_blank" rel="noreferrer">来源 URL</a></td><td>20109</td></tr><tr><td>reg_wikipedia_natural_food_0051</td><td>wikipedia</td><td><a href="sources/0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d">0341c6f0d5b60720e0bee5b071fe9444413d819f118599b9c79b2dc2f5d3af9d</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Natural_food" target="_blank" rel="noreferrer">来源 URL</a></td><td>10246</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-snacks-chocolate-0051-clean-label-premium-claim-boundary-20260716-r1";
+const graphHash = "66d65fff9f48e1ebbd09bd2aa0eecb19634d9ad53d2ba1ec9620103ca88bb775";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

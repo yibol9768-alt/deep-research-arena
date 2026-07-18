@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-smartphones-0031-runner-ingress-20260716-r1</code></p>
+<p>证据图哈希: <code>3da55831ca8abf9cd1d8e1bede23a0923e932d679fad42c7e714295c59c1bac5</code></p>
+<p>待审项 24 个，其中语义项 10 个、结构化项 4 个；冻结来源 29 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_case_experience"><header><h3>assert_case_experience</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the thread mixes a waterproof belief with a personal impact-protection history&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;case-or-no-case discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_case_use_experiences</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_case_and_drop_experience_not_ingress_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;the author assumes newer iPhones are waterproof, while a respondent reports personally avoiding breakage after using cases through multiple drops&quot;,
+  &quot;predicate&quot;: &quot;mixes_waterproof_belief_with_drop_experience&quot;,
+  &quot;subject&quot;: &quot;one case-or-no-case discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_case_drop</code> | bytes [347, 504) | <code>bda996662f40130ead63d395b3083df4228118ff7f33a6cf5cfd8495c6b6712b</code></div><pre class="context"><span>Case or no case?
+
+I&#x27;m currently saving up for an Iphone and should have it by march ; ) But anyways to you Iphone users, I need your opinion. Should i get a case for it or not? I mean I know the new Iphone models are pretty strong and sturdy and even water proof but I&#x27;m not sure, should i get a case for it as well just to be on the safe side 1
+
+</span><mark>I’ve owned several models of iPhone (3G, 4, 5s, 6s, 8), encased all of them, dropped each multiple times, even on concrete—and never broken a single one.</mark><span> You need a case. The fronts and backs of iPhones are glass, and glass can still break when struck hard enough.
+
+so in other words, the newer models aren&#x27;t as sturdy as they appear in the ads?
+
+Can you point me to a specific claim of sturdiness in an ad? All smart phones that have Qi charging (which is practically all of them, including the version of Qi cha</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106124/case-or-no-case" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106124/case-or-no-case</a></p><p>冻结文件: <a href="sources/2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044" target="_blank">sources/2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044</a></p><p>内容 SHA-256: <code>2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_corrosion_scope"><header><h3>assert_corrosion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;temperature humidity and salinity can affect galvanic corrosion&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;corrosion reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_corrosion_conditions_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_mechanism_context_not_device_specific_causation&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;temperature, humidity, and salinity are among conditions that affect galvanic corrosion&quot;,
+  &quot;predicate&quot;: &quot;depends_on_environmental_conditions&quot;,
+  &quot;subject&quot;: &quot;galvanic corrosion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_corrosion</code> | bytes [3542, 3694) | <code>1306e2948b32398c79cde98a74abc7525e7b181cf03da2cdefd215d85e0bf52d</code></div><pre class="context"><span>ersed separately, each metal corrodes at its own rate. What type of metal(s) to use is readily determined by following the galvanic series . For example, zinc is often used as a sacrificial anode for steel structures. Galvanic corrosion is of major interest to the marine industry and also anywhere water (containing salts) contacts pipes or metal structures. </span><mark>Factors such as relative size of anode , types of metal, and operating conditions ( temperature , humidity , salinity , etc.) affect galvanic corrosion.</mark><span> [ 3 ] The surface area ratio of the anode and cathode directly affects the corrosion rates of the materials. Galvanic corrosion is often prevented by the use of sacrificial anodes . Galvanic series Main article: Galvanic series In any given environment (one standard medium is aerated, room-temperature seawater ), one metal will be either more noble or more </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Corrosion" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Corrosion</a></p><p>冻结文件: <a href="sources/47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0" target="_blank">sources/47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0</a></p><p>内容 SHA-256: <code>47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ip_rating_digit_scope"><header><h3>assert_ip_rating_digit_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;IP67 and IP68 use separate solid and liquid levels, with IP68 immersion depth determined by the manufacturer&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;rugged-smartphone IP reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ip_rating_digit_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;ip_digit_definition_not_permanent_or_arbitrary_liquid_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;IP67 combines solid level 6 with liquid level 7, while IP68 combines solid level 6 with liquid level 8 whose immersion depth is set by the manufacturer&quot;,
+  &quot;predicate&quot;: &quot;separates_solid_and_liquid_levels&quot;,
+  &quot;subject&quot;: &quot;smartphone ingress-protection code&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ip68_manufacturer_depth</code> | bytes [2008, 2213) | <code>1f2091e876964f61db0dc3344966779419e5b1fed3c09f74fcbf4d1167445f86</code></div><pre class="context"><span>centimetres (5.9 inches) and 1 metre (3 feet 3 inches)). [ 6 ] [ 8 ] Advanced (professional) standards IP67 â Solid particle (dust) protection level 6 (protection from all dust) and liquid ingress (waterproof) protection level 7 (protection from full immersion at depths between 15 centimetres (5.9 inches) and 1 metre (3 feet 3 inches)). [ 6 ] [ 8 ] </span><mark>IP68 â Solid particle (dust) protection level 6 (protection from all dust) and liquid ingress (waterproof) protection level 8 (protection from full immersion at depths determined by the manufacturer).</mark><span> [ 6 ] [ 8 ] IP69K â In the IEC 60529 rating system for ingress protection (IP), IP 6 * refers to the product&#x27;s ability to resist ingress of dust.  The IP * 9K refers to the product&#x27;s ability to resist ingress of high temperature (steam) / high pressure water.  If the device passes all these tests, then it can be considered as IP69K rated smartphone, an</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Rugged_smartphone" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Rugged_smartphone</a></p><p>冻结文件: <a href="sources/235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b" target="_blank">sources/235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b</a></p><p>内容 SHA-256: <code>235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_iphone_conditions"><header><h3>assert_iphone_conditions</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the page explicitly includes the Pro Max and applies the four-meter thirty-minute condition to both models&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;iPhone 11 Pro reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>ev_iphone_11_pro_max_ip68_conditions</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;model_specific_condition_not_sweat_or_permanent_waterproofing&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;both models are IP68 water and dust resistant for 30 minutes at 4 meters, while the page says water damage is not covered by warranty&quot;,
+  &quot;predicate&quot;: &quot;states_model_specific_water_condition&quot;,
+  &quot;subject&quot;: &quot;iPhone 11 Pro and iPhone 11 Pro Max&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_iphone_both_models</code> | bytes [6503, 6671) | <code>459bd4fd8b1e5947eec50b5d066e83013bfc5780f1918460d3191943820262b2</code></div><pre class="context"><span> and the glass has a frosted matte finish, unlike the glossy finish found on other previous flagship iPhones. Color Name Silver Space Gray Gold Midnight Green Specifications Hardware The iPhone 11 Pro and 11 Pro Max both have an A13 Bionic processor. Both phones have three internal storage options: 64 GB, 256 GB, and 512 GB, and have 4 GB of RAM. [ 24 ] </span><mark>Both models are rated IP68 water and dust resistant, and are resistant for 30 minutes at a depth of 4 meters. The warranty does not cover any water damage to the phone.</mark><span> Continuing the trend set starting with the iPhone 7, neither phone includes a headphone jack, but came with wired EarPods with a Lightning connector prior to Apple&#x27;s decision to halt inclusion of them in  October 2020, citing environmental impact. [ 23 ] The iPhone 11 Pro and Pro Max are the first and only iPhones to be sold with a USB-C 18-watt fast charge</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/IPhone_11_Pro" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/IPhone_11_Pro</a></p><p>冻结文件: <a href="sources/2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2" target="_blank">sources/2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2</a></p><p>内容 SHA-256: <code>2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_moisture_anecdote"><header><h3>assert_moisture_anecdote</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author reports a moisture finding while denying water exposure&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;reported warranty dispute&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_moisture_warranty_anecdote</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_disputed_warranty_experience_not_policy&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;the author says moisture was cited to refuse replacement while denying water exposure&quot;,
+  &quot;predicate&quot;: &quot;reports_moisture_based_refusal&quot;,
+  &quot;subject&quot;: &quot;one reported iPhone warranty dispute&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_moisture</code> | bytes [158, 284) | <code>6ead07e8cf5f7cc1c5e4dc1ac76f8ef8377eaf5bc497c9d9ca0820713f10e97c</code></div><pre class="context"><span>Apple refused to replace this
+
+11 month old iPhone 13 Pro Max with a swollen battery. Phone is in pristine condition since I don’t even carry it to use it. </span><mark>They claim there was moisture inside, voiding the warranty (never around water) has anyone else had bad experiences like this?</mark><span> 4</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106210/apple-refused-to-replace-this" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106210/apple-refused-to-replace-this</a></p><p>冻结文件: <a href="sources/85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6" target="_blank">sources/85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6</a></p><p>内容 SHA-256: <code>85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_perspiration_scope"><header><h3>assert_perspiration_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;eccrine sweat is watery and brackish&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;perspiration reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_perspiration_exertion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exposure_background_not_device_damage_or_survival_test&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;eccrine sweat is watery and brackish, and heat or exertion increases sweating&quot;,
+  &quot;predicate&quot;: &quot;is_watery_brackish_and_increases_with_exertion&quot;,
+  &quot;subject&quot;: &quot;human eccrine perspiration&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_perspiration</code> | bytes [609, 784) | <code>83fc186a7923c5505234aef8bab04c6dbaa2076931687bbba4049bfc35ebfd8f</code></div><pre class="context"><span>ration on the skin Specialty Dermatology Symptoms Body odor Complications Dehydration Causes Exercise Fever Heat Hyperthermia Hot flash Treatment Antiperspirant Perspiration , also known as sweat , is the fluid secreted by sweat glands in the skin of mammals . [ 1 ] Two types of sweat glands can be found in humans: eccrine glands and apocrine glands . [ 2 ] </span><mark>The eccrine sweat glands are distributed over much of the body and are responsible for secreting the watery, brackish sweat most often triggered by excessive body temperature.</mark><span> Apocrine sweat glands are restricted to the armpits and a few other areas of the body and produce an odorless, oily, opaque secretion which then gains its characteristic odor from bacterial decomposition. In humans , sweating is primarily a means of thermoregulation , which is achieved by the water-rich secretion of the eccrine glands. Maximum sweat rates o</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Perspiration" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Perspiration</a></p><p>冻结文件: <a href="sources/a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a" target="_blank">sources/a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a</a></p><p>内容 SHA-256: <code>a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_samsung_conditions"><header><h3>assert_samsung_conditions</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the series page states a different IP68 depth with the same duration&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Samsung Galaxy S22 reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>ev_samsung_s22_ip68_conditions</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;comparison_of_model_specific_ip68_conditions_only&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;IP68 water and dust resistance up to 1.5 meters for 30 minutes&quot;,
+  &quot;predicate&quot;: &quot;states_model_specific_water_condition&quot;,
+  &quot;subject&quot;: &quot;Samsung Galaxy S22 series&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_samsung_s22</code> | bytes [3406, 3481) | <code>14823edd64c27619c38842b0f68627b131c5c93dc4a1a826e029e0281e953f62</code></div><pre class="context"><span> , dual-band (S22)/tri-band (S22+ and S22 Ultra), Wi-Fi Direct, hotspot Bluetooth 5.2 , A2DP, LE Data inputs S Pen (S22 Ultra) Accelerometer Barometer Fingerprint scanner (under display, ultrasonic) Pressure sensor Magnetometer Gyroscope Hall sensor Proximity sensor RGB light sensor Dual band GNSS ( GPS / GLONASS / BeiDou / Galileo ) (single band on Exynos) </span><mark>Water resistance IP68 water and dust resistance, up to 1.5 m for 30 minutes</mark><span> Website S22 and S22+ S22 Ultra References [ 1 ] [ 2 ] [ 3 ] [ 4 ] The Samsung Galaxy S22 is a series of high-end Android -based smartphones developed, manufactured, and marketed by Samsung Electronics as part of its flagship Galaxy S series , all which were unveiled at Samsung &#x27;s Galaxy Unpacked event on February 9, 2022, and were released on February 25, 2</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22</a></p><p>冻结文件: <a href="sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835" target="_blank">sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</a></p><p>内容 SHA-256: <code>2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_sweat_solutes_scope"><header><h3>assert_sweat_solutes_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;sweat is mostly water and contains multiple solutes including sodium and chloride&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;sweat-diagnostics reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_sweat_solutes_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;composition_background_not_phone_specific_failure_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;sweat is mostly water and can contain sodium and chloride among other solutes&quot;,
+  &quot;predicate&quot;: &quot;contains_water_and_multiple_solutes&quot;,
+  &quot;subject&quot;: &quot;human sweat composition&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_sweat_solutes</code> | bytes [584, 623) | <code>9a54a5e9d38bbf8c60fc168f73c3f54f751a21a40a7bde71890521ddce81ff8a</code></div><pre class="context"><span>for cystic fibrosis [ 1 ] and illicit drugs . [ 2 ] Most testing of human sweat is in reference to the eccrine sweat gland which in contrast to the apocrine sweat gland , has a lower composition of oils. [ 3 ] Although sweat is mostly water, [ 3 ] there are many solutes which are found in sweat that have at least some relation to biomarkers found in blood.  </span><mark>These include: sodium (Na + ), chloride</mark><span> (Cl â ), potassium (K + ), ammonium (NH + 4 ), alcohols , lactate , peptides &amp; proteins . [ 4 ] [ 5 ] Development of devices, sensing techniques and biomarker identification in sweat continues to be an expanding field for medical diagnostics and athletics applications. The use of smart biosensors for on-skin sweat analysis has been described as interne</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Sweat_diagnostics" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Sweat_diagnostics</a></p><p>冻结文件: <a href="sources/ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10" target="_blank">sources/ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10</a></p><p>内容 SHA-256: <code>ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_tap_disagreement"><header><h3>assert_tap_disagreement</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;participants report different choices and outcomes around deliberate exposure&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;tap-water cooling discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_tap_water_disagreement</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_exposure_reports_not_policy_causation_or_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;the author used tap water because of IP68, while replies recommend against deliberate wetting or report a different personal outcome&quot;,
+  &quot;predicate&quot;: &quot;reports_deliberate_exposure_and_disagreement&quot;,
+  &quot;subject&quot;: &quot;one tap-water cooling discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_tap_author</code> | bytes [333, 431) | <code>8e974b44df7318bdb5b3a501eb5377e635c66269054e48a8193dbdc4ffb07e0a</code></div><pre class="context"><span>Cooling Phone with Water?
+
+I have an iPhone 13 mini and as you guys may know, it gets quite hot when playing games (Apex Legends). I don&#x27;t play games much on the phone (I don&#x27;t even use it a lot). But because it gets so hot, I just put the phone under the tap and let the water rinse off the heat from the back and the front screen. </span><mark>I am doing this because the phone is rated IP68. But I don&#x27;t know if I should continue doing this.</mark><span> I have done this twice as of now. &amp;#x200B; Phone is 4 Months old. 0
+
+No. Temperature difference could result in microcracks on the logic board.
+
+I thought something like this might happen and that’s why I asked. Thank You. I won’t do it anymore 👍🏼
+
+The phone is perfectly capable of managing its own thermals. If it starts to get too hot for the CPU</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_tap_other</code> | bytes [2577, 2695) | <code>b16523193c3a27f1f413020aeb29f76cf03801a2637f3d5a85f7fc2ef920ee25</code></div><pre class="context"><span>d or it won’t turn on at all. For this reason, I never get my phone wet on purpose.
+
+Oh fuck
+
+Get one of those grips with a fan.
+
+[deleted]
+
+Ok. How much did it cost to replace?
+
+This is extremely bad for the battery as well as what everyone else is saying. Batteries like heat but not sudden drops in temperature change, can damage their overall life.
+
+Ok
+
+</span><mark>I’ve done this with my 12 PM for years. No issues yet. I haven’t done it more than a few dozen times total though.</mark><span> I just hold an ice cube on the back.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/84559/cooling-phone-with-water" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/84559/cooling-phone-with-water</a></p><p>冻结文件: <a href="sources/cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a" target="_blank">sources/cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a</a></p><p>内容 SHA-256: <code>cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_wash_assumption"><header><h3>assert_wash_assumption</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author equates IP68 with waterproofing but expresses doubt&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;phone-washing post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_wash_ip68_assumption</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_assumption_not_product_fact&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;object&quot;: &quot;the author calls an IP68 phone waterproof but remains uneasy about even rinsing it&quot;,
+  &quot;predicate&quot;: &quot;reports_waterproof_assumption_and_uncertainty&quot;,
+  &quot;subject&quot;: &quot;one phone-washing post&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_wash</code> | bytes [31, 120) | <code>cb997ee6179de90e5f02524f89913d093aeee471091e90f397d14bd0eb07b3a9</code></div><pre class="context"><span>Anyone ever wash their phone?
+
+</span><mark>I know it’s waterproof being ip68, but it doesn’t feel right. Even a rinse with water</mark><span> 3</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/20535/anyone-ever-wash-their-phone" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/20535/anyone-ever-wash-their-phone</a></p><p>冻结文件: <a href="sources/37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b" target="_blank">sources/37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b</a></p><p>内容 SHA-256: <code>37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_aicase_ip68_listing"><header><h3>ev_aicase_ip68_listing</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;IP68, tested over 10 feet for 12 hours, recommended around 10 feet, maximum around 19.6 feet, not recommended for daily use, with no posted review&quot;,
+  &quot;predicate&quot;: &quot;advertises_sealed_case_conditions&quot;,
+  &quot;subject&quot;: &quot;frozen AICase listing for iPhone 11 Pro Max&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_aicase_conditions</code> | bytes [572, 720) | <code>cc73f02a7c3017f5ea73aed868d92ef07eaa1f2241dead9da76950d210b0de4b</code></div><pre class="context"><span>KU B07X115MZG Be the first to review this product $5.99 Color Aqua Blue Black Pink Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look AICase IP68 Certified Waterproof Case for iPhone 11 Pro MaxThis case is specially designed for swimming lovers, surfing lovers and explorers, it&#x27;s a full waterproof cover, not recommend for daily use, </span><mark>IP68 Certified waterproof, tested and passed over 10ft for 12 Hours, Maximum submersible around 19.6 ft deep, recommended to submersible around 10ft</mark><span>, absolutely the BEST waterproof case ever.CompatibilityApple iPhone 11 Pro Max (6.5-inch), 2019 【Designed Ideas and Tips】－Allow full touch screen functionality on photography, make phone calls, video or checking emails. ➤TIPS: Specifically designed for swimming lovers, surfing lovers and explorers, extremely protecting their iPhone 11 Pro Max from w</span></pre></section><section class="span"><div class="span-meta"><code>span_aicase_daily_caveat</code> | bytes [543, 570) | <code>eda523c76dfb366141bd8e25ddc850874acf8d34ca1826d8251ad0217100ed1e</code></div><pre class="context"><span> (6.5-inch), 2019
+
+In stock SKU B07X115MZG Be the first to review this product $5.99 Color Aqua Blue Black Pink Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look AICase IP68 Certified Waterproof Case for iPhone 11 Pro MaxThis case is specially designed for swimming lovers, surfing lovers and explorers, it&#x27;s a full waterproof cover, </span><mark>not recommend for daily use</mark><span>, IP68 Certified waterproof, tested and passed over 10ft for 12 Hours, Maximum submersible around 19.6 ft deep, recommended to submersible around 10ft, absolutely the BEST waterproof case ever.CompatibilityApple iPhone 11 Pro Max (6.5-inch), 2019 【Designed Ideas and Tips】－Allow full touch screen functionality on photography, make phone calls, video or </span></pre></section><section class="span"><div class="span-meta"><code>span_aicase_no_review</code> | bytes [226, 267) | <code>325feeeb051d0d6c4ac0dca940369682ecf796f4077b788c72b605d33f59a143</code></div><pre class="context"><span>AICase Waterproof Case for iPhone 11 Pro Max, Snowproof, Dustproof and Shockproof, IP68 Certified 360° Protection Fully Sealed Underwater Protective Cover for Apple iPhone 11 Pro Max (6.5-inch), 2019
+
+In stock SKU B07X115MZG </span><mark>Be the first to review this product $5.99</mark><span> Color Aqua Blue Black Pink Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look AICase IP68 Certified Waterproof Case for iPhone 11 Pro MaxThis case is specially designed for swimming lovers, surfing lovers and explorers, it&#x27;s a full waterproof cover, not recommend for daily use, IP68 Certified waterproof, tested and passed over 10ft </span></pre></section><section class="span"><div class="span-meta"><code>span_aicase_title</code> | bytes [0, 200) | <code>548a38159ac4bbb82e06365866a8ce83b1c23df3be04ff7af6231a74c2b4b995</code></div><pre class="context"><span></span><mark>AICase Waterproof Case for iPhone 11 Pro Max, Snowproof, Dustproof and Shockproof, IP68 Certified 360° Protection Fully Sealed Underwater Protective Cover for Apple iPhone 11 Pro Max (6.5-inch), 2019</mark><span>
+
+In stock SKU B07X115MZG Be the first to review this product $5.99 Color Aqua Blue Black Pink Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look AICase IP68 Certified Waterproof Case for iPhone 11 Pro MaxThis case is specially designed for swimming lovers, surfing lovers and explorers, it&#x27;s a full waterproof cover, not recommend for</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/aicase-waterproof-case-for-iphone-11-pro-max-snowproof-dustproof-and-shockproof-ip68-certified-360-protection-fully-sealed-underwater-protective-cover-for-apple-iphone-11-pro-max-6-5-inch-2019.html" target="_blank" rel="noreferrer">http://localhost:7770/aicase-waterproof-case-for-iphone-11-pro-max-snowproof-dustproof-and-shockproof-ip68-certified-360-protection-fully-sealed-underwater-protective-cover-for-apple-iphone-11-pro-max-6-5-inch-2019.html</a></p><p>冻结文件: <a href="sources/05e958cccee702f57cd4d694e1136188e2af6d8444d7655f0ad7e02d812ce962" target="_blank">sources/05e958cccee702f57cd4d694e1136188e2af6d8444d7655f0ad7e02d812ce962</a></p><p>内容 SHA-256: <code>05e958cccee702f57cd4d694e1136188e2af6d8444d7655f0ad7e02d812ce962</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claims_and_conditions_not_marathon_combo_test&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen AICase seller listing explicitly fits the iPhone 11 Pro Max and advertises IP68, a test over 10 feet for 12 hours, a recommended depth around 10 feet, a maximum around 19.6 feet, and that it is not recommended for daily use; it has no posted review and is not an independent runner test.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_diving_housing_listing"><header><h3>ev_diving_housing_listing</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;lists the iPhone 11 Pro Max as compatible and advertises IPX8 with a maximum diving depth of 20 meters, with no posted review&quot;,
+  &quot;predicate&quot;: &quot;advertises_ipx8_and_depth&quot;,
+  &quot;subject&quot;: &quot;frozen universal diving-housing listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_diving_depth</code> | bytes [505, 585) | <code>4f93ff4437a1f25bfb9231d2811bee9e6505f55186165fdc8b9d067e7d872527</code></div><pre class="context"><span>ro/12Mini/11/11Pro/11 Pro Max/XR/8/8Plus/7/7 Plus/Etc
+
+In stock SKU B09B248VZ4 Be the first to review this product $45.99 Color Aque Black Orange Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description *** Professional Upgrade Outdoor Universal Diving Surfing Swimming Snorkeling Photo Video Waterproof Protective Case Underwater Housing. </span><mark>Maximum diving water depth: 20 Meters (66 feet). IPX8 standard waterproof level.</mark><span> The fully sealed upgraded valve body design is compatible with more mobile phone models, allowing you to swim freely underwater. You can enjoy the fun of taking pictures underwater.You can use back and front camera, taking pictures or videos. You will get very clear pictures or videos without reflection. Compatible Phone Models: Apple: iPhone 6/ 6 Plus/6s/6</span></pre></section><section class="span"><div class="span-meta"><code>span_diving_iphone_compatibility</code> | bytes [924, 1063) | <code>40b8efd0ed2186c4f93eded6bde0588f89821502d3e23a6556f1e71558eff752</code></div><pre class="context"><span>ard waterproof level. The fully sealed upgraded valve body design is compatible with more mobile phone models, allowing you to swim freely underwater. You can enjoy the fun of taking pictures underwater.You can use back and front camera, taking pictures or videos. You will get very clear pictures or videos without reflection. Compatible Phone Models: Apple: </span><mark>iPhone 6/ 6 Plus/6s/6s Plus/7/7 Plus/8/8 Plus/X/Xs/Xs Max/XR/11/11 Pro/11 Pro Max/12 Mini/12/12 Pro/12 Pro Max/13Mini/13/13 Pro/13 Pro Max.</mark><span> (Above 4.7&#x27;&#x27;) Samsung: Samsung Galaxy S21/S21+/S21 Ultra/S21 FE/S20/S20+/S20 FE/S6/S8/S8+/S9/S9+/S10/S10+/Note 8/Note 9/Note 10/Note 10+/Note20 / Note20 Ultra/A11/A21/A32/A32 5G/A02s/A22/A42/A32/A12/A52. ONE PLUS: ONE PLUS 9, ONE PLUS 9R, ONE PLUS 9 PRO, ONE PLUS 8, ONE PLUS 8 PRO, ONE PLUS 8T, ONE PLUS 7, ONE PLUS 7T; LG: LG-stylo 6,LG-stylo 5,LG-stylo 5+,</span></pre></section><section class="span"><div class="span-meta"><code>span_diving_no_review</code> | bytes [224, 266) | <code>d1b5265aeec197688b6dc6f675295f52aaa80ea7b076efb4287ffdb41bd9100b</code></div><pre class="context"><span>Waterproof Diving Phone Case for iPhone Samsung LG Moto Google, Professional [50ft/15m] Underwater Case, Diving Case for iPhone 12 Pro Max/12/12Pro/12Mini/11/11Pro/11 Pro Max/XR/8/8Plus/7/7 Plus/Etc
+
+In stock SKU B09B248VZ4 </span><mark>Be the first to review this product $45.99</mark><span> Color Aque Black Orange Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description *** Professional Upgrade Outdoor Universal Diving Surfing Swimming Snorkeling Photo Video Waterproof Protective Case Underwater Housing. Maximum diving water depth: 20 Meters (66 feet). IPX8 standard waterproof level. The fully sealed upgraded valve body des</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/waterproof-diving-phone-case-for-iphone-samsung-lg-moto-google-professional-50ft-15m-underwater-case-diving-case-for-iphone-12-pro-max-12-12pro-12mini-11-11pro-11-pro-max-xr-8-8plus-7-7-plus-etc.html" target="_blank" rel="noreferrer">http://localhost:7770/waterproof-diving-phone-case-for-iphone-samsung-lg-moto-google-professional-50ft-15m-underwater-case-diving-case-for-iphone-12-pro-max-12-12pro-12mini-11-11pro-11-pro-max-xr-8-8plus-7-7-plus-etc.html</a></p><p>冻结文件: <a href="sources/7b3799139eaf1d450be6aefaa12c21802a26d72c85bd15985d44476f9df3d108" target="_blank">sources/7b3799139eaf1d450be6aefaa12c21802a26d72c85bd15985d44476f9df3d108</a></p><p>内容 SHA-256: <code>7b3799139eaf1d450be6aefaa12c21802a26d72c85bd15985d44476f9df3d108</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_housing_claim_not_runner_cycle_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen universal diving-housing seller page lists the iPhone 11 Pro Max, advertises IPX8 and 20 meters, and has no posted review; it does not document a runner sweat, rain, heat, humidity, or repeated-cycle test.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="ev_iphone_11_pro_max_ip68_conditions"><header><h3>ev_iphone_11_pro_max_ip68_conditions</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;both models are IP68 water and dust resistant for 30 minutes at 4 meters, while the page says water damage is not covered by warranty&quot;,
+  &quot;predicate&quot;: &quot;states_model_specific_water_condition&quot;,
+  &quot;subject&quot;: &quot;iPhone 11 Pro and iPhone 11 Pro Max&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_iphone_both_models_condition</code> | bytes [6503, 6671) | <code>459bd4fd8b1e5947eec50b5d066e83013bfc5780f1918460d3191943820262b2</code></div><pre class="context"><span> and the glass has a frosted matte finish, unlike the glossy finish found on other previous flagship iPhones. Color Name Silver Space Gray Gold Midnight Green Specifications Hardware The iPhone 11 Pro and 11 Pro Max both have an A13 Bionic processor. Both phones have three internal storage options: 64 GB, 256 GB, and 512 GB, and have 4 GB of RAM. [ 24 ] </span><mark>Both models are rated IP68 water and dust resistant, and are resistant for 30 minutes at a depth of 4 meters. The warranty does not cover any water damage to the phone.</mark><span> Continuing the trend set starting with the iPhone 7, neither phone includes a headphone jack, but came with wired EarPods with a Lightning connector prior to Apple&#x27;s decision to halt inclusion of them in  October 2020, citing environmental impact. [ 23 ] The iPhone 11 Pro and Pro Max are the first and only iPhones to be sold with a USB-C 18-watt fast charge</span></pre></section><section class="span"><div class="span-meta"><code>span_iphone_both_models_named</code> | bytes [0, 31) | <code>176d5ebab3025666a814d10ce6fc4027f2fb4ac162f2335a802b0d3d47ae46cd</code></div><pre class="context"><span></span><mark>iPhone 11 Pro iPhone 11 Pro Max</mark><span> iPhone 11 Pro in Midnight Green Brand Apple Manufacturer Foxconn Type Smartphone First released September 20, 2019 ( 2019-09-20 ) Discontinued October 13, 2020 ( 2020-10-13 ) Predecessor iPhone XS / iPhone XS Max Successor iPhone 12 Pro / iPhone 12 Pro Max Related iPhone 11 Compatible networks 2G / 3G / 4G LTE Form factor Slate Dimensions Pro: H: 144 mm </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/IPhone_11_Pro" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/IPhone_11_Pro</a></p><p>冻结文件: <a href="sources/2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2" target="_blank">sources/2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2</a></p><p>内容 SHA-256: <code>2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;model_specific_condition_not_sweat_or_permanent_waterproofing&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The captured page explicitly names the iPhone 11 Pro and iPhone 11 Pro Max and says both models are IP68 water and dust resistant for 30 minutes at 4 meters; it also says the warranty does not cover water damage.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_ordinary_shock_case_listing"><header><h3>ev_ordinary_shock_case_listing</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;fits the iPhone 11 Pro Max and advertises a 16-foot drop test with shock, scratch, and bump protection&quot;,
+  &quot;predicate&quot;: &quot;advertises_impact_protection&quot;,
+  &quot;subject&quot;: &quot;frozen Hitaoyou iPhone 11 Pro Max case listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_ordinary_compatibility</code> | bytes [1660, 1783) | <code>7111df4156291f20fbd2248d01859f57c83da578b5a12fd78fdb66093256083d</code></div><pre class="context"><span>ls. Pass 16ft Drop Test. Military Grade protective phone case with Air Cushions Technology for anti-shock/anti-scratch/anti-bumps. Covers the all corners of your phone with full protection. ※Special reminder: This phone case does not support wireless charging. When you want to charge wirelessly, please remove the phone case 【Protect iPhone 11 Pro max】 </span><mark>Designed for iphone iPhone 11 Pro max (6.5 inch), defend against the physical damages to your phone screen and camera lens.</mark><span> Interval with tire texture, avoid abrade. 【Smart Window】Delicate camera slide cover, higher than the raised lens, stuck in a groove. Premium lens protection. Annular stripes, smooth slide. Slight lock in each side, not slide randomly. 【Rotating Kickstand Ring】Inserted 360° rotating kickstand ring holder, sturdy enough. Ease hands when watching film</span></pre></section><section class="span"><div class="span-meta"><code>span_ordinary_drop_claim</code> | bytes [1304, 1430) | <code>534674739c89633bf3474549266041906e5806805d07d234de6b00cadeda4bbf</code></div><pre class="context"><span> metal ring stand can rotate 360°, easy to rotate and sturdy on the case, gives you the convenience to watch videos and movies hands-free with desired comfort and stability. It also can be attached to the magnetic car holder. It is convenient for you to navigate the route when driving. ※This phone cover made of shockproof high grade TPU and PC materials. </span><mark>Pass 16ft Drop Test. Military Grade protective phone case with Air Cushions Technology for anti-shock/anti-scratch/anti-bumps.</mark><span> Covers the all corners of your phone with full protection. ※Special reminder: This phone case does not support wireless charging. When you want to charge wirelessly, please remove the phone case 【Protect iPhone 11 Pro max】 Designed for iphone iPhone 11 Pro max (6.5 inch), defend against the physical damages to your phone screen and camera lens. Interv</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hitaoyou-iphone-11-pro-max-cases-iphone-11-pro-max-case-with-camera-cover-kickstand-military-grade-shockproof-heavy-duty-protective-with-magnetic-car-mount-holder-cases-for-iphone-11-pro-max-pink.html" target="_blank" rel="noreferrer">http://localhost:7770/hitaoyou-iphone-11-pro-max-cases-iphone-11-pro-max-case-with-camera-cover-kickstand-military-grade-shockproof-heavy-duty-protective-with-magnetic-car-mount-holder-cases-for-iphone-11-pro-max-pink.html</a></p><p>冻结文件: <a href="sources/a1a0230c7d0035aa50fe76fceb4f1fe79d814bccd552e111de0560db793f51a8" target="_blank">sources/a1a0230c7d0035aa50fe76fceb4f1fe79d814bccd552e111de0560db793f51a8</a></p><p>内容 SHA-256: <code>a1a0230c7d0035aa50fe76fceb4f1fe79d814bccd552e111de0560db793f51a8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;impact_listing_only_not_liquid_ingress_upgrade&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Hitaoyou seller listing fits the iPhone 11 Pro Max and advertises a 16-foot drop test with shock, scratch, and bump protection; those cited attributes are impact claims and cannot be promoted into liquid protection or a changed phone IP rating.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_runbach_sweatproof_listing"><header><h3>ev_runbach_sweatproof_listing</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;fits an iPhone 11 Pro Max with a slim case and advertises water and sweat resistance plus marathon use, with twelve posted reviews but no matching exposure test&quot;,
+  &quot;predicate&quot;: &quot;advertises_runner_protection_claims&quot;,
+  &quot;subject&quot;: &quot;frozen RUNBACH armband listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_runbach_compatibility</code> | bytes [354, 477) | <code>58210ba104751d27dcf72115a51bca47ee32e1af361479150eacb69b3bdcce57</code></div><pre class="context"><span>iPhone 11 Pro Max/12 Pro Max/13 Pro Max/iPhone Xs Max Armband,RUNBACH Sweatproof Running Exercise Bag with Card Slot for iPhone 13 Pro Max,12 Pro Max,11 Pro Max,XS Max (Black)
+
+In stock SKU B07H49SSXY Rating: 73 % of 100 12 Reviews Add Your Review $8.99 Color Black Pink Purple Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look </span><mark>Speciallly designed Compatible with iPhone 13 Pro Max/iPhone 12 Pro Max/iPhone 11 Pro Max/iPhone XS Max with a slim case on</mark><span> With the premium neoprene material,it will not fall down your arm during a intense exercise,also can stand up to the toughest of workouts and marathons. Take it for yourself or as an excellent gift for someone in your life,You&#x27;ll find exercise so amazing EXTRA VALUES Water resistant and sweat resistant Full screen protection and allowing easy access to your</span></pre></section><section class="span"><div class="span-meta"><code>span_runbach_marathon_claim</code> | bytes [570, 629) | <code>35a5dbc9cadfed18dbf9c91a355d4bae4de71faf04b93059a92b343cc688a4ec</code></div><pre class="context"><span>3 % of 100 12 Reviews Add Your Review $8.99 Color Black Pink Purple Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Speciallly designed Compatible with iPhone 13 Pro Max/iPhone 12 Pro Max/iPhone 11 Pro Max/iPhone XS Max with a slim case on With the premium neoprene material,it will not fall down your arm during a intense exercise,</span><mark>also can stand up to the toughest of workouts and marathons</mark><span>. Take it for yourself or as an excellent gift for someone in your life,You&#x27;ll find exercise so amazing EXTRA VALUES Water resistant and sweat resistant Full screen protection and allowing easy access to your phone’s touch screen Built in two regulating slots and one extra Extension strap to FIT FOR MOST ARMS Headphone and charger cutouts allow direct acce</span></pre></section><section class="span"><div class="span-meta"><code>span_runbach_reviews</code> | bytes [201, 231) | <code>e0110f927ed3a12bfe921109eb9e201683195fe056562b864af5bb98b4a03f0a</code></div><pre class="context"><span>iPhone 11 Pro Max/12 Pro Max/13 Pro Max/iPhone Xs Max Armband,RUNBACH Sweatproof Running Exercise Bag with Card Slot for iPhone 13 Pro Max,12 Pro Max,11 Pro Max,XS Max (Black)
+
+In stock SKU B07H49SSXY </span><mark>Rating: 73 % of 100 12 Reviews</mark><span> Add Your Review $8.99 Color Black Pink Purple Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Speciallly designed Compatible with iPhone 13 Pro Max/iPhone 12 Pro Max/iPhone 11 Pro Max/iPhone XS Max with a slim case on With the premium neoprene material,it will not fall down your arm during a intense exercise,also can stand up to </span></pre></section><section class="span"><div class="span-meta"><code>span_runbach_sweat_claim</code> | bytes [746, 781) | <code>3f17edcb6ba9130e0c02ad30010752d6d7e71feaed436fe8b23050985e65fe68</code></div><pre class="context"><span>ith iPhone 13 Pro Max/iPhone 12 Pro Max/iPhone 11 Pro Max/iPhone XS Max with a slim case on With the premium neoprene material,it will not fall down your arm during a intense exercise,also can stand up to the toughest of workouts and marathons. Take it for yourself or as an excellent gift for someone in your life,You&#x27;ll find exercise so amazing EXTRA VALUES </span><mark>Water resistant and sweat resistant</mark><span> Full screen protection and allowing easy access to your phone’s touch screen Built in two regulating slots and one extra Extension strap to FIT FOR MOST ARMS Headphone and charger cutouts allow direct access to the phone through the armband Reflective borders for safe running in low light conditions Its secure built-in hidden key holder is perfect for hou</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/iphone-11-pro-max-12-pro-max-13-pro-max-iphone-xs-max-armband-runbach-sweatproof-running-exercise-bag-with-card-slot-for-iphone-13-pro-max-12-pro-max-11-pro-max-xs-max-black.html" target="_blank" rel="noreferrer">http://localhost:7770/iphone-11-pro-max-12-pro-max-13-pro-max-iphone-xs-max-armband-runbach-sweatproof-running-exercise-bag-with-card-slot-for-iphone-13-pro-max-12-pro-max-11-pro-max-xs-max-black.html</a></p><p>冻结文件: <a href="sources/c8e60a27c279d5fb8a6fa90ef1492baff597312c18ffa51e48e66b0408291cc7" target="_blank">sources/c8e60a27c279d5fb8a6fa90ef1492baff597312c18ffa51e48e66b0408291cc7</a></p><p>内容 SHA-256: <code>c8e60a27c279d5fb8a6fa90ef1492baff597312c18ffa51e48e66b0408291cc7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_runner_claim_not_controlled_combination_survival_test&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen RUNBACH seller listing says the armband fits an iPhone 11 Pro Max with a slim case and advertises water resistance, sweat resistance, and marathon use; twelve posted reviews do not provide a matching sweat, rain, salt, heat, humidity, or duration test.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="ev_samsung_s22_ip68_conditions"><header><h3>ev_samsung_s22_ip68_conditions</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;IP68 water and dust resistance up to 1.5 meters for 30 minutes&quot;,
+  &quot;predicate&quot;: &quot;states_model_specific_water_condition&quot;,
+  &quot;subject&quot;: &quot;Samsung Galaxy S22 series&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_samsung_s22_condition</code> | bytes [3406, 3481) | <code>14823edd64c27619c38842b0f68627b131c5c93dc4a1a826e029e0281e953f62</code></div><pre class="context"><span> , dual-band (S22)/tri-band (S22+ and S22 Ultra), Wi-Fi Direct, hotspot Bluetooth 5.2 , A2DP, LE Data inputs S Pen (S22 Ultra) Accelerometer Barometer Fingerprint scanner (under display, ultrasonic) Pressure sensor Magnetometer Gyroscope Hall sensor Proximity sensor RGB light sensor Dual band GNSS ( GPS / GLONASS / BeiDou / Galileo ) (single band on Exynos) </span><mark>Water resistance IP68 water and dust resistance, up to 1.5 m for 30 minutes</mark><span> Website S22 and S22+ S22 Ultra References [ 1 ] [ 2 ] [ 3 ] [ 4 ] The Samsung Galaxy S22 is a series of high-end Android -based smartphones developed, manufactured, and marketed by Samsung Electronics as part of its flagship Galaxy S series , all which were unveiled at Samsung &#x27;s Galaxy Unpacked event on February 9, 2022, and were released on February 25, 2</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22</a></p><p>冻结文件: <a href="sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835" target="_blank">sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</a></p><p>内容 SHA-256: <code>2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;comparison_of_model_specific_ip68_conditions_only&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Samsung Galaxy S22 series reference states IP68 water and dust resistance up to 1.5 meters for 30 minutes, a different added condition from the other IP68 model page.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_case_use_experiences"><header><h3>prop_case_use_experiences</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author assumes newer iPhones are waterproof, while a respondent reports personally avoiding breakage after using cases through multiple drops&quot;,
+  &quot;predicate&quot;: &quot;mixes_waterproof_belief_with_drop_experience&quot;,
+  &quot;subject&quot;: &quot;one case-or-no-case discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_case_drop_experience</code> | bytes [347, 504) | <code>bda996662f40130ead63d395b3083df4228118ff7f33a6cf5cfd8495c6b6712b</code></div><pre class="context"><span>Case or no case?
+
+I&#x27;m currently saving up for an Iphone and should have it by march ; ) But anyways to you Iphone users, I need your opinion. Should i get a case for it or not? I mean I know the new Iphone models are pretty strong and sturdy and even water proof but I&#x27;m not sure, should i get a case for it as well just to be on the safe side 1
+
+</span><mark>I’ve owned several models of iPhone (3G, 4, 5s, 6s, 8), encased all of them, dropped each multiple times, even on concrete—and never broken a single one.</mark><span> You need a case. The fronts and backs of iPhones are glass, and glass can still break when struck hard enough.
+
+so in other words, the newer models aren&#x27;t as sturdy as they appear in the ads?
+
+Can you point me to a specific claim of sturdiness in an ad? All smart phones that have Qi charging (which is practically all of them, including the version of Qi cha</span></pre></section><section class="span"><div class="span-meta"><code>span_case_waterproof_belief</code> | bytes [177, 343) | <code>f5df7fa269d7be03f229036e717c5c6bedbfd1d20afe5f63f58eb5b7899a9900</code></div><pre class="context"><span>Case or no case?
+
+I&#x27;m currently saving up for an Iphone and should have it by march ; ) But anyways to you Iphone users, I need your opinion. Should i get a case for it or not? </span><mark>I mean I know the new Iphone models are pretty strong and sturdy and even water proof but I&#x27;m not sure, should i get a case for it as well just to be on the safe side</mark><span> 1
+
+I’ve owned several models of iPhone (3G, 4, 5s, 6s, 8), encased all of them, dropped each multiple times, even on concrete—and never broken a single one. You need a case. The fronts and backs of iPhones are glass, and glass can still break when struck hard enough.
+
+so in other words, the newer models aren&#x27;t as sturdy as they appear in the ads?
+
+Can y</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106124/case-or-no-case" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106124/case-or-no-case</a></p><p>冻结文件: <a href="sources/2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044" target="_blank">sources/2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044</a></p><p>内容 SHA-256: <code>2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_case_and_drop_experience_not_ingress_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A case discussion combines the author&#x27;s general waterproof belief with another user&#x27;s personal drop-and-case experience; it can inform the existence of different beliefs and habits but not liquid protection or population outcomes.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_corrosion_conditions_scope"><header><h3>prop_corrosion_conditions_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;temperature, humidity, and salinity are among conditions that affect galvanic corrosion&quot;,
+  &quot;predicate&quot;: &quot;depends_on_environmental_conditions&quot;,
+  &quot;subject&quot;: &quot;galvanic corrosion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_corrosion_conditions</code> | bytes [3542, 3694) | <code>1306e2948b32398c79cde98a74abc7525e7b181cf03da2cdefd215d85e0bf52d</code></div><pre class="context"><span>ersed separately, each metal corrodes at its own rate. What type of metal(s) to use is readily determined by following the galvanic series . For example, zinc is often used as a sacrificial anode for steel structures. Galvanic corrosion is of major interest to the marine industry and also anywhere water (containing salts) contacts pipes or metal structures. </span><mark>Factors such as relative size of anode , types of metal, and operating conditions ( temperature , humidity , salinity , etc.) affect galvanic corrosion.</mark><span> [ 3 ] The surface area ratio of the anode and cathode directly affects the corrosion rates of the materials. Galvanic corrosion is often prevented by the use of sacrificial anodes . Galvanic series Main article: Galvanic series In any given environment (one standard medium is aerated, room-temperature seawater ), one metal will be either more noble or more </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Corrosion" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Corrosion</a></p><p>冻结文件: <a href="sources/47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0" target="_blank">sources/47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0</a></p><p>内容 SHA-256: <code>47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_mechanism_context_not_device_specific_causation&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The corrosion reference says temperature, humidity, and salinity affect galvanic corrosion; this is generic mechanism context and does not show that the selected phone or accessory will corrode or fail.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ip_rating_digit_scope"><header><h3>prop_ip_rating_digit_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;IP67 combines solid level 6 with liquid level 7, while IP68 combines solid level 6 with liquid level 8 whose immersion depth is set by the manufacturer&quot;,
+  &quot;predicate&quot;: &quot;separates_solid_and_liquid_levels&quot;,
+  &quot;subject&quot;: &quot;smartphone ingress-protection code&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_ip67_levels</code> | bytes [1753, 1883) | <code>64eaa817535ea72daf082cf3a274e7e64add7857bfa12b3d899a7e4aa83ee638</code></div><pre class="context"><span> from high pressure water jets). [ 6 ] [ 8 ] Intermediate standard IP57 â Solid particle (dust) protection level 5 (protection from harmful dust) and liquid ingress (waterproof) protection level 7 (protection from full immersion at depths between 15 centimetres (5.9 inches) and 1 metre (3 feet 3 inches)). [ 6 ] [ 8 ] Advanced (professional) standards </span><mark>IP67 â Solid particle (dust) protection level 6 (protection from all dust) and liquid ingress (waterproof) protection level 7</mark><span> (protection from full immersion at depths between 15 centimetres (5.9 inches) and 1 metre (3 feet 3 inches)). [ 6 ] [ 8 ] IP68 â Solid particle (dust) protection level 6 (protection from all dust) and liquid ingress (waterproof) protection level 8 (protection from full immersion at depths determined by the manufacturer). [ 6 ] [ 8 ] IP69K â In t</span></pre></section><section class="span"><div class="span-meta"><code>span_ip68_manufacturer_depth</code> | bytes [2008, 2213) | <code>1f2091e876964f61db0dc3344966779419e5b1fed3c09f74fcbf4d1167445f86</code></div><pre class="context"><span>centimetres (5.9 inches) and 1 metre (3 feet 3 inches)). [ 6 ] [ 8 ] Advanced (professional) standards IP67 â Solid particle (dust) protection level 6 (protection from all dust) and liquid ingress (waterproof) protection level 7 (protection from full immersion at depths between 15 centimetres (5.9 inches) and 1 metre (3 feet 3 inches)). [ 6 ] [ 8 ] </span><mark>IP68 â Solid particle (dust) protection level 6 (protection from all dust) and liquid ingress (waterproof) protection level 8 (protection from full immersion at depths determined by the manufacturer).</mark><span> [ 6 ] [ 8 ] IP69K â In the IEC 60529 rating system for ingress protection (IP), IP 6 * refers to the product&#x27;s ability to resist ingress of dust.  The IP * 9K refers to the product&#x27;s ability to resist ingress of high temperature (steam) / high pressure water.  If the device passes all these tests, then it can be considered as IP69K rated smartphone, an</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Rugged_smartphone" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Rugged_smartphone</a></p><p>冻结文件: <a href="sources/235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b" target="_blank">sources/235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b</a></p><p>内容 SHA-256: <code>235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;ip_digit_definition_not_permanent_or_arbitrary_liquid_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;IP67 and IP68 each combine a solid-particle level with a separate liquid-ingress level; for IP68 the cited immersion depth is determined by the manufacturer, so the code alone is not one universal water promise.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_moisture_warranty_anecdote"><header><h3>prop_moisture_warranty_anecdote</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author says moisture was cited to refuse replacement while denying water exposure&quot;,
+  &quot;predicate&quot;: &quot;reports_moisture_based_refusal&quot;,
+  &quot;subject&quot;: &quot;one reported iPhone warranty dispute&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_moisture_warranty_report</code> | bytes [158, 284) | <code>6ead07e8cf5f7cc1c5e4dc1ac76f8ef8377eaf5bc497c9d9ca0820713f10e97c</code></div><pre class="context"><span>Apple refused to replace this
+
+11 month old iPhone 13 Pro Max with a swollen battery. Phone is in pristine condition since I don’t even carry it to use it. </span><mark>They claim there was moisture inside, voiding the warranty (never around water) has anyone else had bad experiences like this?</mark><span> 4</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106210/apple-refused-to-replace-this" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106210/apple-refused-to-replace-this</a></p><p>冻结文件: <a href="sources/85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6" target="_blank">sources/85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6</a></p><p>内容 SHA-256: <code>85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_disputed_warranty_experience_not_policy&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author says moisture was cited when replacement of an iPhone 13 Pro Max was refused while denying water exposure; this is a single disputed report, not verified warranty policy or proof about another model.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_perspiration_exertion_scope"><header><h3>prop_perspiration_exertion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;eccrine sweat is watery and brackish, and heat or exertion increases sweating&quot;,
+  &quot;predicate&quot;: &quot;is_watery_brackish_and_increases_with_exertion&quot;,
+  &quot;subject&quot;: &quot;human eccrine perspiration&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_perspiration_brackish</code> | bytes [609, 784) | <code>83fc186a7923c5505234aef8bab04c6dbaa2076931687bbba4049bfc35ebfd8f</code></div><pre class="context"><span>ration on the skin Specialty Dermatology Symptoms Body odor Complications Dehydration Causes Exercise Fever Heat Hyperthermia Hot flash Treatment Antiperspirant Perspiration , also known as sweat , is the fluid secreted by sweat glands in the skin of mammals . [ 1 ] Two types of sweat glands can be found in humans: eccrine glands and apocrine glands . [ 2 ] </span><mark>The eccrine sweat glands are distributed over much of the body and are responsible for secreting the watery, brackish sweat most often triggered by excessive body temperature.</mark><span> Apocrine sweat glands are restricted to the armpits and a few other areas of the body and produce an odorless, oily, opaque secretion which then gains its characteristic odor from bacterial decomposition. In humans , sweating is primarily a means of thermoregulation , which is achieved by the water-rich secretion of the eccrine glands. Maximum sweat rates o</span></pre></section><section class="span"><div class="span-meta"><code>span_perspiration_exertion</code> | bytes [1422, 1526) | <code>bf3d59ed7b11f81f287fa9fbbdd916985156c6a1b0d011522abccd0999a86a91</code></div><pre class="context"><span> achieved by the water-rich secretion of the eccrine glands. Maximum sweat rates of an adult can be up to 2â4 litres (0.5â1 US gal) per hour or 10â14 litres (2.5â3.5 US gal) per day, but is less in children prior to puberty. [ 3 ] [ 4 ] [ 5 ] Evaporation of sweat from the skin surface has a cooling effect due to evaporative cooling . </span><mark>Hence, in hot weather, or when the individual&#x27;s muscles heat up due to exertion, more sweat is produced.</mark><span> Animals with few sweat glands, such as dogs , accomplish similar temperature regulation results by panting, which evaporates water from the moist lining of the oral cavity and pharynx . Although sweating is found in a wide variety of mammals, [ 6 ] [ 7 ] relatively few (apart from humans, horses , some primates and some bovidae ) produce sweat in order to c</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Perspiration" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Perspiration</a></p><p>冻结文件: <a href="sources/a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a" target="_blank">sources/a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a</a></p><p>内容 SHA-256: <code>a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exposure_background_not_device_damage_or_survival_test&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The perspiration reference describes eccrine sweat as watery and brackish and says heat or muscular exertion increases sweating; it does not test any phone or accessory.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_sweat_solutes_scope"><header><h3>prop_sweat_solutes_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;sweat is mostly water and can contain sodium and chloride among other solutes&quot;,
+  &quot;predicate&quot;: &quot;contains_water_and_multiple_solutes&quot;,
+  &quot;subject&quot;: &quot;human sweat composition&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_sweat_mostly_water</code> | bytes [434, 582) | <code>07bb12a9b38762c658c773f8a7f7fa634d03aeb4f26134d6538bc9e6a810498e</code></div><pre class="context"><span>ostics is an emerging non-invasive technique used to provide insights to the health of the human body.  Common sweat diagnostic tests include testing for cystic fibrosis [ 1 ] and illicit drugs . [ 2 ] Most testing of human sweat is in reference to the eccrine sweat gland which in contrast to the apocrine sweat gland , has a lower composition of oils. [ 3 ] </span><mark>Although sweat is mostly water, [ 3 ] there are many solutes which are found in sweat that have at least some relation to biomarkers found in blood.</mark><span>  These include: sodium (Na + ), chloride (Cl â ), potassium (K + ), ammonium (NH + 4 ), alcohols , lactate , peptides &amp; proteins . [ 4 ] [ 5 ] Development of devices, sensing techniques and biomarker identification in sweat continues to be an expanding field for medical diagnostics and athletics applications. The use of smart biosensors for on-skin swe</span></pre></section><section class="span"><div class="span-meta"><code>span_sweat_sodium_chloride</code> | bytes [584, 623) | <code>9a54a5e9d38bbf8c60fc168f73c3f54f751a21a40a7bde71890521ddce81ff8a</code></div><pre class="context"><span>for cystic fibrosis [ 1 ] and illicit drugs . [ 2 ] Most testing of human sweat is in reference to the eccrine sweat gland which in contrast to the apocrine sweat gland , has a lower composition of oils. [ 3 ] Although sweat is mostly water, [ 3 ] there are many solutes which are found in sweat that have at least some relation to biomarkers found in blood.  </span><mark>These include: sodium (Na + ), chloride</mark><span> (Cl â ), potassium (K + ), ammonium (NH + 4 ), alcohols , lactate , peptides &amp; proteins . [ 4 ] [ 5 ] Development of devices, sensing techniques and biomarker identification in sweat continues to be an expanding field for medical diagnostics and athletics applications. The use of smart biosensors for on-skin sweat analysis has been described as interne</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Sweat_diagnostics" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Sweat_diagnostics</a></p><p>冻结文件: <a href="sources/ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10" target="_blank">sources/ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10</a></p><p>内容 SHA-256: <code>ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;composition_background_not_phone_specific_failure_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The sweat-diagnostics reference says sweat is mostly water and lists sodium and chloride among its solutes; that composition fact does not establish damage or protection for this device combination.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_tap_water_disagreement"><header><h3>prop_tap_water_disagreement</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author used tap water because of IP68, while replies recommend against deliberate wetting or report a different personal outcome&quot;,
+  &quot;predicate&quot;: &quot;reports_deliberate_exposure_and_disagreement&quot;,
+  &quot;subject&quot;: &quot;one tap-water cooling discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_tap_author</code> | bytes [333, 431) | <code>8e974b44df7318bdb5b3a501eb5377e635c66269054e48a8193dbdc4ffb07e0a</code></div><pre class="context"><span>Cooling Phone with Water?
+
+I have an iPhone 13 mini and as you guys may know, it gets quite hot when playing games (Apex Legends). I don&#x27;t play games much on the phone (I don&#x27;t even use it a lot). But because it gets so hot, I just put the phone under the tap and let the water rinse off the heat from the back and the front screen. </span><mark>I am doing this because the phone is rated IP68. But I don&#x27;t know if I should continue doing this.</mark><span> I have done this twice as of now. &amp;#x200B; Phone is 4 Months old. 0
+
+No. Temperature difference could result in microcracks on the logic board.
+
+I thought something like this might happen and that’s why I asked. Thank You. I won’t do it anymore 👍🏼
+
+The phone is perfectly capable of managing its own thermals. If it starts to get too hot for the CPU</span></pre></section><section class="span"><div class="span-meta"><code>span_tap_avoidance_reply</code> | bytes [2249, 2302) | <code>4485fe33fa6e56c76ed23086ff761bb839b6153d62ad2faad7cc0a0f0980e925</code></div><pre class="context"><span>ig thing is water resistance wears off over time. Apple doesn’t cover water damage even in the first year of the warranty. Apple doesn’t even claim it’s waterproof but claims water resistant. You can find tons of posts where people have gotten their device wet and now the camera doesn’t work or the display is discolored or it won’t turn on at all. </span><mark>For this reason, I never get my phone wet on purpose.</mark><span>
+
+Oh fuck
+
+Get one of those grips with a fan.
+
+[deleted]
+
+Ok. How much did it cost to replace?
+
+This is extremely bad for the battery as well as what everyone else is saying. Batteries like heat but not sudden drops in temperature change, can damage their overall life.
+
+Ok
+
+I’ve done this with my 12 PM for years. No issues yet. I haven’t done it more tha</span></pre></section><section class="span"><div class="span-meta"><code>span_tap_other_outcome</code> | bytes [2577, 2695) | <code>b16523193c3a27f1f413020aeb29f76cf03801a2637f3d5a85f7fc2ef920ee25</code></div><pre class="context"><span>d or it won’t turn on at all. For this reason, I never get my phone wet on purpose.
+
+Oh fuck
+
+Get one of those grips with a fan.
+
+[deleted]
+
+Ok. How much did it cost to replace?
+
+This is extremely bad for the battery as well as what everyone else is saying. Batteries like heat but not sudden drops in temperature change, can damage their overall life.
+
+Ok
+
+</span><mark>I’ve done this with my 12 PM for years. No issues yet. I haven’t done it more than a few dozen times total though.</mark><span> I just hold an ice cube on the back.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/84559/cooling-phone-with-water" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/84559/cooling-phone-with-water</a></p><p>冻结文件: <a href="sources/cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a" target="_blank">sources/cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a</a></p><p>内容 SHA-256: <code>cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_exposure_reports_not_policy_causation_or_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A community author reports deliberately cooling an IP68 iPhone 13 mini under tap water; replies recommend avoiding deliberate wetting or report a different individual outcome, so the thread is disagreement rather than controlled evidence.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_wash_ip68_assumption"><header><h3>prop_wash_ip68_assumption</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author calls an IP68 phone waterproof but remains uneasy about even rinsing it&quot;,
+  &quot;predicate&quot;: &quot;reports_waterproof_assumption_and_uncertainty&quot;,
+  &quot;subject&quot;: &quot;one phone-washing post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_wash_assumption</code> | bytes [31, 120) | <code>cb997ee6179de90e5f02524f89913d093aeee471091e90f397d14bd0eb07b3a9</code></div><pre class="context"><span>Anyone ever wash their phone?
+
+</span><mark>I know it’s waterproof being ip68, but it doesn’t feel right. Even a rinse with water</mark><span> 3</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/20535/anyone-ever-wash-their-phone" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/20535/anyone-ever-wash-their-phone</a></p><p>冻结文件: <a href="sources/37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b" target="_blank">sources/37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b</a></p><p>内容 SHA-256: <code>37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_assumption_not_product_fact&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_runner_ingress_conditional_choice&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author calls an IP68 phone waterproof while expressing uncertainty about even rinsing it; this is an individual belief and question, not evidence that the phone is permanently waterproof.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_runner_ingress</td><td>case_spec</td><td><a href="sources/3ac21e81cf8da46d4a7b244bcd273f420479fa00d40b668ba69a76add140fc3d">3ac21e81cf8da46d4a7b244bcd273f420479fa00d40b668ba69a76add140fc3d</a></td><td><a href="http://case-spec.local/dra_v3_formal_smartphones_0031" target="_blank" rel="noreferrer">来源 URL</a></td><td>7529</td></tr><tr><td>reg_magento_aicase_iphone_11_pro_max_ip68</td><td>magento</td><td><a href="sources/05e958cccee702f57cd4d694e1136188e2af6d8444d7655f0ad7e02d812ce962">05e958cccee702f57cd4d694e1136188e2af6d8444d7655f0ad7e02d812ce962</a></td><td><a href="http://localhost:7770/aicase-waterproof-case-for-iphone-11-pro-max-snowproof-dustproof-and-shockproof-ip68-certified-360-protection-fully-sealed-underwater-protective-cover-for-apple-iphone-11-pro-max-6-5-inch-2019.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2794</td></tr><tr><td>reg_magento_iphone_11_pro_max_diving_case</td><td>magento</td><td><a href="sources/7b3799139eaf1d450be6aefaa12c21802a26d72c85bd15985d44476f9df3d108">7b3799139eaf1d450be6aefaa12c21802a26d72c85bd15985d44476f9df3d108</a></td><td><a href="http://localhost:7770/waterproof-diving-phone-case-for-iphone-samsung-lg-moto-google-professional-50ft-15m-underwater-case-diving-case-for-iphone-12-pro-max-12-12pro-12mini-11-11pro-11-pro-max-xr-8-8plus-7-7-plus-etc.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>5850</td></tr><tr><td>reg_magento_iphone_11_pro_max_ordinary_case</td><td>magento</td><td><a href="sources/a1a0230c7d0035aa50fe76fceb4f1fe79d814bccd552e111de0560db793f51a8">a1a0230c7d0035aa50fe76fceb4f1fe79d814bccd552e111de0560db793f51a8</a></td><td><a href="http://localhost:7770/hitaoyou-iphone-11-pro-max-cases-iphone-11-pro-max-case-with-camera-cover-kickstand-military-grade-shockproof-heavy-duty-protective-with-magnetic-car-mount-holder-cases-for-iphone-11-pro-max-pink.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3625</td></tr><tr><td>reg_magento_runbach_iphone_11_pro_max_sweatproof</td><td>magento</td><td><a href="sources/c8e60a27c279d5fb8a6fa90ef1492baff597312c18ffa51e48e66b0408291cc7">c8e60a27c279d5fb8a6fa90ef1492baff597312c18ffa51e48e66b0408291cc7</a></td><td><a href="http://localhost:7770/iphone-11-pro-max-12-pro-max-13-pro-max-iphone-xs-max-armband-runbach-sweatproof-running-exercise-bag-with-card-slot-for-iphone-13-pro-max-12-pro-max-11-pro-max-xs-max-black.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3089</td></tr><tr><td>reg_postmill_iphone_case_waterproof_belief</td><td>postmill</td><td><a href="sources/2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044">2dd2cdb882a6a2a5e379ab1fcce36c64fa628ed1a8d350a2afcb507704a4c044</a></td><td><a href="http://localhost:9999/f/iphone/106124/case-or-no-case" target="_blank" rel="noreferrer">来源 URL</a></td><td>5720</td></tr><tr><td>reg_postmill_iphone_cooling_water_ip68</td><td>postmill</td><td><a href="sources/cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a">cf6e161651e134fca049535c2f5918810d316bbb72217f6b6a74be813c48852a</a></td><td><a href="http://localhost:9999/f/iphone/84559/cooling-phone-with-water" target="_blank" rel="noreferrer">来源 URL</a></td><td>2732</td></tr><tr><td>reg_postmill_iphone_moisture_warranty</td><td>postmill</td><td><a href="sources/85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6">85b9fae78eed2b35876db2c0df47033fac6f6756d8d42f403d1ffa58e0e0b7e6</a></td><td><a href="http://localhost:9999/f/iphone/106210/apple-refused-to-replace-this" target="_blank" rel="noreferrer">来源 URL</a></td><td>286</td></tr><tr><td>reg_postmill_iphone_wash_ip68</td><td>postmill</td><td><a href="sources/37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b">37e30bb3d2b4615d5391316409a73f39ce909f5764d87e5ca3fc6a2fe5e1365b</a></td><td><a href="http://localhost:9999/f/iphone/20535/anyone-ever-wash-their-phone" target="_blank" rel="noreferrer">来源 URL</a></td><td>122</td></tr><tr><td>reg_search_aicase</td><td>search_result</td><td><a href="sources/034b12deec2ee72ee17071d71283825f786662a321db271f54c330060106f280">034b12deec2ee72ee17071d71283825f786662a321db271f54c330060106f280</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=54f086bf-90f8-4901-82a3-8efa7404110d" target="_blank" rel="noreferrer">来源 URL</a></td><td>8672</td></tr><tr><td>reg_search_case_experience</td><td>search_result</td><td><a href="sources/372640c64e195a82e8d2b2802f359985b13dcd8af87961e945f4cec106c60500">372640c64e195a82e8d2b2802f359985b13dcd8af87961e945f4cec106c60500</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=8a03e124-a24c-4fd0-8ac5-1cd18ca43377" target="_blank" rel="noreferrer">来源 URL</a></td><td>55599</td></tr><tr><td>reg_search_corrosion</td><td>search_result</td><td><a href="sources/cfa3e46de8ad77272df45ff449568248011057da04fa50a7a7b5b2f6bf496d92">cfa3e46de8ad77272df45ff449568248011057da04fa50a7a7b5b2f6bf496d92</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=23281fb7-982c-447f-80ca-16cb2c86dde0" target="_blank" rel="noreferrer">来源 URL</a></td><td>16101</td></tr><tr><td>reg_search_diving_housing</td><td>search_result</td><td><a href="sources/dfe184bd70fd19d63aa36f0259a1a8871866d8527e98139051321e4afdf7c4bb">dfe184bd70fd19d63aa36f0259a1a8871866d8527e98139051321e4afdf7c4bb</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=b65667ba-9e33-4aeb-8fba-590279538507" target="_blank" rel="noreferrer">来源 URL</a></td><td>8659</td></tr><tr><td>reg_search_ip_levels</td><td>search_result</td><td><a href="sources/b0f9c4b3b3745f54489cdc3290efafb53f0cbf0a87f7f9ef856d03e9fc5f4032">b0f9c4b3b3745f54489cdc3290efafb53f0cbf0a87f7f9ef856d03e9fc5f4032</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=a3e050b1-1bdf-431e-bf75-d5b5e2014fc4" target="_blank" rel="noreferrer">来源 URL</a></td><td>2647</td></tr><tr><td>reg_search_iphone_conditions</td><td>search_result</td><td><a href="sources/f961caf8fc8c48952970589dc77cec012a118e055f07b4f48a1e34cbed561c44">f961caf8fc8c48952970589dc77cec012a118e055f07b4f48a1e34cbed561c44</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=5bc99145-f52b-4d1c-b973-1fc640a2b1e4" target="_blank" rel="noreferrer">来源 URL</a></td><td>61020</td></tr><tr><td>reg_search_moisture_warranty</td><td>search_result</td><td><a href="sources/a5c6a64543bf1a75aa570fff6c1ac32939b8bbd7bc332024961bf99d59966dae">a5c6a64543bf1a75aa570fff6c1ac32939b8bbd7bc332024961bf99d59966dae</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=19e98b67-860b-4c19-8479-fca6f140bfcb" target="_blank" rel="noreferrer">来源 URL</a></td><td>59530</td></tr><tr><td>reg_search_ordinary_case</td><td>search_result</td><td><a href="sources/a65040c870486d31f4d4637c74f1e4eeba538ff77a1abaaec3f8c89e20e3dbb6">a65040c870486d31f4d4637c74f1e4eeba538ff77a1abaaec3f8c89e20e3dbb6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=ba7eab43-0ce0-4df0-9f46-b589bad11261" target="_blank" rel="noreferrer">来源 URL</a></td><td>8882</td></tr><tr><td>reg_search_perspiration</td><td>search_result</td><td><a href="sources/f60794bcf8792e39f8ab04fb1045f478a06f2800a80ec64b7edb67875a7ded6a">f60794bcf8792e39f8ab04fb1045f478a06f2800a80ec64b7edb67875a7ded6a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=358bd0fa-8d95-486e-882b-dd2d24bbe924" target="_blank" rel="noreferrer">来源 URL</a></td><td>5624</td></tr><tr><td>reg_search_runbach</td><td>search_result</td><td><a href="sources/e771f31a51b3e9008ec9914ad5b31968b1cea032ee69bf83ea67d861415394c7">e771f31a51b3e9008ec9914ad5b31968b1cea032ee69bf83ea67d861415394c7</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=c15c0114-6d6a-49a9-bad6-42a4078cb9ce" target="_blank" rel="noreferrer">来源 URL</a></td><td>8645</td></tr><tr><td>reg_search_samsung_conditions</td><td>search_result</td><td><a href="sources/b2cb248aed0a2b55a763b255ace91dee4ad7fe7effa01451ae09d1e39b303897">b2cb248aed0a2b55a763b255ace91dee4ad7fe7effa01451ae09d1e39b303897</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=f9ac1b53-bbb9-41f4-9099-072e6167ce01" target="_blank" rel="noreferrer">来源 URL</a></td><td>10663</td></tr><tr><td>reg_search_sweat_solutes</td><td>search_result</td><td><a href="sources/54391809a19100db970eccebf05fa48eea51da020a9e35fa89e0c415ddec0608">54391809a19100db970eccebf05fa48eea51da020a9e35fa89e0c415ddec0608</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=0b5b454b-cc8f-4851-9e83-cf4b4b643393" target="_blank" rel="noreferrer">来源 URL</a></td><td>21212</td></tr><tr><td>reg_search_tap_water</td><td>search_result</td><td><a href="sources/52f14173615fe51d86203cca4938baf2b029746a2fa40c6a75bafb68d391f765">52f14173615fe51d86203cca4938baf2b029746a2fa40c6a75bafb68d391f765</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=8ea8de27-f75c-4413-9dd2-adcf3299d861" target="_blank" rel="noreferrer">来源 URL</a></td><td>52827</td></tr><tr><td>reg_search_wash_assumption</td><td>search_result</td><td><a href="sources/d08591413e054257701f235eb757364c292d827c494bdf7befc56641e06274a3">d08591413e054257701f235eb757364c292d827c494bdf7befc56641e06274a3</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0031-runner-ingress-20260716-r1&amp;request_id=98a7eaa2-e609-4ed6-bca8-69e9261bd3ca" target="_blank" rel="noreferrer">来源 URL</a></td><td>64304</td></tr><tr><td>reg_wiki_corrosion_conditions</td><td>wikipedia</td><td><a href="sources/47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0">47fc03121f8901ae6df01bd406c43817ebdb9fc265c308de2e1ee99ed56196c0</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Corrosion" target="_blank" rel="noreferrer">来源 URL</a></td><td>20006</td></tr><tr><td>reg_wiki_iphone_11_pro_ip68</td><td>wikipedia</td><td><a href="sources/2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2">2357f7d798ad5e9db15a5497b4917cb99645946c5e800af5c08fa00fc573ddb2</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/IPhone_11_Pro" target="_blank" rel="noreferrer">来源 URL</a></td><td>20114</td></tr><tr><td>reg_wiki_perspiration_runner</td><td>wikipedia</td><td><a href="sources/a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a">a57b0f012484975ffbaa852d31e036cced184ec3ef899ef469c0a5405816565a</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Perspiration" target="_blank" rel="noreferrer">来源 URL</a></td><td>20096</td></tr><tr><td>reg_wiki_rugged_smartphone_ip_levels</td><td>wikipedia</td><td><a href="sources/235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b">235791512c395c742ab65a8b13aad78fe819a57e779a356df767491a06a52a9b</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Rugged_smartphone" target="_blank" rel="noreferrer">来源 URL</a></td><td>15589</td></tr><tr><td>reg_wiki_samsung_s22_ip68</td><td>wikipedia</td><td><a href="sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835">2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22" target="_blank" rel="noreferrer">来源 URL</a></td><td>20274</td></tr><tr><td>reg_wiki_sweat_solutes</td><td>wikipedia</td><td><a href="sources/ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10">ceff2a5c90f6c2ff886e01c0fc9556a17f403d67f94e8655dc8a3c6f9d0bfe10</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Sweat_diagnostics" target="_blank" rel="noreferrer">来源 URL</a></td><td>9135</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-smartphones-0031-runner-ingress-20260716-r1";
+const graphHash = "3da55831ca8abf9cd1d8e1bede23a0923e932d679fad42c7e714295c59c1bac5";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

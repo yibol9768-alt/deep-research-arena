@@ -47,14 +47,46 @@ def main() -> int:
     ap.add_argument("--run-set-id", default=None)
     ap.add_argument("--backbone", default=None)
     ap.add_argument("--worker", default=None)
+    ap.add_argument(
+        "--price-key",
+        default=None,
+        help=(
+            "verified provider-specific key in the prices table; applies to "
+            "usage rows matching --backbone and is recorded in the ledger"
+        ),
+    )
+    ap.add_argument(
+        "--price-namespace",
+        default=None,
+        help=(
+            "verified provider namespace appended as MODEL@NAMESPACE for "
+            "every usage model; unlike --price-key this also prices auxiliary "
+            "judge models from the same provider"
+        ),
+    )
     args = ap.parse_args()
+    if args.price_key and args.price_namespace:
+        ap.error("--price-key and --price-namespace are mutually exclusive")
 
     prices, aliases = load_prices(Path(args.prices))
 
     def price_of(model: str) -> dict | None:
         slug = aliases.get(model or "", model or "")
+        backbone_slug = aliases.get(args.backbone or "", args.backbone or "")
+        if args.price_namespace:
+            slug = f"{slug}@{args.price_namespace}"
+        elif args.price_key and (not backbone_slug or slug == backbone_slug):
+            slug = args.price_key
         p = prices.get(slug)
-        if p and p.get("input_per_mtok") is not None:
+        has_flat_input = p and p.get("input_per_mtok") is not None
+        has_split_input = (
+            p
+            and p.get("input_cache_hit_per_mtok") is not None
+            and p.get("input_cache_miss_per_mtok") is not None
+        )
+        if p and p.get("output_per_mtok") is not None and (
+            has_flat_input or has_split_input
+        ):
             return p
         return None
 
@@ -70,7 +102,10 @@ def main() -> int:
                             "total_tokens": 0, "usage_missing_calls": 0,
                             "per_model": defaultdict(lambda: {
                                 "n_calls": 0, "prompt_tokens": 0,
-                                "completion_tokens": 0})}
+                                "completion_tokens": 0,
+                                "prompt_cache_hit_tokens": 0,
+                                "prompt_cache_miss_tokens": 0,
+                                "cache_usage_missing_calls": 0})}
             order.append(run_key)
         return runs[run_key]
 
@@ -124,6 +159,13 @@ def main() -> int:
         m["n_calls"] += 1
         m["prompt_tokens"] += pt
         m["completion_tokens"] += ct
+        cache_hit = rec.get("prompt_cache_hit_tokens")
+        cache_miss = rec.get("prompt_cache_miss_tokens")
+        if cache_hit is None or cache_miss is None:
+            m["cache_usage_missing_calls"] += 1
+        else:
+            m["prompt_cache_hit_tokens"] += int(cache_hit)
+            m["prompt_cache_miss_tokens"] += int(cache_miss)
 
     if current is not None:
         warnings.append(f"log ended while run {current!r} still open")
@@ -144,8 +186,29 @@ def main() -> int:
                                 f"in first currency {currency!r}")
                 cost_complete = False
                 continue
-            cost += (m["prompt_tokens"] * p["input_per_mtok"]
-                     + m["completion_tokens"] * p["output_per_mtok"]) / 1e6
+            if p.get("input_per_mtok") is not None:
+                input_cost = m["prompt_tokens"] * p["input_per_mtok"]
+            else:
+                input_cost = (
+                    m["prompt_cache_hit_tokens"]
+                    * p["input_cache_hit_per_mtok"]
+                    + m["prompt_cache_miss_tokens"]
+                    * p["input_cache_miss_per_mtok"]
+                )
+                if (
+                    m["cache_usage_missing_calls"]
+                    or m["prompt_cache_hit_tokens"]
+                    + m["prompt_cache_miss_tokens"]
+                    != m["prompt_tokens"]
+                ):
+                    warnings.append(
+                        f"run {key!r}, model {model!r}: provider cache-token "
+                        "split incomplete; monetary cost is a lower bound"
+                    )
+                    cost_complete = False
+            cost += (
+                input_cost + m["completion_tokens"] * p["output_per_mtok"]
+            ) / 1e6
         b["per_model"] = {k: dict(v) for k, v in b["per_model"].items()}
         b["cost"] = round(cost, 6) if currency else None
         b["cost_currency"] = currency
@@ -177,6 +240,8 @@ def main() -> int:
         "run_set_id": args.run_set_id,
         "backbone": args.backbone,
         "worker": args.worker,
+        "price_key": args.price_key,
+        "price_namespace": args.price_namespace,
         "n_log_lines": n_lines,
         "totals": totals,
         "runs": out_runs,

@@ -1,0 +1,257 @@
+{
+  "schema": "route_flexible_rubric_v1",
+  "status": "pilot_reviewed",
+  "task_id": "dra_v3_dev_audio_0002",
+  "rubric_basis": "public_query_first_then_witness_audit",
+  "scoring_semantics": "route_flexible_grounded_obligations_v1",
+  "source_role_hosts": {
+    "product": ["localhost:7770"],
+    "mechanism": ["localhost:8090"],
+    "community": ["localhost:9999"]
+  },
+  "targets": [
+    {
+      "target_id": "E_FLARE_CORE",
+      "kind": "evidence",
+      "statement": "The report accurately audits the captured Soundcore Flare 2 listing as $53.49, 20 W (10 W x 2), and THD+N below 1%, while explicitly preserving that the captured listing gives no test condition for the THD+N figure. It does not relabel the power as continuous or infer clean rated-power output from the figure alone.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 1600,
+      "known_witnesses": ["ev_soundcore_flare2_profile"]
+    },
+    {
+      "target_id": "E_ORTIZAN_CORE",
+      "kind": "evidence",
+      "statement": "The report accurately audits the captured Ortizan listing as $57.99, 2 x 20 W Max, with qualitative distortion-free-at-maximum wording but no stated quantitative distortion condition or continuous-power basis.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 1600,
+      "known_witnesses": ["ev_ortizan_40w_profile"]
+    },
+    {
+      "target_id": "E_FLARE_DESIGN",
+      "kind": "evidence",
+      "statement": "The report accurately attributes 360-degree sound and passive-radiator claims to the captured Soundcore Flare 2 listing without treating the listing as measured off-axis performance.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 1800,
+      "known_witnesses": ["ev_soundcore_flare2_profile"]
+    },
+    {
+      "target_id": "E_ORTIZAN_DESIGN",
+      "kind": "evidence",
+      "statement": "The report accurately attributes true-360-degree and dual-passive-radiator marketing claims to the captured Ortizan listing without treating the listing as measured directivity or bass quality.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 1800,
+      "known_witnesses": ["ev_ortizan_40w_profile"]
+    },
+    {
+      "target_id": "E_FLARE_WATER",
+      "kind": "evidence",
+      "statement": "The report accurately states that the captured Soundcore Flare 2 listing claims IPX7 protection and does not misdescribe that listing claim as independent same-model water validation.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 2100,
+      "known_witnesses": ["ev_soundcore_flare2_profile"]
+    },
+    {
+      "target_id": "E_ORTIZAN_WATER",
+      "kind": "evidence",
+      "statement": "The report accurately states that the captured Ortizan listing claims IPX7 protection and does not misdescribe that listing claim as independent same-model water validation.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 2100,
+      "known_witnesses": ["ev_ortizan_40w_profile"]
+    },
+    {
+      "target_id": "E_IPX7_SCOPE",
+      "kind": "evidence",
+      "statement": "The report explains IPX7 as a bounded temporary-immersion classification rather than unlimited pool or beach waterproofing, and explains that X does not assign a particulate-protection rating.",
+      "acceptable_source_roles": ["mechanism"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 1000,
+      "known_witnesses": ["prop_ipx7_scope"]
+    },
+    {
+      "target_id": "E_FLARE_BATTERY",
+      "kind": "evidence",
+      "statement": "The report accurately states the captured Soundcore Flare 2 listing's 12-hour playback claim and its caveat that volume, lights, and BassUp affect playtime.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 2400,
+      "known_witnesses": ["ev_soundcore_flare2_profile"]
+    },
+    {
+      "target_id": "E_ORTIZAN_BATTERY",
+      "kind": "evidence",
+      "statement": "The report accurately states the captured Ortizan listing's 15-hour playback claim and its caveat that playtime varies with volume and audio content.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "body",
+      "citation_binding_window_chars": 2400,
+      "known_witnesses": ["ev_ortizan_40w_profile"]
+    },
+    {
+      "target_id": "E_FLARE_NO_HIRES",
+      "kind": "evidence",
+      "statement": "After auditing the complete captured Soundcore Flare 2 listing, the report states that it found no hi-res-over-Bluetooth or named hi-res codec claim on that listing.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "closed_page_absence",
+      "citation_binding_window_chars": 2600,
+      "known_witnesses": ["ev_soundcore_flare2_profile"]
+    },
+    {
+      "target_id": "E_ORTIZAN_NO_HIRES",
+      "kind": "evidence",
+      "statement": "After auditing the complete captured Ortizan listing, the report states that it found no hi-res-over-Bluetooth or named hi-res codec claim on that listing.",
+      "acceptable_source_roles": ["product"],
+      "support_mode": "closed_page_absence",
+      "citation_binding_window_chars": 2600,
+      "known_witnesses": ["ev_ortizan_40w_profile"]
+    },
+    {
+      "target_id": "A_WATT_DISTORTION",
+      "kind": "analysis",
+      "statement": "The report compares the incompatible listing wordings and concludes only that Ortizan's Max wattage and qualitative distortion wording do not establish cleaner or louder output. It also preserves that Flare 2's unstated THD+N test condition prevents concluding lower real-world distortion or clean output at a specified rated power.",
+      "failure_conditions": [
+        "Calls the captured Flare 2 power figure continuous without source support",
+        "Treats THD+N below 1% as proof of lower real-world distortion or clean output at rated 20 W",
+        "Treats 40 W Max as proof of louder or distortion-free output"
+      ]
+    },
+    {
+      "target_id": "A_DESIGN_BOUNDARY",
+      "kind": "analysis",
+      "statement": "The report distinguishes real design claims from demonstrated performance: a passive radiator and a 360-degree label do not by themselves prove superior bass, uniform dispersion, or better sound without appropriate measurements."
+    },
+    {
+      "target_id": "A_WATER_BOUNDARY",
+      "kind": "analysis",
+      "statement": "The report applies the bounded IPX7 meaning to poolside use, distinguishes manufacturer declarations from independent or same-model validation, and avoids treating unrelated discussion as owner testing."
+    },
+    {
+      "target_id": "A_BATTERY_BOUNDARY",
+      "kind": "analysis",
+      "statement": "The report compares the two playback claims while preserving their disclosed operating caveats and states that the nominal hours are not directly comparable without matched test conditions."
+    },
+    {
+      "target_id": "A_HIRES_NOT_DECISIVE",
+      "kind": "analysis",
+      "statement": "Because neither audited listing contains a hi-res-over-Bluetooth claim, the report correctly treats this dimension as non-discriminating and does not require an unnecessary LDAC investigation."
+    },
+    {
+      "target_id": "A_FORUM_SCOPE",
+      "kind": "analysis",
+      "statement": "The report distinguishes general community discussion from same-model water validation. If it found no same-model evidence, it phrases that as a bounded search result rather than claiming that no such evidence exists anywhere in the sandbox.",
+      "failure_conditions": [
+        "Claims that no forum or review evidence exists in the entire sandbox based only on limited returned results",
+        "Treats an unrelated or general thread as same-model pool or water validation"
+      ]
+    },
+    {
+      "target_id": "A_DECISION",
+      "kind": "analysis",
+      "statement": "The report recommends one of the compared routes or explicitly defers, respects the $60 budget and balcony/poolside constraints, explains the decisive tradeoff and remaining measurement limits, and does not make an unsupported THD, loudness, waterproofing, battery, or forum claim decisive."
+    }
+  ],
+  "certificates": [
+    {
+      "certificate_id": "CERT_FORUM_WATER_SEARCH",
+      "kind": "scoped_negative_search",
+      "max_query_chars": 240,
+      "required_entity_groups": [
+        ["soundcore flare 2", "soundcore flare2"],
+        ["ortizan 40w", "ortizan 40 w"]
+      ],
+      "required_topic_groups": [
+        ["water", "pool", "immersion", "ipx7"],
+        ["forum", "owner", "user", "reddit", "review"]
+      ],
+      "require_all_returned_results_observed": true,
+      "scope_label": "returned results of a targeted same-model water/community search"
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "O1_FLARE_LISTING_AUDIT",
+      "description": "Accurately audit the Flare 2 listing's core price, output, and distortion wording.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "listing", "requires_targets": ["E_FLARE_CORE"]}]
+    },
+    {
+      "obligation_id": "O2_ORTIZAN_LISTING_AUDIT",
+      "description": "Accurately audit the Ortizan listing's core price, output, and distortion wording.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "listing", "requires_targets": ["E_ORTIZAN_CORE"]}]
+    },
+    {
+      "obligation_id": "O3_WATT_DISTORTION_SYNTHESIS",
+      "description": "Compare wattage and distortion claims without unsupported performance inference.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "bounded_non_inference", "requires_targets": ["E_FLARE_CORE", "E_ORTIZAN_CORE", "A_WATT_DISTORTION"]}]
+    },
+    {
+      "obligation_id": "O4_360_PASSIVE_RADIATOR",
+      "description": "Audit both design claims and distinguish mechanism labels from measured quality.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "listing_claims_plus_boundary", "requires_targets": ["E_FLARE_DESIGN", "E_ORTIZAN_DESIGN", "A_DESIGN_BOUNDARY"]}]
+    },
+    {
+      "obligation_id": "O5_IPX7_SCOPE",
+      "description": "Interpret IPX7 within test scope and separate declarations from validation.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "rating_plus_scope", "requires_targets": ["E_FLARE_WATER", "E_ORTIZAN_WATER", "E_IPX7_SCOPE", "A_WATER_BOUNDARY"]}]
+    },
+    {
+      "obligation_id": "O6_BATTERY_CAVEATS",
+      "description": "Compare both battery claims with their operating caveats and limits.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "matched_caveat_audit", "requires_targets": ["E_FLARE_BATTERY", "E_ORTIZAN_BATTERY", "A_BATTERY_BOUNDARY"]}]
+    },
+    {
+      "obligation_id": "O7_HIRES_AUDIT",
+      "description": "Audit whether either listing makes a hi-res-over-Bluetooth claim.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "both_listings_negative", "requires_targets": ["E_FLARE_NO_HIRES", "E_ORTIZAN_NO_HIRES", "A_HIRES_NOT_DECISIVE"]}]
+    },
+    {
+      "obligation_id": "O8_FORUM_SCOPE",
+      "description": "Distinguish general discussion from same-model water validation using bounded language.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{"route_id": "scoped_not_found", "requires_targets": ["A_FORUM_SCOPE"], "requires_certificates": ["CERT_FORUM_WATER_SEARCH"]}]
+    },
+    {
+      "obligation_id": "O9_DECISION",
+      "description": "Give a constraint- and evidence-consistent recommendation with tradeoff and limitations.",
+      "weight": 1,
+      "critical": true,
+      "routes": [{
+        "route_id": "open_consistent_decision",
+        "requires_targets": ["A_DECISION"],
+        "requires_obligations": [
+          "O1_FLARE_LISTING_AUDIT",
+          "O2_ORTIZAN_LISTING_AUDIT",
+          "O3_WATT_DISTORTION_SYNTHESIS",
+          "O4_360_PASSIVE_RADIATOR",
+          "O5_IPX7_SCOPE",
+          "O6_BATTERY_CAVEATS",
+          "O7_HIRES_AUDIT",
+          "O8_FORUM_SCOPE"
+        ]
+      }]
+    }
+  ],
+  "full_pass_contract": {
+    "require_all_critical_obligations": true,
+    "forbid_fabricated_citations": true,
+    "forbid_contradicted_targets": true
+  }
+}

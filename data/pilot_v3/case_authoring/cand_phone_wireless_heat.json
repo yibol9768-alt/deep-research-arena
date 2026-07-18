@@ -1,0 +1,265 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_phone_0012",
+  "cluster_id": "phone_wireless_heat_efficiency_longevity",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.45,
+    "contradiction_count": 10
+  },
+  "rule_definitions": {
+    "complete_wireless_charger_listing_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Audit the complete frozen product bodies instead of reading 15 W from the titles. The Vchiming dual pad is $18.99 with a 53/100 display over 12 reviews. It says two positions can each be used for phone or AirPods charging, calls 15 W a maximum, states that practical received power depends on the device protocol, and requires a QC or PD adapter for 15 W, 10 W, or 7.5 W while including only a USB-C cable. Its body gives conflicting case-thickness limits of 4 mm and 8 mm, and its certification, FOD, non-overheating, safe-charging, warranty, and support wording are seller claims. The magnetic car mount is $29.99 with 95/100 over four reviews. It is a vehicle mount for iPhone 12 and 13 series, lists 5 W, 7.5 W, 10 W, and 15 W outputs plus 5 V/2 A, 9 V/1.67 A, and 12 V/2 A inputs, and includes mounting hardware and a cable but no stated wall or car adapter in the package list. Its auto-alignment, no-hot-phone, over-temperature protection, safety, and lifetime-support language are seller claims. The THREEKEY desk pad is $25.99 with 68/100 over 12 reviews, includes a 20 W PD adapter and cable, lists four output schemes, and separately caps iPhone at 7.5 W while listing Samsung at 10 W or 15 W. It says warmth after 20 minutes is normal and advertises FOD and several protections. None of the complete bodies contains measured wall-to-battery efficiency, a controlled temperature comparison, or product-specific one-year retention and durability results."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "wireless_power_and_15w_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Inductive charging transfers energy by driving a transmitter coil with alternating current, creating a changing magnetic field that induces current in a nearby receiver coil before rectification. The frozen inductive-charging page says efficiency is sensitive to lateral, longitudinal, and vertical misalignment. The Qi page describes an open inductive standard for compatible devices, a transmitter control unit that regulates transferred power to what the receiver requests, and an Extended Power Profile that supports phones at up to 15 W. Therefore 15 W is an upper profile or seller maximum, not a measurement of power delivered to this iPhone. Actual behavior depends on receiver support, alignment, case and foreign-object conditions, the pad, and its upstream adapter. Vchiming itself requires a separate QC or PD adapter and says practical received power depends on device protocol. THREEKEY says its iPhone route is 7.5 W maximum despite the 15 W title. No frozen body measures the magnetic car mount or either desk pad delivering 15 W to the scenario phone."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "heat_efficiency_and_longevity_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The frozen inductive-charging page reports lower efficiency than conductive charging, a 2018 same-supply test that took 15 percent longer, and an explicitly amateur Pixel 4 analysis in which wireless wall energy was 39 percent higher and rose to 80 percent higher with misalignment. It also states that inductive chargers produce more waste heat, which may negatively affect battery longevity. These figures establish a mechanism and bounded examples, not a universal loss fraction for every pad or this iPhone. The lithium-ion page says material choices can dramatically change voltage, energy density, life, and safety. The generic charger page says protocol governs voltage, current, duration, and completion, that chargers may sense temperature and voltage, and that current generates internal heat with other battery-state factors. These mechanisms do not measure the scenario phone. The product bodies' protection and safe-charging wording remains seller attribution. Community heat reports and preferences are anonymous, model-, case-, accessory-, workload-, and software-scoped observations rather than controlled causal battery-aging tests."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "owner_evidence_and_preflight_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The community evidence is genuinely mixed but not matched to the three products. One iPhone 13 Pro Max owner reports wireless charging in the car and bedroom for almost a year. A separate thread includes a 13 Pro Max owner who says the port was unused for just over a year, plus other users who rely on MagSafe, but it also includes people who returned to wired charging because wireless felt slow, inefficient, hot, constrained by a short cord or accessory removal, or simply unnecessary. A Qi-overheat thread contains reports of temperature-based charging stops across several iPhone models and several accessories, alongside a user who reports no warning with one Belkin charger, so it cannot identify one universal cause or predict these listings. A gap thread reports a 2 to 3 mm camera-bump gap and conflicting informal replies, while the concept evidence independently establishes that alignment can affect efficiency. None of these pages names Vchiming, the magnetic car mount listing, or THREEKEY, and none establishes that any one of them remained satisfactory for a year or was discarded. Before scaling, run one screen-off, same-starting-state desk trial against the known wired route. Record adapter and case, alignment, elapsed time over a fixed state-of-charge interval, wall energy, charging interruptions, and any temperature warning; repeat only the intended car configuration separately and stop on a warning or abnormal heat."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "evidence_bounded_wireless_rollout_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Do not buy pads for every room or treat the three 15 W labels as equivalent delivered power, safety, efficiency, or longevity evidence. Defer the multi-location rollout until one device-specific energy, heat, and duration trial is complete. If a desk pilot is still wanted, THREEKEY is the most complete frozen desk route because its body includes the adapter and explicitly discloses a 7.5 W iPhone maximum, but it remains only a conditional single-unit trial, not a long-term recommendation. The magnetic car mount is only a vehicle-use option and should be tested separately with the intended car power source. Do not select the Vchiming route for a bulk deployment from this evidence: its low 53/100 display, missing adapter, conflicting case-thickness limits, and seller-only safety wording remain unresolved. No frozen source supplies product-specific one-year satisfaction, drawer-discard, battery-retention, delivered-power, or controlled-temperature evidence for any of the three listings."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "defer_multi_location_rollout_pending_device_specific_energy_heat_and_duration_test": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Defer the multi-location wireless-charger rollout pending one device-specific energy, heat, and duration test.",
+            "Run only a conditional single-unit THREEKEY desk pilot and defer every-room deployment until the wired-baseline trial passes."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_fifteen_watt_title_is_measured_iphone_power",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Every frozen charger with 15 W in its title delivers a measured 15 W to the iPhone 13 Pro."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_vchiming_thirty_watt_is_measured_dual_output",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The Vchiming 30 W title proves two devices each receive 15 W simultaneously without an upstream adapter check."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_threekey_iphone_fifteen_watt",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The THREEKEY listing guarantees 15 W to the iPhone even though its complete body states a 7.5 W iPhone maximum."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_protection_is_independent_safety_test",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Seller claims about over-temperature protection and safe charging independently prove long-term battery safety for the scenario phone."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_ratings_are_one_year_durability",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The aggregate rating displays prove which frozen product remains satisfactory after one year and which one gets discarded."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_owner_reports_identify_frozen_products",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The almost-year and over-one-year owner reports identify Vchiming, the frozen car mount, or THREEKEY and prove those products' durability."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_heat_thread_proves_universal_overheating",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The Qi temperature-stop discussion proves that every wireless charger universally overheats every iPhone."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_no_warning_report_proves_universal_safety",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["A single no-warning Belkin experience proves all wireless chargers are thermally safe."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_energy_examples_are_universal_percentages",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Every frozen wireless charger wastes exactly 39 percent of energy when aligned and exactly 80 percent when misaligned."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_gap_replies_settle_efficiency_and_heat",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The informal 2 to 3 mm gap replies conclusively prove there is no efficiency or heat effect for the scenario setup."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build the complete frozen Vchiming, magnetic car-mount, and THREEKEY matrix, preserving exact prices, rating displays, form factors, device lists, power and input profiles, adapter and cable contents, case limits, seller claims, and every missing independent measurement.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "B1"],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Explain inductive power transfer and separate a 15 W maximum from measured iPhone power by checking receiver support, Qi control, coil alignment, case and foreign-object conditions, each pad, and the upstream adapter.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E6", "E9", "B4"],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Scope the frozen efficiency, energy-use, waste-heat, lithium-ion, charger-control, seller-protection, temperature-stop, gap, and wired-versus-wireless evidence without turning bounded examples or anecdotes into a product-specific causal aging result.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E7", "E8", "E11", "E12", "B2"],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Reconcile the almost-year and over-one-year wireless-use reports with switchback, speed, heat, accessory, gap, and temperature-stop counterexamples; preserve the absence of product matching and define a bounded desk and car preflight against a wired baseline.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E5", "E6", "E8", "E10", "E11", "E12", "B3"],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Choose among bulk Vchiming deployment, car-mount-only use, a single THREEKEY desk pilot, or deferral while preserving every form, compatibility, seller, owner, heat, efficiency, rating, and missing long-term-evidence boundary.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "B1", "B2", "B3", "B4", "D1"],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit all three complete frozen product bodies for exact price and rating displays, form, device lists, power and input profiles, adapter and cable contents, alignment and case conditions, seller protection wording, and missing independent measurements.",
+      "slot_ids": ["E1", "E2", "E3", "B1"],
+      "subgoal_ids": ["G1"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain how inductive power crosses the gap and why a 15 W maximum is not measured iPhone power; audit receiver support, Qi power control, alignment, case and foreign-object conditions, each pad, and the upstream adapter.",
+      "slot_ids": ["E1", "E2", "E3", "E6", "E9", "B4"],
+      "subgoal_ids": ["G2"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Decide what the frozen evidence establishes about efficiency, energy use, waste heat, battery longevity, charger controls, and seller protection claims while preserving the scope of each test, mechanism, product body, and anecdote.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E7", "E8", "E11", "E12", "B2"],
+      "subgoal_ids": ["G3"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Reconcile the mixed owner evidence, state whether any report matches the three frozen products or proves year-long durability, and specify a screen-off, same-starting-state desk trial against wired plus a separate intended car trial with adapter, case, alignment, elapsed time, wall energy, interruptions, and temperature warnings recorded.",
+      "slot_ids": ["E1", "E2", "E3", "E5", "E6", "E8", "E10", "E11", "E12", "B3"],
+      "subgoal_ids": ["G4"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Recommend bulk deployment, car-mount-only use, a single THREEKEY desk pilot, or deferral; preserve exact form and power-chain limits, seller and owner scope, rating limits, the Vchiming inconsistencies, and all missing product-specific delivered-power, temperature, battery-retention, satisfaction, and discard evidence.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "B1", "B2", "B3", "B4", "D1"],
+      "subgoal_ids": ["G5"],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "defer_multi_location_rollout_pending_device_specific_energy_heat_and_duration_test"
+  ],
+  "oracle": {
+    "proof": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "B1", "B2", "B3", "B4", "D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"},
+      "E8": {"outcome": "decision_unresolved"},
+      "E9": {"outcome": "decision_unresolved"},
+      "E10": {"outcome": "decision_unresolved"},
+      "E11": {"outcome": "decision_unresolved"},
+      "E12": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 30,
+    "minimum_required_evidence_nodes": 12,
+    "minimum_reasoning_depth": 2
+  }
+}

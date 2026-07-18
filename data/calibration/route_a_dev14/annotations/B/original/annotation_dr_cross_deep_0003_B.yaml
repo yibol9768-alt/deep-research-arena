@@ -1,0 +1,77 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0003
+query_sha256: "0ce041492c3a37f7a66643ff428e4ca1ab81b788b44cd9356508a53695ed71a1"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 产生的输出是对用户的建议；产生的决策是分析"买一个好的降噪头戴"或"买两个（无线耳塞+小音箱）"两种方案的优劣势，帮助用户决策。
+
+  Q2: 必须覆盖两种方案的优缺点对比、结合$250预算的产品推荐、两种形态在不同使用场景（办公室vs露营）的分析，且要近期时效。
+
+  Q3: 验证"小耳塞降噪物理上不如大耳罩"是否真实。
+
+  Q4: $250预算是最硬约束，必须实质性影响比较和推荐。
+
+  Q5: 不需要社区经验，但需要专业性的专家解读（降噪原理分析）。
+
+  Q6: 不可省略内容：两种方案对比、产品推荐（结合$250）、验证降噪差异、权衡分析（trade-off）、时效性。
+
+  Q7: 没有特别模糊的内容。
+
+initial_requirements:
+  - 对比分析两种方案优劣势，覆盖不同使用场景
+  - 为两种方案推荐具体产品，严格在$250预算内
+  - 验证小耳塞降噪是否不如大耳罩
+  - 给出最终购买建议
+  - 确保推荐产品的时效性
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 对比分析两种方案（$250买一副降噪头戴耳机 vs 拆分买无线耳塞+小音箱）的综合优劣势，涵盖不同使用场景（开放式办公室 vs 露营）的适用性，帮助用户权衡决策
+    necessity_reason: Query 核心冲突是"one properly good pair" vs "the same money could cover both"，省略此对比则用户最根本的决策需求未被回答
+    query_basis: "Half of me wants one properly good pair of noise cancelling over-ears... the other half says get decent wireless earbuds and a rugged little speaker"
+    output_form: compare
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 为两种方案分别推荐具体产品，严格在$250预算内，并最终给出明确的购买建议（$250到底怎么花）
+    necessity_reason: Query 明确要求"end with what you'd actually buy with my $250"，即产品推荐加最终决策缺一不可
+    query_basis: "end with what you'd actually buy with my $250"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 验证"小耳塞的降噪在物理上不如大耳罩"是否真实，需包含专业的降噪原理解读
+    necessity_reason: Query 直接提问"Is that true?" 关于耳塞 vs 头戴的降噪能力差异，省略则用户的核心技术疑问未被回答
+    query_basis: "I've heard the noise cancelling in small earbuds can't physically work as well as in big cups. Is that true?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R4
+    requirement: 确保对比分析涉及的产品是近期在售的，如有历史产品需与当前在售产品做对比分析
+    necessity_reason: 在$250固定预算下，推荐过时产品会导致用户做出错误购买决策，即使对比到位也不完整
+    query_basis: "what you'd actually buy with my $250"（隐含时效性要求——实际购买需参考当前市场）
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "properly good"
+    note: "真正好"的标准不明确（音质、降噪深度、做工、品牌？）
+  - phrase: "decent wireless earbuds"
+    note: "不错"的耳塞对应什么价位档次不明确（$50、$80、$100？）
+  - phrase: "splitting the budget"
+    note: 预算拆分比例不明确（如何分配在耳塞和音箱之间）
+
+unresolved: []
+
+evidence_answerability: not_assessed

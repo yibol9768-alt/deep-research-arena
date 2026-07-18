@@ -170,14 +170,15 @@ def test_snippet_only_declared_is_clean():
 
 
 def test_real_protocol_snippet_only_lanes_are_declared():
-    # The shipped protocol's three snippet-only lanes (storm, langchain-odr,
-    # co-storm) each carry the disclosure; the pre-gate protocol declared
+    # The shipped protocol's four snippet-only lanes (storm, langchain-odr,
+    # co-storm, and LDR's official custom retriever) each carry the disclosure;
+    # the pre-gate protocol declared
     # fetch_mode none with no snippet_only deviation, so this reconciler is red
     # on it (asserted in the red-on-old test below).
     lanes = cd._load_lanes(cd.LANE_PROTOCOL)
     none_lanes = {ln for ln, e in lanes.items()
                   if (e or {}).get("fetch_mode") == "none"}
-    assert none_lanes == {"storm", "langchain-odr", "co-storm"}
+    assert none_lanes == {"storm", "langchain-odr", "co-storm", "ldr"}
     assert cd.check_snippet_only(lanes) == []
 
 

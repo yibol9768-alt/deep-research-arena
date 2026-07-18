@@ -1,0 +1,294 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_headphones_audio_0023",
+  "cluster_id": "audio_budget_split",
+  "difficulty": {
+    "proof_depth": 3,
+    "branching_factor": 2,
+    "distractor_density": 0.25,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "bluetooth_audio_evolution_chain_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The supported chronology begins with the Bluetooth SIG as the standards organization founded in September 1998, but that organizational date is not an A2DP launch date. The protocol source explains that AVDTP is used by the advanced audio distribution profile to stream music to stereo headsets over L2CAP, while the stack source supplies later operating-system deployment observations for Mac OS X 10.5 and Windows 8; role and deployment must not be converted into a manufactured first-release year. A distinct low-energy lineage runs from Wibree's public release in October 2006, through the June 2007 agreement to include it in a future Bluetooth specification, to completed Bluetooth 4.0 integration in early 2010. LE Audio was announced in January 2020 on Bluetooth 5.2 or 5.3, introduced LC3 as its default codec, and was announced complete on 12 July 2022. LC3 is described as a Bluetooth SIG BLE-audio codec introduced around Bluetooth 5.2 and succeeding SBC, but its comparative quality passage is based on subjective testing and includes a disputed comparison, so neither LC3 nor a newer Bluetooth version guarantees a better result for every implementation or listener."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "wired_wireless_signal_path_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Compare complete paths rather than connection labels. Start with the file or streamed representation and any lossy coding, then identify the negotiated transport and codec, decoding, digital-to-analog conversion, amplification, optional DSP, and the headphone transducer and fit. The coding source separates a format from the algorithms of a codec implementation and says lossy coding irretrievably removes information; the DAC source says a digital stream returns to analog before amplification and reproduction; and the amplifier source shows that distortion, output impedance, frequency response, and DSP can vary by implementation. A cable avoids a radio transport stage, but it does not make every source, DAC, amplifier, DSP setting, or transducer identical. A wireless path may add transport coding or use internal electronics, yet that does not prove an audible loss in every endpoint pair. The community pages show both configuration-dependent reports and modular wired-IEM-to-Bluetooth arrangements; they motivate exact-path verification and matched listening, not prevalence or a universal wired-versus-wireless verdict. Seller pages showing a 3.5 millimetre Bluetooth receiver and a dual-mode headset are architecture observations only, not history or controlled fidelity tests."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "first_purchase_mechanism_checklist_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Before a first serious headphone purchase, identify the exact source device and operating system and distinguish Classic audio support from LE Audio support. Record the profile and codec actually negotiated rather than relying on a Bluetooth version badge. For analog wired, USB digital, and wireless modes, determine whether the headphone uses its internal DAC, amplifier, DSP, battery, or a passive path, and check source output compatibility and sufficient drive. Compare the same master and settings at matched loudness, and judge audible sound separately from latency, connection stability, battery, microphone, and convenience. Treat current catalog pages as architecture examples and forum comments as scoped experiences. If the exact endpoints or mode-specific paths are unknown, state that the available material cannot predict which connection will sound better."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "evidence_bounded_bluetooth_audio_explanation_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Give the supported Bluetooth-audio chronology without inventing an A2DP release year, and keep Classic stereo transport deployment separate from the Wibree, Bluetooth Low Energy, LE Audio, and LC3 lineage. Explain that wired and wireless playback can differ when their source coding, negotiated transport, conversion, amplification, DSP, power state, or endpoint implementation differs, but neither label universally determines sound quality. Before a first serious purchase, record the exact source device and operating system; whether Classic audio or LE Audio is supported; the profile and codec actually negotiated; whether analog, USB, and wireless modes use the headphone's internal DAC, amplifier, DSP, or battery; and whether a passive wired path has compatible output and enough drive. Compare the same master and settings at matched loudness, and score audible sound separately from latency, stability, microphone, battery, and convenience. If exact endpoints or mode-specific paths are unknown, state that the available material cannot predict a winner."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "report_only_the_supported_chronology_compare_the_complete_paths_and_verify_exact_endpoints_without_making_a_universal_sound_quality_claim": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Report only the supported standards, deployment, BLE, LE Audio, and LC3 milestones; compare the complete wired and wireless signal paths; and verify exact endpoints and negotiated modes before predicting an audible result, because neither wired nor wireless is universally superior.",
+            "Use the bounded chronology and full signal-chain checklist, not an invented A2DP year, a Bluetooth-version badge, a seller claim, or a universal wired-better rule."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "report_only_the_supported_chronology_compare_the_complete_paths_and_verify_exact_endpoints_without_making_a_universal_sound_quality_claim",
+          "when": "history_and_signal_path_are_supported_but_exact_purchase_endpoints_and_mode_specific_implementations_are_unknown",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The frozen material supports a bounded chronology and identifies mechanisms that can make paths differ, but it does not specify the buyer's exact source, operating system, negotiated codec, mode-specific electronics, transducer response, fit, or matched listening result."
+            ],
+            "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+          },
+          "tradeoff_matchers": {
+            "classic_and_le_audio_are_not_interchangeable_labels": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Classic A2DP transport role and operating-system deployment must be reported separately from the Wibree-to-BLE and LE Audio with LC3 lineage."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "connection_label_does_not_fix_complete_signal_path": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "A wired or wireless label alone does not fix source coding, transport, DAC, amplifier, DSP, power state, transducer, or fit, so it cannot determine a universal sound-quality ordering."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "verification_precedes_purchase_prediction": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Verify the exact source, operating system, supported architecture, negotiated profile and codec, mode-specific electronics, output compatibility, and matched-loudness result before predicting a purchase winner."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_sig_founding_is_a2dp_launch_date",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Bluetooth SIG founding date proves the exact year that A2DP launched."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_os_deployment_is_protocol_birth",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An operating system adding A2DP establishes the protocol's first release date."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_classic_ble_and_le_audio_are_same_stage",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Classic A2DP, Bluetooth Low Energy, and LE Audio are interchangeable names for the same audio stage and chronology."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_newer_version_or_lc3_guarantees_quality",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A newer Bluetooth version or an LC3 label guarantees better sound for every implementation and listener."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_wireless_always_worse",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Wireless playback always sounds worse than wired playback solely because it uses radio."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_lossless_bypasses_conversion_and_amplification",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A lossless source bypasses digital-to-analog conversion, amplification, DSP, and the transducer."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_product_pages_prove_history_or_fidelity",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The two seller listings independently prove Bluetooth history and a controlled wired-versus-wireless fidelity result."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_forum_reports_are_prevalence",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The anonymous listening and adapter comments establish population prevalence and a universal audible result."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_predict_winner_without_endpoint_verification",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Choose wired or wireless as the purchase winner without identifying the exact source, operating system, negotiated mode, internal electronics, output compatibility, or matched listening result."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build the supported Bluetooth-audio chronology, separating standards-organization history, Classic transport role, operating-system deployment, the Wibree-to-BLE lineage, and the LE Audio and LC3 transition without inventing an A2DP launch date.",
+      "critical": true,
+      "requires": ["E3", "E4", "E5", "E9", "E10", "E11", "B1"],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Map the complete wired and wireless playback paths across coding, transport, conversion, amplification, DSP, endpoint implementation, and modular adapters, preserving the scope of community experience.",
+      "critical": true,
+      "requires": ["E1", "E2", "E6", "E7", "E8", "B2"],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Convert the bounded chronology and complete signal-path comparison into an operational first-purchase verification checklist for exact endpoints, negotiated modes, electronics, output compatibility, and matched listening.",
+      "critical": true,
+      "requires": ["E1", "E3", "E6", "E8", "B1", "B2", "B3"],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "State the evidence-bounded conclusion, reject invented chronology and universal connection-label shortcuts, and explain when unknown endpoints prevent a purchase prediction.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "B1", "B2", "B3", "D1"],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Give a source-bounded chronology from the Bluetooth SIG and Classic AVDTP and A2DP role and deployment evidence through Wibree, Bluetooth Low Energy, LE Audio, and LC3, explicitly distinguishing organization history, transport role, operating-system deployment, and later evolution.",
+      "slot_ids": ["E3", "E4", "E5", "E9", "E10", "E11", "B1"],
+      "subgoal_ids": ["G1"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Compare the complete wired and wireless signal paths, including source coding, negotiated transport and codec, decoding, DAC, amplifier, DSP, power state, transducer, fit, and modular receiver examples, while treating community comments as scoped experiences.",
+      "slot_ids": ["E1", "E2", "E6", "E7", "E8", "B2"],
+      "subgoal_ids": ["G2"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Conclude with an operational first-purchase checklist for exact source, operating system, Classic or LE Audio support, actually negotiated profile and codec, mode-specific electronics, output compatibility, matched loudness, and separate sound, latency, stability, battery, microphone, and convenience judgments; avoid a universal wired-better or version-badge claim.",
+      "slot_ids": ["E1", "E3", "E6", "E8", "B1", "B2", "B3"],
+      "subgoal_ids": ["G3"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "State the bounded conclusion, explain why neither connection label universally determines sound quality, and identify when missing exact endpoint or mode-specific information prevents a purchase prediction.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "B1", "B2", "B3", "D1"],
+      "subgoal_ids": ["G4"],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "report_only_the_supported_chronology_compare_the_complete_paths_and_verify_exact_endpoints_without_making_a_universal_sound_quality_claim",
+      "when": "history_and_signal_path_are_supported_but_exact_purchase_endpoints_and_mode_specific_implementations_are_unknown",
+      "required_tradeoffs": [
+        "classic_and_le_audio_are_not_interchangeable_labels",
+        "connection_label_does_not_fix_complete_signal_path",
+        "verification_precedes_purchase_prediction"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "B1", "B2", "B3", "D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"},
+      "E8": {"outcome": "decision_unresolved"},
+      "E9": {"outcome": "decision_unresolved"},
+      "E10": {"outcome": "decision_unresolved"},
+      "E11": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 35,
+    "minimum_required_evidence_nodes": 11,
+    "minimum_reasoning_depth": 3
+  }
+}

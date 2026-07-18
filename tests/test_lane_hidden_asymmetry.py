@@ -27,6 +27,8 @@ def test_shared_report_format_is_appended_once_at_dispatch():
 
     resolved = rdt._resolve_intent({"intent": "Research this."})
     assert resolved == "Research this." + rdt.SHARED_REPORT_FORMAT
+    assert resolved.count("Base factual claims on sources retrieved during this run") == 1
+    assert resolved.count("exact retrieved URL for every source used") == 1
     assert resolved.count("Deliver your answer as a single self-contained markdown report") == 1
 
     # Per-lane wrappers must not reinforce the shared instruction a second time.
@@ -153,6 +155,19 @@ def test_ii_driver_path_is_unique_and_cleaned():
     assert '_egress.scratch_path("ii-researcher-driver")' in source
     assert "driver.unlink(missing_ok=True)" in source
     assert 'ROOT / "scripts" / "_ii_driver.py"' not in source
+    # ToolHistory is not a sequence; diagnostics must use its public accessors
+    # instead of crashing after a successful native run with ``len(history)``.
+    assert "get_searched_queries" in source
+    assert "get_visited_urls" in source
+    assert "len(getattr(agent, 'tool_history'" not in source
+    assert "tools=api_tool_schemas()" in source
+    assert "tool_choice='auto'" in source
+    assert "parallel_tool_calls=False" in source
+    assert "tool_choice='required'" not in source
+    assert 'env["II_BENCHMARK_ROOT"] = str(ROOT)' in source
+    assert "sys.path.insert(0, os.environ['II_BENCHMARK_ROOT'])" in source
+    assert "len(_api_tool_calls) >= MAX_NATIVE_ACTIONS" in source
+    assert "return '</think>'" in source
 
 
 def test_qx_driver_path_is_unique_and_cleaned():

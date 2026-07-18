@@ -10,7 +10,7 @@
   "difficulty": 5,
   "expected_steps": 80,
   "intent": "I fly long-haul for work every month, pack a single small backpack, and wear glasses I can't take off mid-flight. Big over-ears feel like the obvious answer for engine noise, but they eat half my bag and I've read glasses arms break the seal so the noise cancelling stops working properly. Is that a real physical problem or overblown? Would compact on-ears or good earbuds actually serve a glasses wearer better for ten hours in the air? I'd love to hear from frequent flyers who wear glasses too, and then a pick that fits my bag and my face.",
-  "start_url": "__SHOPPING__/catalogsearch/result/?q=mechanical+keyboard",
+  "start_url": "__SHOPPING__/catalogsearch/result/?q=noise+cancelling+headphones",
   "storage_state": null,
   "require_login": false,
   "markdown_spec": {
@@ -42,7 +42,8 @@
     }
   },
   "url_coverage": {
-    "golden_pool_path": "data/golden/deep/dr_cross_deep_0010.json",
+    "golden_pool_path": "data/golden/answer_keys/dr_cross_deep_0010.json",
+    "legacy_golden_pool_path_v1": "data/golden/deep/dr_cross_deep_0010.json",
     "min_unique_urls_browsed": 100,
     "min_unique_urls_cited": 60,
     "min_must_cite_recall": 0.45,
@@ -61,7 +62,8 @@
     "probe_timeout_seconds": 6.0
   },
   "golden": {
-    "triples_path": "data/golden/deep/dr_cross_deep_0010.json",
+    "answer_key_path": "data/golden/answer_keys/dr_cross_deep_0010.json",
+    "triples_path_v1_legacy": "data/golden/deep/dr_cross_deep_0010.json",
     "expected_predicates": [
       "price",
       "rating",
@@ -76,35 +78,29 @@
     "v1_deprecated_note": "v1-only artifact: pool/triples describe the pre-2026-07-03 topic of this task id and are NOT valid for task_version 2; v2 scoring reads data/golden/answer_keys/<task_id>.json exclusively"
   },
   "synthesis_requirements": {
-    "task_type": "timeline",
-    "eras": [
-      "1980s_buckling_spring",
-      "1990s_2010s_cherry_dominance",
-      "2015_2022_hotswap",
-      "2023plus_analog_hall"
+    "task_type": "use_case_fit",
+    "decision_dimensions": [
+      "glasses_seal_and_anc",
+      "engine_noise_isolation",
+      "ten_hour_comfort",
+      "small_backpack_packability",
+      "battery_and_inflight_practicality"
     ],
-    "min_per_era": {
-      "wiki": 3,
-      "shopping": 3,
-      "reddit": 3
-    },
-    "taxonomy_branches": [
-      "mechanical_contact",
-      "optical",
-      "magnetic_hall"
+    "form_factors": [
+      "over_ear",
+      "on_ear",
+      "earbuds"
     ],
-    "min_taxonomy_leaves_with_evidence": 6,
-    "debunked_myths_count": 7,
-    "min_per_myth": {
-      "wiki": 1,
-      "reddit": 1
-    },
-    "explicitly_forbid_top10": true
+    "required_output": [
+      "explain_the_physical_seal_tradeoff",
+      "compare_all_three_form_factors",
+      "give_an_actionable_final_pick"
+    ]
   },
   "coverage_checklist_path": "data/golden/checklists/dr_cross_deep_0010.json",
-  "author_notes": "Deep-tier task v1 — see configs/deep_topics/V1_TASK_DESIGN_GRID.md §2 for spec.",
+  "author_notes": "Deep-tier task v2: headphones use-case-fit; v1 mechanical-keyboard artifacts are retained only in explicitly named legacy fields.",
   "domain": "headphones_audio",
-  "intent_type": "Timeline",
+  "intent_type": "UseCaseFit",
   "intent_v1_legacy": "I fell down the mechanical keyboard rabbit hole recently and I keep hearing references to history I don't get, people worshipping old IBM buckling-spring boards, decades of Cherry MX everything, and now these Hall-effect magnetic switches everyone's raving about. Can you walk me through how switch technology actually evolved from the 1980s to today and why each shift happened? A clear map of the current landscape, mechanical versus optical versus magnetic, would help me make sense of what I'm buying. And I'd love to know which bits of old community folklore turned out to be nonsense.",
   "task_version": 2,
   "tri_source": {
@@ -125,8 +121,22 @@
     ],
     "wiki_topics": [
       "Active noise control",
+      "Noise-cancelling headphones",
       "Headphones"
     ],
+    "vital_product_urls": [
+      "http://localhost:7770/sony-wh1000xm3-bluetooth-wireless-noise-canceling-headphones-silver-wh-1000xm3-s-renewed.html",
+      "http://localhost:7770/jbl-live-660nc-wireless-over-ear-noise-cancelling-headphones-with-long-lasting-battery-and-voice-assistant-black.html",
+      "http://localhost:7770/house-of-marley-exodus-anc-noise-cancelling-over-ear-headphones-with-microphone-wireless-bluetooth-connectivity-and-28-hours-of-playtime.html",
+      "http://localhost:7770/supereq-s8-active-noise-cancelling-headphones-on-ear-bluetooth-headsets-w-built-in-mic-for-kids-adults-wireless-wired-2-in-1-18-hrs-playtime-hifi-audio-for-pc-computer-laptop-tablet-phones.html",
+      "http://localhost:7770/wireless-earbuds-active-noise-cancelling-nypots-a8-anc-bluetooth-earbuds-wireless-charging-transparent-mode-headphones-ipx8-waterproof-earphone-32h-playtime-headset.html",
+      "http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html",
+      "http://localhost:7770/jabra-evolve-65t-true-wireless-bluetooth-earbuds-uc-optimized-superior-call-quality-and-connectivity-passive-noise-cancelling-earbuds-with-up-to-15-hours-of-battery-life-with-charging-case.html",
+      "http://localhost:7770/mee-audio-x20-truly-wireless-active-noise-canceling-in-ear-headphones-black-ep-x20-bk.html",
+      "http://localhost:7770/amorno-foldable-bluetooth-headphones-wireless-neckband-headset-with-retractable-earbuds-sports-sweatproof-noise-cancelling-stereo-earphones-with-mic.html",
+      "http://localhost:7770/harphonic-e7-active-noise-cancelling-headphones-bluetooth-headphones-wireless-headphones-over-ear-with-microphone-deep-bass-comfortable-protein-earpads-30-hours-playtime-for-travel-work-black.html"
+    ],
+    "contradictions_product_scope": "vital",
     "archetype": "use-case-fit",
     "angle": "Long-haul flights with glasses and a tiny backpack: whether glasses break the ANC seal and which form factor (on-ear, over-ear, earbuds) fits the trip"
   },

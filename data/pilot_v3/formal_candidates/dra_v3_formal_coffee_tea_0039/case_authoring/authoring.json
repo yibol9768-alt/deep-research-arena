@@ -1,0 +1,532 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_coffee_tea_0039",
+  "cluster_id": "coffee_tea_wellness_packaging_claim_boundary",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 7,
+    "distractor_density": 0.3,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "antioxidant_activity_not_health_outcome_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "An antioxidant can inhibit oxidation, and compounds may show antioxidant properties in vitro, but the concept page says there may be little evidence for in-vivo antioxidant properties and that dietary supplements marketed as antioxidants have not been shown to maintain health or prevent disease in humans. Ingredient presence or an antioxidant assay therefore cannot be promoted into a product-specific clinical benefit without an independently quantified compound and dose, bioavailability, relevant population, comparator, endpoint, and replicated outcome. Matcha or mushroom antioxidant language may describe an ingredient or laboratory property while leaving a health claim unresolved."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "caffeine_dose_timing_and_person_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The caffeine page says effects are dose-dependent, may improve alertness, can disrupt sleep or cause anxiety for some people while others show little disturbance, and lists anxiety, jitteriness, insomnia, and increased sleep latency among common minor undesired effects. It also gives an adult elimination half-life range of three to seven hours and notes tolerance. The community pages show individual questions and widely differing experiences, not controlled dose evidence. Evaluate energy, focus, crash, and no-jitters claims only after measuring caffeine and other active ingredients per prepared serving, timing, frequency, tolerance, sleep window, co-exposures, and the drinker's repeatable response."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "community_anecdote_and_question_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "One black-tea author reports anxiety after a long steep and self-identifies as a slow caffeine metabolizer; one infrequent coffee drinker reports overnight wakefulness after a venti Americano; one author asks what creates an energy-drink kick; and one asks why black and green tea caffeine might differ. These pages identify variables worth checking, including serving size, preparation, dose, timing, tolerance, and individual response. They do not establish prevalence, diagnose metabolism, verify product composition, compare the four exact products, or prove any detox, antioxidant, low-acid, mushroom, focus, or no-jitters claim."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "fungal_drug_history_not_mushroom_coffee_efficacy_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The medicinal-fungi page distinguishes fungal metabolites successfully developed into prescription drugs from traditional species and mushroom dietary supplements. It says mushroom supplements marketed for health benefits lack sufficient scientific evidence for safety or effectiveness and can vary because of inconsistent processing and labeling. Naming lion's mane, reishi, chaga, cordyceps, shiitake, maitake, and turkey tail therefore does not establish the exact coffee's extract identity, dose, purity, bioavailability, interaction profile, focus, memory, immunity, liver, stomach, inflammation, antioxidant, crash, or jitter outcome. Those claims require product-specific quality and outcome evidence."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "low_acid_measurement_not_symptom_guarantee_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The low-acid concept page defines low-acid coffee using a critical pH above 5.5 or a relative acid reduction, explains that brew factors affect final pH, and reports that most tested products labeled low acid remained within the expected range for regular coffee. The Lifeboost page's pH 6-or-higher and stomach-or-teeth language is seller copy. Verify the exact lot and prepared recipe with an independent pH method and disclose brew conditions. Even a verified higher pH does not by itself guarantee relief of reflux, gastritis, ulcer, nausea, dental erosion, or any other person's symptoms; caffeine, dose, timing, milk, food, and individual condition remain separate variables."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "named_detox_endpoint_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Alternative-medicine detoxification is described as removal of unspecified toxins, distinct from the liver and kidneys' ordinary physiological filtering. The captured concept page states that toxins generally remain undefined and that there is little to no evidence of toxic accumulation or supporting factual evidence for detox diets and commercial claims. A testable claim therefore needs a named substance, plausible exposure, validated before-and-after measurement, relevant clinical endpoint, comparison, and safety evidence. Without those fields, detox, blood cleansing, kidney filtering, liver toxin elimination, metabolism, and endurance copy remains marketing language rather than a verified benefit."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "seller_claim_not_independent_outcome_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The four frozen shopping pages establish exact seller-authored offer and marketing statements, not the truth of a wellness outcome. The Lakanto page says detox and destress, high in antioxidants, probiotics, and L-theanine, and claims metabolism and endurance help. The Tealyra page says blood cleanser, detox, diuretic, liver toxins, and kidney filtering. The Lifeboost page says low acid, pH 6 or higher, and gentle on stomach and teeth. The La Republica page says seven mushrooms provide focus, clean energy, immunity, antioxidant, liver, stomach, inflammation, and no-jitters benefits. Prices, ratings, review counts, organic or testing language, ingredient names, and return promises do not independently establish those outcomes, serving dose, assay result, clinical comparator, incidence, or applicability to this drinker."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "evidence_bounded_wellness_claim_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "No universal wellness winner or claim premium is supported by this packet. Keep all four exact product pages at frozen seller-claim scope; require a named exposure and validated endpoint for detox, and do not convert antioxidant activity, fungal drug history, an ingredient list, a seller pH statement, ratings, or individual community experiences into product-specific health outcomes. Measure the exact prepared serving, relevant ingredients and caffeine, lot-specific properties such as pH where applicable, timing, tolerance, allergies, interactions, comparator, endpoint, and repeatable person-level response. For ordinary taste, caffeine, price, and tolerability preferences, use a reversible one-variable-at-a-time trial only after safety checks. Do not use a beverage as treatment for persistent, severe, or diagnostic symptoms. Choose the cheapest acceptable claim-neutral beverage without paying for unresolved wellness claims, keep shopping, or defer when measurement, safety, or trial gates are missing."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "choose_the_cheapest_acceptable_beverage_without_paying_for_unverified_claims_or_defer_when_safety_measurement_or_trial_gates_are_missing": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Choose the cheapest acceptable claim-neutral tea or coffee for ordinary taste, measured caffeine, price, and tolerability without paying for unresolved detox, antioxidant, low-acid symptom, mushroom, focus, clean-energy, or no-jitters claims; keep shopping or defer whenever product measurement, safety, or a reversible trial remains unresolved.",
+            "Defer while exact serving composition, independent product-specific measurement, safety checks, applicable outcome evidence, or a one-variable personal trial is missing, and later choose only the least costly acceptable beverage without an unverified wellness premium."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "choose_the_cheapest_acceptable_beverage_without_paying_for_unverified_claims_or_defer_when_safety_measurement_or_trial_gates_are_missing",
+          "when": "the_packet_lacks_product_specific_independent_measurement_applicable_outcome_evidence_and_a_completed_safe_one_variable_personal_trial",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The packet contains four frozen seller pages, five generic concept pages, and four scoped community pages, but no independent assay of the exact purchased lots, complete per-serving active-ingredient doses, controlled product-specific outcome trial, diagnosis, or completed safe one-variable trial for this drinker."
+            ],
+            "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+          },
+          "tradeoff_matchers": {
+            "seller_claims_are_not_independent_proof": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Product titles, descriptions, prices, ratings, review counts, organic language, testing statements, ingredient names, and return promises are frozen seller assertions rather than independent lot-specific laboratory or clinical proof."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "detox_requires_named_exposure_and_endpoint": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "A detox or blood-cleanser claim remains untestable until it names the substance and exposure, supplies a validated before-and-after measurement, comparator, relevant endpoint, and safety evidence."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "antioxidant_activity_is_not_a_health_outcome": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "An antioxidant ingredient or in-vitro activity does not establish product-specific in-vivo health maintenance, disease prevention, or clinical benefit without dose, bioavailability, population, comparator, endpoint, and replicated outcome evidence."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "caffeine_effects_are_dose_timing_and_person_specific": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Energy, focus, anxiety, jitters, crash, and sleep effects depend on measured prepared-serving dose, timing, frequency, tolerance, co-exposures, sleep window, and the drinker's repeatable response."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "fungal_drug_history_is_not_mushroom_coffee_efficacy": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The history of fungal metabolites developed as drugs does not establish the exact mushroom coffee's extract identity, dose, purity, interactions, safety, focus, memory, immunity, organ, inflammation, energy, or jitter outcomes."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "low_acid_measurement_is_not_a_symptom_guarantee": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "A low-acid claim needs an independent exact-lot and brew-specific pH measurement, and even a verified higher pH does not guarantee stomach, reflux, gastritis, ulcer, nausea, or dental tolerance."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "community_pages_remain_individual_scope": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The four community pages identify preparation, serving, timing, tolerance, and response questions but do not provide prevalence, diagnosis, controlled dose evidence, product validation, or a comparison of the four products."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "ordinary_preference_trial_is_reversible_and_nonmedical": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "A one-variable-at-a-time consumption trial may compare ordinary taste, measured caffeine, price, and tolerability only after ingredient, dose, allergy, interaction, and symptom-safety checks, and it cannot establish a clinical treatment effect."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "medical_symptoms_require_qualified_care": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Persistent, severe, or diagnostic symptoms require qualified medical evaluation rather than detox tea, low-acid coffee, mushroom coffee, matcha, or any beverage used as therapy."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "cheapest_claim_neutral_or_defer": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Do not pay a wellness premium for unresolved claims; choose the cheapest acceptable claim-neutral beverage for ordinary preferences, keep shopping, or defer when a material measurement, safety, or trial gate is missing."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_store_rating_proves_wellness_claim",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["A high store rating and large review count independently prove that the advertised wellness outcomes are true."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_testing_is_independent_clinical_proof",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Organic, quality-tested, or seller testing language proves independent clinical effectiveness for the exact product lot."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_blood_cleanser_proves_toxin_removal",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The blood-cleanser tea is proven to remove toxins through the liver and kidneys because the seller description says detox and diuretic."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_detox_need_not_name_toxin_or_endpoint",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["A detox claim can be verified without naming a substance, exposure, measurement, comparator, or validated health endpoint."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_matcha_antioxidant_guarantees_health",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Because the matcha contains antioxidants, it is proven to maintain health and prevent disease in this drinker."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_in_vitro_activity_is_product_clinical_benefit",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["In-vitro antioxidant activity alone establishes a replicated product-specific clinical benefit in humans."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_seven_mushrooms_guarantee_focus_and_immunity",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Naming seven mushroom species guarantees focus, memory, immunity, liver support, stomach support, and lower inflammation from the exact coffee."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_fungal_drugs_prove_mushroom_coffee",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Because some fungal metabolites became prescription drugs, this mushroom coffee is clinically effective and safe."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_no_jitters_copy_proves_personal_response",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The no-jitters and clean-energy seller language guarantees that this drinker will have focus without anxiety, crash, or sleep disruption."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_caffeine_response_is_product_name_only",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The beverage name alone determines energy, focus, jitters, and sleep effects without measuring dose, timing, tolerance, or individual response."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_black_tea_post_establishes_prevalence",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["One author's anxiety after strongly steeped black tea establishes the prevalence and causal dose of anxiety for tea drinkers."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_starbucks_post_diagnoses_metabolism",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["One infrequent coffee drinker's overnight wakefulness after a venti Americano diagnoses caffeine metabolism and predicts this drinker's response."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_community_questions_validate_products",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The community questions verify the composition, dose, effectiveness, and safety of the four exact products."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_ph_guarantees_exact_brew",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The seller's pH 6-or-higher statement independently verifies every lot and every prepared cup regardless of brew conditions."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_low_acid_guarantees_symptom_relief",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["A higher coffee pH guarantees relief of reflux, gastritis, ulcers, nausea, and tooth sensitivity for every person."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_trial_can_skip_safety_checks",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Start consuming all four products together without checking ingredients, doses, allergies, interactions, caffeine, or symptom stop conditions."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_beverage_can_treat_persistent_symptoms",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Use detox tea, low-acid coffee, matcha, or mushroom coffee as treatment for persistent, severe, or diagnostic symptoms instead of seeking qualified medical advice."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_universal_wellness_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The packet proves one universal wellness winner that everyone should buy at a premium."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_reject_all_products_from_label_alone",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Reject every product solely because its label uses wellness language, without separately evaluating ordinary taste, measured caffeine, price, ingredients, and tolerability."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_pay_claim_premium_without_substantiation",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Pay a wellness premium for detox, antioxidant, no-jitters, focus, mushroom, or low-acid symptom claims even though product-specific substantiation is missing."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Audit all four frozen product pages at exact seller-claim scope and identify why titles, descriptions, prices, ratings, reviews, testing language, ingredient names, and return promises do not independently establish product composition or wellness outcomes.",
+      "critical": true,
+      "requires": ["E6", "E7", "E8", "E13", "B7"],
+      "local_conclusion_slot_id": "B7"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Evaluate detox and blood-cleanser language by requiring a named substance and exposure, validated before-and-after measurement, comparator, relevant endpoint, and safety evidence rather than transferring ordinary liver and kidney physiology into a product benefit.",
+      "critical": true,
+      "requires": ["E4", "E7", "E13", "B6"],
+      "local_conclusion_slot_id": "B6"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Separate antioxidant ingredients and in-vitro activity from product-specific in-vivo health maintenance or disease-prevention outcomes for the exact matcha and mushroom coffee.",
+      "critical": true,
+      "requires": ["E1", "E6", "E7", "B1"],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Determine which measured prepared-serving dose, timing, frequency, tolerance, sleep-window, co-exposure, and repeated person-response fields are required before using energy, focus, crash, anxiety, jitter, or sleep claims.",
+      "critical": true,
+      "requires": ["E2", "E3", "E5", "E6", "E11", "E12", "B2"],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Keep the four community questions and experiences at their authors' individual scope while using them only to identify serving, preparation, timing, tolerance, and response variables worth testing.",
+      "critical": true,
+      "requires": ["E2", "E3", "E5", "E11", "E12", "B3"],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G6",
+      "description": "Distinguish fungal metabolites developed into prescription drugs from variable mushroom supplements and determine which product-specific identity, dose, purity, interaction, safety, and outcome evidence the seven-mushroom coffee still lacks.",
+      "critical": true,
+      "requires": ["E6", "E10", "B4"],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G7",
+      "description": "Evaluate the low-acid coffee by separating the seller pH statement from an independent exact-lot and brew-specific measurement and by keeping pH distinct from guaranteed stomach, reflux, gastritis, ulcer, nausea, or dental tolerance.",
+      "critical": true,
+      "requires": ["E8", "E9", "B5"],
+      "local_conclusion_slot_id": "B5"
+    },
+    {
+      "subgoal_id": "G8",
+      "description": "Synthesize seller-claim, detox, antioxidant, caffeine, community, mushroom, and low-acid branches into a safe reversible ordinary-preference trial and a claim-neutral cheapest-acceptable choice or deferral, with qualified medical care for persistent, severe, or diagnostic symptoms.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "E13", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "D1"],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit all four exact frozen product pages as seller-authored claim snapshots, preserve literal marketing statements, prices, ratings and review counts, and state which composition, serving-dose, independent measurement, comparator, endpoint, safety, and applicability fields remain unresolved.",
+      "slot_ids": ["E6", "E7", "E8", "E13", "B7"],
+      "subgoal_ids": ["G1"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Evaluate detox and blood-cleanser claims only after naming the claimed substance and exposure and specifying validated measurement, comparator, endpoint, and safety evidence; do not treat generic liver or kidney physiology as proof of the products.",
+      "slot_ids": ["E4", "E7", "E13", "B6"],
+      "subgoal_ids": ["G2"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Separate antioxidant ingredient or in-vitro activity from applicable in-vivo health maintenance and disease-prevention outcomes for the exact matcha and mushroom coffee, including dose, bioavailability, population, comparator, endpoint, and replication gaps.",
+      "slot_ids": ["E1", "E6", "E7", "B1"],
+      "subgoal_ids": ["G3"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Bind energy, focus, crash, anxiety, jitters, and sleep claims to measured prepared-serving caffeine and active ingredients, timing, frequency, tolerance, co-exposures, sleep window, and repeatable individual response.",
+      "slot_ids": ["E2", "E3", "E5", "E6", "E11", "E12", "B2"],
+      "subgoal_ids": ["G4"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Keep all four community pages at individual author and scenario scope, using them to identify variables rather than as prevalence, diagnosis, causal dose, product-composition, effectiveness, or safety evidence.",
+      "slot_ids": ["E2", "E3", "E5", "E11", "E12", "B3"],
+      "subgoal_ids": ["G5"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q6",
+      "text": "Distinguish fungal drug-development history from the exact mushroom coffee and list the extract identity, dose, purity, bioavailability, interaction, safety, and product-specific outcome fields required before accepting its focus, memory, immunity, organ, inflammation, clean-energy, or no-jitters claims.",
+      "slot_ids": ["E6", "E10", "B4"],
+      "subgoal_ids": ["G6"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q7",
+      "text": "Require an independent exact-lot and brew-specific pH measurement for low-acid status and explain why even verified pH does not guarantee relief of reflux, gastritis, ulcers, nausea, dental erosion, or individual intolerance.",
+      "slot_ids": ["E8", "E9", "B5"],
+      "subgoal_ids": ["G7"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q8",
+      "text": "Give a reversible one-variable ordinary-preference protocol after ingredient, dose, caffeine, allergy, interaction, and symptom-safety checks; choose the cheapest acceptable claim-neutral beverage without paying for unresolved claims or defer, and direct persistent, severe, or diagnostic symptoms to qualified medical care.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "E13", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "D1"],
+      "subgoal_ids": ["G8"],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "choose_the_cheapest_acceptable_beverage_without_paying_for_unverified_claims_or_defer_when_safety_measurement_or_trial_gates_are_missing",
+      "when": "the_packet_lacks_product_specific_independent_measurement_applicable_outcome_evidence_and_a_completed_safe_one_variable_personal_trial",
+      "required_tradeoffs": [
+        "seller_claims_are_not_independent_proof",
+        "detox_requires_named_exposure_and_endpoint",
+        "antioxidant_activity_is_not_a_health_outcome",
+        "caffeine_effects_are_dose_timing_and_person_specific",
+        "fungal_drug_history_is_not_mushroom_coffee_efficacy",
+        "low_acid_measurement_is_not_a_symptom_guarantee",
+        "community_pages_remain_individual_scope",
+        "ordinary_preference_trial_is_reversible_and_nonmedical",
+        "medical_symptoms_require_qualified_care",
+        "cheapest_claim_neutral_or_defer"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "E13", "B1", "B2", "B3", "B4", "B5", "B6", "B7", "D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"},
+      "E8": {"outcome": "decision_unresolved"},
+      "E9": {"outcome": "decision_unresolved"},
+      "E10": {"outcome": "decision_unresolved"},
+      "E11": {"outcome": "decision_unresolved"},
+      "E12": {"outcome": "decision_unresolved"},
+      "E13": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 50,
+    "minimum_required_evidence_nodes": 13,
+    "minimum_reasoning_depth": 2
+  }
+}

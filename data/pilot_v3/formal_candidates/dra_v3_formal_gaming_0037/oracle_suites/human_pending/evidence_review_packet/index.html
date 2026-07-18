@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>7d446ad4c42206e8b788efb84f1b475aa10252778a49ad4c8cf0f1fa5c6f478f</code></p>
+<p>待审项 28 个，其中语义项 14 个、结构化项 0 个；冻结来源 21 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_casual_family_controller_scope"><header><h3>assert_casual_family_controller_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;short Mario Kart, Guitar Hero, and Tetris-like sessions with family or friends and a preference for a typical controller shape over Joy-Con&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one casual family player&#x27;s preferences&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_casual_family_controller_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_preference_not_father_or_population_controller_fit_or_game_demand&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;short Mario Kart, Guitar Hero, and Tetris-like sessions with family or friends and a preference for a typical controller shape over Joy-Con&quot;,
+  &quot;predicate&quot;: &quot;values_short_social_sessions_and_conventional_controller_shape&quot;,
+  &quot;subject&quot;: &quot;one casual family player&#x27;s preferences&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_casual_family_controller_scope_1</code> | bytes [156, 339) | <code>b77b5b7b493fe9b6e3c5b0d5d5e2950880e86897765b99131e63558a8133d437</code></div><pre class="context"><span>Not a serious gamer buy considering an Xbox Series X — am I making a mistake?
+
+&lt;ugh, typo in heading which doesn&#x27;t seem editable ... but* considering...&gt; </span><mark>I&#x27;m really more of a Nintendo person — I like short games, things like Mario Kart, Guitar Hero, Tetris, etc. Things I can play with family and friends for a half hour here or there.</mark><span> However, I don&#x27;t love the Switch controller; I&#x27;m partial to a more typical controller shape. Plus, my understanding is that the Xbox Series X is the only console that plays blurays and music cds in addition to games. And it has 4k graphics and I recently got a new tv, so that&#x27;s somewhat appealing. So I&#x27;m leaning toward getting the Xbox. Will I find the kind</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/124582" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/124582</a></p><p>冻结文件: <a href="sources/e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24" target="_blank">sources/e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24</a></p><p>内容 SHA-256: <code>e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_console_emulator_mechanism_scope"><header><h3>assert_console_emulator_mechanism_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a host behaves like a console so its games can run, while incomplete implementations can produce defects&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for video-game console emulation&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_console_emulator_mechanism_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_mechanism_not_latency_amount_or_quality_of_any_current_product&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a host behaves like a console so its games can run, while incomplete implementations can produce defects&quot;,
+  &quot;predicate&quot;: &quot;replicates_guest_hardware_behavior_with_implementation_specific_limits&quot;,
+  &quot;subject&quot;: &quot;video-game console emulation&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_console_emulator_mechanism_scope_1</code> | bytes [197, 378) | <code>f1a1d8b52f432da078f7ae33a3bd5365068f651c919f5236bef0f5ef5f550a26</code></div><pre class="context"><span>See also: List of video game console emulators For computer system emulators, see List of computer system emulators . &quot;Console emulator&quot; redirects here; not to be confused with Terminal emulator . </span><mark>A video game console emulator is a type of emulator that allows a computing device [ fn 1 ] to emulate a video game console &#x27;s hardware and play its games on the emulating platform.</mark><span> More often than not, emulators carry additional features that surpass limitations of the original hardware, such as broader controller compatibility, timescale control (such as fast-forwarding and rewinding), easier access to memory modifications (like GameShark ), [ 1 ] and unlocking of gameplay features. Emulators are also a useful tool in the development</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console_emulator" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console_emulator</a></p><p>冻结文件: <a href="sources/aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc" target="_blank">sources/aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc</a></p><p>内容 SHA-256: <code>aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_display_lag_boundary"><header><h3>assert_display_lag_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;delay from a signal being sent to a display beginning to show it, separate from the time a pixel changes brightness&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for display lag&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_display_lag_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;display_pipeline_definition_not_total_controller_to_photon_measurement_or_exact_tv_result&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;delay from a signal being sent to a display beginning to show it, separate from the time a pixel changes brightness&quot;,
+  &quot;predicate&quot;: &quot;is_signal_to_visible_start_latency_distinct_from_pixel_response&quot;,
+  &quot;subject&quot;: &quot;display lag&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_display_lag_boundary_1</code> | bytes [181, 306) | <code>8c13408406f7b46447e0b2304aa56d8c9a033067c727de91b99fcd2c00268895</code></div><pre class="context"><span>Display lag is a phenomenon associated with most types of liquid crystal displays (LCDs) like smartphones and computers and nearly all types of high-definition televisions (HDTVs). </span><mark>It refers to latency , or lag between when the signal is sent to the display and when the display starts to show that signal.</mark><span> This lag time has been measured as high as 68 ms, [ 1 ] or the equivalent of 3-4 frames on a 60 Hz display. Display lag is not to be confused with pixel response time , which is the amount of time it takes for a pixel to change from one brightness value to another. Currently the majority of manufacturers quote the pixel response time, but neglect to report </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Display_lag" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Display_lag</a></p><p>冻结文件: <a href="sources/960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28" target="_blank">sources/960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28</a></p><p>内容 SHA-256: <code>960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_generic_620_marketing_scope"><header><h3>assert_generic_620_marketing_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a built-in 620-game childhood-memory pitch, third-party Infityle identity, and seller replacement or refund language within forty-five days&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for generic 620-game seller description&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_generic_620_marketing_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_assertion_not_independent_quality_game_uniqueness_controller_feel_or_policy_verification&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a built-in 620-game childhood-memory pitch, third-party Infityle identity, and seller replacement or refund language within forty-five days&quot;,
+  &quot;predicate&quot;: &quot;makes_unverified_nostalgia_and_quality_claims&quot;,
+  &quot;subject&quot;: &quot;generic 620-game seller description&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_generic_620_marketing_scope_1</code> | bytes [705, 907) | <code>acaa2f00c29b2888b5e64ca3beee496e0e78f8bc40f6083f7efc1b242fc8b309</code></div><pre class="context"><span> has AV ports before purchasing, otherwise, you could not play the Classic Mini Retro Game.2. Video Game Picture Quality is not as clear as today&#x27;s games.3. Some Game repetitions in this System Console4. There is not Mario 2 &amp; 3 gamesPackage Included:1* Entertainment system console,2* Classic controllers, 1* AV cable, 1*charger, 1* game list,1* user manual. </span><mark>【Childhood Memory】This is a Retro Tv Classic Game Console Popular in the 1980s and 1990s, Built-in 620 Video Games, No need to insert cards or download games. (Some game repetitions in this console)</mark><span> 【Classic Console】You will Get a Tv Game Console and 2 Classic controllers. The games included in this console can be played by people belonging to multiple age groups.they are still so exciting and challenging to play! 【Mini Size】7*5.5 inches, Classic game console can send friends, girlfriends, wives, husbands, children. Let them feel your childhood</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html" target="_blank" rel="noreferrer">http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html</a></p><p>冻结文件: <a href="sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387" target="_blank">sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</a></p><p>内容 SHA-256: <code>5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_generic_620_offer_snapshot"><header><h3>assert_generic_620_offer_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B08FBWB96P at 27.99 dollars with a 40-percent-of-100 aggregate over twelve reviews, AV-only output, repeated games, lower picture quality, and two controllers&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen generic 620-game plug-and-play seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_generic_620_offer_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_and_disclosures_not_independent_game_quality_latency_legality_or_reliability_test&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B08FBWB96P at 27.99 dollars with a 40-percent-of-100 aggregate over twelve reviews, AV-only output, repeated games, lower picture quality, and two controllers&quot;,
+  &quot;predicate&quot;: &quot;shows_offer_and_compatibility_disclosures&quot;,
+  &quot;subject&quot;: &quot;frozen generic 620-game plug-and-play seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_generic_620_offer_snapshot_1</code> | bytes [127, 252) | <code>90bd3ead6fe23b7efb1622766b72dbdc1d4daf0019980ebba421550e86952202</code></div><pre class="context"><span>Classic Retro Game Console, Plug and Play 8-bit Video Game Entertainment System Built-in 620 Games with 2 Classic Controllers
+
+</span><mark>In stock SKU B08FBWB96P Rating: 40 % of 100 12 Reviews Add Your Review $27.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Note: 1. Console Does not support HDMI. Please make sure your TV has AV ports before purchasing, otherwise, you could not play the Classic Mini Retro Game.2. Video Game Picture Quality is not as clear as today&#x27;s games.3. Some Game repetitions in this System Console4. There is not Mario 2 &amp; 3 gamesPackage Included:1* Entertainment</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html" target="_blank" rel="noreferrer">http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html</a></p><p>冻结文件: <a href="sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387" target="_blank">sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</a></p><p>内容 SHA-256: <code>5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_nes_classic_implementation_scope"><header><h3>assert_nes_classic_implementation_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a dedicated console with thirty built-in games, US releases at 60 Hz, 720p 60 Hz output, and an emulator with limited support for some cartridge mappers&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for NES Classic exact product&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_nes_classic_implementation_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_historical_model_not_current_offer_or_playstation_generic_box_or_retropie_result&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a dedicated console with thirty built-in games, US releases at 60 Hz, 720p 60 Hz output, and an emulator with limited support for some cartridge mappers&quot;,
+  &quot;predicate&quot;: &quot;uses_a_static_thirty_game_60_hz_emulated_library&quot;,
+  &quot;subject&quot;: &quot;NES Classic exact product&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_nes_classic_implementation_scope_1</code> | bytes [1377, 1604) | <code>a4f3dec97823fc89cd2ed238099652ba61ec0f095eb19f50a800c21e3c69c0bd</code></div><pre class="context"><span>lwinner R16 , Quad-Core ARM Cortex-A7 Memory 256 MB of DDR3 RAM Storage 512 MB NAND Flash TSOP48 Graphics Mali-400 MP Controller input 2 controller ports Successor Super NES Classic Edition NES Classic Edition [ a ] [ b ] is a dedicated home video game console by Nintendo , that emulates the Nintendo Entertainment System (NES) and Family Computer (Famicom). </span><mark>Originally launched on November 10, 2016, the console aesthetically is a miniature replica of the NES, and it includes a static library of 30 built-in games from the licensed NES library, supporting save states for all of them.</mark><span> Nintendo produced and sold about 2.3 million NES Classic Editions from launch through April 2017 â with shipments selling out nearly immediately â when Nintendo announced they were discontinuing the product, leading to consumer confusion, and incidents of greatly increased pricing among private sellers. Due to the demand of the NES Classic, and th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition</a></p><p>冻结文件: <a href="sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8" target="_blank">sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</a></p><p>内容 SHA-256: <code>20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_nes_classic_reception_scope"><header><h3>assert_nes_classic_reception_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;well-received emulation quality despite short controller-cord criticism and minor sound-related emulation glitches&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for NES Classic emulation reception&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_nes_classic_reception_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;historical_critical_summary_not_every_unit_game_controller_or_recipient_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;well-received emulation quality despite short controller-cord criticism and minor sound-related emulation glitches&quot;,
+  &quot;predicate&quot;: &quot;records_positive_overall_reception_with_specific_limitations&quot;,
+  &quot;subject&quot;: &quot;NES Classic emulation reception&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_nes_classic_reception_scope_1</code> | bytes [2138, 2185) | <code>daf8febf13f2d33c055280ec3ea352501d22aea90f1fe9eb54f161f5624163ae</code></div><pre class="context"><span>nounced they were discontinuing the product, leading to consumer confusion, and incidents of greatly increased pricing among private sellers. Due to the demand of the NES Classic, and the success of the Super NES Classic Edition console, Nintendo re-introduced a limited run of the NES Classic in June 2018. Production was discontinued again in December 2018. </span><mark>It was well-received for its emulation quality.</mark><span> Hardware The NES Classic Edition is a dedicated console for emulating 30 Nintendo Entertainment System (NES) games. [ 1 ] [ 2 ] The console is distributed in two versions; one for Japan, featuring the likeness of the original Family Computer (Famicom), [ 3 ] and one for the rest of the world, which looks like the original NES. For the NES version, all of th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition</a></p><p>冻结文件: <a href="sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8" target="_blank">sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</a></p><p>内容 SHA-256: <code>20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_playstation_classic_hardware_scope"><header><h3>assert_playstation_classic_hardware_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a dedicated console with twenty games and two replica original controllers lacking analog sticks and vibration&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for PlayStation Classic exact product&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_playstation_classic_hardware_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_historical_model_not_the_frozen_seller_box_contents_condition_or_father_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a dedicated console with twenty games and two replica original controllers lacking analog sticks and vibration&quot;,
+  &quot;predicate&quot;: &quot;uses_twenty_emulated_games_and_two_original_style_controllers&quot;,
+  &quot;subject&quot;: &quot;PlayStation Classic exact product&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_playstation_classic_hardware_scope_1</code> | bytes [807, 971) | <code>3b19bd874c6376a515d7c3dcef9f851c8c63915897496269af32229257608bfa</code></div><pre class="context"><span>hip MediaTek MT8167A CPU Quad-Core ARM Cortex-A35 Memory 1 GB DDR3 Storage 16 GB eMMC Graphics Power VR GE8300 Controller input 2 controller ports PlayStation Classic controller Connectivity microUSB Dimensions 149 Ã 33 Ã 105 mm (5.9 Ã 1.3 Ã 4.1 in) Weight 170 g (6.0 oz) Website playstation .com /en-us /explore /playstation-classic </span><mark>The PlayStation Classic is a dedicated video game console by Sony Interactive Entertainment that emulates games originally released on its 1994 PlayStation console.</mark><span> It was announced in September 2018 at the Tokyo Game Show , and released on December 3, 2018, the 24th anniversary of the release of the original. [ 1 ] The console has been compared to competitor Nintendo &#x27;s prior releases of the NES Classic Edition and Super NES Classic Edition mini consoles. [ 2 ] The console received generally negative reviews from crit</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic</a></p><p>冻结文件: <a href="sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93" target="_blank">sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</a></p><p>内容 SHA-256: <code>ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_playstation_classic_pal_and_reception"><header><h3>assert_playstation_classic_pal_and_reception</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;nine PAL releases at 50 Hz rather than 60 Hz that may respond slower than NTSC players expect, plus criticism of lower frame rates, emulation quality, game selection, and controller limitations&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for PlayStation Classic regional timing and critical reception&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_playstation_classic_pal_and_reception</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;historical_model_specific_evidence_not_all_games_regions_displays_emulators_or_users&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;nine PAL releases at 50 Hz rather than 60 Hz that may respond slower than NTSC players expect, plus criticism of lower frame rates, emulation quality, game selection, and controller limitations&quot;,
+  &quot;predicate&quot;: &quot;binds_slower_pal_versions_and_negative_reviews_to_this_model&quot;,
+  &quot;subject&quot;: &quot;PlayStation Classic regional timing and critical reception&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_playstation_classic_pal_and_reception_1</code> | bytes [3383, 3746) | <code>4ddea4670455e3fbb7d07d660613337958cb2bbfd7de8736d1b7d652906d7363</code></div><pre class="context"><span>ive games were revealed when the console was announced, [ 10 ] and the full roster was revealed a month later. [ 11 ] [ 12 ] Eight games vary between regions. The device does not interface with the PlayStation Network , and games will not be added post-launch. [ 13 ] Each game can be suspended in a save state by pressing the console&#x27;s &quot;reset&quot; button. [ 13 ] </span><mark>Nine games use the PAL release (favored in most European countries) regardless of the console&#x27;s release platform, which means they run at a slower frame rate of 50 Hz as opposed to the NTSC standard of 60 Hz (favored in North America , parts of Japan , as well as some other Asian countries ), and may respond slower than players from NTSC regions would expect.</mark><span> [ 14 ] [ 15 ] The North American version of the dedicated console received an M for Mature rating from the ESRB due to the inclusion of Grand Theft Auto , Metal Gear Solid and Resident Evil: Director&#x27;s Cut . Likewise, the European version received an 18 rating from the PEGI group; European package also displays German USK 16 (PEGI ratings are not formally r</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic</a></p><p>冻结文件: <a href="sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93" target="_blank">sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</a></p><p>内容 SHA-256: <code>ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_playstation_listing_snapshot"><header><h3>assert_playstation_listing_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an in-stock SKU B07L7W915H listing at 86.22 dollars whose title claims twenty pre-installed games and whose body says there is no posted review&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen PlayStation Classic bundle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_playstation_listing_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_not_current_market_value_contents_emulation_quality_controller_fit_or_recipient_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an in-stock SKU B07L7W915H listing at 86.22 dollars whose title claims twenty pre-installed games and whose body says there is no posted review&quot;,
+  &quot;predicate&quot;: &quot;shows_sparse_offer_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation Classic bundle seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_playstation_listing_snapshot_1</code> | bytes [0, 175) | <code>3c348a41e27cf56eb9b2a723da10dd8de571bb9fc7dde48ac3d21a5d3a605e32</code></div><pre class="context"><span></span><mark>Playstation Classic Console with 20 Classic Playstation Games Pre-Installed Holiday Bundle, Includes Final Fantasy VII, Grand Theft Auto, Resident Evil Director&#x27;s Cut and More</mark><span>
+
+In stock SKU B07L7W915H Be the first to review this product $86.22 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Pricing The strikethrough price is the List Price. Savings represents a discount off the List Price. Product Dimensions 9 x 9 x 4 inches; 2.18 Pounds Binding Electronics Item model number PS 1 Is Discontinued By Man</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/playstation-classic-console-with-20-classic-playstation-games-pre-installed-holiday-bundle-includes-final-fantasy-vii-grand-theft-auto-resident-evil-director-s-cut-and-more.html" target="_blank" rel="noreferrer">http://localhost:7770/playstation-classic-console-with-20-classic-playstation-games-pre-installed-holiday-bundle-includes-final-fantasy-vii-grand-theft-auto-resident-evil-director-s-cut-and-more.html</a></p><p>冻结文件: <a href="sources/d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460" target="_blank">sources/d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460</a></p><p>内容 SHA-256: <code>d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_preloaded_shopper_scope"><header><h3>assert_preloaded_shopper_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;interest in old pre-installed games without complicated setup together with a personal suspicion of dropshipping or overpricing&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one preloaded-retro-device shopper&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_preloaded_shopper_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_question_not_verified_seller_behavior_product_quality_or_father_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;interest in old pre-installed games without complicated setup together with a personal suspicion of dropshipping or overpricing&quot;,
+  &quot;predicate&quot;: &quot;expresses_simplicity_goal_and_seller_suspicion&quot;,
+  &quot;subject&quot;: &quot;one preloaded-retro-device shopper&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_preloaded_shopper_scope_1</code> | bytes [198, 355) | <code>58bc5c7e8ba4982533ce95d0afa4c07b9bc81b2580044f2443965ed15fbd7f72</code></div><pre class="context"><span>Good handheld console ?
+
+Hey guys I&#x27;m new here. I was watching tiktok and stumbled upon a console called powkiddy, which is a handheld console that has already games in it and it got me interested. </span><mark>After reviewing their site they are either doing dropshipping or just overpriced stuff (they have a section on thei online shop called &quot;tiktok best seller&quot;).</mark><span> So I was wondering if anyone knew a good deal in terms of handheld console with old games on it. Looking for something with pre-installed games if possible (or something that&#x27;s not complicated to to do) maybe something with dual screens/touchscreen for the DS games ? Thanks :) Edit : A handheld console with retro games ofc 1
+
+The steam deck is the perfect s</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/gaming/83725/good-handheld-console" target="_blank" rel="noreferrer">http://localhost:9999/f/gaming/83725/good-handheld-console</a></p><p>冻结文件: <a href="sources/c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18" target="_blank">sources/c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18</a></p><p>内容 SHA-256: <code>c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ps1_nostalgia_heterogeneity_scope"><header><h3>assert_ps1_nostalgia_heterogeneity_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author misses a childhood PS1 and Spyro experience while replies name Xbox 360, PS2, Dreamcast, SNES, Game Boy, Saturn, and other favorites&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one favorite-console discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ps1_nostalgia_heterogeneity_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_memories_and_thread_heterogeneity_not_prevalence_or_father_nostalgia_target&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one author misses a childhood PS1 and Spyro experience while replies name Xbox 360, PS2, Dreamcast, SNES, Game Boy, Saturn, and other favorites&quot;,
+  &quot;predicate&quot;: &quot;contains_personal_ps1_nostalgia_and_diverse_favorites&quot;,
+  &quot;subject&quot;: &quot;one favorite-console discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ps1_nostalgia_heterogeneity_scope_1</code> | bytes [222, 429) | <code>b0ab2255f2b2df8c4dcfb423579793eeb1a0298f465e7e2dd941fdf815dfd8e2</code></div><pre class="context"><span>What was you’re favourite console?
+
+I’m 34, almost 35, and I think that my fave console has to be the first PlayStation. It was the first time that fully 3D games became the norm rather than a display of tech prowess. </span><mark>As a child I had a Sega Megadrive (which is also an amazing console) but when I got a PS1 for Christmas and played Spyro I was hooked! This was the future lol! God I wish I could experience those days again.</mark><span> 0
+
+Xbox 360 is my personal favorite. It had all the right games and hardware
+
+PS2
+
+Dreamcast - I&#x27;ve loved a lot of consoles in my days, but the Dreamcast still holds a special place. So many great/weird/awesome games, and it came out at a perfect time in my life when I was living with friends, so we&#x27;d all crowd on the couch and play stuff like Powerstone. G</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/gaming/83708/what-was-you-re-favourite-console" target="_blank" rel="noreferrer">http://localhost:9999/f/gaming/83708/what-was-you-re-favourite-console</a></p><p>冻结文件: <a href="sources/00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895" target="_blank">sources/00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895</a></p><p>内容 SHA-256: <code>00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_retropie_card_identity_snapshot"><header><h3>assert_retropie_card_identity_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 128 GB microSD-card configuration for Raspberry Pi 4 or 400 at 59.99 dollars with a 65-percent-of-100 aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen RetroPie preloaded product page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_retropie_card_identity_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;card_snapshot_not_complete_host_console_controllers_power_video_or_legal_game_provenance&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 128 GB microSD-card configuration for Raspberry Pi 4 or 400 at 59.99 dollars with a 65-percent-of-100 aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;identifies_a_card_not_complete_console&quot;,
+  &quot;subject&quot;: &quot;frozen RetroPie preloaded product page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_retropie_card_identity_snapshot_1</code> | bytes [194, 369) | <code>e393d9d1f788700d6edfe39955b1ba455aaa6adab0e810322b1c86855c87570e</code></div><pre class="context"><span>Retropie Gaming Console ROMs v4.7 128GB microSD Card Preloaded Games for Raspberry Pi 4/400, Retropie Emulation Console Plug &amp; Play Fully Loaded Game System Compatible with Xbox/PS1 Controller
+
+</span><mark>In stock SKU B08TBB1TZ8 Rating: 65 % of 100 12 Reviews Add Your Review $59.99 Size RetroPie SD Card 128GB RetroPie SD Card 64GB Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Fastoe 128GB RetroPie Preloaded Games MicroSD Card Fastoe 128GB RetroPie Preloaded Games MicroSD Card. Over 55 systems, 7749 games. Specifications Compatibility What’s in the Package ★【Classic Games】: RetroPie SD card preloaded 10000+ games with preview for Raspberry Pi 4. ★【Professional】: Using the Fastoe RetroPie </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html" target="_blank" rel="noreferrer">http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html</a></p><p>冻结文件: <a href="sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408" target="_blank">sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</a></p><p>内容 SHA-256: <code>5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_retropie_game_count_conflict"><header><h3>assert_retropie_game_count_conflict</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one description says more than fifty-five systems and 7,749 games while another says more than 10,000 games&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for RetroPie card game-count language&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_retropie_game_count_conflict</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_count_conflict_not_verified_unique_compatible_working_or_licensed_library&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one description says more than fifty-five systems and 7,749 games while another says more than 10,000 games&quot;,
+  &quot;predicate&quot;: &quot;contains_an_unresolved_count_inconsistency&quot;,
+  &quot;subject&quot;: &quot;RetroPie card game-count language&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_retropie_game_count_conflict_1</code> | bytes [501, 529) | <code>d8197489f5f06278a1b3efb7b5f5f661f9e7f85047c571621aeee7042f443027</code></div><pre class="context"><span>ded Game System Compatible with Xbox/PS1 Controller
+
+In stock SKU B08TBB1TZ8 Rating: 65 % of 100 12 Reviews Add Your Review $59.99 Size RetroPie SD Card 128GB RetroPie SD Card 64GB Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Fastoe 128GB RetroPie Preloaded Games MicroSD Card Fastoe 128GB RetroPie Preloaded Games MicroSD Card. </span><mark>Over 55 systems, 7749 games.</mark><span> Specifications Compatibility What’s in the Package ★【Classic Games】: RetroPie SD card preloaded 10000+ games with preview for Raspberry Pi 4. ★【Professional】: Using the Fastoe RetroPie game system production tool to ensure product quality. ★【High Quality】: All of the products are 100% testing before leaving the Fastoe factory. ★【Comp</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html" target="_blank" rel="noreferrer">http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html</a></p><p>冻结文件: <a href="sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408" target="_blank">sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</a></p><p>内容 SHA-256: <code>5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_casual_family_controller_scope"><header><h3>prop_casual_family_controller_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;short Mario Kart, Guitar Hero, and Tetris-like sessions with family or friends and a preference for a typical controller shape over Joy-Con&quot;,
+  &quot;predicate&quot;: &quot;values_short_social_sessions_and_conventional_controller_shape&quot;,
+  &quot;subject&quot;: &quot;one casual family player&#x27;s preferences&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_casual_family_controller_scope_1</code> | bytes [156, 339) | <code>b77b5b7b493fe9b6e3c5b0d5d5e2950880e86897765b99131e63558a8133d437</code></div><pre class="context"><span>Not a serious gamer buy considering an Xbox Series X — am I making a mistake?
+
+&lt;ugh, typo in heading which doesn&#x27;t seem editable ... but* considering...&gt; </span><mark>I&#x27;m really more of a Nintendo person — I like short games, things like Mario Kart, Guitar Hero, Tetris, etc. Things I can play with family and friends for a half hour here or there.</mark><span> However, I don&#x27;t love the Switch controller; I&#x27;m partial to a more typical controller shape. Plus, my understanding is that the Xbox Series X is the only console that plays blurays and music cds in addition to games. And it has 4k graphics and I recently got a new tv, so that&#x27;s somewhat appealing. So I&#x27;m leaning toward getting the Xbox. Will I find the kind</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_casual_family_controller_scope_2</code> | bytes [340, 432) | <code>6d2679c19ccd8cdf94b0e94bb16a5126391f5f95c59b2e95c4a8b04ede29d180</code></div><pre class="context"><span>Not a serious gamer buy considering an Xbox Series X — am I making a mistake?
+
+&lt;ugh, typo in heading which doesn&#x27;t seem editable ... but* considering...&gt; I&#x27;m really more of a Nintendo person — I like short games, things like Mario Kart, Guitar Hero, Tetris, etc. Things I can play with family and friends for a half hour here or there. </span><mark>However, I don&#x27;t love the Switch controller; I&#x27;m partial to a more typical controller shape.</mark><span> Plus, my understanding is that the Xbox Series X is the only console that plays blurays and music cds in addition to games. And it has 4k graphics and I recently got a new tv, so that&#x27;s somewhat appealing. So I&#x27;m leaning toward getting the Xbox. Will I find the kind of games I like? Am I thinking about this wrong? Any advice? Thanks in advance! 14
+
+Series X</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/124582" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/124582</a></p><p>冻结文件: <a href="sources/e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24" target="_blank">sources/e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24</a></p><p>内容 SHA-256: <code>e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_preference_not_father_or_population_controller_fit_or_game_demand&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One casual player values short Mario Kart, Guitar Hero, and Tetris-like sessions with family or friends and prefers a conventional controller shape over the Joy-Con they tried; this individual preference is not evidence of the father&#x27;s controller fit or game demand.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_console_emulator_mechanism_scope"><header><h3>prop_console_emulator_mechanism_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a host behaves like a console so its games can run, while incomplete implementations can produce defects&quot;,
+  &quot;predicate&quot;: &quot;replicates_guest_hardware_behavior_with_implementation_specific_limits&quot;,
+  &quot;subject&quot;: &quot;video-game console emulation&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_console_emulator_mechanism_scope_1</code> | bytes [197, 378) | <code>f1a1d8b52f432da078f7ae33a3bd5365068f651c919f5236bef0f5ef5f550a26</code></div><pre class="context"><span>See also: List of video game console emulators For computer system emulators, see List of computer system emulators . &quot;Console emulator&quot; redirects here; not to be confused with Terminal emulator . </span><mark>A video game console emulator is a type of emulator that allows a computing device [ fn 1 ] to emulate a video game console &#x27;s hardware and play its games on the emulating platform.</mark><span> More often than not, emulators carry additional features that surpass limitations of the original hardware, such as broader controller compatibility, timescale control (such as fast-forwarding and rewinding), easier access to memory modifications (like GameShark ), [ 1 ] and unlocking of gameplay features. Emulators are also a useful tool in the development</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_console_emulator_mechanism_scope_2</code> | bytes [1685, 1792) | <code>1eccd38ac422a2ea61c63b1191f61c81f8d0dc8ffd68382b38259112321f23b0</code></div><pre class="context"><span> of online piracy , [ 4 ] and users may be sued for copyright infringement . [ 5 ] [ 6 ] History By the mid-1990s, personal computers had progressed to the point where it was technically feasible to replicate the behavior of some of the earliest consoles entirely through software, and the first unauthorized, non-commercial console emulators began to appear. </span><mark>These early programs were often incomplete, only partially emulating a given system, resulting in defects .</mark><span> Few manufacturers published technical specifications for their hardware, which left programmers to deduce the exact workings of a console through reverse engineering . Nintendo &#x27;s consoles tended to be the most commonly studied, for example the most advanced early emulators reproduced the workings of the Nintendo Entertainment System , the Super Nintendo En</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console_emulator" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console_emulator</a></p><p>冻结文件: <a href="sources/aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc" target="_blank">sources/aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc</a></p><p>内容 SHA-256: <code>aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_mechanism_not_latency_amount_or_quality_of_any_current_product&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A video-game console emulator makes a host emulate a console&#x27;s hardware so its games can run, and the historical reference notes that incomplete implementations can produce defects; this general mechanism does not quantify latency or establish the quality of any current mini console.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_display_lag_boundary"><header><h3>prop_display_lag_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;delay from a signal being sent to a display beginning to show it, separate from the time a pixel changes brightness&quot;,
+  &quot;predicate&quot;: &quot;is_signal_to_visible_start_latency_distinct_from_pixel_response&quot;,
+  &quot;subject&quot;: &quot;display lag&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_display_lag_boundary_1</code> | bytes [181, 306) | <code>8c13408406f7b46447e0b2304aa56d8c9a033067c727de91b99fcd2c00268895</code></div><pre class="context"><span>Display lag is a phenomenon associated with most types of liquid crystal displays (LCDs) like smartphones and computers and nearly all types of high-definition televisions (HDTVs). </span><mark>It refers to latency , or lag between when the signal is sent to the display and when the display starts to show that signal.</mark><span> This lag time has been measured as high as 68 ms, [ 1 ] or the equivalent of 3-4 frames on a 60 Hz display. Display lag is not to be confused with pixel response time , which is the amount of time it takes for a pixel to change from one brightness value to another. Currently the majority of manufacturers quote the pixel response time, but neglect to report </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_display_lag_boundary_2</code> | bytes [415, 572) | <code>82c2b743d8346b08ff16a855f550f9b6da2038bc153156787048e160f23ec2f3</code></div><pre class="context"><span>of liquid crystal displays (LCDs) like smartphones and computers and nearly all types of high-definition televisions (HDTVs). It refers to latency , or lag between when the signal is sent to the display and when the display starts to show that signal. This lag time has been measured as high as 68 ms, [ 1 ] or the equivalent of 3-4 frames on a 60 Hz display. </span><mark>Display lag is not to be confused with pixel response time , which is the amount of time it takes for a pixel to change from one brightness value to another.</mark><span> Currently the majority of manufacturers quote the pixel response time, but neglect to report display lag. Analog vs digital technology For older analog cathode ray tube (CRT) technology, display lag is nearly zero, due to the nature of the technology, which does not have the ability to store image data before display. The picture signal is minimally process</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Display_lag" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Display_lag</a></p><p>冻结文件: <a href="sources/960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28" target="_blank">sources/960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28</a></p><p>内容 SHA-256: <code>960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;display_pipeline_definition_not_total_controller_to_photon_measurement_or_exact_tv_result&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The display reference defines display lag as delay between a sent signal and the display beginning to show it, and distinguishes it from pixel response time; this identifies one separate pipeline contribution, not a total controller-to-photon measurement or a result for the father&#x27;s television.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_generic_620_marketing_scope"><header><h3>prop_generic_620_marketing_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a built-in 620-game childhood-memory pitch, third-party Infityle identity, and seller replacement or refund language within forty-five days&quot;,
+  &quot;predicate&quot;: &quot;makes_unverified_nostalgia_and_quality_claims&quot;,
+  &quot;subject&quot;: &quot;generic 620-game seller description&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_generic_620_marketing_scope_1</code> | bytes [705, 907) | <code>acaa2f00c29b2888b5e64ca3beee496e0e78f8bc40f6083f7efc1b242fc8b309</code></div><pre class="context"><span> has AV ports before purchasing, otherwise, you could not play the Classic Mini Retro Game.2. Video Game Picture Quality is not as clear as today&#x27;s games.3. Some Game repetitions in this System Console4. There is not Mario 2 &amp; 3 gamesPackage Included:1* Entertainment system console,2* Classic controllers, 1* AV cable, 1*charger, 1* game list,1* user manual. </span><mark>【Childhood Memory】This is a Retro Tv Classic Game Console Popular in the 1980s and 1990s, Built-in 620 Video Games, No need to insert cards or download games. (Some game repetitions in this console)</mark><span> 【Classic Console】You will Get a Tv Game Console and 2 Classic controllers. The games included in this console can be played by people belonging to multiple age groups.they are still so exciting and challenging to play! 【Mini Size】7*5.5 inches, Classic game console can send friends, girlfriends, wives, husbands, children. Let them feel your childhood</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_generic_620_marketing_scope_2</code> | bytes [1479, 1707) | <code>c599bb648e6c834e3df1b2b51f3b0baadec021541f55f0dd79f30a2e1ad3c4f5</code></div><pre class="context"><span>ng to play! 【Mini Size】7*5.5 inches, Classic game console can send friends, girlfriends, wives, husbands, children. Let them feel your childhood! 【Plug and Play】This is an 8-bit console with simple controls, 8-bit Video game picture quality is not as clear as today&#x27;s games .please make sure your TV/screen has AV input ports（Don&#x27;t work with HDMI） </span><mark>【Third Party Product】It is Infityle brand product, but the quality will meet your requirements. We will ALWAYS replace a faulty product or refund your purchase within 45 days, Please do not hesitate to contact us via Amazon.</mark><span> Package Dimensions 7.1 x 5.6 x 2.3 inches Item Weight 15.2 ounces Manufacturer Infityle Date First Available August 6, 2020 Reviews 12 Write Your Own Review You&#x27;re reviewing: Classic Retro Game Console, Plug and Play 8-bit Video Game Entertainment System Built-in 620 Games with 2 Classic Controllers Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html" target="_blank" rel="noreferrer">http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html</a></p><p>冻结文件: <a href="sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387" target="_blank">sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</a></p><p>内容 SHA-256: <code>5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_assertion_not_independent_quality_game_uniqueness_controller_feel_or_policy_verification&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The generic page markets childhood memory and 620 built-in games while admitting repetitions, identifies the item as a third-party Infityle product, and states a forty-five-day replacement or refund promise; those seller assertions do not independently establish unique games, controller feel, quality, or currently enforceable return terms.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_generic_620_offer_snapshot"><header><h3>prop_generic_620_offer_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B08FBWB96P at 27.99 dollars with a 40-percent-of-100 aggregate over twelve reviews, AV-only output, repeated games, lower picture quality, and two controllers&quot;,
+  &quot;predicate&quot;: &quot;shows_offer_and_compatibility_disclosures&quot;,
+  &quot;subject&quot;: &quot;frozen generic 620-game plug-and-play seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_generic_620_offer_snapshot_1</code> | bytes [127, 252) | <code>90bd3ead6fe23b7efb1622766b72dbdc1d4daf0019980ebba421550e86952202</code></div><pre class="context"><span>Classic Retro Game Console, Plug and Play 8-bit Video Game Entertainment System Built-in 620 Games with 2 Classic Controllers
+
+</span><mark>In stock SKU B08FBWB96P Rating: 40 % of 100 12 Reviews Add Your Review $27.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Note: 1. Console Does not support HDMI. Please make sure your TV has AV ports before purchasing, otherwise, you could not play the Classic Mini Retro Game.2. Video Game Picture Quality is not as clear as today&#x27;s games.3. Some Game repetitions in this System Console4. There is not Mario 2 &amp; 3 gamesPackage Included:1* Entertainment</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_generic_620_offer_snapshot_2</code> | bytes [290, 579) | <code>e80dda919a9d43b19ac40e2fbe374b26ea35b05459cc7a54e134a9f7f5c1f3b9</code></div><pre class="context"><span>Classic Retro Game Console, Plug and Play 8-bit Video Game Entertainment System Built-in 620 Games with 2 Classic Controllers
+
+In stock SKU B08FBWB96P Rating: 40 % of 100 12 Reviews Add Your Review $27.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Note: 1. </span><mark>Console Does not support HDMI. Please make sure your TV has AV ports before purchasing, otherwise, you could not play the Classic Mini Retro Game.2. Video Game Picture Quality is not as clear as today&#x27;s games.3. Some Game repetitions in this System Console4. There is not Mario 2 &amp; 3 games</mark><span>Package Included:1* Entertainment system console,2* Classic controllers, 1* AV cable, 1*charger, 1* game list,1* user manual. 【Childhood Memory】This is a Retro Tv Classic Game Console Popular in the 1980s and 1990s, Built-in 620 Video Games, No need to insert cards or download games. (Some game repetitions in this console) 【Classic Console】You will G</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_generic_620_offer_snapshot_3</code> | bytes [579, 704) | <code>b593b5bfe3b6d4557e181223d11800b2149bb633a0958a9e4a1303ce5aa27b88</code></div><pre class="context"><span>t Add to Wish List Add to Compare
+
+Details Product Quick Look Note: 1. Console Does not support HDMI. Please make sure your TV has AV ports before purchasing, otherwise, you could not play the Classic Mini Retro Game.2. Video Game Picture Quality is not as clear as today&#x27;s games.3. Some Game repetitions in this System Console4. There is not Mario 2 &amp; 3 games</span><mark>Package Included:1* Entertainment system console,2* Classic controllers, 1* AV cable, 1*charger, 1* game list,1* user manual.</mark><span> 【Childhood Memory】This is a Retro Tv Classic Game Console Popular in the 1980s and 1990s, Built-in 620 Video Games, No need to insert cards or download games. (Some game repetitions in this console) 【Classic Console】You will Get a Tv Game Console and 2 Classic controllers. The games included in this console can be played by people belonging to multi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html" target="_blank" rel="noreferrer">http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html</a></p><p>冻结文件: <a href="sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387" target="_blank">sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</a></p><p>内容 SHA-256: <code>5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_and_disclosures_not_independent_game_quality_latency_legality_or_reliability_test&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The generic seller page shows SKU B08FBWB96P at 27.99 dollars with a 40-percent-of-100 aggregate over twelve reviews, says the box is AV-only rather than HDMI, warns that picture quality is lower and some games repeat, and lists two controllers; these are seller snapshot and disclosure facts, not an independent latency, legality, reliability, or recipient-fit test.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_nes_classic_implementation_scope"><header><h3>prop_nes_classic_implementation_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a dedicated console with thirty built-in games, US releases at 60 Hz, 720p 60 Hz output, and an emulator with limited support for some cartridge mappers&quot;,
+  &quot;predicate&quot;: &quot;uses_a_static_thirty_game_60_hz_emulated_library&quot;,
+  &quot;subject&quot;: &quot;NES Classic exact product&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_nes_classic_implementation_scope_1</code> | bytes [1377, 1604) | <code>a4f3dec97823fc89cd2ed238099652ba61ec0f095eb19f50a800c21e3c69c0bd</code></div><pre class="context"><span>lwinner R16 , Quad-Core ARM Cortex-A7 Memory 256 MB of DDR3 RAM Storage 512 MB NAND Flash TSOP48 Graphics Mali-400 MP Controller input 2 controller ports Successor Super NES Classic Edition NES Classic Edition [ a ] [ b ] is a dedicated home video game console by Nintendo , that emulates the Nintendo Entertainment System (NES) and Family Computer (Famicom). </span><mark>Originally launched on November 10, 2016, the console aesthetically is a miniature replica of the NES, and it includes a static library of 30 built-in games from the licensed NES library, supporting save states for all of them.</mark><span> Nintendo produced and sold about 2.3 million NES Classic Editions from launch through April 2017 â with shipments selling out nearly immediately â when Nintendo announced they were discontinuing the product, leading to consumer confusion, and incidents of greatly increased pricing among private sellers. Due to the demand of the NES Classic, and th</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_nes_classic_implementation_scope_2</code> | bytes [2515, 2671) | <code>fd3dcc13716995425b8dc40a146a488cb861738277019017e978c5502bd897da</code></div><pre class="context"><span>ved for its emulation quality. Hardware The NES Classic Edition is a dedicated console for emulating 30 Nintendo Entertainment System (NES) games. [ 1 ] [ 2 ] The console is distributed in two versions; one for Japan, featuring the likeness of the original Family Computer (Famicom), [ 3 ] and one for the rest of the world, which looks like the original NES. </span><mark>For the NES version, all of the games are based on their US release, running at 60 Hz and using the names by which they were released in the United States.</mark><span> While the Famicom version&#x27;s interface is only in Japanese, the NES version supports up to eight other languages, [ c ] but neither affects the language for their games themselves. Internally, the console uses an Allwinner R16 system on a chip with four ARM Cortex-A7 central processing cores and an ARM Mali 400 MP2 graphics processing unit. It includes 512 M</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_nes_classic_implementation_scope_3</code> | bytes [3090, 3198) | <code>d0d9b33acd1399ba12211ea63560cb1d6e9a4203eb205b69cb5968ad56f1b426</code></div><pre class="context"><span> the NES version supports up to eight other languages, [ c ] but neither affects the language for their games themselves. Internally, the console uses an Allwinner R16 system on a chip with four ARM Cortex-A7 central processing cores and an ARM Mali 400 MP2 graphics processing unit. It includes 512 MB of flash storage and 256 MB of DDR3 memory . [ 5 ] [ 6 ] </span><mark>For video output, the system features an HDMI connection, which puts out 720p at 60 Hz video for all games.</mark><span> The controllers in the NES version of the console feature the Wii Nunchuk &#x27;s connector, which allows the controller to be connected to the Wii Remote for use with Virtual Console games on the Wii and Wii U . Accessories for the Wii such as the Classic Controller can also be used. [ 7 ] [ 8 ] [ 9 ] The controllers for the Famicom version are hardwired into t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_nes_classic_implementation_scope_4</code> | bytes [4071, 4261) | <code>865868f0ad564beb04ed47f6f8513796fa74b0dcc832270ff95623c7f72ddcc2</code></div><pre class="context"><span> size of the console to fit into its holding slots on the sides, resulting in them being smaller than their NES counterpart. The microphone on the Player 2 controller is cosmetic and does not work. [ 10 ] The console uses the Linux operating system, running a new NES emulation engine developed by Nintendo European Research &amp; Development (NERD). [ 11 ] [ 5 ] </span><mark>The emulation included limited support for some of the memory management controllers , aka mappers, used in NES cartridges to extend the ability of the console, such as for Super Mario Bros.</mark><span> 3 , though not all known mappers were included with the emulation engine. [ 5 ] The emulation engine was regarded as superior in both visual and audio support when compared to the Virtual Console emulations of NES titles. A 320-page book called Playing with Power: Nintendo NES Classics , published by Prima Games , was released the same day as the console; [</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition</a></p><p>冻结文件: <a href="sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8" target="_blank">sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</a></p><p>内容 SHA-256: <code>20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_historical_model_not_current_offer_or_playstation_generic_box_or_retropie_result&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The NES Classic reference describes a dedicated console with a static thirty-game licensed library, US releases at 60 Hz, 720p 60 Hz output, and limited support for some cartridge mappers; these historical exact-model facts do not transfer to the PlayStation Classic, generic box, RetroPie card, or a current offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_nes_classic_reception_scope"><header><h3>prop_nes_classic_reception_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;well-received emulation quality despite short controller-cord criticism and minor sound-related emulation glitches&quot;,
+  &quot;predicate&quot;: &quot;records_positive_overall_reception_with_specific_limitations&quot;,
+  &quot;subject&quot;: &quot;NES Classic emulation reception&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_nes_classic_reception_scope_1</code> | bytes [2138, 2185) | <code>daf8febf13f2d33c055280ec3ea352501d22aea90f1fe9eb54f161f5624163ae</code></div><pre class="context"><span>nounced they were discontinuing the product, leading to consumer confusion, and incidents of greatly increased pricing among private sellers. Due to the demand of the NES Classic, and the success of the Super NES Classic Edition console, Nintendo re-introduced a limited run of the NES Classic in June 2018. Production was discontinued again in December 2018. </span><mark>It was well-received for its emulation quality.</mark><span> Hardware The NES Classic Edition is a dedicated console for emulating 30 Nintendo Entertainment System (NES) games. [ 1 ] [ 2 ] The console is distributed in two versions; one for Japan, featuring the likeness of the original Family Computer (Famicom), [ 3 ] and one for the rest of the world, which looks like the original NES. For the NES version, all of th</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_nes_classic_reception_scope_2</code> | bytes [8528, 8702) | <code>78b9433e4f664d4347e7e1ec1870d8695604a6af5756f436bd3022d5219b5275</code></div><pre class="context"><span> Classic editions by September 30, 2018, exceeded 10 million units. [ 27 ] On December 13, 2018, Reggie Fils-AimÃ© affirmed that both the NES and SNES Classic Editions would not be restocked after the 2018 holiday season, nor does Nintendo anticipate producing any similar mini-console version of its other home consoles in the near future. [ 28 ] Reception </span><mark>Aside from criticism regarding the controller cord being too short as well as minor emulation glitches, especially with sound, the NES Classic Edition has been well received.</mark><span> [ 29 ] [ 30 ] One of many &quot;plug-n-play&quot; consoles on the market, the demand for NES Classic Edition was notably large, with various retailers collectively selling approximately 196,000 units in its first month, [ 31 ] remarkably selling out within hours of availability. [ 32 ] Nintendo reported 1.5 million units had been sold by the end of 2016. [ 33 ] On Ap</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition</a></p><p>冻结文件: <a href="sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8" target="_blank">sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</a></p><p>内容 SHA-256: <code>20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;historical_critical_summary_not_every_unit_game_controller_or_recipient_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The NES Classic reference says its emulation quality was well received while preserving criticism of a short controller cord and minor sound-related emulation glitches; this historical summary is not proof about every unit, game, controller, display, or recipient.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_playstation_classic_hardware_scope"><header><h3>prop_playstation_classic_hardware_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a dedicated console with twenty games and two replica original controllers lacking analog sticks and vibration&quot;,
+  &quot;predicate&quot;: &quot;uses_twenty_emulated_games_and_two_original_style_controllers&quot;,
+  &quot;subject&quot;: &quot;PlayStation Classic exact product&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_playstation_classic_hardware_scope_1</code> | bytes [807, 971) | <code>3b19bd874c6376a515d7c3dcef9f851c8c63915897496269af32229257608bfa</code></div><pre class="context"><span>hip MediaTek MT8167A CPU Quad-Core ARM Cortex-A35 Memory 1 GB DDR3 Storage 16 GB eMMC Graphics Power VR GE8300 Controller input 2 controller ports PlayStation Classic controller Connectivity microUSB Dimensions 149 Ã 33 Ã 105 mm (5.9 Ã 1.3 Ã 4.1 in) Weight 170 g (6.0 oz) Website playstation .com /en-us /explore /playstation-classic </span><mark>The PlayStation Classic is a dedicated video game console by Sony Interactive Entertainment that emulates games originally released on its 1994 PlayStation console.</mark><span> It was announced in September 2018 at the Tokyo Game Show , and released on December 3, 2018, the 24th anniversary of the release of the original. [ 1 ] The console has been compared to competitor Nintendo &#x27;s prior releases of the NES Classic Edition and Super NES Classic Edition mini consoles. [ 2 ] The console received generally negative reviews from crit</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_playstation_classic_hardware_scope_2</code> | bytes [1572, 1777) | <code>81e3cd3cf00e84d65bd3285c3fcd7dd2c1c292aa89e228380b7171276ea6ce33</code></div><pre class="context"><span>ic Edition and Super NES Classic Edition mini consoles. [ 2 ] The console received generally negative reviews from critics, with criticism for its weak game library, inclusion of the original PlayStation controller instead of later, upgraded revisions, use of PAL versions for certain games, and high price tag, though the console&#x27;s design did attract praise. </span><mark>Specifications The PlayStation Classic ships with two replica PlayStation controllers (the original model without the analog sticks and vibration), an HDMI cable, and a USB Micro-A to standard USB-A cable.</mark><span> An AC adapter for the console is sold separately. [ 3 ] [ 1 ] The console weighs about 170 grams (0.37 lb) and is about 149 mm Ã 33 mm Ã 105 mm (5.9 in Ã 1.3 in Ã 4.1 in) in size, approximately 80% smaller in volume than the original PlayStation and 45% smaller in width and length. It includes ports for both controllers, HDMI output, </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_playstation_classic_hardware_scope_3</code> | bytes [2902, 3015) | <code>503b02b5a6b69d9e94a5a749ae28537febc0f34f6365b8f9d98942e6ed030778</code></div><pre class="context"><span> Power VR GE8300 graphics processing unit. It includes 16 GB of eMMC flash storage and 1 GB of DDR3 memory . [ 7 ] The Classic uses the ReARMed branch of the free and open source emulator PCSX to play its games instead of Sony&#x27;s proprietary emulator. [ 8 ] There exists a retro receiver (8Bitdo) for PS1 and PS2 for purchase, to connect with a modern gamepad. </span><mark>Games The PlayStation Classic comes preloaded with 20 games, running off the open source emulator , PCSX ReARMed.</mark><span> [ 9 ] Five games were revealed when the console was announced, [ 10 ] and the full roster was revealed a month later. [ 11 ] [ 12 ] Eight games vary between regions. The device does not interface with the PlayStation Network , and games will not be added post-launch. [ 13 ] Each game can be suspended in a save state by pressing the console&#x27;s &quot;reset&quot; button.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic</a></p><p>冻结文件: <a href="sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93" target="_blank">sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</a></p><p>内容 SHA-256: <code>ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_historical_model_not_the_frozen_seller_box_contents_condition_or_father_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The historical PlayStation Classic reference describes a dedicated console with twenty games running through PCSX ReARMed and two replica original controllers without analog sticks or vibration; those model facts do not inspect the frozen seller unit or determine the father&#x27;s controller and game preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_playstation_classic_pal_and_reception"><header><h3>prop_playstation_classic_pal_and_reception</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;nine PAL releases at 50 Hz rather than 60 Hz that may respond slower than NTSC players expect, plus criticism of lower frame rates, emulation quality, game selection, and controller limitations&quot;,
+  &quot;predicate&quot;: &quot;binds_slower_pal_versions_and_negative_reviews_to_this_model&quot;,
+  &quot;subject&quot;: &quot;PlayStation Classic regional timing and critical reception&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_playstation_classic_pal_and_reception_1</code> | bytes [3383, 3746) | <code>4ddea4670455e3fbb7d07d660613337958cb2bbfd7de8736d1b7d652906d7363</code></div><pre class="context"><span>ive games were revealed when the console was announced, [ 10 ] and the full roster was revealed a month later. [ 11 ] [ 12 ] Eight games vary between regions. The device does not interface with the PlayStation Network , and games will not be added post-launch. [ 13 ] Each game can be suspended in a save state by pressing the console&#x27;s &quot;reset&quot; button. [ 13 ] </span><mark>Nine games use the PAL release (favored in most European countries) regardless of the console&#x27;s release platform, which means they run at a slower frame rate of 50 Hz as opposed to the NTSC standard of 60 Hz (favored in North America , parts of Japan , as well as some other Asian countries ), and may respond slower than players from NTSC regions would expect.</mark><span> [ 14 ] [ 15 ] The North American version of the dedicated console received an M for Mature rating from the ESRB due to the inclusion of Grand Theft Auto , Metal Gear Solid and Resident Evil: Director&#x27;s Cut . Likewise, the European version received an 18 rating from the PEGI group; European package also displays German USK 16 (PEGI ratings are not formally r</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_playstation_classic_pal_and_reception_2</code> | bytes [7433, 7540) | <code>a66e8fc893edffb017871fa2e1d375ec8182b31f31024f520e1a207b15fb1488</code></div><pre class="context"><span>ded in the PlayStation Classic&#x27;s library are the PAL versions&quot; which caused consistency problems in NTSC regions. [ 19 ] Sam Loveridge of GamesRadar+ praised the look of the console, but criticized the selection of games, the weak presentation of the games due to the black bars on the side of the screen, and the short length of the controller cables. [ 18 ] </span><mark>The lower frame rates during gameplay, poor emulation quality, and the user interface were also criticized.</mark><span> John Linneman of Eurogamer &#x27; s Digital Foundry also gave it a similarly negative review, noting the console&#x27;s subpar emulation, poor image quality, lack of enhancements and use of PAL game releases on North American units, though he did praise the user interface. [ 20 ] Chris Carter of Destructoid shares a similar opinion, citing that the emulation on the c</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_playstation_classic_pal_and_reception_3</code> | bytes [8039, 8263) | <code>739cbc56e7398887f2e25f565cdc91f06df2a7258c55019c866c4335f9e68962</code></div><pre class="context"><span> quality, lack of enhancements and use of PAL game releases on North American units, though he did praise the user interface. [ 20 ] Chris Carter of Destructoid shares a similar opinion, citing that the emulation on the classic console is at times, &quot;worse than the original&quot;, but praised the instant-state recovery and the size of the internal storage. [ 21 ] </span><mark>Joe Juba of Game Informer lamented on the lack of analog sticks on the controller, along with the lacking selection of titles and a barebones menu, which makes the system a good fit only for an &quot;extremely specific audience&quot;.</mark><span> [ 22 ] However, Twisted Metal , Jumping Flash! , Tekken 3 , Final Fantasy VII , and Metal Gear Solid were hailed as the best of the genre. In response to the console&#x27;s perceived weak game selection, many users have modified the console to play ROMs via external storage, essentially turning the console into a dedicated emulator, similar to software such as R</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic</a></p><p>冻结文件: <a href="sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93" target="_blank">sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</a></p><p>内容 SHA-256: <code>ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;historical_model_specific_evidence_not_all_games_regions_displays_emulators_or_users&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The PlayStation Classic reference says nine games use 50 Hz PAL releases rather than 60 Hz and may respond slower than NTSC-region players expect, and records criticism of lower frame rates, emulation quality, game selection, and the non-analog controller; this evidence remains bound to that historical model, games, and region context.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_playstation_listing_snapshot"><header><h3>prop_playstation_listing_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an in-stock SKU B07L7W915H listing at 86.22 dollars whose title claims twenty pre-installed games and whose body says there is no posted review&quot;,
+  &quot;predicate&quot;: &quot;shows_sparse_offer_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation Classic bundle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_playstation_listing_snapshot_1</code> | bytes [0, 175) | <code>3c348a41e27cf56eb9b2a723da10dd8de571bb9fc7dde48ac3d21a5d3a605e32</code></div><pre class="context"><span></span><mark>Playstation Classic Console with 20 Classic Playstation Games Pre-Installed Holiday Bundle, Includes Final Fantasy VII, Grand Theft Auto, Resident Evil Director&#x27;s Cut and More</mark><span>
+
+In stock SKU B07L7W915H Be the first to review this product $86.22 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Pricing The strikethrough price is the List Price. Savings represents a discount off the List Price. Product Dimensions 9 x 9 x 4 inches; 2.18 Pounds Binding Electronics Item model number PS 1 Is Discontinued By Man</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_playstation_listing_snapshot_2</code> | bytes [177, 291) | <code>906c1511f777936444da37015687add4109a39ac4a8f7beb35bf52ecb1ab132f</code></div><pre class="context"><span>Playstation Classic Console with 20 Classic Playstation Games Pre-Installed Holiday Bundle, Includes Final Fantasy VII, Grand Theft Auto, Resident Evil Director&#x27;s Cut and More
+
+</span><mark>In stock SKU B07L7W915H Be the first to review this product $86.22 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Pricing The strikethrough price is the List Price. Savings represents a discount off the List Price. Product Dimensions 9 x 9 x 4 inches; 2.18 Pounds Binding Electronics Item model number PS 1 Is Discontinued By Manufacturer No Item Weight 2.18 pounds Batteries 1 Lithium ion batteries required. Date First Available November 26, 2</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/playstation-classic-console-with-20-classic-playstation-games-pre-installed-holiday-bundle-includes-final-fantasy-vii-grand-theft-auto-resident-evil-director-s-cut-and-more.html" target="_blank" rel="noreferrer">http://localhost:7770/playstation-classic-console-with-20-classic-playstation-games-pre-installed-holiday-bundle-includes-final-fantasy-vii-grand-theft-auto-resident-evil-director-s-cut-and-more.html</a></p><p>冻结文件: <a href="sources/d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460" target="_blank">sources/d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460</a></p><p>内容 SHA-256: <code>d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_not_current_market_value_contents_emulation_quality_controller_fit_or_recipient_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen seller page titles an in-stock PlayStation Classic holiday bundle with twenty pre-installed games and shows SKU B07L7W915H at 86.22 dollars with no posted review; this sparse seller snapshot does not prove current market value, exact contents, emulation quality, controller fit, returnability, or the father&#x27;s outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_preloaded_shopper_scope"><header><h3>prop_preloaded_shopper_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;interest in old pre-installed games without complicated setup together with a personal suspicion of dropshipping or overpricing&quot;,
+  &quot;predicate&quot;: &quot;expresses_simplicity_goal_and_seller_suspicion&quot;,
+  &quot;subject&quot;: &quot;one preloaded-retro-device shopper&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_preloaded_shopper_scope_1</code> | bytes [198, 355) | <code>58bc5c7e8ba4982533ce95d0afa4c07b9bc81b2580044f2443965ed15fbd7f72</code></div><pre class="context"><span>Good handheld console ?
+
+Hey guys I&#x27;m new here. I was watching tiktok and stumbled upon a console called powkiddy, which is a handheld console that has already games in it and it got me interested. </span><mark>After reviewing their site they are either doing dropshipping or just overpriced stuff (they have a section on thei online shop called &quot;tiktok best seller&quot;).</mark><span> So I was wondering if anyone knew a good deal in terms of handheld console with old games on it. Looking for something with pre-installed games if possible (or something that&#x27;s not complicated to to do) maybe something with dual screens/touchscreen for the DS games ? Thanks :) Edit : A handheld console with retro games ofc 1
+
+The steam deck is the perfect s</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_preloaded_shopper_scope_2</code> | bytes [453, 623) | <code>d7dfc11ca4b2c304e30ceb6c0789440153f4f49e3dcc514bef5a570cf85f671c</code></div><pre class="context"><span>sole called powkiddy, which is a handheld console that has already games in it and it got me interested. After reviewing their site they are either doing dropshipping or just overpriced stuff (they have a section on thei online shop called &quot;tiktok best seller&quot;). So I was wondering if anyone knew a good deal in terms of handheld console with old games on it. </span><mark>Looking for something with pre-installed games if possible (or something that&#x27;s not complicated to to do) maybe something with dual screens/touchscreen for the DS games ?</mark><span> Thanks :) Edit : A handheld console with retro games ofc 1
+
+The steam deck is the perfect solution
+
+A hacked PS Vita.
+
+A DS with a flashcard.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/gaming/83725/good-handheld-console" target="_blank" rel="noreferrer">http://localhost:9999/f/gaming/83725/good-handheld-console</a></p><p>冻结文件: <a href="sources/c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18" target="_blank">sources/c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18</a></p><p>内容 SHA-256: <code>c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_question_not_verified_seller_behavior_product_quality_or_father_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One shopper wants pre-installed old games without complicated setup and suspects a different seller may be dropshipping or overpriced; this is one author&#x27;s question, not verified seller behavior, product quality, or evidence of the father&#x27;s preferences.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ps1_nostalgia_heterogeneity_scope"><header><h3>prop_ps1_nostalgia_heterogeneity_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author misses a childhood PS1 and Spyro experience while replies name Xbox 360, PS2, Dreamcast, SNES, Game Boy, Saturn, and other favorites&quot;,
+  &quot;predicate&quot;: &quot;contains_personal_ps1_nostalgia_and_diverse_favorites&quot;,
+  &quot;subject&quot;: &quot;one favorite-console discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ps1_nostalgia_heterogeneity_scope_1</code> | bytes [222, 429) | <code>b0ab2255f2b2df8c4dcfb423579793eeb1a0298f465e7e2dd941fdf815dfd8e2</code></div><pre class="context"><span>What was you’re favourite console?
+
+I’m 34, almost 35, and I think that my fave console has to be the first PlayStation. It was the first time that fully 3D games became the norm rather than a display of tech prowess. </span><mark>As a child I had a Sega Megadrive (which is also an amazing console) but when I got a PS1 for Christmas and played Spyro I was hooked! This was the future lol! God I wish I could experience those days again.</mark><span> 0
+
+Xbox 360 is my personal favorite. It had all the right games and hardware
+
+PS2
+
+Dreamcast - I&#x27;ve loved a lot of consoles in my days, but the Dreamcast still holds a special place. So many great/weird/awesome games, and it came out at a perfect time in my life when I was living with friends, so we&#x27;d all crowd on the couch and play stuff like Powerstone. G</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps1_nostalgia_heterogeneity_scope_2</code> | bytes [433, 506) | <code>1ef2f8d69746ec34c3d6ac855d59b7c560dfad31e9bd341452dbf5254504e0f4</code></div><pre class="context"><span>at my fave console has to be the first PlayStation. It was the first time that fully 3D games became the norm rather than a display of tech prowess. As a child I had a Sega Megadrive (which is also an amazing console) but when I got a PS1 for Christmas and played Spyro I was hooked! This was the future lol! God I wish I could experience those days again. 0
+
+</span><mark>Xbox 360 is my personal favorite. It had all the right games and hardware</mark><span>
+
+PS2
+
+Dreamcast - I&#x27;ve loved a lot of consoles in my days, but the Dreamcast still holds a special place. So many great/weird/awesome games, and it came out at a perfect time in my life when I was living with friends, so we&#x27;d all crowd on the couch and play stuff like Powerstone. Good times.
+
+Bash
+
+Not a console.
+
+It&#x27;s console 😂
+
+Is it? I dunno lol, I do</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps1_nostalgia_heterogeneity_scope_3</code> | bytes [513, 612) | <code>3303e90498f60f22eb24a9a2ed9311c43213b67c0769670c34501770a5ffd054</code></div><pre class="context"><span>ully 3D games became the norm rather than a display of tech prowess. As a child I had a Sega Megadrive (which is also an amazing console) but when I got a PS1 for Christmas and played Spyro I was hooked! This was the future lol! God I wish I could experience those days again. 0
+
+Xbox 360 is my personal favorite. It had all the right games and hardware
+
+PS2
+
+</span><mark>Dreamcast - I&#x27;ve loved a lot of consoles in my days, but the Dreamcast still holds a special place.</mark><span> So many great/weird/awesome games, and it came out at a perfect time in my life when I was living with friends, so we&#x27;d all crowd on the couch and play stuff like Powerstone. Good times.
+
+Bash
+
+Not a console.
+
+It&#x27;s console 😂
+
+Is it? I dunno lol, I don’t really know much about it, sorry 🙂
+
+The Xbox 360 was my first definitely enjoyed it Now I have ps</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps1_nostalgia_heterogeneity_scope_4</code> | bytes [1033, 1218) | <code>34cd54b0e7b0061aa27b45a67695086aaa5100d665566a30b863f4a4069eb1f9</code></div><pre class="context"><span>ect time in my life when I was living with friends, so we&#x27;d all crowd on the couch and play stuff like Powerstone. Good times.
+
+Bash
+
+Not a console.
+
+It&#x27;s console 😂
+
+Is it? I dunno lol, I don’t really know much about it, sorry 🙂
+
+The Xbox 360 was my first definitely enjoyed it Now I have ps4 and xboxserisx they both very fun to play different games
+
+</span><mark>My favourite console would have to be the super Nintendo, it had so many great games...but if we include computers too id probably choose the amiga, that had some really good games too.</mark><span>
+
+TurboGrafx-16 had the best ecosystem with TurboStick and TurboBooster plus TurboExpress portable.
+
+Steam Deck. But I’ve great memories with almost every console I had (except Nintendo Wii, 3DS, Xbox One X and PS4) PS1, PSP, Xbox 360 (first multiplayer games with randoms, some of them become a true friends that I meet in person later) PS3
+
+My 3DS is still</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/gaming/83708/what-was-you-re-favourite-console" target="_blank" rel="noreferrer">http://localhost:9999/f/gaming/83708/what-was-you-re-favourite-console</a></p><p>冻结文件: <a href="sources/00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895" target="_blank">sources/00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895</a></p><p>内容 SHA-256: <code>00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_memories_and_thread_heterogeneity_not_prevalence_or_father_nostalgia_target&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One author expresses childhood PS1 and Spyro nostalgia while replies name Xbox 360, PS2, Dreamcast, SNES, Game Boy, Saturn, and other favorites; the thread illustrates heterogeneous individual memories, not prevalence or the father&#x27;s nostalgia target.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_retropie_card_identity_snapshot"><header><h3>prop_retropie_card_identity_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 128 GB microSD-card configuration for Raspberry Pi 4 or 400 at 59.99 dollars with a 65-percent-of-100 aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;identifies_a_card_not_complete_console&quot;,
+  &quot;subject&quot;: &quot;frozen RetroPie preloaded product page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_retropie_card_identity_snapshot_1</code> | bytes [194, 369) | <code>e393d9d1f788700d6edfe39955b1ba455aaa6adab0e810322b1c86855c87570e</code></div><pre class="context"><span>Retropie Gaming Console ROMs v4.7 128GB microSD Card Preloaded Games for Raspberry Pi 4/400, Retropie Emulation Console Plug &amp; Play Fully Loaded Game System Compatible with Xbox/PS1 Controller
+
+</span><mark>In stock SKU B08TBB1TZ8 Rating: 65 % of 100 12 Reviews Add Your Review $59.99 Size RetroPie SD Card 128GB RetroPie SD Card 64GB Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Fastoe 128GB RetroPie Preloaded Games MicroSD Card Fastoe 128GB RetroPie Preloaded Games MicroSD Card. Over 55 systems, 7749 games. Specifications Compatibility What’s in the Package ★【Classic Games】: RetroPie SD card preloaded 10000+ games with preview for Raspberry Pi 4. ★【Professional】: Using the Fastoe RetroPie </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_retropie_card_identity_snapshot_2</code> | bytes [398, 500) | <code>98312038da9b1704325c1c677e3c3fab892820780c8886c27f438fbf4166e2b4</code></div><pre class="context"><span>B microSD Card Preloaded Games for Raspberry Pi 4/400, Retropie Emulation Console Plug &amp; Play Fully Loaded Game System Compatible with Xbox/PS1 Controller
+
+In stock SKU B08TBB1TZ8 Rating: 65 % of 100 12 Reviews Add Your Review $59.99 Size RetroPie SD Card 128GB RetroPie SD Card 64GB Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look </span><mark>Fastoe 128GB RetroPie Preloaded Games MicroSD Card Fastoe 128GB RetroPie Preloaded Games MicroSD Card.</mark><span> Over 55 systems, 7749 games. Specifications Compatibility What’s in the Package ★【Classic Games】: RetroPie SD card preloaded 10000+ games with preview for Raspberry Pi 4. ★【Professional】: Using the Fastoe RetroPie game system production tool to ensure product quality. ★【High Quality】: All of the products are 100% testing before leaving t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_retropie_card_identity_snapshot_3</code> | bytes [879, 945) | <code>162c5bfab34752b689c4caf8e73b4a2f754e85200d115ba6b32dd64d541374fd</code></div><pre class="context"><span>749 games. Specifications Compatibility What’s in the Package ★【Classic Games】: RetroPie SD card preloaded 10000+ games with preview for Raspberry Pi 4. ★【Professional】: Using the Fastoe RetroPie game system production tool to ensure product quality. ★【High Quality】: All of the products are 100% testing before leaving the Fastoe factory. </span><mark>★【Compatibility】: Compatible with all Raspberry Pi 4 models.</mark><span> ★【Plug &amp; Play】: Plug it in and you’re ready to go. Package Dimensions 4.13 x 2.52 x 0.67 inches Item Weight 0.52 ounces Manufacturer Fastoe Item model number retropie-console-sd-card-128gb Is Discontinued By Manufacturer No Date First Available February 1, 2021 Reviews 12 Write Your Own Review You&#x27;re reviewing: Retropie Gaming Console ROMs v4.7 128G</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html" target="_blank" rel="noreferrer">http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html</a></p><p>冻结文件: <a href="sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408" target="_blank">sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</a></p><p>内容 SHA-256: <code>5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;card_snapshot_not_complete_host_console_controllers_power_video_or_legal_game_provenance&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The RetroPie seller page identifies a Fastoe 128 GB preloaded microSD card for Raspberry Pi 4 models at 59.99 dollars with a 65-percent-of-100 aggregate over twelve reviews; it is not a complete host console and does not establish controllers, power, video output, setup, or legal game provenance.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_retropie_game_count_conflict"><header><h3>prop_retropie_game_count_conflict</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one description says more than fifty-five systems and 7,749 games while another says more than 10,000 games&quot;,
+  &quot;predicate&quot;: &quot;contains_an_unresolved_count_inconsistency&quot;,
+  &quot;subject&quot;: &quot;RetroPie card game-count language&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_retropie_game_count_conflict_1</code> | bytes [501, 529) | <code>d8197489f5f06278a1b3efb7b5f5f661f9e7f85047c571621aeee7042f443027</code></div><pre class="context"><span>ded Game System Compatible with Xbox/PS1 Controller
+
+In stock SKU B08TBB1TZ8 Rating: 65 % of 100 12 Reviews Add Your Review $59.99 Size RetroPie SD Card 128GB RetroPie SD Card 64GB Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Fastoe 128GB RetroPie Preloaded Games MicroSD Card Fastoe 128GB RetroPie Preloaded Games MicroSD Card. </span><mark>Over 55 systems, 7749 games.</mark><span> Specifications Compatibility What’s in the Package ★【Classic Games】: RetroPie SD card preloaded 10000+ games with preview for Raspberry Pi 4. ★【Professional】: Using the Fastoe RetroPie game system production tool to ensure product quality. ★【High Quality】: All of the products are 100% testing before leaving the Fastoe factory. ★【Comp</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_retropie_game_count_conflict_2</code> | bytes [583, 679) | <code>a6f212b1053daf301539eb76093592abd65253c110de2a60c61f091e152327c5</code></div><pre class="context"><span>g: 65 % of 100 12 Reviews Add Your Review $59.99 Size RetroPie SD Card 128GB RetroPie SD Card 64GB Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Fastoe 128GB RetroPie Preloaded Games MicroSD Card Fastoe 128GB RetroPie Preloaded Games MicroSD Card. Over 55 systems, 7749 games. Specifications Compatibility What’s in the Package </span><mark>★【Classic Games】: RetroPie SD card preloaded 10000+ games with preview for Raspberry Pi 4.</mark><span> ★【Professional】: Using the Fastoe RetroPie game system production tool to ensure product quality. ★【High Quality】: All of the products are 100% testing before leaving the Fastoe factory. ★【Compatibility】: Compatible with all Raspberry Pi 4 models. ★【Plug &amp; Play】: Plug it in and you’re ready to go. Package Dimensions 4.13 x 2.52 x 0</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html" target="_blank" rel="noreferrer">http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html</a></p><p>冻结文件: <a href="sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408" target="_blank">sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</a></p><p>内容 SHA-256: <code>5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_count_conflict_not_verified_unique_compatible_working_or_licensed_library&quot;,
+    &quot;topic_cluster&quot;: &quot;retro_mini_emulation_and_recipient_fit_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The same RetroPie card page says both over fifty-five systems with 7,749 games and more than 10,000 games; preserve the unresolved seller count inconsistency rather than treating either number as a verified unique, compatible, working, or licensed library.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_retro_mini_0037</td><td>case_spec</td><td><a href="sources/6ae9ef43774aee9d1b46676e7b3f2bae89f1b96977edc7c7171afd2010e46f45">6ae9ef43774aee9d1b46676e7b3f2bae89f1b96977edc7c7171afd2010e46f45</a></td><td><a href="http://case-spec.local/dra_v3_formal_gaming_0037" target="_blank" rel="noreferrer">来源 URL</a></td><td>6938</td></tr><tr><td>reg_magento_generic_620_console</td><td>magento</td><td><a href="sources/5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387">5f8039e56f90f4669ea199bb9bf674f261a44f1d683fbcfba3b968f15f64c387</a></td><td><a href="http://localhost:7770/classic-retro-game-console-plug-and-play-8-bit-video-game-entertainment-system-built-in-620-games-with-2-classic-controllers.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2104</td></tr><tr><td>reg_magento_playstation_classic_bundle</td><td>magento</td><td><a href="sources/d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460">d7a38197f17b8777c785d087039727751a38417bfbbc8d3a1b35a35d9d82b460</a></td><td><a href="http://localhost:7770/playstation-classic-console-with-20-classic-playstation-games-pre-installed-holiday-bundle-includes-final-fantasy-vii-grand-theft-auto-resident-evil-director-s-cut-and-more.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>974</td></tr><tr><td>reg_magento_retropie_preloaded_card</td><td>magento</td><td><a href="sources/5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408">5e624694c164f716272fa125f6b85279378f5ca1acfc22de4a7754f4a136d408</a></td><td><a href="http://localhost:7770/retropie-gaming-console-roms-v4-7-128gb-microsd-card-preloaded-games-for-raspberry-pi-4-400-retropie-emulation-console-plug-play-fully-loaded-game-system-compatible-with-xbox-ps1-controller.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1555</td></tr><tr><td>reg_postmill_casual_family_controller_preference</td><td>postmill</td><td><a href="sources/e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24">e237e061c18079eb368707d455c8a78f2ba6878dee8516a9fd4318148725ef24</a></td><td><a href="http://localhost:9999/f/consoles/124582" target="_blank" rel="noreferrer">来源 URL</a></td><td>11009</td></tr><tr><td>reg_postmill_preloaded_retro_handheld_question</td><td>postmill</td><td><a href="sources/c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18">c9be73be2653fc9168c5a06898a8c86dba3ef4c96b5b71d8c350a77058e98e18</a></td><td><a href="http://localhost:9999/f/gaming/83725/good-handheld-console" target="_blank" rel="noreferrer">来源 URL</a></td><td>765</td></tr><tr><td>reg_postmill_ps1_nostalgia</td><td>postmill</td><td><a href="sources/00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895">00028ba99061fa0d87cbf6ac4fbc94ee829f01e61b2335af29820869ab468895</a></td><td><a href="http://localhost:9999/f/gaming/83708/what-was-you-re-favourite-console" target="_blank" rel="noreferrer">来源 URL</a></td><td>3648</td></tr><tr><td>reg_search_casual_controller</td><td>search_result</td><td><a href="sources/26fbb6dbd7e70d25c8d51f60bb242b70b602b266faa5cd197011ef5fa68b17ec">26fbb6dbd7e70d25c8d51f60bb242b70b602b266faa5cd197011ef5fa68b17ec</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=df508fd9-dfba-4c6b-bb45-a8ffaf7aab22" target="_blank" rel="noreferrer">来源 URL</a></td><td>50578</td></tr><tr><td>reg_search_console_emulator</td><td>search_result</td><td><a href="sources/b6c7d54b1c2af0216d422329e67b9631b0f8fbbada7e779c9eabcf47a599b345">b6c7d54b1c2af0216d422329e67b9631b0f8fbbada7e779c9eabcf47a599b345</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=3e1ccf63-559e-4bc3-9117-cf667cfb1cc9" target="_blank" rel="noreferrer">来源 URL</a></td><td>1477</td></tr><tr><td>reg_search_display_lag</td><td>search_result</td><td><a href="sources/c95ce760598c7c6127fa59221d6614a6a9ce4998f87367df06bc6d11cf61bcd3">c95ce760598c7c6127fa59221d6614a6a9ce4998f87367df06bc6d11cf61bcd3</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=89efb649-258a-4645-9dfa-d4465a87154c" target="_blank" rel="noreferrer">来源 URL</a></td><td>10436</td></tr><tr><td>reg_search_generic_620_listing</td><td>search_result</td><td><a href="sources/acc481cc0525719cdfb9ced6314177c2d5169913919bb8502f08d45a8b5437da">acc481cc0525719cdfb9ced6314177c2d5169913919bb8502f08d45a8b5437da</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=908c6000-6828-43df-88c2-6ba8a004d446" target="_blank" rel="noreferrer">来源 URL</a></td><td>7147</td></tr><tr><td>reg_search_nes_classic</td><td>search_result</td><td><a href="sources/99daf672fe489e102e92dc21d8dad8a697e3704ab44ba9d3dab4b31547cd2eba">99daf672fe489e102e92dc21d8dad8a697e3704ab44ba9d3dab4b31547cd2eba</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=7f788401-4d3f-46ec-a083-054289078ac3" target="_blank" rel="noreferrer">来源 URL</a></td><td>2620</td></tr><tr><td>reg_search_playstation_classic</td><td>search_result</td><td><a href="sources/233f48ef584804c1b3e0d5ba97ded01d4cf700676aaeae8b32ab14572ac39538">233f48ef584804c1b3e0d5ba97ded01d4cf700676aaeae8b32ab14572ac39538</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=751b4c57-6154-44c6-909e-c5cb6c28f228" target="_blank" rel="noreferrer">来源 URL</a></td><td>11863</td></tr><tr><td>reg_search_playstation_listing</td><td>search_result</td><td><a href="sources/036792b1dd25cae558079c66089964d25a8385e962ea82548501b09072598e39">036792b1dd25cae558079c66089964d25a8385e962ea82548501b09072598e39</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=1b9d0398-cf36-4739-8853-d6b9b496f71f" target="_blank" rel="noreferrer">来源 URL</a></td><td>6040</td></tr><tr><td>reg_search_preloaded_question</td><td>search_result</td><td><a href="sources/16d8c2a23ea833c87bf4d66b5adab83a0e809759a3f80542ec0544792874d11e">16d8c2a23ea833c87bf4d66b5adab83a0e809759a3f80542ec0544792874d11e</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=75239a66-b849-42bb-bb70-811c5456eedd" target="_blank" rel="noreferrer">来源 URL</a></td><td>54937</td></tr><tr><td>reg_search_ps1_nostalgia</td><td>search_result</td><td><a href="sources/f676576cb77c308e08f20d06b22fd2082e60298c5554594eb71c0d2561b67f05">f676576cb77c308e08f20d06b22fd2082e60298c5554594eb71c0d2561b67f05</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=982478b2-e2fc-4613-94ff-9256332336cc" target="_blank" rel="noreferrer">来源 URL</a></td><td>53324</td></tr><tr><td>reg_search_retropie_card_listing</td><td>search_result</td><td><a href="sources/64c2116c0c90155271f88b4454f9a3ae39bcc7c6379eb2a08ebf3ff84246e51e">64c2116c0c90155271f88b4454f9a3ae39bcc7c6379eb2a08ebf3ff84246e51e</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1&amp;request_id=2546aa0e-f227-4009-953e-842db4a70f4f" target="_blank" rel="noreferrer">来源 URL</a></td><td>7775</td></tr><tr><td>reg_wiki_display_lag</td><td>wikipedia</td><td><a href="sources/960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28">960a76b044daff61628f136185184088074d87aeddd9ccf6a681e24a2ba67a28</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Display_lag" target="_blank" rel="noreferrer">来源 URL</a></td><td>14819</td></tr><tr><td>reg_wiki_nes_classic_edition</td><td>wikipedia</td><td><a href="sources/20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8">20c2a6ee633aa02058f2c3e60c58c0f724a679a7354750af6ef684be6d25b3d8</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/NES_Classic_Edition" target="_blank" rel="noreferrer">来源 URL</a></td><td>20202</td></tr><tr><td>reg_wiki_playstation_classic</td><td>wikipedia</td><td><a href="sources/ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93">ab85b6121abaabe34e368a2796fb3f811bf6f2d6b539b511af4ab938c4eeda93</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Classic" target="_blank" rel="noreferrer">来源 URL</a></td><td>19334</td></tr><tr><td>reg_wiki_video_game_console_emulator</td><td>wikipedia</td><td><a href="sources/aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc">aac70947387befb5939afd15864a9a8c4dfa966007a8346a0aa8fd22b16067fc</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Video_game_console_emulator" target="_blank" rel="noreferrer">来源 URL</a></td><td>20008</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-gaming-0037-retro-mini-evidence-boundary-20260716-r1";
+const graphHash = "7d446ad4c42206e8b788efb84f1b475aa10252778a49ad4c8cf0f1fa5c6f478f";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

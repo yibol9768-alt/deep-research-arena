@@ -16,7 +16,7 @@ Usage (formal, default):
   python3 scripts/build_truth_board.py --run-dir <run-set>/<backbone> \
       --replicates 3 \
       [--keys-dir data/golden/answer_keys] [--cache sandbox_cache.json] \
-      [--panel panel_results.json] [--gamma 1.5] [--out board.json]
+      [--panel panel_results.json] [--gamma 1.0] [--out board.json]
 
 Legacy nested report trees remain readable only behind both
 ``--reports-dir`` and ``--legacy-nested-layout``.  Formal and legacy layouts
@@ -178,9 +178,9 @@ def _fact_precision(cells) -> dict:
 # from the live scorer constants so the stamp can never drift from the code that
 # produced the numbers. Boards carrying different formula_version are NOT
 # comparable (FORMULA_LOCK: "跨版本禁比").
-FORMULA_VERSION = "tv2.4-provenance-gate-factscope-forum-attribution"
+FORMULA_VERSION = "tv2.5-linear-provenance-gate-factscope-forum-attribution"
 EXTRACTOR_COMMIT = "46e716e3+63d220b3+answer_keys_b636b149"
-FORMULA_COMMIT = "ca7a7c7e+factscope_forum_attribution_locality"
+FORMULA_COMMIT = "linear_gamma1+factscope_forum_attribution_locality"
 
 
 def _task_set_hash(task_ids) -> str:
@@ -1815,6 +1815,8 @@ def main() -> int:
     eps = ds.EPS_FLOOR
     floor_desc = ("NO floor (D1: EPS_FLOOR=0.0)" if eps <= 0.0
                   else f"floor-if-active eps={eps}")
+    gate_name = ("provenance" if gate_semantics == "provenance_v2" else "reach")
+    gate_term = gate_name if args.gamma == 1.0 else f"{gate_name}^{args.gamma:g}"
     board = {
         "board": "truth_v2",
         # Fail-closed cache regime (SPEC_DECISIONS #2). "strict" == a headline
@@ -1827,9 +1829,7 @@ def main() -> int:
         # Where the presentation column came from (or None without --panel;
         # {"unstamped": true} for a legacy stampless file). See load_panel.
         "panel_provenance": panel_provenance,
-        "composition": (f"truth = "
-                        f"{'provenance' if gate_semantics == 'provenance_v2' else 'reach'}"
-                        f"^gamma * (0.39 fact + 0.28 pof + "
+        "composition": (f"truth = {gate_term} * (0.39 fact + 0.28 pof + "
                         f"0.33 completeness), {floor_desc} "
                         "(FORMULA_LOCK K6 + D1/D4); spec/compliance and "
                         "presentation are separate columns, tie-break only, "
@@ -1864,7 +1864,7 @@ def main() -> int:
             "nominal_quality_weights": dict(ds.QUALITY_WEIGHTS),
             "per_row_effective_signals": ["gate_zero_rate", "fact_active_rate"],
             "note": (
-                "truth = reach^gamma * (0.39 fact + 0.28 pof + 0.33 completeness). "
+                f"truth = {gate_term} * (0.39 fact + 0.28 pof + 0.33 completeness). "
                 "The weights are NOMINAL. On any report with gate==0 (see each "
                 "row's gate_zero_rate) the whole quality term is multiplied out, "
                 "so no weight carries information there. Among reach>0 reports fact "

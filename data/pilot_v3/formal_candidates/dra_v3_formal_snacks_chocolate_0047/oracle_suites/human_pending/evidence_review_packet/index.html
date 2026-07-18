@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1</code></p>
+<p>证据图哈希: <code>50ec4093d173071fdcbd8af2cde63ae2bcc0c686698525a5acf4e2fc58cbb830</code></p>
+<p>待审项 30 个，其中语义项 15 个、结构化项 0 个；冻结来源 31 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_autoxidation_food_rancidity_scope"><header><h3>assert_autoxidation_food_rancidity_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;oxygen at normal temperatures can drive free-radical degradation and rancidity over time&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for autoxidation and rancidity&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_autoxidation_food_rancidity_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_reaction_mechanism_not_exact_lot_rate_or_ten_week_prediction&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;oxygen at normal temperatures can drive free-radical degradation and rancidity over time&quot;,
+  &quot;predicate&quot;: &quot;links_ambient_oxygen_reactions_to_gradual_degradation_and_food_rancidity&quot;,
+  &quot;subject&quot;: &quot;autoxidation and rancidity&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_autoxidation_food_rancidity_scope_1</code> | bytes [0, 177) | <code>0556a0175a2b11b51caf8d2fc0eb69af8bf66f6bb4c2da68c8872048f0fa6d36</code></div><pre class="context"><span></span><mark>Autoxidation (sometimes auto-oxidation ) refers to oxidations brought about by reactions with oxygen at normal temperatures, without the intervention of flame or electric spark.</mark><span> [ 1 ] The term is usually used to describe the gradual degradation of organic compounds in air at ambient temperatures. Many common phenomena can be attributed to autoxidation, such as food going rancid , [ 2 ] the &#x27; drying &#x27; of varnishes and paints, and the perishing of rubber. [ 3 ] It is also an important concept in both industrial chemistry and biology.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Autoxidation" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Autoxidation</a></p><p>冻结文件: <a href="sources/09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e" target="_blank">sources/09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e</a></p><p>内容 SHA-256: <code>09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_bag_clip_tip_scope"><header><h3>assert_bag_clip_tip_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author suggests opening and clipping a bag while a reply warns that doing so admits oxygen to a nitrogen-rich package and may accelerate staling&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for opened snack-bag clip discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_bag_clip_tip_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_and_reply_scoped_tip_not_controlled_barrier_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;the author suggests opening and clipping a bag while a reply warns that doing so admits oxygen to a nitrogen-rich package and may accelerate staling&quot;,
+  &quot;predicate&quot;: &quot;contains_a_space_saving_tip_and_an_oxygen_counterpoint&quot;,
+  &quot;subject&quot;: &quot;opened snack-bag clip discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_bag_clip_tip_scope_1</code> | bytes [185, 244) | <code>0855d28e360a5e71d43008d5981078eaa9e1aedca246f0c07d8814b88e5fbe81</code></div><pre class="context"><span>LPT - when packing snacks like chips/pretzels for vacation - open the bag and clip it shut when packing
+
+Many people will buy a new bag of chips/pretzels for their road-trip/vacation - </span><mark>open the bag and push the extra air out, then clip it shut.</mark><span> Now you have more space to pack and you won&#x27;t forget your snack clips to keep your food fresh. 0
+
+The &quot;air&quot; in a sealed bag of chips is mostly nitrogen. Opening the bag is letting oxygen into a mostly oxygen free environment and will cause your snack to go stale faster.
+
+If you don&#x27;t eat a bag of chips on a road trip before they go stale, especially with a </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/77452/lpt-when-packing-snacks-like-chips-pretzels-for-vacation" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/77452/lpt-when-packing-snacks-like-chips-pretzels-for-vacation</a></p><p>冻结文件: <a href="sources/aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b" target="_blank">sources/aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b</a></p><p>内容 SHA-256: <code>aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_block_chocolate_availability_scope"><header><h3>assert_block_chocolate_availability_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an author seeking block dark and white chocolate for bark receives time- and location-scoped store brand and price suggestions&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Boston block-chocolate sourcing discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_block_chocolate_availability_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;local_historical_sourcing_discussion_not_exact_offer_or_durability_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;an author seeking block dark and white chocolate for bark receives time- and location-scoped store brand and price suggestions&quot;,
+  &quot;predicate&quot;: &quot;contains_local_historical_availability_price_and_preference_comments&quot;,
+  &quot;subject&quot;: &quot;Boston block-chocolate sourcing discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_block_chocolate_availability_scope_1</code> | bytes [18, 122) | <code>a2ca44077890a659345ee86427710d422de41b2430c1c72ed702bd013761b26c</code></div><pre class="context"><span>Block chocolate?
+
+</span><mark>Anyone know a good location to get some block chocolate? I&#x27;d like to make some Bark again for Christmas.</mark><span> Last year I ended up just melting down chocolate chips. Hoping to up the quality a bit this year and get some quality block Dark and White chocolate. Most grocery stores don&#x27;t seem to carry such. Any good ideas? 1
+
+Let me suggest a couple of budget options. Trader Joe&#x27;s Pound Plus chocolate bars are 17.6 oz and cost $4.99. They have milk chocolate and dark </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/boston/38504/block-chocolate" target="_blank" rel="noreferrer">http://localhost:9999/f/boston/38504/block-chocolate</a></p><p>冻结文件: <a href="sources/51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2" target="_blank">sources/51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2</a></p><p>内容 SHA-256: <code>51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_bloom_mechanism_boundary"><header><h3>assert_bloom_mechanism_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a whitish coating can arise from fat-crystal change or moisture acting on sugar and harms appearance or texture without itself limiting shelf life&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for chocolate bloom mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_bloom_mechanism_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_bloom_classification_not_exact_lot_safety_or_cheapness_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;a whitish coating can arise from fat-crystal change or moisture acting on sugar and harms appearance or texture without itself limiting shelf life&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_fat_and_sugar_bloom_from_shelf_life&quot;,
+  &quot;subject&quot;: &quot;chocolate bloom mechanism&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_bloom_mechanism_boundary_1</code> | bytes [0, 250) | <code>f9b2861788dff342342ed207ce4a406f0f3154f79451d0eb2143d160e269a46c</code></div><pre class="context"><span></span><mark>Chocolate bloom is either of two types of whitish coating that can appear on the surface of chocolate : fat bloom, caused by changes in the fat crystals in the chocolate; and sugar bloom, due to crystals formed by the action of moisture on the sugar.</mark><span> Fat and sugar bloom damage the appearance of chocolate but do not limit its shelf life. Chocolate that has &quot;bloomed&quot; is still safe to eat (as it is a non-perishable food due to its sugar content), but may have an unappetizing appearance and surface texture. [ 1 ] Chocolate bloom can be repaired by melting the chocolate down, stirring it, then pouring it int</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_bloom" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_bloom</a></p><p>冻结文件: <a href="sources/b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da" target="_blank">sources/b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da</a></p><p>内容 SHA-256: <code>b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_blue_diamond_resealable_scope"><header><h3>assert_blue_diamond_resealable_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 7.70-dollar 14-ounce bag rated 83 percent over twelve reviews and described as almonds covered in real cocoa powder with dark-chocolate flavor&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Blue Diamond almond seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_blue_diamond_resealable_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_bag_rating_and_flavor_copy_not_barrier_or_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;a 7.70-dollar 14-ounce bag rated 83 percent over twelve reviews and described as almonds covered in real cocoa powder with dark-chocolate flavor&quot;,
+  &quot;predicate&quot;: &quot;shows_one_resealable_cocoa_flavored_bag&quot;,
+  &quot;subject&quot;: &quot;frozen Blue Diamond almond seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_blue_diamond_resealable_scope_1</code> | bytes [0, 102) | <code>9d7b42d55789a19de296475f2415681906221acf24f78274db839b99dc4bf97a</code></div><pre class="context"><span></span><mark>Blue Diamond Almonds Oven Roasted Dark Chocolate Flavored Snack Nuts, 14 Oz Resealable Bag (Pack of 1)</mark><span>
+
+In stock SKU B0051TPWG2 Rating: 83 % of 100 12 Reviews Add Your Review $7.70 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Lightly Salted Whole Natural Raw Smokehouse Lightly Salted 100 Calorie Packs Whole Natural Raw 100 Calorie Packs Cocoa Dusted Chocolate 100 Calorie Packs Size 40 oz bag 40 oz bag 40 oz bag 100</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/blue-diamond-almonds-oven-roasted-dark-chocolate-flavored-snack-nuts-14-oz-resealable-bag-pack-of-1.html" target="_blank" rel="noreferrer">http://localhost:7770/blue-diamond-almonds-oven-roasted-dark-chocolate-flavored-snack-nuts-14-oz-resealable-bag-pack-of-1.html</a></p><p>冻结文件: <a href="sources/19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2" target="_blank">sources/19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2</a></p><p>内容 SHA-256: <code>19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_discrimination_testing_scope"><header><h3>assert_discrimination_testing_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;trained assessors and experimental designs can test detectable difference but generally do not quantify differences and failure to reject no difference is not evidence of equality&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for sensory discrimination testing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_discrimination_testing_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_sensory_method_boundary_not_exact_product_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;trained assessors and experimental designs can test detectable difference but generally do not quantify differences and failure to reject no difference is not evidence of equality&quot;,
+  &quot;predicate&quot;: &quot;detects_differences_without_quantifying_preference_or_proving_equality&quot;,
+  &quot;subject&quot;: &quot;sensory discrimination testing&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_discrimination_testing_scope_1</code> | bytes [0, 148) | <code>422187e048e7d7d9670d128988604311fe59d3a8988f7c0c058a7e81a6efc6f3</code></div><pre class="context"><span></span><mark>Discrimination testing is a technique employed in sensory analysis to determine whether there is a detectable difference among two or more products.</mark><span> The test uses a group of assessors (panellists) with a degree of training appropriate to the complexity of the test to discriminate from one product to another through one of a variety of experimental designs. Though useful, these tests typically do not quantify or describe any differences, requiring a more specifically trained panel under different study d</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Discrimination_testing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Discrimination_testing</a></p><p>冻结文件: <a href="sources/41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8" target="_blank">sources/41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8</a></p><p>内容 SHA-256: <code>41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ghirardelli_bulk_scope"><header><h3>assert_ghirardelli_bulk_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 79.99-dollar no-review offer selected as five pounds of Ghirardelli 60-percent cacao squares and hand packed by West End Foods&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen West End Foods Ghirardelli seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ghirardelli_bulk_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_bulk_bundle_not_original_wrapper_or_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;a 79.99-dollar no-review offer selected as five pounds of Ghirardelli 60-percent cacao squares and hand packed by West End Foods&quot;,
+  &quot;predicate&quot;: &quot;shows_a_five_pound_reseller_bundle&quot;,
+  &quot;subject&quot;: &quot;frozen West End Foods Ghirardelli seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ghirardelli_bulk_scope_1</code> | bytes [0, 84) | <code>7fb32e6886e43958d481ee0e269eecb6030a2cecdd8c7ea9df642a61d73b9cb6</code></div><pre class="context"><span></span><mark>West End Foods Bundle of Ghirardelli Bulk Dark Chocolate 60% Cacao Squares (5 pound)</mark><span>
+
+In stock SKU B075V1Y762 Be the first to review this product $79.99 Size 3 Pound 5 Pound Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Contains a Ghirardelli bulk 5 pound of delicious chocolate, ready to share candy with kids and adults, or provide sweet snack on lunch box, or ready to give candy to your friends and neighbours </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/west-end-foods-bundle-of-ghirardelli-bulk-dark-chocolate-60-cacao-squares-5-pound.html" target="_blank" rel="noreferrer">http://localhost:7770/west-end-foods-bundle-of-ghirardelli-bulk-dark-chocolate-60-cacao-squares-5-pound.html</a></p><p>冻结文件: <a href="sources/df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e" target="_blank">sources/df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e</a></p><p>内容 SHA-256: <code>df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_hershey_individual_scope"><header><h3>assert_hershey_individual_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 6.87-dollar no-review offer whose title and quick look say one 3.6-ounce pack of eight individually wrapped 45-percent-cocoa bars while Product Dimensions reports 1.41 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Hershey snack-size seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_hershey_individual_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_internal_mass_conflict_not_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;a 6.87-dollar no-review offer whose title and quick look say one 3.6-ounce pack of eight individually wrapped 45-percent-cocoa bars while Product Dimensions reports 1.41 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_individual_wrappers_and_a_quantity_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Hershey snack-size seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_hershey_individual_scope_1</code> | bytes [0, 109) | <code>a328e5e45b615b9b6dd6398b0178a6ac5b789b377c6e284346d985c8a3f33e6f</code></div><pre class="context"><span></span><mark>HERSHEY&#x27;S Special Dark Mildly Sweet Dark Chocolate Snack Size Candy, Individually Wrapped, 3.6 oz Pack (8 ct)</mark><span>
+
+In stock SKU B01M68WYTJ Be the first to review this product $6.87 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look There&#x27;s happy, and then there&#x27;s HERSHEY&#x27;S Happy. Made of the delectable, rich dark chocolate that&#x27;s been a classic for decades, HERSHEY&#x27;S SPECIAL DARK Mildly Sweet Chocolate Bars make life more delicious whether they</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hershey-s-special-dark-mildly-sweet-dark-chocolate-snack-size-candy-individually-wrapped-3-6-oz-pack-8-ct.html" target="_blank" rel="noreferrer">http://localhost:7770/hershey-s-special-dark-mildly-sweet-dark-chocolate-snack-size-candy-individually-wrapped-3-6-oz-pack-8-ct.html</a></p><p>冻结文件: <a href="sources/e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13" target="_blank">sources/e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13</a></p><p>内容 SHA-256: <code>e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_label_storage_tip_scope"><header><h3>assert_label_storage_tip_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author recommends labeling decanted or stored bags boxes and containers because their contents and dates are later forgotten&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for stored-container labeling tip&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_label_storage_tip_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;operational_traceability_tip_not_freshness_or_safety_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;the author recommends labeling decanted or stored bags boxes and containers because their contents and dates are later forgotten&quot;,
+  &quot;predicate&quot;: &quot;recommends_preserving_identity_and_date_context&quot;,
+  &quot;subject&quot;: &quot;stored-container labeling tip&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_label_storage_tip_scope_1</code> | bytes [205, 322) | <code>0ac7b459c10bea79cdc08e31980d3fd913b8df42fc54febca4e6b2075c0efae2</code></div><pre class="context"><span>LPT: You know that unmarked bag, box, or container you think you&#x27;ll remember the contents of, months or years out? You won&#x27;t. Label *everything.*
+
+This is a life Pro tip that has served me extremely well. </span><mark>If you decant something into an unmarked container, put a box away for storage, or collect something in a ziplock bag</mark><span> that you think will be marked by some indelible experience that you&#x27;re absolutely sure you won&#x27;t forget or lose track of : guess what? Odds are you&#x27;re going to come across that thing at some point in the future and wonder when it was from, what it contains, all so you can figure out what to do with it. To avoid this future confusion: grab a marker or pen an</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/77711/lpt-you-know-that-unmarked-bag-box-or-container-you-think" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/77711/lpt-you-know-that-unmarked-bag-box-or-container-you-think</a></p><p>冻结文件: <a href="sources/e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a" target="_blank">sources/e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a</a></p><p>内容 SHA-256: <code>e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_mvtr_package_test_scope"><header><h3>assert_mvtr_package_test_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;MVTR depends on conditions and material thickness while seams creases access points heat seals and closures can control whole-package performance&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for moisture-vapor transmission measurement&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_mvtr_package_test_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_measurement_boundary_not_exact_offer_package_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;MVTR depends on conditions and material thickness while seams creases access points heat seals and closures can control whole-package performance&quot;,
+  &quot;predicate&quot;: &quot;requires_declared_conditions_and_complete_package_validation&quot;,
+  &quot;subject&quot;: &quot;moisture-vapor transmission measurement&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_mvtr_package_test_scope_1</code> | bytes [0, 151) | <code>55ad12173307fdc60fc27c63401cc043c127c33f38575b530c1bf33ef8d8c9ff</code></div><pre class="context"><span></span><mark>Moisture vapor transmission rate ( MVTR ), also water vapor transmission rate ( WVTR ), is a measure of the passage of water vapor through a substance.</mark><span> It is a measure of the permeability for vapor barriers . There are many industries where moisture control is critical.   Moisture sensitive foods and pharmaceuticals are put in packaging [ 1 ] with controlled MVTR to achieve the required quality , [ 2 ] safety , and shelf life . [ 3 ] In clothing , MVTR as a measure of breathability has contributed to great</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Moisture_vapor_transmission_rate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Moisture_vapor_transmission_rate</a></p><p>冻结文件: <a href="sources/b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09" target="_blank">sources/b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09</a></p><p>内容 SHA-256: <code>b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_oh_nuts_bulk_scope"><header><h3>assert_oh_nuts_bulk_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 21.99-dollar offer rated 85 percent over twelve reviews with selected two-pound wording and freshness claims while Package Dimensions reports 1.2 pounds&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Oh Nuts almond seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_oh_nuts_bulk_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_bulk_freshness_claim_and_mass_conflict_not_oxidation_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;a 21.99-dollar offer rated 85 percent over twelve reviews with selected two-pound wording and freshness claims while Package Dimensions reports 1.2 pounds&quot;,
+  &quot;predicate&quot;: &quot;shows_a_selected_two_pound_zip_lock_offer_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Oh Nuts almond seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_oh_nuts_bulk_scope_1</code> | bytes [192, 298) | <code>bea4e9e440b4562effd9f3aab8b1abdbd7eec43b6aecb3e16e0d06620fa2b476</code></div><pre class="context"><span>Oh! Nuts Dry Roasted Unsalted Almonds | Fresh &amp; Healthy Tasty Almonds | No Salt, No Oil All-Natural Protein Keto Snacks | Resealable 2-Lb. Bulk Bag | Low Sodium, Vegan &amp; Gluten-Free Snacking
+
+</span><mark>In stock SKU B00C6ALV0U Rating: 85 % of 100 12 Reviews Add Your Review $21.99 Weight 2.0 Pounds 5.0 Pounds</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more Read more Oh! Nuts Mixed Nuts in Shell Oh! Nuts Dried Hibiscus Flowers Oh! Nuts Crystallized Ginger Oh! Nuts Dried Persimmons Oh! Nuts Black Sesame Seeds Oh! Nuts Raw Walnuts Shelled Product Quick Look UNSALTED HEALTHY DRY-ROASTED ALMONDS: These premium almonds are a true</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/oh-nuts-dry-roasted-unsalted-almonds-fresh-healthy-tasty-almonds-no-salt-no-oil-all-natural-protein-keto-snacks-resealable-2-lb-bulk-bag-low-sodium-vegan-gluten-free-snacking.html" target="_blank" rel="noreferrer">http://localhost:7770/oh-nuts-dry-roasted-unsalted-almonds-fresh-healthy-tasty-almonds-no-salt-no-oil-all-natural-protein-keto-snacks-resealable-2-lb-bulk-bag-low-sodium-vegan-gluten-free-snacking.html</a></p><p>冻结文件: <a href="sources/036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9" target="_blank">sources/036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9</a></p><p>内容 SHA-256: <code>036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_otr_package_test_scope"><header><h3>assert_otr_package_test_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;OTR measures oxygen passage over time and completed packages include seals creases joints and closures that can reduce effective barrier&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for oxygen transmission measurement&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_otr_package_test_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_measurement_boundary_not_exact_offer_package_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;OTR measures oxygen passage over time and completed packages include seals creases joints and closures that can reduce effective barrier&quot;,
+  &quot;predicate&quot;: &quot;requires_time_and_complete_package_structure&quot;,
+  &quot;subject&quot;: &quot;oxygen transmission measurement&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_otr_package_test_scope_1</code> | bytes [0, 132) | <code>ce2cc554323dbe2e24a54322cb052c5079393e7d568a7f498ce8ab7d9295868d</code></div><pre class="context"><span></span><mark>Oxygen transmission rate ( OTR ) is the measurement of the amount of oxygen gas that passes through a substance over a given period.</mark><span> It is mostly carried out on non-porous materials, where the mode of transport is diffusion , but there are a growing number of applications where the transmission rate also depends on flow through apertures of some description. It relates to the permeation of oxygen through packaging [ 1 ] to sensitive foods and pharmaceuticals . Measurement Standard test m</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Oxygen_transmission_rate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Oxygen_transmission_rate</a></p><p>冻结文件: <a href="sources/e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313" target="_blank">sources/e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313</a></p><p>内容 SHA-256: <code>e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_pocket_melt_incident_scope"><header><h3>assert_pocket_melt_incident_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one foil-wrapped egg became gooey after several hours in a jeans pocket during a flight&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for pocket chocolate melt incident&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_pocket_melt_incident_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_incident_not_controlled_storage_or_exact_offer_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;one foil-wrapped egg became gooey after several hours in a jeans pocket during a flight&quot;,
+  &quot;predicate&quot;: &quot;reports_one_body_heat_exposure_event&quot;,
+  &quot;subject&quot;: &quot;pocket chocolate melt incident&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_pocket_melt_incident_scope_1</code> | bytes [282, 343) | <code>b7081083c7782c5d2856617e8066a05200ed0b525d2d76dcc8b6ad4decf41df2</code></div><pre class="context"><span>TIFU by putting a chocolate easter egg in my pocket and forgetting about it.
+
+Walking through Brussels airport early this morning I came across a giant Easter bunny character giving away chocolate eggs. Never one to turn down free chocolate, especially Belgian, I happily took one. </span><mark>Without thinking I put foil-wrapped goodie in my jeans pocket</mark><span> and then, preoccupied about getting through passport control and then to my flight, completely forgot about it. Several hours into my flight to New York I put my hand in my pocket and was like “what’s that?” A second later I came to the realization that I had a pocket full of gooey melted chocolate! The image of that bunny will haunt my dreams for a l</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/135236/tifu-by-putting-a-chocolate-easter-egg-in-my-pocket-and" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/135236/tifu-by-putting-a-chocolate-easter-egg-in-my-pocket-and</a></p><p>冻结文件: <a href="sources/b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b" target="_blank">sources/b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b</a></p><p>内容 SHA-256: <code>b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_second_nature_multi_pouch_scope"><header><h3>assert_second_nature_multi_pouch_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 39.85-dollar no-review offer described as twelve 4.5-ounce pouches containing dark chocolate almonds cashews and pecans while Product Dimensions reports 4.5 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Second Nature trail-mix seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_second_nature_multi_pouch_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_multi_pouch_and_weather_copy_not_exact_delivery_or_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;a 39.85-dollar no-review offer described as twelve 4.5-ounce pouches containing dark chocolate almonds cashews and pecans while Product Dimensions reports 4.5 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_twelve_resealable_pouches_and_a_warm_weather_warning&quot;,
+  &quot;subject&quot;: &quot;frozen Second Nature trail-mix seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_second_nature_multi_pouch_scope_1</code> | bytes [197, 263) | <code>5f1eb215ed3bd1b4052206cb46a72edf5ba8d210f90e15780a6f41ffc0dcdbd0</code></div><pre class="context"><span>Second Nature Dark Chocolate Medley Trail Mix, 4.5 oz. Resealable Pouch (Pack of 12) – Certified Gluten-Free Snack – Dark Chocolate and Nut Trail Mix Ideal for Quick Travel Snacks (1107-CP12)
+
+</span><mark>In stock SKU B0758FJ52X Be the first to review this product $39.85</mark><span> Flavor Name Coconut Almond Medley Mix Dark Chocolate Medley Mix roasted almonds,cashew,peanuts Wholesome Medley Mix Size 1.62 Pound (Pack of 1) 1.87 Pound (Pack of 6) 12 Ounce (Pack of 1) 12 Ounce (Pack of 6) 14 Ounce (Pack of 6) 2.5 Ounce (Pack of 12) 4.5 Ounce (Pack of 12) 5 Ounce (Pack of 12) Qty Add to Cart Add to Wish List Add to Compare
+
+Details Produ</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/second-nature-dark-chocolate-medley-trail-mix-4-5-oz-resealable-pouch-pack-of-12-certified-gluten-free-snack-dark-chocolate-and-nut-trail-mix-ideal-for-quick-travel-snacks-1107-cp12.html" target="_blank" rel="noreferrer">http://localhost:7770/second-nature-dark-chocolate-medley-trail-mix-4-5-oz-resealable-pouch-pack-of-12-certified-gluten-free-snack-dark-chocolate-and-nut-trail-mix-ideal-for-quick-travel-snacks-1107-cp12.html</a></p><p>冻结文件: <a href="sources/280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6" target="_blank">sources/280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6</a></p><p>内容 SHA-256: <code>280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_tempering_crystal_scope"><header><h3>assert_tempering_crystal_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;cooling agitating and reheating promote stable cocoa-butter crystal forms and improve gloss snap texture and bloom resistance&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for tempered chocolate mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_tempering_crystal_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_crystal_mechanism_not_exact_product_process_history&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;object&quot;: &quot;cooling agitating and reheating promote stable cocoa-butter crystal forms and improve gloss snap texture and bloom resistance&quot;,
+  &quot;predicate&quot;: &quot;links_controlled_cocoa_butter_crystallization_to_snap_gloss_and_bloom_resistance&quot;,
+  &quot;subject&quot;: &quot;tempered chocolate mechanism&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_tempering_crystal_scope_1</code> | bytes [0, 173) | <code>ccdf04dd198c532ba06985982706d17bf7b57efb7b431667bc3f50c9f21257b7</code></div><pre class="context"><span></span><mark>Tempering is a technique applied in chocolate production to create chocolate that is glossy , has a good snap and smoother texture and is more resistant to chocolate bloom .</mark><span> It involves cooling liquid chocolate while agitating it until a small amount of cocoa butter crystallizes . The liquid is then heated to maintain only the most stable crystal forms , which serve as nuclei for the rest of the cocoa butter to solidify around. History Crystallisation of chocolate was already a concern by the mid-19th century. A textbook of the</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tempered_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Tempered_chocolate</a></p><p>冻结文件: <a href="sources/d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162" target="_blank">sources/d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162</a></p><p>内容 SHA-256: <code>d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_autoxidation_food_rancidity_scope"><header><h3>prop_autoxidation_food_rancidity_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;oxygen at normal temperatures can drive free-radical degradation and rancidity over time&quot;,
+  &quot;predicate&quot;: &quot;links_ambient_oxygen_reactions_to_gradual_degradation_and_food_rancidity&quot;,
+  &quot;subject&quot;: &quot;autoxidation and rancidity&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_autoxidation_food_rancidity_scope_1</code> | bytes [0, 177) | <code>0556a0175a2b11b51caf8d2fc0eb69af8bf66f6bb4c2da68c8872048f0fa6d36</code></div><pre class="context"><span></span><mark>Autoxidation (sometimes auto-oxidation ) refers to oxidations brought about by reactions with oxygen at normal temperatures, without the intervention of flame or electric spark.</mark><span> [ 1 ] The term is usually used to describe the gradual degradation of organic compounds in air at ambient temperatures. Many common phenomena can be attributed to autoxidation, such as food going rancid , [ 2 ] the &#x27; drying &#x27; of varnishes and paints, and the perishing of rubber. [ 3 ] It is also an important concept in both industrial chemistry and biology.</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_autoxidation_food_rancidity_scope_2</code> | bytes [184, 297) | <code>4de59254231839231e40e8c8a9f57091c5109e73bce49de011a12fa96f077700</code></div><pre class="context"><span>Autoxidation (sometimes auto-oxidation ) refers to oxidations brought about by reactions with oxygen at normal temperatures, without the intervention of flame or electric spark. [ 1 ] </span><mark>The term is usually used to describe the gradual degradation of organic compounds in air at ambient temperatures.</mark><span> Many common phenomena can be attributed to autoxidation, such as food going rancid , [ 2 ] the &#x27; drying &#x27; of varnishes and paints, and the perishing of rubber. [ 3 ] It is also an important concept in both industrial chemistry and biology. [ 4 ] Autoxidation is therefore a fairly broad term and can encompass examples of photooxygenation and catalytic oxidat</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_autoxidation_food_rancidity_scope_3</code> | bytes [298, 380) | <code>dfdae3bd083efb2cac43046e6b1d9f7a1fadb261d530b2e42d174972c96f720f</code></div><pre class="context"><span>Autoxidation (sometimes auto-oxidation ) refers to oxidations brought about by reactions with oxygen at normal temperatures, without the intervention of flame or electric spark. [ 1 ] The term is usually used to describe the gradual degradation of organic compounds in air at ambient temperatures. </span><mark>Many common phenomena can be attributed to autoxidation, such as food going rancid</mark><span> , [ 2 ] the &#x27; drying &#x27; of varnishes and paints, and the perishing of rubber. [ 3 ] It is also an important concept in both industrial chemistry and biology. [ 4 ] Autoxidation is therefore a fairly broad term and can encompass examples of photooxygenation and catalytic oxidation . The common mechanism is a free radical chain reaction , where the addition of</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_autoxidation_food_rancidity_scope_4</code> | bytes [663, 813) | <code>ca498b96291c99a6deb646f68b7df2be3e654f6cabf43c42ed63e3491cb6db9b</code></div><pre class="context"><span>common phenomena can be attributed to autoxidation, such as food going rancid , [ 2 ] the &#x27; drying &#x27; of varnishes and paints, and the perishing of rubber. [ 3 ] It is also an important concept in both industrial chemistry and biology. [ 4 ] Autoxidation is therefore a fairly broad term and can encompass examples of photooxygenation and catalytic oxidation . </span><mark>The common mechanism is a free radical chain reaction , where the addition of oxygen gives rise to hydroperoxides and their associated peroxy radicals</mark><span> (ROOâ¢). [ 5 ] Typically, an induction period is seen at the start where there is little activity; this is followed by a gradually accelerating take-up of oxygen, giving an autocatalytic reaction which can only be kept in check by the use of antioxidants . Unsaturated compounds are the most strongly affected but many organic materials will oxidise in th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Autoxidation" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Autoxidation</a></p><p>冻结文件: <a href="sources/09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e" target="_blank">sources/09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e</a></p><p>内容 SHA-256: <code>09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_reaction_mechanism_not_exact_lot_rate_or_ten_week_prediction&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The autoxidation page describes oxygen-driven gradual degradation at ambient temperatures, associates it with food rancidity, and gives a free-radical chain mechanism. It supplies no exact almond-lot oxidation rate, induction period, oxygen exposure, packaging result, sensory threshold or ten-week prediction.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_bag_clip_tip_scope"><header><h3>prop_bag_clip_tip_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author suggests opening and clipping a bag while a reply warns that doing so admits oxygen to a nitrogen-rich package and may accelerate staling&quot;,
+  &quot;predicate&quot;: &quot;contains_a_space_saving_tip_and_an_oxygen_counterpoint&quot;,
+  &quot;subject&quot;: &quot;opened snack-bag clip discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_bag_clip_tip_scope_1</code> | bytes [185, 244) | <code>0855d28e360a5e71d43008d5981078eaa9e1aedca246f0c07d8814b88e5fbe81</code></div><pre class="context"><span>LPT - when packing snacks like chips/pretzels for vacation - open the bag and clip it shut when packing
+
+Many people will buy a new bag of chips/pretzels for their road-trip/vacation - </span><mark>open the bag and push the extra air out, then clip it shut.</mark><span> Now you have more space to pack and you won&#x27;t forget your snack clips to keep your food fresh. 0
+
+The &quot;air&quot; in a sealed bag of chips is mostly nitrogen. Opening the bag is letting oxygen into a mostly oxygen free environment and will cause your snack to go stale faster.
+
+If you don&#x27;t eat a bag of chips on a road trip before they go stale, especially with a </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bag_clip_tip_scope_2</code> | bytes [343, 397) | <code>73f8ad95a0395847711db90a58939029284c76e6cb05aae5390c453316a99a45</code></div><pre class="context"><span>LPT - when packing snacks like chips/pretzels for vacation - open the bag and clip it shut when packing
+
+Many people will buy a new bag of chips/pretzels for their road-trip/vacation - open the bag and push the extra air out, then clip it shut. Now you have more space to pack and you won&#x27;t forget your snack clips to keep your food fresh. 0
+
+</span><mark>The &quot;air&quot; in a sealed bag of chips is mostly nitrogen.</mark><span> Opening the bag is letting oxygen into a mostly oxygen free environment and will cause your snack to go stale faster.
+
+If you don&#x27;t eat a bag of chips on a road trip before they go stale, especially with a chip clip...you&#x27;re not a real human. You&#x27;re made out of Legos and bagels or something
+
+Now you have crushed snacks that are barely edible for your trip. </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bag_clip_tip_scope_3</code> | bytes [398, 515) | <code>49fbc941b5f173ea84789ea1c352a294b599a7015d67eab5027599149fb8b9a7</code></div><pre class="context"><span>retzels for vacation - open the bag and clip it shut when packing
+
+Many people will buy a new bag of chips/pretzels for their road-trip/vacation - open the bag and push the extra air out, then clip it shut. Now you have more space to pack and you won&#x27;t forget your snack clips to keep your food fresh. 0
+
+The &quot;air&quot; in a sealed bag of chips is mostly nitrogen. </span><mark>Opening the bag is letting oxygen into a mostly oxygen free environment and will cause your snack to go stale faster.</mark><span>
+
+If you don&#x27;t eat a bag of chips on a road trip before they go stale, especially with a chip clip...you&#x27;re not a real human. You&#x27;re made out of Legos and bagels or something
+
+Now you have crushed snacks that are barely edible for your trip. This should be in r/shittylifeprotips
+
+Well you&#x27;re not supposed to pack them in that tightly, it&#x27;s just to allow you t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/77452/lpt-when-packing-snacks-like-chips-pretzels-for-vacation" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/77452/lpt-when-packing-snacks-like-chips-pretzels-for-vacation</a></p><p>冻结文件: <a href="sources/aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b" target="_blank">sources/aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b</a></p><p>内容 SHA-256: <code>aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_and_reply_scoped_tip_not_controlled_barrier_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The snack-bag thread proposes opening, squeezing and clipping a bag for travel space, while a reply says the sealed headspace is mostly nitrogen and opening admits oxygen that can speed staling. These are scoped statements rather than controlled barrier measurements, but they justify preserving original seals and recording opening state instead of assuming a clip restores the package.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_block_chocolate_availability_scope"><header><h3>prop_block_chocolate_availability_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an author seeking block dark and white chocolate for bark receives time- and location-scoped store brand and price suggestions&quot;,
+  &quot;predicate&quot;: &quot;contains_local_historical_availability_price_and_preference_comments&quot;,
+  &quot;subject&quot;: &quot;Boston block-chocolate sourcing discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_block_chocolate_availability_scope_1</code> | bytes [18, 122) | <code>a2ca44077890a659345ee86427710d422de41b2430c1c72ed702bd013761b26c</code></div><pre class="context"><span>Block chocolate?
+
+</span><mark>Anyone know a good location to get some block chocolate? I&#x27;d like to make some Bark again for Christmas.</mark><span> Last year I ended up just melting down chocolate chips. Hoping to up the quality a bit this year and get some quality block Dark and White chocolate. Most grocery stores don&#x27;t seem to carry such. Any good ideas? 1
+
+Let me suggest a couple of budget options. Trader Joe&#x27;s Pound Plus chocolate bars are 17.6 oz and cost $4.99. They have milk chocolate and dark </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_block_chocolate_availability_scope_2</code> | bytes [273, 334) | <code>20036ed8d2dc9ed19f6c097da886f346dd22548c7d1a8aadaa7aa8974dbaa405</code></div><pre class="context"><span>Block chocolate?
+
+Anyone know a good location to get some block chocolate? I&#x27;d like to make some Bark again for Christmas. Last year I ended up just melting down chocolate chips. Hoping to up the quality a bit this year and get some quality block Dark and White chocolate. </span><mark>Most grocery stores don&#x27;t seem to carry such. Any good ideas?</mark><span> 1
+
+Let me suggest a couple of budget options. Trader Joe&#x27;s Pound Plus chocolate bars are 17.6 oz and cost $4.99. They have milk chocolate and dark chocolate, but no white chocolate that I&#x27;ve seen. You might also want to look into melting wafers. You can find them in the baking aisle of the supermarket. They are designed to be melted and reformed. They are u</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_block_chocolate_availability_scope_3</code> | bytes [381, 447) | <code>e0ffb7d5ba01bab953c672a66b3d8f1998dbfc23dadce7ccefabbd7b0ff05063</code></div><pre class="context"><span>one know a good location to get some block chocolate? I&#x27;d like to make some Bark again for Christmas. Last year I ended up just melting down chocolate chips. Hoping to up the quality a bit this year and get some quality block Dark and White chocolate. Most grocery stores don&#x27;t seem to carry such. Any good ideas? 1
+
+Let me suggest a couple of budget options. </span><mark>Trader Joe&#x27;s Pound Plus chocolate bars are 17.6 oz and cost $4.99.</mark><span> They have milk chocolate and dark chocolate, but no white chocolate that I&#x27;ve seen. You might also want to look into melting wafers. You can find them in the baking aisle of the supermarket. They are designed to be melted and reformed. They are usually used for fruit, like chocolate covered strawberries. However, they would work for bark as well. Ghirardell</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/boston/38504/block-chocolate" target="_blank" rel="noreferrer">http://localhost:9999/f/boston/38504/block-chocolate</a></p><p>冻结文件: <a href="sources/51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2" target="_blank">sources/51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2</a></p><p>内容 SHA-256: <code>51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;local_historical_sourcing_discussion_not_exact_offer_or_durability_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Boston thread asks where to find block chocolate for bark and contains historical local store, price, quality and preference suggestions. It motivates checking current rural availability and product form but does not verify any captured offer, current price, packaging, shelf life or ten-week quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_bloom_mechanism_boundary"><header><h3>prop_bloom_mechanism_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a whitish coating can arise from fat-crystal change or moisture acting on sugar and harms appearance or texture without itself limiting shelf life&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_fat_and_sugar_bloom_from_shelf_life&quot;,
+  &quot;subject&quot;: &quot;chocolate bloom mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_bloom_mechanism_boundary_1</code> | bytes [0, 250) | <code>f9b2861788dff342342ed207ce4a406f0f3154f79451d0eb2143d160e269a46c</code></div><pre class="context"><span></span><mark>Chocolate bloom is either of two types of whitish coating that can appear on the surface of chocolate : fat bloom, caused by changes in the fat crystals in the chocolate; and sugar bloom, due to crystals formed by the action of moisture on the sugar.</mark><span> Fat and sugar bloom damage the appearance of chocolate but do not limit its shelf life. Chocolate that has &quot;bloomed&quot; is still safe to eat (as it is a non-perishable food due to its sugar content), but may have an unappetizing appearance and surface texture. [ 1 ] Chocolate bloom can be repaired by melting the chocolate down, stirring it, then pouring it int</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bloom_mechanism_boundary_2</code> | bytes [251, 338) | <code>7d0cee85d28b64277b84c2477e0575747e5c00298ec04cb2c67e2fd433ef07ae</code></div><pre class="context"><span>Chocolate bloom is either of two types of whitish coating that can appear on the surface of chocolate : fat bloom, caused by changes in the fat crystals in the chocolate; and sugar bloom, due to crystals formed by the action of moisture on the sugar. </span><mark>Fat and sugar bloom damage the appearance of chocolate but do not limit its shelf life.</mark><span> Chocolate that has &quot;bloomed&quot; is still safe to eat (as it is a non-perishable food due to its sugar content), but may have an unappetizing appearance and surface texture. [ 1 ] Chocolate bloom can be repaired by melting the chocolate down, stirring it, then pouring it into a mould and allowing it to cool and re-solidify, bringing the sugar or fat back into t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bloom_mechanism_boundary_3</code> | bytes [339, 508) | <code>af63430632d32323ed3137182a5aa737f59a08f286904f5b64fdfa5db0ca48ab</code></div><pre class="context"><span>Chocolate bloom is either of two types of whitish coating that can appear on the surface of chocolate : fat bloom, caused by changes in the fat crystals in the chocolate; and sugar bloom, due to crystals formed by the action of moisture on the sugar. Fat and sugar bloom damage the appearance of chocolate but do not limit its shelf life. </span><mark>Chocolate that has &quot;bloomed&quot; is still safe to eat (as it is a non-perishable food due to its sugar content), but may have an unappetizing appearance and surface texture.</mark><span> [ 1 ] Chocolate bloom can be repaired by melting the chocolate down, stirring it, then pouring it into a mould and allowing it to cool and re-solidify, bringing the sugar or fat back into the solution. Fat bloom Fat bloom is the result of gradual separation of the cocoa butter and the dissolved components of the chocolate mixture . [ 2 ] [ 3 ] Generally blo</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_bloom" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_bloom</a></p><p>冻结文件: <a href="sources/b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da" target="_blank">sources/b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da</a></p><p>内容 SHA-256: <code>b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_bloom_classification_not_exact_lot_safety_or_cheapness_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The chocolate-bloom page distinguishes fat bloom caused by fat-crystal changes from sugar bloom caused by moisture acting on sugar and says bloom damages appearance and may make texture unappetizing without limiting shelf life. Its general edibility statement classifies bloom itself; it does not prove cheap ingredients, authenticate an exact lot, or rule out contamination, allergens, package failure or another spoilage process.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_blue_diamond_resealable_scope"><header><h3>prop_blue_diamond_resealable_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 7.70-dollar 14-ounce bag rated 83 percent over twelve reviews and described as almonds covered in real cocoa powder with dark-chocolate flavor&quot;,
+  &quot;predicate&quot;: &quot;shows_one_resealable_cocoa_flavored_bag&quot;,
+  &quot;subject&quot;: &quot;frozen Blue Diamond almond seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_blue_diamond_resealable_scope_1</code> | bytes [0, 102) | <code>9d7b42d55789a19de296475f2415681906221acf24f78274db839b99dc4bf97a</code></div><pre class="context"><span></span><mark>Blue Diamond Almonds Oven Roasted Dark Chocolate Flavored Snack Nuts, 14 Oz Resealable Bag (Pack of 1)</mark><span>
+
+In stock SKU B0051TPWG2 Rating: 83 % of 100 12 Reviews Add Your Review $7.70 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Lightly Salted Whole Natural Raw Smokehouse Lightly Salted 100 Calorie Packs Whole Natural Raw 100 Calorie Packs Cocoa Dusted Chocolate 100 Calorie Packs Size 40 oz bag 40 oz bag 40 oz bag 100</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_blue_diamond_resealable_scope_2</code> | bytes [104, 180) | <code>f861deab5f73cd94f6095dc366922275c3c2168de444ec98228369361780dae9</code></div><pre class="context"><span>Blue Diamond Almonds Oven Roasted Dark Chocolate Flavored Snack Nuts, 14 Oz Resealable Bag (Pack of 1)
+
+</span><mark>In stock SKU B0051TPWG2 Rating: 83 % of 100 12 Reviews Add Your Review $7.70</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Lightly Salted Whole Natural Raw Smokehouse Lightly Salted 100 Calorie Packs Whole Natural Raw 100 Calorie Packs Cocoa Dusted Chocolate 100 Calorie Packs Size 40 oz bag 40 oz bag 40 oz bag 100 Calorie Packs (32 count) 100 Calorie Packs (32 count) 100 Calorie Packs (32 c</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_blue_diamond_resealable_scope_3</code> | bytes [1827, 1951) | <code>2de93384fb41cceea89140371cde38e8abf9cbd59524d4b908381abe11e7999a</code></div><pre class="context"><span>with our almonds, packed with nutrition and naturally loaded with vitamin E, we turned a tough challenge into a delicious snack you can enjoy every day. Contains one 14-ounce bag of Blue Diamond oven roasted dark chocolate snack almonds Covered with real cocoa power for a rich chocolate flavor - great for your next party. Tasty and high in protein and fiber </span><mark>Resealable bag makes this a perfect travel snack for adults and children on the way to the office, school, or just on the go</mark><span> Free of cholesterol and trans fat and an excellent source of Vitamin E Is Discontinued By Manufacturer ‏ ‎ No Product Dimensions ‏ ‎ 2.8 x 6.2 x 8.7 inches; 14 Ounces Item model number ‏ ‎ 10041570056995 UPC ‏ ‎ 778554641016 885370150933 041570056998 Manufacturer ‏ ‎ Blue Diamond Almonds ASIN ‏ ‎ B0051TPWG2 Country of Origin ‏ ‎ </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/blue-diamond-almonds-oven-roasted-dark-chocolate-flavored-snack-nuts-14-oz-resealable-bag-pack-of-1.html" target="_blank" rel="noreferrer">http://localhost:7770/blue-diamond-almonds-oven-roasted-dark-chocolate-flavored-snack-nuts-14-oz-resealable-bag-pack-of-1.html</a></p><p>冻结文件: <a href="sources/19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2" target="_blank">sources/19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2</a></p><p>内容 SHA-256: <code>19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_bag_rating_and_flavor_copy_not_barrier_or_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Blue Diamond page shows SKU B0051TPWG2 at 7.70 dollars, rated 83 percent over twelve reviews, and describes one 14-ounce resealable bag of almonds covered in cocoa powder and dark-chocolate flavor. It is not a plain chocolate bar, and the rating and resealability do not establish exact package barrier, opening history, lot age or week-ten freshness.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_discrimination_testing_scope"><header><h3>prop_discrimination_testing_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;trained assessors and experimental designs can test detectable difference but generally do not quantify differences and failure to reject no difference is not evidence of equality&quot;,
+  &quot;predicate&quot;: &quot;detects_differences_without_quantifying_preference_or_proving_equality&quot;,
+  &quot;subject&quot;: &quot;sensory discrimination testing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_discrimination_testing_scope_1</code> | bytes [0, 148) | <code>422187e048e7d7d9670d128988604311fe59d3a8988f7c0c058a7e81a6efc6f3</code></div><pre class="context"><span></span><mark>Discrimination testing is a technique employed in sensory analysis to determine whether there is a detectable difference among two or more products.</mark><span> The test uses a group of assessors (panellists) with a degree of training appropriate to the complexity of the test to discriminate from one product to another through one of a variety of experimental designs. Though useful, these tests typically do not quantify or describe any differences, requiring a more specifically trained panel under different study d</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_discrimination_testing_scope_2</code> | bytes [359, 580) | <code>7fa58a4b86ed3c4ab14101b451baef8ed7c50066f6f4388eaf4cff84c7b796a7</code></div><pre class="context"><span>Discrimination testing is a technique employed in sensory analysis to determine whether there is a detectable difference among two or more products. The test uses a group of assessors (panellists) with a degree of training appropriate to the complexity of the test to discriminate from one product to another through one of a variety of experimental designs. </span><mark>Though useful, these tests typically do not quantify or describe any differences, requiring a more specifically trained panel under different study design to describe differences and assess significance of the difference.</mark><span> [ 1 ] Statistical basis The statistical principle behind any discrimination test should be to reject a null hypothesis (H 0 ) that states there is no detectable difference between two (or more) products. If there is sufficient evidence to reject H 0 in favor of the alternative hypothesis , H A : There is a detectable difference, then a difference can be rec</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_discrimination_testing_scope_3</code> | bytes [947, 1039) | <code>058e7d083f5a8a7702fb4faf55df5c1e9a887e7991915b1e21738bdb00137312</code></div><pre class="context"><span>Statistical basis The statistical principle behind any discrimination test should be to reject a null hypothesis (H 0 ) that states there is no detectable difference between two (or more) products. If there is sufficient evidence to reject H 0 in favor of the alternative hypothesis , H A : There is a detectable difference, then a difference can be recorded. </span><mark>However, failure to reject H 0 should not be assumed to be sufficient evidence to accept it.</mark><span> H 0 is formulated on the premise that all of the assessors guessed when they made their response. The statistical test chosen should give a probability value that the result was arrived at through pure guesswork. If this probability is sufficiently low (usually below 0.05 or 5%) then H 0 can be rejected in favor of H A . Tests used to decide whether or not </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Discrimination_testing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Discrimination_testing</a></p><p>冻结文件: <a href="sources/41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8" target="_blank">sources/41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8</a></p><p>内容 SHA-256: <code>41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_sensory_method_boundary_not_exact_product_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The discrimination-testing page describes tests for detectable differences using panellists and experimental designs, says they generally do not quantify or describe the differences, and warns that failure to reject a no-difference null is not evidence for equality. Preference magnitude and acceptability therefore require separate measures, and the page supplies no result for these offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ghirardelli_bulk_scope"><header><h3>prop_ghirardelli_bulk_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 79.99-dollar no-review offer selected as five pounds of Ghirardelli 60-percent cacao squares and hand packed by West End Foods&quot;,
+  &quot;predicate&quot;: &quot;shows_a_five_pound_reseller_bundle&quot;,
+  &quot;subject&quot;: &quot;frozen West End Foods Ghirardelli seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ghirardelli_bulk_scope_1</code> | bytes [0, 84) | <code>7fb32e6886e43958d481ee0e269eecb6030a2cecdd8c7ea9df642a61d73b9cb6</code></div><pre class="context"><span></span><mark>West End Foods Bundle of Ghirardelli Bulk Dark Chocolate 60% Cacao Squares (5 pound)</mark><span>
+
+In stock SKU B075V1Y762 Be the first to review this product $79.99 Size 3 Pound 5 Pound Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Contains a Ghirardelli bulk 5 pound of delicious chocolate, ready to share candy with kids and adults, or provide sweet snack on lunch box, or ready to give candy to your friends and neighbours </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ghirardelli_bulk_scope_2</code> | bytes [86, 173) | <code>674b2a9b4a692a9af9fe581aa6fbefb4001724bbf5d3ef436954dba2f1be3743</code></div><pre class="context"><span>West End Foods Bundle of Ghirardelli Bulk Dark Chocolate 60% Cacao Squares (5 pound)
+
+</span><mark>In stock SKU B075V1Y762 Be the first to review this product $79.99 Size 3 Pound 5 Pound</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Contains a Ghirardelli bulk 5 pound of delicious chocolate, ready to share candy with kids and adults, or provide sweet snack on lunch box, or ready to give candy to your friends and neighbours a rich Dark Chocolate 60% Cacao Squares The item contains: Bulk Ghirardelli Dark Chocolat</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ghirardelli_bulk_scope_3</code> | bytes [958, 1021) | <code>cc9219a827aec218975b2c252f5b48cd29b426ff6a449330e913321320cd67a0</code></div><pre class="context"><span>thdays, wedding favors, reunions, meetings, events, bachelor party Convenient for kids and adults who likes Dark Chocolate 60% Cacao, this memorable bar is perfect for a mid-day break. Share it with close friends or treat a new acquaintance to a special moment. Candy for Halloween, Thanksgiving, Christmas gift, New Years, Valentine, Easter Basket, 4 of July </span><mark>The Chocolate Snacks are hand picked and pack by West End Foods</mark><span> Package Dimensions ‏ ‎ 10.24 x 8.27 x 5.71 inches; 5 Pounds UPC ‏ ‎ 600231741750 Manufacturer ‏ ‎ Ghirardelli ASIN ‏ ‎ B075V1Y762 #2,873 in Candy &amp; Chocolate Assortments &amp; Samplers Reviews Write Your Own Review You&#x27;re reviewing: West End Foods Bundle of Ghirardelli Bulk Dark Chocolate 60% Cacao Squares (5 pound) Your Rating Rating 1 star 2 s</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/west-end-foods-bundle-of-ghirardelli-bulk-dark-chocolate-60-cacao-squares-5-pound.html" target="_blank" rel="noreferrer">http://localhost:7770/west-end-foods-bundle-of-ghirardelli-bulk-dark-chocolate-60-cacao-squares-5-pound.html</a></p><p>冻结文件: <a href="sources/df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e" target="_blank">sources/df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e</a></p><p>内容 SHA-256: <code>df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_bulk_bundle_not_original_wrapper_or_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen West End Foods page shows SKU B075V1Y762 at 79.99 dollars with no reviews shown and describes a selected five-pound bundle of Ghirardelli 60-percent cacao squares hand-picked and packed by West End Foods. It does not independently establish original individual wrappers, exact piece count, lot and date, complete package construction, current delivered cost or ten-week retention.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_hershey_individual_scope"><header><h3>prop_hershey_individual_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 6.87-dollar no-review offer whose title and quick look say one 3.6-ounce pack of eight individually wrapped 45-percent-cocoa bars while Product Dimensions reports 1.41 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_individual_wrappers_and_a_quantity_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Hershey snack-size seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_hershey_individual_scope_1</code> | bytes [0, 109) | <code>a328e5e45b615b9b6dd6398b0178a6ac5b789b377c6e284346d985c8a3f33e6f</code></div><pre class="context"><span></span><mark>HERSHEY&#x27;S Special Dark Mildly Sweet Dark Chocolate Snack Size Candy, Individually Wrapped, 3.6 oz Pack (8 ct)</mark><span>
+
+In stock SKU B01M68WYTJ Be the first to review this product $6.87 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look There&#x27;s happy, and then there&#x27;s HERSHEY&#x27;S Happy. Made of the delectable, rich dark chocolate that&#x27;s been a classic for decades, HERSHEY&#x27;S SPECIAL DARK Mildly Sweet Chocolate Bars make life more delicious whether they</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_hershey_individual_scope_2</code> | bytes [111, 176) | <code>7aa7f41a74f6029ff5fe732d329a747648c4a3f9afc1ef9b28cd947f60c08fd3</code></div><pre class="context"><span>HERSHEY&#x27;S Special Dark Mildly Sweet Dark Chocolate Snack Size Candy, Individually Wrapped, 3.6 oz Pack (8 ct)
+
+</span><mark>In stock SKU B01M68WYTJ Be the first to review this product $6.87</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look There&#x27;s happy, and then there&#x27;s HERSHEY&#x27;S Happy. Made of the delectable, rich dark chocolate that&#x27;s been a classic for decades, HERSHEY&#x27;S SPECIAL DARK Mildly Sweet Chocolate Bars make life more delicious whether they&#x27;re enjoyed alone or shared with loved ones. These individually wra</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_hershey_individual_scope_3</code> | bytes [1256, 1354) | <code>af901283c0faa1e16ce46cae0304c128025c051f3e965eb8b182c2550005cbd5</code></div><pre class="context"><span> pack of HERSHEY&#x27;S Mildly Sweet Bars to please the whole crowd and perfect the night&#x27;s snack selection. You can even sweeten up your favorite baked desserts with these chocolates by topping cupcakes, brownies and cookies with a section or two of divine dark chocolate. Everyone is excited when they&#x27;re reaching for HERSHEY&#x27;S Chocolate, and now you can be too! </span><mark>Contains one (1) 3.6-ounce pack of 8 snack-size HERSHEY&#x27;S SPECIAL DARK Mildly Sweet Chocolate Bars</mark><span> Bring your candy dish, gift-giving and s&#x27;mores games to the next level with smooth, rich HERSHEY&#x27;S SPECIAL DARK Chocolate Bars Kosher-certified dark chocolate candy bars individually wrapped for lasting freshness and on-the-go snacking during any adventure Include sections of HERSHEY&#x27;S Chocolate Candy Bars in dessert recipes, ice cream sundae stations and b</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_hershey_individual_scope_4</code> | bytes [1909, 1974) | <code>14662c79ac58adb9b6491365d4e16870d32db253e7aa4852dc910a5c4ebfac82</code></div><pre class="context"><span> lasting freshness and on-the-go snacking during any adventure Include sections of HERSHEY&#x27;S Chocolate Candy Bars in dessert recipes, ice cream sundae stations and bake-off events for an extra hint of decadence Snack-size bars of classic, delectable HERSEY&#x27;S SPECIAL DARK Mildly Sweet Chocolate with 45 percent cocoa Is Discontinued By Manufacturer ‏ ‎ No </span><mark>Product Dimensions ‏ ‎ 0.42 x 8.97 x 2.93 inches; 1.41 Ounces</mark><span> UPC ‏ ‎ 034000195046 Manufacturer ‏ ‎ Hershey&#x27;s ASIN ‏ ‎ B01M68WYTJ #5,086 in Candy &amp; Chocolate Bars Reviews Write Your Own Review You&#x27;re reviewing: HERSHEY&#x27;S Special Dark Mildly Sweet Dark Chocolate Snack Size Candy, Individually Wrapped, 3.6 oz Pack (8 ct) Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Submit</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hershey-s-special-dark-mildly-sweet-dark-chocolate-snack-size-candy-individually-wrapped-3-6-oz-pack-8-ct.html" target="_blank" rel="noreferrer">http://localhost:7770/hershey-s-special-dark-mildly-sweet-dark-chocolate-snack-size-candy-individually-wrapped-3-6-oz-pack-8-ct.html</a></p><p>冻结文件: <a href="sources/e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13" target="_blank">sources/e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13</a></p><p>内容 SHA-256: <code>e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_internal_mass_conflict_not_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Hershey page shows SKU B01M68WYTJ at 6.87 dollars with no reviews shown; its title and quick look describe one 3.6-ounce pack of eight individually wrapped snack-size bars with 45-percent cocoa, while Product Dimensions reports 1.41 ounces. The discrepancy remains unresolved, and individual wrapping plus seller freshness wording does not establish the exact delivered lot, package barrier, date, storage history or week-ten sensory quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_label_storage_tip_scope"><header><h3>prop_label_storage_tip_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author recommends labeling decanted or stored bags boxes and containers because their contents and dates are later forgotten&quot;,
+  &quot;predicate&quot;: &quot;recommends_preserving_identity_and_date_context&quot;,
+  &quot;subject&quot;: &quot;stored-container labeling tip&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_label_storage_tip_scope_1</code> | bytes [205, 322) | <code>0ac7b459c10bea79cdc08e31980d3fd913b8df42fc54febca4e6b2075c0efae2</code></div><pre class="context"><span>LPT: You know that unmarked bag, box, or container you think you&#x27;ll remember the contents of, months or years out? You won&#x27;t. Label *everything.*
+
+This is a life Pro tip that has served me extremely well. </span><mark>If you decant something into an unmarked container, put a box away for storage, or collect something in a ziplock bag</mark><span> that you think will be marked by some indelible experience that you&#x27;re absolutely sure you won&#x27;t forget or lose track of : guess what? Odds are you&#x27;re going to come across that thing at some point in the future and wonder when it was from, what it contains, all so you can figure out what to do with it. To avoid this future confusion: grab a marker or pen an</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_label_storage_tip_scope_2</code> | bytes [538, 626) | <code>7ad0da831e5c4b83a94b13dfc943645c8c6d24be26e28daac9a8610d08aec0a2</code></div><pre class="context"><span> served me extremely well. If you decant something into an unmarked container, put a box away for storage, or collect something in a ziplock bag that you think will be marked by some indelible experience that you&#x27;re absolutely sure you won&#x27;t forget or lose track of : guess what? Odds are you&#x27;re going to come across that thing at some point in the future and </span><mark>wonder when it was from, what it contains, all so you can figure out what to do with it.</mark><span> To avoid this future confusion: grab a marker or pen and clearly label whatever it is, on the box or container or with a little paper slipped inside. Future you will thank you. EDIT: it&#x27;s been fun to see this blow up. There are a ton of other great tips in the comments - be sure to upvote and elevate your favorites. 3</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_label_storage_tip_scope_3</code> | bytes [659, 712) | <code>d63163fc23b5b6d0f9d3b9c7eba05f60246ac7059d969643a631e3d9162d2609</code></div><pre class="context"><span>ething in a ziplock bag that you think will be marked by some indelible experience that you&#x27;re absolutely sure you won&#x27;t forget or lose track of : guess what? Odds are you&#x27;re going to come across that thing at some point in the future and wonder when it was from, what it contains, all so you can figure out what to do with it. To avoid this future confusion: </span><mark>grab a marker or pen and clearly label whatever it is</mark><span>, on the box or container or with a little paper slipped inside. Future you will thank you. EDIT: it&#x27;s been fun to see this blow up. There are a ton of other great tips in the comments - be sure to upvote and elevate your favorites. 3</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/77711/lpt-you-know-that-unmarked-bag-box-or-container-you-think" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/77711/lpt-you-know-that-unmarked-bag-box-or-container-you-think</a></p><p>冻结文件: <a href="sources/e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a" target="_blank">sources/e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a</a></p><p>内容 SHA-256: <code>e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;operational_traceability_tip_not_freshness_or_safety_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The labeling thread says people later forget the contents and dates of decanted or stored containers and recommends clear labels. This supports receipt, lot and opening-date traceability but is not evidence that labeling preserves quality, validates a best-before date or makes an item safe.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_mvtr_package_test_scope"><header><h3>prop_mvtr_package_test_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;MVTR depends on conditions and material thickness while seams creases access points heat seals and closures can control whole-package performance&quot;,
+  &quot;predicate&quot;: &quot;requires_declared_conditions_and_complete_package_validation&quot;,
+  &quot;subject&quot;: &quot;moisture-vapor transmission measurement&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_mvtr_package_test_scope_1</code> | bytes [0, 151) | <code>55ad12173307fdc60fc27c63401cc043c127c33f38575b530c1bf33ef8d8c9ff</code></div><pre class="context"><span></span><mark>Moisture vapor transmission rate ( MVTR ), also water vapor transmission rate ( WVTR ), is a measure of the passage of water vapor through a substance.</mark><span> It is a measure of the permeability for vapor barriers . There are many industries where moisture control is critical.   Moisture sensitive foods and pharmaceuticals are put in packaging [ 1 ] with controlled MVTR to achieve the required quality , [ 2 ] safety , and shelf life . [ 3 ] In clothing , MVTR as a measure of breathability has contributed to great</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_mvtr_package_test_scope_2</code> | bytes [2047, 2222) | <code>ad7229ee994324ade58a2319ca5b93c3db2a0a8c2cfd42dcc6392373409231fc</code></div><pre class="context"><span>stry-specific. Instrument manufacturers are often able to provide test methods developed to fully exploit the specific design which they are selling. The search for the most appropriate instrument is a zealous task which is in itself part of the measurement. [ 5 ] The conditions under which the measurement is made has a considerable influence on the result. </span><mark>Both the temperature and humidity gradients across the sample need to be measured, controlled and recorded with the result, and the thickness of the sample should be the same.</mark><span> An MVTR result without specifying these conditions is almost meaningless. Certainly no two results should be compared unless the conditions are known. For example, the effect of temperature on the permeability can be as high as 10% per Â°C, making it possible that MVTR results achieved at 23Â°C and 37Â°C can differ by a factor 4. The most common inter</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_mvtr_package_test_scope_3</code> | bytes [2223, 2296) | <code>2f66e49fb38b784ab775a7f5966ecdd722d7935895c92963dbed419ad83651c2</code></div><pre class="context"><span>propriate instrument is a zealous task which is in itself part of the measurement. [ 5 ] The conditions under which the measurement is made has a considerable influence on the result. Both the temperature and humidity gradients across the sample need to be measured, controlled and recorded with the result, and the thickness of the sample should be the same. </span><mark>An MVTR result without specifying these conditions is almost meaningless.</mark><span> Certainly no two results should be compared unless the conditions are known. For example, the effect of temperature on the permeability can be as high as 10% per Â°C, making it possible that MVTR results achieved at 23Â°C and 37Â°C can differ by a factor 4. The most common international unit for the MVTR is g/m 2 /day, or &quot; metric perm &quot;. In the USA, </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_mvtr_package_test_scope_4</code> | bytes [3075, 3157) | <code>31d4215c613051d93b7b5cde0cef8badc0706ef3fe3714a2faed3046beecd3c1</code></div><pre class="context"><span>tely 1/15) of the value of g/m 2 /day units. Typical rates in aluminium foil laminates may be as low as 0.001 g/m 2 /day, whereas the rate in fabrics can measure up to several thousand g/m 2 /day. Often, barrier testing is conducted on a sheet of material. Calculations based on that can be useful when designing completed structures, clothing, and packages.  </span><mark>Seams, creases, access points, and heat seals are critical to end-use performance.</mark><span> For example, the glass of a bottle may have an effective total barrier, but the screw cap closure and the closure liner might not.  Performance verification and validation of complete containers, structures, or irregular objects is often recommended. For the special case of OLEDs , where the levels of allowed permeation are in the 10 â6 g/m 2 /day leve</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Moisture_vapor_transmission_rate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Moisture_vapor_transmission_rate</a></p><p>冻结文件: <a href="sources/b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09" target="_blank">sources/b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09</a></p><p>内容 SHA-256: <code>b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_measurement_boundary_not_exact_offer_package_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The MVTR page defines water-vapor passage and says temperature, humidity gradients and thickness must be controlled and recorded, with results nearly meaningless without conditions. It also says seams, creases, access points and heat seals affect end use, so a generic sheet mechanism or resealable label cannot establish any exact offer&#x27;s complete-package moisture barrier.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_oh_nuts_bulk_scope"><header><h3>prop_oh_nuts_bulk_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 21.99-dollar offer rated 85 percent over twelve reviews with selected two-pound wording and freshness claims while Package Dimensions reports 1.2 pounds&quot;,
+  &quot;predicate&quot;: &quot;shows_a_selected_two_pound_zip_lock_offer_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Oh Nuts almond seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_oh_nuts_bulk_scope_1</code> | bytes [192, 298) | <code>bea4e9e440b4562effd9f3aab8b1abdbd7eec43b6aecb3e16e0d06620fa2b476</code></div><pre class="context"><span>Oh! Nuts Dry Roasted Unsalted Almonds | Fresh &amp; Healthy Tasty Almonds | No Salt, No Oil All-Natural Protein Keto Snacks | Resealable 2-Lb. Bulk Bag | Low Sodium, Vegan &amp; Gluten-Free Snacking
+
+</span><mark>In stock SKU B00C6ALV0U Rating: 85 % of 100 12 Reviews Add Your Review $21.99 Weight 2.0 Pounds 5.0 Pounds</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more Read more Oh! Nuts Mixed Nuts in Shell Oh! Nuts Dried Hibiscus Flowers Oh! Nuts Crystallized Ginger Oh! Nuts Dried Persimmons Oh! Nuts Black Sesame Seeds Oh! Nuts Raw Walnuts Shelled Product Quick Look UNSALTED HEALTHY DRY-ROASTED ALMONDS: These premium almonds are a true</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_oh_nuts_bulk_scope_2</code> | bytes [1368, 1454) | <code>91341cec79bb86f4fd0a95e0d728bb986b10af4874d322ce3992e4c32dcd6c65</code></div><pre class="context"><span>rients like essential vitamins, Omega oils, protein &amp; fiber. ENDLESS RECIPE IDEAS WITH FULL-TASTE GUARANTEE: Nut connoisseurs will love these almonds’ superior taste. Chop and sprinkle on salads for an extra crunch &amp; protein punch, mince into dessert toppings or throw some into your blender for your shakes. PREMIUM QUALITY UNDER STRICT KOSHER SUPERVISION: </span><mark>No more rancid nuts! With Oh! Nuts you get the freshest, high-quality organic almonds.</mark><span> Supervising the even roasting process ensures that the certified-Kosher nuts keep their natural flavor &amp; benefits. RESEALABLE ZIP-LOCK FRESH BAG FOR MORE NUTTY FUN: This 2-lb. bulk bag of unsalted almonds is convenient to use and easy to store. Once the bag has been opened, the zip lock keeps the nuts fresh and tasty. However, we bet the bag won’t last to</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_oh_nuts_bulk_scope_3</code> | bytes [1700, 1774) | <code>a763fa06a2503b10c9ad027df163178d3ef79f32bbb72bfa72463944f0993a59</code></div><pre class="context"><span> STRICT KOSHER SUPERVISION: No more rancid nuts! With Oh! Nuts you get the freshest, high-quality organic almonds. Supervising the even roasting process ensures that the certified-Kosher nuts keep their natural flavor &amp; benefits. RESEALABLE ZIP-LOCK FRESH BAG FOR MORE NUTTY FUN: This 2-lb. bulk bag of unsalted almonds is convenient to use and easy to store. </span><mark>Once the bag has been opened, the zip lock keeps the nuts fresh and tasty.</mark><span> However, we bet the bag won’t last too long… Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 9.8 x 7.5 x 2.2 inches; 1.2 Pounds Item model number ‏ ‎ 410 UPC ‏ ‎ 845613088867 Manufacturer ‏ ‎ Oh! Nuts® ASIN ‏ ‎ B00C6ALV0U #125 in Almonds Reviews 12 Write Your Own Review You&#x27;re reviewing: Oh! Nuts Dry Roasted Unsalt</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_oh_nuts_bulk_scope_4</code> | bytes [1867, 1928) | <code>6be0396bad443dd40ef9588f4753207a2263cb9c3b891cf2304adeea5ad1bf45</code></div><pre class="context"><span>he certified-Kosher nuts keep their natural flavor &amp; benefits. RESEALABLE ZIP-LOCK FRESH BAG FOR MORE NUTTY FUN: This 2-lb. bulk bag of unsalted almonds is convenient to use and easy to store. Once the bag has been opened, the zip lock keeps the nuts fresh and tasty. However, we bet the bag won’t last too long… Is Discontinued By Manufacturer ‏ ‎ No </span><mark>Package Dimensions ‏ ‎ 9.8 x 7.5 x 2.2 inches; 1.2 Pounds</mark><span> Item model number ‏ ‎ 410 UPC ‏ ‎ 845613088867 Manufacturer ‏ ‎ Oh! Nuts® ASIN ‏ ‎ B00C6ALV0U #125 in Almonds Reviews 12 Write Your Own Review You&#x27;re reviewing: Oh! Nuts Dry Roasted Unsalted Almonds | Fresh &amp; Healthy Tasty Almonds | No Salt, No Oil All-Natural Protein Keto Snacks | Resealable 2-Lb. Bulk Bag | Low Sodium, Vegan &amp; Gluten-Free</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/oh-nuts-dry-roasted-unsalted-almonds-fresh-healthy-tasty-almonds-no-salt-no-oil-all-natural-protein-keto-snacks-resealable-2-lb-bulk-bag-low-sodium-vegan-gluten-free-snacking.html" target="_blank" rel="noreferrer">http://localhost:7770/oh-nuts-dry-roasted-unsalted-almonds-fresh-healthy-tasty-almonds-no-salt-no-oil-all-natural-protein-keto-snacks-resealable-2-lb-bulk-bag-low-sodium-vegan-gluten-free-snacking.html</a></p><p>冻结文件: <a href="sources/036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9" target="_blank">sources/036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9</a></p><p>内容 SHA-256: <code>036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_bulk_freshness_claim_and_mass_conflict_not_oxidation_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Oh Nuts page shows SKU B00C6ALV0U at 21.99 dollars, rated 85 percent over twelve reviews, with a selected two-pound option and zip-lock freshness and no-more-rancid-nuts copy, while Package Dimensions reports 1.2 pounds. The mass conflict remains unresolved, and seller claims do not measure the exact lot&#x27;s oxygen exposure, oxidation rate, package barrier or week-ten sensory outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_otr_package_test_scope"><header><h3>prop_otr_package_test_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;OTR measures oxygen passage over time and completed packages include seals creases joints and closures that can reduce effective barrier&quot;,
+  &quot;predicate&quot;: &quot;requires_time_and_complete_package_structure&quot;,
+  &quot;subject&quot;: &quot;oxygen transmission measurement&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_otr_package_test_scope_1</code> | bytes [0, 132) | <code>ce2cc554323dbe2e24a54322cb052c5079393e7d568a7f498ce8ab7d9295868d</code></div><pre class="context"><span></span><mark>Oxygen transmission rate ( OTR ) is the measurement of the amount of oxygen gas that passes through a substance over a given period.</mark><span> It is mostly carried out on non-porous materials, where the mode of transport is diffusion , but there are a growing number of applications where the transmission rate also depends on flow through apertures of some description. It relates to the permeation of oxygen through packaging [ 1 ] to sensitive foods and pharmaceuticals . Measurement Standard test m</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_otr_package_test_scope_2</code> | bytes [361, 464) | <code>bb59ec1b0eccffff245b9b53efe4c6c6fb40fc98d01e59253b105c230fdac3f4</code></div><pre class="context"><span>xygen transmission rate ( OTR ) is the measurement of the amount of oxygen gas that passes through a substance over a given period. It is mostly carried out on non-porous materials, where the mode of transport is diffusion , but there are a growing number of applications where the transmission rate also depends on flow through apertures of some description. </span><mark>It relates to the permeation of oxygen through packaging [ 1 ] to sensitive foods and pharmaceuticals .</mark><span> Measurement Standard test methods are available for measuring the oxygen transmission rate of packaging materials. [ 2 ] [ 3 ] [ 4 ] Completed packages, however, involve heat seals, creases, joints, and closures which often reduce the effective barrier of the package.  For example, the glass of a glass bottle may have an effective total barrier but the scre</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_otr_package_test_scope_3</code> | bytes [598, 733) | <code>d3d85f6ffd59414611866c994f371bbe2efcc4a44222d1c5fae2b543dd668b4f</code></div><pre class="context"><span>e a growing number of applications where the transmission rate also depends on flow through apertures of some description. It relates to the permeation of oxygen through packaging [ 1 ] to sensitive foods and pharmaceuticals . Measurement Standard test methods are available for measuring the oxygen transmission rate of packaging materials. [ 2 ] [ 3 ] [ 4 ] </span><mark>Completed packages, however, involve heat seals, creases, joints, and closures which often reduce the effective barrier of the package.</mark><span>  For example, the glass of a glass bottle may have an effective total barrier but the screw cap closure and the closure liner might not. ASTM standard test methods include: F3136 Standard Test Method for Oxygen Gas Transmission Rate through Plastic Film and Sheeting using a Dynamic Accumulation Method D3985 Standard Test Method for Oxygen Gas Transmission R</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Oxygen_transmission_rate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Oxygen_transmission_rate</a></p><p>冻结文件: <a href="sources/e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313" target="_blank">sources/e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313</a></p><p>内容 SHA-256: <code>e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_measurement_boundary_not_exact_offer_package_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The OTR page defines oxygen passage over a period and relates it to food packaging, while warning that completed packages include heat seals, creases, joints and closures that affect effective barrier. It gives no exact material, opening state, test conditions or whole-package result for the captured offers and therefore cannot rank them.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_pocket_melt_incident_scope"><header><h3>prop_pocket_melt_incident_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one foil-wrapped egg became gooey after several hours in a jeans pocket during a flight&quot;,
+  &quot;predicate&quot;: &quot;reports_one_body_heat_exposure_event&quot;,
+  &quot;subject&quot;: &quot;pocket chocolate melt incident&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_pocket_melt_incident_scope_1</code> | bytes [282, 343) | <code>b7081083c7782c5d2856617e8066a05200ed0b525d2d76dcc8b6ad4decf41df2</code></div><pre class="context"><span>TIFU by putting a chocolate easter egg in my pocket and forgetting about it.
+
+Walking through Brussels airport early this morning I came across a giant Easter bunny character giving away chocolate eggs. Never one to turn down free chocolate, especially Belgian, I happily took one. </span><mark>Without thinking I put foil-wrapped goodie in my jeans pocket</mark><span> and then, preoccupied about getting through passport control and then to my flight, completely forgot about it. Several hours into my flight to New York I put my hand in my pocket and was like “what’s that?” A second later I came to the realization that I had a pocket full of gooey melted chocolate! The image of that bunny will haunt my dreams for a l</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_pocket_melt_incident_scope_2</code> | bytes [456, 523) | <code>b419a4a37aa509aa8cada0903f575309cec9ab1b505e4962b3e22d9def2644d5</code></div><pre class="context"><span>ussels airport early this morning I came across a giant Easter bunny character giving away chocolate eggs. Never one to turn down free chocolate, especially Belgian, I happily took one. Without thinking I put foil-wrapped goodie in my jeans pocket and then, preoccupied about getting through passport control and then to my flight, completely forgot about it. </span><mark>Several hours into my flight to New York I put my hand in my pocket</mark><span> and was like “what’s that?” A second later I came to the realization that I had a pocket full of gooey melted chocolate! The image of that bunny will haunt my dreams for a long time. TL:DR I got free chocolate in the airport, put it in my pocket and then immediately forgot about it, leading to a major pocket mess. 25
+
+IMPORTANT INFORMATION ABOUT NEW S</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_pocket_melt_incident_scope_3</code> | bytes [604, 650) | <code>2091cf54cf95b880734851d04b7ad3fed4ded6a7c2214f975cdf277905a678c7</code></div><pre class="context"><span>pecially Belgian, I happily took one. Without thinking I put foil-wrapped goodie in my jeans pocket and then, preoccupied about getting through passport control and then to my flight, completely forgot about it. Several hours into my flight to New York I put my hand in my pocket and was like “what’s that?” A second later I came to the realization that </span><mark>I had a pocket full of gooey melted chocolate!</mark><span> The image of that bunny will haunt my dreams for a long time. TL:DR I got free chocolate in the airport, put it in my pocket and then immediately forgot about it, leading to a major pocket mess. 25
+
+IMPORTANT INFORMATION ABOUT NEW SUBREDDIT FEATURE. I am a bot, and this action was performed automatically. Please contact the moderators of this subreddit if y</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/135236/tifu-by-putting-a-chocolate-easter-egg-in-my-pocket-and" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/135236/tifu-by-putting-a-chocolate-easter-egg-in-my-pocket-and</a></p><p>冻结文件: <a href="sources/b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b" target="_blank">sources/b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b</a></p><p>内容 SHA-256: <code>b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_incident_not_controlled_storage_or_exact_offer_test&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The thread reports one foil-wrapped chocolate egg becoming gooey after several hours in a jeans pocket. It supports treating heat exposure as an operational variable but is not a measured temperature history, bloom diagnosis, package comparison, ten-week storage trial or result for any exact offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_second_nature_multi_pouch_scope"><header><h3>prop_second_nature_multi_pouch_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 39.85-dollar no-review offer described as twelve 4.5-ounce pouches containing dark chocolate almonds cashews and pecans while Product Dimensions reports 4.5 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_twelve_resealable_pouches_and_a_warm_weather_warning&quot;,
+  &quot;subject&quot;: &quot;frozen Second Nature trail-mix seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_second_nature_multi_pouch_scope_1</code> | bytes [197, 263) | <code>5f1eb215ed3bd1b4052206cb46a72edf5ba8d210f90e15780a6f41ffc0dcdbd0</code></div><pre class="context"><span>Second Nature Dark Chocolate Medley Trail Mix, 4.5 oz. Resealable Pouch (Pack of 12) – Certified Gluten-Free Snack – Dark Chocolate and Nut Trail Mix Ideal for Quick Travel Snacks (1107-CP12)
+
+</span><mark>In stock SKU B0758FJ52X Be the first to review this product $39.85</mark><span> Flavor Name Coconut Almond Medley Mix Dark Chocolate Medley Mix roasted almonds,cashew,peanuts Wholesome Medley Mix Size 1.62 Pound (Pack of 1) 1.87 Pound (Pack of 6) 12 Ounce (Pack of 1) 12 Ounce (Pack of 6) 14 Ounce (Pack of 6) 2.5 Ounce (Pack of 12) 4.5 Ounce (Pack of 12) 5 Ounce (Pack of 12) Qty Add to Cart Add to Wish List Add to Compare
+
+Details Produ</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_second_nature_multi_pouch_scope_2</code> | bytes [744, 835) | <code>2bfef389e2020b0595cf5d34d87c014be17c3251e3e8a24ef7407ffa56596376</code></div><pre class="context"><span> 1.62 Pound (Pack of 1) 1.87 Pound (Pack of 6) 12 Ounce (Pack of 1) 12 Ounce (Pack of 6) 14 Ounce (Pack of 6) 2.5 Ounce (Pack of 12) 4.5 Ounce (Pack of 12) 5 Ounce (Pack of 12) Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Second Nature Dark Chocolate Medley Trail Mix is made to fuel your day, no matter where it might take you. </span><mark>There are (12) 4.5 oz resealable standup pouches of delightfully wholesome snacks included.</mark><span> A nut lover’s blend of dark chocolate and gently roasted, lightly salted premium nuts: almonds, cashews and pecans. Made with premium ingredients with no artificial flavors, colors or preservatives, this gluten free snack is sure to hit the spot. Plus, it’s non-GMO project verified, Kosher certified, and a good source of antioxidants and vitamin E. Thes</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_second_nature_multi_pouch_scope_3</code> | bytes [1297, 1396) | <code>28b55177616c98dda62698702e280feb5dd30c41643091cb7d2b294669dca2dc</code></div><pre class="context"><span>hews and pecans. Made with premium ingredients with no artificial flavors, colors or preservatives, this gluten free snack is sure to hit the spot. Plus, it’s non-GMO project verified, Kosher certified, and a good source of antioxidants and vitamin E. These pouches of trail mix are easy to reseal so you can always have a nourishing snack when hunger hits. </span><mark>(Consider faster shipping options during warmer months to accommodate weather effects on chocolate)</mark><span> When it comes to snacking, we’re following our better instincts – making better snacks for you, your family and friends. Our obsession? Creating the best collection of crave-worthy, natural snacks that are healthful, taste great and do good. And when it’s made with non-GMO and no artificial ingredients, and gives our health and energy levels an added </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_second_nature_multi_pouch_scope_4</code> | bytes [3467, 3529) | <code>b08dbbf36b85bbf7025f8e2985040af9dfc934c692b82617781adfd8b76201db</code></div><pre class="context"><span> best of nature’s finest ingredients, combined in ways Mother Nature never imagined. GIVING BACK TO NATURE – It’s in our Second Nature to give back to nature. That’s why we’ve partnered with One Tree Planted and a portion of every Second Nature Snacks purchase goes towards planting trees in our community. Is Discontinued By Manufacturer ‏ ‎ No </span><mark>Product Dimensions ‏ ‎ 11.8 x 5.7 x 8.8 inches; 4.5 Ounces</mark><span> Item model number ‏ ‎ 1107-CP12 UPC ‏ ‎ 077034011074 Manufacturer ‏ ‎ Second Nature ASIN ‏ ‎ B0758FJ52X Country of Origin ‏ ‎ USA #8 in Candy &amp; Chocolate Coated Nuts Reviews Write Your Own Review You&#x27;re reviewing: Second Nature Dark Chocolate Medley Trail Mix, 4.5 oz. Resealable Pouch (Pack of 12) – Certified Gluten-Free Snack – Dark</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/second-nature-dark-chocolate-medley-trail-mix-4-5-oz-resealable-pouch-pack-of-12-certified-gluten-free-snack-dark-chocolate-and-nut-trail-mix-ideal-for-quick-travel-snacks-1107-cp12.html" target="_blank" rel="noreferrer">http://localhost:7770/second-nature-dark-chocolate-medley-trail-mix-4-5-oz-resealable-pouch-pack-of-12-certified-gluten-free-snack-dark-chocolate-and-nut-trail-mix-ideal-for-quick-travel-snacks-1107-cp12.html</a></p><p>冻结文件: <a href="sources/280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6" target="_blank">sources/280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6</a></p><p>内容 SHA-256: <code>280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_multi_pouch_and_weather_copy_not_exact_delivery_or_ten_week_result&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Second Nature page shows SKU B0758FJ52X at 39.85 dollars with no reviews shown and describes twelve 4.5-ounce resealable pouches containing dark chocolate, almonds, cashews and pecans, plus a warm-weather shipping caution, while Product Dimensions reports 4.5 ounces. The selected delivered variant, total net quantity and heat history require verification, and multiple pouches do not prove week-ten quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_tempering_crystal_scope"><header><h3>prop_tempering_crystal_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;cooling agitating and reheating promote stable cocoa-butter crystal forms and improve gloss snap texture and bloom resistance&quot;,
+  &quot;predicate&quot;: &quot;links_controlled_cocoa_butter_crystallization_to_snap_gloss_and_bloom_resistance&quot;,
+  &quot;subject&quot;: &quot;tempered chocolate mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_tempering_crystal_scope_1</code> | bytes [0, 173) | <code>ccdf04dd198c532ba06985982706d17bf7b57efb7b431667bc3f50c9f21257b7</code></div><pre class="context"><span></span><mark>Tempering is a technique applied in chocolate production to create chocolate that is glossy , has a good snap and smoother texture and is more resistant to chocolate bloom .</mark><span> It involves cooling liquid chocolate while agitating it until a small amount of cocoa butter crystallizes . The liquid is then heated to maintain only the most stable crystal forms , which serve as nuclei for the rest of the cocoa butter to solidify around. History Crystallisation of chocolate was already a concern by the mid-19th century. A textbook of the</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tempering_crystal_scope_2</code> | bytes [174, 354) | <code>dfb98a92c751344d2dc7b681ff82c6101262e16150bd22e47ed45308b959bae6</code></div><pre class="context"><span>Tempering is a technique applied in chocolate production to create chocolate that is glossy , has a good snap and smoother texture and is more resistant to chocolate bloom . </span><mark>It involves cooling liquid chocolate while agitating it until a small amount of cocoa butter crystallizes . The liquid is then heated to maintain only the most stable crystal forms</mark><span> , which serve as nuclei for the rest of the cocoa butter to solidify around. History Crystallisation of chocolate was already a concern by the mid-19th century. A textbook of the time for chocolate making notes that good quality chocolate must have a shiny and smooth surface, a clean break, and an optimal mouthfeel. [ 1 ] In 1902, chocolate makers thought t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tempering_crystal_scope_3</code> | bytes [1657, 1746) | <code>57abebc10d91f61d323b66a2076f607d47f2e31d47570489c32f0d9a66e6dc89</code></div><pre class="context"><span>a butter . Like all fats, cocoa butter is made up of several triglycerides , which solidify at different temperatures and rates. [ 4 ] [ 5 ] When these crystallize, they can form six different structures (traditionally named I through VI by the chocolate industry), and only one of these (V) produces the snap and gloss desired by consumers. [ 4 ] [ 6 ] [ a ] </span><mark>This ability of cocoa butter to crystallize in different forms is known as polymorphism .</mark><span> Of the forms the cocoa butter takes, ones that are more dense and have lower energy structures are harder to melt. [ 9 ] Chocolate will naturally crystallize into Form V when it is cooled to 93.2 Â°F (34.0 Â°C) and then mixed for several days. Tempering is a process to speed this up. [ 10 ] Outline The purpose of tempering is to create the most stable</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tempered_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Tempered_chocolate</a></p><p>冻结文件: <a href="sources/d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162" target="_blank">sources/d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162</a></p><p>内容 SHA-256: <code>d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_crystal_mechanism_not_exact_product_process_history&quot;,
+    &quot;topic_cluster&quot;: &quot;ten_week_chocolate_nut_stash_bloom_oxidation&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The tempered-chocolate page links controlled cooling, agitation and reheating to stable cocoa-butter crystal forms, gloss, snap, smoother texture and bloom resistance. This explains a mechanism but does not reveal the exact tempering history, current crystal form, formula or future storage result of any captured offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_chocolate_stash_0047</td><td>case_spec</td><td><a href="sources/c53f911e4affd26cf7817529a8c2d6d858bce3c09806f6981033950c104b6207">c53f911e4affd26cf7817529a8c2d6d858bce3c09806f6981033950c104b6207</a></td><td><a href="http://case-spec.local/dra_v3_formal_snacks_chocolate_0047" target="_blank" rel="noreferrer">来源 URL</a></td><td>12104</td></tr><tr><td>reg_magento_blue_diamond_0047</td><td>magento</td><td><a href="sources/19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2">19c75bbd2eb009087127b42768ac56935db9886764b50b348003578c080f37e2</a></td><td><a href="http://localhost:7770/blue-diamond-almonds-oven-roasted-dark-chocolate-flavored-snack-nuts-14-oz-resealable-bag-pack-of-1.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2870</td></tr><tr><td>reg_magento_ghirardelli_bulk_0047</td><td>magento</td><td><a href="sources/df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e">df848d196129ecfc519ed1f4f88631c6a9cb69031e96a0a82368b7896174de9e</a></td><td><a href="http://localhost:7770/west-end-foods-bundle-of-ghirardelli-bulk-dark-chocolate-60-cacao-squares-5-pound.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1447</td></tr><tr><td>reg_magento_hershey_individual_0047</td><td>magento</td><td><a href="sources/e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13">e7bd7253fec51bee9243e9a915ac79a885a785f6c2a49642e0d78aef95453f13</a></td><td><a href="http://localhost:7770/hershey-s-special-dark-mildly-sweet-dark-chocolate-snack-size-candy-individually-wrapped-3-6-oz-pack-8-ct.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2341</td></tr><tr><td>reg_magento_oh_nuts_0047</td><td>magento</td><td><a href="sources/036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9">036ba3798a9dba2316993f097f7b7b9ce8adc6acd6e98ba76f0d4d194da786e9</a></td><td><a href="http://localhost:7770/oh-nuts-dry-roasted-unsalted-almonds-fresh-healthy-tasty-almonds-no-salt-no-oil-all-natural-protein-keto-snacks-resealable-2-lb-bulk-bag-low-sodium-vegan-gluten-free-snacking.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2393</td></tr><tr><td>reg_magento_second_nature_0047</td><td>magento</td><td><a href="sources/280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6">280cdbe6b834095cdac68244bbecd51ab9a0c3d26e5d1d786f2f2fc414a1a3c6</a></td><td><a href="http://localhost:7770/second-nature-dark-chocolate-medley-trail-mix-4-5-oz-resealable-pouch-pack-of-12-certified-gluten-free-snack-dark-chocolate-and-nut-trail-mix-ideal-for-quick-travel-snacks-1107-cp12.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4055</td></tr><tr><td>reg_postmill_bag_clip_0047</td><td>postmill</td><td><a href="sources/aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b">aacf721f62cfdb8181ccd77fe6f1b6832a247f21b1b1e695bc71ccd7f8815f7b</a></td><td><a href="http://localhost:9999/f/LifeProTips/77452/lpt-when-packing-snacks-like-chips-pretzels-for-vacation" target="_blank" rel="noreferrer">来源 URL</a></td><td>1710</td></tr><tr><td>reg_postmill_block_chocolate_0047</td><td>postmill</td><td><a href="sources/51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2">51c9c8ead7c947268fef17fef2b5de214c5b81c8ad3513ea4b382f97250e37c2</a></td><td><a href="http://localhost:9999/f/boston/38504/block-chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>4157</td></tr><tr><td>reg_postmill_label_storage_0047</td><td>postmill</td><td><a href="sources/e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a">e0367d2d9ee0cd451dbde5d80760ae99542734170085b0823fc40f97b0a84a8a</a></td><td><a href="http://localhost:9999/f/LifeProTips/77711/lpt-you-know-that-unmarked-bag-box-or-container-you-think" target="_blank" rel="noreferrer">来源 URL</a></td><td>946</td></tr><tr><td>reg_postmill_pocket_melt_0047</td><td>postmill</td><td><a href="sources/b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b">b6fe0094039920cf5859d45f3c61e742ac4f94cd35a0545a9a35f1fe3e650d5b</a></td><td><a href="http://localhost:9999/f/tifu/135236/tifu-by-putting-a-chocolate-easter-egg-in-my-pocket-and" target="_blank" rel="noreferrer">来源 URL</a></td><td>1165</td></tr><tr><td>reg_search_autoxidation</td><td>search_result</td><td><a href="sources/2198dd67e04b1d265884055e5bc3db70d18d599725f39b1a74331fddb7b40113">2198dd67e04b1d265884055e5bc3db70d18d599725f39b1a74331fddb7b40113</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=9bcc5bda-1281-41ef-90e9-ceb05323bce8" target="_blank" rel="noreferrer">来源 URL</a></td><td>3193</td></tr><tr><td>reg_search_bag_clip</td><td>search_result</td><td><a href="sources/54d4c23cefb5e9200a34090c9c95413f986904282eb7f401e42ca0af27038be4">54d4c23cefb5e9200a34090c9c95413f986904282eb7f401e42ca0af27038be4</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=b35906f8-5fca-48d4-b84e-f279d612bc37" target="_blank" rel="noreferrer">来源 URL</a></td><td>47995</td></tr><tr><td>reg_search_block_chocolate</td><td>search_result</td><td><a href="sources/12678ee786da8906ea5813855920afc5531fbb6f8be3451eef12a4956aad3194">12678ee786da8906ea5813855920afc5531fbb6f8be3451eef12a4956aad3194</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=73bbe7be-0db1-43f9-8a87-57961acdc306" target="_blank" rel="noreferrer">来源 URL</a></td><td>44833</td></tr><tr><td>reg_search_blue_diamond</td><td>search_result</td><td><a href="sources/76d20ed8694b0b3d59945a95be64054ab62d385e93e7b26cbb279c44ad8b6d21">76d20ed8694b0b3d59945a95be64054ab62d385e93e7b26cbb279c44ad8b6d21</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=223ad91b-0ecf-430d-bc28-9e3f1ebbab04" target="_blank" rel="noreferrer">来源 URL</a></td><td>6767</td></tr><tr><td>reg_search_chocolate_bloom</td><td>search_result</td><td><a href="sources/7bce51e9fdc409763956513c33ed6cd283a41ba64c98ea769e05e722318c2560">7bce51e9fdc409763956513c33ed6cd283a41ba64c98ea769e05e722318c2560</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=eceed2c4-e377-49a5-931b-5ddbc53f4b74" target="_blank" rel="noreferrer">来源 URL</a></td><td>61335</td></tr><tr><td>reg_search_discrimination</td><td>search_result</td><td><a href="sources/093175ec67cf242e3aa55d81b4be106c8bd74b8f8187e79d2efe0990547397e0">093175ec67cf242e3aa55d81b4be106c8bd74b8f8187e79d2efe0990547397e0</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=cb18682a-794c-4c15-bd9b-6efe958ebce4" target="_blank" rel="noreferrer">来源 URL</a></td><td>2065</td></tr><tr><td>reg_search_ghirardelli_bulk</td><td>search_result</td><td><a href="sources/246dda39c9d5a59f0da02df56da2c179be87079bc23ddb0fc4419b35547ccdff">246dda39c9d5a59f0da02df56da2c179be87079bc23ddb0fc4419b35547ccdff</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=cbfdffd6-63f1-4927-bdff-6b0aa5cf53a2" target="_blank" rel="noreferrer">来源 URL</a></td><td>6534</td></tr><tr><td>reg_search_hershey_individual</td><td>search_result</td><td><a href="sources/ecb76f6c5029bfa612cb352e9bb0a3ef1e636fb028b214fced7697e3fd41c9a7">ecb76f6c5029bfa612cb352e9bb0a3ef1e636fb028b214fced7697e3fd41c9a7</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=0a72e862-796b-4861-9d86-4d3abc340f61" target="_blank" rel="noreferrer">来源 URL</a></td><td>6637</td></tr><tr><td>reg_search_label_storage</td><td>search_result</td><td><a href="sources/6d379a7d51680b9374a5672bb5878ff11120e7221b708abec2852a1f75e00aa8">6d379a7d51680b9374a5672bb5878ff11120e7221b708abec2852a1f75e00aa8</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=79d85398-fef0-41f9-b30c-9ce3d8eb202d" target="_blank" rel="noreferrer">来源 URL</a></td><td>51062</td></tr><tr><td>reg_search_mvtr</td><td>search_result</td><td><a href="sources/eec0730784587fb91bdc94d6ac9684dd1ac9003c772f31a29c28e73b7a7dbed6">eec0730784587fb91bdc94d6ac9684dd1ac9003c772f31a29c28e73b7a7dbed6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=27683bee-e21d-4e53-b7f1-dac49acbc56f" target="_blank" rel="noreferrer">来源 URL</a></td><td>11246</td></tr><tr><td>reg_search_oh_nuts</td><td>search_result</td><td><a href="sources/346bdd763089f06507df43dac5748938ac5d4c68d3528b3b9d5cca410e4fa4e2">346bdd763089f06507df43dac5748938ac5d4c68d3528b3b9d5cca410e4fa4e2</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=dbef0920-2b3e-40d1-93a2-abf5da203654" target="_blank" rel="noreferrer">来源 URL</a></td><td>7435</td></tr><tr><td>reg_search_otr</td><td>search_result</td><td><a href="sources/a300ff8c09177ad1e4e5e64af5978abecc363bda19d60b44cf67b57c1c3d08a6">a300ff8c09177ad1e4e5e64af5978abecc363bda19d60b44cf67b57c1c3d08a6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=4d026ec2-28f4-4166-a4d4-8e9af3bfcbf3" target="_blank" rel="noreferrer">来源 URL</a></td><td>61243</td></tr><tr><td>reg_search_pocket_melt</td><td>search_result</td><td><a href="sources/d07eb1e7ed6969225407c9aff5b9a0639a8390f09487b12b6f3a639c9f21b191">d07eb1e7ed6969225407c9aff5b9a0639a8390f09487b12b6f3a639c9f21b191</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=5e082ed6-5f83-4b47-a958-30a432fa7a1c" target="_blank" rel="noreferrer">来源 URL</a></td><td>45084</td></tr><tr><td>reg_search_second_nature</td><td>search_result</td><td><a href="sources/591a693496940399a8c6bf00bc6a368f545df06ab089e0b62dd655a909e25685">591a693496940399a8c6bf00bc6a368f545df06ab089e0b62dd655a909e25685</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=eceb1922-1357-4b57-b2ef-82b92a1f63b4" target="_blank" rel="noreferrer">来源 URL</a></td><td>6612</td></tr><tr><td>reg_search_tempered_chocolate</td><td>search_result</td><td><a href="sources/77a3c9b98aab6d56f9a0a2e57cdc46ebf69f639f1eaff2970e6e618986327e4f">77a3c9b98aab6d56f9a0a2e57cdc46ebf69f639f1eaff2970e6e618986327e4f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1&amp;request_id=5d8a63c8-802d-4b48-9a94-9be865d52452" target="_blank" rel="noreferrer">来源 URL</a></td><td>1420</td></tr><tr><td>reg_wikipedia_autoxidation_0047</td><td>wikipedia</td><td><a href="sources/09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e">09f5a55b0704aaa996c10b2f0af40f31734e089cf27bd531c9f2faea71376c1e</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Autoxidation" target="_blank" rel="noreferrer">来源 URL</a></td><td>11690</td></tr><tr><td>reg_wikipedia_chocolate_bloom_0047</td><td>wikipedia</td><td><a href="sources/b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da">b2841f76f93ca6e5a547f253ebbe086ce77bcd4149481c815166dd0a7f7ea3da</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_bloom" target="_blank" rel="noreferrer">来源 URL</a></td><td>7179</td></tr><tr><td>reg_wikipedia_discrimination_testing_0047</td><td>wikipedia</td><td><a href="sources/41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8">41c85964469d13243586425b4056e8c8efe748b510ae4485035f7c43c840fdd8</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Discrimination_testing" target="_blank" rel="noreferrer">来源 URL</a></td><td>9076</td></tr><tr><td>reg_wikipedia_mvtr_0047</td><td>wikipedia</td><td><a href="sources/b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09">b63b7c50e6bcd9cd6e570ba05090a5a0faf1594a17c423af0df128a4b08cda09</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Moisture_vapor_transmission_rate" target="_blank" rel="noreferrer">来源 URL</a></td><td>7691</td></tr><tr><td>reg_wikipedia_otr_0047</td><td>wikipedia</td><td><a href="sources/e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313">e2f002634d63e7be44d339048b261ddf7fd48f86379baa12865f3882801bd313</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Oxygen_transmission_rate" target="_blank" rel="noreferrer">来源 URL</a></td><td>3936</td></tr><tr><td>reg_wikipedia_tempered_chocolate_0047</td><td>wikipedia</td><td><a href="sources/d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162">d6303633a96db3072fde149783ead0a8eff556dece182eb3272ae569b6ce4162</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tempered_chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>13860</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-snacks-chocolate-0047-ten-week-stash-bloom-oxidation-20260716-r1";
+const graphHash = "50ec4093d173071fdcbd8af2cde63ae2bcc0c686698525a5acf4e2fc58cbb830";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

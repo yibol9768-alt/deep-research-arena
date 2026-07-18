@@ -409,7 +409,7 @@ def generate(root: Path | str = ROOT, *, env: dict[str, str] | None = None,
             # Wiki membership for ~19M articles lives in the bloom filter, not in
             # url_registry.json (which lists ~1k explicit titles). An absent or
             # rebuilt bloom silently changes `reach` for every wiki citation, and
-            # truth = reach^1.5 * quality, so it changes truth. Hashing only the
+            # truth = gate * quality, so it changes truth. Hashing only the
             # JSON let two non-comparable boards verify clean.
             "wiki_bloom_sha256": _sha256_file(root / _WIKI_BLOOM),
         },

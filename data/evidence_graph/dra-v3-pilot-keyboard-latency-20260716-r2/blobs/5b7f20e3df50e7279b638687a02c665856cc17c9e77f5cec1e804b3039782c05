@@ -1,0 +1,30 @@
+{
+  "schema": "dra_v3_case_authoring_source_v1",
+  "task_id": "dra_v3_dev_keyboard_0005",
+  "candidate_id": "cand_keyboard_latency_claims",
+  "scenario": "A buyer has a $100 ceiling for a gaming keyboard and is comparing a wired SK61 optical route, a wired Keychron K6 mechanical route, and paying more for an advertised 8000 Hz route. They require wired NKRO, prefer switch-replacement flexibility, and will pay a latency premium only when the frozen evidence establishes a product-specific benefit rather than a generic mechanism or owner impression.",
+  "constraints": [
+    "total_budget_100",
+    "wired_nkro_required",
+    "switch_replacement_flexibility_priority",
+    "do_not_pay_for_unverified_8000hz_claim",
+    "separate_poll_period_from_end_to_end_latency",
+    "separate_mechanism_from_human_perceptibility",
+    "seller_claims_are_not_independent_tests",
+    "community_opinions_are_scoped"
+  ],
+  "candidate_actions": [
+    "keychron_k6_wired_nkro_value",
+    "sk61_optical_nkro_value",
+    "premium_8000hz_claim_route"
+  ],
+  "rules": {
+    "keyboard_feature_matrix_v1": "Compare only frozen body claims for price, review display, physical keys, wired operation, NKRO scope, switch sensing, and hot-swap wording. Preserve the SK61 title-versus-spec switch-color inconsistency and its optical-only hot-swap limit. Do not infer polling rate, measured latency, or human performance from a product title, seller adjective, URL slug, or an omitted field.",
+    "rollover_scope_v1": "Treat NKRO as independently detecting simultaneous keys and preventing multi-key loss or ghosting under the documented conditions. Do not convert rollover into a claim about faster single-key actuation, lower end-to-end latency, or improved aim.",
+    "optical_debounce_scope_v1": "Distinguish the physically real optical sensing and contact-bounce mechanisms from product-specific performance. Use the community discussion only as scoped owner opinion: it identifies possible optical latency and lifespan advantages, switch-ecosystem limits, and explicit uncertainty about whether latency differences are noticeable; it is not an instrumented comparison of either candidate.",
+    "polling_interval_boundary_v1": "Polling is repeated status sampling, USB HID hosts periodically poll interrupt endpoints, and hertz gives events per second with period 1/f. A hypothetical 8000 Hz poll period is 0.125 ms and a hypothetical 1000 Hz period is 1 ms, but that arithmetic does not establish either listing's actual rate, full input-to-display latency, or human perceptibility.",
+    "evidence_bounded_keyboard_value_v1": "Under the $100, wired-NKRO, switch-flexibility, and evidence-boundary priorities, select the Keychron K6 wired NKRO route. It costs less, has 68 keys with dedicated arrows, explicitly limits full NKRO to wired mode, and avoids the SK61 listing's explicit optical-only hot-swap restriction. Preserve that hot-swap compatibility breadth is not independently tested, both product records are seller evidence, the K6 has no aggregate review, the SK61 body is internally inconsistent about optical switch color, and no frozen source measures either board's polling rate, end-to-end latency, perceptibility, or aim benefit."
+  },
+  "authoring_status": "llm_draft_pending_protocol_gates",
+  "legacy_v2_mutated": false
+}

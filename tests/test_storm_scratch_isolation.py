@@ -15,8 +15,9 @@ article. The fix:
    so even within one tree a stale article can never be picked up.
 
 These tests exercise the pure ``_extract_article`` helper and the dir-uniqueness
-contract without needing the (venv-only) ``dspy`` / ``knowledge_storm`` stack;
-``dspy`` is stubbed in ``sys.modules`` exactly as the other storm tests do.
+contract.  When the real ``dspy`` / ``knowledge_storm`` stack is installed, the
+box-only tests also exercise the forked native worker.  A minimal ``dspy`` stub
+is used only on workstations where the package is genuinely absent.
 """
 from __future__ import annotations
 
@@ -31,17 +32,24 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-# storm_runner imports dspy at module load; stub it so the import succeeds in a
-# bare venv (same pattern as test_strict_sandbox_forwarding.py).
+# storm_runner imports dspy at module load. Prefer the real installation when
+# it exists (the box has it); inject a minimal stub only in a genuinely bare
+# workstation venv. The old ``if 'dspy' not in sys.modules`` check confused
+# "not imported yet" with "not installed" and shadowed a healthy dspy. The two
+# box-only cleanup tests then imported knowledge_storm against that stub and
+# failed because the stub intentionally has no Signature class.
 if "dspy" not in sys.modules:
-    _dspy = types.ModuleType("dspy")
+    try:
+        import dspy as _dspy  # noqa: F401
+    except ImportError:
+        _dspy = types.ModuleType("dspy")
 
-    class _Retrieve:  # minimal stand-in for dspy.Retrieve
-        def __init__(self, *a, **k):
-            pass
+        class _Retrieve:  # minimal stand-in for dspy.Retrieve
+            def __init__(self, *a, **k):
+                pass
 
-    _dspy.Retrieve = _Retrieve
-    sys.modules["dspy"] = _dspy
+        _dspy.Retrieve = _Retrieve
+        sys.modules["dspy"] = _dspy
 
 import scripts.runners.storm_runner as storm_runner  # noqa: E402
 
@@ -54,6 +62,19 @@ def _write(path: Path, text: str, mtime: float | None = None) -> Path:
 
         os.utime(path, (mtime, mtime))
     return path
+
+
+def test_writer_visible_snippets_preserve_exact_source_identity():
+    url = "http://localhost:9999/f/headphones/123/native-source"
+    snippets = ["second snippet", "first snippet", "first snippet", ""]
+
+    visible = storm_runner._writer_visible_snippets(url, snippets)
+
+    assert visible == [
+        f"Source URL (retrieved identity): {url}",
+        "first snippet",
+        "second snippet",
+    ]
 
 
 def test_extract_article_ignores_stale_file(tmp_path):
@@ -120,7 +141,9 @@ def test_extract_article_never_appends_harness_references(tmp_path, caplog):
     0.9609 -> 0.0000. STORM's own article contains no sandbox URLs; the harness was
     ghost-writing its citations into the scored artifact, a credit no other
     framework gets from the harness. The injection was removed 2026-07-08 (fairness
-    audit); the bibliography is now logged only, never appended.
+    audit); the bibliography is now logged and retained as STORM's second
+    native artifact, never appended. Scoring may resolve the sealed two-file
+    bundle, but this extractor must still return the article byte-for-byte.
 
     This test LOCKS that contract. Do NOT "fix" a red here by re-appending the
     references: that is exactly the reverted graft. The extracted report must be
@@ -162,10 +185,41 @@ def test_extract_article_never_appends_harness_references(tmp_path, caplog):
     # The report is byte-identical to what STORM itself produced.
     assert out == art.read_text()
     assert out == article_body
-    # The bibliography is still observed, but only as a diagnostic log line.
+    # Extraction still observes the bibliography as a diagnostic; persistence
+    # is covered separately below and never changes this returned report.
     assert any(
         "diagnostic only, not appended" in r.getMessage() for r in caplog.records
     ), "bibliography should be logged as diagnostic, not appended to the report"
+
+
+def test_native_citation_map_is_retained_as_separate_native_artifact(
+    tmp_path, monkeypatch,
+):
+    """The native mapping survives scratch cleanup without changing markdown."""
+    import json
+
+    run_start = time.time()
+    payload = {
+        "url_to_unified_index": {
+            "http://localhost:9999/f/headphones/1": 1,
+            "http://localhost:8090/A/Headphones": 2,
+        },
+        "url_to_info": {"native": "payload remains intact"},
+    }
+    _write(
+        tmp_path / "topic" / "url_to_info.json",
+        json.dumps(payload),
+        mtime=run_start + 1,
+    )
+    extracted = storm_runner._extract_native_citation_map(tmp_path, run_start)
+    assert extracted == payload
+
+    report = tmp_path / "raw" / "storm__task.md"
+    monkeypatch.setenv("DEEP_RUN_REPORT_PATH", str(report))
+    sidecar = storm_runner._persist_native_citation_map(extracted)
+    assert sidecar == report.with_suffix(".storm-url-to-info.json")
+    assert json.loads(sidecar.read_text()) == payload
+    assert not report.exists(), "retaining the map must not write or modify the report"
 
 
 def test_run_uses_unique_scratch_dir_and_cleans_up(monkeypatch, tmp_path):
@@ -192,14 +246,19 @@ def test_run_uses_unique_scratch_dir_and_cleans_up(monkeypatch, tmp_path):
     (fake_root / "data" / "results" / "deep").mkdir(parents=True)
     monkeypatch.setattr(storm_runner, "ROOT", fake_root)
 
-    seen_dirs: list[str] = []
+    # The native runner executes in a forked child, so mutations to a normal
+    # parent-process list are not observable here.  Record the constructor's
+    # scratch path in a file outside the scratch tree instead.  The file is a
+    # test witness only; production still communicates through the result queue.
+    seen_file = tmp_path / "seen-scratch-dirs.txt"
 
     class _FakeRunner:
         def __init__(self, output_dir: str):
             self.output_dir = output_dir
 
         def run(self, **kwargs):
-            seen_dirs.append(self.output_dir)
+            with seen_file.open("a", encoding="utf-8") as fh:
+                fh.write(f"{self.output_dir}\n")
             # Emit a fresh article so extraction succeeds.
             art = Path(self.output_dir) / "topic" / "storm_gen_article_polished.txt"
             art.parent.mkdir(parents=True, exist_ok=True)
@@ -224,6 +283,7 @@ def test_run_uses_unique_scratch_dir_and_cleans_up(monkeypatch, tmp_path):
 
     assert out1.startswith("# Fresh report")
     assert out2.startswith("# Fresh report")
+    seen_dirs = [line for line in seen_file.read_text().splitlines() if line]
     # Distinct scratch dirs despite identical intent.
     assert len(seen_dirs) == 2
     assert seen_dirs[0] != seen_dirs[1]
@@ -248,11 +308,13 @@ def test_run_cleans_up_even_on_runner_error(monkeypatch, tmp_path):
     (fake_root / "data" / "results" / "deep").mkdir(parents=True)
     monkeypatch.setattr(storm_runner, "ROOT", fake_root)
 
-    seen: list[str] = []
+    # As above, use a filesystem witness because _Boom is instantiated in the
+    # forked child and an in-memory list would remain private to that process.
+    seen_file = tmp_path / "seen-error-scratch-dir.txt"
 
     class _Boom:
         def __init__(self, output_dir: str):
-            seen.append(output_dir)
+            seen_file.write_text(output_dir, encoding="utf-8")
 
         def run(self, **kwargs):
             raise RuntimeError("storm exploded")
@@ -266,10 +328,16 @@ def test_run_cleans_up_even_on_runner_error(monkeypatch, tmp_path):
         lambda *, shim_url, proxy_url, model, output_dir, api_key: _Boom(output_dir),
     )
 
-    with pytest.raises(RuntimeError, match="storm exploded"):
-        asyncio.run(
-            storm_runner.run("intent", "m", "http://localhost:8081", "http://localhost:8088/v1")
+    out = asyncio.run(
+        storm_runner.run(
+            "intent", "m", "http://localhost:8081", "http://localhost:8088/v1"
         )
+    )
 
-    assert seen, "runner was never built"
-    assert not Path(seen[0]).exists(), "scratch dir leaked after an error"
+    # Child failures are deliberately serialized through the queue and become
+    # honest, scorer-recognized error stubs in the parent; they do not escape as
+    # RuntimeError.  Cleanup must hold under that actual contract.
+    assert out == "(storm error: native: RuntimeError: storm exploded)"
+    assert seen_file.is_file(), "runner was never built"
+    seen = seen_file.read_text(encoding="utf-8")
+    assert not Path(seen).exists(), "scratch dir leaked after an error"

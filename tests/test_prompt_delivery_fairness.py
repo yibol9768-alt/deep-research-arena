@@ -55,7 +55,11 @@ def test_storm_native_worker_receives_complete_intent(monkeypatch, tmp_path):
         queue,
     )
 
-    assert queue.item == {"ok": True, "report": "native article"}
+    assert queue.item == {
+        "ok": True,
+        "report": "native article",
+        "native_citation_map_retained": False,
+    }
     assert captured["topic"] == LONG_INTENT
     assert captured["topic"].endswith("FINAL REQUIRED CONSTRAINT")
 

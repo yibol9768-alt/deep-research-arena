@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1</code></p>
+<p>证据图哈希: <code>e127a5d2078b0eb4d533169a9034bb969f3cb56f30cffecaa51abf1f31b27525</code></p>
+<p>待审项 26 个，其中语义项 13 个、结构化项 0 个；冻结来源 27 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_antioxidant_outcome_boundary"><header><h3>assert_antioxidant_outcome_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;little evidence for some in-vivo properties and no demonstrated human health maintenance or disease prevention from antioxidant supplements&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for antioxidant activity and dietary health claims&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_antioxidant_outcome_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_activity_to_outcome_boundary_not_exact_product_assay&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;little evidence for some in-vivo properties and no demonstrated human health maintenance or disease prevention from antioxidant supplements&quot;,
+  &quot;predicate&quot;: &quot;separates_in_vitro_properties_from_in_vivo_outcomes&quot;,
+  &quot;subject&quot;: &quot;antioxidant activity and dietary health claims&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_antioxidant_outcome_boundary_1</code> | bytes [630, 842) | <code>7a1bd80a6728903d15ebc132f819e8c69983569a12b849f43bebfddb33054e5f</code></div><pre class="context"><span>rs , fuels , and lubricants , to extend their usable lifetimes. [ 3 ] Foods are also treated with antioxidants to prevent spoilage , in particular the rancidification of oils and fats . In cells , antioxidants such as glutathione , mycothiol , or bacillithiol , and enzyme systems like superoxide dismutase , inhibit damage from oxidative stress . [ 4 ] [ 5 ] </span><mark>Dietary antioxidants are vitamins A , C , and E , but the term has also been applied to various compounds that exhibit antioxidant properties in vitro , having little evidence for antioxidant properties in vivo .</mark><span> [ 6 ] [ 7 ] [ 8 ] Dietary supplements marketed as antioxidants have not been shown to maintain health or prevent disease in humans. [ 6 ] [ 7 ] [ 8 ] [ 9 ] History As part of their adaptation from marine life, terrestrial plants began producing non-marine antioxidants such as ascorbic acid ( vitamin C ), polyphenols , and tocopherols . The evolution of angi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Antioxidant" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Antioxidant</a></p><p>冻结文件: <a href="sources/c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc" target="_blank">sources/c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc</a></p><p>内容 SHA-256: <code>c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_black_tea_anxiety_anecdote_scope"><header><h3>assert_black_tea_anxiety_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;self-described slow caffeine metabolism and anxiety after leaving a black-tea bag in the drink&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one black-tea community author&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_black_tea_anxiety_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_self_report_not_diagnosis_dose_prevalence_or_product_validation&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;self-described slow caffeine metabolism and anxiety after leaving a black-tea bag in the drink&quot;,
+  &quot;predicate&quot;: &quot;reports_anxiety_after_a_long_steep&quot;,
+  &quot;subject&quot;: &quot;one black-tea community author&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_black_tea_anxiety_anecdote_scope_1</code> | bytes [28, 115) | <code>da586e087616cd8cc43387da06e0e1031d16ac1d0c90cd84230e2df4d9014306</code></div><pre class="context"><span>TIFU by drinking black tea
+
+</span><mark>In a college molecular biology class I learned I was a “slow caffeine metabolizer”.</mark><span> This did not surprise me, as I have always avoided caffeine (not a coffee drinker) and my mother even banned me from drinking Mt. Dew at her house because it makes me bounce off the walls and talk like a chipmunk on speed. I’m also not a huge fan of tea, though I will drink herbal tea blends. At a departmental tea hour I attended today they only had black</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/135314/tifu-by-drinking-black-tea" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/135314/tifu-by-drinking-black-tea</a></p><p>冻结文件: <a href="sources/05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3" target="_blank">sources/05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3</a></p><p>内容 SHA-256: <code>05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_caffeine_response_boundary"><header><h3>assert_caffeine_response_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;dose-dependent alertness alongside variable sleep disruption, anxiety, jitteriness, insomnia, and sleep latency&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for caffeine alertness and adverse effects&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_caffeine_response_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_caffeine_effects_not_exact_serving_or_person_specific_prediction&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;dose-dependent alertness alongside variable sleep disruption, anxiety, jitteriness, insomnia, and sleep latency&quot;,
+  &quot;predicate&quot;: &quot;vary_with_dose_timing_tolerance_and_person&quot;,
+  &quot;subject&quot;: &quot;caffeine alertness and adverse effects&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_caffeine_response_boundary_1</code> | bytes [9420, 9516) | <code>a07b033d6ccb1f1ff789d0247ebadc5af735c6ca2001c06ace4d5dbcc979d8ad</code></div><pre class="context"><span>] The desired effects arise approximately one hour after consumption, and the desired effects of a moderate dose usually subside after about three or four hours. [ 5 ] Caffeine can delay or prevent sleep and improves task performance during sleep deprivation. [ 60 ] Shift workers who use caffeine make fewer mistakes that could result from drowsiness. [ 61 ] </span><mark>Caffeine in a dose dependent manner increases alertness in both fatigued and normal individuals.</mark><span> [ 62 ] A systematic review and meta-analysis from 2014 found that concurrent caffeine and L -theanine use has synergistic psychoactive effects that promote alertness, attention, and task switching ; [ 63 ] these effects are most pronounced during the first hour post-dose. [ 63 ] A 2025 systematic review and meta-analysis found that acute caffeine intake can</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Caffeine" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Caffeine</a></p><p>冻结文件: <a href="sources/1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215" target="_blank">sources/1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215</a></p><p>内容 SHA-256: <code>1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_detox_concept_boundary"><header><h3>assert_detox_concept_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a distinction from ordinary liver and kidney detoxification plus criticism of undefined toxins and unsupported commercial claims&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for alternative-medicine detoxification claims&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_detox_concept_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_evidence_boundary_not_medical_diagnosis_or_product_trial&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a distinction from ordinary liver and kidney detoxification plus criticism of undefined toxins and unsupported commercial claims&quot;,
+  &quot;predicate&quot;: &quot;lack_named_toxins_and_supporting_evidence&quot;,
+  &quot;subject&quot;: &quot;alternative-medicine detoxification claims&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_detox_concept_boundary_1</code> | bytes [3438, 3620) | <code>5121a6f77c16e944ca40f6aa9967c9ad8f5b41c1b785091d5e22601c31ac95a0</code></div><pre class="context"><span> of unspecified toxins from the body Detoxification (often shortened to detox and sometimes called body cleansing ) is a type of alternative medicine treatment which aims to rid the body of unspecified &quot;toxins&quot; â substances that proponents claim accumulate in the body over time and have undesirable short-term or long-term effects on individual health. </span><mark>It is not to be confused with detoxification carried out by the liver and kidneys , which filter the blood and remove harmful substances to be processed and eliminated from the body.</mark><span> [ 1 ] [ 2 ] Activities commonly associated with detoxification include dieting , fasting , consuming exclusively or avoiding specific foods (such as fats, carbohydrates, fruits, vegetables, juices, herbs), colon cleansing , chelation therapy , certain kinds of IV therapy and the removal of dental fillings containing amalgam . Scientists and health organizat</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Detoxification_(alternative_medicine)" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Detoxification_(alternative_medicine)</a></p><p>冻结文件: <a href="sources/c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa" target="_blank">sources/c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa</a></p><p>内容 SHA-256: <code>c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_energy_kick_question_scope"><header><h3>assert_energy_kick_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a no-sugar-drink question mentioning no more than 200 mg caffeine per can&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one energy-drink community question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_energy_kick_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;question_not_composition_assay_mechanism_or_outcome_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a no-sugar-drink question mentioning no more than 200 mg caffeine per can&quot;,
+  &quot;predicate&quot;: &quot;asks_what_differs_from_coffee_or_tea&quot;,
+  &quot;subject&quot;: &quot;one energy-drink community question&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_energy_kick_question_scope_1</code> | bytes [0, 108) | <code>5ce66f5a3e5f9e1833d30e6cd3c8010ae8980a349e49ef89c1b6d662d81a23ad</code></div><pre class="context"><span></span><mark>ELI5: What&#x27;s in energy drinks that provides the &quot;kick&quot; that one otherwise doesn&#x27;t get from coffee, tea, etc?</mark><span>
+
+Should mention that I drink only no sugar drinks, so it can&#x27;t be that, and a single can of what I have is usually no more than 200MG of caffeine Edit: Appreciate your responses. Thank you for the explanations and insights 3</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/125265/eli5-what-s-in-energy-drinks-that-provides-the-kick-that-one" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/125265/eli5-what-s-in-energy-drinks-that-provides-the-kick-that-one</a></p><p>冻结文件: <a href="sources/dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8" target="_blank">sources/dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8</a></p><p>内容 SHA-256: <code>dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_la_republica_mushroom_claim_snapshot"><header><h3>assert_la_republica_mushroom_claim_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;seven named mushrooms plus focus, clean energy, no-jitters, antioxidant, immune, liver, stomach, and inflammation language on a 24-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen La Republica mushroom-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_la_republica_mushroom_claim_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_ingredient_and_outcome_copy_not_dose_quality_or_product_specific_efficacy&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;seven named mushrooms plus focus, clean energy, no-jitters, antioxidant, immune, liver, stomach, and inflammation language on a 24-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;markets_focus_clean_energy_no_jitters_and_multi_system_benefits&quot;,
+  &quot;subject&quot;: &quot;frozen La Republica mushroom-coffee seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_la_republica_mushroom_claim_snapshot_1</code> | bytes [201, 404) | <code>45d1585dd7683f96e313172a323520d9fe44a34c10018c7de975cf1a0f446197</code></div><pre class="context"><span>La Republica Organic Mushroom Coffee (30 Servings) with 7 Superfood Mushrooms, Great Tasting Arabica Instant Coffee, Includes Lion&#x27;s Mane, Reishi, Chaga, Cordyceps, Shiitake, Maitake, and Turkey Tail
+
+</span><mark>In stock SKU B078XR2R6B Be the first to review this product $24.00 Flavor Name Caffeinated Decaffeinated Size 2.12 Ounce (Pack of 1) 8.48 Ounce (Pack of 1) Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Read more Start your mornings off with a rich, endless flavor in every cup of mushroom coffee made from all organic ingredients. Every mushroom used to make our coffee is harvested after growing naturally on uncontaminated trees. Once harvested our process ensures every scoop contains no preservatives, fillers while being Keto a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/la-republica-organic-mushroom-coffee-30-servings-with-7-superfood-mushrooms-great-tasting-arabica-instant-coffee-includes-lion-s-mane-reishi-chaga-cordyceps-shiitake-maitake-and-turkey-tail.html" target="_blank" rel="noreferrer">http://localhost:7770/la-republica-organic-mushroom-coffee-30-servings-with-7-superfood-mushrooms-great-tasting-arabica-instant-coffee-includes-lion-s-mane-reishi-chaga-cordyceps-shiitake-maitake-and-turkey-tail.html</a></p><p>冻结文件: <a href="sources/2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2" target="_blank">sources/2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2</a></p><p>内容 SHA-256: <code>2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lakanto_matcha_claim_snapshot"><header><h3>assert_lakanto_matcha_claim_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;detox and destress, antioxidants, probiotics, L-theanine, metabolism, and endurance language on a 9.95-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Lakanto matcha seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lakanto_matcha_claim_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_not_ingredient_assay_detox_measurement_or_health_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;detox and destress, antioxidants, probiotics, L-theanine, metabolism, and endurance language on a 9.95-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;markets_detox_antioxidant_and_performance_language&quot;,
+  &quot;subject&quot;: &quot;frozen Lakanto matcha seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lakanto_matcha_claim_snapshot_1</code> | bytes [199, 312) | <code>7c126848f86a3802fd08c23dd28fad0607da11911d20798b222340de4aa659b2</code></div><pre class="context"><span>Lakanto Sugar Free Matcha Latte - Green Tea Powder Shelf Stable Probiotics and Fiber, Sugar Free, Monkfruit Sweetener, Keto Diet Friendly, Vegan, Detox and Destress, Antioxidants, Authentic (10 Oz)
+
+</span><mark>In stock SKU B01G4I8VUM Be the first to review this product $9.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Best of Quality Green Tea: Our premium matcha green tea powder is from the UJI region of Japan in Kyoto, where it has been used as a ceremonial tea for over 140 years and was blended into one of the most sought after Japanese green teas. Easy Prep: To prepare our sugar free green tea, simply add a scoop of Lakanto Matcha Latte to</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lakanto-sugar-free-matcha-latte-green-tea-powder-shelf-stable-probiotics-and-fiber-sugar-free-monkfruit-sweetener-keto-diet-friendly-vegan-detox-and-destress-antioxidants-authentic-10-oz.html" target="_blank" rel="noreferrer">http://localhost:7770/lakanto-sugar-free-matcha-latte-green-tea-powder-shelf-stable-probiotics-and-fiber-sugar-free-monkfruit-sweetener-keto-diet-friendly-vegan-detox-and-destress-antioxidants-authentic-10-oz.html</a></p><p>冻结文件: <a href="sources/0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521" target="_blank">sources/0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521</a></p><p>内容 SHA-256: <code>0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lifeboost_low_acid_claim_snapshot"><header><h3>assert_lifeboost_low_acid_claim_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;pH 6 or higher, third-party testing, and gentle-on-stomach-and-teeth claims on a 27.95-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Lifeboost low-acid coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lifeboost_low_acid_claim_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_measurement_statement_not_independent_lot_assay_or_symptom_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;pH 6 or higher, third-party testing, and gentle-on-stomach-and-teeth claims on a 27.95-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;markets_ph_and_stomach_or_teeth_tolerance_language&quot;,
+  &quot;subject&quot;: &quot;frozen Lifeboost low-acid coffee seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lifeboost_low_acid_claim_snapshot_1</code> | bytes [173, 388) | <code>1fa23afcb641355e0c3710fad0fd403b2919c9b7e8896e5b3025b681236b0f3f</code></div><pre class="context"><span>Lifeboost Coffee Ground Medium Roast Coffee - Low Acid Single Origin USDA Organic Coffee - Non-GMO Ground Coffee Third Party Tested For Mycotoxins &amp; Pesticides - 12 Ounces
+
+</span><mark>In stock SKU B0899ZYXXN Be the first to review this product $27.95 Flavor Name Dark Roast Half Caff Light Roast Medium Decaf Medium Roast Size Ground Coffee Whole Bean Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Why Should You Choose Low Acid Coffee? Do you have teeth issues, a sensitive stomach, or sometimes feel gastric discomfort due to ulcers, gastritis, or GERD when you&#x27;re drinking a cup of joe? Although coffee is naturally acidic, the way we grow and process our coffee beans allows us to produce clean, tasty low acid coffee. When </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lifeboost-coffee-ground-medium-roast-coffee-low-acid-single-origin-usda-organic-coffee-non-gmo-ground-coffee-third-party-tested-for-mycotoxins-pesticides-12-ounces.html" target="_blank" rel="noreferrer">http://localhost:7770/lifeboost-coffee-ground-medium-roast-coffee-low-acid-single-origin-usda-organic-coffee-non-gmo-ground-coffee-third-party-tested-for-mycotoxins-pesticides-12-ounces.html</a></p><p>冻结文件: <a href="sources/89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c" target="_blank">sources/89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c</a></p><p>内容 SHA-256: <code>89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_low_acid_measurement_boundary"><header><h3>assert_low_acid_measurement_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a pH or relative-acid definition, brew-factor sensitivity, and evidence that most tested labeled products remained in the regular-coffee range&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for low-acid coffee labels&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_low_acid_measurement_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;definition_and_label_audit_not_symptom_treatment_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a pH or relative-acid definition, brew-factor sensitivity, and evidence that most tested labeled products remained in the regular-coffee range&quot;,
+  &quot;predicate&quot;: &quot;require_recipe_specific_measurement&quot;,
+  &quot;subject&quot;: &quot;low-acid coffee labels&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_low_acid_measurement_boundary_1</code> | bytes [0, 151) | <code>eae7955c360d96c95ea56b18866fd4d5b31c6fdd7186b22150c4b424eaf659cb</code></div><pre class="context"><span></span><mark>Low acid coffee is any coffee above the critical pH level of 5.5 or has at least 50% less acid than regular coffee without any additives or treatments.</mark><span> [ 1 ] Regular coffee pH Low-acid coffee uses untreated green coffee beans and does not include any additives. It has a lower concentration of acidic compounds, particularly chlorogenic acids , resulting in a higher pH and less acidic taste compared to regular coffee. [ 2 ] [ 3 ] The average pH of coffee ranges from 4.85 to 5.1, with a standard deviation of </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Low-acid_coffee" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Low-acid_coffee</a></p><p>冻结文件: <a href="sources/e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f" target="_blank">sources/e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f</a></p><p>内容 SHA-256: <code>e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_medicinal_fungi_supplement_boundary"><header><h3>assert_medicinal_fungi_supplement_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;successful fungal drug development alongside insufficient safety and effectiveness evidence and variable processing for mushroom supplements&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for fungal metabolites and mushroom supplements&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_medicinal_fungi_supplement_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_fungi_boundary_not_exact_mushroom_coffee_efficacy&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;successful fungal drug development alongside insufficient safety and effectiveness evidence and variable processing for mushroom supplements&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_drug_development_from_supplement_claims&quot;,
+  &quot;subject&quot;: &quot;fungal metabolites and mushroom supplements&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_medicinal_fungi_supplement_boundary_1</code> | bytes [355, 451) | <code>973e4eee33db7ca12aa1e2ef9303be548a9efc3a57f5fa2c7433d59fea72b2e8</code></div><pre class="context"><span>Medicinal fungi are fungi that contain metabolites or can be induced to produce metabolites through biotechnology to develop prescription drugs . Compounds successfully developed into drugs or under research include those treating infection with amoeba , bacteria , fungus , virus , inhibitors of cholesterol and ergosterol synthesis, and psychotropics . </span><mark>Some species are included in traditional medicine , but lack evidence as to any health benefit .</mark><span> Similarly, mushroom dietary supplements , commonly made from powdered or extracted fruit bodies or mycelium , are marketed for various health benefits but lack sufficient scientific evidence for their safety or effectiveness, and their quality can vary due to inconsistent processing and labeling. [ 1 ] History Main article: Ancient Egyptian medicine In Anci</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Medicinal_uses_of_fungi" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Medicinal_uses_of_fungi</a></p><p>冻结文件: <a href="sources/657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b" target="_blank">sources/657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b</a></p><p>内容 SHA-256: <code>657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_starbucks_sleep_anecdote_scope"><header><h3>assert_starbucks_sleep_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a venti Americano around 3 PM followed by an inability to fall asleep before an exam&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one infrequent coffee drinker&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_starbucks_sleep_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_self_report_with_timing_and_stress_confounds_not_product_comparison&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a venti Americano around 3 PM followed by an inability to fall asleep before an exam&quot;,
+  &quot;predicate&quot;: &quot;reports_overnight_wakefulness_after_a_late_americano&quot;,
+  &quot;subject&quot;: &quot;one infrequent coffee drinker&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_starbucks_sleep_anecdote_scope_1</code> | bytes [74, 203) | <code>b7c948b8a903d5252d6926151a46d2a8e59c4b809d67346eda110cbb08d72cdd</code></div><pre class="context"><span>TIFU by drinking one Starbucks coffee and now I have an exam in 12 hours
+
+</span><mark>So I don’t normally drink a lot of coffee. But today I decided to just get a venti americano from Starbucks at only around 3pm.</mark><span> And I started to feel the effects on my studying a couple hours later. It was a really good flow and I studied probably till 8 PM of deep learning. I even had a 2 mile run at 8 then had dinner and went to bed by 10 which is my normal routine. But I just laid in bed not falling asleep. I would just be in a strange lukewarm state of wanting to fall asleep. An</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/93355/tifu-by-drinking-one-starbucks-coffee-and-now-i-have-an-exam" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/93355/tifu-by-drinking-one-starbucks-coffee-and-now-i-have-an-exam</a></p><p>冻结文件: <a href="sources/0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded" target="_blank">sources/0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded</a></p><p>内容 SHA-256: <code>0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_tea_caffeine_question_scope"><header><h3>assert_tea_caffeine_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a question about oxidation, taste, color, and caffeine in teas from the same plant&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one black-versus-green-tea community question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_tea_caffeine_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;question_not_serving_assay_or_general_tea_caffeine_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a question about oxidation, taste, color, and caffeine in teas from the same plant&quot;,
+  &quot;predicate&quot;: &quot;asks_whether_processing_changes_caffeine&quot;,
+  &quot;subject&quot;: &quot;one black-versus-green-tea community question&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_tea_caffeine_question_scope_1</code> | bytes [0, 89) | <code>ef065fea204c3ba420301f46fbf21f0a245fbada36460395005ed4288de9943f</code></div><pre class="context"><span></span><mark>How does black tea have more caffeine than green tea, when they come from the same plant?</mark><span>
+
+I know that oxidation plays a role to make it taste and look different. But does that play into the caffeine content too? 6</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/askscience/37578/how-does-black-tea-have-more-caffeine-than-green-tea-when" target="_blank" rel="noreferrer">http://localhost:9999/f/askscience/37578/how-does-black-tea-have-more-caffeine-than-green-tea-when</a></p><p>冻结文件: <a href="sources/9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866" target="_blank">sources/9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866</a></p><p>内容 SHA-256: <code>9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_tealyra_blood_cleanser_claim_snapshot"><header><h3>assert_tealyra_blood_cleanser_claim_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;blood cleansing, kidney filtering, liver toxin elimination, and diuretic claims on a 13.97-dollar offer rated 98 percent over ten reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Tealyra blood-cleanser tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_tealyra_blood_cleanser_claim_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_and_store_aggregate_not_toxin_identity_clearance_or_clinical_efficacy&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;object&quot;: &quot;blood cleansing, kidney filtering, liver toxin elimination, and diuretic claims on a 13.97-dollar offer rated 98 percent over ten reviews&quot;,
+  &quot;predicate&quot;: &quot;markets_blood_cleaning_detox_and_elimination_language&quot;,
+  &quot;subject&quot;: &quot;frozen Tealyra blood-cleanser tea seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_tealyra_blood_cleanser_claim_snapshot_1</code> | bytes [173, 338) | <code>5f23da4bb30b19b3a0cceae0f98505bc6ebc6629c3e060c7be5da93793254073</code></div><pre class="context"><span>Tealyra - Blood Cleanser Tea - Wellness Detox - Health Tonic - Dandelion - Ginger - Loose Leaf Herbal Tea - Natural Cleanse - Diuretic Tea - Caffeine-Free - 112g (4-ounce)
+
+</span><mark>In stock SKU B075H4G4T6 Rating: 98 % of 100 10 Reviews Add Your Review $13.97 Size 4 Ounce (Pack of 1) 8 Ounce / 224g Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Natural CleanseBlood Cleanser Tea is an herbal wellness blend of specific herbs renowned for their clarifying and blood cleansing properties; such as parsley, anti-inflammatory fennel, liquorice, and sage. Burdock root is the most famous detoxifying root in the herbal wellness world. It cleanses the blood by increasing the effect</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/tealyra-blood-cleanser-tea-wellness-detox-health-tonic-dandelion-ginger-loose-leaf-herbal-tea-natural-cleanse-diuretic-tea-caffeine-free-112g-4-ounce.html" target="_blank" rel="noreferrer">http://localhost:7770/tealyra-blood-cleanser-tea-wellness-detox-health-tonic-dandelion-ginger-loose-leaf-herbal-tea-natural-cleanse-diuretic-tea-caffeine-free-112g-4-ounce.html</a></p><p>冻结文件: <a href="sources/4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57" target="_blank">sources/4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57</a></p><p>内容 SHA-256: <code>4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_antioxidant_outcome_boundary"><header><h3>prop_antioxidant_outcome_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;little evidence for some in-vivo properties and no demonstrated human health maintenance or disease prevention from antioxidant supplements&quot;,
+  &quot;predicate&quot;: &quot;separates_in_vitro_properties_from_in_vivo_outcomes&quot;,
+  &quot;subject&quot;: &quot;antioxidant activity and dietary health claims&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_antioxidant_outcome_boundary_1</code> | bytes [630, 842) | <code>7a1bd80a6728903d15ebc132f819e8c69983569a12b849f43bebfddb33054e5f</code></div><pre class="context"><span>rs , fuels , and lubricants , to extend their usable lifetimes. [ 3 ] Foods are also treated with antioxidants to prevent spoilage , in particular the rancidification of oils and fats . In cells , antioxidants such as glutathione , mycothiol , or bacillithiol , and enzyme systems like superoxide dismutase , inhibit damage from oxidative stress . [ 4 ] [ 5 ] </span><mark>Dietary antioxidants are vitamins A , C , and E , but the term has also been applied to various compounds that exhibit antioxidant properties in vitro , having little evidence for antioxidant properties in vivo .</mark><span> [ 6 ] [ 7 ] [ 8 ] Dietary supplements marketed as antioxidants have not been shown to maintain health or prevent disease in humans. [ 6 ] [ 7 ] [ 8 ] [ 9 ] History As part of their adaptation from marine life, terrestrial plants began producing non-marine antioxidants such as ascorbic acid ( vitamin C ), polyphenols , and tocopherols . The evolution of angi</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_antioxidant_outcome_boundary_2</code> | bytes [861, 974) | <code>d63992d8ad03d40ce0fe1cceb96ef926f760b8c705b8966cb4976b2fbae70f15</code></div><pre class="context"><span> mycothiol , or bacillithiol , and enzyme systems like superoxide dismutase , inhibit damage from oxidative stress . [ 4 ] [ 5 ] Dietary antioxidants are vitamins A , C , and E , but the term has also been applied to various compounds that exhibit antioxidant properties in vitro , having little evidence for antioxidant properties in vivo . [ 6 ] [ 7 ] [ 8 ] </span><mark>Dietary supplements marketed as antioxidants have not been shown to maintain health or prevent disease in humans.</mark><span> [ 6 ] [ 7 ] [ 8 ] [ 9 ] History As part of their adaptation from marine life, terrestrial plants began producing non-marine antioxidants such as ascorbic acid ( vitamin C ), polyphenols , and tocopherols . The evolution of angiosperm plants between 50 and 200 million years ago resulted in the development of many antioxidant pigments â particularly dur</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Antioxidant" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Antioxidant</a></p><p>冻结文件: <a href="sources/c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc" target="_blank">sources/c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc</a></p><p>内容 SHA-256: <code>c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_activity_to_outcome_boundary_not_exact_product_assay&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The antioxidant concept page says compounds may exhibit antioxidant properties in vitro while having little evidence for in-vivo properties, and that supplements marketed as antioxidants have not been shown to maintain health or prevent disease in humans; this supplies no assay, dose, bioavailability, or outcome evidence for the exact matcha or mushroom coffee.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_black_tea_anxiety_anecdote_scope"><header><h3>prop_black_tea_anxiety_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;self-described slow caffeine metabolism and anxiety after leaving a black-tea bag in the drink&quot;,
+  &quot;predicate&quot;: &quot;reports_anxiety_after_a_long_steep&quot;,
+  &quot;subject&quot;: &quot;one black-tea community author&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_black_tea_anxiety_anecdote_scope_1</code> | bytes [28, 115) | <code>da586e087616cd8cc43387da06e0e1031d16ac1d0c90cd84230e2df4d9014306</code></div><pre class="context"><span>TIFU by drinking black tea
+
+</span><mark>In a college molecular biology class I learned I was a “slow caffeine metabolizer”.</mark><span> This did not surprise me, as I have always avoided caffeine (not a coffee drinker) and my mother even banned me from drinking Mt. Dew at her house because it makes me bounce off the walls and talk like a chipmunk on speed. I’m also not a huge fan of tea, though I will drink herbal tea blends. At a departmental tea hour I attended today they only had black</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_black_tea_anxiety_anecdote_scope_2</code> | bytes [571, 655) | <code>5b3b31c0873ce120f4ce92124c408a0854bddf5c57032202d444513864c755a5</code></div><pre class="context"><span>r even banned me from drinking Mt. Dew at her house because it makes me bounce off the walls and talk like a chipmunk on speed. I’m also not a huge fan of tea, though I will drink herbal tea blends. At a departmental tea hour I attended today they only had black tea, so I tried some (and left the tea bag in my tea as I drank it like I do with herbal tea). </span><mark>I am now one giant ball of anxiety thanks to my poor ability to metabolize caffeine.</mark><span> I had to get up and leave my computer so I wouldn’t start crying for no reason because I was feeling so out of sorts. I really wish I could process caffeine. TL;DR drank black tea that I steeped too long as a slow caffeine metabolizer, now am an anxious mess for the last hour of the work day. 410
+
+Jeez. Today i learned about slow caffeine metabolization. </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_black_tea_anxiety_anecdote_scope_3</code> | bytes [816, 951) | <code>7f55bca6819caedfc53f392bc269e91c032271aab582b1b30bf388b8046ca8b5</code></div><pre class="context"><span>they only had black tea, so I tried some (and left the tea bag in my tea as I drank it like I do with herbal tea). I am now one giant ball of anxiety thanks to my poor ability to metabolize caffeine. I had to get up and leave my computer so I wouldn’t start crying for no reason because I was feeling so out of sorts. I really wish I could process caffeine. </span><mark>TL;DR drank black tea that I steeped too long as a slow caffeine metabolizer, now am an anxious mess for the last hour of the work day.</mark><span> 410
+
+Jeez. Today i learned about slow caffeine metabolization. Here i am after a coffee, a 5 hour energy and a bai, still half asleep at my desk.
+
+Sounds like you must be a fast metabolizer. Here’s to getting through the rest of the day!
+
+it&#x27;s also partially tolerance! if you need a ton of energy drinks/caffeine to get through the day, try cutting a small</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/135314/tifu-by-drinking-black-tea" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/135314/tifu-by-drinking-black-tea</a></p><p>冻结文件: <a href="sources/05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3" target="_blank">sources/05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3</a></p><p>内容 SHA-256: <code>05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_self_report_not_diagnosis_dose_prevalence_or_product_validation&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author self-identifies as a slow caffeine metabolizer and reports anxiety after leaving a black-tea bag in the drink; the page is an individual uncontrolled report without measured caffeine dose, diagnostic confirmation, prevalence, or evidence about any of the four exact products.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_caffeine_response_boundary"><header><h3>prop_caffeine_response_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;dose-dependent alertness alongside variable sleep disruption, anxiety, jitteriness, insomnia, and sleep latency&quot;,
+  &quot;predicate&quot;: &quot;vary_with_dose_timing_tolerance_and_person&quot;,
+  &quot;subject&quot;: &quot;caffeine alertness and adverse effects&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_caffeine_response_boundary_1</code> | bytes [9420, 9516) | <code>a07b033d6ccb1f1ff789d0247ebadc5af735c6ca2001c06ace4d5dbcc979d8ad</code></div><pre class="context"><span>] The desired effects arise approximately one hour after consumption, and the desired effects of a moderate dose usually subside after about three or four hours. [ 5 ] Caffeine can delay or prevent sleep and improves task performance during sleep deprivation. [ 60 ] Shift workers who use caffeine make fewer mistakes that could result from drowsiness. [ 61 ] </span><mark>Caffeine in a dose dependent manner increases alertness in both fatigued and normal individuals.</mark><span> [ 62 ] A systematic review and meta-analysis from 2014 found that concurrent caffeine and L -theanine use has synergistic psychoactive effects that promote alertness, attention, and task switching ; [ 63 ] these effects are most pronounced during the first hour post-dose. [ 63 ] A 2025 systematic review and meta-analysis found that acute caffeine intake can</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_caffeine_response_boundary_2</code> | bytes [5125, 5258) | <code>07829c3a0ec4effc3cb3dcd72f04e8a5f1cfa689b7adcdcea3ecd0b01a1843e9</code></div><pre class="context"><span>nt breathing disorders bronchopulmonary dysplasia of prematurity and apnea of prematurity . Caffeine citrate is on the WHO Model List of Essential Medicines . [ 24 ] It may confer a modest protective effect against some diseases, [ 25 ] including Parkinson&#x27;s disease . [ 26 ] Caffeine can acutely improve reaction time and accuracy for cognitive tasks. [ 27 ] </span><mark>Some people experience sleep disruption or anxiety if they consume caffeine, [ 28 ] [ 29 ] [ 30 ] but others show little disturbance.</mark><span> Evidence of a risk during pregnancy is equivocal; some authorities recommend that pregnant women limit caffeine to the equivalent of two cups of coffee per day or less. [ 31 ] [ 32 ] Caffeine can produce a mild form of drug dependence â associated with withdrawal symptoms such as sleepiness, headache, and irritability â when an individual stops u</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_caffeine_response_boundary_3</code> | bytes [17664, 17882) | <code>de6fbeb669ad1753b1f9895465b66e3de61b45f4d35f19257552d0ba075c2eba</code></div><pre class="context"><span>etion) and a natriuresis (increase in saline excretion); it is mediated via proximal tubular adenosine receptor blockade. [ 103 ] The acute increase in urinary output may increase the risk of dehydration . However, chronic users of caffeine develop a tolerance to this effect and experience no increase in urinary output. [ 104 ] [ 105 ] [ 106 ] Psychological </span><mark>Minor undesired symptoms from caffeine ingestion not sufficiently severe to warrant a psychiatric diagnosis are common and include mild anxiety, jitteriness, insomnia, increased sleep latency, and reduced coordination.</mark><span> [ 58 ] [ 107 ] Caffeine can have negative effects on anxiety disorders . [ 108 ] According to a 2011 literature review, caffeine use may induce anxiety and panic disorders in people with Parkinson&#x27;s disease . [ 109 ] At high doses, typically greater than 300 to 400 mg caffeine can both cause and worsen anxiety. [ 110 ] [ 29 ] For some people, discontinuing</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Caffeine" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Caffeine</a></p><p>冻结文件: <a href="sources/1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215" target="_blank">sources/1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215</a></p><p>内容 SHA-256: <code>1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_caffeine_effects_not_exact_serving_or_person_specific_prediction&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The caffeine concept page describes dose-dependent alertness and says some people experience sleep disruption or anxiety while others show little disturbance, with anxiety, jitteriness, insomnia, and increased sleep latency among common minor undesired effects; it does not measure an exact prepared serving or predict this drinker&#x27;s response.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_detox_concept_boundary"><header><h3>prop_detox_concept_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a distinction from ordinary liver and kidney detoxification plus criticism of undefined toxins and unsupported commercial claims&quot;,
+  &quot;predicate&quot;: &quot;lack_named_toxins_and_supporting_evidence&quot;,
+  &quot;subject&quot;: &quot;alternative-medicine detoxification claims&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_detox_concept_boundary_1</code> | bytes [3438, 3620) | <code>5121a6f77c16e944ca40f6aa9967c9ad8f5b41c1b785091d5e22601c31ac95a0</code></div><pre class="context"><span> of unspecified toxins from the body Detoxification (often shortened to detox and sometimes called body cleansing ) is a type of alternative medicine treatment which aims to rid the body of unspecified &quot;toxins&quot; â substances that proponents claim accumulate in the body over time and have undesirable short-term or long-term effects on individual health. </span><mark>It is not to be confused with detoxification carried out by the liver and kidneys , which filter the blood and remove harmful substances to be processed and eliminated from the body.</mark><span> [ 1 ] [ 2 ] Activities commonly associated with detoxification include dieting , fasting , consuming exclusively or avoiding specific foods (such as fats, carbohydrates, fruits, vegetables, juices, herbs), colon cleansing , chelation therapy , certain kinds of IV therapy and the removal of dental fillings containing amalgam . Scientists and health organizat</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_detox_concept_boundary_2</code> | bytes [3949, 4109) | <code>da5e3031059cb14b99d4ae6d64bc46ed1bc3d10d099c40206c29bf2723894e8a</code></div><pre class="context"><span>d and eliminated from the body. [ 1 ] [ 2 ] Activities commonly associated with detoxification include dieting , fasting , consuming exclusively or avoiding specific foods (such as fats, carbohydrates, fruits, vegetables, juices, herbs), colon cleansing , chelation therapy , certain kinds of IV therapy and the removal of dental fillings containing amalgam . </span><mark>Scientists and health organizations have criticized the concept of detoxification for its unsound scientific basis and for the lack of evidence for claims made.</mark><span> [ 3 ] The &quot;toxins&quot; usually remain undefined, with little to no evidence of toxic accumulation in the patient. The British organisation Sense about Science has described some detox diets and commercial products as &quot;a waste of time and money&quot;, [ 4 ] while the British Dietetic Association called the idea &quot;nonsense&quot; and a &quot;marketing myth&quot;. [ 5 ] Dara Mohammadi </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_detox_concept_boundary_3</code> | bytes [4116, 4219) | <code>868b49772b7d0c0d086bffbf89e4b156d65abeb8f030927272a8aed0f98d8d21</code></div><pre class="context"><span>oods (such as fats, carbohydrates, fruits, vegetables, juices, herbs), colon cleansing , chelation therapy , certain kinds of IV therapy and the removal of dental fillings containing amalgam . Scientists and health organizations have criticized the concept of detoxification for its unsound scientific basis and for the lack of evidence for claims made. [ 3 ] </span><mark>The &quot;toxins&quot; usually remain undefined, with little to no evidence of toxic accumulation in the patient.</mark><span> The British organisation Sense about Science has described some detox diets and commercial products as &quot;a waste of time and money&quot;, [ 4 ] while the British Dietetic Association called the idea &quot;nonsense&quot; and a &quot;marketing myth&quot;. [ 5 ] Dara Mohammadi summarizes &quot;detoxing&quot; as &quot;a scam [...] a pseudo-medical concept designed to sell you things&quot;, and Edzard Ernst</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Detoxification_(alternative_medicine)" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Detoxification_(alternative_medicine)</a></p><p>冻结文件: <a href="sources/c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa" target="_blank">sources/c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa</a></p><p>内容 SHA-256: <code>c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_evidence_boundary_not_medical_diagnosis_or_product_trial&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The detoxification concept page distinguishes alternative body-cleansing claims from ordinary liver and kidney filtering, says scientists and health organizations criticize the lack of evidence, and notes that toxins usually remain undefined with little to no evidence of accumulation; it does not diagnose this drinker or independently test either exact tea.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_energy_kick_question_scope"><header><h3>prop_energy_kick_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a no-sugar-drink question mentioning no more than 200 mg caffeine per can&quot;,
+  &quot;predicate&quot;: &quot;asks_what_differs_from_coffee_or_tea&quot;,
+  &quot;subject&quot;: &quot;one energy-drink community question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_energy_kick_question_scope_1</code> | bytes [0, 108) | <code>5ce66f5a3e5f9e1833d30e6cd3c8010ae8980a349e49ef89c1b6d662d81a23ad</code></div><pre class="context"><span></span><mark>ELI5: What&#x27;s in energy drinks that provides the &quot;kick&quot; that one otherwise doesn&#x27;t get from coffee, tea, etc?</mark><span>
+
+Should mention that I drink only no sugar drinks, so it can&#x27;t be that, and a single can of what I have is usually no more than 200MG of caffeine Edit: Appreciate your responses. Thank you for the explanations and insights 3</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_energy_kick_question_scope_2</code> | bytes [110, 254) | <code>c402fbf26e95953734af563dd906373fe41442e8707ec16cf068cb6bcf518737</code></div><pre class="context"><span>ELI5: What&#x27;s in energy drinks that provides the &quot;kick&quot; that one otherwise doesn&#x27;t get from coffee, tea, etc?
+
+</span><mark>Should mention that I drink only no sugar drinks, so it can&#x27;t be that, and a single can of what I have is usually no more than 200MG of caffeine</mark><span> Edit: Appreciate your responses. Thank you for the explanations and insights 3</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/125265/eli5-what-s-in-energy-drinks-that-provides-the-kick-that-one" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/125265/eli5-what-s-in-energy-drinks-that-provides-the-kick-that-one</a></p><p>冻结文件: <a href="sources/dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8" target="_blank">sources/dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8</a></p><p>内容 SHA-256: <code>dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;question_not_composition_assay_mechanism_or_outcome_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author asks what produces an energy-drink kick beyond coffee or tea and mentions no-sugar drinks with no more than 200 mg caffeine per can; a question is not a composition assay, causal comparison, product-specific mechanism, or evidence for clean energy, focus, crash, or no jitters.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_la_republica_mushroom_claim_snapshot"><header><h3>prop_la_republica_mushroom_claim_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;seven named mushrooms plus focus, clean energy, no-jitters, antioxidant, immune, liver, stomach, and inflammation language on a 24-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;markets_focus_clean_energy_no_jitters_and_multi_system_benefits&quot;,
+  &quot;subject&quot;: &quot;frozen La Republica mushroom-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_la_republica_mushroom_claim_snapshot_1</code> | bytes [201, 404) | <code>45d1585dd7683f96e313172a323520d9fe44a34c10018c7de975cf1a0f446197</code></div><pre class="context"><span>La Republica Organic Mushroom Coffee (30 Servings) with 7 Superfood Mushrooms, Great Tasting Arabica Instant Coffee, Includes Lion&#x27;s Mane, Reishi, Chaga, Cordyceps, Shiitake, Maitake, and Turkey Tail
+
+</span><mark>In stock SKU B078XR2R6B Be the first to review this product $24.00 Flavor Name Caffeinated Decaffeinated Size 2.12 Ounce (Pack of 1) 8.48 Ounce (Pack of 1) Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Read more Start your mornings off with a rich, endless flavor in every cup of mushroom coffee made from all organic ingredients. Every mushroom used to make our coffee is harvested after growing naturally on uncontaminated trees. Once harvested our process ensures every scoop contains no preservatives, fillers while being Keto a</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_la_republica_mushroom_claim_snapshot_2</code> | bytes [1851, 1926) | <code>a13a3cb1fca537d1d8f4d92d056e48bb52230f7b616c6e0834bc61dd993345e9</code></div><pre class="context"><span> the day off for anyone and everyone under the sun. Mushrooms are some of the most widely studied and longest used antioxidant superfoods. Your everyday life isn&#x27;t going to slow down after the mornings. La Republica is here to help kick the urge to nap to the curb with your next cup of coffee. Boost your immune system with 7 powerful superfoods in each cup. </span><mark>Your energy levels will be raised to new heights without jitters or shakes.</mark><span> Get excited to take on each morning when you brew your pot of coffee Enjoy a cup with your family and friends on vacation and around the fire. The journey on building and continuing a nutrition filled and happier you starts in the morning. Read more Read more Empower farmers, workers and help protect the Earth when choosing Fair Trade products. Our products</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_la_republica_mushroom_claim_snapshot_3</code> | bytes [3663, 3816) | <code>d8ffb02f636eae709e35f7862c52136d2e562fc4cddb7391d1092c28a3664c05</code></div><pre class="context"><span>time to elevate your taste and your performance. 7 POWERFUL SUPERFOODS – Each micro-batch is packed with nutrient-rich mushroom extracts from seven of the most powerful superfoods; lion’s mane, reishi, cordyceps, chaga, maitake, turkey tail, and shiitake mushrooms. These mushrooms assemble like superheroes to prevent a possible afternoon crash and burn. </span><mark>After one cup, you will have the focus of a meditating Buddhist monk. We’re talking about clean and calm energy that will power you throughout the day.</mark><span> INCREDIBLE HEALTH BENEFITS – Lion’s mane is said to be highly beneficial for cognitive function, improving focus and memory recall. Enjoy all of the upsides of coffee without the downside of jitters, courtesy of cordyceps. Chaga is a great source of antioxidants. Maitake is a sweet, creamy, and irresistible mushroom. It&#x27;s been linked to better liver per</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_la_republica_mushroom_claim_snapshot_4</code> | bytes [3953, 4043) | <code>a447fa500775992438948e1619f9efe2fb357e7520cfb7fabf1a58bf404bf863</code></div><pre class="context"><span>mble like superheroes to prevent a possible afternoon crash and burn. After one cup, you will have the focus of a meditating Buddhist monk. We’re talking about clean and calm energy that will power you throughout the day. INCREDIBLE HEALTH BENEFITS – Lion’s mane is said to be highly beneficial for cognitive function, improving focus and memory recall. </span><mark>Enjoy all of the upsides of coffee without the downside of jitters, courtesy of cordyceps.</mark><span> Chaga is a great source of antioxidants. Maitake is a sweet, creamy, and irresistible mushroom. It&#x27;s been linked to better liver performance and stomach health when combined with reishi. Shiitake and turkey tail help reduce inflammation and neutralize coffee’s acidic nature. SOURCED FROM SUPERIOR FARMS - For the healthiest, purest form of mushroom coffee,</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/la-republica-organic-mushroom-coffee-30-servings-with-7-superfood-mushrooms-great-tasting-arabica-instant-coffee-includes-lion-s-mane-reishi-chaga-cordyceps-shiitake-maitake-and-turkey-tail.html" target="_blank" rel="noreferrer">http://localhost:7770/la-republica-organic-mushroom-coffee-30-servings-with-7-superfood-mushrooms-great-tasting-arabica-instant-coffee-includes-lion-s-mane-reishi-chaga-cordyceps-shiitake-maitake-and-turkey-tail.html</a></p><p>冻结文件: <a href="sources/2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2" target="_blank">sources/2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2</a></p><p>内容 SHA-256: <code>2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_ingredient_and_outcome_copy_not_dose_quality_or_product_specific_efficacy&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen La Republica page shows SKU B078XR2R6B at 24 dollars with no posted review, names seven mushrooms, and uses focus, clean-energy, and no-jitters language; the page does not independently establish extract identity, per-serving active dose, quality, interactions, comparator, or product-specific cognitive, immune, liver, stomach, inflammation, antioxidant, crash, or jitter outcomes.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lakanto_matcha_claim_snapshot"><header><h3>prop_lakanto_matcha_claim_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;detox and destress, antioxidants, probiotics, L-theanine, metabolism, and endurance language on a 9.95-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;markets_detox_antioxidant_and_performance_language&quot;,
+  &quot;subject&quot;: &quot;frozen Lakanto matcha seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lakanto_matcha_claim_snapshot_1</code> | bytes [199, 312) | <code>7c126848f86a3802fd08c23dd28fad0607da11911d20798b222340de4aa659b2</code></div><pre class="context"><span>Lakanto Sugar Free Matcha Latte - Green Tea Powder Shelf Stable Probiotics and Fiber, Sugar Free, Monkfruit Sweetener, Keto Diet Friendly, Vegan, Detox and Destress, Antioxidants, Authentic (10 Oz)
+
+</span><mark>In stock SKU B01G4I8VUM Be the first to review this product $9.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Best of Quality Green Tea: Our premium matcha green tea powder is from the UJI region of Japan in Kyoto, where it has been used as a ceremonial tea for over 140 years and was blended into one of the most sought after Japanese green teas. Easy Prep: To prepare our sugar free green tea, simply add a scoop of Lakanto Matcha Latte to</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lakanto_matcha_claim_snapshot_2</code> | bytes [947, 1113) | <code>963754437c3631f1e7b702c16d422ed32ff9feddf2db241d1ccb2dd2831bb4b5</code></div><pre class="context"><span>p: To prepare our sugar free green tea, simply add a scoop of Lakanto Matcha Latte to your favorite dairy free milk substitute and enjoy! Drink hot or cold. Each bag of our matcha makes 22 servings. Lifestyle Friendly: Our high quality powdered green tea Matcha works with ketogenic, diabetic, vegan, dairy free, gluten free, low sugar, and all natural diets. </span><mark>Detox and Destress Naturally: Lakanto’s Japanese green tea powder is high in antioxidants, probiotics, and L-Thanine to help increase your metabolism and endurance.</mark><span> Our vegan low carb green tea contains no sugar and just 1g net carb. Sweetened with non GMO Monkfruit. This is a great vegan, dairy free, and gluten free Japanese matcha tea powder. Lakanto&#x27;s Mission Statement: At Lakanto, our mission is to Bring Chi to Life by inspiring people to reach their highest potential in health and wellness by creating products tha</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lakanto-sugar-free-matcha-latte-green-tea-powder-shelf-stable-probiotics-and-fiber-sugar-free-monkfruit-sweetener-keto-diet-friendly-vegan-detox-and-destress-antioxidants-authentic-10-oz.html" target="_blank" rel="noreferrer">http://localhost:7770/lakanto-sugar-free-matcha-latte-green-tea-powder-shelf-stable-probiotics-and-fiber-sugar-free-monkfruit-sweetener-keto-diet-friendly-vegan-detox-and-destress-antioxidants-authentic-10-oz.html</a></p><p>冻结文件: <a href="sources/0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521" target="_blank">sources/0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521</a></p><p>内容 SHA-256: <code>0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_not_ingredient_assay_detox_measurement_or_health_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Lakanto page shows an in-stock SKU B01G4I8VUM offer at 9.95 dollars with no posted review and seller copy saying detox and destress, antioxidants, probiotics, L-theanine, metabolism, and endurance; it supplies no independent ingredient assay, named-toxin measurement, clinical comparator, or verified health outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lifeboost_low_acid_claim_snapshot"><header><h3>prop_lifeboost_low_acid_claim_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;pH 6 or higher, third-party testing, and gentle-on-stomach-and-teeth claims on a 27.95-dollar unreviewed offer&quot;,
+  &quot;predicate&quot;: &quot;markets_ph_and_stomach_or_teeth_tolerance_language&quot;,
+  &quot;subject&quot;: &quot;frozen Lifeboost low-acid coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lifeboost_low_acid_claim_snapshot_1</code> | bytes [173, 388) | <code>1fa23afcb641355e0c3710fad0fd403b2919c9b7e8896e5b3025b681236b0f3f</code></div><pre class="context"><span>Lifeboost Coffee Ground Medium Roast Coffee - Low Acid Single Origin USDA Organic Coffee - Non-GMO Ground Coffee Third Party Tested For Mycotoxins &amp; Pesticides - 12 Ounces
+
+</span><mark>In stock SKU B0899ZYXXN Be the first to review this product $27.95 Flavor Name Dark Roast Half Caff Light Roast Medium Decaf Medium Roast Size Ground Coffee Whole Bean Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Why Should You Choose Low Acid Coffee? Do you have teeth issues, a sensitive stomach, or sometimes feel gastric discomfort due to ulcers, gastritis, or GERD when you&#x27;re drinking a cup of joe? Although coffee is naturally acidic, the way we grow and process our coffee beans allows us to produce clean, tasty low acid coffee. When </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lifeboost_low_acid_claim_snapshot_2</code> | bytes [743, 870) | <code>68c5615c43a68bd5d906592aa2edff4daa30cdb38f5c1a05051daaf6d42edbae</code></div><pre class="context"><span>mpare
+
+Details Product Description Why Should You Choose Low Acid Coffee? Do you have teeth issues, a sensitive stomach, or sometimes feel gastric discomfort due to ulcers, gastritis, or GERD when you&#x27;re drinking a cup of joe? Although coffee is naturally acidic, the way we grow and process our coffee beans allows us to produce clean, tasty low acid coffee. </span><mark>When you make the switch to Lifeboost Coffee, you&#x27;ll enjoy a fresh, flavorful cup that&#x27;s very gentle on your stomach and teeth.</mark><span> Non-GMO Medium Roast Ground Coffee If you like the flavorful, balanced, well-rounded taste of a Medium Roast coffee, then this bag is for you. Our Medium Roast is offered in both Whole Bean and Pre-Ground. Some enjoy the process of grinding coffee beans themselves and others the convenience of pre-ground. Both types are equally fresh and delicious. Wholesom</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lifeboost_low_acid_claim_snapshot_3</code> | bytes [3118, 3308) | <code>d37f89028d367ca134f2a198c29e7c77d3dc79b630a80d093faa1cf48a29d983</code></div><pre class="context"><span>s, or other harmful processes that ruin the bean&#x27;s purity. It&#x27;s just pure, delicious, natural coffee straight from nature. All of Our Coffee is Third Party Tested Our coffee is 3rd Party Tested for traces of heavy metals, mycotoxins, pesticides, and 400 other toxins that should not be in coffee. We&#x27;re all about low acid coffee, so we also test the pH level. </span><mark>Most popular coffee has a pH level of 4.85 or lower (very acidic). Lifeboost&#x27;s pH level is 6 or higher, which is why customers who thought they could never drink coffee again love our brand.</mark><span> Certified Organic Coffee by NFC - 2020 We care deeply about our customers and the environment, so that&#x27;s why every bag of Lifeboost Coffee is Certified Organic by the Natural Food Certifiers (NFC) 2020, an accredited USDA National Organic Program Certifier. This ensures that our coffee farmers have not used any prohibited substances on their land like synth</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lifeboost-coffee-ground-medium-roast-coffee-low-acid-single-origin-usda-organic-coffee-non-gmo-ground-coffee-third-party-tested-for-mycotoxins-pesticides-12-ounces.html" target="_blank" rel="noreferrer">http://localhost:7770/lifeboost-coffee-ground-medium-roast-coffee-low-acid-single-origin-usda-organic-coffee-non-gmo-ground-coffee-third-party-tested-for-mycotoxins-pesticides-12-ounces.html</a></p><p>冻结文件: <a href="sources/89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c" target="_blank">sources/89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c</a></p><p>内容 SHA-256: <code>89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_measurement_statement_not_independent_lot_assay_or_symptom_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Lifeboost seller page shows SKU B0899ZYXXN at 27.95 dollars with no posted review and claims that its pH is 6 or higher and that the drink is gentle on stomach and teeth; it does not provide an independent lot-and-brew assay, test protocol, clinical comparator, or a guarantee for reflux, gastritis, ulcers, nausea, or dental outcomes.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_low_acid_measurement_boundary"><header><h3>prop_low_acid_measurement_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a pH or relative-acid definition, brew-factor sensitivity, and evidence that most tested labeled products remained in the regular-coffee range&quot;,
+  &quot;predicate&quot;: &quot;require_recipe_specific_measurement&quot;,
+  &quot;subject&quot;: &quot;low-acid coffee labels&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_low_acid_measurement_boundary_1</code> | bytes [0, 151) | <code>eae7955c360d96c95ea56b18866fd4d5b31c6fdd7186b22150c4b424eaf659cb</code></div><pre class="context"><span></span><mark>Low acid coffee is any coffee above the critical pH level of 5.5 or has at least 50% less acid than regular coffee without any additives or treatments.</mark><span> [ 1 ] Regular coffee pH Low-acid coffee uses untreated green coffee beans and does not include any additives. It has a lower concentration of acidic compounds, particularly chlorogenic acids , resulting in a higher pH and less acidic taste compared to regular coffee. [ 2 ] [ 3 ] The average pH of coffee ranges from 4.85 to 5.1, with a standard deviation of </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_low_acid_measurement_boundary_2</code> | bytes [6174, 6386) | <code>fd565b484acc53de946871ac023c8db24be8a5e2d592755bec420915f6ef9ad8</code></div><pre class="context"><span>ard. [ 9 ] In a 2024 study conducted by Abdulhakim Sharaf Eddin, Philip Junior Yeboah, Salam A. Ibrahim of the North Carolina A&amp;T State University and published in Bioactive Compounds in Health and Disease, researchers investigated the pH and total dissolved solids (TDS) content of 11 commercially available coffee products claiming to be low in acid. [ 10 ] </span><mark>The researchers found that the pH values ranged from 4.97 to 5.72, with only one sample having a significantly higher pH (5.72) compared to the others and exceeding the critical pH threshold of 5.5 for beverages.</mark><span> [ 10 ] The majority of the samples had pH values between 5.0 and 5.29, which falls within the expected range for regular commercial coffee. The study also noted that factors such as roasting temperature, grind size, bean composition, and extraction time can influence the final pH and TDS of the brewed coffee. [ 10 ] The study found that nearly all tested co</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_low_acid_measurement_boundary_3</code> | bytes [6705, 6793) | <code>fb806f0cbe5465053b22c4f56dd70da4cc7c09840edcf076465af007423886ee</code></div><pre class="context"><span>itical pH threshold of 5.5 for beverages. [ 10 ] The majority of the samples had pH values between 5.0 and 5.29, which falls within the expected range for regular commercial coffee. The study also noted that factors such as roasting temperature, grind size, bean composition, and extraction time can influence the final pH and TDS of the brewed coffee. [ 10 ] </span><mark>The study found that nearly all tested coffees had high acidity despite labeling claims.</mark><span> The authors recommended establishing standardized definitions for low-acid coffee based on a critical pH of 5.5. Health effects It is particularly beneficial for individuals with sensitive stomachs or conditions like gastroesophageal reflux disease (GERD), as it minimizes gastric discomfort that can be exacerbated by the caffeine and acidity found in regula</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Low-acid_coffee" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Low-acid_coffee</a></p><p>冻结文件: <a href="sources/e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f" target="_blank">sources/e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f</a></p><p>内容 SHA-256: <code>e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;definition_and_label_audit_not_symptom_treatment_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The low-acid concept page gives a pH-above-5.5 or relative-acid definition and reports that only one of eleven tested labeled products exceeded pH 5.5 while nearly all remained highly acidic despite label claims; it does not assay the exact Lifeboost lot and recipe or guarantee a stomach, reflux, nausea, or dental outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_medicinal_fungi_supplement_boundary"><header><h3>prop_medicinal_fungi_supplement_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;successful fungal drug development alongside insufficient safety and effectiveness evidence and variable processing for mushroom supplements&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_drug_development_from_supplement_claims&quot;,
+  &quot;subject&quot;: &quot;fungal metabolites and mushroom supplements&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_medicinal_fungi_supplement_boundary_1</code> | bytes [355, 451) | <code>973e4eee33db7ca12aa1e2ef9303be548a9efc3a57f5fa2c7433d59fea72b2e8</code></div><pre class="context"><span>Medicinal fungi are fungi that contain metabolites or can be induced to produce metabolites through biotechnology to develop prescription drugs . Compounds successfully developed into drugs or under research include those treating infection with amoeba , bacteria , fungus , virus , inhibitors of cholesterol and ergosterol synthesis, and psychotropics . </span><mark>Some species are included in traditional medicine , but lack evidence as to any health benefit .</mark><span> Similarly, mushroom dietary supplements , commonly made from powdered or extracted fruit bodies or mycelium , are marketed for various health benefits but lack sufficient scientific evidence for their safety or effectiveness, and their quality can vary due to inconsistent processing and labeling. [ 1 ] History Main article: Ancient Egyptian medicine In Anci</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_medicinal_fungi_supplement_boundary_2</code> | bytes [452, 749) | <code>78b0dae488b61eb613aa887c39f84aee9948f433fb7744ba981d0f26d2b49d1b</code></div><pre class="context"><span>through biotechnology to develop prescription drugs . Compounds successfully developed into drugs or under research include those treating infection with amoeba , bacteria , fungus , virus , inhibitors of cholesterol and ergosterol synthesis, and psychotropics . Some species are included in traditional medicine , but lack evidence as to any health benefit . </span><mark>Similarly, mushroom dietary supplements , commonly made from powdered or extracted fruit bodies or mycelium , are marketed for various health benefits but lack sufficient scientific evidence for their safety or effectiveness, and their quality can vary due to inconsistent processing and labeling.</mark><span> [ 1 ] History Main article: Ancient Egyptian medicine In Ancient Egypt moldy bread was applied to wound infection . [ 2 ] Inonotus obliquus was used in folk medicine tumor treatment in Russia and Northern Europe during the 16th century. [ 3 ] Hallucinogenic mushrooms include [ 4 ] Amanita muscaria , the fly agaric and &quot;magic mushrooms&quot; , which contain psilo</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Medicinal_uses_of_fungi" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Medicinal_uses_of_fungi</a></p><p>冻结文件: <a href="sources/657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b" target="_blank">sources/657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b</a></p><p>内容 SHA-256: <code>657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_fungi_boundary_not_exact_mushroom_coffee_efficacy&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The medicinal-fungi page distinguishes fungal compounds developed into drugs from traditional species and dietary supplements, and says mushroom supplements lack sufficient safety or effectiveness evidence while quality can vary with processing and labeling; it does not validate the exact seven-mushroom coffee, doses, or claimed outcomes.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_starbucks_sleep_anecdote_scope"><header><h3>prop_starbucks_sleep_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a venti Americano around 3 PM followed by an inability to fall asleep before an exam&quot;,
+  &quot;predicate&quot;: &quot;reports_overnight_wakefulness_after_a_late_americano&quot;,
+  &quot;subject&quot;: &quot;one infrequent coffee drinker&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_starbucks_sleep_anecdote_scope_1</code> | bytes [74, 203) | <code>b7c948b8a903d5252d6926151a46d2a8e59c4b809d67346eda110cbb08d72cdd</code></div><pre class="context"><span>TIFU by drinking one Starbucks coffee and now I have an exam in 12 hours
+
+</span><mark>So I don’t normally drink a lot of coffee. But today I decided to just get a venti americano from Starbucks at only around 3pm.</mark><span> And I started to feel the effects on my studying a couple hours later. It was a really good flow and I studied probably till 8 PM of deep learning. I even had a 2 mile run at 8 then had dinner and went to bed by 10 which is my normal routine. But I just laid in bed not falling asleep. I would just be in a strange lukewarm state of wanting to fall asleep. An</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_starbucks_sleep_anecdote_scope_2</code> | bytes [561, 638) | <code>c9d9128cc49d3cb5311191c42a0ce246bd801962e98e8bac6672d7d2d8952691</code></div><pre class="context"><span>m. And I started to feel the effects on my studying a couple hours later. It was a really good flow and I studied probably till 8 PM of deep learning. I even had a 2 mile run at 8 then had dinner and went to bed by 10 which is my normal routine. But I just laid in bed not falling asleep. I would just be in a strange lukewarm state of wanting to fall asleep. </span><mark>And I am not exaggerating when I say that I was simply awake the whole night.</mark><span> By 5am I realized I might as well have an early start to the day and get out of bed. But now I have a lab in 2 hours and my exam at 7pm. I really needed a good night sleep but now I’m already mentally exhausted. Uhhh. And it was literally only one cup of coffee too. What does Starbucks put in their drinks?! Tl;DR I drank one venti Starbucks coffee and tha</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_starbucks_sleep_anecdote_scope_3</code> | bytes [950, 1071) | <code>8889b504c02ae12947677c25c189729d4080af6d3f43a0dbb1aaa2fafbb2eb0f</code></div><pre class="context"><span>n I say that I was simply awake the whole night. By 5am I realized I might as well have an early start to the day and get out of bed. But now I have a lab in 2 hours and my exam at 7pm. I really needed a good night sleep but now I’m already mentally exhausted. Uhhh. And it was literally only one cup of coffee too. What does Starbucks put in their drinks?! </span><mark>Tl;DR I drank one venti Starbucks coffee and that prevented me from sleeping at all in the night prior to having an exam.</mark><span> 5
+
+Exercising that late, especially running can make hard for me to sleep. That much coffee that late in the day is a bad idea too.
+
+You might have some extra stress from the exam keeping you awake.
+
+A Venti Americano has four shots of espresso. Not the best idea at 3p, particularly if you don&#x27;t drink coffee regularly. Be glad that you didn&#x27;t have a Venti d</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/93355/tifu-by-drinking-one-starbucks-coffee-and-now-i-have-an-exam" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/93355/tifu-by-drinking-one-starbucks-coffee-and-now-i-have-an-exam</a></p><p>冻结文件: <a href="sources/0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded" target="_blank">sources/0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded</a></p><p>内容 SHA-256: <code>0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_self_report_with_timing_and_stress_confounds_not_product_comparison&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One infrequent coffee drinker reports a venti Americano around 3 PM and overnight wakefulness before an exam; this uncontrolled account includes timing, serving-size, exercise, and stress confounds and does not establish dose, prevalence, or the energy and jitter outcome of an exact captured product.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_tea_caffeine_question_scope"><header><h3>prop_tea_caffeine_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a question about oxidation, taste, color, and caffeine in teas from the same plant&quot;,
+  &quot;predicate&quot;: &quot;asks_whether_processing_changes_caffeine&quot;,
+  &quot;subject&quot;: &quot;one black-versus-green-tea community question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_tea_caffeine_question_scope_1</code> | bytes [0, 89) | <code>ef065fea204c3ba420301f46fbf21f0a245fbada36460395005ed4288de9943f</code></div><pre class="context"><span></span><mark>How does black tea have more caffeine than green tea, when they come from the same plant?</mark><span>
+
+I know that oxidation plays a role to make it taste and look different. But does that play into the caffeine content too? 6</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tea_caffeine_question_scope_2</code> | bytes [91, 212) | <code>9367d89b8323c5301a2dc5c864b1ba3ffa2bbd16b56f10a1dfb3522d2b8fa63a</code></div><pre class="context"><span>How does black tea have more caffeine than green tea, when they come from the same plant?
+
+</span><mark>I know that oxidation plays a role to make it taste and look different. But does that play into the caffeine content too?</mark><span> 6</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/askscience/37578/how-does-black-tea-have-more-caffeine-than-green-tea-when" target="_blank" rel="noreferrer">http://localhost:9999/f/askscience/37578/how-does-black-tea-have-more-caffeine-than-green-tea-when</a></p><p>冻结文件: <a href="sources/9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866" target="_blank">sources/9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866</a></p><p>内容 SHA-256: <code>9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;question_not_serving_assay_or_general_tea_caffeine_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author asks whether oxidation explains an assumed black-versus-green-tea caffeine difference; the question does not measure leaf mass, preparation, serving caffeine, or establish a general ranking, much less validate the captured matcha&#x27;s energy or wellness claims.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_tealyra_blood_cleanser_claim_snapshot"><header><h3>prop_tealyra_blood_cleanser_claim_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;blood cleansing, kidney filtering, liver toxin elimination, and diuretic claims on a 13.97-dollar offer rated 98 percent over ten reviews&quot;,
+  &quot;predicate&quot;: &quot;markets_blood_cleaning_detox_and_elimination_language&quot;,
+  &quot;subject&quot;: &quot;frozen Tealyra blood-cleanser tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_tealyra_blood_cleanser_claim_snapshot_1</code> | bytes [173, 338) | <code>5f23da4bb30b19b3a0cceae0f98505bc6ebc6629c3e060c7be5da93793254073</code></div><pre class="context"><span>Tealyra - Blood Cleanser Tea - Wellness Detox - Health Tonic - Dandelion - Ginger - Loose Leaf Herbal Tea - Natural Cleanse - Diuretic Tea - Caffeine-Free - 112g (4-ounce)
+
+</span><mark>In stock SKU B075H4G4T6 Rating: 98 % of 100 10 Reviews Add Your Review $13.97 Size 4 Ounce (Pack of 1) 8 Ounce / 224g Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Natural CleanseBlood Cleanser Tea is an herbal wellness blend of specific herbs renowned for their clarifying and blood cleansing properties; such as parsley, anti-inflammatory fennel, liquorice, and sage. Burdock root is the most famous detoxifying root in the herbal wellness world. It cleanses the blood by increasing the effect</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tealyra_blood_cleanser_claim_snapshot_2</code> | bytes [652, 756) | <code>2eb36671826a428afc4605508ed8b3337ef4171529f26e37a66c11971a858cde</code></div><pre class="context"><span>ty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Natural CleanseBlood Cleanser Tea is an herbal wellness blend of specific herbs renowned for their clarifying and blood cleansing properties; such as parsley, anti-inflammatory fennel, liquorice, and sage. Burdock root is the most famous detoxifying root in the herbal wellness world. </span><mark>It cleanses the blood by increasing the effectiveness of each of the body&#x27;s natural elimination systems.</mark><span> Its diuretic properties effectively help the kidneys filter impurities from the blood. Dandelion is included for its diuretic properties, helping the body to naturally pass unhealthy toxins built up in the liver.Mild Herbal TasteBlood Cleanser Tea is pleasantly mild, sweet and fresh tasting.Blood Cleanser Herbal loose tea is pure and natural, without any ad</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tealyra_blood_cleanser_claim_snapshot_3</code> | bytes [757, 843) | <code>04d3112fc738a3b81c8c13c0bca17143f34143bfca9deb415fa876c6d3adb848</code></div><pre class="context"><span>Tea is an herbal wellness blend of specific herbs renowned for their clarifying and blood cleansing properties; such as parsley, anti-inflammatory fennel, liquorice, and sage. Burdock root is the most famous detoxifying root in the herbal wellness world. It cleanses the blood by increasing the effectiveness of each of the body&#x27;s natural elimination systems. </span><mark>Its diuretic properties effectively help the kidneys filter impurities from the blood.</mark><span> Dandelion is included for its diuretic properties, helping the body to naturally pass unhealthy toxins built up in the liver.Mild Herbal TasteBlood Cleanser Tea is pleasantly mild, sweet and fresh tasting.Blood Cleanser Herbal loose tea is pure and natural, without any added flavors or fillers. Natural Cleanse Herbal Tea - Supports Overall Health. Naturally</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tealyra_blood_cleanser_claim_snapshot_4</code> | bytes [844, 969) | <code>53baac453e74f887e775868df4005a490f64b8abdb1f996e84c9de933ca614ce</code></div><pre class="context"><span>od cleansing properties; such as parsley, anti-inflammatory fennel, liquorice, and sage. Burdock root is the most famous detoxifying root in the herbal wellness world. It cleanses the blood by increasing the effectiveness of each of the body&#x27;s natural elimination systems. Its diuretic properties effectively help the kidneys filter impurities from the blood. </span><mark>Dandelion is included for its diuretic properties, helping the body to naturally pass unhealthy toxins built up in the liver.</mark><span>Mild Herbal TasteBlood Cleanser Tea is pleasantly mild, sweet and fresh tasting.Blood Cleanser Herbal loose tea is pure and natural, without any added flavors or fillers. Natural Cleanse Herbal Tea - Supports Overall Health. Naturally Anti-inflammatory. Encourages Detox and Elimination. Blood Cleanser is a wellness blend of herbs known for their clarifying a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/tealyra-blood-cleanser-tea-wellness-detox-health-tonic-dandelion-ginger-loose-leaf-herbal-tea-natural-cleanse-diuretic-tea-caffeine-free-112g-4-ounce.html" target="_blank" rel="noreferrer">http://localhost:7770/tealyra-blood-cleanser-tea-wellness-detox-health-tonic-dandelion-ginger-loose-leaf-herbal-tea-natural-cleanse-diuretic-tea-caffeine-free-112g-4-ounce.html</a></p><p>冻结文件: <a href="sources/4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57" target="_blank">sources/4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57</a></p><p>内容 SHA-256: <code>4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_and_store_aggregate_not_toxin_identity_clearance_or_clinical_efficacy&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_tea_wellness_packaging_claim_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Tealyra page shows SKU B075H4G4T6 at 13.97 dollars with a 98-percent-of-100 aggregate over ten reviews and seller claims about blood cleansing, kidney filtering, diuresis, and liver toxins; neither the store aggregate nor the copy identifies and measures a toxin, clearance change, validated endpoint, comparator, or clinical benefit.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_wellness_claims_0039</td><td>case_spec</td><td><a href="sources/a746e3360fda5746b9f90b4c24f193d4b34956712904839e89d699e63c87325f">a746e3360fda5746b9f90b4c24f193d4b34956712904839e89d699e63c87325f</a></td><td><a href="http://case-spec.local/dra_v3_formal_coffee_tea_0039" target="_blank" rel="noreferrer">来源 URL</a></td><td>10263</td></tr><tr><td>reg_magento_la_republica_mushroom</td><td>magento</td><td><a href="sources/2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2">2178221c0ec35e9aeec4be1230f1ea12cc9941cd195b99454b7b76307b50a7a2</a></td><td><a href="http://localhost:7770/la-republica-organic-mushroom-coffee-30-servings-with-7-superfood-mushrooms-great-tasting-arabica-instant-coffee-includes-lion-s-mane-reishi-chaga-cordyceps-shiitake-maitake-and-turkey-tail.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>5825</td></tr><tr><td>reg_magento_lakanto_detox_matcha</td><td>magento</td><td><a href="sources/0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521">0bc0ac0f5bbd4065ad3529a42c2d65ee6dba848816caca49e010cbfa2e4a7521</a></td><td><a href="http://localhost:7770/lakanto-sugar-free-matcha-latte-green-tea-powder-shelf-stable-probiotics-and-fiber-sugar-free-monkfruit-sweetener-keto-diet-friendly-vegan-detox-and-destress-antioxidants-authentic-10-oz.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2112</td></tr><tr><td>reg_magento_lifeboost_low_acid</td><td>magento</td><td><a href="sources/89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c">89e7dd62bbb4bdfe2ada7c00db747b014c24d0a6a0628a68549f7dbb824d107c</a></td><td><a href="http://localhost:7770/lifeboost-coffee-ground-medium-roast-coffee-low-acid-single-origin-usda-organic-coffee-non-gmo-ground-coffee-third-party-tested-for-mycotoxins-pesticides-12-ounces.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>7244</td></tr><tr><td>reg_magento_tealyra_blood_cleanser</td><td>magento</td><td><a href="sources/4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57">4395ced7af61fc7b155b4deb201fd54f4669423e57207713c15dfc9c407e4c57</a></td><td><a href="http://localhost:7770/tealyra-blood-cleanser-tea-wellness-detox-health-tonic-dandelion-ginger-loose-leaf-herbal-tea-natural-cleanse-diuretic-tea-caffeine-free-112g-4-ounce.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2236</td></tr><tr><td>reg_postmill_black_tea_anxiety</td><td>postmill</td><td><a href="sources/05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3">05c8a3f1f903167a1cc763214acb99db59bcb75154dd48b0d2f08b22bd9557b3</a></td><td><a href="http://localhost:9999/f/tifu/135314/tifu-by-drinking-black-tea" target="_blank" rel="noreferrer">来源 URL</a></td><td>16519</td></tr><tr><td>reg_postmill_energy_kick_question</td><td>postmill</td><td><a href="sources/dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8">dd55d20d8149c903e8a76241b198bec29f8fae139156ff953276c711da2631b8</a></td><td><a href="http://localhost:9999/f/explainlikeimfive/125265/eli5-what-s-in-energy-drinks-that-provides-the-kick-that-one" target="_blank" rel="noreferrer">来源 URL</a></td><td>333</td></tr><tr><td>reg_postmill_starbucks_sleep</td><td>postmill</td><td><a href="sources/0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded">0a14d94ac204db695e7155f60e31de0f860c725a27edd3c1b131a509d592bded</a></td><td><a href="http://localhost:9999/f/tifu/93355/tifu-by-drinking-one-starbucks-coffee-and-now-i-have-an-exam" target="_blank" rel="noreferrer">来源 URL</a></td><td>1806</td></tr><tr><td>reg_postmill_tea_caffeine_question</td><td>postmill</td><td><a href="sources/9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866">9668167e5aac23885df9d50727b7d8d642ac0b17d627417070347802d8cda866</a></td><td><a href="http://localhost:9999/f/askscience/37578/how-does-black-tea-have-more-caffeine-than-green-tea-when" target="_blank" rel="noreferrer">来源 URL</a></td><td>214</td></tr><tr><td>reg_search_antioxidant_concept</td><td>search_result</td><td><a href="sources/9874eee3c3558064e268beb15d329d6a19872b6c1c61ab260af29f5c4600025a">9874eee3c3558064e268beb15d329d6a19872b6c1c61ab260af29f5c4600025a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=4c49fb5d-0710-4c19-a240-f8c5fb39f113" target="_blank" rel="noreferrer">来源 URL</a></td><td>61540</td></tr><tr><td>reg_search_black_tea_anxiety</td><td>search_result</td><td><a href="sources/de13d040bcde764590af96d6729b839f0135504dec9f6163fcd12795c1d49e68">de13d040bcde764590af96d6729b839f0135504dec9f6163fcd12795c1d49e68</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=fdacded6-5b36-4117-856d-a43d61d4bcbf" target="_blank" rel="noreferrer">来源 URL</a></td><td>38824</td></tr><tr><td>reg_search_caffeine_concept</td><td>search_result</td><td><a href="sources/92615030c9ae36691b835bdca598e3d026251a93105c84d2304e881ef5660bb5">92615030c9ae36691b835bdca598e3d026251a93105c84d2304e881ef5660bb5</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=faa4e642-b09d-4037-831e-8429d4454a97" target="_blank" rel="noreferrer">来源 URL</a></td><td>813</td></tr><tr><td>reg_search_detox_concept</td><td>search_result</td><td><a href="sources/c67163e923daec7f115909013e04f71d92abd3930299e929410730954aa004a0">c67163e923daec7f115909013e04f71d92abd3930299e929410730954aa004a0</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=707b22e4-6095-42c1-9dba-9769cac1b53d" target="_blank" rel="noreferrer">来源 URL</a></td><td>37467</td></tr><tr><td>reg_search_energy_kick_question</td><td>search_result</td><td><a href="sources/e8db5d29ee84d5f8429911b279b1f7a3da42f935dbb9d0e8e1dd340d3ced1fc9">e8db5d29ee84d5f8429911b279b1f7a3da42f935dbb9d0e8e1dd340d3ced1fc9</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=486bee4a-be71-493c-838c-5e551b2ec0ce" target="_blank" rel="noreferrer">来源 URL</a></td><td>50500</td></tr><tr><td>reg_search_la_republica_mushroom</td><td>search_result</td><td><a href="sources/9559eba0781235563c9a538e51ec97945e328f8de2e07e47860fcb13cc6ec72a">9559eba0781235563c9a538e51ec97945e328f8de2e07e47860fcb13cc6ec72a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=e1e4b40a-5794-4aeb-b933-989fe654e8d2" target="_blank" rel="noreferrer">来源 URL</a></td><td>7015</td></tr><tr><td>reg_search_lakanto_matcha</td><td>search_result</td><td><a href="sources/53efd80715b381fc88957b778bfe62cd63c0577f8136dee3f0f3b2aba405e356">53efd80715b381fc88957b778bfe62cd63c0577f8136dee3f0f3b2aba405e356</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=3cfa8cd0-f600-4459-9041-422de2290bb6" target="_blank" rel="noreferrer">来源 URL</a></td><td>8130</td></tr><tr><td>reg_search_lifeboost_low_acid</td><td>search_result</td><td><a href="sources/b64645bed0f3a4c3713c9a156a338c77b8cc36eb7082bb92d6bb03d5e0365292">b64645bed0f3a4c3713c9a156a338c77b8cc36eb7082bb92d6bb03d5e0365292</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=55a710c4-92b3-4786-9bda-46857ecddbf5" target="_blank" rel="noreferrer">来源 URL</a></td><td>7163</td></tr><tr><td>reg_search_low_acid_concept</td><td>search_result</td><td><a href="sources/e1c23d5008145251ba43fa25032ba886f0bafcc6d98eb520d4cf837c0cbe31c6">e1c23d5008145251ba43fa25032ba886f0bafcc6d98eb520d4cf837c0cbe31c6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=1d8bdee9-4cbb-4c5b-ad11-4c7ccb1ff950" target="_blank" rel="noreferrer">来源 URL</a></td><td>1408</td></tr><tr><td>reg_search_medicinal_fungi_concept</td><td>search_result</td><td><a href="sources/8276f2e6c89d66ce401924343ca8ff8469ba4a1816bf3b94be7cf370daf9ea07">8276f2e6c89d66ce401924343ca8ff8469ba4a1816bf3b94be7cf370daf9ea07</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=d0631779-6c08-40e7-a5c3-76a61ce47bc8" target="_blank" rel="noreferrer">来源 URL</a></td><td>60901</td></tr><tr><td>reg_search_starbucks_sleep</td><td>search_result</td><td><a href="sources/a32bda3c4aa7b5105c91726e70888f50864a28e34fac4dd23f9f0e7c074b068b">a32bda3c4aa7b5105c91726e70888f50864a28e34fac4dd23f9f0e7c074b068b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=0b309b87-81b3-4d3e-ad87-464a25e1264d" target="_blank" rel="noreferrer">来源 URL</a></td><td>59008</td></tr><tr><td>reg_search_tea_caffeine_question</td><td>search_result</td><td><a href="sources/a394fe817a77bfe02ce129b5d64b16bfc28ac2681b8b1e094dd661e5cd5e183e">a394fe817a77bfe02ce129b5d64b16bfc28ac2681b8b1e094dd661e5cd5e183e</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=900a9b59-6a7e-4c9d-9a70-4813d809cd40" target="_blank" rel="noreferrer">来源 URL</a></td><td>54155</td></tr><tr><td>reg_search_tealyra_blood_cleanser</td><td>search_result</td><td><a href="sources/018d6bdd30f52b23a38746a12d19bedb58ea2050550fb1b34b067010be1da6c5">018d6bdd30f52b23a38746a12d19bedb58ea2050550fb1b34b067010be1da6c5</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1&amp;request_id=79789243-e6ea-49fe-95ef-7c1bbfba1589" target="_blank" rel="noreferrer">来源 URL</a></td><td>7428</td></tr><tr><td>reg_wiki_antioxidant</td><td>wikipedia</td><td><a href="sources/c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc">c021161513f8c1086f839728c9f3da19030298ca043a211c3eb14570b814e8cc</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Antioxidant" target="_blank" rel="noreferrer">来源 URL</a></td><td>20101</td></tr><tr><td>reg_wiki_caffeine</td><td>wikipedia</td><td><a href="sources/1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215">1bafe93570046c77270c97779c637131db843bee357ad5720c5cf52dfc4ec215</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Caffeine" target="_blank" rel="noreferrer">来源 URL</a></td><td>20128</td></tr><tr><td>reg_wiki_detoxification_alt</td><td>wikipedia</td><td><a href="sources/c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa">c72fb8f5a3801d20898fbb76ab6c2f0263b81f81253c8cbdee5c1f3bb97724fa</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Detoxification_(alternative_medicine)" target="_blank" rel="noreferrer">来源 URL</a></td><td>20050</td></tr><tr><td>reg_wiki_low_acid_coffee</td><td>wikipedia</td><td><a href="sources/e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f">e78eec1963e2c399237561f9190fb918bd2723effb1c48fc9b3d0b35585a702f</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Low-acid_coffee" target="_blank" rel="noreferrer">来源 URL</a></td><td>13332</td></tr><tr><td>reg_wiki_medicinal_fungi</td><td>wikipedia</td><td><a href="sources/657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b">657e07d58c3df6153a353258892dc8ac36a7c6dc5b16daec3c5c30e8b6c07e3b</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Medicinal_uses_of_fungi" target="_blank" rel="noreferrer">来源 URL</a></td><td>14650</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-coffee-tea-0039-wellness-packaging-claims-20260716-r1";
+const graphHash = "e127a5d2078b0eb4d533169a9034bb969f3cb56f30cffecaa51abf1f31b27525";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

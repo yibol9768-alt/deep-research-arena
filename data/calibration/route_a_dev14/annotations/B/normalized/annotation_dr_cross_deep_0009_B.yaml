@@ -1,0 +1,83 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0009
+query_sha256: "47c3adef328edbb6acac0e21a8434d6de44f22a307fe18e988b510979571c1a1"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 蓝牙耳机和有线耳机之间的对比分析与推荐。
+
+  Q2: 必须覆盖对比分析、真实评价、时效性（近期数据，蓝牙技术发展快不能搜旧资料）。
+
+  Q3: 验证有线和无线的区别，以及无线为什么会减弱。
+
+  Q4: 解析音频经过蓝牙会发生什么。
+
+  Q5: 明确要求要有买家的经验。
+
+  Q6: 不可省略项：有线vs无线对比、蓝牙原理解析、验证有线派是否还对、买家后悔率、入门推荐、时效性。
+
+  Q7: 没有要求。
+
+initial_requirements:
+  - 对比有线vs无线音质/便利性/延迟
+  - 解释蓝牙音频传输原理
+  - 验证有线派今天是否还对
+  - 包含当前买家后悔率/满意度
+  - 推荐一副入门耳机
+  - 确保使用近期数据
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 基于近期蓝牙技术发展水平，对比分析有线耳机 vs 无线耳机在音质、便利性、延迟等方面的综合差异
+    necessity_reason: |-
+      Query 核心冲突是"cable will always sound better" vs "everyone my age just assumes wireless"，
+      省略对比则用户的选择矛盾未被梳理；时效性确保对比反映当前技术现状而非过时认知。
+    query_basis: "\"my dad insists a cable will always sound better\" + \"everyone my age just assumes wireless\""
+    output_form: compare
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 解释蓝牙音频传输原理（音频经过蓝牙发生了什么、为什么可能"压扁"音乐），并基于此验证"有线派今天是否还正确"
+    necessity_reason: |-
+      Query 直接问"what actually happens to the audio when it goes over Bluetooth" + "is the cable crowd still right today?"，
+      用户拒绝"把钱花在不理解的技术上"——必须先理解原理才能判断有线派论断是否仍成立。
+    query_basis: "\"what actually happens to the audio when it goes over Bluetooth\" + \"is the cable crowd still right today?\""
+    output_form: explain
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 包含当前买家对选择的真实满意度（是否后悔选了无线或选了有线），需基于近期买家反馈
+    necessity_reason: |-
+      Query 明确要求"whether current buyers regret going one way or the other"，
+      缺少真实用户反馈则用户只能靠理论做决定，无法判断实际使用体验。
+    query_basis: "whether current buyers regret going one way or the other"
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 明确要求"current buyers"的真实后悔率/满意度，买家经验在此不可替代
+
+  - local_id: R4
+    requirement: 基于 R1-R3 的分析和用户反馈，推荐一副入门级耳机（有线或无线），必须是近期在售的
+    necessity_reason: Query 结尾明确要求"which pair you'd start me on"，需给出可直接行动的落地建议
+    query_basis: "which pair you'd start me on"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "crushes the music"
+    note: "\"压扁了音乐\"的描述较主观——指动态压缩还是整体音质劣化？不同标注者可能不同理解"
+  - phrase: "serious pair"
+    note: "\"正经的耳机\"标准不明确——入门HiFi、监听、还是高端消费级？"
+
+unresolved: []
+
+evidence_answerability: not_assessed

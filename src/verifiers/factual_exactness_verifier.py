@@ -51,7 +51,12 @@ import re
 from typing import Any
 
 from .base import VerifierResult, is_degenerate_answer
-from .citation_format import canonicalize_url, extract_citations, host_in_set
+from .citation_format import (
+    canonicalize_url,
+    extract_citations,
+    host_in_set,
+    materialize_reference_links,
+)
 from .judge_client import call_judge_heavy, judge_identity
 
 
@@ -377,8 +382,12 @@ class FactualExactnessVerifier:
                 details={"reason": "degenerate_answer", "degen_reason": reason},
             )
 
-        # Step 0: pick top-N most citation-dense paragraphs to bound LLM cost.
-        paras = _split_paragraphs(answer)
+        # Step 0: make native numbered/footnote anchors self-contained for the
+        # paragraph-level extractor, then pick top-N citation-dense paragraphs.
+        # ``answer`` is already the scorer's verified in-memory citation view;
+        # this transformation is never persisted over the sealed report.
+        verifier_answer = materialize_reference_links(answer)
+        paras = _split_paragraphs(verifier_answer)
         paras_with_cites = [(p, _para_has_citations(p)) for p in paras]
         paras_with_cites.sort(key=lambda t: -t[1])
         chosen = [p for p, c in paras_with_cites if c > 0][: self.max_paragraphs]

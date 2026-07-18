@@ -73,6 +73,55 @@ _SANDBOX_DEFAULT_ALIASES = {
 }
 
 
+def _coverage_entries(golden: dict[str, Any]) -> tuple[list[dict], list[dict], str]:
+    """Load either the legacy crawl schema or the task-v2 answer-key schema.
+
+    Task v2 answer keys deliberately replaced the old ``must_cite_urls`` /
+    ``expected_pool_urls`` file with ``vital_nuggets`` / ``relevant_set``.
+    Continuing to read the legacy path silently graded a headphone task
+    against its former mechanical-keyboard corpus.  Convert the v2 schema in
+    memory; do not duplicate or mutate the authoritative answer key.
+    """
+    if "must_cite_urls" in golden or "expected_pool_urls" in golden:
+        return (
+            list(golden.get("must_cite_urls") or []),
+            list(golden.get("expected_pool_urls") or []),
+            "deep_golden_v1",
+        )
+
+    if "vital_nuggets" in golden or "relevant_set" in golden:
+        must_by_url: dict[str, dict] = {}
+        for nugget in golden.get("vital_nuggets") or []:
+            if not isinstance(nugget, dict):
+                continue
+            url = str(nugget.get("source_url") or "").strip()
+            if not url or url in must_by_url:
+                continue
+            must_by_url[url] = {
+                "url": url,
+                "weight": float(nugget.get("weight") or 1.0),
+                "why": str(nugget.get("text") or nugget.get("description") or ""),
+                "category": str(nugget.get("predicate") or "vital_nugget"),
+            }
+
+        pool_by_url: dict[str, dict] = {}
+        for item in golden.get("relevant_set") or []:
+            if not isinstance(item, dict):
+                continue
+            url = str(item.get("url") or "").strip()
+            if not url or url in pool_by_url:
+                continue
+            pool_by_url[url] = {
+                "url": url,
+                "weight": float(item.get("weight") or 1.0),
+                "why": str(item.get("relevance_reason") or ""),
+                "category": str(item.get("category") or "relevant"),
+            }
+        return list(must_by_url.values()), list(pool_by_url.values()), "answer_key_v2"
+
+    return [], [], "unknown"
+
+
 def _host_match(url: str, host_pattern: str) -> bool:
     """Match a URL against a host pattern using host:port equality, not
     substring. `localhost:7770 in url` would also match `localhost:77703`
@@ -118,8 +167,7 @@ class URLCoverageVerifier:
             return VerifierResult.fail(f"golden pool not found: {gp}")
 
         golden = json.loads(gp.read_text())
-        must_entries = golden.get("must_cite_urls", []) or []
-        pool_entries = golden.get("expected_pool_urls", []) or []
+        must_entries, pool_entries, golden_schema = _coverage_entries(golden)
         must = {_canonical(e["url"]): float(e.get("weight", 1.0)) for e in must_entries}
         pool = {_canonical(e["url"]) for e in pool_entries}
 
@@ -217,6 +265,8 @@ class URLCoverageVerifier:
             passed=passed,
             details={
                 "cited_unique": len(cited),
+                "golden_schema": golden_schema,
+                "golden_path": str(gp),
                 "must_cite_total": len(must),
                 "must_cite_hit": len(must_hits),
                 "must_cite_recall": round(must_cite_recall, 4),

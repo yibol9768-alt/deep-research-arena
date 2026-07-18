@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>e6cf1cc468fa2fea34ee7abf8f24023b42db3ef3d251b0aa1f9a71c5e3af2bfb</code></p>
+<p>待审项 24 个，其中语义项 12 个、结构化项 0 个；冻结来源 25 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_coffee_bag_valve_scope"><header><h3>assert_coffee_bag_valve_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;consumer bean or ground packaging plus carbon-dioxide pressure and valves that vent without admitting atmosphere&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for coffee-bag and pressure-relief-valve function&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_coffee_bag_valve_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_package_function_not_exact_seal_barrier_storage_or_age_verification&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;consumer bean or ground packaging plus carbon-dioxide pressure and valves that vent without admitting atmosphere&quot;,
+  &quot;predicate&quot;: &quot;describes_sealed_bags_and_one_way_pressure_relief&quot;,
+  &quot;subject&quot;: &quot;coffee-bag and pressure-relief-valve function&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_coffee_bag_valve_scope_1</code> | bytes [207, 369) | <code>fc6a5815bb650d367f928604509290d613608521106fa942fe8bd5d5a5f41a57</code></div><pre class="context"><span>For small sachets of coffee designed to be soaked in water, see Single-serve coffee container . For paper coffee filters, see Coffee filter bag . A coffee bag is a container for shipping and storing coffee. </span><mark>Coffee beans are usually transported in large jute sacks, while coffee sold to consumers may be packaged as beans or ground coffee in a small, sealed plastic bag.</mark><span> [ 1 ] Bulk coffee Large bulk bags, burlap bags or gunny sacks are traditionally used for storage and transport of coffee beans. Often, it is made of jute and has a content of 60 kilograms (130 pounds); this type of bag originated in Brazil and became a worldwide standard. [ 2 ] It also became a measurement unit to this day, for example FAO &#x27;s statistics on </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bag" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bag</a></p><p>冻结文件: <a href="sources/c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729" target="_blank">sources/c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729</a></p><p>内容 SHA-256: <code>c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_coffee_compound_aroma_scope"><header><h3>assert_coffee_compound_aroma_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;volatile and nonvolatile compounds plus nitrogenous compounds and carbohydrates that contribute to roasted flavor and aroma&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for coffee-bean flavor and aroma compounds&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_coffee_compound_aroma_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_composition_not_exact_bag_compound_loss_or_sensory_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;volatile and nonvolatile compounds plus nitrogenous compounds and carbohydrates that contribute to roasted flavor and aroma&quot;,
+  &quot;predicate&quot;: &quot;attributes_roasted_flavor_to_multiple_volatile_and_nonvolatile_compounds&quot;,
+  &quot;subject&quot;: &quot;coffee-bean flavor and aroma compounds&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_coffee_compound_aroma_scope_1</code> | bytes [6819, 6931) | <code>e2001c9f447c4a6d4c2ca5bb5c86cb00180899406b794f5bb219549cb19bf13c</code></div><pre class="context"><span>remove the outer pulp and mucilage and have an intact wax layer on the outer surface. When immature, they are green. When mature, they have a brown to yellow or reddish color and typically weigh 300 to 330 mg per dried coffee bean. Nonvolatile and volatile compounds in green coffee beans, such as caffeine , deter many insects and animals from eating them . </span><mark>Further, both nonvolatile and volatile compounds contribute to the flavor of the coffee bean when it is roasted.</mark><span> Nonvolatile nitrogenous compounds (including alkaloids , trigonelline , proteins, and free amino acids ) and carbohydrates are of major importance in producing the full aroma of roasted coffee and for its biological action. Since the mid-2000s, green coffee extract has been sold as a nutritional supplement and has been clinically studied for its chlorogenic</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bean" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bean</a></p><p>冻结文件: <a href="sources/f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32" target="_blank">sources/f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32</a></p><p>内容 SHA-256: <code>f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_coffee_quality_multi_axis_scope"><header><h3>assert_coffee_quality_multi_axis_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;flavor aroma body acidity and texture differences that depend on region, genetic subspecies, and processing&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for coffee sensory quality dimensions&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_coffee_quality_multi_axis_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_quality_dimensions_not_brand_rank_or_exact_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;flavor aroma body acidity and texture differences that depend on region, genetic subspecies, and processing&quot;,
+  &quot;predicate&quot;: &quot;varies_with_region_varietal_and_processing&quot;,
+  &quot;subject&quot;: &quot;coffee sensory quality dimensions&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_coffee_quality_multi_axis_scope_1</code> | bytes [2688, 2826) | <code>dcd0dee62219376132c0b77c9ef9e145b34704ceadbd4a54d0e067687744332c</code></div><pre class="context"><span>, Colombia and Ethiopia. 51% of the world&#x27;s coffee is cultivated in South and Central America, with 27% in south-east Asia and 17% in Africa. [ 6 ] Arabica coffee beans are cultivated in Latin America, eastern Africa, Arabia, or Asia. Robusta coffee beans are grown in western and central Africa, throughout southeast Asia, and to some extent in Brazil. [ 8 ] </span><mark>Beans from different countries or regions can usually be distinguished by differences in flavor, aroma, body , acidity and girth (texture)</mark><span> [ 9 ] These taste characteristics are dependent not only on the coffee&#x27;s growing region, but also on genetic subspecies ( varietals ) and processing. [ 10 ] Varietals are generally known by the region in which they are grown, such as Colombian , Java and Kona . In 2016, global coffee exports were $19.4 billion. Coffee is not the second most important commer</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Economics_of_coffee" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Economics_of_coffee</a></p><p>冻结文件: <a href="sources/c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01" target="_blank">sources/c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01</a></p><p>内容 SHA-256: <code>c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_dallmayr_ground_rating_scope"><header><h3>assert_dallmayr_ground_rating_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 56.38-dollar six-pack of 17.6-ounce ground coffee rated 96 percent over 115 reviews without exact pack dates or opened-pack history&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Dallmayr ground-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_dallmayr_ground_rating_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_aggregate_not_pack_date_storage_waste_or_sensory_measurement&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 56.38-dollar six-pack of 17.6-ounce ground coffee rated 96 percent over 115 reviews without exact pack dates or opened-pack history&quot;,
+  &quot;predicate&quot;: &quot;shows_high_aggregate_and_large_ground_multipack&quot;,
+  &quot;subject&quot;: &quot;frozen Dallmayr ground-coffee seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_dallmayr_ground_rating_scope_1</code> | bytes [56, 182) | <code>2f99c7ec844fa94f7258a2165006f4e0d6cdc6d7f29ee9e95dbf659863ed98bc</code></div><pre class="context"><span>Dallmayr Prodomo Arabica Ground Coffee 17.6oz (6-pack)
+
+</span><mark>In stock SKU B00G3ECDJ8 Rating: 96 % of 100 115 Reviews Add Your Review $56.38 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Dallmayr Prodomo Arabica Ground Coffee 17.6oz (6-pack) Famous German Coffee 100% Arabica 6 x 500g Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 11.5 x 9 x 6.6 inches; 1.1 Pounds UPC ‏ ‎ 646783103714 ASIN ‏ ‎ B00G3ECDJ8 #400 in Ground Coffee Reviews 115 Write Your Own Review You&#x27;re reviewing: Dallma</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/dallmayr-prodomo-arabica-ground-coffee-17-6oz-6-pack.html" target="_blank" rel="noreferrer">http://localhost:7770/dallmayr-prodomo-arabica-ground-coffee-17-6oz-6-pack.html</a></p><p>冻结文件: <a href="sources/2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da" target="_blank">sources/2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da</a></p><p>内容 SHA-256: <code>2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_food_packaging_barrier_scope"><header><h3>assert_food_packaging_barrier_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;chemical biological and physical protection plus oxygen and water-vapor barriers intended to help freshness over shelf life&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for generic food-packaging barrier function&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_food_packaging_barrier_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_packaging_function_not_exact_coffee_package_performance_or_history&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;chemical biological and physical protection plus oxygen and water-vapor barriers intended to help freshness over shelf life&quot;,
+  &quot;predicate&quot;: &quot;protects_against_alteration_oxygen_and_water_vapor&quot;,
+  &quot;subject&quot;: &quot;generic food-packaging barrier function&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_food_packaging_barrier_scope_1</code> | bytes [0, 245) | <code>e2ad91531a48d63ecd2a0c7681a96e1ef588eecea7b9e6982f8b2c708e501681</code></div><pre class="context"><span></span><mark>Food packaging is a packaging system specifically designed for food and represents one of the most important aspects among the processes involved in the food industry, as it provides protection from chemical, biological and physical alterations.</mark><span> [ 1 ] The main goal of food packaging is to provide a practical means of protecting and delivering food goods at a reasonable cost, while meeting the needs and expectations of both consumers and industries. [ 1 ] [ 2 ] Additionally, current trends like sustainability , environmental impact reduction, and shelf-life extension have gradually become some of th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_packaging" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Food_packaging</a></p><p>冻结文件: <a href="sources/8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad" target="_blank">sources/8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad</a></p><p>内容 SHA-256: <code>8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_nh_fresh_source_discussion_scope"><header><h3>assert_nh_fresh_source_discussion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a sourcing question plus a commenter impression that near-daily roasting and selling out makes freshness easy to confirm while being pricey&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for New Hampshire fresh-bean community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_nh_fresh_source_discussion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_and_business_specific_question_and_comment_not_controlled_freshness_test_or_brand_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a sourcing question plus a commenter impression that near-daily roasting and selling out makes freshness easy to confirm while being pricey&quot;,
+  &quot;predicate&quot;: &quot;asks_for_fresh_light_roasts_and_reports_one_high_turnover_shop&quot;,
+  &quot;subject&quot;: &quot;New Hampshire fresh-bean community discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_nh_fresh_source_discussion_scope_1</code> | bytes [49, 181) | <code>a25df21ba1fa657281a5623ffc3a06c14bd82005c089bea3fede827686043967</code></div><pre class="context"><span>NH source for fresh light roasted coffee beans?
+
+</span><mark>New to the state and looking for a NH source for quality fresh light roasted coffee beans. Preferably Ethiopian. Any suggestions? 23</mark><span>
+
+[deleted]
+
+Flight is my all time favorite. Their roasts are amazing, and they have a constant selection of single origin coffees that burst with flavor. Their mail order is fast and they have a location in Bedford. Tandem Coffee in Maine is also a top notch roaster, and they do mail order as well Cafe Monte Alto in Plymouth does some very nice roasts as we</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newhampshire/108217/nh-source-for-fresh-light-roasted-coffee-beans" target="_blank" rel="noreferrer">http://localhost:9999/f/newhampshire/108217/nh-source-for-fresh-light-roasted-coffee-beans</a></p><p>冻结文件: <a href="sources/ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9" target="_blank">sources/ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9</a></p><p>内容 SHA-256: <code>ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_onyx_whole_bean_rating_scope"><header><h3>assert_onyx_whole_bean_rating_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 50.75-dollar two-pound whole-bean offer rated 100 percent over one review with seller flavor descriptions but no verified lot date or sensory test&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Onyx whole-bean seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_onyx_whole_bean_rating_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_one_review_aggregate_not_exact_lot_freshness_or_independent_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 50.75-dollar two-pound whole-bean offer rated 100 percent over one review with seller flavor descriptions but no verified lot date or sensory test&quot;,
+  &quot;predicate&quot;: &quot;shows_near_perfect_aggregate_and_flavor_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Onyx whole-bean seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_onyx_whole_bean_rating_scope_1</code> | bytes [89, 213) | <code>4552474ca4d4050281c16b6c04bef8d19f2775555d76b0e19040aea6b11d0569</code></div><pre class="context"><span>Onyx Coffee Lab &quot;Southern Weather Blend&quot; Medium Roasted Whole Bean Coffee - 2 Pound Bag
+
+</span><mark>In stock SKU B08GFG99W8 Rating: 100 % of 100 1 Review Add Your Review $50.75 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Southern Weather embodies everything we love about specialty coffee and has evolved into a foundational blend. We brew this in our own cafes as a “House” filter option and love how it balances the relationship between modern citric acidity flavors with full bodied chocolates. This comfortable, yet surprisingly complex and sop</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/onyx-coffee-lab-southern-weather-blend-medium-roasted-whole-bean-coffee-2-pound-bag.html" target="_blank" rel="noreferrer">http://localhost:7770/onyx-coffee-lab-southern-weather-blend-medium-roasted-whole-bean-coffee-2-pound-bag.html</a></p><p>冻结文件: <a href="sources/8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1" target="_blank">sources/8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1</a></p><p>内容 SHA-256: <code>8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ri_fresh_bulk_discussion_scope"><header><h3>assert_ri_fresh_bulk_discussion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a freshly roasted sourcing question, a three-month five-pound subscription report, a never-on-grocery-shelf claim, and a possibly-less-fresh imported coffee statement&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Rhode Island fresh and bulk coffee discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ri_fresh_bulk_discussion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_business_purchase_and_consumption_context_not_universal_storage_window_or_controlled_test&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a freshly roasted sourcing question, a three-month five-pound subscription report, a never-on-grocery-shelf claim, and a possibly-less-fresh imported coffee statement&quot;,
+  &quot;predicate&quot;: &quot;contains_conflicting_personal_freshness_and_consumption_statements&quot;,
+  &quot;subject&quot;: &quot;Rhode Island fresh and bulk coffee discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ri_fresh_bulk_discussion_scope_1</code> | bytes [14, 113) | <code>6fb9f37562d6817906f525bcb5d752d8d49a97ccdde9fa02e298014e43aa962b</code></div><pre class="context"><span>Coffee beans
+
+</span><mark>I live in Warwick and am looking for the best place for freshly roasted beans. Thanks in advance! 4</mark><span>
+
+Coffee Exchange on Wickenden Street in Providence is tremendous.
+
+They have the biggest variety!
+
+Too fah by RI standards, but I&#x27;m a fan of New Harvest and Borealis. Bolt is very good, too.
+
+Loveeee New Harvest!! Urban Greens grocery store in providence has New Harvest in the bulk area, so you can always fill up small bags with just a little of the differe</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/RhodeIsland/36340/coffee-beans" target="_blank" rel="noreferrer">http://localhost:9999/f/RhodeIsland/36340/coffee-beans</a></p><p>冻结文件: <a href="sources/3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2" target="_blank">sources/3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2</a></p><p>内容 SHA-256: <code>3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_roast_chemistry_staling_scope"><header><h3>assert_roast_chemistry_staling_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Maillard and other roast reactions plus lower roasted-bean stability, heat oxygen and light exposure, form-specific typical windows, and preservation effects&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for roasted-coffee chemistry and typical staling context&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_roast_chemistry_staling_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_mechanism_and_typical_windows_not_exact_lot_age_or_universal_discard_clock&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;Maillard and other roast reactions plus lower roasted-bean stability, heat oxygen and light exposure, form-specific typical windows, and preservation effects&quot;,
+  &quot;predicate&quot;: &quot;links_roasting_stability_exposure_form_and_preservation&quot;,
+  &quot;subject&quot;: &quot;roasted-coffee chemistry and typical staling context&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_roast_chemistry_staling_scope_1</code> | bytes [0, 115) | <code>dcc7c6d11d3ba47e51cefb4f8105fc6f085118f031341a18ee0f579b5a550cac</code></div><pre class="context"><span></span><mark>Roasting coffee transforms the chemical and physical properties of green coffee beans into roasted coffee products.</mark><span> The roasting process produces the characteristic flavor of coffee by causing the green coffee beans to change in taste. Unroasted beans contain similar if not higher levels of acids , protein , sugars, and caffeine as those that have been roasted, but lack the taste of roasted coffee beans due to the Maillard and other chemical reactions that occur during r</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_roasting" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_roasting</a></p><p>冻结文件: <a href="sources/be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212" target="_blank">sources/be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212</a></p><p>内容 SHA-256: <code>be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_segafredo_pod_preservation_scope"><header><h3>assert_segafredo_pod_preservation_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 32.99-dollar thirty-pod offer rated 100 percent over four reviews whose seller copy says filter-cup technology preserves aroma and flavor&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Segafredo single-serve pod seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_segafredo_pod_preservation_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_package_claim_not_independent_barrier_test_date_or_sensory_result&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 32.99-dollar thirty-pod offer rated 100 percent over four reviews whose seller copy says filter-cup technology preserves aroma and flavor&quot;,
+  &quot;predicate&quot;: &quot;markets_aroma_preservation_with_near_perfect_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen Segafredo single-serve pod seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_segafredo_pod_preservation_scope_1</code> | bytes [93, 218) | <code>6e205f03e314c561e8706286157d2a1881e198e2f188c98cf7eedccca71ae40b</code></div><pre class="context"><span>Segafredo Enzo Rich and Bold Dark Roast Coffee, Single Serve Pods, 10 Count Box (Pack of 3)
+
+</span><mark>In stock SKU B084JHKDLC Rating: 100 % of 100 4 Reviews Add Your Review $32.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look ENZO- Region, climate, and soil affect the unique flavor characteristics of our select coffee beans. Segafredo Zanetti beans are blended and roasted with the utmost care to create this world-class taste. QUANTITY - Three boxes of 10 single serve capsules of Enzo dark roast (30 total) FEARLESS &amp; STRUCTURED - 100 percent Arabica, f</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/segafredo-enzo-rich-and-bold-dark-roast-coffee-single-serve-pods-10-count-box-pack-of-3.html" target="_blank" rel="noreferrer">http://localhost:7770/segafredo-enzo-rich-and-bold-dark-roast-coffee-single-serve-pods-10-count-box-pack-of-3.html</a></p><p>冻结文件: <a href="sources/21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38" target="_blank">sources/21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38</a></p><p>内容 SHA-256: <code>21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_siroman_fresh_roast_claim_scope"><header><h3>assert_siroman_fresh_roast_claim_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a selected 12-ounce whole-bean offer at 17.05 dollars rated 97 percent over seven reviews and described as fresh boarder roasted&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Siroman whole-bean seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_siroman_fresh_roast_claim_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_fresh_wording_not_verified_roast_date_lot_age_or_sensory_result&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a selected 12-ounce whole-bean offer at 17.05 dollars rated 97 percent over seven reviews and described as fresh boarder roasted&quot;,
+  &quot;predicate&quot;: &quot;markets_fresh_roast_wording_with_high_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen Siroman whole-bean seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_siroman_fresh_roast_claim_scope_1</code> | bytes [114, 190) | <code>1aa12a172a1ddc0b68117526332e374d72592ab84a7bc8b05d347602c3e4071a</code></div><pre class="context"><span>Colombian Fresh Roast Organic Coffee Beans 4oz, 12oz, 1lb, 2lb, 4lb by Siroman Coffee (Colombian Cocktail, 12oz)
+
+</span><mark>In stock SKU B083TPKS3Q Rating: 97 % of 100 7 Reviews Add Your Review $17.05</mark><span> Flavor Name Baron de Sirot Border Roast BULG Caramel Colombian Cocktail Harmony Italian Roast Viennese Roast Size 12oz 1lb 2lb 4lb 4oz Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look These coffee beans created by European experience of roasting. We have combined the best European style and adapted for Americans. We are doing a sp</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/colombian-fresh-roast-organic-coffee-beans-4oz-12oz-1lb-2lb-4lb-by-siroman-coffee-colombian-cocktail-12oz.html" target="_blank" rel="noreferrer">http://localhost:7770/colombian-fresh-roast-organic-coffee-beans-4oz-12oz-1lb-2lb-4lb-by-siroman-coffee-colombian-cocktail-12oz.html</a></p><p>冻结文件: <a href="sources/6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e" target="_blank">sources/6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e</a></p><p>内容 SHA-256: <code>6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_wa_bulk_price_freshness_scope"><header><h3>assert_wa_bulk_price_freshness_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a five-pound price question and one comment that a lower-cost Costco option is not as fresh while still being great coffee&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Washington five-pound coffee discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_wa_bulk_price_freshness_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_scoped_price_and_freshness_impression_not_controlled_sensory_or_exact_offer_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a five-pound price question and one comment that a lower-cost Costco option is not as fresh while still being great coffee&quot;,
+  &quot;predicate&quot;: &quot;trades_bulk_price_against_one_freshness_impression&quot;,
+  &quot;subject&quot;: &quot;Washington five-pound coffee discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_wa_bulk_price_freshness_scope_1</code> | bytes [35, 194) | <code>190beef25ba5746736c74f54b2800987a13d86760b17a9545674e40a7a17bfb2</code></div><pre class="context"><span>Coffee roasters with 5 pound bags
+
+</span><mark>Any recommendations for PNW based coffee roasters that have decently priced 5 pound bags of coffee? Either one time purchase or subscription would work for me.</mark><span> I see Stumptown has their 5 pound bags for $80-$110, if I could find something around $60 that&#x27;d be sweet. Thanks! 1
+
+Dillanos coffee roasters and lamppost coffee roasters both sell 5lb bags, but not around the price you&#x27;re looking for. That might be difficult finding quality coffee for $60.
+
+They&#x27;re also pretty chill about holding subscriptions for custome</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/Washington/122879/coffee-roasters-with-5-pound-bags" target="_blank" rel="noreferrer">http://localhost:9999/f/Washington/122879/coffee-roasters-with-5-pound-bags</a></p><p>冻结文件: <a href="sources/643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52" target="_blank">sources/643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52</a></p><p>内容 SHA-256: <code>643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_coffee_bag_valve_scope"><header><h3>prop_coffee_bag_valve_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;consumer bean or ground packaging plus carbon-dioxide pressure and valves that vent without admitting atmosphere&quot;,
+  &quot;predicate&quot;: &quot;describes_sealed_bags_and_one_way_pressure_relief&quot;,
+  &quot;subject&quot;: &quot;coffee-bag and pressure-relief-valve function&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_coffee_bag_valve_scope_1</code> | bytes [207, 369) | <code>fc6a5815bb650d367f928604509290d613608521106fa942fe8bd5d5a5f41a57</code></div><pre class="context"><span>For small sachets of coffee designed to be soaked in water, see Single-serve coffee container . For paper coffee filters, see Coffee filter bag . A coffee bag is a container for shipping and storing coffee. </span><mark>Coffee beans are usually transported in large jute sacks, while coffee sold to consumers may be packaged as beans or ground coffee in a small, sealed plastic bag.</mark><span> [ 1 ] Bulk coffee Large bulk bags, burlap bags or gunny sacks are traditionally used for storage and transport of coffee beans. Often, it is made of jute and has a content of 60 kilograms (130 pounds); this type of bag originated in Brazil and became a worldwide standard. [ 2 ] It also became a measurement unit to this day, for example FAO &#x27;s statistics on </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_coffee_bag_valve_scope_2</code> | bytes [1658, 1745) | <code>c62981ef4ba4e8c4894144f1f0dbb12257a941eb19d48b67ffc68100e1a0bf03</code></div><pre class="context"><span>ermediate bulk container .  These are increasingly used for coffee exports - especially from Brazil. [ 6 ] Intermodal shipping containers are common for international shipping. Consumer packaging Smaller bags are used by consumers for coffee beans or ground coffee. Multi-layer graphics bags have largely replaced steel cans (tins) for consumer ground coffee. </span><mark>There is a tendency for pressure from carbon dioxide to build up in these barrier bags.</mark><span> Special pressure relief valves have been developed to relieve the pressure without letting the atmosphere into the bags. [ 7 ] [ 8 ] [ 9 ] Valves are either heat sealed or attached by adhesive. The bags are not readily recyclable, but compare favourably in life-cycle studies with metal cans on broader issues. [ 10 ] Examples Multilayer plastic bag with a pr</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_coffee_bag_valve_scope_3</code> | bytes [1746, 1866) | <code>05a53034b2fa4c3f5da017f79373a085ffab6e5d6708ba377abc6ec04c69fc55</code></div><pre class="context"><span>from Brazil. [ 6 ] Intermodal shipping containers are common for international shipping. Consumer packaging Smaller bags are used by consumers for coffee beans or ground coffee. Multi-layer graphics bags have largely replaced steel cans (tins) for consumer ground coffee. There is a tendency for pressure from carbon dioxide to build up in these barrier bags. </span><mark>Special pressure relief valves have been developed to relieve the pressure without letting the atmosphere into the bags.</mark><span> [ 7 ] [ 8 ] [ 9 ] Valves are either heat sealed or attached by adhesive. The bags are not readily recyclable, but compare favourably in life-cycle studies with metal cans on broader issues. [ 10 ] Examples Multilayer plastic bag with a pressure-relief valve Coffee beans in a plastic bag purchased at local grocery store Coffee grinder at grocery store with a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bag" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bag</a></p><p>冻结文件: <a href="sources/c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729" target="_blank">sources/c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729</a></p><p>内容 SHA-256: <code>c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_package_function_not_exact_seal_barrier_storage_or_age_verification&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The coffee-bag page says consumer coffee may be packaged as beans or grounds in sealed plastic bags, carbon dioxide can build pressure, and pressure-relief valves can vent it without admitting atmosphere; this generic function does not prove an exact package&#x27;s valve direction, seal integrity, barrier performance, gas composition, storage history, roast date, or current taste.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_coffee_compound_aroma_scope"><header><h3>prop_coffee_compound_aroma_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;volatile and nonvolatile compounds plus nitrogenous compounds and carbohydrates that contribute to roasted flavor and aroma&quot;,
+  &quot;predicate&quot;: &quot;attributes_roasted_flavor_to_multiple_volatile_and_nonvolatile_compounds&quot;,
+  &quot;subject&quot;: &quot;coffee-bean flavor and aroma compounds&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_coffee_compound_aroma_scope_1</code> | bytes [6819, 6931) | <code>e2001c9f447c4a6d4c2ca5bb5c86cb00180899406b794f5bb219549cb19bf13c</code></div><pre class="context"><span>remove the outer pulp and mucilage and have an intact wax layer on the outer surface. When immature, they are green. When mature, they have a brown to yellow or reddish color and typically weigh 300 to 330 mg per dried coffee bean. Nonvolatile and volatile compounds in green coffee beans, such as caffeine , deter many insects and animals from eating them . </span><mark>Further, both nonvolatile and volatile compounds contribute to the flavor of the coffee bean when it is roasted.</mark><span> Nonvolatile nitrogenous compounds (including alkaloids , trigonelline , proteins, and free amino acids ) and carbohydrates are of major importance in producing the full aroma of roasted coffee and for its biological action. Since the mid-2000s, green coffee extract has been sold as a nutritional supplement and has been clinically studied for its chlorogenic</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_coffee_compound_aroma_scope_2</code> | bytes [6932, 7155) | <code>1a56679fdcee0e1bcf9210c41941553c7594789dcf54abe26eff835a3f01b044</code></div><pre class="context"><span>en. When mature, they have a brown to yellow or reddish color and typically weigh 300 to 330 mg per dried coffee bean. Nonvolatile and volatile compounds in green coffee beans, such as caffeine , deter many insects and animals from eating them . Further, both nonvolatile and volatile compounds contribute to the flavor of the coffee bean when it is roasted. </span><mark>Nonvolatile nitrogenous compounds (including alkaloids , trigonelline , proteins, and free amino acids ) and carbohydrates are of major importance in producing the full aroma of roasted coffee and for its biological action.</mark><span> Since the mid-2000s, green coffee extract has been sold as a nutritional supplement and has been clinically studied for its chlorogenic acid content and for its lipolytic and weight-loss properties. According to a 2024 publication, The Growing Altitude Influences the Flavor Precursors, Sensory Characteristics and Cupping Quality of the Pu&#x27;er Coffee Bean , t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bean" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bean</a></p><p>冻结文件: <a href="sources/f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32" target="_blank">sources/f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32</a></p><p>内容 SHA-256: <code>f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_composition_not_exact_bag_compound_loss_or_sensory_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The coffee-bean page says volatile and nonvolatile compounds contribute to roasted flavor and that nitrogenous compounds and carbohydrates are important in producing roasted-coffee aroma; it does not measure compound loss, oxidation, aroma intensity, defect level, or preference for any exact captured offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_coffee_quality_multi_axis_scope"><header><h3>prop_coffee_quality_multi_axis_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;flavor aroma body acidity and texture differences that depend on region, genetic subspecies, and processing&quot;,
+  &quot;predicate&quot;: &quot;varies_with_region_varietal_and_processing&quot;,
+  &quot;subject&quot;: &quot;coffee sensory quality dimensions&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_coffee_quality_multi_axis_scope_1</code> | bytes [2688, 2826) | <code>dcd0dee62219376132c0b77c9ef9e145b34704ceadbd4a54d0e067687744332c</code></div><pre class="context"><span>, Colombia and Ethiopia. 51% of the world&#x27;s coffee is cultivated in South and Central America, with 27% in south-east Asia and 17% in Africa. [ 6 ] Arabica coffee beans are cultivated in Latin America, eastern Africa, Arabia, or Asia. Robusta coffee beans are grown in western and central Africa, throughout southeast Asia, and to some extent in Brazil. [ 8 ] </span><mark>Beans from different countries or regions can usually be distinguished by differences in flavor, aroma, body , acidity and girth (texture)</mark><span> [ 9 ] These taste characteristics are dependent not only on the coffee&#x27;s growing region, but also on genetic subspecies ( varietals ) and processing. [ 10 ] Varietals are generally known by the region in which they are grown, such as Colombian , Java and Kona . In 2016, global coffee exports were $19.4 billion. Coffee is not the second most important commer</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_coffee_quality_multi_axis_scope_2</code> | bytes [2833, 2976) | <code>655f6ddfd84c2bb74c04a47fc63f57b75a290b9460677e8a2d0112ef9f1d9739</code></div><pre class="context"><span> ] Arabica coffee beans are cultivated in Latin America, eastern Africa, Arabia, or Asia. Robusta coffee beans are grown in western and central Africa, throughout southeast Asia, and to some extent in Brazil. [ 8 ] Beans from different countries or regions can usually be distinguished by differences in flavor, aroma, body , acidity and girth (texture) [ 9 ] </span><mark>These taste characteristics are dependent not only on the coffee&#x27;s growing region, but also on genetic subspecies ( varietals ) and processing.</mark><span> [ 10 ] Varietals are generally known by the region in which they are grown, such as Colombian , Java and Kona . In 2016, global coffee exports were $19.4 billion. Coffee is not the second most important commercial product in the world after petroleum, but it is the second most important commercial product that is exported by developing countries. For some c</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Economics_of_coffee" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Economics_of_coffee</a></p><p>冻结文件: <a href="sources/c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01" target="_blank">sources/c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01</a></p><p>内容 SHA-256: <code>c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_quality_dimensions_not_brand_rank_or_exact_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The economics-of-coffee page says beans from different regions can differ in flavor, aroma, body, acidity, and texture, and that these characteristics also depend on varietal and processing; freshness is therefore not the only plausible quality axis, and the page does not rank the four exact products or determine this buyer&#x27;s preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_dallmayr_ground_rating_scope"><header><h3>prop_dallmayr_ground_rating_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 56.38-dollar six-pack of 17.6-ounce ground coffee rated 96 percent over 115 reviews without exact pack dates or opened-pack history&quot;,
+  &quot;predicate&quot;: &quot;shows_high_aggregate_and_large_ground_multipack&quot;,
+  &quot;subject&quot;: &quot;frozen Dallmayr ground-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_dallmayr_ground_rating_scope_1</code> | bytes [56, 182) | <code>2f99c7ec844fa94f7258a2165006f4e0d6cdc6d7f29ee9e95dbf659863ed98bc</code></div><pre class="context"><span>Dallmayr Prodomo Arabica Ground Coffee 17.6oz (6-pack)
+
+</span><mark>In stock SKU B00G3ECDJ8 Rating: 96 % of 100 115 Reviews Add Your Review $56.38 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Dallmayr Prodomo Arabica Ground Coffee 17.6oz (6-pack) Famous German Coffee 100% Arabica 6 x 500g Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 11.5 x 9 x 6.6 inches; 1.1 Pounds UPC ‏ ‎ 646783103714 ASIN ‏ ‎ B00G3ECDJ8 #400 in Ground Coffee Reviews 115 Write Your Own Review You&#x27;re reviewing: Dallma</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_dallmayr_ground_rating_scope_2</code> | bytes [211, 308) | <code>2e6efa113a98eafd7741cf56a8b36bfe4a402e5361f13460855819365ad6669c</code></div><pre class="context"><span>Dallmayr Prodomo Arabica Ground Coffee 17.6oz (6-pack)
+
+In stock SKU B00G3ECDJ8 Rating: 96 % of 100 115 Reviews Add Your Review $56.38 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look </span><mark>Dallmayr Prodomo Arabica Ground Coffee 17.6oz (6-pack) Famous German Coffee 100% Arabica 6 x 500g</mark><span> Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 11.5 x 9 x 6.6 inches; 1.1 Pounds UPC ‏ ‎ 646783103714 ASIN ‏ ‎ B00G3ECDJ8 #400 in Ground Coffee Reviews 115 Write Your Own Review You&#x27;re reviewing: Dallmayr Prodomo Arabica Ground Coffee 17.6oz (6-pack) Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Re</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/dallmayr-prodomo-arabica-ground-coffee-17-6oz-6-pack.html" target="_blank" rel="noreferrer">http://localhost:7770/dallmayr-prodomo-arabica-ground-coffee-17-6oz-6-pack.html</a></p><p>冻结文件: <a href="sources/2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da" target="_blank">sources/2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da</a></p><p>内容 SHA-256: <code>2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_aggregate_not_pack_date_storage_waste_or_sensory_measurement&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Dallmayr page shows SKU B00G3ECDJ8 at 56.38 dollars for six 17.6-ounce ground-coffee packs with a 96-percent-of-100 aggregate over 115 reviews; it does not disclose a verified pack or roast date for each unit, warehouse or seal history, consumption and waste fit, or controlled sensory freshness.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_food_packaging_barrier_scope"><header><h3>prop_food_packaging_barrier_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;chemical biological and physical protection plus oxygen and water-vapor barriers intended to help freshness over shelf life&quot;,
+  &quot;predicate&quot;: &quot;protects_against_alteration_oxygen_and_water_vapor&quot;,
+  &quot;subject&quot;: &quot;generic food-packaging barrier function&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_food_packaging_barrier_scope_1</code> | bytes [0, 245) | <code>e2ad91531a48d63ecd2a0c7681a96e1ef588eecea7b9e6982f8b2c708e501681</code></div><pre class="context"><span></span><mark>Food packaging is a packaging system specifically designed for food and represents one of the most important aspects among the processes involved in the food industry, as it provides protection from chemical, biological and physical alterations.</mark><span> [ 1 ] The main goal of food packaging is to provide a practical means of protecting and delivering food goods at a reasonable cost, while meeting the needs and expectations of both consumers and industries. [ 1 ] [ 2 ] Additionally, current trends like sustainability , environmental impact reduction, and shelf-life extension have gradually become some of th</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_packaging_barrier_scope_2</code> | bytes [2735, 2804) | <code>860d8d7e85c3ae7ee8ee3eb129e54681ae33776b94cbcb872dccf32aad52acb3</code></div><pre class="context"><span>ials employed in its manufacturing (such as cellulose nitrate, styrene, and vinyl chloride) were discovered in the 1800s. [ 12 ] Functions Packaging and the package&#x27;s labeling have several objectives: [ 13 ] [ 14 ] Physical protection - The food enclosed in the package may require protection from shock , vibration , compression, temperature , bacteria, etc. </span><mark>Barrier protection - A barrier from oxygen , water vapor , dust, etc.</mark><span>, is often required. Permeation is a critical factor in design. Keeping the contents clean, fresh, and safe for the intended shelf life is a primary function. Modified atmospheres or controlled atmospheres are also maintained in some food packages. Some packages contain desiccants , oxygen absorbers , or ethylene absorbers to help extend shelf life. Containm</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_packaging_barrier_scope_3</code> | bytes [2868, 2962) | <code>7e84b48dd9514bfb8c7f4e0fcb3f8911ca7ead562544deb84b7ea7386412957e</code></div><pre class="context"><span>tions Packaging and the package&#x27;s labeling have several objectives: [ 13 ] [ 14 ] Physical protection - The food enclosed in the package may require protection from shock , vibration , compression, temperature , bacteria, etc. Barrier protection - A barrier from oxygen , water vapor , dust, etc., is often required. Permeation is a critical factor in design. </span><mark>Keeping the contents clean, fresh, and safe for the intended shelf life is a primary function.</mark><span> Modified atmospheres or controlled atmospheres are also maintained in some food packages. Some packages contain desiccants , oxygen absorbers , or ethylene absorbers to help extend shelf life. Containment or agglomeration - Small items are typically grouped together in one package to allow efficient handling. Liquids, powders , and granular materials need c</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_packaging" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Food_packaging</a></p><p>冻结文件: <a href="sources/8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad" target="_blank">sources/8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad</a></p><p>内容 SHA-256: <code>8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_packaging_function_not_exact_coffee_package_performance_or_history&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The food-packaging page describes protection from chemical, biological, and physical alteration, including barriers to oxygen and water vapor, with freshness over an intended shelf life as a function; it does not identify or test the material, seal, transmission rate, abuse history, or remaining shelf life of any exact coffee package.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_nh_fresh_source_discussion_scope"><header><h3>prop_nh_fresh_source_discussion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a sourcing question plus a commenter impression that near-daily roasting and selling out makes freshness easy to confirm while being pricey&quot;,
+  &quot;predicate&quot;: &quot;asks_for_fresh_light_roasts_and_reports_one_high_turnover_shop&quot;,
+  &quot;subject&quot;: &quot;New Hampshire fresh-bean community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_nh_fresh_source_discussion_scope_1</code> | bytes [49, 181) | <code>a25df21ba1fa657281a5623ffc3a06c14bd82005c089bea3fede827686043967</code></div><pre class="context"><span>NH source for fresh light roasted coffee beans?
+
+</span><mark>New to the state and looking for a NH source for quality fresh light roasted coffee beans. Preferably Ethiopian. Any suggestions? 23</mark><span>
+
+[deleted]
+
+Flight is my all time favorite. Their roasts are amazing, and they have a constant selection of single origin coffees that burst with flavor. Their mail order is fast and they have a location in Bedford. Tandem Coffee in Maine is also a top notch roaster, and they do mail order as well Cafe Monte Alto in Plymouth does some very nice roasts as we</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_nh_fresh_source_discussion_scope_2</code> | bytes [4869, 5025) | <code>9d02f36e74e14ee84ae9388289f5d4d1f68d9607344d0d3587e4959ad479cdf4</code></div><pre class="context"><span> in Newmarket has probably the best in the whole state, but the lineup varies. Nori is an expert coffee roaster and his wife Sarah is an accomplished and delightful baker! Their shop has been listed by Food &amp; Wine as the best in NH for at least 2 years now. https://www.nhpr.org/nh-news/2018-06-28/foodstuffs-in-newmarket-a-coffee-shop-chases-the-perfect-cup
+
+</span><mark>Was going to say this place. They roast almost daily it seems and sell out so freshness is easily confirmed. Friendly bunch, but everything there is pricey.</mark><span>
+
+I came to say this too. Best beans and coffee
+
+New Hampshire Coffee Roasting Co in Dover has a wide variety for at home brewing, supporting local wherever is a good choice
+
+Thanks what’s your go to bean? Do they have a storefront
+
+Yes to the storefront and currently the Italian Roast based on nostalgia but they do offer a free trade Ethiopian
+
+Ski the wh</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newhampshire/108217/nh-source-for-fresh-light-roasted-coffee-beans" target="_blank" rel="noreferrer">http://localhost:9999/f/newhampshire/108217/nh-source-for-fresh-light-roasted-coffee-beans</a></p><p>冻结文件: <a href="sources/ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9" target="_blank">sources/ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9</a></p><p>内容 SHA-256: <code>ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_and_business_specific_question_and_comment_not_controlled_freshness_test_or_brand_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The New Hampshire thread asks for fresh light-roasted beans and one commenter says a particular shop seems to roast almost daily and sell out, making freshness easy to confirm while being pricey; it is a business-specific question and impression, not a blind test, chemical measurement, prevalence estimate, or evidence about the four exact offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_onyx_whole_bean_rating_scope"><header><h3>prop_onyx_whole_bean_rating_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 50.75-dollar two-pound whole-bean offer rated 100 percent over one review with seller flavor descriptions but no verified lot date or sensory test&quot;,
+  &quot;predicate&quot;: &quot;shows_near_perfect_aggregate_and_flavor_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Onyx whole-bean seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_onyx_whole_bean_rating_scope_1</code> | bytes [89, 213) | <code>4552474ca4d4050281c16b6c04bef8d19f2775555d76b0e19040aea6b11d0569</code></div><pre class="context"><span>Onyx Coffee Lab &quot;Southern Weather Blend&quot; Medium Roasted Whole Bean Coffee - 2 Pound Bag
+
+</span><mark>In stock SKU B08GFG99W8 Rating: 100 % of 100 1 Review Add Your Review $50.75 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Southern Weather embodies everything we love about specialty coffee and has evolved into a foundational blend. We brew this in our own cafes as a “House” filter option and love how it balances the relationship between modern citric acidity flavors with full bodied chocolates. This comfortable, yet surprisingly complex and sop</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_onyx_whole_bean_rating_scope_2</code> | bytes [242, 352) | <code>8a9b25c1ab134ad9aa24844288d14a7d73b6498a1746671cb2ba4d6b62c18a1e</code></div><pre class="context"><span>Onyx Coffee Lab &quot;Southern Weather Blend&quot; Medium Roasted Whole Bean Coffee - 2 Pound Bag
+
+In stock SKU B08GFG99W8 Rating: 100 % of 100 1 Review Add Your Review $50.75 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look </span><mark>Southern Weather embodies everything we love about specialty coffee and has evolved into a foundational blend.</mark><span> We brew this in our own cafes as a “House” filter option and love how it balances the relationship between modern citric acidity flavors with full bodied chocolates. This comfortable, yet surprisingly complex and sophisticated coffee is approachable to all. It performs well on its own for the purist or with fats such as dairy or plant based beverages, m</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/onyx-coffee-lab-southern-weather-blend-medium-roasted-whole-bean-coffee-2-pound-bag.html" target="_blank" rel="noreferrer">http://localhost:7770/onyx-coffee-lab-southern-weather-blend-medium-roasted-whole-bean-coffee-2-pound-bag.html</a></p><p>冻结文件: <a href="sources/8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1" target="_blank">sources/8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1</a></p><p>内容 SHA-256: <code>8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_one_review_aggregate_not_exact_lot_freshness_or_independent_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Onyx page shows SKU B08GFG99W8, a two-pound whole-bean offer at 50.75 dollars with a 100-percent-of-100 aggregate based on one review and seller flavor copy; it does not provide a verified roast or pack date, lot age, storage history, seal result, matched review evidence, or independent tasting of the exact bag.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ri_fresh_bulk_discussion_scope"><header><h3>prop_ri_fresh_bulk_discussion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a freshly roasted sourcing question, a three-month five-pound subscription report, a never-on-grocery-shelf claim, and a possibly-less-fresh imported coffee statement&quot;,
+  &quot;predicate&quot;: &quot;contains_conflicting_personal_freshness_and_consumption_statements&quot;,
+  &quot;subject&quot;: &quot;Rhode Island fresh and bulk coffee discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ri_fresh_bulk_discussion_scope_1</code> | bytes [14, 113) | <code>6fb9f37562d6817906f525bcb5d752d8d49a97ccdde9fa02e298014e43aa962b</code></div><pre class="context"><span>Coffee beans
+
+</span><mark>I live in Warwick and am looking for the best place for freshly roasted beans. Thanks in advance! 4</mark><span>
+
+Coffee Exchange on Wickenden Street in Providence is tremendous.
+
+They have the biggest variety!
+
+Too fah by RI standards, but I&#x27;m a fan of New Harvest and Borealis. Bolt is very good, too.
+
+Loveeee New Harvest!! Urban Greens grocery store in providence has New Harvest in the bulk area, so you can always fill up small bags with just a little of the differe</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ri_fresh_bulk_discussion_scope_2</code> | bytes [1509, 1626) | <code>5bd5d2d69aba3ad191ea7b532435e3e62241a541352bcdd57ee60df0252431e6</code></div><pre class="context"><span>caramel roasted taste overcomes the coffee’s brightness. You can get George’s beans at Seven Stars Bakery sites. I appreciate Borealis for not over roasting as well as for their single source beans from individual coffee estates, but they also have their consistent go to house blends. Trust me most are medium or lighter roast. In Bristol and Riverside.
+
+</span><mark>Dave’s roasters. They deliver. We order a 5 lb bag on subscription every 3 months. It’s good all the way through.</mark><span>
+
+This looks awesome, thanks!
+
+Bolt coffee. You can order beans online if you don’t want to drive to the city.
+
+Bolt was my goto but recently switched to New Harvest due to lower price. Would highly recommend both.
+
+TLC Coffee Roasters in West Kingston has a great selection of beans that are roasted on-site. Their food is also Excellent!
+
+TLC might have th</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ri_fresh_bulk_discussion_scope_3</code> | bytes [2359, 2477) | <code>d7cf13aee99ec02e7d4490c9d4364b7e26196b942e173bcce9a146145cd2c56c</code></div><pre class="context"><span>ate chip cookie in the state too.
+
+Bolt
+
+Thanks for this post. Would be cool to see if there are coffee tastings here in RI. I love coffee and looking for the right one as well. Love a strong coffee with bold flavor
+
+Me too, though I may explore some lighter roasts. To see what its like on that side of the roast. I generally brew at home with an Aeropress.
+
+</span><mark>North Koffee in NK on post Rd. Roasted on site in small batches. Freshest around. Never sits on a grocery store shelf.</mark><span> Great amount of variety to find something you like. Highly recommend.
+
+Thanks, I will check them out!
+
+Mills coffee in Providence
+
+It might not be as fresh as someone roasting it here, but I buy my beans roasted directly from a grower in Colombia. They harvest, dry, roast and package it in a tiny hacienda in the hills of Antioquia. I’d even send you a sma</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/RhodeIsland/36340/coffee-beans" target="_blank" rel="noreferrer">http://localhost:9999/f/RhodeIsland/36340/coffee-beans</a></p><p>冻结文件: <a href="sources/3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2" target="_blank">sources/3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2</a></p><p>内容 SHA-256: <code>3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_business_purchase_and_consumption_context_not_universal_storage_window_or_controlled_test&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Rhode Island thread asks for freshly roasted beans; individual commenters say a five-pound subscription remains good over three months and call an on-site small-batch source freshest because it never sits on a grocery shelf. These are personal business, package-size, timing, and preference statements, not measurements, a universal storage window, a warehouse rate, or tests of the exact captured coffees.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_roast_chemistry_staling_scope"><header><h3>prop_roast_chemistry_staling_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Maillard and other roast reactions plus lower roasted-bean stability, heat oxygen and light exposure, form-specific typical windows, and preservation effects&quot;,
+  &quot;predicate&quot;: &quot;links_roasting_stability_exposure_form_and_preservation&quot;,
+  &quot;subject&quot;: &quot;roasted-coffee chemistry and typical staling context&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_roast_chemistry_staling_scope_1</code> | bytes [0, 115) | <code>dcc7c6d11d3ba47e51cefb4f8105fc6f085118f031341a18ee0f579b5a550cac</code></div><pre class="context"><span></span><mark>Roasting coffee transforms the chemical and physical properties of green coffee beans into roasted coffee products.</mark><span> The roasting process produces the characteristic flavor of coffee by causing the green coffee beans to change in taste. Unroasted beans contain similar if not higher levels of acids , protein , sugars, and caffeine as those that have been roasted, but lack the taste of roasted coffee beans due to the Maillard and other chemical reactions that occur during r</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_roast_chemistry_staling_scope_2</code> | bytes [484, 597) | <code>c21b72c4d52d290e651b336cf58e8d25433ee51fbccf5eb19bd9246fe96c83bc</code></div><pre class="context"><span>ting process produces the characteristic flavor of coffee by causing the green coffee beans to change in taste. Unroasted beans contain similar if not higher levels of acids , protein , sugars, and caffeine as those that have been roasted, but lack the taste of roasted coffee beans due to the Maillard and other chemical reactions that occur during roasting. </span><mark>Coffee tends to be roasted close to where it will be consumed, as green coffee is more stable than roasted beans.</mark><span> [ 1 ] The vast majority of coffee is roasted commercially on a large scale, but small-scale commercial roasting has grown significantly with the trend toward &quot;single-origin&quot; coffees served at specialty shops. Some coffee drinkers roast coffee at home as a hobby in order to both experiment with the flavor profile of the beans and to ensure the freshest possi</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_roast_chemistry_staling_scope_3</code> | bytes [18362, 18505) | <code>9da11b3f2667afd642556d9566ba06516e11c4b7f5a7cf58bce4391ee5746e62</code></div><pre class="context"><span>y pre-roasted coffee. Later, home roasting faded in popularity with the rise of the commercial coffee roasting companies. In recent years home roasting of coffee has seen a revival. [ 47 ] In some cases there is an economic advantage, but primarily it is a means to achieve finer control over the quality and characteristics of the finished product. Packaging </span><mark>Extending the shelf life of roasted coffee relies on maintaining an optimum environment to protect it from exposure to heat, oxygen, and light.</mark><span> Roasted coffee has an optimal typical shelf life of two weeks, and ground coffee about 15 minutes. Without some sort of preservation method, coffee becomes stale. The first large-scale preservation technique was vacuum packing in cans. However, because coffee emits CO 2 after roasting, coffee to be vacuum-packed must be allowed to de-gas for several days be</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_roast_chemistry_staling_scope_4</code> | bytes [18506, 18604) | <code>166d82f4ccc346a99aac478669f2ab77c8fe23c12e98ed575ba28541e9b483c9</code></div><pre class="context"><span>oasting of coffee has seen a revival. [ 47 ] In some cases there is an economic advantage, but primarily it is a means to achieve finer control over the quality and characteristics of the finished product. Packaging Extending the shelf life of roasted coffee relies on maintaining an optimum environment to protect it from exposure to heat, oxygen, and light. </span><mark>Roasted coffee has an optimal typical shelf life of two weeks, and ground coffee about 15 minutes.</mark><span> Without some sort of preservation method, coffee becomes stale. The first large-scale preservation technique was vacuum packing in cans. However, because coffee emits CO 2 after roasting, coffee to be vacuum-packed must be allowed to de-gas for several days before it is sealed. To allow more immediate packaging, pressurized canisters or foil-lined bags with</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_roasting" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_roasting</a></p><p>冻结文件: <a href="sources/be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212" target="_blank">sources/be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212</a></p><p>内容 SHA-256: <code>be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_mechanism_and_typical_windows_not_exact_lot_age_or_universal_discard_clock&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The coffee-roasting page says roasting changes beans chemically and physically through Maillard and other reactions, green coffee is more stable than roasted beans, and roasted-coffee shelf life depends on protection from heat, oxygen, and light; its whole-bean and ground-coffee windows are general typical context, not a measurement of any exact lot or a universal sensory discard clock.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_segafredo_pod_preservation_scope"><header><h3>prop_segafredo_pod_preservation_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 32.99-dollar thirty-pod offer rated 100 percent over four reviews whose seller copy says filter-cup technology preserves aroma and flavor&quot;,
+  &quot;predicate&quot;: &quot;markets_aroma_preservation_with_near_perfect_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen Segafredo single-serve pod seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_segafredo_pod_preservation_scope_1</code> | bytes [93, 218) | <code>6e205f03e314c561e8706286157d2a1881e198e2f188c98cf7eedccca71ae40b</code></div><pre class="context"><span>Segafredo Enzo Rich and Bold Dark Roast Coffee, Single Serve Pods, 10 Count Box (Pack of 3)
+
+</span><mark>In stock SKU B084JHKDLC Rating: 100 % of 100 4 Reviews Add Your Review $32.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look ENZO- Region, climate, and soil affect the unique flavor characteristics of our select coffee beans. Segafredo Zanetti beans are blended and roasted with the utmost care to create this world-class taste. QUANTITY - Three boxes of 10 single serve capsules of Enzo dark roast (30 total) FEARLESS &amp; STRUCTURED - 100 percent Arabica, f</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_segafredo_pod_preservation_scope_2</code> | bytes [646, 785) | <code>3dfcb4248846a218e59740e0414cf0b539c9dea5443b2e16eded9cc5ee932d46</code></div><pre class="context"><span>the unique flavor characteristics of our select coffee beans. Segafredo Zanetti beans are blended and roasted with the utmost care to create this world-class taste. QUANTITY - Three boxes of 10 single serve capsules of Enzo dark roast (30 total) FEARLESS &amp; STRUCTURED - 100 percent Arabica, full body, bold acidity, smoky with dark chocolate and caramel notes </span><mark>FILTER CUP TECHNOLOGY - This eco-friendly pod design uses less plastic and preserves all of the aroma and rich flavor in every cup you brew</mark><span> HISTORY - Four generations of the Zanetti Family&#x27;s passion and expertise bring you this world-class taste Works with Keurig 2.0 K-Cup brewers - Product is not made by nor affiliated with Keurig Green Mountain, Inc. and their products Package Dimensions ‏ ‎ 11.69 x 5.91 x 3.86 inches; 1.21 Pounds UPC ‏ ‎ 694536927278 Manufacturer ‏ ‎ Massimo Zane</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/segafredo-enzo-rich-and-bold-dark-roast-coffee-single-serve-pods-10-count-box-pack-of-3.html" target="_blank" rel="noreferrer">http://localhost:7770/segafredo-enzo-rich-and-bold-dark-roast-coffee-single-serve-pods-10-count-box-pack-of-3.html</a></p><p>冻结文件: <a href="sources/21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38" target="_blank">sources/21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38</a></p><p>内容 SHA-256: <code>21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_package_claim_not_independent_barrier_test_date_or_sensory_result&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Segafredo page shows SKU B084JHKDLC at 32.99 dollars for thirty single-serve pods with a 100-percent-of-100 aggregate over four reviews and seller copy saying the filter-cup design preserves aroma and flavor; it supplies no independent barrier test, roast or pack date, seal history, oxygen measurement, or blind sensory result for the exact pods.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_siroman_fresh_roast_claim_scope"><header><h3>prop_siroman_fresh_roast_claim_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a selected 12-ounce whole-bean offer at 17.05 dollars rated 97 percent over seven reviews and described as fresh boarder roasted&quot;,
+  &quot;predicate&quot;: &quot;markets_fresh_roast_wording_with_high_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen Siroman whole-bean seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_siroman_fresh_roast_claim_scope_1</code> | bytes [114, 190) | <code>1aa12a172a1ddc0b68117526332e374d72592ab84a7bc8b05d347602c3e4071a</code></div><pre class="context"><span>Colombian Fresh Roast Organic Coffee Beans 4oz, 12oz, 1lb, 2lb, 4lb by Siroman Coffee (Colombian Cocktail, 12oz)
+
+</span><mark>In stock SKU B083TPKS3Q Rating: 97 % of 100 7 Reviews Add Your Review $17.05</mark><span> Flavor Name Baron de Sirot Border Roast BULG Caramel Colombian Cocktail Harmony Italian Roast Viennese Roast Size 12oz 1lb 2lb 4lb 4oz Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look These coffee beans created by European experience of roasting. We have combined the best European style and adapted for Americans. We are doing a sp</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_siroman_fresh_roast_claim_scope_2</code> | bytes [734, 779) | <code>074a140fc4614dab6528773e5be5b24374930930190c932c6548cc0d1def2860</code></div><pre class="context"><span>
+Details Product Quick Look These coffee beans created by European experience of roasting. We have combined the best European style and adapted for Americans. We are doing a special Border roast, it means between medium and dark roast. It’s a very special and mystique tasting coffee. Enjoy perfect roasted coffee with us. Very Specific and mystique coffee. </span><mark>Fresh boarder roasted Colombian coffee beans.</mark><span> Best for espresso, house coffee, french press, cold brew and other. It has a chocolate note very smooth. Contrary to popular belief, coffee itself is not where the health risks lie. Rather, the risks associated with drinking large amounts of coffee can actually be traced back to the chemical and pesticide residues when using inorganic coffee growing methods</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/colombian-fresh-roast-organic-coffee-beans-4oz-12oz-1lb-2lb-4lb-by-siroman-coffee-colombian-cocktail-12oz.html" target="_blank" rel="noreferrer">http://localhost:7770/colombian-fresh-roast-organic-coffee-beans-4oz-12oz-1lb-2lb-4lb-by-siroman-coffee-colombian-cocktail-12oz.html</a></p><p>冻结文件: <a href="sources/6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e" target="_blank">sources/6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e</a></p><p>内容 SHA-256: <code>6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_fresh_wording_not_verified_roast_date_lot_age_or_sensory_result&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Siroman page shows SKU B083TPKS3Q, the selected 12-ounce whole-bean variant at 17.05 dollars with a 97-percent-of-100 aggregate over seven reviews and seller wording that says fresh boarder roasted; the wording is not a verified roast date, exact lot age, storage record, seal test, gas measurement, or independent sensory result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_wa_bulk_price_freshness_scope"><header><h3>prop_wa_bulk_price_freshness_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a five-pound price question and one comment that a lower-cost Costco option is not as fresh while still being great coffee&quot;,
+  &quot;predicate&quot;: &quot;trades_bulk_price_against_one_freshness_impression&quot;,
+  &quot;subject&quot;: &quot;Washington five-pound coffee discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_wa_bulk_price_freshness_scope_1</code> | bytes [35, 194) | <code>190beef25ba5746736c74f54b2800987a13d86760b17a9545674e40a7a17bfb2</code></div><pre class="context"><span>Coffee roasters with 5 pound bags
+
+</span><mark>Any recommendations for PNW based coffee roasters that have decently priced 5 pound bags of coffee? Either one time purchase or subscription would work for me.</mark><span> I see Stumptown has their 5 pound bags for $80-$110, if I could find something around $60 that&#x27;d be sweet. Thanks! 1
+
+Dillanos coffee roasters and lamppost coffee roasters both sell 5lb bags, but not around the price you&#x27;re looking for. That might be difficult finding quality coffee for $60.
+
+They&#x27;re also pretty chill about holding subscriptions for custome</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_wa_bulk_price_freshness_scope_2</code> | bytes [1844, 2017) | <code>364a61f50a5b44ea56fa574ed5ef1f5893aa11e08b89e22203d2f30518ee643b</code></div><pre class="context"><span>ocally roasted coffee from Foxglove Farms. Their 2 lb bags are around $25 so while I&#x27;m not aware if they do 5 lb bags or not, your other criteria are met. Maybe they ship, idk, but here&#x27;s their info and you could contact them to check. It&#x27;s really good coffee. https://whidbeyislandgrown.localfoodmarketplace.com/Producer/662bfd99-8665-4d9c-ae9a-2d634cb6d502
+
+</span><mark>You can get Portland roasting at Costco and it’s like $10/lb that way, but it’s not as fresh. It’s $85 for a 5lb bag from their inner SE roastery. Great coffee though.</mark><span>
+
+Montana Coffee Traders, you can purchase online and set up a subscription. I like them all, but the following are my go tos: their Mexico Dark, Montana Mornings, and Dusk Til Dawn
+
+Oh but missed your pricing request, they&#x27;re up in the $72- $100 for 5#
+
+See if you can special order at grocery store like New Seasons or Whole Foods.
+
+Camano Island Coffee Roas</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/Washington/122879/coffee-roasters-with-5-pound-bags" target="_blank" rel="noreferrer">http://localhost:9999/f/Washington/122879/coffee-roasters-with-5-pound-bags</a></p><p>冻结文件: <a href="sources/643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52" target="_blank">sources/643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52</a></p><p>内容 SHA-256: <code>643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_scoped_price_and_freshness_impression_not_controlled_sensory_or_exact_offer_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;coffee_freshness_rating_exact_lot_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Washington thread asks for decently priced five-pound bags, and one commenter calls a roughly ten-dollar-per-pound Costco option not as fresh while still calling it great coffee and contrasting an 85-dollar roastery bag. This is an author-scoped price and freshness impression, not a blind comparison, measured lot age, prevalence estimate, or evidence for the four exact offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_freshness_rating_0040</td><td>case_spec</td><td><a href="sources/c2d30a1aa2d54b8ff31676f9f280f17df381443cb410f161f9ef266669f819e7">c2d30a1aa2d54b8ff31676f9f280f17df381443cb410f161f9ef266669f819e7</a></td><td><a href="http://case-spec.local/dra_v3_formal_coffee_tea_0040" target="_blank" rel="noreferrer">来源 URL</a></td><td>10243</td></tr><tr><td>reg_magento_dallmayr_prodomo_0040</td><td>magento</td><td><a href="sources/2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da">2add53725eff8f2b373cb694a16ade13aff23db3b5b4e6960cc7eff327fb87da</a></td><td><a href="http://localhost:7770/dallmayr-prodomo-arabica-ground-coffee-17-6oz-6-pack.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>686</td></tr><tr><td>reg_magento_onyx_southern_weather_0040</td><td>magento</td><td><a href="sources/8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1">8703dbe68dcfee696aa53d8c3a161c88f9e3edcfd3aa3922e932f0eb4cd711c1</a></td><td><a href="http://localhost:7770/onyx-coffee-lab-southern-weather-blend-medium-roasted-whole-bean-coffee-2-pound-bag.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2906</td></tr><tr><td>reg_magento_segafredo_enzo_0040</td><td>magento</td><td><a href="sources/21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38">21735e6533029cb3b75c6cf2cb389c5ced770044b3dd21fb38f37f00dceafc38</a></td><td><a href="http://localhost:7770/segafredo-enzo-rich-and-bold-dark-roast-coffee-single-serve-pods-10-count-box-pack-of-3.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1471</td></tr><tr><td>reg_magento_siroman_fresh_roast_0040</td><td>magento</td><td><a href="sources/6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e">6437cb5be0f17c5f5bbed2c22a413bd17ab4f80531bec082003eec498b29a42e</a></td><td><a href="http://localhost:7770/colombian-fresh-roast-organic-coffee-beans-4oz-12oz-1lb-2lb-4lb-by-siroman-coffee-colombian-cocktail-12oz.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2292</td></tr><tr><td>reg_postmill_nh_fresh_beans_0040</td><td>postmill</td><td><a href="sources/ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9">ce68fa707264c8962753affe3eaad4abb17c282cb2a42ddf71f4d54f64268da9</a></td><td><a href="http://localhost:9999/f/newhampshire/108217/nh-source-for-fresh-light-roasted-coffee-beans" target="_blank" rel="noreferrer">来源 URL</a></td><td>11975</td></tr><tr><td>reg_postmill_ri_fresh_beans_0040</td><td>postmill</td><td><a href="sources/3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2">3104d93dc69218ee2b4b353ce4f865d5ec4393bd4671188ce196a0e59213ccc2</a></td><td><a href="http://localhost:9999/f/RhodeIsland/36340/coffee-beans" target="_blank" rel="noreferrer">来源 URL</a></td><td>3207</td></tr><tr><td>reg_postmill_wa_five_pound_0040</td><td>postmill</td><td><a href="sources/643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52">643f739424003715d4adb933c334f73ba631b722449595087297ca4cd05cad52</a></td><td><a href="http://localhost:9999/f/Washington/122879/coffee-roasters-with-5-pound-bags" target="_blank" rel="noreferrer">来源 URL</a></td><td>2492</td></tr><tr><td>reg_search_coffee_bag</td><td>search_result</td><td><a href="sources/39c770bbef2f41a70d12d721c3a3e4a2cb7da7022e4c9926ac10b292e71ba4b3">39c770bbef2f41a70d12d721c3a3e4a2cb7da7022e4c9926ac10b292e71ba4b3</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=e573376a-60b5-4be4-96bc-2ae3172af52c" target="_blank" rel="noreferrer">来源 URL</a></td><td>2642</td></tr><tr><td>reg_search_coffee_bean</td><td>search_result</td><td><a href="sources/75fa4e40362ea05901fccdd0469e680f5f7293656524abee80f667905376515d">75fa4e40362ea05901fccdd0469e680f5f7293656524abee80f667905376515d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=e6eeb849-00c2-4211-9c4e-78e8d94c8729" target="_blank" rel="noreferrer">来源 URL</a></td><td>811</td></tr><tr><td>reg_search_coffee_quality_dimensions</td><td>search_result</td><td><a href="sources/949ec87ebe2610d02b60518501565953f649638d18feef19c04217a76cda124d">949ec87ebe2610d02b60518501565953f649638d18feef19c04217a76cda124d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=81018342-8091-4ee9-a6bc-ad27bd3e7195" target="_blank" rel="noreferrer">来源 URL</a></td><td>4425</td></tr><tr><td>reg_search_coffee_roasting</td><td>search_result</td><td><a href="sources/ff808af6635fd00a20a1efb4b8994c68facefbc0afc6201b2880a773dea072ab">ff808af6635fd00a20a1efb4b8994c68facefbc0afc6201b2880a773dea072ab</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=c01dac4e-6164-4f39-a710-e64d9ca5518e" target="_blank" rel="noreferrer">来源 URL</a></td><td>1420</td></tr><tr><td>reg_search_dallmayr_ground_sixpack</td><td>search_result</td><td><a href="sources/5d4083b49873de47bcad6f72efdef1e02e8b42b9e7fde706749217fbba8bb902">5d4083b49873de47bcad6f72efdef1e02e8b42b9e7fde706749217fbba8bb902</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=02487d66-a400-4e6b-97e7-38af5a2482c3" target="_blank" rel="noreferrer">来源 URL</a></td><td>6410</td></tr><tr><td>reg_search_food_packaging</td><td>search_result</td><td><a href="sources/149a13e00feb59006ec56e91d39117fcf021ddf36ed985097f3bc5c9306daa08">149a13e00feb59006ec56e91d39117fcf021ddf36ed985097f3bc5c9306daa08</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=846a5e04-6f3c-40ee-910a-e660747d08b6" target="_blank" rel="noreferrer">来源 URL</a></td><td>8723</td></tr><tr><td>reg_search_nh_fresh_beans</td><td>search_result</td><td><a href="sources/b6191f62deb5a8c2c847f0afe2613cf16c091e2e4cfecca32c12a7617ee48221">b6191f62deb5a8c2c847f0afe2613cf16c091e2e4cfecca32c12a7617ee48221</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=9c6dbb4b-467c-4539-a732-06e45b70f44b" target="_blank" rel="noreferrer">来源 URL</a></td><td>60411</td></tr><tr><td>reg_search_onyx_whole_bean</td><td>search_result</td><td><a href="sources/465adeb535f5af0effde4bba11556a28a3d436b521092bcca1bff72127c96f69">465adeb535f5af0effde4bba11556a28a3d436b521092bcca1bff72127c96f69</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=7b30b7ba-77be-4412-88c0-6b6ecc9cce15" target="_blank" rel="noreferrer">来源 URL</a></td><td>6804</td></tr><tr><td>reg_search_ri_fresh_beans</td><td>search_result</td><td><a href="sources/de67044d649cc26ff53a225a5220bf6395733edcfe704e66f4a74542e09d1a32">de67044d649cc26ff53a225a5220bf6395733edcfe704e66f4a74542e09d1a32</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=cd482a45-55cb-41b1-a2a2-df9860925f21" target="_blank" rel="noreferrer">来源 URL</a></td><td>44236</td></tr><tr><td>reg_search_segafredo_pods</td><td>search_result</td><td><a href="sources/a796d92749d81aaf0475b167e66fed602503109da7312bf43c1891a31ab767dd">a796d92749d81aaf0475b167e66fed602503109da7312bf43c1891a31ab767dd</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=77128bef-20a4-41de-a552-7c2e0838e841" target="_blank" rel="noreferrer">来源 URL</a></td><td>6251</td></tr><tr><td>reg_search_siroman_fresh_roast</td><td>search_result</td><td><a href="sources/711453c27bfe9d56fbd1de96feafc55d97bcd9dcb5ca034d9e7b502fa634c67f">711453c27bfe9d56fbd1de96feafc55d97bcd9dcb5ca034d9e7b502fa634c67f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=daa03a55-3c67-4f68-9c81-8098473ab7ff" target="_blank" rel="noreferrer">来源 URL</a></td><td>6021</td></tr><tr><td>reg_search_wa_five_pound</td><td>search_result</td><td><a href="sources/9f0a7da1a912245b7f40537442d765b3b733b176af3f635d507d214e243ef890">9f0a7da1a912245b7f40537442d765b3b733b176af3f635d507d214e243ef890</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1&amp;request_id=cc300786-f755-4263-8399-bce90150955d" target="_blank" rel="noreferrer">来源 URL</a></td><td>53236</td></tr><tr><td>reg_wikipedia_coffee_bag_0040</td><td>wikipedia</td><td><a href="sources/c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729">c7a59788923619c7d90ae5a58ad1c5840390e6ec6b55a7dcda735e6181dab729</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bag" target="_blank" rel="noreferrer">来源 URL</a></td><td>13185</td></tr><tr><td>reg_wikipedia_coffee_bean_0040</td><td>wikipedia</td><td><a href="sources/f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32">f7406ce06125bc82dc99fbe2aa336747dca5b8f919dee80e30f313f6ec87bf32</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_bean" target="_blank" rel="noreferrer">来源 URL</a></td><td>20182</td></tr><tr><td>reg_wikipedia_coffee_roasting_0040</td><td>wikipedia</td><td><a href="sources/be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212">be113efa3c735f5746718a3ec2717013d604a40b497932251122932cd0621212</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffee_roasting" target="_blank" rel="noreferrer">来源 URL</a></td><td>20109</td></tr><tr><td>reg_wikipedia_economics_coffee_0040</td><td>wikipedia</td><td><a href="sources/c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01">c91ca9f802486032eabab0ad84f193bb821e27dc79ce21ff39151a6e08273b01</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Economics_of_coffee" target="_blank" rel="noreferrer">来源 URL</a></td><td>20052</td></tr><tr><td>reg_wikipedia_food_packaging_0040</td><td>wikipedia</td><td><a href="sources/8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad">8b9c027426fefd0265190550964539df440db3aad5ea9cbd6a4e4004adef0cad</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Food_packaging" target="_blank" rel="noreferrer">来源 URL</a></td><td>20006</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-coffee-tea-0040-freshness-rating-boundary-20260716-r1";
+const graphHash = "e6cf1cc468fa2fea34ee7abf8f24023b42db3ef3d251b0aa1f9a71c5e3af2bfb";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

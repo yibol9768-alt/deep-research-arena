@@ -1,0 +1,82 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0012
+query_sha256: "bb46f61aae46f19fac79416fe029a67e65718e8cefcce726720579e976d7b6ad"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 判断不同参数功能哪些真正重要，哪些没那么重要。
+
+  Q2: 包含时效性，包含不同的键盘产品。
+
+  Q3: 验证这些参数是否对游戏体验或性能有实质提升。
+
+  Q4: 需要有用户的评价，以及轮询率/光学轴体/全键无冲的原理性验证。
+
+  Q5: 没有明确要求经验，但最好要有。
+
+  Q6: [由访谈助手完成] 参数验证vs安慰剂、人类感知阈值分析、价位合理产品推荐、买家真实反馈、时效性。
+
+  Q7: [由访谈助手完成] "past a basic level"门槛标准、"humanly perceptible"主观阈值、"sensibly priced"范围。
+
+initial_requirements:
+  - 验证键盘参数是真实优势还是安慰剂
+  - 分析参数对游戏性能的实际影响
+  - 推荐价位合理的产品
+  - 包含买家真实使用反馈
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 逐条验证 8000Hz 轮询率、光学轴体零去抖延迟、全键无冲等参数是真实的物理优势还是安慰剂效应，需包含技术原理解析
+    necessity_reason: Query 核心问题是"which of these features are physically real advantages, which are placebo"，省略则用户无法判断哪些参数值得为旗舰溢价买单
+    query_basis: "which of these features are physically real advantages, which are placebo"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 分析这些参数对游戏性能和体验的实际影响，验证"超过基本门槛后人类无法感知"的论断是否成立
+    necessity_reason: |-
+      Query 呈现了矛盾观点——朋友说"past a basic level none of it is humanly perceptible"，
+      省略此分析则用户无法判断参数在纸面之外的实操意义。
+    query_basis: "my friend insists that past a basic level none of it is humanly perceptible"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 包含买家的真实使用体验和反馈（覆盖声称枪法变好的好评和认为感知不到的两种声音）
+    necessity_reason: |-
+      Query 引用了"buyer reviews are full of people swearing their aim got better"，
+      与朋友的观点形成对比，缺少真实买家反馈则两种矛盾观点无法被实证检验。
+    query_basis: "buyer reviews are full of people swearing their aim got better the day the box arrived"
+    output_form: experience
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R4
+    requirement: 基于 R1-R3 的综合分析，推荐一款价位合理、包含真正重要参数但不过度堆参数的游戏键盘，必须是近期在售的
+    necessity_reason: Query 结尾明确要求"whether there's a sensibly priced board that already has the ones that genuinely matter"，推荐需验证哪些参数真正重要之后才能给出
+    query_basis: "whether there's a sensibly priced board that already has the ones that genuinely matter"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "past a basic level"
+    note: "\"基本门槛\"标准模糊——不同游戏类型、不同玩家水平的需求差异大"
+  - phrase: "humanly perceptible"
+    note: 人类感知阈值主观——职业玩家和休闲玩家可能完全不同
+  - phrase: "sensibly priced"
+    note: "\"价位合理\"范围模糊——$100? $150? $200?"
+  - phrase: "physically real advantages"
+    note: "\"真实物理优势\"和\"安慰剂\"的边界可能受个体差异影响"
+
+unresolved: []
+
+evidence_answerability: not_assessed

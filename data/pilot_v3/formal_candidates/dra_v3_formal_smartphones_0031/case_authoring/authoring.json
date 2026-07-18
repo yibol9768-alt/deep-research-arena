@@ -1,0 +1,343 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_smartphones_0031",
+  "cluster_id": "smartphone_runner_ingress_conditional_choice",
+  "difficulty": {
+    "proof_depth": 3,
+    "branching_factor": 5,
+    "distractor_density": 0.25,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "ip_rating_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Read an IP code as separate solid-particle and liquid-ingress levels. The cited reference describes IP67 as solid level 6 plus liquid level 7 and IP68 as solid level 6 plus liquid level 8, with the IP68 immersion depth determined by the manufacturer. The iPhone page explicitly includes both the iPhone 11 Pro and iPhone 11 Pro Max and says both models are IP68 water and dust resistant for 30 minutes at 4 meters while water damage is not covered by warranty. The Samsung Galaxy S22 page states IP68 up to 1.5 meters for 30 minutes. These model-specific conditions do not establish permanent waterproofing, arbitrary-liquid protection, or a promise for sweat, rain, salts, damaged seals, or repeated hot and humid cycles."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "protection_listing_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Keep the four protection pages at seller-listing scope and match each claim to its exact product. The AICase page fits the iPhone 11 Pro Max and advertises IP68, a test over 10 feet for 12 hours, a recommended depth around 10 feet, a maximum around 19.6 feet, no posted review, and that it is not recommended for daily use. The RUNBACH page says it fits an iPhone 11 Pro Max with a slim case and advertises water and sweat resistance plus marathon use, with twelve posted reviews but no matching exposure test. The universal diving housing lists the iPhone 11 Pro Max and advertises IPX8 and 20 meters, with no posted review. The Hitaoyou case fits the same phone and advertises a 16-foot drop test with shock, scratch, and bump protection. None of these pages independently tests an exact phone-and-accessory combination through runner sweat, rain, salts, heat, humidity, or repeated training, and the ordinary impact case does not change the phone's IP rating."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "scoped_ingress_experience_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Use the community pages only as individual reports, beliefs, and disagreement. One author calls an IP68 phone waterproof while feeling uneasy about rinsing it. Another reports cooling an IP68 iPhone 13 mini under a tap; replies recommend avoiding deliberate wetting or report a different individual outcome. A third author says moisture was cited when replacement of an iPhone 13 Pro Max was refused while denying water exposure. A case discussion mixes a general waterproof belief with personal drop-and-case experiences. The sweat and corrosion references provide exposure context but do not verify the forum claims. These posts do not establish product performance, population prevalence, technical causation, or warranty policy for the iPhone 11 Pro Max and its accessories."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "sweat_non_equivalence_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Runner exposure is not interchangeable with a model's stated immersion condition. The perspiration reference describes eccrine sweat as watery and brackish and says heat or exertion increases sweating. The sweat-diagnostics reference says sweat is mostly water and lists sodium and chloride among its solutes. The corrosion reference says temperature, humidity, and salinity affect galvanic corrosion. These background facts explain why exposure conditions matter, but they neither prove this phone or accessory will corrode or fail nor prove that it will survive sweat, rain, salts, heat, humidity, or repeated cycles."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "conditional_ingress_trial_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Use a reversible low-exposure process instead of assuming a label is a complete runner test. First verify exact model fit, closure and seal instructions, allowed conditions, usability, return terms, and service or warranty terms. If the seller instructions permit it, put only dry absorbent material in the empty case or housing for the initial leak check and keep the phone out. Inspect the closure and dry the accessory after that check. Only then use short, incremental training trials under less severe conditions, inspect and dry after each run, and keep an essential phone out of direct exposure when practical. A successful empty check or short run is a process observation, not a long-term sweat, rain, salt, heat, humidity, or marathon guarantee."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "evidence_bounded_runner_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Read the phone and accessory ratings only with their exact conditions, keep sweat and corrosion material at background scope, and treat the seller pages and forum posts according to their evidence roles. Do not call the bare phone, ordinary impact case, sweatproof armband, sealed IP68 case, or diving housing marathon-proof. Prefer reducing exposure, then choose the least-exposure returnable setup that passes exact fit, instructions, empty-accessory, short-run, usability, inspection, drying, and service checks. Keep an essential phone out of exposure or defer if those checks, seller terms, or direct sweat and repeated-cycle evidence are missing."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "choose_the_lowest_exposure_returnable_setup_that_passes_those_checks_or_keep_the_phone_out_of_exposure_and_defer": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Choose the least-exposure returnable setup that passes exact fit, seller-condition, empty-accessory, short-run, usability, inspection, drying, and service checks; otherwise keep the essential phone out of exposure or defer without calling any setup marathon-proof.",
+            "Reduce direct sweat and rain exposure, trial only a returnable sealed option under its instructions, and defer when exact terms or repeated runner evidence are missing rather than promising long-term survival."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "choose_the_lowest_exposure_returnable_setup_that_passes_those_checks_or_keep_the_phone_out_of_exposure_and_defer",
+          "when": "the_sources_support_bounded_ip_conditions_product_claims_exposure_background_and_individual_reports_but_not_an_exact_repeated_runner_combination_test",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The sources support separate IP digits, model-specific depth and duration, seller claims for four matching protection products, sweat composition, generic corrosion conditions, and individual community reports, but contain no direct test of any exact phone-and-accessory combination under sweat, rain, salts, heat, humidity, or a complete marathon-training cycle."
+            ],
+            "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+          },
+          "tradeoff_matchers": {
+            "ip_conditions_are_bounded": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "IP67 and IP68 separate solid and liquid levels, and the two IP68 phone pages state different model-specific depths for the same duration, so the code is not permanent waterproofing or an arbitrary-liquid guarantee."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "seller_claims_are_not_combo_tests": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The case, armband, housing, and impact-case pages establish seller claims and exact compatibility only; they do not independently test the complete phone-and-protection combination through runner exposure, and the ordinary case does not add an IP rating."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "sweat_background_is_not_device_damage_proof": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Sweat can be watery and brackish with sodium and chloride, and temperature, humidity, and salinity can affect galvanic corrosion, but those general facts neither prove damage nor prove survival for this phone and accessory."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "community_reports_are_not_policy_or_prevalence": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The community pages contain individual beliefs, deliberate water exposure, disagreement, a disputed moisture and warranty report, and case-use histories, not controlled product tests, population prevalence, causation, or verified warranty policy."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "one_trial_is_not_a_long_term_guarantee": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "An empty-accessory check allowed by the seller instructions and short incremental runs can reduce immediate uncertainty, but a single pass cannot establish long-term protection through repeated sweat, rain, salt, heat, humidity, or a marathon cycle."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "reduced_exposure_or_defer": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The practical choice is the least-exposure returnable setup that passes exact fit, instructions, usability, inspection, drying, return, and service checks, while keeping an essential phone out of direct exposure or deferring when the evidence and terms are insufficient."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_ip68_means_permanent_waterproofing",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["An IP68 phone is permanently waterproof against every liquid and every exposure condition."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_ip68_has_one_universal_depth",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Every IP68 phone has the same depth and duration promise, so the iPhone and Samsung conditions are interchangeable."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_phone_water_condition_covers_sweat_and_hot_cycles",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The stated phone immersion condition directly proves survival in sweat, salt, rain, heat, humidity, and repeated marathon training."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_sweat_and_corrosion_background_proves_phone_failure",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["Because sweat contains sodium and chloride and salinity affects corrosion, this exact phone and case will necessarily corrode and fail."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_claims_are_independent_combo_tests",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The accessory listings independently prove that each complete iPhone 11 Pro Max combination survives marathon sweat and rain."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_ordinary_case_changes_phone_ip_rating",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The ordinary 16-foot drop-tested shockproof case upgrades the iPhone's own liquid protection and IP rating."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_forum_posts_prove_product_performance",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The forum posts establish how these products perform for most runners and settle whether deliberate water exposure is safe."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_warranty_anecdote_is_verified_policy",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["One disputed moisture report proves the full warranty policy and cause of failure for every iPhone model."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_empty_case_test_proves_long_term_combo_survival",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["One successful water check with the accessory proves that the phone and accessory will remain sealed through all future training."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_any_setup_is_marathon_proof",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": ["The sources justify an unconditional marathon-proof guarantee for the bare phone, case, armband, or diving housing."],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Explain the two IP digits and compare the exact iPhone and Samsung model conditions without turning IP68 into a permanent or universal liquid promise.",
+      "critical": true,
+      "requires": ["E3", "E6", "E9", "B1"],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Compare the four protection listings for exact compatibility and stated conditions while separating phone ratings, accessory claims, impact protection, and missing combination tests.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E9", "B2"],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Use sweat composition and generic corrosion conditions to explain exposure non-equivalence without inferring failure or survival for this device.",
+      "critical": true,
+      "requires": ["E8", "E9", "E11", "E12", "B4"],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Summarize the water, moisture, warranty, and case discussions at individual scope and avoid treating them as policy, prevalence, causation, or controlled product evidence.",
+      "critical": true,
+      "requires": ["E3", "E7", "E8", "E10", "E11", "E12", "E13", "E14", "B3"],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Combine the four evidence branches into an empty-accessory check, short incremental trials, inspection, drying, and return or service checks, then choose a low-exposure setup or defer without a marathon guarantee.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "E13", "E14", "B1", "B2", "B3", "B4", "B5", "D1"],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Explain the separate solid and liquid IP levels, compare the iPhone 11 Pro Max and Samsung Galaxy S22 stated depths and duration, and state why IP68 is not permanent waterproofing or a promise for every liquid and exposure.",
+      "slot_ids": ["E3", "E6", "E9", "B1"],
+      "subgoal_ids": ["G1"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Compare the ordinary shock case, sealed IP68 case, sweatproof armband, and IPX8 diving housing for exact iPhone 11 Pro Max compatibility and stated conditions, while treating every page as a seller claim rather than a complete runner test.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E9", "B2"],
+      "subgoal_ids": ["G2"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Explain why sweat, salts, heat, humidity, and repeated runner exposure are not interchangeable with the phone's stated water condition, but do not use generic sweat or corrosion material to predict damage or survival for this device.",
+      "slot_ids": ["E8", "E9", "E11", "E12", "B4"],
+      "subgoal_ids": ["G3"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Use the rinsing, tap-water cooling, moisture and warranty, and case discussions only as individual reports and disagreement; do not convert them into product performance, prevalence, causation, or verified warranty policy.",
+      "slot_ids": ["E3", "E7", "E8", "E10", "E11", "E12", "E13", "E14", "B3"],
+      "subgoal_ids": ["G4"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Give a low-exposure reversible process that checks exact fit, seller instructions, closure, return and service terms, tests only an empty accessory with dry absorbent material when allowed, then uses short incremental runs with inspection and drying; choose the least-exposure passing setup or keep the phone out of exposure and defer, without promising long-term or marathon survival.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "E13", "E14", "B1", "B2", "B3", "B4", "B5", "D1"],
+      "subgoal_ids": ["G5"],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "choose_the_lowest_exposure_returnable_setup_that_passes_those_checks_or_keep_the_phone_out_of_exposure_and_defer",
+      "when": "the_sources_support_bounded_ip_conditions_product_claims_exposure_background_and_individual_reports_but_not_an_exact_repeated_runner_combination_test",
+      "required_tradeoffs": [
+        "ip_conditions_are_bounded",
+        "seller_claims_are_not_combo_tests",
+        "sweat_background_is_not_device_damage_proof",
+        "community_reports_are_not_policy_or_prevalence",
+        "one_trial_is_not_a_long_term_guarantee",
+        "reduced_exposure_or_defer"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "E13", "E14", "B1", "B2", "B3", "B4", "B5", "D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"},
+      "E8": {"outcome": "decision_unresolved"},
+      "E9": {"outcome": "decision_unresolved"},
+      "E10": {"outcome": "decision_unresolved"},
+      "E11": {"outcome": "decision_unresolved"},
+      "E12": {"outcome": "decision_unresolved"},
+      "E13": {"outcome": "decision_unresolved"},
+      "E14": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 50,
+    "minimum_required_evidence_nodes": 14,
+    "minimum_reasoning_depth": 3
+  }
+}

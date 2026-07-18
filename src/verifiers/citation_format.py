@@ -446,6 +446,56 @@ def _build_numbered_table(answer: str) -> dict[str, str]:
     return table
 
 
+def _numbered_definition_anchor_offsets(
+    answer: str, table: dict[str, str]
+) -> set[int]:
+    """Return ``[N]`` offsets that define bibliography entries, not claims.
+
+    ``NUMBERED_INLINE_RE`` also matches the ``[N]`` at the start of a reference
+    definition.  Counting that marker as another citation doubles citation
+    density and source-diversity totals for every numbered-reference report.
+    A definition is recognised when it is under a References/Sources heading,
+    or when its line (plus STORM/LDR's short continuation window) contains the
+    URL already resolved for that number.
+    """
+    if not table:
+        return set()
+    heading = re.search(
+        r"(?im)^#{1,6}\s+(?:references?|sources?|bibliography)\s*:?\s*$",
+        answer,
+    )
+    heading_offset = heading.start() if heading else None
+    lines = answer.splitlines(keepends=True)
+    offsets: list[int] = []
+    cursor = 0
+    for line in lines:
+        offsets.append(cursor)
+        cursor += len(line)
+
+    definitions: set[int] = set()
+    for i, line in enumerate(lines):
+        match = _REF_HEAD_RE.match(line.rstrip("\r\n"))
+        if not match or match.group("n") not in table:
+            continue
+        anchor_offset = offsets[i] + match.start("n") - 1
+        if heading_offset is not None and anchor_offset >= heading_offset:
+            definitions.add(anchor_offset)
+            continue
+
+        expected = canonicalize_url(table[match.group("n")])
+        for j in range(i, min(i + 4, len(lines))):
+            if j > i and _REF_HEAD_RE.match(lines[j].rstrip("\r\n")):
+                break
+            candidates = [m.url for m in iter_markdown_links(lines[j])]
+            candidates.extend(
+                strip_url_trail(m.group(0)) for m in BARE_URL_RE.finditer(lines[j])
+            )
+            if any(canonicalize_url(url) == expected for url in candidates):
+                definitions.add(anchor_offset)
+                break
+    return definitions
+
+
 def _build_footnote_table(answer: str) -> dict[str, str]:
     """Parse ``[^N]: http://...`` footnote definition lines."""
     table: dict[str, str] = {}
@@ -459,6 +509,73 @@ def _build_footnote_table(answer: str) -> dict[str, str]:
             continue
         table[m.group("n")] = strip_url_trail(url_m.group(0))
     return table
+
+
+def materialize_reference_links(answer: str) -> str:
+    """Return a verifier-only view with reference anchors made explicit.
+
+    Numbered-reference frameworks such as STORM put ``[N]`` beside the claim
+    and keep the URL in a bibliography (or in a verified native sidecar that
+    the scorer has appended to its in-memory view).  Verifiers whose prompts
+    operate on one paragraph cannot otherwise see which URL ``[N]`` names.
+
+    This helper converts *inline* numbered and footnote anchors to ordinary
+    Markdown links while leaving bibliography definition anchors untouched::
+
+        Claim supported here [3].       -> Claim supported here [3](URL).
+        [3] URL                          -> [3] URL
+
+    It never invents a mapping: only entries parsed from ``answer`` are used.
+    The returned string is an ephemeral verifier view; callers must not write
+    it back over the sealed agent report.
+    """
+    if not answer:
+        return answer or ""
+
+    numbered = _build_numbered_table(answer)
+    numbered_defs = _numbered_definition_anchor_offsets(answer, numbered)
+    footnotes = _build_footnote_table(answer)
+
+    replacements: list[tuple[int, int, str]] = []
+    for match in NUMBERED_INLINE_RE.finditer(answer):
+        if match.start() in numbered_defs:
+            continue
+        # Do not turn an already explicit ``[N](url)`` link into
+        # ``[N](url)(url)``.
+        if match.end() < len(answer) and answer[match.end()] == "(":
+            continue
+        url = numbered.get(match.group("n"))
+        if url:
+            replacements.append(
+                (match.start(), match.end(), f"[{match.group('n')}]({url})")
+            )
+
+    footnote_definition_offsets = {
+        match.start()
+        for match in FOOTNOTE_REF_LINE_RE.finditer(answer)
+    }
+    for match in FOOTNOTE_INLINE_RE.finditer(answer):
+        if match.start() in footnote_definition_offsets:
+            continue
+        url = footnotes.get(match.group("n"))
+        if url:
+            replacements.append(
+                (match.start(), match.end(), f"[^{match.group('n')}]({url})")
+            )
+
+    if not replacements:
+        return answer
+    replacements.sort(key=lambda row: row[0])
+    chunks: list[str] = []
+    cursor = 0
+    for start, end, replacement in replacements:
+        if start < cursor:
+            continue
+        chunks.append(answer[cursor:start])
+        chunks.append(replacement)
+        cursor = end
+    chunks.append(answer[cursor:])
+    return "".join(chunks)
 
 
 def extract_citations(
@@ -555,7 +672,10 @@ def extract_citations(
     #    `[N]` anchor cites that URL. Style = "numbered".
     num_table = _build_numbered_table(answer)
     if num_table:
+        definition_offsets = _numbered_definition_anchor_offsets(answer, num_table)
         for m in NUMBERED_INLINE_RE.finditer(answer):
+            if m.start() in definition_offsets:
+                continue
             url = num_table.get(m.group("n"))
             if not url:
                 continue

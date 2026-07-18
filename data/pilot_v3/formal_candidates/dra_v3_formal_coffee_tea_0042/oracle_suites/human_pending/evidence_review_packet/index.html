@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1</code></p>
+<p>证据图哈希: <code>0ee197d3adcea81d636908c9e8e19e79b8fc36b2dee35d4576e4539912895307</code></p>
+<p>待审项 24 个，其中语义项 12 个、结构化项 0 个；冻结来源 25 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_black_tea_brew_sensory_scope"><header><h3>assert_black_tea_brew_sensory_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;particle size and steeping alter extraction while ISO 3103 is a comparison method rather than an everyday recipe&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for black-tea brewing and sensory comparison&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_black_tea_brew_sensory_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_brew_and_sensory_protocol_not_exact_best_recipe_or_preference_result&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;particle size and steeping alter extraction while ISO 3103 is a comparison method rather than an everyday recipe&quot;,
+  &quot;predicate&quot;: &quot;requires_controlled_dose_temperature_time_and_comparison_procedure&quot;,
+  &quot;subject&quot;: &quot;black-tea brewing and sensory comparison&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_black_tea_brew_sensory_scope_1</code> | bytes [14869, 14911) | <code>4e8d172fbfa1cda1e0bc86e8b69908bcbeeced8e29a02f8c92b59e838e080dd0</code></div><pre class="context"><span>8 Â°F) for 3â5 min. [ 15 ] Whole-leaf black teas, and black teas to be served with milk or lemon, should be steeped four to five minutes. [ 16 ] The more delicate black teas, such as Darjeeling, should be steeped for three to four minutes. The same holds for broken leaf teas, which have more surface area and need less brewing time than whole leaves. </span><mark>Longer steeping times makes the tea bitter</mark><span> (at this point, it is referred to as being &quot;stewed&quot; in the UK). When the tea has brewed long enough to suit the drinker&#x27;s taste, it should be strained before it is served. A cold vessel lowers the steep temperature; to avoid this, the brewing vessel is rinsed with water at a temperature of at least 90 Â°C (194 Â°F) before brewing. The ISO Standard 310</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Black_tea" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Black_tea</a></p><p>冻结文件: <a href="sources/dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af" target="_blank">sources/dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af</a></p><p>内容 SHA-256: <code>dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_chai_variability_anecdote_scope"><header><h3>assert_chai_variability_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one drinker described cups ranging from plain milk tea to spicy chai&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for afternoon chai preparation report&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_chai_variability_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_shop_and_chai_context_not_exact_offer_or_general_variability_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one drinker described cups ranging from plain milk tea to spicy chai&quot;,
+  &quot;predicate&quot;: &quot;reports_same_shop_as_hit_or_miss&quot;,
+  &quot;subject&quot;: &quot;afternoon chai preparation report&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_chai_variability_anecdote_scope_1</code> | bytes [82, 116) | <code>4f4b2634a615a2357d7afc912b7c4a5f5c2d3bc60453a119bbb93a950c63d9ce</code></div><pre class="context"><span>Spill the tea: where&#x27;s the best chai in Cambridge/Somerville?
+
+Title says it all. </span><mark>I&#x27;m an afternoon chai kind of guy.</mark><span> Darwin&#x27;s was my go-to before their devastating demise, though too be fair their chai was sometimes hit or miss (sometimes just milk tea, sometimes nice and spicy). Looking for options/replacements. So where are the best places for a top-notch chai latte? 44
+
+I’ve tried many chai lattes around and think that Yafa Bakery &amp; Cafe ( https://maps.app.goo.gl/zAJ</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/CambridgeMA/75747/spill-the-tea-where-s-the-best-chai-in-cambridge-somerville" target="_blank" rel="noreferrer">http://localhost:9999/f/CambridgeMA/75747/spill-the-tea-where-s-the-best-chai-in-cambridge-somerville</a></p><p>冻结文件: <a href="sources/5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905" target="_blank">sources/5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905</a></p><p>内容 SHA-256: <code>5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ctc_typical_bag_scope"><header><h3>assert_ctc_typical_bag_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;general convenience, price, liquor, flavor, and bitterness context for CTC-type tea&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for CTC manufacture and typical bag use&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ctc_typical_bag_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_ctc_context_not_proof_of_exact_twinings_process_or_personal_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;general convenience, price, liquor, flavor, and bitterness context for CTC-type tea&quot;,
+  &quot;predicate&quot;: &quot;produces_small_pellets_suited_to_quick_dark_brews&quot;,
+  &quot;subject&quot;: &quot;CTC manufacture and typical bag use&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ctc_typical_bag_scope_1</code> | bytes [0, 259) | <code>c7fc28c4d2271170e2c4ae96a322aebc1d65bf3e02dbc4bd532a8206952bacf0</code></div><pre class="context"><span></span><mark>Crush, tear, curl (sometimes cut, tear, curl ) is a method of processing tea leaves into black tea in which the leaves are passed through a series of cylindrical rollers with hundreds of sharp teeth that crush, tear, and curl the tea into small, hard pellets.</mark><span> This replaces the final stage of orthodox tea manufacture, in which the leaves are rolled into strips. Tea produced using this method is generally called CTC tea or mamri tea . History The first CTC machine was brought into service in 1930 at the Amgoorie Tea Garden in Assam under the supervision of Sir William McKercher. [ 1 ] [ 2 ] It proliferated over th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Crush%2C_tear%2C_curl" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Crush%2C_tear%2C_curl</a></p><p>冻结文件: <a href="sources/3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16" target="_blank">sources/3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16</a></p><p>内容 SHA-256: <code>3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_hyleys_lowprice_loose_scope"><header><h3>assert_hyleys_lowprice_loose_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07DLR71Q6 at 7.70 dollars for a 100-gram or 3.52-ounce strawberry-cranberry black loose-tea tin rated 68 percent over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Hyleys flavored loose-tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_hyleys_lowprice_loose_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_showing_loose_tin_is_not_inherently_premium_not_matched_taste_or_health_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07DLR71Q6 at 7.70 dollars for a 100-gram or 3.52-ounce strawberry-cranberry black loose-tea tin rated 68 percent over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_lowprice_loose_tin_and_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen Hyleys flavored loose-tea seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_hyleys_lowprice_loose_scope_1</code> | bytes [0, 119) | <code>284c791f8bbb99e6352a5d3d987160b59a24589dc5ba139fc8379da76c9ad275</code></div><pre class="context"><span></span><mark>Hyleys Traveller&#x27;s Collection 1001 Mystery Loose Leaf Black Tea with Strawberry and Cranberry in Tin, 3.52 Ounce (100g)</mark><span> - (100% Natural, Sugar Free, Gluten Free and Non-GMO)
+
+In stock SKU B07DLR71Q6 Rating: 68 % of 100 12 Reviews Add Your Review $7.70 Flavor Name Black Tea with Strawberry and Cranberry Green Tea with Mint Rose and Blue Corn F... Lemon Milk Oolong Chinese Medium Leaf Tea Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Hyleys Tea</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hyleys-traveller-s-collection-1001-mystery-loose-leaf-black-tea-with-strawberry-and-cranberry-in-tin-3-52-ounce-100g-100-natural-sugar-free-gluten-free-and-non-gmo.html" target="_blank" rel="noreferrer">http://localhost:7770/hyleys-traveller-s-collection-1001-mystery-loose-leaf-black-tea-with-strawberry-and-cranberry-in-tin-3-52-ounce-100g-100-natural-sugar-free-gluten-free-and-non-gmo.html</a></p><p>冻结文件: <a href="sources/348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5" target="_blank">sources/348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5</a></p><p>内容 SHA-256: <code>348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_infuser_setup_question_scope"><header><h3>assert_infuser_setup_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author wants an in-person tea-ware and infuser purchase experience&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for tea-infuser shopping question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_infuser_setup_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_equipment_question_not_required_equipment_price_or_universal_setup_burden&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one author wants an in-person tea-ware and infuser purchase experience&quot;,
+  &quot;predicate&quot;: &quot;asks_where_to_inspect_and_buy_equipment&quot;,
+  &quot;subject&quot;: &quot;tea-infuser shopping question&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_infuser_setup_question_scope_1</code> | bytes [31, 99) | <code>f511abd69ca7d6d261b2f2f56b244a81a8b7b32453037260176d78b6a1e60496</code></div><pre class="context"><span>Tea-ware in or around Boston?
+
+</span><mark>Dear Bostonians, is there any store you know i can buy tea infusers?</mark><span> It’d be nice to have a specialized place to enjoy the in person experience of checking tea ware. 3
+
+There’s a Mems in Davis I typically go to for tea
+
+I believe Mem Tea is about the only place left around Boston. They are a nice shop and worth the visit.
+
+Mem tea in Davis
+
+Fourthing mem tea, I love their Russian Caravan too. As an aside, it’s a traged</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/boston/59605/tea-ware-in-or-around-boston" target="_blank" rel="noreferrer">http://localhost:9999/f/boston/59605/tea-ware-in-or-around-boston</a></p><p>冻结文件: <a href="sources/92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411" target="_blank">sources/92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411</a></p><p>内容 SHA-256: <code>92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_kettle_confound_anecdote_scope"><header><h3>assert_kettle_confound_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one habitual drinker&#x27;s perceived citrus change was traced to diluted vinegar left in a kettle&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for favorite-tea kettle incident&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_kettle_confound_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_incident_and_personal_preference_not_prevalence_causal_rate_or_product_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one habitual drinker&#x27;s perceived citrus change was traced to diluted vinegar left in a kettle&quot;,
+  &quot;predicate&quot;: &quot;mistook_a_brew_setup_contaminant_for_recipe_change&quot;,
+  &quot;subject&quot;: &quot;favorite-tea kettle incident&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_kettle_confound_anecdote_scope_1</code> | bytes [305, 504) | <code>62982fc9e0a73fb61f969849117d354c31f4a89b02a738bf327438e49cb0dce1</code></div><pre class="context"><span>TIFU by descaling the kettle, forgetting about it, and having my mom drink vinegar
+
+My mother is in her mid-60&#x27;s and is an avid tea drinker, she also has barely any sense of taste or smell due to health related issues (not covid). Even though she care barely taste or smell, she still has a favorite tea. </span><mark>Kroger brand ginger and turmeric tea. She will buy out the entire stock on a weekly basis. It&#x27;s her fave tea, and as tea drinkers know, if they change the recipe it&#x27;s hard to find something the same.</mark><span> So when she came home early from a weekend trip from our cabin up north due to the snow, imagine her dismay as she finds her tea &quot;tasting too citrusy.&quot; I had just come home from running errands and as the family nose (strongest sense of taste/smell) my brother rushes me and asks me to smell the box of tea bags to see if it is indeed more citrus than before.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/114383/tifu-by-descaling-the-kettle-forgetting-about-it-and-having" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/114383/tifu-by-descaling-the-kettle-forgetting-about-it-and-having</a></p><p>冻结文件: <a href="sources/22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41" target="_blank">sources/22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41</a></p><p>内容 SHA-256: <code>22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_leaf_grade_format_ordering_scope"><header><h3>assert_leaf_grade_format_ordering_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;leaf size affects preparation while expensive fannings may outperform cheaper whole leaf and bags may contain different grades&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for tea leaf grading and format boundaries&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_leaf_grade_format_ordering_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_grading_and_cross_price_counterexample_not_exact_product_grade_or_taste_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;leaf size affects preparation while expensive fannings may outperform cheaper whole leaf and bags may contain different grades&quot;,
+  &quot;predicate&quot;: &quot;uses_leaf_condition_and_size_without_universal_cross_product_order&quot;,
+  &quot;subject&quot;: &quot;tea leaf grading and format boundaries&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_leaf_grade_format_ordering_scope_1</code> | bytes [182, 296) | <code>7ba9b612c7090d9e11f9e2c3b03d64f3e394d4d65843a0baae4f2dc472ce20ab</code></div><pre class="context"><span>&quot;Orange Pekoe&quot; redirects here. For the Japanese jazz band, see Orange Pekoe (band) . For the Girls und Panzer character, see List of Girls und Panzer characters Â§ Orange Pekoe . </span><mark>Tea leaf grading is the process of evaluating tea based on the quality and condition of the tea leaves themselves.</mark><span> The highest grades for Western and South Asian teas are referred to as &quot; orange pekoe &quot; (abbreviated as &quot;OP&quot;), and the lowest as &quot; fannings &quot; or &quot;dust&quot;. Pekoe tea grades are classified into various qualities, each determined by how many of the adjacent young leaves (two, one, or none) were picked along with the leaf buds. Top-quality pekoe grades consist of</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tea_leaf_grading" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Tea_leaf_grading</a></p><p>冻结文件: <a href="sources/28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c" target="_blank">sources/28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c</a></p><p>内容 SHA-256: <code>28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_loose_tea_availability_question_scope"><header><h3>assert_loose_tea_availability_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author is willing to search statewide for a loose-leaf seller&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for loose-leaf retail availability question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_loose_tea_availability_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_local_availability_question_not_current_stock_price_quality_or_general_access_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one author is willing to search statewide for a loose-leaf seller&quot;,
+  &quot;predicate&quot;: &quot;asks_for_shops_selling_loose_leaf_tea&quot;,
+  &quot;subject&quot;: &quot;loose-leaf retail availability question&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_loose_tea_availability_question_scope_1</code> | bytes [12, 82) | <code>f2132bcd66653487eb43c348c88372955bac2bcd4e5d2438898bb8f6d5d16b3e</code></div><pre class="context"><span>tea shops?
+
+</span><mark>does anyone know if there are any tea shops that sell loose leaf teas?</mark><span> doesn’t even have to be in providence it can be anywhere in the state 7
+
+Farmacy Herbs , just off North Main St across from the cemetery.
+
+thanks!
+
+Shastea on Broadway (near Julian’s).
+
+thank you!
+
+Seven Arrows Farm, tearoom, shop and plant nursery.
+
+Always worth a visit
+
+ceremony!!!</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/providence/90027/tea-shops" target="_blank" rel="noreferrer">http://localhost:9999/f/providence/90027/tea-shops</a></p><p>冻结文件: <a href="sources/3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b" target="_blank">sources/3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b</a></p><p>内容 SHA-256: <code>3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ninas_price_mass_conflict_scope"><header><h3>assert_ninas_price_mass_conflict_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B082YCZMZ5 at 34 dollars and 87 percent over three reviews with 2.8 ounces in the title but 3.5 ounces or 100 grams in the body&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Nina&#x27;s loose-tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ninas_price_mass_conflict_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_with_unresolved_net_content_conflict_not_independent_taste_or_value&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B082YCZMZ5 at 34 dollars and 87 percent over three reviews with 2.8 ounces in the title but 3.5 ounces or 100 grams in the body&quot;,
+  &quot;predicate&quot;: &quot;shows_premium_price_rating_and_conflicting_mass_fields&quot;,
+  &quot;subject&quot;: &quot;frozen Nina&#x27;s loose-tea seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ninas_price_mass_conflict_scope_1</code> | bytes [0, 93) | <code>6543ad9cbc26579dee8e3909ade50f2096a771cedbd381d7a9b30c9ba6e760ff</code></div><pre class="context"><span></span><mark>Nina&#x27;s Paris, Fete de Versailles French Loose Tea in Original White Tin, 2.8 Ounces, Imported</mark><span>
+
+In stock SKU B082YCZMZ5 Rating: 87 % of 100 3 Reviews Add Your Review $34.00 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Nina&#x27;s Marie Antoinette tea is flavoured with the apples exclusively grown at the Versailles palace garden, &quot;Potager du Roi&quot; and is based on the finest black Ceylon tea sprinkled with rose petals. The blen</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/nina-s-paris-fete-de-versailles-french-loose-tea-in-original-white-tin-2-8-ounces-imported.html" target="_blank" rel="noreferrer">http://localhost:7770/nina-s-paris-fete-de-versailles-french-loose-tea-in-original-white-tin-2-8-ounces-imported.html</a></p><p>冻结文件: <a href="sources/7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252" target="_blank">sources/7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252</a></p><p>内容 SHA-256: <code>7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_processing_flavor_multi_axis_scope"><header><h3>assert_processing_flavor_multi_axis_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;tea category and final flavor or aroma depend on more than loose or bag format&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for tea flavor determinants in processing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_processing_flavor_multi_axis_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_flavor_mechanisms_not_exact_offer_grade_quality_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;tea category and final flavor or aroma depend on more than loose or bag format&quot;,
+  &quot;predicate&quot;: &quot;depends_on_cultivar_leaf_quality_processing_blending_and_flavorants&quot;,
+  &quot;subject&quot;: &quot;tea flavor determinants in processing&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_processing_flavor_multi_axis_scope_1</code> | bytes [142, 213) | <code>2ccb1537170d9b0050d8472de727525ef175233181235fa32283458976d710f0</code></div><pre class="context"><span>Tea processing is the method in which the leaves from the tea plant Camellia sinensis are transformed into the dried leaves for brewing tea . </span><mark>The categories of tea are distinguished by the processing they undergo.</mark><span> In its most general form, tea processing involves different manners and degrees of oxidation of the leaves, stopping the oxidation, forming the tea and drying it. The innate flavor of the dried tea leaves is determined by the type of cultivar of the tea bush, the quality of the plucked tea leaves, and the manner and quality of the production processing they</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tea_processing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Tea_processing</a></p><p>冻结文件: <a href="sources/eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c" target="_blank">sources/eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c</a></p><p>内容 SHA-256: <code>eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_t2_midprice_variant_scope"><header><h3>assert_t2_midprice_variant_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07GDT9HKY at 16.50 dollars titled as a 100-gram or 3.5-ounce loose-leaf box with no posted review aggregate and multiple sizes and styles&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen T2 loose-leaf seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_t2_midprice_variant_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_variant_selector_not_confirmed_checkout_variant_or_independent_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07GDT9HKY at 16.50 dollars titled as a 100-gram or 3.5-ounce loose-leaf box with no posted review aggregate and multiple sizes and styles&quot;,
+  &quot;predicate&quot;: &quot;shows_midprice_loose_box_and_variant_selector&quot;,
+  &quot;subject&quot;: &quot;frozen T2 loose-leaf seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_t2_midprice_variant_scope_1</code> | bytes [0, 71) | <code>5806c9553b1a51bdeed94e6862c351308b00e611f1737f31dae6cde6cf1a10eb</code></div><pre class="context"><span></span><mark>T2 Tea - New York Breakfast Black Tea, Loose Leaf in a Box 100g (3.5oz)</mark><span>
+
+In stock SKU B07GDT9HKY Be the first to review this product $16.50 Size 2.2 Ounce 25 Count (Pack of 1) 3.5 Ounce 4.2 Ounce 8.8 Ounce Style Foil (Loose Leaf) Limited Edition Tin (Loose Leaf) Limited Edition Tin (Tea Bag) Loose Leaf in Cube Tea Bag in Cube Tin (Loose Leaf) Tin (Tea Bag) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufa</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/t2-tea-new-york-breakfast-black-tea-loose-leaf-in-a-box-100g-3-5oz.html" target="_blank" rel="noreferrer">http://localhost:7770/t2-tea-new-york-breakfast-black-tea-loose-leaf-in-a-box-100g-3-5oz.html</a></p><p>冻结文件: <a href="sources/962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf" target="_blank">sources/962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf</a></p><p>内容 SHA-256: <code>962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_twinings_bag_offer_scope"><header><h3>assert_twinings_bag_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B001GM60LE at 9.26 dollars for 100 English Breakfast bags rated 48 percent over twelve reviews with a four-minute seller instruction&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Twinings bag seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_twinings_bag_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_count_offer_and_instruction_not_tea_mass_per_bag_accepted_yield_or_independent_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B001GM60LE at 9.26 dollars for 100 English Breakfast bags rated 48 percent over twelve reviews with a four-minute seller instruction&quot;,
+  &quot;predicate&quot;: &quot;shows_bag_count_price_rating_and_seller_brew_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Twinings bag seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_twinings_bag_offer_scope_1</code> | bytes [0, 74) | <code>e2003dce3951cbb306d175b668e2cafcf4571fb432e514fa166083b2e218992e</code></div><pre class="context"><span></span><mark>Twinings of London English Breakfast Black Tea Bags, 100 Count (Pack of 1)</mark><span>
+
+In stock SKU B001GM60LE Rating: 48 % of 100 12 Reviews Add Your Review $9.26 Flavor Name Darjeeling Earl Grey English Breakfast English Breakfast Decaf Ginger Lemon Irish Breakfast Lady Grey Lemon &amp; Ginger Peppermint Pure Camomile Herbal Pure Green Size 100 Count (Pack of 1) 50 Count (Pack of 6) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/twinings-of-london-english-breakfast-black-tea-bags-100-count-pack-of-1.html" target="_blank" rel="noreferrer">http://localhost:7770/twinings-of-london-english-breakfast-black-tea-bags-100-count-pack-of-1.html</a></p><p>冻结文件: <a href="sources/d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b" target="_blank">sources/d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b</a></p><p>内容 SHA-256: <code>d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_black_tea_brew_sensory_scope"><header><h3>prop_black_tea_brew_sensory_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;particle size and steeping alter extraction while ISO 3103 is a comparison method rather than an everyday recipe&quot;,
+  &quot;predicate&quot;: &quot;requires_controlled_dose_temperature_time_and_comparison_procedure&quot;,
+  &quot;subject&quot;: &quot;black-tea brewing and sensory comparison&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_black_tea_brew_sensory_scope_1</code> | bytes [14869, 14911) | <code>4e8d172fbfa1cda1e0bc86e8b69908bcbeeced8e29a02f8c92b59e838e080dd0</code></div><pre class="context"><span>8 Â°F) for 3â5 min. [ 15 ] Whole-leaf black teas, and black teas to be served with milk or lemon, should be steeped four to five minutes. [ 16 ] The more delicate black teas, such as Darjeeling, should be steeped for three to four minutes. The same holds for broken leaf teas, which have more surface area and need less brewing time than whole leaves. </span><mark>Longer steeping times makes the tea bitter</mark><span> (at this point, it is referred to as being &quot;stewed&quot; in the UK). When the tea has brewed long enough to suit the drinker&#x27;s taste, it should be strained before it is served. A cold vessel lowers the steep temperature; to avoid this, the brewing vessel is rinsed with water at a temperature of at least 90 Â°C (194 Â°F) before brewing. The ISO Standard 310</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_black_tea_brew_sensory_scope_2</code> | bytes [15251, 15317) | <code>eb2eea945cf2cdc1ea22a625ff519bba51ddca1bbbb203b753cf8a35780b2b7c</code></div><pre class="context"><span>makes the tea bitter (at this point, it is referred to as being &quot;stewed&quot; in the UK). When the tea has brewed long enough to suit the drinker&#x27;s taste, it should be strained before it is served. A cold vessel lowers the steep temperature; to avoid this, the brewing vessel is rinsed with water at a temperature of at least 90 Â°C (194 Â°F) before brewing. </span><mark>The ISO Standard 3103 defines how to brew tea for sensory testing.</mark><span> [ 17 ] This standard is not meant to define the proper method for brewing tea intended for general consumption, but rather to document a tea brewing procedure where meaningful sensory comparisons can be made. This mix is thus more than twice as concentrated for normal consumption. ISO 3103 black tea brewing Brew temperature 90â95 Â°C 100 ml water 2 </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_black_tea_brew_sensory_scope_3</code> | bytes [15325, 15526) | <code>b15ad52c1cd2e02f4d872eeebf9ce0ad822a6490a37ec7b714bd7a972a1e272e</code></div><pre class="context"><span>n the UK). When the tea has brewed long enough to suit the drinker&#x27;s taste, it should be strained before it is served. A cold vessel lowers the steep temperature; to avoid this, the brewing vessel is rinsed with water at a temperature of at least 90 Â°C (194 Â°F) before brewing. The ISO Standard 3103 defines how to brew tea for sensory testing. [ 17 ] </span><mark>This standard is not meant to define the proper method for brewing tea intended for general consumption, but rather to document a tea brewing procedure where meaningful sensory comparisons can be made.</mark><span> This mix is thus more than twice as concentrated for normal consumption. ISO 3103 black tea brewing Brew temperature 90â95 Â°C 100 ml water 2 g of tea Brewing time is 6 min Composition and research Further information: Health effects of tea Black tea contains 2 to 4 percent caffeine . [ 18 ] The caffeine content of tea is affected by factors such as</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Black_tea" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Black_tea</a></p><p>冻结文件: <a href="sources/dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af" target="_blank">sources/dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af</a></p><p>内容 SHA-256: <code>dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_brew_and_sensory_protocol_not_exact_best_recipe_or_preference_result&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The black-tea page says longer steeping can make tea bitter and describes ISO 3103 as a documented method for meaningful sensory comparison rather than the proper everyday recipe; it supports controlled dose, water, temperature, time, vessel, and order without supplying an exact best recipe or a taste result for these offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_chai_variability_anecdote_scope"><header><h3>prop_chai_variability_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one drinker described cups ranging from plain milk tea to spicy chai&quot;,
+  &quot;predicate&quot;: &quot;reports_same_shop_as_hit_or_miss&quot;,
+  &quot;subject&quot;: &quot;afternoon chai preparation report&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_chai_variability_anecdote_scope_1</code> | bytes [82, 116) | <code>4f4b2634a615a2357d7afc912b7c4a5f5c2d3bc60453a119bbb93a950c63d9ce</code></div><pre class="context"><span>Spill the tea: where&#x27;s the best chai in Cambridge/Somerville?
+
+Title says it all. </span><mark>I&#x27;m an afternoon chai kind of guy.</mark><span> Darwin&#x27;s was my go-to before their devastating demise, though too be fair their chai was sometimes hit or miss (sometimes just milk tea, sometimes nice and spicy). Looking for options/replacements. So where are the best places for a top-notch chai latte? 44
+
+I’ve tried many chai lattes around and think that Yafa Bakery &amp; Cafe ( https://maps.app.goo.gl/zAJ</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chai_variability_anecdote_scope_2</code> | bytes [117, 280) | <code>d1da8e3d97eecd7257ec695225f0075278eb44beabbe28288d7153fedaa6087a</code></div><pre class="context"><span>Spill the tea: where&#x27;s the best chai in Cambridge/Somerville?
+
+Title says it all. I&#x27;m an afternoon chai kind of guy. </span><mark>Darwin&#x27;s was my go-to before their devastating demise, though too be fair their chai was sometimes hit or miss (sometimes just milk tea, sometimes nice and spicy).</mark><span> Looking for options/replacements. So where are the best places for a top-notch chai latte? 44
+
+I’ve tried many chai lattes around and think that Yafa Bakery &amp; Cafe ( https://maps.app.goo.gl/zAJ2TQJeeNzAUdFc9?g_st=ic ) on Somerville Ave has the best, most flavorful chai — most similar to what you’d get in India! (And they have lots of Middle Eastern tr</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/CambridgeMA/75747/spill-the-tea-where-s-the-best-chai-in-cambridge-somerville" target="_blank" rel="noreferrer">http://localhost:9999/f/CambridgeMA/75747/spill-the-tea-where-s-the-best-chai-in-cambridge-somerville</a></p><p>冻结文件: <a href="sources/5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905" target="_blank">sources/5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905</a></p><p>内容 SHA-256: <code>5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_shop_and_chai_context_not_exact_offer_or_general_variability_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Cambridge thread contains one afternoon chai drinker&#x27;s report that a former shop was sometimes plain milk tea and sometimes spicy; it makes preparation consistency a field to control but does not estimate a rate or test the exact loose teas and bags.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ctc_typical_bag_scope"><header><h3>prop_ctc_typical_bag_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;general convenience, price, liquor, flavor, and bitterness context for CTC-type tea&quot;,
+  &quot;predicate&quot;: &quot;produces_small_pellets_suited_to_quick_dark_brews&quot;,
+  &quot;subject&quot;: &quot;CTC manufacture and typical bag use&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ctc_typical_bag_scope_1</code> | bytes [0, 259) | <code>c7fc28c4d2271170e2c4ae96a322aebc1d65bf3e02dbc4bd532a8206952bacf0</code></div><pre class="context"><span></span><mark>Crush, tear, curl (sometimes cut, tear, curl ) is a method of processing tea leaves into black tea in which the leaves are passed through a series of cylindrical rollers with hundreds of sharp teeth that crush, tear, and curl the tea into small, hard pellets.</mark><span> This replaces the final stage of orthodox tea manufacture, in which the leaves are rolled into strips. Tea produced using this method is generally called CTC tea or mamri tea . History The first CTC machine was brought into service in 1930 at the Amgoorie Tea Garden in Assam under the supervision of Sir William McKercher. [ 1 ] [ 2 ] It proliferated over th</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ctc_typical_bag_scope_2</code> | bytes [801, 928) | <code>70e44ec14424d70658fe64bc0d366c26260d77fe3e9698e87778f302949c7cc3</code></div><pre class="context"><span>ory The first CTC machine was brought into service in 1930 at the Amgoorie Tea Garden in Assam under the supervision of Sir William McKercher. [ 1 ] [ 2 ] It proliferated over three decades starting in 1950, most rapidly in India and Africa . Production Today, most black teas produced use the CTC method or the closely related Rotorvane orthodox manufacture. </span><mark>CTC and Rotorvane orthodox have a finished product that is well suited for tea bags , as the product quickly gives a dark brew.</mark><span> For many large tea producers, 80% to 90% of the factory&#x27;s production is of small, broken, primary grades suitable for tea bag blends; the remaining 10% to 20% are secondary grades which trade at a discount to the primary grades. The convenience, low price, strong liquor, generic flavor, and mild bitterness all have contributed to the near-monopoly that CTC-</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ctc_typical_bag_scope_3</code> | bytes [1158, 1322) | <code>978cfd552870c769eac4a6741a5c29d711ace12953ef7053308a75df58d02bd0</code></div><pre class="context"><span>e. CTC and Rotorvane orthodox have a finished product that is well suited for tea bags , as the product quickly gives a dark brew. For many large tea producers, 80% to 90% of the factory&#x27;s production is of small, broken, primary grades suitable for tea bag blends; the remaining 10% to 20% are secondary grades which trade at a discount to the primary grades. </span><mark>The convenience, low price, strong liquor, generic flavor, and mild bitterness all have contributed to the near-monopoly that CTC-type teas now enjoy in South Asia.</mark><span> In the Indian domestic market, this type of manufacture is by far the most popular â over 80% of tea production is of the CTC type. Also in the export market, particularly in the CIS , the Middle East , and in the United Kingdom and Ireland , CTC teas continue to be the ones most highly in demand. CTC teas generally produce a rich red-brown colour when</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Crush%2C_tear%2C_curl" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Crush%2C_tear%2C_curl</a></p><p>冻结文件: <a href="sources/3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16" target="_blank">sources/3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16</a></p><p>内容 SHA-256: <code>3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_ctc_context_not_proof_of_exact_twinings_process_or_personal_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The CTC page describes crushing, tearing, and curling leaves into small pellets, says CTC-type output is generally suited to tea bags and quick dark brews, and gives convenience, low price, strong liquor, generic flavor, and mild bitterness as general context; it does not prove the process used by the exact Twinings bags or the drinker&#x27;s preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_hyleys_lowprice_loose_scope"><header><h3>prop_hyleys_lowprice_loose_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07DLR71Q6 at 7.70 dollars for a 100-gram or 3.52-ounce strawberry-cranberry black loose-tea tin rated 68 percent over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_lowprice_loose_tin_and_aggregate&quot;,
+  &quot;subject&quot;: &quot;frozen Hyleys flavored loose-tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_hyleys_lowprice_loose_scope_1</code> | bytes [0, 119) | <code>284c791f8bbb99e6352a5d3d987160b59a24589dc5ba139fc8379da76c9ad275</code></div><pre class="context"><span></span><mark>Hyleys Traveller&#x27;s Collection 1001 Mystery Loose Leaf Black Tea with Strawberry and Cranberry in Tin, 3.52 Ounce (100g)</mark><span> - (100% Natural, Sugar Free, Gluten Free and Non-GMO)
+
+In stock SKU B07DLR71Q6 Rating: 68 % of 100 12 Reviews Add Your Review $7.70 Flavor Name Black Tea with Strawberry and Cranberry Green Tea with Mint Rose and Blue Corn F... Lemon Milk Oolong Chinese Medium Leaf Tea Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Hyleys Tea</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_hyleys_lowprice_loose_scope_2</code> | bytes [175, 251) | <code>702d8dd7a7dcb73858bf3e9ae5f4b46d0031b58a9e93fbff56d885c23c0143c6</code></div><pre class="context"><span>Hyleys Traveller&#x27;s Collection 1001 Mystery Loose Leaf Black Tea with Strawberry and Cranberry in Tin, 3.52 Ounce (100g) - (100% Natural, Sugar Free, Gluten Free and Non-GMO)
+
+</span><mark>In stock SKU B07DLR71Q6 Rating: 68 % of 100 12 Reviews Add Your Review $7.70</mark><span> Flavor Name Black Tea with Strawberry and Cranberry Green Tea with Mint Rose and Blue Corn F... Lemon Milk Oolong Chinese Medium Leaf Tea Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Hyleys Tea is a 100% natural product line that includes a premium collection of everyday functional teas that help support a healthy lifestyle</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hyleys-traveller-s-collection-1001-mystery-loose-leaf-black-tea-with-strawberry-and-cranberry-in-tin-3-52-ounce-100g-100-natural-sugar-free-gluten-free-and-non-gmo.html" target="_blank" rel="noreferrer">http://localhost:7770/hyleys-traveller-s-collection-1001-mystery-loose-leaf-black-tea-with-strawberry-and-cranberry-in-tin-3-52-ounce-100g-100-natural-sugar-free-gluten-free-and-non-gmo.html</a></p><p>冻结文件: <a href="sources/348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5" target="_blank">sources/348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5</a></p><p>内容 SHA-256: <code>348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_showing_loose_tin_is_not_inherently_premium_not_matched_taste_or_health_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Hyleys page lists SKU B07DLR71Q6 at 7.70 dollars for a flavored 100-gram or 3.52-ounce loose-leaf tin and shows a 68-percent-of-100 aggregate over twelve reviews; it demonstrates that loose tea in a tin is not inherently a high sticker-price category, but it does not prove taste, value, health effects, or comparability with plain English Breakfast bags.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_infuser_setup_question_scope"><header><h3>prop_infuser_setup_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author wants an in-person tea-ware and infuser purchase experience&quot;,
+  &quot;predicate&quot;: &quot;asks_where_to_inspect_and_buy_equipment&quot;,
+  &quot;subject&quot;: &quot;tea-infuser shopping question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_infuser_setup_question_scope_1</code> | bytes [31, 99) | <code>f511abd69ca7d6d261b2f2f56b244a81a8b7b32453037260176d78b6a1e60496</code></div><pre class="context"><span>Tea-ware in or around Boston?
+
+</span><mark>Dear Bostonians, is there any store you know i can buy tea infusers?</mark><span> It’d be nice to have a specialized place to enjoy the in person experience of checking tea ware. 3
+
+There’s a Mems in Davis I typically go to for tea
+
+I believe Mem Tea is about the only place left around Boston. They are a nice shop and worth the visit.
+
+Mem tea in Davis
+
+Fourthing mem tea, I love their Russian Caravan too. As an aside, it’s a traged</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_infuser_setup_question_scope_2</code> | bytes [100, 198) | <code>23028c0e56aaeb7a24aebba3457ae62c631ad0d098676de4438d6c0e44d9f2d5</code></div><pre class="context"><span>Tea-ware in or around Boston?
+
+Dear Bostonians, is there any store you know i can buy tea infusers? </span><mark>It’d be nice to have a specialized place to enjoy the in person experience of checking tea ware.</mark><span> 3
+
+There’s a Mems in Davis I typically go to for tea
+
+I believe Mem Tea is about the only place left around Boston. They are a nice shop and worth the visit.
+
+Mem tea in Davis
+
+Fourthing mem tea, I love their Russian Caravan too. As an aside, it’s a tragedy that there’s not much good tea left around Boston.
+
+Most of the Asian markets.
+
+Fort Point Chan</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/boston/59605/tea-ware-in-or-around-boston" target="_blank" rel="noreferrer">http://localhost:9999/f/boston/59605/tea-ware-in-or-around-boston</a></p><p>冻结文件: <a href="sources/92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411" target="_blank">sources/92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411</a></p><p>内容 SHA-256: <code>92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_equipment_question_not_required_equipment_price_or_universal_setup_burden&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Boston thread asks where to inspect and buy tea infusers in person; it supports checking whether the buyer needs equipment and its actual cost, but it provides no equipment price, performance result, or universal loose-tea setup burden.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_kettle_confound_anecdote_scope"><header><h3>prop_kettle_confound_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one habitual drinker&#x27;s perceived citrus change was traced to diluted vinegar left in a kettle&quot;,
+  &quot;predicate&quot;: &quot;mistook_a_brew_setup_contaminant_for_recipe_change&quot;,
+  &quot;subject&quot;: &quot;favorite-tea kettle incident&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_kettle_confound_anecdote_scope_1</code> | bytes [305, 504) | <code>62982fc9e0a73fb61f969849117d354c31f4a89b02a738bf327438e49cb0dce1</code></div><pre class="context"><span>TIFU by descaling the kettle, forgetting about it, and having my mom drink vinegar
+
+My mother is in her mid-60&#x27;s and is an avid tea drinker, she also has barely any sense of taste or smell due to health related issues (not covid). Even though she care barely taste or smell, she still has a favorite tea. </span><mark>Kroger brand ginger and turmeric tea. She will buy out the entire stock on a weekly basis. It&#x27;s her fave tea, and as tea drinkers know, if they change the recipe it&#x27;s hard to find something the same.</mark><span> So when she came home early from a weekend trip from our cabin up north due to the snow, imagine her dismay as she finds her tea &quot;tasting too citrusy.&quot; I had just come home from running errands and as the family nose (strongest sense of taste/smell) my brother rushes me and asks me to smell the box of tea bags to see if it is indeed more citrus than before.</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_kettle_confound_anecdote_scope_2</code> | bytes [2194, 2282) | <code>20052d76bc5d6c79c535463640c9f98f27729c0b0d3992e38dcb806df93c9eb1</code></div><pre class="context"><span>hands in a mixture of shame and embarrassment. I tell my mom that I had put the vinegar into the kettle last night to descale it and was going to finish cleaning it before she got home, well she got home early and I got distracted by my poor mother losing one of the few things she can drink and enjoy. My mother just stares at me and my brother is stunned as </span><mark>I explain that her tea isn&#x27;t &quot;Too lemony,&quot; it&#x27;s that she&#x27;s been sipping hot vinegar tea.</mark><span> &quot;Well, now that makes sense!&quot; she says and we all laugh, I&#x27;m on the floor covering my face, laughing, and apologizing. I&#x27;m so embarrassed. I&#x27;m shocked that no one connected the strong smell of vinegar (for me at least) to the sour tea, my mom gets a pass but my brother might also be losing his sense of smell if he didn&#x27;t notice it. My eyes were watering as </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/114383/tifu-by-descaling-the-kettle-forgetting-about-it-and-having" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/114383/tifu-by-descaling-the-kettle-forgetting-about-it-and-having</a></p><p>冻结文件: <a href="sources/22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41" target="_blank">sources/22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41</a></p><p>内容 SHA-256: <code>22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_incident_and_personal_preference_not_prevalence_causal_rate_or_product_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The descaling thread describes one habitual drinker&#x27;s favorite tea and one incident where a perceived recipe change was traced to diluted vinegar left in the kettle; it identifies brew setup as a possible confound but is not a rate, controlled study, or evidence about any captured product.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_leaf_grade_format_ordering_scope"><header><h3>prop_leaf_grade_format_ordering_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;leaf size affects preparation while expensive fannings may outperform cheaper whole leaf and bags may contain different grades&quot;,
+  &quot;predicate&quot;: &quot;uses_leaf_condition_and_size_without_universal_cross_product_order&quot;,
+  &quot;subject&quot;: &quot;tea leaf grading and format boundaries&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_leaf_grade_format_ordering_scope_1</code> | bytes [182, 296) | <code>7ba9b612c7090d9e11f9e2c3b03d64f3e394d4d65843a0baae4f2dc472ce20ab</code></div><pre class="context"><span>&quot;Orange Pekoe&quot; redirects here. For the Japanese jazz band, see Orange Pekoe (band) . For the Girls und Panzer character, see List of Girls und Panzer characters Â§ Orange Pekoe . </span><mark>Tea leaf grading is the process of evaluating tea based on the quality and condition of the tea leaves themselves.</mark><span> The highest grades for Western and South Asian teas are referred to as &quot; orange pekoe &quot; (abbreviated as &quot;OP&quot;), and the lowest as &quot; fannings &quot; or &quot;dust&quot;. Pekoe tea grades are classified into various qualities, each determined by how many of the adjacent young leaves (two, one, or none) were picked along with the leaf buds. Top-quality pekoe grades consist of</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_leaf_grade_format_ordering_scope_2</code> | bytes [1873, 1940) | <code>18ade4b5500e46b5c59f82219de6888091364c91fb1d29b910ee3c1cb7347a28</code></div><pre class="context"><span>y traditional methods) have slightly different grades. CTC teas, which consist of leaves rendered to uniform fannings by machine, have yet another grading system. General classifications Grading by size Although grading systems vary, the size of the leaf or broken pieces is an essential quality. Size is an important factor how tea is prepared as a beverage. </span><mark>In general, larger leaves or pieces require a longer steeping time.</mark><span> Also, if measured by volume, the larger sizes need more tea to produce the same strength beverage. [ 4 ] Grading by appearance Some teas are graded by their appearance. Whole leaves are easier to grade by appearance than broken pieces. [ 5 ] Orange pekoe Orange pekoe ( / Ë p É k oÊ , Ë p iË k oÊ / ), also spelled pecco, or OP is a term use</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_leaf_grade_format_ordering_scope_3</code> | bytes [6476, 6598) | <code>d4dd45e2bf207bacf39e0453428034d6fdc36939200770941b773b35f15b524b</code></div><pre class="context"><span>. Traditionally these were treated as the rejects of the manufacturing process in making high-quality leaf tea like the orange pekoe. Fannings with extremely small particles are graded &quot;Dust&quot; (See &quot;Dust grades&quot; below ). [ 17 ] Fannings and dusts are considered the lowest grades of tea, separated from broken-leaf teas which have larger pieces of the leaves.  </span><mark>However, the fannings of expensive teas can still be more expensive and more flavourful than whole leaves of cheaper teas.</mark><span> This traditionally low-quality tea has, however, experienced a huge demand in the developing world in the last century as the practice of tea drinking became popular. Tea stalls in India and the South Asian sub-continent and Africa prefer dust tea because it is cheap and also produces a very strong brew; consequently, more cups are obtained per measure of t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tea_leaf_grading" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Tea_leaf_grading</a></p><p>冻结文件: <a href="sources/28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c" target="_blank">sources/28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c</a></p><p>内容 SHA-256: <code>28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_grading_and_cross_price_counterexample_not_exact_product_grade_or_taste_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The tea-leaf-grading page defines grading by leaf quality and condition, says larger pieces generally require longer steeping, and explicitly allows expensive fannings to be more flavorful than cheaper whole leaf; it defeats a universal whole-leaf or bag ordering and does not grade or rank the exact four offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_loose_tea_availability_question_scope"><header><h3>prop_loose_tea_availability_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author is willing to search statewide for a loose-leaf seller&quot;,
+  &quot;predicate&quot;: &quot;asks_for_shops_selling_loose_leaf_tea&quot;,
+  &quot;subject&quot;: &quot;loose-leaf retail availability question&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_loose_tea_availability_question_scope_1</code> | bytes [12, 82) | <code>f2132bcd66653487eb43c348c88372955bac2bcd4e5d2438898bb8f6d5d16b3e</code></div><pre class="context"><span>tea shops?
+
+</span><mark>does anyone know if there are any tea shops that sell loose leaf teas?</mark><span> doesn’t even have to be in providence it can be anywhere in the state 7
+
+Farmacy Herbs , just off North Main St across from the cemetery.
+
+thanks!
+
+Shastea on Broadway (near Julian’s).
+
+thank you!
+
+Seven Arrows Farm, tearoom, shop and plant nursery.
+
+Always worth a visit
+
+ceremony!!!</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_loose_tea_availability_question_scope_2</code> | bytes [83, 154) | <code>d9bbc186395c93c4edda1291a226eb5d01d12a17e29f31e2e9cf92b63cb76903</code></div><pre class="context"><span>tea shops?
+
+does anyone know if there are any tea shops that sell loose leaf teas? </span><mark>doesn’t even have to be in providence it can be anywhere in the state</mark><span> 7
+
+Farmacy Herbs , just off North Main St across from the cemetery.
+
+thanks!
+
+Shastea on Broadway (near Julian’s).
+
+thank you!
+
+Seven Arrows Farm, tearoom, shop and plant nursery.
+
+Always worth a visit
+
+ceremony!!!</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/providence/90027/tea-shops" target="_blank" rel="noreferrer">http://localhost:9999/f/providence/90027/tea-shops</a></p><p>冻结文件: <a href="sources/3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b" target="_blank">sources/3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b</a></p><p>内容 SHA-256: <code>3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_local_availability_question_not_current_stock_price_quality_or_general_access_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Providence thread asks where loose-leaf tea is sold and is willing to search statewide; it makes current availability and sample access fields to verify, but it does not establish current stock, price, quality, or a general access rate.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ninas_price_mass_conflict_scope"><header><h3>prop_ninas_price_mass_conflict_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B082YCZMZ5 at 34 dollars and 87 percent over three reviews with 2.8 ounces in the title but 3.5 ounces or 100 grams in the body&quot;,
+  &quot;predicate&quot;: &quot;shows_premium_price_rating_and_conflicting_mass_fields&quot;,
+  &quot;subject&quot;: &quot;frozen Nina&#x27;s loose-tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ninas_price_mass_conflict_scope_1</code> | bytes [0, 93) | <code>6543ad9cbc26579dee8e3909ade50f2096a771cedbd381d7a9b30c9ba6e760ff</code></div><pre class="context"><span></span><mark>Nina&#x27;s Paris, Fete de Versailles French Loose Tea in Original White Tin, 2.8 Ounces, Imported</mark><span>
+
+In stock SKU B082YCZMZ5 Rating: 87 % of 100 3 Reviews Add Your Review $34.00 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Nina&#x27;s Marie Antoinette tea is flavoured with the apples exclusively grown at the Versailles palace garden, &quot;Potager du Roi&quot; and is based on the finest black Ceylon tea sprinkled with rose petals. The blen</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ninas_price_mass_conflict_scope_2</code> | bytes [95, 171) | <code>bd23e4fe081d265437463c3f1fe368443ea29e09e63e2b91c5d8505f49ea1874</code></div><pre class="context"><span>Nina&#x27;s Paris, Fete de Versailles French Loose Tea in Original White Tin, 2.8 Ounces, Imported
+
+</span><mark>In stock SKU B082YCZMZ5 Rating: 87 % of 100 3 Reviews Add Your Review $34.00</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Nina&#x27;s Marie Antoinette tea is flavoured with the apples exclusively grown at the Versailles palace garden, &quot;Potager du Roi&quot; and is based on the finest black Ceylon tea sprinkled with rose petals. The blend has been created to reflect all the food luxury of the Court of Versailles. </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ninas_price_mass_conflict_scope_3</code> | bytes [1237, 1279) | <code>200384d62aa12ea66129669981c75cfb2d326c13db3b0598dfa67630cf96d2a8</code></div><pre class="context"><span>oducts made from fruits and flowers of the Potager (Vegetable Garden) of the King of Versailles, grown only according to traditional techniques following ancestral processes of the time of Louis XIV Ceylon tea base with rose petals, rose and apple essence of the &quot;king&#x27;s kitchen garden&quot; at Versailles, France Comes in original Nina&#x27;s Paris reusable pink tin...</span><mark>Each tin holds 100g (3.5 oz) of loose tea.</mark><span> Package Dimensions 6.42 x 4.06 x 3.15 inches Item Weight 7.5 ounces Date First Available October 28, 2019 Reviews 3 Write Your Own Review You&#x27;re reviewing: Nina&#x27;s Paris, Fete de Versailles French Loose Tea in Original White Tin, 2.8 Ounces, Imported Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Submit Review</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/nina-s-paris-fete-de-versailles-french-loose-tea-in-original-white-tin-2-8-ounces-imported.html" target="_blank" rel="noreferrer">http://localhost:7770/nina-s-paris-fete-de-versailles-french-loose-tea-in-original-white-tin-2-8-ounces-imported.html</a></p><p>冻结文件: <a href="sources/7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252" target="_blank">sources/7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252</a></p><p>内容 SHA-256: <code>7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_with_unresolved_net_content_conflict_not_independent_taste_or_value&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Nina&#x27;s page lists SKU B082YCZMZ5 at 34 dollars with an 87-percent-of-100 aggregate over three reviews, while the title says 2.8 ounces and the body says 100 grams or 3.5 ounces; the exact selected net tea mass must be resolved before cost-per-cup calculation, and the seller fields do not prove independent taste or value.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_processing_flavor_multi_axis_scope"><header><h3>prop_processing_flavor_multi_axis_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;tea category and final flavor or aroma depend on more than loose or bag format&quot;,
+  &quot;predicate&quot;: &quot;depends_on_cultivar_leaf_quality_processing_blending_and_flavorants&quot;,
+  &quot;subject&quot;: &quot;tea flavor determinants in processing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_processing_flavor_multi_axis_scope_1</code> | bytes [142, 213) | <code>2ccb1537170d9b0050d8472de727525ef175233181235fa32283458976d710f0</code></div><pre class="context"><span>Tea processing is the method in which the leaves from the tea plant Camellia sinensis are transformed into the dried leaves for brewing tea . </span><mark>The categories of tea are distinguished by the processing they undergo.</mark><span> In its most general form, tea processing involves different manners and degrees of oxidation of the leaves, stopping the oxidation, forming the tea and drying it. The innate flavor of the dried tea leaves is determined by the type of cultivar of the tea bush, the quality of the plucked tea leaves, and the manner and quality of the production processing they</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_processing_flavor_multi_axis_scope_2</code> | bytes [377, 582) | <code>664d7b0f68153448718e7dd779058e71827b7d3578649d69aca1c1198d5d0259</code></div><pre class="context"><span> the method in which the leaves from the tea plant Camellia sinensis are transformed into the dried leaves for brewing tea . The categories of tea are distinguished by the processing they undergo. In its most general form, tea processing involves different manners and degrees of oxidation of the leaves, stopping the oxidation, forming the tea and drying it. </span><mark>The innate flavor of the dried tea leaves is determined by the type of cultivar of the tea bush, the quality of the plucked tea leaves, and the manner and quality of the production processing they undergo.</mark><span> After processing, a tea may be blended with other teas or mixed with flavourants to alter the flavor of the final tea. When producing black, pu&#x27;erh and oolong teas there is an additional purpose of processing: to encourage oxidization, which further develops flavour and aroma compounds. [ 1 ] History The history of tea processing corresponds intimately with</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_processing_flavor_multi_axis_scope_3</code> | bytes [583, 701) | <code>7720978e3ecc5a6e6a629b9ec72e449e3bdc0896ae71e38497cfdd9e48a9c3d6</code></div><pre class="context"><span>st general form, tea processing involves different manners and degrees of oxidation of the leaves, stopping the oxidation, forming the tea and drying it. The innate flavor of the dried tea leaves is determined by the type of cultivar of the tea bush, the quality of the plucked tea leaves, and the manner and quality of the production processing they undergo. </span><mark>After processing, a tea may be blended with other teas or mixed with flavourants to alter the flavor of the final tea.</mark><span> When producing black, pu&#x27;erh and oolong teas there is an additional purpose of processing: to encourage oxidization, which further develops flavour and aroma compounds. [ 1 ] History The history of tea processing corresponds intimately with the role that tea played in Chinese society and the preferred methods of its consumption in ancient Chinese society. T</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tea_processing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Tea_processing</a></p><p>冻结文件: <a href="sources/eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c" target="_blank">sources/eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c</a></p><p>内容 SHA-256: <code>eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_flavor_mechanisms_not_exact_offer_grade_quality_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The tea-processing page says processing distinguishes tea categories and that cultivar, plucked-leaf quality, production processing, blending, and flavorants affect final flavor; these are general mechanisms and do not identify the grade, production quality, taste, or value of any exact captured offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_t2_midprice_variant_scope"><header><h3>prop_t2_midprice_variant_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07GDT9HKY at 16.50 dollars titled as a 100-gram or 3.5-ounce loose-leaf box with no posted review aggregate and multiple sizes and styles&quot;,
+  &quot;predicate&quot;: &quot;shows_midprice_loose_box_and_variant_selector&quot;,
+  &quot;subject&quot;: &quot;frozen T2 loose-leaf seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_t2_midprice_variant_scope_1</code> | bytes [0, 71) | <code>5806c9553b1a51bdeed94e6862c351308b00e611f1737f31dae6cde6cf1a10eb</code></div><pre class="context"><span></span><mark>T2 Tea - New York Breakfast Black Tea, Loose Leaf in a Box 100g (3.5oz)</mark><span>
+
+In stock SKU B07GDT9HKY Be the first to review this product $16.50 Size 2.2 Ounce 25 Count (Pack of 1) 3.5 Ounce 4.2 Ounce 8.8 Ounce Style Foil (Loose Leaf) Limited Edition Tin (Loose Leaf) Limited Edition Tin (Tea Bag) Loose Leaf in Cube Tea Bag in Cube Tin (Loose Leaf) Tin (Tea Bag) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufa</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_t2_midprice_variant_scope_2</code> | bytes [73, 139) | <code>691fef13037cdc471356b8d35b25d42837eb5806e2615348212937d47e82ddec</code></div><pre class="context"><span>T2 Tea - New York Breakfast Black Tea, Loose Leaf in a Box 100g (3.5oz)
+
+</span><mark>In stock SKU B07GDT9HKY Be the first to review this product $16.50</mark><span> Size 2.2 Ounce 25 Count (Pack of 1) 3.5 Ounce 4.2 Ounce 8.8 Ounce Style Foil (Loose Leaf) Limited Edition Tin (Loose Leaf) Limited Edition Tin (Tea Bag) Loose Leaf in Cube Tea Bag in Cube Tin (Loose Leaf) Tin (Tea Bag) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more New York Breakfast Black Tea A full-bodied black te</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_t2_midprice_variant_scope_3</code> | bytes [206, 358) | <code>ec499596576dcd7891fce570b422218d4792862d89b5942b61a7574d3ada2336</code></div><pre class="context"><span>T2 Tea - New York Breakfast Black Tea, Loose Leaf in a Box 100g (3.5oz)
+
+In stock SKU B07GDT9HKY Be the first to review this product $16.50 Size 2.2 Ounce 25 Count (Pack of 1) 3.5 Ounce 4.2 Ounce 8.8 Ounce </span><mark>Style Foil (Loose Leaf) Limited Edition Tin (Loose Leaf) Limited Edition Tin (Tea Bag) Loose Leaf in Cube Tea Bag in Cube Tin (Loose Leaf) Tin (Tea Bag)</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more New York Breakfast Black Tea A full-bodied black tea boasting the taste of hot pancakes, inspired by a perfect New York moment. Warm up the morning or sweeten your afternoon and be whisked away to the city that never sleeps! Enjoy with: Perfect on its own or with a dash</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/t2-tea-new-york-breakfast-black-tea-loose-leaf-in-a-box-100g-3-5oz.html" target="_blank" rel="noreferrer">http://localhost:7770/t2-tea-new-york-breakfast-black-tea-loose-leaf-in-a-box-100g-3-5oz.html</a></p><p>冻结文件: <a href="sources/962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf" target="_blank">sources/962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf</a></p><p>内容 SHA-256: <code>962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_variant_selector_not_confirmed_checkout_variant_or_independent_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen T2 page lists SKU B07GDT9HKY at 16.50 dollars, titles it as a 100-gram or 3.5-ounce loose-leaf box, shows no posted review aggregate, and exposes multiple size and style choices; it does not by itself confirm the checkout variant, delivered price, dose, cup yield, or independent sensory quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_twinings_bag_offer_scope"><header><h3>prop_twinings_bag_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B001GM60LE at 9.26 dollars for 100 English Breakfast bags rated 48 percent over twelve reviews with a four-minute seller instruction&quot;,
+  &quot;predicate&quot;: &quot;shows_bag_count_price_rating_and_seller_brew_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Twinings bag seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_twinings_bag_offer_scope_1</code> | bytes [0, 74) | <code>e2003dce3951cbb306d175b668e2cafcf4571fb432e514fa166083b2e218992e</code></div><pre class="context"><span></span><mark>Twinings of London English Breakfast Black Tea Bags, 100 Count (Pack of 1)</mark><span>
+
+In stock SKU B001GM60LE Rating: 48 % of 100 12 Reviews Add Your Review $9.26 Flavor Name Darjeeling Earl Grey English Breakfast English Breakfast Decaf Ginger Lemon Irish Breakfast Lady Grey Lemon &amp; Ginger Peppermint Pure Camomile Herbal Pure Green Size 100 Count (Pack of 1) 50 Count (Pack of 6) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_twinings_bag_offer_scope_2</code> | bytes [76, 152) | <code>289c6410936fc9ba6c235ec2eb06087fe124132f71abfbd9027eebbb8ddab8db</code></div><pre class="context"><span>Twinings of London English Breakfast Black Tea Bags, 100 Count (Pack of 1)
+
+</span><mark>In stock SKU B001GM60LE Rating: 48 % of 100 12 Reviews Add Your Review $9.26</mark><span> Flavor Name Darjeeling Earl Grey English Breakfast English Breakfast Decaf Ginger Lemon Irish Breakfast Lady Grey Lemon &amp; Ginger Peppermint Pure Camomile Herbal Pure Green Size 100 Count (Pack of 1) 50 Count (Pack of 6) Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Twinings of London English Breakfast Black Tea Eng</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_twinings_bag_offer_scope_3</code> | bytes [1650, 1718) | <code>27c812c11d4655fa52ad8b678725644d50696bc2d5b020999faaf3ca440cf99e</code></div><pre class="context"><span>itrusy, Smooth Thick, Malty, Full-bodied Tea Strength 3 out of 4 2 out of 4 3 out of 4 2 out of 4 4 out of 4 Read more Read more Product Quick Look Twinings of London English Breakfast Black Tea Bags, 100 Count (Pack of 1). FRESH FLAVOR: One box of 100 English Breakfast Black tea bags. Complex, full-bodied, lively cup of tea that is perfect any time of day. </span><mark>Steep for four minutes for the perfect cup of english breakfast tea.</mark><span> ONLY THE FINEST QUALITY: Our expert blenders source only the finest leaves cultivated to our exacting standards by trusted growers around the world. From these tea gardens we hand-select the leaves that will shape your next Twinings moment. ENGLISH BREAKFAST TEA: English Breakfast is our most popular tea. To create this well-balanced blend, we carefully sel</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/twinings-of-london-english-breakfast-black-tea-bags-100-count-pack-of-1.html" target="_blank" rel="noreferrer">http://localhost:7770/twinings-of-london-english-breakfast-black-tea-bags-100-count-pack-of-1.html</a></p><p>冻结文件: <a href="sources/d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b" target="_blank">sources/d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b</a></p><p>内容 SHA-256: <code>d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_count_offer_and_instruction_not_tea_mass_per_bag_accepted_yield_or_independent_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;tea_loose_leaf_bag_taste_per_dollar_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Twinings page lists SKU B001GM60LE at 9.26 dollars for 100 English Breakfast bags with a 48-percent-of-100 aggregate over twelve reviews and seller advice to steep four minutes; it does not establish net tea mass per bag, accepted-cup yield, delivered cost, independent taste, or comparability with the flavored loose teas.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_tea_value_0042</td><td>case_spec</td><td><a href="sources/b19378fd18576a457a724540e4027d5eff562ff502c716a57aa9ebc70ab5bc33">b19378fd18576a457a724540e4027d5eff562ff502c716a57aa9ebc70ab5bc33</a></td><td><a href="http://case-spec.local/dra_v3_formal_coffee_tea_0042" target="_blank" rel="noreferrer">来源 URL</a></td><td>11636</td></tr><tr><td>reg_magento_hyleys_mystery_tin_0042</td><td>magento</td><td><a href="sources/348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5">348f70f38213ef3efd8e053b79953799d6b2ad71dbb26ce78e533986ad494ab5</a></td><td><a href="http://localhost:7770/hyleys-traveller-s-collection-1001-mystery-loose-leaf-black-tea-with-strawberry-and-cranberry-in-tin-3-52-ounce-100g-100-natural-sugar-free-gluten-free-and-non-gmo.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>8452</td></tr><tr><td>reg_magento_ninas_versailles_tin_0042</td><td>magento</td><td><a href="sources/7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252">7abd1c22198fb41a6ca6a5ab333bed8c3c1d8c62cf740a01799a8584f2a4a252</a></td><td><a href="http://localhost:7770/nina-s-paris-fete-de-versailles-french-loose-tea-in-original-white-tin-2-8-ounces-imported.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1625</td></tr><tr><td>reg_magento_t2_new_york_breakfast_0042</td><td>magento</td><td><a href="sources/962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf">962c18529353d45fe60dd3a2629898c3971bc50d59a025b420ea67d99effb1bf</a></td><td><a href="http://localhost:7770/t2-tea-new-york-breakfast-black-tea-loose-leaf-in-a-box-100g-3-5oz.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3531</td></tr><tr><td>reg_magento_twinings_english_breakfast_bags_0042</td><td>magento</td><td><a href="sources/d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b">d930a3abe15d90e9512c8e6170fffa707f4335f98dbd5249ff84e3df74c7379b</a></td><td><a href="http://localhost:7770/twinings-of-london-english-breakfast-black-tea-bags-100-count-pack-of-1.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3419</td></tr><tr><td>reg_postmill_boston_tea_infuser_0042</td><td>postmill</td><td><a href="sources/92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411">92940a2d6912d6f3fef3497cec433bb25594b272e8216b89b75777fdb5826411</a></td><td><a href="http://localhost:9999/f/boston/59605/tea-ware-in-or-around-boston" target="_blank" rel="noreferrer">来源 URL</a></td><td>867</td></tr><tr><td>reg_postmill_cambridge_chai_variability_0042</td><td>postmill</td><td><a href="sources/5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905">5dde409a9f2993b7f9085c814ba3c03292a590ef6a36aae09378f137ee6ab905</a></td><td><a href="http://localhost:9999/f/CambridgeMA/75747/spill-the-tea-where-s-the-best-chai-in-cambridge-somerville" target="_blank" rel="noreferrer">来源 URL</a></td><td>2372</td></tr><tr><td>reg_postmill_providence_loose_tea_0042</td><td>postmill</td><td><a href="sources/3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b">3990f3510253358d7d212773d7548a2a826930e68035a6e9abd0fccebb16b67b</a></td><td><a href="http://localhost:9999/f/providence/90027/tea-shops" target="_blank" rel="noreferrer">来源 URL</a></td><td>371</td></tr><tr><td>reg_postmill_tifu_kettle_confound_0042</td><td>postmill</td><td><a href="sources/22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41">22b4d97f6c3f75ebd47ae6fe88dbad841220bc82305658b3fbd93e47a5234e41</a></td><td><a href="http://localhost:9999/f/tifu/114383/tifu-by-descaling-the-kettle-forgetting-about-it-and-having" target="_blank" rel="noreferrer">来源 URL</a></td><td>7108</td></tr><tr><td>reg_search_black_tea_brew</td><td>search_result</td><td><a href="sources/f185e6358d0677cca007e5f212fd5f31f2877132ba7e06c0c64eb3eddb4c7008">f185e6358d0677cca007e5f212fd5f31f2877132ba7e06c0c64eb3eddb4c7008</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=76890d53-0268-42c4-a19d-e7bef7f33aa8" target="_blank" rel="noreferrer">来源 URL</a></td><td>841</td></tr><tr><td>reg_search_chai_variability</td><td>search_result</td><td><a href="sources/cd6765f21f83251ceac3106cc11012ed316998ce83f57a23714c292f62592d47">cd6765f21f83251ceac3106cc11012ed316998ce83f57a23714c292f62592d47</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=1bcefa16-e222-4e0f-b748-2e06868d54a6" target="_blank" rel="noreferrer">来源 URL</a></td><td>43379</td></tr><tr><td>reg_search_ctc</td><td>search_result</td><td><a href="sources/0ede10e11a88d06cce12ddafdb9b96e5e9203e686631192f030d49706c55accb">0ede10e11a88d06cce12ddafdb9b96e5e9203e686631192f030d49706c55accb</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=b749218f-dfbb-45fa-9fc9-3196a1a07cf0" target="_blank" rel="noreferrer">来源 URL</a></td><td>839</td></tr><tr><td>reg_search_hyleys_low_loose_tin</td><td>search_result</td><td><a href="sources/f0b78cb3cbae89da72ad74fd5de4e2dfa57a3007da037fccb6e05707b176c00b">f0b78cb3cbae89da72ad74fd5de4e2dfa57a3007da037fccb6e05707b176c00b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=b9ffee96-269d-4cb8-a767-0a1e71495da8" target="_blank" rel="noreferrer">来源 URL</a></td><td>7088</td></tr><tr><td>reg_search_infuser_setup</td><td>search_result</td><td><a href="sources/911f9a48864275031430f56af3cc277f207abec53aeb2c1dc587402514f376a1">911f9a48864275031430f56af3cc277f207abec53aeb2c1dc587402514f376a1</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=f6d0be05-fed8-40b1-a4b2-b80e6d2fa2e1" target="_blank" rel="noreferrer">来源 URL</a></td><td>57025</td></tr><tr><td>reg_search_kettle_confound</td><td>search_result</td><td><a href="sources/f088401e636503c5ee9a501d20d4541c6bef5f1ac8e605c9b3269beda289ce4a">f088401e636503c5ee9a501d20d4541c6bef5f1ac8e605c9b3269beda289ce4a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=4561a534-f1f7-4573-8c9f-d380057e7c3f" target="_blank" rel="noreferrer">来源 URL</a></td><td>47585</td></tr><tr><td>reg_search_loose_tea_availability</td><td>search_result</td><td><a href="sources/5d6859b3b3daf7f8372a2ed8338e94b74512ea941ecdd770603a49c69bc49a21">5d6859b3b3daf7f8372a2ed8338e94b74512ea941ecdd770603a49c69bc49a21</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=0ff18f9c-78b9-44e0-9077-74b1207a6860" target="_blank" rel="noreferrer">来源 URL</a></td><td>51048</td></tr><tr><td>reg_search_ninas_premium_tin</td><td>search_result</td><td><a href="sources/3d41d4e4a8f03425fd3410eb7bcf02fe4a3ba3d0711331a9a59459e20e79efda">3d41d4e4a8f03425fd3410eb7bcf02fe4a3ba3d0711331a9a59459e20e79efda</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=436b91a6-f915-4290-89e4-fd81e6679fa7" target="_blank" rel="noreferrer">来源 URL</a></td><td>5119</td></tr><tr><td>reg_search_t2_mid_loose</td><td>search_result</td><td><a href="sources/3d4f3ac5b64ed7ac03c05afc0adc4153c569c71273c8ec9afd909f6504b3b046">3d4f3ac5b64ed7ac03c05afc0adc4153c569c71273c8ec9afd909f6504b3b046</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=cfc5444f-c304-4e30-95a7-468d88f1a0ea" target="_blank" rel="noreferrer">来源 URL</a></td><td>6246</td></tr><tr><td>reg_search_tea_leaf_grading</td><td>search_result</td><td><a href="sources/2249e9bb3e69b78cd8d0ea417dca36506ea90dd8ad8770d263955e76ef3ca4e2">2249e9bb3e69b78cd8d0ea417dca36506ea90dd8ad8770d263955e76ef3ca4e2</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=1aa4b96c-d03e-416a-80cf-f32fe7a503f4" target="_blank" rel="noreferrer">来源 URL</a></td><td>2030</td></tr><tr><td>reg_search_tea_processing</td><td>search_result</td><td><a href="sources/74c28789667332eb4521c0cb5abd61bfb9401850afa4c89b11cdcb9227dddf41">74c28789667332eb4521c0cb5abd61bfb9401850afa4c89b11cdcb9227dddf41</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=80af6a70-6491-49ca-825d-6104181a7693" target="_blank" rel="noreferrer">来源 URL</a></td><td>3851</td></tr><tr><td>reg_search_twinings_bags</td><td>search_result</td><td><a href="sources/f7189d4e9161d3928545d3d8b2d6ddba8a28b3941a686a96070febc43e3f61c5">f7189d4e9161d3928545d3d8b2d6ddba8a28b3941a686a96070febc43e3f61c5</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1&amp;request_id=3af5e6e8-eaee-4f84-8dfc-21625fe479eb" target="_blank" rel="noreferrer">来源 URL</a></td><td>5299</td></tr><tr><td>reg_wikipedia_black_tea_0042</td><td>wikipedia</td><td><a href="sources/dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af">dfb76f0d26038a331f8f12881656be06339ac7e4b00ee314afdc3a350151f8af</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Black_tea" target="_blank" rel="noreferrer">来源 URL</a></td><td>20655</td></tr><tr><td>reg_wikipedia_ctc_0042</td><td>wikipedia</td><td><a href="sources/3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16">3e2f917e1ec309e0e33feab4b01518780488899a059db53b1b5ee609ef628c16</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Crush%2C_tear%2C_curl" target="_blank" rel="noreferrer">来源 URL</a></td><td>5794</td></tr><tr><td>reg_wikipedia_tea_leaf_grading_0042</td><td>wikipedia</td><td><a href="sources/28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c">28dbfbe5a700b7073436420b88db0a6beedaa25c728d9c1e0650823b6470621c</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tea_leaf_grading" target="_blank" rel="noreferrer">来源 URL</a></td><td>17496</td></tr><tr><td>reg_wikipedia_tea_processing_0042</td><td>wikipedia</td><td><a href="sources/eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c">eb9ee83e7b40e5da2a3b63e66e72fb8a83cbd874b3a2f4c196f1410d4930bd1c</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Tea_processing" target="_blank" rel="noreferrer">来源 URL</a></td><td>20484</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-coffee-tea-0042-premium-loose-leaf-value-20260716-r1";
+const graphHash = "0ee197d3adcea81d636908c9e8e19e79b8fc36b2dee35d4576e4539912895307";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>4b010b45c2930f045f8b084a1f670f33d33170a8b4a5a1df24a44ae22f3cf043</code></p>
+<p>待审项 22 个，其中语义项 11 个、结构化项 0 个；冻结来源 23 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_arabica_general_species_scope"><header><h3>assert_arabica_general_species_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Arabica is a botanical species and the page characterizes Robusta as less acidic, more bitter, and more highly caffeinated while noting Arabica cultivation and labeling boundaries&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Coffea arabica and general comparison with Robusta&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_arabica_general_species_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_species_page_not_exact_product_composition_ratio_roast_caffeine_or_cup_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;Arabica is a botanical species and the page characterizes Robusta as less acidic, more bitter, and more highly caffeinated while noting Arabica cultivation and labeling boundaries&quot;,
+  &quot;predicate&quot;: &quot;supplies_species_level_context_not_exact_bag_identity&quot;,
+  &quot;subject&quot;: &quot;Coffea arabica and general comparison with Robusta&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_arabica_general_species_scope_1</code> | bytes [806, 964) | <code>4a167618496fa358835117eb4ad70db8db307531fb2076b0ae9cd904c9636946</code></div><pre class="context"><span>arabica Binomial name Coffea arabica L. Coffea arabica ( / É Ë r Ã¦ b Éª k É / ), also known as the Arabica coffee , is a species of flowering plant in the coffee and madder family Rubiaceae . It is believed to be the first species of coffee to have been cultivated and is the dominant cultivar, representing about 60% of global production. [ 2 ] </span><mark>Coffee produced from the less acidic, more bitter, and more highly caffeinated robusta bean ( C. canephora ) makes up most of the remaining coffee production.</mark><span> The natural populations of Coffea arabica are restricted to the forests of South Ethiopia, South Sudan, and Yemen. [ 3 ] [ 4 ] [ 5 ] Description Wild plants grow between 9 and 12 m (30 and 39 ft) tall, and have an open branching system; the leaves are opposite, simple elliptic-ovate to oblong, 6â12 cm (2.5â4.5 in) long and 4â8 cm (1.5â�</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_arabica" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_arabica</a></p><p>冻结文件: <a href="sources/0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562" target="_blank">sources/0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562</a></p><p>内容 SHA-256: <code>0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_arabica_robusta_herbal_offer_snapshot"><header><h3>assert_arabica_robusta_herbal_offer_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B00A7IIOPI at 28 dollars, seller-described as a South American Arabica and Robusta instant blend infused with yerba mate and garcinia cambogia, with no captured comparable package amount&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Burn and Control coffee offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_arabica_robusta_herbal_offer_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_species_ratio_health_efficacy_dose_count_or_comparable_unit_cost&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B00A7IIOPI at 28 dollars, seller-described as a South American Arabica and Robusta instant blend infused with yerba mate and garcinia cambogia, with no captured comparable package amount&quot;,
+  &quot;predicate&quot;: &quot;shows_a_seller_arabica_robusta_instant_herbal_claim_without_package_amount&quot;,
+  &quot;subject&quot;: &quot;frozen Burn and Control coffee offer&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_arabica_robusta_herbal_offer_snapshot_1</code> | bytes [0, 147) | <code>da17619a0af07df62464f3407854829a1c3d274618d1e78840c28b6fe78d119c</code></div><pre class="context"><span></span><mark>Burn + Control Coffee, Premium 100% South American Arabica, Robusta Blend Coffee, Weight Management Herbs, Garcinia Cambogia and Yerba Mate, Javita</mark><span>
+
+In stock SKU B00A7IIOPI Be the first to review this product $28.00 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look The Category Creator* This slimming coffee blend was the first of its kind. Over the years, numerous manufacturers have attempted to duplicate it—each nothing more than a poor imitation.* Created by coffee lovers </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/burn-control-coffee-premium-100-south-american-arabica-robusta-blend-coffee-weight-management-herbs-garcinia-cambogia-and-yerba-mate-javita.html" target="_blank" rel="noreferrer">http://localhost:7770/burn-control-coffee-premium-100-south-american-arabica-robusta-blend-coffee-weight-management-herbs-garcinia-cambogia-and-yerba-mate-javita.html</a></p><p>冻结文件: <a href="sources/e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c" target="_blank">sources/e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c</a></p><p>内容 SHA-256: <code>e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cappuccino_fixed_milk_recipe_scope"><header><h3>assert_cappuccino_fixed_milk_recipe_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an espresso-based drink with steamed milk and foam, traditionally described with equal thirds of espresso, steamed milk, and milk foam&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for cappuccino&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cappuccino_fixed_milk_recipe_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;recipe_definition_not_proof_that_milk_erases_species_roast_origin_or_blend_differences&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an espresso-based drink with steamed milk and foam, traditionally described with equal thirds of espresso, steamed milk, and milk foam&quot;,
+  &quot;predicate&quot;: &quot;provides_a_milk_espresso_recipe_not_a_sensory_masking_result&quot;,
+  &quot;subject&quot;: &quot;cappuccino&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cappuccino_fixed_milk_recipe_scope_1</code> | bytes [333, 443) | <code>18cdd2fa0d1f0204e36e1730cc138d941fef7905bddb84397e3dc2b3c4b29551</code></div><pre class="context"><span>For other uses, see Cappuccino (disambiguation) . Cappuccino A cappuccino served in the appropriate cup Origin Italy Introduced Late 18th century Color Light brown, dark brown, beige, white, black Cappuccino ( / Ë k Ã¦ p Ê Ë tÊ iË n oÊ / â , Italian: [kapputËtÊiËno] ; from German Kapuziner ) [ 1 ] </span><mark>is an espresso -based coffee drink traditionally prepared with steamed milk , including a layer of milk foam .</mark><span> [ 2 ] Variations of the drink involve the use of cream instead of milk, using non-dairy milk substitutes and flavoring with cocoa powder (in Europe and Australasia) or cinnamon (in the United States and South Korea). [ 3 ] [ 4 ] It is typically smaller in volume than that of a caffÃ¨ latte , and topped with a thick layer of foam rather than being made wit</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cappuccino" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cappuccino</a></p><p>冻结文件: <a href="sources/608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995" target="_blank">sources/608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995</a></p><p>内容 SHA-256: <code>608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_community_espresso_sampling_freshness_scope"><header><h3>assert_community_espresso_sampling_freshness_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a plan to buy from multiple places, availability of blends and single origins, and one person&#x27;s medium-dark, low-oil, and fresh-bean preferences for espresso&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for individual Rhode Island coffee participants&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_community_espresso_sampling_freshness_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_advice_not_universal_machine_rule_exact_bag_test_or_population_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a plan to buy from multiple places, availability of blends and single origins, and one person&#x27;s medium-dark, low-oil, and fresh-bean preferences for espresso&quot;,
+  &quot;predicate&quot;: &quot;report_sampling_and_personal_espresso_bean_selection_views&quot;,
+  &quot;subject&quot;: &quot;individual Rhode Island coffee participants&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_community_espresso_sampling_freshness_scope_1</code> | bytes [314, 372) | <code>bbbd4f9c2f28499afebe03ff395027fa0cb276cd8e87027433a6b94cc01618d9</code></div><pre class="context"><span>Coffee help
+
+Hey Ocean Staters, quick question. I need to by some really good coffee beans for an XMas gift to someone who really knows their beans. Where in the Providence area is the best place to buy high end coffee beans for expresso?? Thanks in advance. WOW. Thanks, Coffee culturists! So many great choices. </span><mark>Looks like I&#x27;ll have to pick up some from multiple places.</mark><span> r/RhodeIsland rocks. 16
+
+Borealis in Riverside, hands down.
+
+And now in Bristol too! They’ve got a liquor license and a much bigger space there.
+
+Coffee Exchange
+
+Absolutely Coffee Exchange: they have a wide selection of different roasts and varieties/blends and can grind it however you like.
+
+I was in there just grabbing a cup and I listened to the emplo</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/RhodeIsland/57434/coffee-help" target="_blank" rel="noreferrer">http://localhost:9999/f/RhodeIsland/57434/coffee-help</a></p><p>冻结文件: <a href="sources/f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90" target="_blank">sources/f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90</a></p><p>内容 SHA-256: <code>f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_community_long_term_rebuy_scope"><header><h3>assert_community_long_term_rebuy_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a list of roasters bought and considered buy-again, an almost fifteen-year daily custom-blend report, and an exclusive go-to statement&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for individual Massachusetts coffee commenters&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_community_long_term_rebuy_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_uncontrolled_reports_not_population_preference_or_exact_frozen_bag_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a list of roasters bought and considered buy-again, an almost fifteen-year daily custom-blend report, and an exclusive go-to statement&quot;,
+  &quot;predicate&quot;: &quot;report_repeat_buying_and_long_term_custom_blend_use&quot;,
+  &quot;subject&quot;: &quot;individual Massachusetts coffee commenters&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_community_long_term_rebuy_scope_1</code> | bytes [494, 616) | <code>e672e182f0ff29bd3dff9ec85550f49639943eee29d45f66d08d848dd3626618</code></div><pre class="context"><span> back for the month. I want to get a few bags of espresso or dark roast coffee beans that are local to western/central mass, and also eastern mass. I’m hoping to stock up so I can compare to what they got in Chicago :D Anyone have any recommendations? Having a hard time finding good brands online. When I lived here I was a Dunks beans kind of girl 😂 9
+
+</span><mark>There are a ton of choices, so here&#x27;s a Central/Western MA list of a few that I have bought from and would buy from again.</mark><span> These are in no particular order either. https://www.armeno.com/ (Northborough) https://www.monsoonroastery.com/ (Springfield) (They sell their coffee in Crowlers which is pretty neat) https://acousticjava.com/ (Worcester) https://www.brillacoffee.com/ (Holden/Northborough) https://treehousebrew.com/coffee (Charlton) https://smokestackroasters.square.site/ </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/massachusetts/62808/what-are-your-favorite-local-coffee-brands-for-espresso" target="_blank" rel="noreferrer">http://localhost:9999/f/massachusetts/62808/what-are-your-favorite-local-coffee-brands-for-espresso</a></p><p>冻结文件: <a href="sources/1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8" target="_blank">sources/1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8</a></p><p>内容 SHA-256: <code>1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_community_roast_preference_disagreement_scope"><header><h3>assert_community_roast_preference_disagreement_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a dark-roast-preferring author pleasantly surprised by some medium roasts and commenters who call one roaster both a favorite and dreadful&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for individual New Haven coffee participants&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_community_roast_preference_disagreement_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_taste_disagreement_not_controlled_roast_test_population_rate_or_frozen_bag_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a dark-roast-preferring author pleasantly surprised by some medium roasts and commenters who call one roaster both a favorite and dreadful&quot;,
+  &quot;predicate&quot;: &quot;show_preference_openness_and_direct_roaster_disagreement&quot;,
+  &quot;subject&quot;: &quot;individual New Haven coffee participants&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_community_roast_preference_disagreement_scope_1</code> | bytes [44, 249) | <code>5ecb11a4454fcdff2653a7ea15c1aa6e04a0b9f0d9f9c7a5aa436436d932aeb5</code></div><pre class="context"><span>coffee beans/ground coffee recommendations
+
+</span><mark>hi! does anyone have recommendations on a where to get coffee beans/coffee grounds in the area (i generally prefer dark roast but in the past i&#x27;ve tried some medium roast that has pleasantly surprised me)?</mark><span> i&#x27;m new to new haven (came from Asia) and just wanted to try out local roasters or just anything aside from the typical commercially available coffee grounds. 19
+
+Willoughby&#x27;s roasts some pretty good beans. I know you can buy them at the one on the corner of church and grove. They have whole bean and can grind for you.
+
+This is the correct answer.
+
+Willough</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newhaven/64812/coffee-beans-ground-coffee-recommendations" target="_blank" rel="noreferrer">http://localhost:9999/f/newhaven/64812/coffee-beans-ground-coffee-recommendations</a></p><p>冻结文件: <a href="sources/0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988" target="_blank">sources/0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988</a></p><p>内容 SHA-256: <code>0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_espresso_is_extraction_method_scope"><header><h3>assert_espresso_is_extraction_method_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;hot water forced at high pressure through finely ground coffee, producing a concentrated drink with high suspended and dissolved solids&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for espresso&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_espresso_is_extraction_method_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;brewing_method_not_bean_species_exact_recipe_machine_compatibility_or_bag_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;hot water forced at high pressure through finely ground coffee, producing a concentrated drink with high suspended and dissolved solids&quot;,
+  &quot;predicate&quot;: &quot;is_a_pressure_based_concentrated_extraction_method&quot;,
+  &quot;subject&quot;: &quot;espresso&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_espresso_is_extraction_method_scope_1</code> | bytes [48, 248) | <code>58af9781efdffbab9093181b710f12a836d842fd37e5bc20e3c1cdf9132aa1eb</code></div><pre class="context"><span>For other uses, see Espresso (disambiguation) . </span><mark>Espresso ( / É Ë s p r É s oÊ / â , Italian: [eËsprÉsso] ) is a concentrated form of coffee produced by forcing hot water under high pressure through finely ground coffee beans.</mark><span> [ 1 ] Originating in Italy , espresso has become one of the most popular coffee-brewing methods worldwide. It is characterized by its small serving size, typically 25â30 ml, and its distinctive layers: a dark body topped with a lighter-colored foam called &quot;crema&quot;. Espresso machines use pressure to extract a highly concentrated coffee with a complex fla</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Espresso" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Espresso</a></p><p>冻结文件: <a href="sources/212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1" target="_blank">sources/212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1</a></p><p>内容 SHA-256: <code>212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_robusta_general_species_and_espresso_scope"><header><h3>assert_robusta_general_species_and_espresso_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;higher yield and caffeine, lower production cost, commonly stronger and more bitter cups, and a possible body and crema role in traditional Italian espresso blends&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Coffea canephora or Robusta&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_robusta_general_species_and_espresso_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_species_and_culture_context_not_exact_bag_ratio_quality_or_extraction_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;higher yield and caffeine, lower production cost, commonly stronger and more bitter cups, and a possible body and crema role in traditional Italian espresso blends&quot;,
+  &quot;predicate&quot;: &quot;has_general_yield_caffeine_cost_bitterness_body_and_crema_context&quot;,
+  &quot;subject&quot;: &quot;Coffea canephora or Robusta&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_robusta_general_species_and_espresso_scope_1</code> | bytes [1976, 2174) | <code>fd0b1bb1649be71e668dde664173fdb8faf047cb33fd3e7de83c755437fe31a3</code></div><pre class="context"><span>, [ 8 ] over a hundred years after Coffea arabica . [ 9 ] Description Robusta is a species of flowering plant in the family Rubiaceae . The plant has a shallow root system and grows as a robust tree or shrub to about 10 metres (30 feet) tall. [ 10 ] It flowers irregularly, taking about 10â11 months for the berries to ripen, producing oval-shaped beans. </span><mark>The robusta plant has a greater crop yield than that of arabica, contains more caffeine (2.7% compared to arabica&#x27;s 1.5%), [ 11 ] and contains less sugar (3â7% compared to arabica&#x27;s 6â9%).</mark><span> [ 12 ] As it is less susceptible to pests and disease, [ 13 ] robusta needs much less herbicide and pesticide than arabica. Native distribution C. canephora grows indigenously in Western and Central Africa from Liberia to Tanzania and south to Angola . [ 11 ] It is also reportedly naturalized in Borneo , French Polynesia , Costa Rica , Nicaragua , Jamaica a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_canephora" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_canephora</a></p><p>冻结文件: <a href="sources/0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072" target="_blank">sources/0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072</a></p><p>内容 SHA-256: <code>0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_single_origin_arabica_offer_snapshot"><header><h3>assert_single_origin_arabica_offer_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a one-pound whole-bean single-origin medium-roast product titled 100-percent Arabica at 16.98 dollars under SKU B09DR7Q1RF&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Colombian Santa Barbara coffee offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_single_origin_arabica_offer_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_not_origin_authentication_freshness_cup_quality_or_milk_espresso_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a one-pound whole-bean single-origin medium-roast product titled 100-percent Arabica at 16.98 dollars under SKU B09DR7Q1RF&quot;,
+  &quot;predicate&quot;: &quot;shows_seller_origin_species_size_and_price_labels&quot;,
+  &quot;subject&quot;: &quot;frozen Colombian Santa Barbara coffee offer&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_single_origin_arabica_offer_snapshot_1</code> | bytes [0, 151) | <code>df4c717635882c47fb2d854645d2ef7c18fd172b7929c7ab0bb9c1c528ff7d93</code></div><pre class="context"><span></span><mark>THE FRENCH PRESS COFFEE ROASTERS Whole Bean 1lb Colombian Santa Barbara, Single Origin Coffee, Medium Roast, 100% Arabica, Fair Trade, Kosher, - 1 Pack</mark><span>
+
+In stock SKU B09DR7Q1RF Be the first to review this product $16.98 Flavor Name Brazilian Datera Colombian, Santa Barbara Ethiopian Yirgacheffe Guatemalan Antigua Indonesian Sumatra Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Why Choose Us: The French Press Coffee Roasters is a micro-roastery located in the Jersey Shore area.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/the-french-press-coffee-roasters-whole-bean-1lb-colombian-santa-barbara-single-origin-coffee-medium-roast-100-arabica-fair-trade-kosher-1-pack.html" target="_blank" rel="noreferrer">http://localhost:7770/the-french-press-coffee-roasters-whole-bean-1lb-colombian-santa-barbara-single-origin-coffee-medium-roast-100-arabica-fair-trade-kosher-1-pack.html</a></p><p>冻结文件: <a href="sources/da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c" target="_blank">sources/da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c</a></p><p>内容 SHA-256: <code>da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_single_origin_geographic_label_scope"><header><h3>assert_single_origin_geographic_label_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;coffee from one known geographic origin that may mean a farm, multiple farms, or a country and is contrasted with multiple-origin blends&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for single-origin coffee&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_single_origin_geographic_label_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;geographic_and_traceability_axis_not_species_purity_quality_or_label_authentication&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;coffee from one known geographic origin that may mean a farm, multiple farms, or a country and is contrasted with multiple-origin blends&quot;,
+  &quot;predicate&quot;: &quot;is_a_broad_geographic_label_with_no_universal_enforcement&quot;,
+  &quot;subject&quot;: &quot;single-origin coffee&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_single_origin_geographic_label_scope_1</code> | bytes [66, 143) | <code>d1c291ac0ff5c2522a5d7b02acebb52f201e6f010788c564a962e9963c38256c</code></div><pre class="context"><span>&quot;Single origin&quot; redirects here. For other uses, see Monogenesis . </span><mark>Single-origin coffee is coffee grown within a single known geographic origin.</mark><span> Single-origins can offer unique characteristics and specific tastes compared to blended coffees from multiple origins. [ 1 ] Coffee shops can market single-origin coffees specifically to add symbolic value to the coffee by highlighting the producer or the coffee&#x27;s unique origin. [ 2 ] Consumers of specialty coffee are often attracted to single-origin coffee</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Single-origin_coffee" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Single-origin_coffee</a></p><p>冻结文件: <a href="sources/83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3" target="_blank">sources/83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3</a></p><p>内容 SHA-256: <code>83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_sumatra_blend_offer_snapshot"><header><h3>assert_sumatra_blend_offer_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a two-pound whole-bean Sumatra dark-roast blend at 15.48 dollars with a 55-percent-of-100 aggregate over twelve reviews and a table marking the shown products 100-percent Arabica&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Copper Moon Sumatra Blend offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_sumatra_blend_offer_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_not_exact_selected_style_freshness_origin_authentication_or_milk_espresso_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a two-pound whole-bean Sumatra dark-roast blend at 15.48 dollars with a 55-percent-of-100 aggregate over twelve reviews and a table marking the shown products 100-percent Arabica&quot;,
+  &quot;predicate&quot;: &quot;shows_seller_blend_size_price_rating_and_arabica_labels&quot;,
+  &quot;subject&quot;: &quot;frozen Copper Moon Sumatra Blend offer&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_sumatra_blend_offer_snapshot_1</code> | bytes [0, 62) | <code>b8c3ed51c8ead556eeb77239bb01e8cc102f78823ce191d9be50ae5265059e20</code></div><pre class="context"><span></span><mark>Copper Moon Sumatra Blend, Dark Roast Coffee, Whole Bean, 2 Lb</mark><span>
+
+In stock SKU B01L9YE808 Rating: 55 % of 100 12 Reviews Add Your Review $15.48 Style 2 lb. Bean Me Up 2 lb. Blast Off 2 lb. Colombian 2 lb. Costa Rican 2 lb. Dark Sky 2 lb. Hawaiian Hazelnut 2 lb. Rainforest Organic 2 lb. Southern Pecan 2 lb. Sumatra 2 Lbs. Tropical Coconut Bean Guatemala Antigua Organic Eco Harvest Qty Add to Cart Add to Wish List Add to C</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/copper-moon-sumatra-blend-dark-roast-coffee-whole-bean-2-lb.html" target="_blank" rel="noreferrer">http://localhost:7770/copper-moon-sumatra-blend-dark-roast-coffee-whole-bean-2-lb.html</a></p><p>冻结文件: <a href="sources/bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce" target="_blank">sources/bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce</a></p><p>内容 SHA-256: <code>bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_arabica_general_species_scope"><header><h3>prop_arabica_general_species_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Arabica is a botanical species and the page characterizes Robusta as less acidic, more bitter, and more highly caffeinated while noting Arabica cultivation and labeling boundaries&quot;,
+  &quot;predicate&quot;: &quot;supplies_species_level_context_not_exact_bag_identity&quot;,
+  &quot;subject&quot;: &quot;Coffea arabica and general comparison with Robusta&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_arabica_general_species_scope_1</code> | bytes [806, 964) | <code>4a167618496fa358835117eb4ad70db8db307531fb2076b0ae9cd904c9636946</code></div><pre class="context"><span>arabica Binomial name Coffea arabica L. Coffea arabica ( / É Ë r Ã¦ b Éª k É / ), also known as the Arabica coffee , is a species of flowering plant in the coffee and madder family Rubiaceae . It is believed to be the first species of coffee to have been cultivated and is the dominant cultivar, representing about 60% of global production. [ 2 ] </span><mark>Coffee produced from the less acidic, more bitter, and more highly caffeinated robusta bean ( C. canephora ) makes up most of the remaining coffee production.</mark><span> The natural populations of Coffea arabica are restricted to the forests of South Ethiopia, South Sudan, and Yemen. [ 3 ] [ 4 ] [ 5 ] Description Wild plants grow between 9 and 12 m (30 and 39 ft) tall, and have an open branching system; the leaves are opposite, simple elliptic-ovate to oblong, 6â12 cm (2.5â4.5 in) long and 4â8 cm (1.5â�</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_arabica_general_species_scope_2</code> | bytes [7306, 7342) | <code>bc31b7fa8201a203101f8305f6a1e00fa91f8fbb0f8c1e2a24e5d27a0aadd91a</code></div><pre class="context"><span>re ready for picking. [ 38 ] The berries are oblong and about 1 cm long. Inferior coffee results from picking them too early or too late, so many are picked by hand to be able to better select them, as they do not all ripen at the same time. They are sometimes shaken off the tree onto mats, which means ripe and unripe berries are collected together. [ 39 ] </span><mark>The trees are difficult to cultivate</mark><span> and each tree can produce from 0.5 to 5.0 kilograms (1.1 to 11.0 lb) of dried beans, depending on the tree&#x27;s individual character and the climate that season. The most valuable part of this cash crop is the beans inside. Each berry holds two locules containing the beans. The coffee beans are actually two seeds within the fruit; sometimes, a third seed or o</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_arabica_general_species_scope_3</code> | bytes [8945, 9034) | <code>7c5d6da7a84ebe96a09e014f781d60c7dc65d401f14864a7368df2ca5d80e1bc</code></div><pre class="context"><span>mpts to breed new cultivars for the changing conditions. [ 43 ] Gourmet coffees are almost exclusively high-quality mild varieties of arabica coffee, and among the best known arabica coffee beans in the world are those from Jamaican Blue Mountain , Colombian Supremo , TarrazÃº , Costa Rica , Guatemalan Antigua , and Ethiopian Sidamo . [ 44 ] [ 45 ] [ 46 ] </span><mark>Blends consisting only of Arabica are often labelled &quot;100% Arabica&quot; as a sign of quality.</mark><span> In 2023, several large coffee roasters dropped the &quot;100% Arabica&quot; declaration previously residing on some of their packages and started to blend less expensive Robusta coffee into the mix. To avoid making larger changes to the visual design of the package the Arabica label was replaced by other labeling, keeping the previous ornamental design, thereby prese</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_arabica" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_arabica</a></p><p>冻结文件: <a href="sources/0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562" target="_blank">sources/0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562</a></p><p>内容 SHA-256: <code>0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_species_page_not_exact_product_composition_ratio_roast_caffeine_or_cup_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Arabica page treats Arabica as a botanical species, characterizes Robusta in general as less acidic, more bitter, and more highly caffeinated, and discusses cultivation and 100-percent-Arabica labeling; it does not authenticate an exact bag, ratio, roast, caffeine dose, or cup result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_arabica_robusta_herbal_offer_snapshot"><header><h3>prop_arabica_robusta_herbal_offer_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B00A7IIOPI at 28 dollars, seller-described as a South American Arabica and Robusta instant blend infused with yerba mate and garcinia cambogia, with no captured comparable package amount&quot;,
+  &quot;predicate&quot;: &quot;shows_a_seller_arabica_robusta_instant_herbal_claim_without_package_amount&quot;,
+  &quot;subject&quot;: &quot;frozen Burn and Control coffee offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_arabica_robusta_herbal_offer_snapshot_1</code> | bytes [0, 147) | <code>da17619a0af07df62464f3407854829a1c3d274618d1e78840c28b6fe78d119c</code></div><pre class="context"><span></span><mark>Burn + Control Coffee, Premium 100% South American Arabica, Robusta Blend Coffee, Weight Management Herbs, Garcinia Cambogia and Yerba Mate, Javita</mark><span>
+
+In stock SKU B00A7IIOPI Be the first to review this product $28.00 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look The Category Creator* This slimming coffee blend was the first of its kind. Over the years, numerous manufacturers have attempted to duplicate it—each nothing more than a poor imitation.* Created by coffee lovers </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_arabica_robusta_herbal_offer_snapshot_2</code> | bytes [149, 215) | <code>22d2b8a03b433da1cf3381584ed46fb0e39f1e651b823eabfeb93a3ba1e8671f</code></div><pre class="context"><span>Burn + Control Coffee, Premium 100% South American Arabica, Robusta Blend Coffee, Weight Management Herbs, Garcinia Cambogia and Yerba Mate, Javita
+
+</span><mark>In stock SKU B00A7IIOPI Be the first to review this product $28.00</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look The Category Creator* This slimming coffee blend was the first of its kind. Over the years, numerous manufacturers have attempted to duplicate it—each nothing more than a poor imitation.* Created by coffee lovers for coffee lovers, we understand what you want from your coffee whic</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_arabica_robusta_herbal_offer_snapshot_3</code> | bytes [1778, 1930) | <code>bc2e51bdb7f4c22d1518baf59ece76001925fc1d78ba52b4f085247ea64caa96</code></div><pre class="context"><span> levels without containing a stimulant, like natural caffeine. An increase in available energy may also assist in increased exercise potential and output, further assist in weight management benefits.* THE ORIGINAL: Burn + Control Coffee is the original, herb-infused, coffee formulated to help support benefits like healthy metabolism and weight management.* </span><mark>PREMIUM, DELICIOUS COFFEE: 100% South American blend of Arabica and Robusta coffee beans, fully micronized to aid mixability, consumption and enjoyment.</mark><span> INFUSED WITH CLINICALLY SUPPORTED INGREDIENTS: Garcinia Cambogia (patented Super Citrimax) and Yerba Mate blend to help support metabolism, craving control, and weight management as part of a healthy diet and exercise program * DIET-FRIENDLY: Gluten-free, works with Paleo, Keto, South Beach, Atkins and more. TAKE THAT OVERPRICED COFFEE HOUSE - Forget the co</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_arabica_robusta_herbal_offer_snapshot_4</code> | bytes [1620, 1777) | <code>ecf14ce66d8ef04f2e632ffa31e99f2b808bf90d55c5fd8deb0343ffa0948963</code></div><pre class="context"><span>cess glucose is no longer store in fat cells and remains available for the body to use as energy. This is how garcinia cambogia provides an increase in energy levels without containing a stimulant, like natural caffeine. An increase in available energy may also assist in increased exercise potential and output, further assist in weight management benefits.* </span><mark>THE ORIGINAL: Burn + Control Coffee is the original, herb-infused, coffee formulated to help support benefits like healthy metabolism and weight management.*</mark><span> PREMIUM, DELICIOUS COFFEE: 100% South American blend of Arabica and Robusta coffee beans, fully micronized to aid mixability, consumption and enjoyment. INFUSED WITH CLINICALLY SUPPORTED INGREDIENTS: Garcinia Cambogia (patented Super Citrimax) and Yerba Mate blend to help support metabolism, craving control, and weight management as part of a healthy diet a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/burn-control-coffee-premium-100-south-american-arabica-robusta-blend-coffee-weight-management-herbs-garcinia-cambogia-and-yerba-mate-javita.html" target="_blank" rel="noreferrer">http://localhost:7770/burn-control-coffee-premium-100-south-american-arabica-robusta-blend-coffee-weight-management-herbs-garcinia-cambogia-and-yerba-mate-javita.html</a></p><p>冻结文件: <a href="sources/e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c" target="_blank">sources/e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c</a></p><p>内容 SHA-256: <code>e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_species_ratio_health_efficacy_dose_count_or_comparable_unit_cost&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen seller page shows SKU B00A7IIOPI at 28 dollars and describes an instant South American Arabica and Robusta blend infused with yerba mate and garcinia cambogia, but the captured page does not establish a comparable package amount, species ratio, health efficacy, dose count, ordinary whole-bean format, or unit cost.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cappuccino_fixed_milk_recipe_scope"><header><h3>prop_cappuccino_fixed_milk_recipe_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an espresso-based drink with steamed milk and foam, traditionally described with equal thirds of espresso, steamed milk, and milk foam&quot;,
+  &quot;predicate&quot;: &quot;provides_a_milk_espresso_recipe_not_a_sensory_masking_result&quot;,
+  &quot;subject&quot;: &quot;cappuccino&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_cappuccino_fixed_milk_recipe_scope_1</code> | bytes [333, 443) | <code>18cdd2fa0d1f0204e36e1730cc138d941fef7905bddb84397e3dc2b3c4b29551</code></div><pre class="context"><span>For other uses, see Cappuccino (disambiguation) . Cappuccino A cappuccino served in the appropriate cup Origin Italy Introduced Late 18th century Color Light brown, dark brown, beige, white, black Cappuccino ( / Ë k Ã¦ p Ê Ë tÊ iË n oÊ / â , Italian: [kapputËtÊiËno] ; from German Kapuziner ) [ 1 ] </span><mark>is an espresso -based coffee drink traditionally prepared with steamed milk , including a layer of milk foam .</mark><span> [ 2 ] Variations of the drink involve the use of cream instead of milk, using non-dairy milk substitutes and flavoring with cocoa powder (in Europe and Australasia) or cinnamon (in the United States and South Korea). [ 3 ] [ 4 ] It is typically smaller in volume than that of a caffÃ¨ latte , and topped with a thick layer of foam rather than being made wit</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cappuccino_fixed_milk_recipe_scope_2</code> | bytes [2128, 2310) | <code>0669c9d718066c49cdd9ec655ee6e7fe89d23a308accbf2f2a23a71e201d1253</code></div><pre class="context"><span>e drink mixed with milk named cappuccino is already documented in the 19th century. [ 9 ] Definition and etymology Definition A cappuccino is a coffee drink that today is typically composed of a single, double, or triple espresso shot and hot milk, with the surface topped with foamed milk. [ 3 ] Cappuccinos are most often prepared with an espresso machine . </span><mark>The espresso is poured into the bottom of the cup, followed by a similar amount of hot milk which is prepared by heating and texturing the milk using the espresso machine steam wand.</mark><span> The top third of the drink consists of milk foam which is also made using the steam wand. The drink may then be topped with powdered chocolate or cocoa powder . In a traditional cappuccino, as served in Europe and artisan coffeehouses in the United States, the total of espresso and milk/foam make up between approximately 150 and 180 ml (5 and 6 imp fl o</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cappuccino_fixed_milk_recipe_scope_3</code> | bytes [9988, 10150) | <code>c543c63ae03b2a56cb5d81f8d00d549859077ce8dc4dd10eb307252d2ebf589d</code></div><pre class="context"><span>raditionally served in 150â180 ml (5â6 imp fl oz; 5â6 US fl oz) cups. By the start of the 21st century, a modified &quot;short-cut&quot; version was being served by fast-food chains in servings up to 600 ml (21 imp fl oz; 20 US fl oz). Preparation Traditional Although size is what varies most among cappuccinos served in different regions, </span><mark>the traditional way of preparing cappuccino is to add equal proportions of the ingredients: 1 â 3 espresso, 1 â 3 steamed milk and 1 â 3 milk foam.</mark><span> [ 31 ] The drink may often be topped with a dusting of chocolate or cocoa powder. Instead of pouring the steamed milk and then adding the foam, some baristas may instead prepare an extra foamy milk with the steam wand and then pour in this mixture of hot milk and foam as one, as this saves time compared to separately pouring the hot milk and then layering o</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cappuccino" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cappuccino</a></p><p>冻结文件: <a href="sources/608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995" target="_blank">sources/608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995</a></p><p>内容 SHA-256: <code>608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;recipe_definition_not_proof_that_milk_erases_species_roast_origin_or_blend_differences&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen cappuccino page supplies a milk-and-espresso recipe and a traditional equal-parts example; it can anchor a fixed comparison recipe but does not prove that milk erases species, roast, origin, blend, or exact-bag sensory differences.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_community_espresso_sampling_freshness_scope"><header><h3>prop_community_espresso_sampling_freshness_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a plan to buy from multiple places, availability of blends and single origins, and one person&#x27;s medium-dark, low-oil, and fresh-bean preferences for espresso&quot;,
+  &quot;predicate&quot;: &quot;report_sampling_and_personal_espresso_bean_selection_views&quot;,
+  &quot;subject&quot;: &quot;individual Rhode Island coffee participants&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_community_espresso_sampling_freshness_scope_1</code> | bytes [314, 372) | <code>bbbd4f9c2f28499afebe03ff395027fa0cb276cd8e87027433a6b94cc01618d9</code></div><pre class="context"><span>Coffee help
+
+Hey Ocean Staters, quick question. I need to by some really good coffee beans for an XMas gift to someone who really knows their beans. Where in the Providence area is the best place to buy high end coffee beans for expresso?? Thanks in advance. WOW. Thanks, Coffee culturists! So many great choices. </span><mark>Looks like I&#x27;ll have to pick up some from multiple places.</mark><span> r/RhodeIsland rocks. 16
+
+Borealis in Riverside, hands down.
+
+And now in Bristol too! They’ve got a liquor license and a much bigger space there.
+
+Coffee Exchange
+
+Absolutely Coffee Exchange: they have a wide selection of different roasts and varieties/blends and can grind it however you like.
+
+I was in there just grabbing a cup and I listened to the emplo</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_community_espresso_sampling_freshness_scope_2</code> | bytes [867, 1027) | <code>34dae9a5f5bffc34e1837d4824ca0af1bcd00c6a93b4f03224753c606f0f82fd</code></div><pre class="context"><span>space there.
+
+Coffee Exchange
+
+Absolutely Coffee Exchange: they have a wide selection of different roasts and varieties/blends and can grind it however you like.
+
+I was in there just grabbing a cup and I listened to the employee explaining all the types of beans to a person. They are super knowledgeable and the coffee is delicious.
+
+Absolutely this answer.
+
+</span><mark>Definitely the place for a coffee gourmet. They have many many different blends and single origin coffees all roasted in house. they definitely know there stuff</mark><span>
+
+New Harvest is consistently fantastic. https://newharvestcoffee.com
+
+Dave’s, Downeast, and Borealis are excellent but idk if they have espresso
+
+FYI for OP, any coffee bean can be used for espresso. Some coffee roasters will make an “espresso” blend, but you don’t need an espresso blend of coffee to make espresso. I typically use a medium dark roas</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_community_espresso_sampling_freshness_scope_3</code> | bytes [1176, 1557) | <code>89a4967fc70462438397de944954810f7dc9c379b446d691a34d986e0cf57e0c</code></div><pre class="context"><span>the coffee is delicious.
+
+Absolutely this answer.
+
+Definitely the place for a coffee gourmet. They have many many different blends and single origin coffees all roasted in house. they definitely know there stuff
+
+New Harvest is consistently fantastic. https://newharvestcoffee.com
+
+Dave’s, Downeast, and Borealis are excellent but idk if they have espresso
+
+</span><mark>FYI for OP, any coffee bean can be used for espresso. Some coffee roasters will make an “espresso” blend, but you don’t need an espresso blend of coffee to make espresso. I typically use a medium dark roast. A less oily bean usually gives me a better pull, but it’s not necessarily required. A fresh roast also usually pulls better than one sitting on the shelf for months.</mark><span>
+
+Dave’s blend that they used in their espresso machines is Blind Pig.
+
+I think Borealis is currently doing the most consistent beans.
+
+They are amazing! I also love Newharvest, and don&#x27;t forget WeRoast in Lincon RI!
+
+Coffee exchange on Wikenden st in providence.
+
+Dave’s or borealis
+
+New Harvest all the way
+
+In Newport but Simple Merchant is worth the dr</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/RhodeIsland/57434/coffee-help" target="_blank" rel="noreferrer">http://localhost:9999/f/RhodeIsland/57434/coffee-help</a></p><p>冻结文件: <a href="sources/f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90" target="_blank">sources/f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90</a></p><p>内容 SHA-256: <code>f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_advice_not_universal_machine_rule_exact_bag_test_or_population_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One Rhode Island thread includes a plan to sample multiple places, notes both blends and single origins, and records one person&#x27;s medium-dark, lower-oil, and freshness preferences for espresso; this is scoped advice, not a universal machine rule, exact-bag test, or population outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_community_long_term_rebuy_scope"><header><h3>prop_community_long_term_rebuy_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a list of roasters bought and considered buy-again, an almost fifteen-year daily custom-blend report, and an exclusive go-to statement&quot;,
+  &quot;predicate&quot;: &quot;report_repeat_buying_and_long_term_custom_blend_use&quot;,
+  &quot;subject&quot;: &quot;individual Massachusetts coffee commenters&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_community_long_term_rebuy_scope_1</code> | bytes [494, 616) | <code>e672e182f0ff29bd3dff9ec85550f49639943eee29d45f66d08d848dd3626618</code></div><pre class="context"><span> back for the month. I want to get a few bags of espresso or dark roast coffee beans that are local to western/central mass, and also eastern mass. I’m hoping to stock up so I can compare to what they got in Chicago :D Anyone have any recommendations? Having a hard time finding good brands online. When I lived here I was a Dunks beans kind of girl 😂 9
+
+</span><mark>There are a ton of choices, so here&#x27;s a Central/Western MA list of a few that I have bought from and would buy from again.</mark><span> These are in no particular order either. https://www.armeno.com/ (Northborough) https://www.monsoonroastery.com/ (Springfield) (They sell their coffee in Crowlers which is pretty neat) https://acousticjava.com/ (Worcester) https://www.brillacoffee.com/ (Holden/Northborough) https://treehousebrew.com/coffee (Charlton) https://smokestackroasters.square.site/ </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_community_long_term_rebuy_scope_2</code> | bytes [1334, 1536) | <code>3dc0bcd82b189300d2a7c855dce1dfb89e7337797b5bbc046b0d3c4f851a2d44</code></div><pre class="context"><span>/ (Lunenburg) https://www.indigocoffee.com/ (Northampton)
+
+Oh my GOD I could kiss you thank you so much!!! I’m super pumped to have some espresso from back home 😊
+
+And from what I&#x27;m seeing they all ship around the country, so as long as they&#x27;re in business, you&#x27;ll stay caffeinated. If I were to choose some favorites, I&#x27;d say Armeno, Monsoon, &amp; Brilla.
+
+</span><mark>A lot of these placesa will do custom blends, grinds if your order 5lbs or more. We have have had a custom blend made by indigo for almost 15 years and whenevert I sip it (daily) I look at it impressed.</mark><span>
+
++1 for Armeno, it&#x27;s become my exclusive go-to
+
+https://www.goodasgold.com/ Good as gold Coffee roasters based out of Worcester. We use them at the diner I work at and they have amazing service.
+
+Gracenote is the gold standard. Broadsheet, Little Wolf, George Howell are the other go-to eastern MA roasters.
+
+Shelburne Falls has some good roasts, mostly in th</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_community_long_term_rebuy_scope_3</code> | bytes [1538, 1583) | <code>31bc4738725a711f34cde9d20b9e9b81b88ae82bc0c457fb1a4ac5a4e21df310</code></div><pre class="context"><span>hip around the country, so as long as they&#x27;re in business, you&#x27;ll stay caffeinated. If I were to choose some favorites, I&#x27;d say Armeno, Monsoon, &amp; Brilla.
+
+A lot of these placesa will do custom blends, grinds if your order 5lbs or more. We have have had a custom blend made by indigo for almost 15 years and whenevert I sip it (daily) I look at it impressed.
+
+</span><mark>+1 for Armeno, it&#x27;s become my exclusive go-to</mark><span>
+
+https://www.goodasgold.com/ Good as gold Coffee roasters based out of Worcester. We use them at the diner I work at and they have amazing service.
+
+Gracenote is the gold standard. Broadsheet, Little Wolf, George Howell are the other go-to eastern MA roasters.
+
+Shelburne Falls has some good roasts, mostly in the pioneer valley.
+
+https://union-coffee-roaster</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/massachusetts/62808/what-are-your-favorite-local-coffee-brands-for-espresso" target="_blank" rel="noreferrer">http://localhost:9999/f/massachusetts/62808/what-are-your-favorite-local-coffee-brands-for-espresso</a></p><p>冻结文件: <a href="sources/1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8" target="_blank">sources/1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8</a></p><p>内容 SHA-256: <code>1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_uncontrolled_reports_not_population_preference_or_exact_frozen_bag_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Individual commenters in one Massachusetts thread describe buy-again roasters, an almost fifteen-year daily custom-blend habit, and an exclusive go-to; these motivate repeatability and rebuy checks but are uncontrolled personal reports, not population rates or evidence about the frozen bags.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_community_roast_preference_disagreement_scope"><header><h3>prop_community_roast_preference_disagreement_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a dark-roast-preferring author pleasantly surprised by some medium roasts and commenters who call one roaster both a favorite and dreadful&quot;,
+  &quot;predicate&quot;: &quot;show_preference_openness_and_direct_roaster_disagreement&quot;,
+  &quot;subject&quot;: &quot;individual New Haven coffee participants&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_community_roast_preference_disagreement_scope_1</code> | bytes [44, 249) | <code>5ecb11a4454fcdff2653a7ea15c1aa6e04a0b9f0d9f9c7a5aa436436d932aeb5</code></div><pre class="context"><span>coffee beans/ground coffee recommendations
+
+</span><mark>hi! does anyone have recommendations on a where to get coffee beans/coffee grounds in the area (i generally prefer dark roast but in the past i&#x27;ve tried some medium roast that has pleasantly surprised me)?</mark><span> i&#x27;m new to new haven (came from Asia) and just wanted to try out local roasters or just anything aside from the typical commercially available coffee grounds. 19
+
+Willoughby&#x27;s roasts some pretty good beans. I know you can buy them at the one on the corner of church and grove. They have whole bean and can grind for you.
+
+This is the correct answer.
+
+Willough</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_community_roast_preference_disagreement_scope_2</code> | bytes [601, 626) | <code>a3944de20f7f0bfdfaefd1801415383f395088c11077ab70d3030f7dabb75aeb</code></div><pre class="context"><span>sed me)? i&#x27;m new to new haven (came from Asia) and just wanted to try out local roasters or just anything aside from the typical commercially available coffee grounds. 19
+
+Willoughby&#x27;s roasts some pretty good beans. I know you can buy them at the one on the corner of church and grove. They have whole bean and can grind for you.
+
+This is the correct answer.
+
+</span><mark>Willoughby&#x27;s is the goat.</mark><span> If you are like me and hate downtown due to parking concerns, they have a location in branford with lots of parking.
+
+Branford is also the main location where they do the roasting. Super fresh beans!
+
+You can also buy them at Best Video in Hamden.
+
+I will forever and always recommend Willoughbys.
+
+I’m a big fan of Giv. They’re in Canton CT but they will</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_community_roast_preference_disagreement_scope_3</code> | bytes [2234, 2393) | <code>b2c1b858b6412121e0bcb772ef5879c73aa468ba5881df606b87eed9b4e53f7d</code></div><pre class="context"><span> If you’re willing to drive a bit out of New Haven, Neat in Darien has excellent beans and is a very nice cafe, Roanjena in Glastonbury has Giv and often Ilse and is all-around an excellent place with great coffee and awesome baked goods, and Source Coffeehouse in Bridgeport has Passenger (PA based) and a rotating guest roaster, sometimes a local roaster. </span><mark>I personally think Willoughby’s is dreadful, but if you’re into dark/medium roasts, they’ll probably have more of that then the other places I mentioned.</mark><span>
+
+[deleted]
+
+I’ve have consistently gotten good beans at East Rock Coffee, Fussy Coffee and the Jitter Bus. I’m not sure where they get their beans from all the time though. I think East Rock roasts their own, Fussy usually has Kuma coffee available, and I’m not sure about the Jitter Bus.
+
+Second the beans from ERC. They roast at their bigger location </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newhaven/64812/coffee-beans-ground-coffee-recommendations" target="_blank" rel="noreferrer">http://localhost:9999/f/newhaven/64812/coffee-beans-ground-coffee-recommendations</a></p><p>冻结文件: <a href="sources/0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988" target="_blank">sources/0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988</a></p><p>内容 SHA-256: <code>0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_taste_disagreement_not_controlled_roast_test_population_rate_or_frozen_bag_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One New Haven author reports a dark-roast preference with pleasant medium-roast surprises, while commenters directly disagree about the same roaster; this supports household-specific blinded testing, not a controlled roast comparison, population preference, or result for a frozen bag.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_espresso_is_extraction_method_scope"><header><h3>prop_espresso_is_extraction_method_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;hot water forced at high pressure through finely ground coffee, producing a concentrated drink with high suspended and dissolved solids&quot;,
+  &quot;predicate&quot;: &quot;is_a_pressure_based_concentrated_extraction_method&quot;,
+  &quot;subject&quot;: &quot;espresso&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_espresso_is_extraction_method_scope_1</code> | bytes [48, 248) | <code>58af9781efdffbab9093181b710f12a836d842fd37e5bc20e3c1cdf9132aa1eb</code></div><pre class="context"><span>For other uses, see Espresso (disambiguation) . </span><mark>Espresso ( / É Ë s p r É s oÊ / â , Italian: [eËsprÉsso] ) is a concentrated form of coffee produced by forcing hot water under high pressure through finely ground coffee beans.</mark><span> [ 1 ] Originating in Italy , espresso has become one of the most popular coffee-brewing methods worldwide. It is characterized by its small serving size, typically 25â30 ml, and its distinctive layers: a dark body topped with a lighter-colored foam called &quot;crema&quot;. Espresso machines use pressure to extract a highly concentrated coffee with a complex fla</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_espresso_is_extraction_method_scope_2</code> | bytes [519, 664) | <code>385180db3fd39b6d1815c3238138189cde5de085bd86aed3df050bea2e216f65</code></div><pre class="context"><span>fee produced by forcing hot water under high pressure through finely ground coffee beans. [ 1 ] Originating in Italy , espresso has become one of the most popular coffee-brewing methods worldwide. It is characterized by its small serving size, typically 25â30 ml, and its distinctive layers: a dark body topped with a lighter-colored foam called &quot;crema&quot;. </span><mark>Espresso machines use pressure to extract a highly concentrated coffee with a complex flavor profile in a short time, usually 25â30 seconds.</mark><span> The result is a beverage with a higher concentration of suspended and dissolved solids than regular drip coffee , giving espresso its characteristic body and intensity. [ 2 ] [ 3 ] While espresso contains more caffeine per unit volume than most coffee beverages, its typical serving size results in less caffeine per serving compared to larger drinks such as </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_espresso_is_extraction_method_scope_3</code> | bytes [665, 833) | <code>aacabab77de44bcb7a92a29bdfc5529eb3002e1152f358eddecd753383b308f8</code></div><pre class="context"><span>the most popular coffee-brewing methods worldwide. It is characterized by its small serving size, typically 25â30 ml, and its distinctive layers: a dark body topped with a lighter-colored foam called &quot;crema&quot;. Espresso machines use pressure to extract a highly concentrated coffee with a complex flavor profile in a short time, usually 25â30 seconds. </span><mark>The result is a beverage with a higher concentration of suspended and dissolved solids than regular drip coffee , giving espresso its characteristic body and intensity.</mark><span> [ 2 ] [ 3 ] While espresso contains more caffeine per unit volume than most coffee beverages, its typical serving size results in less caffeine per serving compared to larger drinks such as drip coffee. [ 4 ] [ 5 ] Espresso serves as the base for other coffee drinks, including cappuccino , caffÃ¨ latte , and americano . It can be made with various types o</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Espresso" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Espresso</a></p><p>冻结文件: <a href="sources/212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1" target="_blank">sources/212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1</a></p><p>内容 SHA-256: <code>212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;brewing_method_not_bean_species_exact_recipe_machine_compatibility_or_bag_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen espresso page defines a pressure-based concentrated extraction method and describes its short extraction and high suspended and dissolved solids; it does not define a bean species, exact household recipe, machine compatibility, or quality guarantee for a bag labeled espresso.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_robusta_general_species_and_espresso_scope"><header><h3>prop_robusta_general_species_and_espresso_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;higher yield and caffeine, lower production cost, commonly stronger and more bitter cups, and a possible body and crema role in traditional Italian espresso blends&quot;,
+  &quot;predicate&quot;: &quot;has_general_yield_caffeine_cost_bitterness_body_and_crema_context&quot;,
+  &quot;subject&quot;: &quot;Coffea canephora or Robusta&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_robusta_general_species_and_espresso_scope_1</code> | bytes [1976, 2174) | <code>fd0b1bb1649be71e668dde664173fdb8faf047cb33fd3e7de83c755437fe31a3</code></div><pre class="context"><span>, [ 8 ] over a hundred years after Coffea arabica . [ 9 ] Description Robusta is a species of flowering plant in the family Rubiaceae . The plant has a shallow root system and grows as a robust tree or shrub to about 10 metres (30 feet) tall. [ 10 ] It flowers irregularly, taking about 10â11 months for the berries to ripen, producing oval-shaped beans. </span><mark>The robusta plant has a greater crop yield than that of arabica, contains more caffeine (2.7% compared to arabica&#x27;s 1.5%), [ 11 ] and contains less sugar (3â7% compared to arabica&#x27;s 6â9%).</mark><span> [ 12 ] As it is less susceptible to pests and disease, [ 13 ] robusta needs much less herbicide and pesticide than arabica. Native distribution C. canephora grows indigenously in Western and Central Africa from Liberia to Tanzania and south to Angola . [ 11 ] It is also reportedly naturalized in Borneo , French Polynesia , Costa Rica , Nicaragua , Jamaica a</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_robusta_general_species_and_espresso_scope_2</code> | bytes [3771, 3879) | <code>8913195a2ca89d426ed295241816aa79aa6019666625618a79b553fff888d555</code></div><pre class="context"><span>the world&#x27;s largest exporter of robusta coffee, accounting for over 40% of the total production. [ 17 ] It surpasses Brazil (25% of the world&#x27;s production), Indonesia (13%), India (5%), and Uganda (5%). [ 17 ] [ 19 ] Brazil is still the biggest coffee producer in the world, producing one-third of the world&#x27;s coffee, though 69% of that is C. arabica . [ 17 ] </span><mark>Since Robusta is easier to care for and has a greater crop yield than C. arabica , it is cheaper to produce.</mark><span> [ 20 ] Roasted robusta beans produce a strong, full-bodied coffee with a distinctive earthy flavour, but usually with more bitterness than arabica due to its pyrazine content. [ 21 ] [ 22 ] Since arabica beans are presumed to have smoother taste with more acidity and a richer flavour, they are often considered superior, while the harsher robusta beans are m</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_robusta_general_species_and_espresso_scope_3</code> | bytes [3887, 4055) | <code>5e0e88d53d0abc6077bf80b84e1ad873bc8337667881b867a2995a15006fcfb3</code></div><pre class="context"><span> Brazil (25% of the world&#x27;s production), Indonesia (13%), India (5%), and Uganda (5%). [ 17 ] [ 19 ] Brazil is still the biggest coffee producer in the world, producing one-third of the world&#x27;s coffee, though 69% of that is C. arabica . [ 17 ] Since Robusta is easier to care for and has a greater crop yield than C. arabica , it is cheaper to produce. [ 20 ] </span><mark>Roasted robusta beans produce a strong, full-bodied coffee with a distinctive earthy flavour, but usually with more bitterness than arabica due to its pyrazine content.</mark><span> [ 21 ] [ 22 ] Since arabica beans are presumed to have smoother taste with more acidity and a richer flavour, they are often considered superior, while the harsher robusta beans are mostly used as a filler in lower-grade coffee blends. [ 20 ] [ 23 ] However, the powerful flavour can be desirable in a blend to give it perceived &quot;strength&quot; and &quot;finish&quot;, notab</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_robusta_general_species_and_espresso_scope_4</code> | bytes [4446, 4593) | <code>b8d7fad8b8b8fba9632d3a4fc6155b4d856ce71f45f9c243039d0f6d245599da</code></div><pre class="context"><span>ans are presumed to have smoother taste with more acidity and a richer flavour, they are often considered superior, while the harsher robusta beans are mostly used as a filler in lower-grade coffee blends. [ 20 ] [ 23 ] However, the powerful flavour can be desirable in a blend to give it perceived &quot;strength&quot; and &quot;finish&quot;, notably in Italian coffee culture . </span><mark>Good-quality robusta beans are used in traditional Italian espresso blends to provide a full-bodied taste and a better foam head (known as crema ).</mark><span> [ 24 ] See also Coffea arabica Coffea charrieriana References ^ Chadburn, H.; Davis, A.P. (2017). &quot; Coffea canephora &quot; . IUCN Red List of Threatened Species . 2017 e.T18290186A18539466. doi : 10.2305/IUCN.UK.2017-3.RLTS.T18290186A18539466.en . Retrieved 19 November 2021 . ^ a b c J. Dagoon (2005). Agriculture &amp; Fishery Technology IV . Rex Bookstore, Inc. p.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_canephora" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_canephora</a></p><p>冻结文件: <a href="sources/0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072" target="_blank">sources/0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072</a></p><p>内容 SHA-256: <code>0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_species_and_culture_context_not_exact_bag_ratio_quality_or_extraction_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Robusta page gives general yield, caffeine, production-cost, bitterness, body, and traditional Italian espresso-crema context; it does not establish the ratio, quality, freshness, caffeine dose, or extraction result of any exact seller product.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_single_origin_arabica_offer_snapshot"><header><h3>prop_single_origin_arabica_offer_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a one-pound whole-bean single-origin medium-roast product titled 100-percent Arabica at 16.98 dollars under SKU B09DR7Q1RF&quot;,
+  &quot;predicate&quot;: &quot;shows_seller_origin_species_size_and_price_labels&quot;,
+  &quot;subject&quot;: &quot;frozen Colombian Santa Barbara coffee offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_single_origin_arabica_offer_snapshot_1</code> | bytes [0, 151) | <code>df4c717635882c47fb2d854645d2ef7c18fd172b7929c7ab0bb9c1c528ff7d93</code></div><pre class="context"><span></span><mark>THE FRENCH PRESS COFFEE ROASTERS Whole Bean 1lb Colombian Santa Barbara, Single Origin Coffee, Medium Roast, 100% Arabica, Fair Trade, Kosher, - 1 Pack</mark><span>
+
+In stock SKU B09DR7Q1RF Be the first to review this product $16.98 Flavor Name Brazilian Datera Colombian, Santa Barbara Ethiopian Yirgacheffe Guatemalan Antigua Indonesian Sumatra Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Why Choose Us: The French Press Coffee Roasters is a micro-roastery located in the Jersey Shore area.</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_single_origin_arabica_offer_snapshot_2</code> | bytes [153, 381) | <code>1b1aca857501aea610d845d168497bade0aa895e3de8dee7df23d0b94deb13ea</code></div><pre class="context"><span>THE FRENCH PRESS COFFEE ROASTERS Whole Bean 1lb Colombian Santa Barbara, Single Origin Coffee, Medium Roast, 100% Arabica, Fair Trade, Kosher, - 1 Pack
+
+</span><mark>In stock SKU B09DR7Q1RF Be the first to review this product $16.98 Flavor Name Brazilian Datera Colombian, Santa Barbara Ethiopian Yirgacheffe Guatemalan Antigua Indonesian Sumatra Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Why Choose Us: The French Press Coffee Roasters is a micro-roastery located in the Jersey Shore area. We pay attention to every roasted bean that comes out of our roastery for the perfect brew and perfect cup. Starting off as a mom and pop shop our mission was to bring fresh roasted coffee to our local area and beyond. We take pr</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_single_origin_arabica_offer_snapshot_3</code> | bytes [1000, 1164) | <code>49dfa533091eff039bf0fa7b21385eb3b8225dc517b3dc1d3781229731211475</code></div><pre class="context"><span>m and pop shop our mission was to bring fresh roasted coffee to our local area and beyond. We take pride in every cup of coffee that comes out of our roastery. We bring you some of the world’s best premium specialty coffees. We love a great coffee; one that makes an impression in aroma and taste from first to last; and that is what we want to provide you. </span><mark>Colombian Santa Barbara Single Origin Whole Bean Coffee: This coffee comes from the Santa Barbara Estate which is southwest of the Antioquia department in Colombia.</mark><span> The estate sits on ideal volcanic soil, at the right altitude, and under perfect climate. Paired with their exceptional growing practices and a focus on quality rather than quantity which makes it the perfect cup of coffee to drink, day or night. It is not a wonder the estate produces one of the best Colombian coffees and consistently at that. This offering</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/the-french-press-coffee-roasters-whole-bean-1lb-colombian-santa-barbara-single-origin-coffee-medium-roast-100-arabica-fair-trade-kosher-1-pack.html" target="_blank" rel="noreferrer">http://localhost:7770/the-french-press-coffee-roasters-whole-bean-1lb-colombian-santa-barbara-single-origin-coffee-medium-roast-100-arabica-fair-trade-kosher-1-pack.html</a></p><p>冻结文件: <a href="sources/da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c" target="_blank">sources/da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c</a></p><p>内容 SHA-256: <code>da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_not_origin_authentication_freshness_cup_quality_or_milk_espresso_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen seller page titles SKU B09DR7Q1RF as a one-pound Colombian Santa Barbara single-origin, medium-roast, whole-bean, 100-percent-Arabica product and shows 16.98 dollars; those are seller labels and an offer snapshot, not independent origin, composition, freshness, cup-quality, or milk-espresso verification.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_single_origin_geographic_label_scope"><header><h3>prop_single_origin_geographic_label_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;coffee from one known geographic origin that may mean a farm, multiple farms, or a country and is contrasted with multiple-origin blends&quot;,
+  &quot;predicate&quot;: &quot;is_a_broad_geographic_label_with_no_universal_enforcement&quot;,
+  &quot;subject&quot;: &quot;single-origin coffee&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_single_origin_geographic_label_scope_1</code> | bytes [66, 143) | <code>d1c291ac0ff5c2522a5d7b02acebb52f201e6f010788c564a962e9963c38256c</code></div><pre class="context"><span>&quot;Single origin&quot; redirects here. For other uses, see Monogenesis . </span><mark>Single-origin coffee is coffee grown within a single known geographic origin.</mark><span> Single-origins can offer unique characteristics and specific tastes compared to blended coffees from multiple origins. [ 1 ] Coffee shops can market single-origin coffees specifically to add symbolic value to the coffee by highlighting the producer or the coffee&#x27;s unique origin. [ 2 ] Consumers of specialty coffee are often attracted to single-origin coffee</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_single_origin_geographic_label_scope_2</code> | bytes [560, 643) | <code>3a09fe97c40b751b2d910fa82341488c826859c40cdca9f31ecb56cb18e7ab83</code></div><pre class="context"><span>ific tastes compared to blended coffees from multiple origins. [ 1 ] Coffee shops can market single-origin coffees specifically to add symbolic value to the coffee by highlighting the producer or the coffee&#x27;s unique origin. [ 2 ] Consumers of specialty coffee are often attracted to single-origin coffee for the transparency it often attempts to convey. [ 3 ] </span><mark>There are no universal rules, or governing bodies enforcing the labeling of coffee.</mark><span> However, there are governmental bodies in some countries that regulate the coffee market, for example in Brazil . [ 4 ] While it is still difficult to accurately authenticate a coffee&#x27;s origin, recent genomic research indicates that it is possible to identify a DNA fingerprint of coffee trees. [ 5 ] This technique may eventually allow buyers of un-roasted, </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_single_origin_geographic_label_scope_3</code> | bytes [1133, 1277) | <code>5858cf583df1103c5467880e0a0409f4a006a9913623b17d0d1c31018e510864</code></div><pre class="context"><span>is still difficult to accurately authenticate a coffee&#x27;s origin, recent genomic research indicates that it is possible to identify a DNA fingerprint of coffee trees. [ 5 ] This technique may eventually allow buyers of un-roasted, green coffee, to authenticate a single-origin coffee. This would improve the transparency and traceability of coffee. Terminology </span><mark>Single-origin coffees may come from a single farm, multiple farms from the same country, or just a blend of the coffees grown from that country.</mark><span> [ 6 ] [ 7 ] It could also mean an entire country which produces a comprehensive variety of beans, such as Brazil , Colombia , and Vietnam . [ 8 ] Estate coffees are a specific type of single-origin coffee. They are generally grown on one massive farm, ranging in size from a few acres to large plantations occupying many square miles or a collection of farms </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Single-origin_coffee" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Single-origin_coffee</a></p><p>冻结文件: <a href="sources/83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3" target="_blank">sources/83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3</a></p><p>内容 SHA-256: <code>83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;geographic_and_traceability_axis_not_species_purity_quality_or_label_authentication&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen single-origin page defines a geographic-origin category, says it may range from one farm to multiple farms or a country, and notes no universal label enforcement; this is not the same axis as species purity and does not authenticate an exact product or guarantee quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_sumatra_blend_offer_snapshot"><header><h3>prop_sumatra_blend_offer_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a two-pound whole-bean Sumatra dark-roast blend at 15.48 dollars with a 55-percent-of-100 aggregate over twelve reviews and a table marking the shown products 100-percent Arabica&quot;,
+  &quot;predicate&quot;: &quot;shows_seller_blend_size_price_rating_and_arabica_labels&quot;,
+  &quot;subject&quot;: &quot;frozen Copper Moon Sumatra Blend offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_sumatra_blend_offer_snapshot_1</code> | bytes [0, 62) | <code>b8c3ed51c8ead556eeb77239bb01e8cc102f78823ce191d9be50ae5265059e20</code></div><pre class="context"><span></span><mark>Copper Moon Sumatra Blend, Dark Roast Coffee, Whole Bean, 2 Lb</mark><span>
+
+In stock SKU B01L9YE808 Rating: 55 % of 100 12 Reviews Add Your Review $15.48 Style 2 lb. Bean Me Up 2 lb. Blast Off 2 lb. Colombian 2 lb. Costa Rican 2 lb. Dark Sky 2 lb. Hawaiian Hazelnut 2 lb. Rainforest Organic 2 lb. Southern Pecan 2 lb. Sumatra 2 Lbs. Tropical Coconut Bean Guatemala Antigua Organic Eco Harvest Qty Add to Cart Add to Wish List Add to C</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_sumatra_blend_offer_snapshot_2</code> | bytes [64, 141) | <code>134d89b4447dfbd6b89a73f50843e928b16b8bf64f5517026036f03d8df36997</code></div><pre class="context"><span>Copper Moon Sumatra Blend, Dark Roast Coffee, Whole Bean, 2 Lb
+
+</span><mark>In stock SKU B01L9YE808 Rating: 55 % of 100 12 Reviews Add Your Review $15.48</mark><span> Style 2 lb. Bean Me Up 2 lb. Blast Off 2 lb. Colombian 2 lb. Costa Rican 2 lb. Dark Sky 2 lb. Hawaiian Hazelnut 2 lb. Rainforest Organic 2 lb. Southern Pecan 2 lb. Sumatra 2 Lbs. Tropical Coconut Bean Guatemala Antigua Organic Eco Harvest Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more BLAST OFF HOME DELIVERY SUMATRA</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_sumatra_blend_offer_snapshot_3</code> | bytes [1445, 1481) | <code>2caa3bc720105512c8c52ff42cfec0ea2bd4d3e1a3cc8ffb723fd363d7a8bccd</code></div><pre class="context"><span>d earthy notes enjoy the spicey twist that mixes smoky undertones and understated cocoa. Smooth smoky character, roasted almond and earthy notes Silky Smooth, Bright wine-like profile, Eloquent finish cocoa, dark cherry with a hint of caramel. Each coffee in this variety pack has it&#x27;s own distinct flavor notes and taste profile. What do your senses pick up? </span><mark>100% Arabica ✓ ✓ ✓ ✓ ✓ ✓</mark><span> Certified Kosher (Orthodox Union) ✓ ✓ ✓ ✓ ✓ ✓ Handcrafted on Earth ✓ ✓ ✓ ✓ ✓ ✓ Reach for the Moon, Copper Moon Coffee! Read more Product Quick Look REACH FOR THE MOON!! Copper Moon Coffee is a family roastery focused on a simple mission: to create evenly roasted, uniquely smooth, high grade coffee, giving you a perfectly satisfying t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_sumatra_blend_offer_snapshot_4</code> | bytes [1874, 1991) | <code>cda669077730e665e086b84211bf811182c35060102bb8718f6bb6739013e752</code></div><pre class="context"><span>) ✓ ✓ ✓ ✓ ✓ ✓ Handcrafted on Earth ✓ ✓ ✓ ✓ ✓ ✓ Reach for the Moon, Copper Moon Coffee! Read more Product Quick Look REACH FOR THE MOON!! Copper Moon Coffee is a family roastery focused on a simple mission: to create evenly roasted, uniquely smooth, high grade coffee, giving you a perfectly satisfying taste that’s out of this world. </span><mark>PREMIUM COFFEE BLEND: Sumatra premium dark roast coffee is a bold blend sourced from the remote reaches of Indonesia.</mark><span> CAFÉ QUALITY COFFEE BREWED BY YOU: Enjoy the uniquely smooth smoky character and herbal notes mixed with roasted almond and an earthy aroma. COPPER MOON COFFEE WHOLE BEAN: Copper Moon Coffee is Gluten Free, Non GMO, Allergen Free and Kosher. Our whole bean coffee is prepared in single batches and perfect for coffee lovers who prefer to grind at home for pe</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/copper-moon-sumatra-blend-dark-roast-coffee-whole-bean-2-lb.html" target="_blank" rel="noreferrer">http://localhost:7770/copper-moon-sumatra-blend-dark-roast-coffee-whole-bean-2-lb.html</a></p><p>冻结文件: <a href="sources/bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce" target="_blank">sources/bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce</a></p><p>内容 SHA-256: <code>bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_snapshot_not_exact_selected_style_freshness_origin_authentication_or_milk_espresso_result&quot;,
+    &quot;topic_cluster&quot;: &quot;daily_milk_espresso_species_origin_and_rebuy_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen seller page titles SKU B01L9YE808 as a two-pound Copper Moon Sumatra dark-roast whole-bean blend, shows 15.48 dollars and a 55-percent-of-100 aggregate over twelve reviews, and marks the displayed products 100-percent Arabica; these are seller snapshot fields, not independent exact-style, freshness, origin, or milk-drink verification.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_daily_milk_espresso_0038</td><td>case_spec</td><td><a href="sources/c1e342e72fbb68301f54987a5b6d18256a639e8e1fb002d64c529880f0879b52">c1e342e72fbb68301f54987a5b6d18256a639e8e1fb002d64c529880f0879b52</a></td><td><a href="http://case-spec.local/dra_v3_formal_coffee_tea_0038" target="_blank" rel="noreferrer">来源 URL</a></td><td>8978</td></tr><tr><td>reg_magento_arabica_robusta_herbal_blend</td><td>magento</td><td><a href="sources/e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c">e7d7b675f01c4e67d0fe819239023f1b73b3afcb3572165c725752bc91e7d42c</a></td><td><a href="http://localhost:7770/burn-control-coffee-premium-100-south-american-arabica-robusta-blend-coffee-weight-management-herbs-garcinia-cambogia-and-yerba-mate-javita.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3024</td></tr><tr><td>reg_magento_single_origin_arabica_1lb</td><td>magento</td><td><a href="sources/da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c">da10aa8e9d01181226f68b693d750a8cd07627e07865538407f7d218c5d22f1c</a></td><td><a href="http://localhost:7770/the-french-press-coffee-roasters-whole-bean-1lb-colombian-santa-barbara-single-origin-coffee-medium-roast-100-arabica-fair-trade-kosher-1-pack.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3619</td></tr><tr><td>reg_magento_sumatra_blend_2lb</td><td>magento</td><td><a href="sources/bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce">bd5144b322e4ed06d0d21b8484c1a09d4c4355489b296627be43b0b8edc964ce</a></td><td><a href="http://localhost:7770/copper-moon-sumatra-blend-dark-roast-coffee-whole-bean-2-lb.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4467</td></tr><tr><td>reg_postmill_dark_medium_roast_surprise</td><td>postmill</td><td><a href="sources/0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988">0851c3d085b5cf54fdec971966e1f228d9ee4eb652d481b7412d5549a9f31988</a></td><td><a href="http://localhost:9999/f/newhaven/64812/coffee-beans-ground-coffee-recommendations" target="_blank" rel="noreferrer">来源 URL</a></td><td>6871</td></tr><tr><td>reg_postmill_local_espresso_stockup</td><td>postmill</td><td><a href="sources/1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8">1290f4c36f7819feef396b48b7d5a1fcf652c1b7c9a0ab442221665d441b3bb8</a></td><td><a href="http://localhost:9999/f/massachusetts/62808/what-are-your-favorite-local-coffee-brands-for-espresso" target="_blank" rel="noreferrer">来源 URL</a></td><td>2199</td></tr><tr><td>reg_postmill_multiple_espresso_bags</td><td>postmill</td><td><a href="sources/f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90">f79efbed2022f36577f0d6a0c690d7aa84b0f788e0d42e4d9730274db25f2b90</a></td><td><a href="http://localhost:9999/f/RhodeIsland/57434/coffee-help" target="_blank" rel="noreferrer">来源 URL</a></td><td>5036</td></tr><tr><td>reg_search_arabica_robusta_herbal</td><td>search_result</td><td><a href="sources/71506f557dde84fbe141cecdaea61313c38e58f2a9100a8d4847cfd8c1832ecb">71506f557dde84fbe141cecdaea61313c38e58f2a9100a8d4847cfd8c1832ecb</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=c478ac78-bc4c-4387-aa88-a95045ed6c76" target="_blank" rel="noreferrer">来源 URL</a></td><td>6850</td></tr><tr><td>reg_search_arabica_species</td><td>search_result</td><td><a href="sources/7d86b3003c5925093429d380592f75ad03c834f510d8bab04853ffac48af90d4">7d86b3003c5925093429d380592f75ad03c834f510d8bab04853ffac48af90d4</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=e5061417-e16c-4bac-ba92-c0af140dd098" target="_blank" rel="noreferrer">来源 URL</a></td><td>5591</td></tr><tr><td>reg_search_cappuccino_recipe</td><td>search_result</td><td><a href="sources/fc89273e6297b05ac296bafcbe34a1db32fad88bf6f8f89ec39cd753c49b236a">fc89273e6297b05ac296bafcbe34a1db32fad88bf6f8f89ec39cd753c49b236a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=404e2f80-84be-4c87-8b93-e93c23265789" target="_blank" rel="noreferrer">来源 URL</a></td><td>6793</td></tr><tr><td>reg_search_community_espresso_sampling</td><td>search_result</td><td><a href="sources/9e18febc23c9e7d7dfe345a1d6a2db0c053b66a944379cc980e259917cae0c58">9e18febc23c9e7d7dfe345a1d6a2db0c053b66a944379cc980e259917cae0c58</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=fbf76f92-b990-499d-84f4-648734362326" target="_blank" rel="noreferrer">来源 URL</a></td><td>58304</td></tr><tr><td>reg_search_community_long_rebuy</td><td>search_result</td><td><a href="sources/f718e17d442ea6790ed357ed541cc770865fa3f04e2aa2be9aec84ce51bc57f8">f718e17d442ea6790ed357ed541cc770865fa3f04e2aa2be9aec84ce51bc57f8</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=5879f6a8-cab1-409b-96c6-d41c7baa9a53" target="_blank" rel="noreferrer">来源 URL</a></td><td>53139</td></tr><tr><td>reg_search_community_roast_disagreement</td><td>search_result</td><td><a href="sources/6c4c2401570d0db439e2234bc716cc712cfa8ea665acfbed981fbe7f39341797">6c4c2401570d0db439e2234bc716cc712cfa8ea665acfbed981fbe7f39341797</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=3a90c611-95e0-4fba-a16e-33edf5bdd4ad" target="_blank" rel="noreferrer">来源 URL</a></td><td>62800</td></tr><tr><td>reg_search_espresso_extraction</td><td>search_result</td><td><a href="sources/1b4cdfc0a16c6386b9e172975af5ed51f06fc24d7d12adf5abbbf7da1df88d4a">1b4cdfc0a16c6386b9e172975af5ed51f06fc24d7d12adf5abbbf7da1df88d4a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=b8d04267-b4d8-48a6-9cb7-7022ed9b7d7e" target="_blank" rel="noreferrer">来源 URL</a></td><td>2612</td></tr><tr><td>reg_search_robusta_species</td><td>search_result</td><td><a href="sources/71b78458d4b2b2b83d31034ed42cd702d3800c002fa7309bff6ae2b5a576c896">71b78458d4b2b2b83d31034ed42cd702d3800c002fa7309bff6ae2b5a576c896</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=d92bd7d6-9e14-4194-9dd1-3668b4e6717b" target="_blank" rel="noreferrer">来源 URL</a></td><td>1407</td></tr><tr><td>reg_search_single_origin_arabica</td><td>search_result</td><td><a href="sources/941dadb3ace539274b1c102f21f946ef4a721dcd2fda1e7a68bcb993605e731b">941dadb3ace539274b1c102f21f946ef4a721dcd2fda1e7a68bcb993605e731b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=f702b3b7-14be-4d21-96d2-ded54b954f7a" target="_blank" rel="noreferrer">来源 URL</a></td><td>6821</td></tr><tr><td>reg_search_single_origin_label</td><td>search_result</td><td><a href="sources/09af7ba34370aa25c12f37a9a765e8f6322f7d7e9c810f2e395850a9229b4e2b">09af7ba34370aa25c12f37a9a765e8f6322f7d7e9c810f2e395850a9229b4e2b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=6db54718-584b-4179-984c-983bdd7ed415" target="_blank" rel="noreferrer">来源 URL</a></td><td>60595</td></tr><tr><td>reg_search_sumatra_blend</td><td>search_result</td><td><a href="sources/de09c6bffb6241f999ebe95de57178136e21a954247c9bed15a6dd3384ad1b17">de09c6bffb6241f999ebe95de57178136e21a954247c9bed15a6dd3384ad1b17</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1&amp;request_id=cca947fa-e743-40db-a6a6-eb35d440e6ed" target="_blank" rel="noreferrer">来源 URL</a></td><td>6497</td></tr><tr><td>reg_wiki_cappuccino</td><td>wikipedia</td><td><a href="sources/608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995">608db3751f362679cdbe6159a8af72944556a837323265091ecd83f49ce9d995</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cappuccino" target="_blank" rel="noreferrer">来源 URL</a></td><td>20270</td></tr><tr><td>reg_wiki_coffea_arabica</td><td>wikipedia</td><td><a href="sources/0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562">0c2ce10a665297bc08b3cc4b43631901adf0197cc0f93a7c8093d1ed8adab562</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_arabica" target="_blank" rel="noreferrer">来源 URL</a></td><td>20155</td></tr><tr><td>reg_wiki_coffea_canephora</td><td>wikipedia</td><td><a href="sources/0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072">0aedafbd301a2b5d501fbdd3c2294a78d50e04a1d48024a03e0fa4520c952072</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Coffea_canephora" target="_blank" rel="noreferrer">来源 URL</a></td><td>12484</td></tr><tr><td>reg_wiki_espresso</td><td>wikipedia</td><td><a href="sources/212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1">212700f240176a9d758476187053011d2b87d210c713b30935179ec4c9ebb6e1</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Espresso" target="_blank" rel="noreferrer">来源 URL</a></td><td>20172</td></tr><tr><td>reg_wiki_single_origin_coffee</td><td>wikipedia</td><td><a href="sources/83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3">83be097352dde14fbaff41c4488967849f2103f64ab28a9d113d4b43f1148ed3</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Single-origin_coffee" target="_blank" rel="noreferrer">来源 URL</a></td><td>7013</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-coffee-tea-0038-milk-espresso-bean-boundary-20260716-r1";
+const graphHash = "4b010b45c2930f045f8b084a1f670f33d33170a8b4a5a1df24a44ae22f3cf043";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

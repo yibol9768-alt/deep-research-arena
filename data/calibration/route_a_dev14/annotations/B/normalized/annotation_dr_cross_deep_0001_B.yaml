@@ -1,0 +1,106 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0001
+query_sha256: "439f6a0cd3da5b2aa611e5142452bd76b10a9c4231347ed662442b27fbd9398d"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 首先要进行一个思辨的内容，就是贵的东西真的更好吗？还是在为 logo 买单？要体现这个思辨性，最终推理的结果要回答是否真的有用，还是只是在为品牌的溢价买单。还需要输出一个不同价位的靠谱推荐，还有具体的理由。
+
+  Q2: 报告中必须覆盖贵的东西溢价的原因或背后的技术或品牌影响力。每个价位都要覆盖产品。说法上先体现思辨，最后列出推荐的商品及靠谱理由。时间段要尽量是近期的，因为商品在不断更新迭代。
+
+  Q3: 需要验证贵的东西是否真的更好，以及解释选择不同价位推荐的产品及背后的理由。
+
+  Q4: 约束必须有不同价位以及背后的理由。
+
+  Q5: 不需要社区或专家经验，但用户经常坐公交并在办公室工作，隔音很重要。可以看相似处境用户的经验，也反映出用户注重性价比。
+
+  Q6: 不能省略的内容：分析是否贵得值、不同价位推荐、推荐理由、降噪能力评估、ANC/编解码验证。
+
+  Q7: 模糊短语："expensive stuff"的价格定义、"a few solid picks"的数量、"different prices"的价位划分、"blocking out sound"是被动隔音还是主动降噪、"genuinely better"的评判标准。
+
+initial_requirements:
+  - 分析"贵的东西是否真的更好"，判断技术溢价还是品牌溢价
+  - 提供不同价位的靠谱推荐
+  - 解释每条推荐背后的理由
+  - 验证主动降噪和蓝牙编解码器是否名副其实
+  - 评估降噪/隔音能力，结合用户场景
+  - 确保推荐产品的时效性（近期在售）
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 判断"贵的是否真的更好"——分析溢价来源（技术 vs 品牌），回答是否为 logo 买单
+    necessity_reason: Query 直接提问"is the expensive stuff genuinely better or am I just paying for the logo"，省略则核心困惑未被回答
+    query_basis: "Is the expensive stuff genuinely better or am I just paying for the logo?"
+    output_form: compare
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 提供不同价位的靠谱推荐
+    necessity_reason: Query 明确要求"a few solid picks at different prices"，省略则用户得不到具体产品建议
+    query_basis: "a few solid picks at different prices"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 解释每条推荐背后的理由
+    necessity_reason: Query 明确要求"the reasons behind them"，仅列推荐不附理由则不完整
+    query_basis: "the reasons behind them"
+    output_form: explain
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R4
+    requirement: 验证 ANC 和蓝牙编解码器是否像广告说的那样有用
+    necessity_reason: Query 直接提问"do things like active noise cancelling and the fancy Bluetooth codecs really do what the ads say"，省略则用户的技术疑问未被回答
+    query_basis: "do things like active noise cancelling and the fancy Bluetooth codecs really do what the ads say?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R5
+    requirement: 评估隔音/降噪能力，结合用户场景（公交+嘈杂办公室）进行推荐筛选，需要从论坛等渠道获取真实用户经验
+    necessity_reason: Query 明确以"blocking out sound matters to me"作为核心使用场景约束，省略则推荐不考虑用户最重要的需求
+    query_basis: "blocking out sound matters to me"
+    output_form: experience
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R6
+    requirement: 确保推荐的产品是近期在售的（时效性）
+    necessity_reason: 消费电子产品快速迭代，过时推荐对用户毫无价值，隐含于 query 中"solid picks"的实用性要求
+    query_basis: "\"solid picks\"（隐含时效性要求）"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R7
+    requirement: 报告必须在显要位置以结构化格式输出推荐结论（每价位段推荐具体产品，包含价格、推荐理由标签等字段）
+    necessity_reason: Query 明确要求"a few solid picks at different prices"且用户需要可直接参考的结论，非结构化散落文本无法满足
+    query_basis: "I'd just love a few solid picks at different prices and the reasons behind them"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "expensive stuff"
+    note: 多少钱算"贵"没有明确定义，不同标注者可能选择不同价格区间划分
+  - phrase: "a few solid picks"
+    note: "\"几个\"不明确，不同标注者可能理解不同（2-3 个 vs 5+ 个）"
+  - phrase: "different prices"
+    note: 价位划分标准不明确（按绝对价格 vs 按定位分档）
+  - phrase: "blocking out sound"
+    note: 是被动隔音还是主动降噪不明确，两种方案差异大
+  - phrase: "genuinely better"
+    note: "\"更好\"的评判标准不明确（音质、降噪、做工、耐用性？）"
+
+unresolved: []
+
+evidence_answerability: not_assessed

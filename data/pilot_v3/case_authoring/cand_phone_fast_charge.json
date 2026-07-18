@@ -1,0 +1,500 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_phone_0009",
+  "cluster_id": "phone_fast_charge_protocol_longevity",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.45,
+    "contradiction_count": 9
+  },
+  "rule_definitions": {
+    "battery_safety_and_longevity_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Treat Realme speed wording and both charger listings' chip, GaN, protection, safety, or battery-life language as seller claims rather than controlled longitudinal evidence. Generic lithium-ion evidence says life and safety can vary materially with cell materials. Battery-management evidence shows that systems may monitor voltage, temperature, current, state of charge, and state of health, while charger evidence describes sensing and current-related heat. Those mechanisms explain why the complete phone-charger system matters but do not measure this Realme battery. The charging-speed, 5 W, and fast-charge explainer threads contain conflicting anonymous claims and individual experiences, including a Redmi decline report and a OnePlus 65 W user who rarely used that rate. They motivate checks but do not prove that 65 W necessarily caused, prevented, or predicts long-term degradation in the Realme X7 Pro."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "complete_fast_charge_listing_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Audit the complete frozen product bodies rather than the headline wattages. The Realme X7 Pro body displays $5.16 and no reviews, says 8 GB plus 128 GB, Android 10, a 4500 mAh battery, a 65 W Smart Flash Charger and cable in the box, and 100 percent in 35 minutes, but it does not name the charging protocol or supply an independent safety or aging test. The UGREEN body displays $22.99 and 86/100 over 17 reviews, has one USB-C PD 3.0 port with a maximum 65 W profile, includes a six-foot cable described as 100 W and 5 A capable, lists multiple devices but not Realme, and gives seller speed and protection claims rather than an independent phone test. The Cirtek body displays $49.99 and no reviews, has two USB-C and two USB-A ports, includes a 100 W E-Mark cable, and states that single-port 100 W requires a 100 W-capable device, cable, and an otherwise unused C1 or C2 port. It separately states 65 W plus 30 W for two USB-C ports and 45 W plus 30 W plus 7.5 W plus 7.5 W for four ports. Preserve the Realme price anomaly, the small or absent review displays, seller attribution, and all missing measurements."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "protocol_and_delivered_power_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "USB-C names a connector rather than a protocol or wattage guarantee. Quick Charge evidence says both the charger and device must implement and negotiate the protocol or regular USB charging occurs. Generic charger evidence says voltage, current, duration, completion behavior, sensing, and heat depend on the battery and charging protocol. A cable marked 100 W is a ceiling for that cable, not proof that a 65 W brick outputs 100 W or that a phone accepts the advertised rate. The Realme listing names 65 W Smart Flash but not PD, QC, PPS, or another interoperable profile. UGREEN names PD 3.0 and Cirtek names several protocols, but neither complete body lists the Realme X7 Pro or proves its 65 W mode. Delivered power is therefore bounded by the device, protocol, charger port, cable, and simultaneous allocation, not by the largest number on one component."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "thermal_and_load_preflight_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The separate iPhone temperature-hold discussion shows one different-model phone pausing charging because of temperature even while its owner reports using an Apple cord and block; commenters suggest diagnostics but do not establish a fast-charging cause. The anonymous fast-charge explainer also discusses protocol negotiation and possible temperature or state-of-charge throttling, but it is not an independent Realme test. Before replacing known chargers with one universal brick, verify the Realme's exact accepted charging protocol and power profiles, the laptop input requirement, the charger's per-port allocation, the E-Mark cable requirement, and whether reconnecting devices causes a charging pause. Run a bounded screen-off trial for each intended single-device and simultaneous-port configuration, recording negotiated indicator, charge interval, interruptions, and any device temperature warning. A different phone's temperature event or an owner's battery outcome cannot be transferred to the Realme."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_fast_charge_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Do not buy either universal charger on the assumption that 65 W or 100 W guarantees the Realme's 65 W Smart Flash mode or longer battery life. Keep the included Realme charger for the phone and the known laptop brick as the evidence-bounded interim route. If one-brick travel is mandatory, defer the purchase until the Realme's accepted protocol and profiles are confirmed and a temperature and simultaneous-load trial can be performed. The Cirtek is the only frozen candidate that states simultaneous laptop-and-phone-style allocations, but its two-port plan is 65 W plus 30 W rather than 100 W to both devices and its body does not establish Realme compatibility. The UGREEN is a one-port 65 W PD route for devices verified to accept its profiles and cannot meet simultaneous charging. No frozen source proves that either third-party brick improves long-term battery health, and the Realme listing's anomalous $5.16 price and no-review display remain unresolved credibility limits."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "defer_universal_brick_pending_realme_protocol_temperature_and_load_test": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Keep the included Realme phone charger and separate known laptop brick until the Realme protocol, temperature, and simultaneous-load checks pass.",
+            "Defer the universal brick pending a Realme protocol, temperature, and simultaneous-load test."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_printed_wattage_is_delivered_power",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A charger marked 100 W necessarily delivers 100 W to the Realme X7 Pro."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_cable_rating_raises_brick_output",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The UGREEN cable's 100 W marking makes its 65 W charger output 100 W."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_cirtek_gives_two_devices_100w",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Cirtek supplies 100 W to both the laptop and phone at the same time."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_usb_c_proves_smart_flash",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A USB-C connector proves compatibility with Realme's 65 W Smart Flash mode."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_safety_claims_are_longitudinal_tests",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The charger listings' GaN, chip, protection, safety, and battery-life wording independently proves long-term Realme battery safety."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_owner_anecdotes_transfer_to_realme",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Redmi, OnePlus, and iPhone owner reports prove the Realme X7 Pro's long-term battery outcome."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_temperature_hold_proves_realme_causality",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The different-model iPhone temperature hold proves that fast charging caused the event and that the Realme will behave identically."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_generic_bms_proves_realme_implementation",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The generic battery-management description proves the Realme's exact controls and battery outcome."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_price_and_review_anomaly_can_be_ignored",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Realme's frozen $5.16 price and no-review display may be silently corrected or ignored."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build the complete frozen Realme, UGREEN, and Cirtek matrix, preserving exact price and review displays, box contents, port counts, protocol wording, cable conditions, per-port and simultaneous allocations, device lists, seller attribution, and all missing compatibility, safety, aging, and measurement evidence.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Separate USB-C connector shape and cable ceilings from negotiated device power, then verify the complete device, protocol, charger-port, cable, and simultaneous-allocation chain for both charger candidates.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E5",
+        "E10",
+        "E12",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Scope seller battery and safety wording, generic lithium-ion, charger-control and battery-management mechanisms, and the conflicting owner discussions without turning any of them into a product-specific Realme aging or causality result.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Define a bounded Realme and laptop preflight that verifies accepted profiles, laptop input, port allocation, E-Mark cable needs, reconnection behavior, negotiated indicators, charge interval, interruptions, and temperature warnings for single-device and simultaneous use.",
+      "critical": true,
+      "requires": [
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E11",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Choose a safe interim route or defer the universal brick under the traveler's one-brick goal, preserving the UGREEN single-port limit, Cirtek allocation conditions, unresolved Realme protocol, price and review anomalies, and missing longitudinal evidence.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit all three complete frozen product bodies for exact price and review displays, included cables and chargers, port counts, named protocols, device lists, single-port and simultaneous allocations, conditional wattage, seller claims, and missing independent measurements.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain why USB-C shape, a 100 W cable marking, and a charger's headline wattage do not establish Realme delivered power, and audit the device, protocol, port, cable, and simultaneous-load chain for UGREEN and Cirtek.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E5",
+        "E10",
+        "E12",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Decide what the frozen evidence establishes about safety and battery longevity while separating seller wording and generic mechanisms from the scoped and conflicting Redmi, OnePlus, iPhone, 5 W, and fast-charge anecdotes.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Specify a bounded screen-off preflight for each intended single-device and simultaneous-port configuration, including Realme profiles, laptop input, port allocation, E-Mark cable conditions, reconnection pauses, negotiated indicators, charge interval, interruptions, and temperature warnings.",
+      "slot_ids": [
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E11",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Recommend keeping separate known chargers, buying one frozen candidate conditionally, or deferring the universal brick; preserve the Realme price and review anomaly, every compatibility and allocation limit, owner and seller scope, and the absence of product-specific longitudinal proof.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "defer_universal_brick_pending_realme_protocol_temperature_and_load_test"
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9",
+      "E10",
+      "E11",
+      "E12",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      },
+      "E8": {
+        "outcome": "decision_unresolved"
+      },
+      "E9": {
+        "outcome": "decision_unresolved"
+      },
+      "E10": {
+        "outcome": "decision_unresolved"
+      },
+      "E11": {
+        "outcome": "decision_unresolved"
+      },
+      "E12": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 30,
+    "minimum_required_evidence_nodes": 12,
+    "minimum_reasoning_depth": 2
+  }
+}

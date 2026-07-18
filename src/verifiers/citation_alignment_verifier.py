@@ -124,56 +124,81 @@ def _extract_pairs(markdown: str, sandbox_hosts: set[str]) -> list[dict]:
     """Return list of ``{sentence, label, url, sent_idx}`` dicts.
 
     Only URLs whose host portion matches one of *sandbox_hosts* are kept.
-    ``sent_idx`` is the index of the containing sentence. Catches both
-    ``[label](url)`` and bare ``https://...`` (the bare-URL case is what
-    breaks for agents like ldr).
+    ``sent_idx`` is the index of the containing sentence.  Citation syntax is
+    parsed by the repository's single source of truth, so markdown links, bare
+    URLs, numbered references, footnotes, source-prefixed URLs, and URL bullets
+    receive identical treatment.  The old private parser recognised only the
+    first two styles, silently assigning citation_alignment=0 to native
+    numbered-reference reports from QX/LDR/STORM.
     """
     if not markdown:
         return []
-    from .base import CITED_BARE_URL_RE, _strip_url_trail, host_in_set
+    from .citation_format import (
+        BARE_URL_RE,
+        NUMBERED_INLINE_RE,
+        extract_citations,
+        replace_markdown_links,
+    )
 
-    sentences = _SENT_SPLIT_RE.split(markdown)
+    # Keep source offsets so a numbered marker can be bound to the same claim
+    # sentence as an inline markdown link.  ``re.split`` alone loses those
+    # offsets and was one reason the verifier grew a divergent extractor.
+    sentence_spans: list[tuple[int, int, int, str]] = []
+    start = 0
+    sent_idx = 0
+    for separator in _SENT_SPLIT_RE.finditer(markdown):
+        if separator.start() > start:
+            sentence_spans.append(
+                (sent_idx, start, separator.start(), markdown[start:separator.start()])
+            )
+            sent_idx += 1
+        start = separator.end()
+    if start < len(markdown):
+        sentence_spans.append((sent_idx, start, len(markdown), markdown[start:]))
+
+    # Bibliography definitions resolve numeric anchors but are not themselves
+    # claim/citation pairs when an in-text anchor exists.  Without this guard a
+    # References line adds a bogus, always-unsupported pair to the denominator.
+    references_match = re.search(
+        r"(?im)^#{1,6}\s+(?:references?|sources?|bibliography)\s*:?\s*$",
+        markdown,
+    )
+    references_offset = references_match.start() if references_match else len(markdown)
+
+    def containing_sentence(offset: int) -> tuple[int, str]:
+        for index, left, right, sentence in sentence_spans:
+            if left <= offset < right:
+                return index, sentence
+        return len(sentence_spans), ""
+
     out: list[dict] = []
     seen: set[tuple[str, str]] = set()
 
-    for sent_idx, sent in enumerate(sentences):
-        # First markdown links (we keep the label as the cleaned claim).
-        urls_seen_in_sent: set[str] = set()
-        for m in _MD_LINK_RE.finditer(sent):
-            url = _strip_url_trail(m.group("url"))
-            if not host_in_set(url, sandbox_hosts):
-                continue
-            urls_seen_in_sent.add(url)
-            cleaned = _MD_LINK_RE.sub(r"\1", sent).strip()[:600]
-            key = (cleaned[:80], url)
-            if key in seen:
-                continue
-            seen.add(key)
-            out.append({
-                "sentence": cleaned,
-                "label": m.group("label"),
-                "url": url,
-                "sent_idx": sent_idx,
-            })
-        # Then bare URLs in the same sentence (skip if already captured
-        # via markdown wrapping).
-        for m in CITED_BARE_URL_RE.finditer(sent):
-            url = _strip_url_trail(m.group(0))
-            if not host_in_set(url, sandbox_hosts):
-                continue
-            if url in urls_seen_in_sent:
-                continue
-            cleaned = _MD_LINK_RE.sub(r"\1", sent).strip()[:600]
-            key = (cleaned[:80], url)
-            if key in seen:
-                continue
-            seen.add(key)
-            out.append({
-                "sentence": cleaned,
-                "label": "",
-                "url": url,
-                "sent_idx": sent_idx,
-            })
+    for citation in extract_citations(
+        markdown,
+        sandbox_hosts=sandbox_hosts,
+        sandbox_only=True,
+        window=300,
+    ):
+        if citation.char_offset >= references_offset:
+            continue
+        index, sentence = containing_sentence(citation.char_offset)
+        cleaned = replace_markdown_links(sentence, lambda link: link.label)
+        cleaned = NUMBERED_INLINE_RE.sub("", cleaned)
+        cleaned = BARE_URL_RE.sub("", cleaned)
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()[:600]
+        if not cleaned:
+            continue
+        key = (cleaned[:80], citation.raw_url)
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "sentence": cleaned,
+            "label": citation.style,
+            "url": citation.raw_url,
+            "sent_idx": index,
+        })
     return out
 
 # ---------------------------------------------------------------------------

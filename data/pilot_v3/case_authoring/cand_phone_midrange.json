@@ -1,0 +1,430 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_phone_0008",
+  "cluster_id": "phone_midrange_value_longevity",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.4,
+    "contradiction_count": 7
+  },
+  "rule_definitions": {
+    "battery_longevity_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The Redmi long-lasting language and S21 all-day language are seller claims rather than longitudinal aging tests. Generic lithium-ion evidence shows that materials and charging procedures matter, but neither candidate body supplies matched construction or cycle-retention evidence. A former Redmi owner reports degradation within six months and iPhone owners report varied health, age and runtime outcomes, but those anecdotes do not establish causality or a cross-tier lifetime. The frozen evidence therefore does not prove that the more expensive S21 battery ages better."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "charging_compatibility_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The Redmi body explicitly names an included adapter and fast charger, while the S21 body does not state box charger contents. USB-C is a connector form rather than a guarantee of Power Delivery, wattage or cable capability, and charging suitability depends on voltage, current, protocol, cable and controls. The separate $13.99 no-review listing only claims 25 W PD, S21 compatibility and an included USB-C-to-USB-C cable; it is not an independent safety or performance test. Inspect the old charger and cable before reuse."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "phone_price_feature_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The frozen Redmi listing is $300 with 73/100 over 12 reviews, 128 GB and 6 GB RAM, a 120 Hz AMOLED display, Snapdragon 732G, stereo speakers, four rear cameras, Android 11, international GSM-only not-Verizon-or-Sprint wording and an included adapter. The S21 listing is $590.01 with 62/100 over 12 reviews, US factory-unlocked 5G wording, 128 GB, 8K video, a 64 MP camera and 30 Space Zoom, but no stated included charger or software-support duration. The price difference is $290.01, both rating displays are small, and neither listing proves battery aging."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "support_repairability_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The different-model Nokia G22 discussion combines easy battery, port and screen replacement with criticism of a three-year security-update horizon, showing that physical repairability and software support are separate longevity dimensions. Its model-specific numbers and owner judgments do not transfer to Redmi or S21. Neither candidate body states update duration, repairability or battery service cost, so written model-specific support and service terms remain a purchase gate."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_phone_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "I recommend the Redmi Note 10 Pro value route for this cash-constrained ordinary-use buyer if a real carrier and band check and a written software-support check pass. It saves $290.01 and its frozen body supplies 128 GB and 6 GB RAM, 120 Hz AMOLED, stereo speakers, four rear cameras and an included adapter, while this buyer does not prioritize the S21's documented 5G, 8K, 64 MP or 30 Space Zoom features. I preserve its international GSM-only limitation, 73/100 over 12 reviews, seller-only battery wording, anonymous charging anecdote and missing product-specific aging and support evidence. I would not add a charger unless the included adapter is missing, damaged or incompatible, and I would defer if carrier or written support terms cannot be confirmed."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "redmi_note_10_pro_value_route_with_included_adapter_and_preflight_checks": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "I recommend the Redmi Note 10 Pro value route with its included adapter, subject to carrier, band and written support checks.",
+            "Choose the Redmi value route and defer the purchase if carrier compatibility or written update support cannot be confirmed."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_price_proves_better_battery_aging",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The S21 battery is proven to age better because the phone costs more."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_runtime_is_aging_test",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The S21 all-day claim and Redmi long-lasting claim are controlled multi-year battery-aging tests."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_redmi_anecdote_proves_causality",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The anonymous Redmi owner report proves that fast charging causes every Redmi Note 10 Pro battery to halve its runtime within six months."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_usb_c_guarantees_pd",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A USB-C connector proves that every old charger and cable supplies the phone's required Power Delivery protocol and wattage."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_charger_listing_is_independent_test",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The no-review 25 W charger listing independently proves its S21 charging speed, safety and long-term battery effect."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_g22_support_transfers",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Nokia G22 discussion proves that Redmi and S21 each receive exactly three years of security updates."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_redmi_has_no_carrier_gate",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen Redmi listing guarantees compatibility with Verizon and Sprint and requires no carrier or band check."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build the complete frozen Redmi versus S21 matrix, preserving exact price, review display, memory and storage, display, network, camera and video, operating system, dimensions, weight, carrier wording, battery wording, box contents and missing support evidence.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E3",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Separate seller battery wording and generic lithium-ion mechanisms from product-specific aging evidence, and scope the Redmi and iPhone owner discussions without converting them into causal or transferable lifetimes.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E3",
+        "E4",
+        "E6",
+        "E7",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Audit the Redmi included-adapter wording, absent S21 box-content statement, third-party 25 W charger listing, USB-C connector boundary and charging-protocol mechanism before deciding whether an old or new charger is justified.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E5",
+        "E9",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Use the different-model repairability and update-support discussion only to separate those longevity dimensions, then identify the missing model-specific support, service and carrier evidence for Redmi and S21.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E3",
+        "E8",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Apply every verified branch to one phone and charger route or a defer decision under the buyer's tight budget and ordinary-use priorities, preserving all seller, owner, carrier, protocol, review-count, update-policy and missing-measurement limits.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit both complete frozen phone bodies for exact price, displayed reviews, memory and storage, display and daily-use features, network and carrier wording, camera and video, operating system, dimensions, weight, battery language, box contents and missing support duration.",
+      "slot_ids": [
+        "E1",
+        "E3",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Decide whether any frozen evidence proves better battery aging in the pricier phone, separating seller wording and generic lithium-ion mechanisms from the scoped Redmi and iPhone anecdotes.",
+      "slot_ids": [
+        "E1",
+        "E3",
+        "E4",
+        "E6",
+        "E7",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Compare the Redmi included adapter, missing S21 box-content statement and third-party 25 W listing, explain why USB-C form is not a protocol or wattage guarantee, and specify the old-charger and cable checks.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E5",
+        "E9",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Keep repairability separate from software support, prevent the Nokia G22 update horizon from transferring to either candidate, and require written model-specific support, service, carrier and band verification.",
+      "slot_ids": [
+        "E1",
+        "E3",
+        "E8",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Recommend the Redmi route, the S21 route, or defer under the cash-budget and ordinary-use priorities, name the charger plan, preserve every evidence limitation, and state the preflight conditions that can block purchase.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "redmi_note_10_pro_value_route_with_included_adapter_and_preflight_checks"
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      },
+      "E8": {
+        "outcome": "decision_unresolved"
+      },
+      "E9": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 25,
+    "minimum_required_evidence_nodes": 9,
+    "minimum_reasoning_depth": 2
+  }
+}

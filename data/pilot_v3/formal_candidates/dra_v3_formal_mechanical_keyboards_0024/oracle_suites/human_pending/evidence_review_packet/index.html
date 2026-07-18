@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-mechanical-keyboards-0024-replacement-20260716-r1</code></p>
+<p>证据图哈希: <code>111eb4ea8d4c885a3b9e358678a03684239cfb1ff6f0d449909d25ed93a6ac22</code></p>
+<p>待审项 18 个，其中语义项 7 个、结构化项 4 个；冻结来源 23 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_brown_tactility_counterexample"><header><h3>assert_brown_tactility_counterexample</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one user preferred their membrane comparison and requested force-chart evidence&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Cherry MX Brown thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_brown_tactility_counterexample</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_negative_experience_not_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;object&quot;: &quot;Brown felt less tactile than that user&#x27;s laptop and membrane keyboard, leading them to demand a force chart before buying&quot;,
+  &quot;predicate&quot;: &quot;reports_negative_fit&quot;,
+  &quot;subject&quot;: &quot;one Cherry MX Brown user&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_brown_chart</code> | bytes [675, 801) | <code>ff75aeee8fd264fb661eb8e6b1e24d582262e1e70e47dfafe904038fed5bd1de</code></div><pre class="context"><span>tches! Hek! A membrane cheapo Logitech K120 non-low-profile full keyboard is probably a better investment for me than ANY mechanical keyboard based on Cherry MX Brown or any switches anywhere close in characteristics. I was considering buying a mechanical keyboard because I value ergonomy and well-built items more and more. But damn, did I miss that bullet! </span><mark>I&#x27;m not buying anything without seeing a force chart of the switches suitable for comparison with cherry MX brown force chart.</mark><span> 0
+
+Nah mate, Mx Browns are simply endgame.
+
+Just don&#x27;t buy or try anything else. Very important.
+
+Well, now you know why browns are such a meme.
+
+But I always thought it&#x27;s just a meme created and perpetrated by purists! :)
+
+A reason that I don&#x27;t really disagree on the sandy linear as a nickname for the switch.
+
+Sandy linear, yeah... When I first approached </span></pre></section><section class="span"><div class="span-meta"><code>span_assert_brown_membrane</code> | bytes [327, 532) | <code>3a754e15b1c63101dc1f14184ef7f821e80f56d0add9fa72216298446434db83</code></div><pre class="context"><span>MX Brown - where tactility (insert ape meme)?!
+
+I tried Cherry MX brown recently. They are NOT TACTILE! To put it into perspective. Regular chicklet low-rpofile keys in your run of the mill laptop like Lenovo Ideapad provide the tactile bump/threshold at least 3 time more pronounced compared to Cherry MX Brown switches! Hek! </span><mark>A membrane cheapo Logitech K120 non-low-profile full keyboard is probably a better investment for me than ANY mechanical keyboard based on Cherry MX Brown or any switches anywhere close in characteristics.</mark><span> I was considering buying a mechanical keyboard because I value ergonomy and well-built items more and more. But damn, did I miss that bullet! I&#x27;m not buying anything without seeing a force chart of the switches suitable for comparison with cherry MX brown force chart. 0
+
+Nah mate, Mx Browns are simply endgame.
+
+Just don&#x27;t buy or try anything else. Very impo</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/14477/mx-brown-where-tactility-insert-ape-meme" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/14477/mx-brown-where-tactility-insert-ape-meme</a></p><p>冻结文件: <a href="sources/7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31" target="_blank">sources/7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31</a></p><p>内容 SHA-256: <code>7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cherry_mx_color_scope"><header><h3>assert_cherry_mx_color_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Cherry MX uses color shorthand, other makers may imitate it, and one color can have several variants&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Cherry MX source&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cherry_mx_color_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;cherry_mx_family_only_not_universal_color_standard&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;object&quot;: &quot;within Cherry MX, Red is linear, Brown is tactile non-clicky, and Blue is tactile clicky, while other makers may imitate the family and even Grey has multiple behavior variants&quot;,
+  &quot;predicate&quot;: &quot;defines_family_scoped_color_shorthand&quot;,
+  &quot;subject&quot;: &quot;Cherry MX switch family&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cherry_color</code> | bytes [4209, 4310) | <code>5d1e2393f1420df31e42a39981f9b65242aa8a2871d711647572c146a7940eee</code></div><pre class="context"><span>irst &quot;fully mechanical switch&quot; intended for the &quot;value market,&quot; or lower cost keyboards called Cherry Viola. [ 13 ] Currently, Cherry makes the following products: Keyboards Mice Card reader Peripheral MIX Technology Cherry MX Cherry âMechanical X-Pointâ (&quot;MX&quot;) switches were developed and patented in the early 1980s and first marketed around 1985. </span><mark>In the consumer keyboard market, Cherry MX switches are often referenced by the color of the key stem</mark><span>âthe part of the switch below the keycap which moves downwards when pressed. [ 14 ] Keyboard makers such as Cooler Master , Corsair , and G.Skill use Cherry&#x27;s Cherry MX switches in their designs or &quot;imitate them,&quot; [ 15 ] such as Razer&#x27;s Kailh Green switches in the first Generation Razer Black widow Chroma. [ 16 ] Cherry sells its own keyboards in &quot;modes</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_cherry_grey</code> | bytes [5198, 5339) | <code>e462ab7e97c6567e7fc5f883cda2b4cf9bb11db49bafb326d544ccb2dbfa5d87</code></div><pre class="context"><span>s. [ 18 ] It makes its Cherry MX Silent switches, or Pink switches, as a range on keyboards like the Corsair K70. [ 19 ] The most common Cherry MX switches are: Linear Red Silent Red Speed Silver Nature White Orange Black Silent Black Black Clear-Top Linear Grey Tactile , non-clicky Purple Ergo Clear Brown Clear Tactile Grey Tactile, Clicky Blue White Green </span><mark>Cherry MX Grey switches can be found in linear (which provides a smooth, consistent feel sans feedback), [ 20 ] tactile, and clicky variants.</mark><span> They are distinguished by stem color, with linear being darker than tactile. The clicky version is no longer made. It is debated as to whether it even clicks, since it is not listed as a &quot;click&quot; switch by Cherry in their 1994 &quot; Keymodule MX brochure&quot;, along with MX Whites, which are greased to reduce the click. [ 21 ] Given their use primarily in large keys</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_cherry_imitation</code> | bytes [4399, 4528) | <code>ccc8f5914107d01721bbd011112df9fd9894898cee7dc509682ae39b06157857</code></div><pre class="context"><span> Peripheral MIX Technology Cherry MX Cherry âMechanical X-Pointâ (&quot;MX&quot;) switches were developed and patented in the early 1980s and first marketed around 1985. In the consumer keyboard market, Cherry MX switches are often referenced by the color of the key stemâthe part of the switch below the keycap which moves downwards when pressed. [ 14 ] </span><mark>Keyboard makers such as Cooler Master , Corsair , and G.Skill use Cherry&#x27;s Cherry MX switches in their designs or &quot;imitate them,&quot;</mark><span> [ 15 ] such as Razer&#x27;s Kailh Green switches in the first Generation Razer Black widow Chroma. [ 16 ] Cherry sells its own keyboards in &quot;modest volumes.&quot; Its MX 10.0 TKL keyboard lacks the tenkey section of the keyboard. [ 17 ] In 2018, the company introduced mechanical keyboard switches for thinner keyboards. [ 18 ] It makes its Cherry MX Silent switches, </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cherry_AG" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cherry_AG</a></p><p>冻结文件: <a href="sources/54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e" target="_blank">sources/54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e</a></p><p>内容 SHA-256: <code>54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_first_mechanical_positive"><header><h3>assert_first_mechanical_positive</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author liked the feel and replaced an overly sensitive switch&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;first mechanical keyboard thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_first_mechanical_positive</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_positive_experience_with_unit_caveat&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;object&quot;: &quot;Tealio linears felt excellent, but an overly sensitive W switch required desoldering and replacement&quot;,
+  &quot;predicate&quot;: &quot;reports_positive_fit_with_caveat&quot;,
+  &quot;subject&quot;: &quot;one first-time mechanical-board builder&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_first_caveat</code> | bytes [258, 418) | <code>01cf9b41b547c6271dece3948e5d1b6c92f1d51857bff5bba6eb9eba7b5d537b</code></div><pre class="context"><span>First mechanical keyboard
+
+During the covid lockdown, I got lucky and got one of the Bauer 2. I finally had some time to build it and I now can retire my loyal sticky razer friend. Now I know why people love mechanical keyboards :) It feels amazing to type. </span><mark>I used Tealio linear switches, after I completed the build I realized the W key was incredibly sensitive to any movement had to desolder and replace the switch.</mark><span> Now it is perfect. &amp;#x200B; https://preview.redd.it/rrk6be7xfi7a1.jpg?width=4032&amp;format=pjpg&amp;auto=webp&amp;s=55e8f08d193a518bd19050093170542b9284028b 11
+
+Holy shit you started at the top!
+
+I had to look it up. Very high end!
+
+Gotta say this keyboard is pretty cool but it is probably overkill for me :) During covid lockdown there weren&#x27;t many options to pick fro</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_first_positive</code> | bytes [181, 257) | <code>9ba890eacb3ee361223c6a22319ee62bbca32a65d3ace7c5c834891e0b3cd659</code></div><pre class="context"><span>First mechanical keyboard
+
+During the covid lockdown, I got lucky and got one of the Bauer 2. I finally had some time to build it and I now can retire my loyal sticky razer friend. </span><mark>Now I know why people love mechanical keyboards :) It feels amazing to type.</mark><span> I used Tealio linear switches, after I completed the build I realized the W key was incredibly sensitive to any movement had to desolder and replace the switch. Now it is perfect. &amp;#x200B; https://preview.redd.it/rrk6be7xfi7a1.jpg?width=4032&amp;format=pjpg&amp;auto=webp&amp;s=55e8f08d193a518bd19050093170542b9284028b 11
+
+Holy shit you started at the top!
+
+I had to look</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/56360/first-mechanical-keyboard" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/56360/first-mechanical-keyboard</a></p><p>冻结文件: <a href="sources/cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a" target="_blank">sources/cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a</a></p><p>内容 SHA-256: <code>cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_longtime_user_requirements"><header><h3>assert_longtime_user_requirements</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author has not tried a mechanical keyboard and needs quiet, numpad, no-soldering, and cross-platform fit&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;long-time nonmechanical user thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_longtime_user_requirements</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_not_outcome_or_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;object&quot;: &quot;noise, numpad placement, no soldering, Mac and Windows support, and untested accuracy expectations are person-specific constraints&quot;,
+  &quot;predicate&quot;: &quot;poses_transition_requirements&quot;,
+  &quot;subject&quot;: &quot;long-time nonmechanical keyboard user&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_longtime_no_trial</code> | bytes [379, 492) | <code>54724b5c32e5c619f0239b88437711d417edccbc592d80cd653fe4b2442394dc</code></div><pre class="context"><span>yboard options for a Mac keyboard user - seeking advice!
+
+I&#x27;ve always dismissed mechanical keyboards due to their noise. I&#x27;ve been using mac-like keyboard experiences for around 15 years, currently using Logitech Craft . That&#x27;s the kind of experience I&#x27;m used to (and think I enjoy), but I&#x27;m wondering what I&#x27;m missing out on? Or maybe this just isn&#x27;t for me? </span><mark>I&#x27;ve never tried a mechanical keyboards, and don&#x27;t think there are any options locally to test (based in Norway).</mark><span> What got me curious was seeing the Keychron Q12 with the numpad on the left side. As I switch my right hand a lot between the keyboard and mouse, reducing the travel distance and giving more tasks to my left hand would be nice. I&#x27;m considering the Barebone ISO of Keychron Q12, and finding some quiet switches and Norwegian caps. Motivation: As a developer, w</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_longtime_requirements</code> | bytes [971, 1102) | <code>9cdaf85fd18cee0e14640cd3ef889e0b43175fac9c342efba389226689a2b967</code></div><pre class="context"><span>een the keyboard and mouse, reducing the travel distance and giving more tasks to my left hand would be nice. I&#x27;m considering the Barebone ISO of Keychron Q12, and finding some quiet switches and Norwegian caps. Motivation: As a developer, want to be more accurate using a keyboard. Often my right hand has trouble locating the home row after using the mouse. </span><mark>Requirements: Quiet operation Numpad (south paw is a plus) No soldering or too time consuming assembly Both mac and windows support</mark><span> Looking for tips and guidance, what do you tell your friends when they ask? Is my expectations in check (will it make a difference?), or should I just stick with what I&#x27;m used to. 4
+
+Please check if your post is a help request. As per the rules, &quot;Help requests, keyboard buying advice, and simple questions must be posted in the daily post stickied to the top</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/100126/quiet-mechanical-keyboard-options-for-a-mac-keyboard-user" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/100126/quiet-mechanical-keyboard-options-for-a-mac-keyboard-user</a></p><p>冻结文件: <a href="sources/9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88" target="_blank">sources/9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88</a></p><p>内容 SHA-256: <code>9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_matrix_controller_registration"><header><h3>assert_matrix_controller_registration</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the controller scans rows and columns and generates a code&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;keyboard matrix source&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_matrix_controller_registration</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;matrix_detection_not_switch_feel_or_latency_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;object&quot;: &quot;the controller scans row-column crossings, identifies the pressed intersection, and generates the key code from a binary switch state&quot;,
+  &quot;predicate&quot;: &quot;scans_and_generates_code&quot;,
+  &quot;subject&quot;: &quot;keyboard matrix controller&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_matrix_scan</code> | bytes [827, 1048) | <code>c9ef9fc8ad4775998c6069e507a96d8314796fabf824d45a77a53a12fc0a7b03</code></div><pre class="context"><span>t, a 61-key keyboard for a digital piano or a computer keyboard might require 62 wires to connect (one for each key, and a ground)âan awkwardly thick bundle of wiring. With a matrix circuit, any of 61 keys can be determined with only 16 wires. This is drawn schematically as a matrix of 8 columns and 8 rows of wires, with a switch at every intersection. </span><mark>The keyboard controller scans the columns. If a key has been pressed, the controller scans the rows, determines the row-column combination at which a key has been pressed, and generates the code corresponding to that key.</mark><span> This process occurs so quickly that the user is unaware of any delay. [ 1 ] There are at least two limitations with this system. The first is that it provides only a crude binary on/off signal for each key. Better electronic musical keyboards employ two sets of switches for each key that are slightly offset. By determining the timing between the activation </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_matrix_circuit" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_matrix_circuit</a></p><p>冻结文件: <a href="sources/91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5" target="_blank">sources/91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5</a></p><p>内容 SHA-256: <code>91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_membrane_contact_registration"><header><h3>assert_membrane_contact_registration</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;conductive contact closes the switch and registers a keypress&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;membrane keyboard source&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_membrane_contact_registration</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;contact_closure_not_cross_keyboard_latency_test&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;object&quot;: &quot;pressing brings conductive layers together, bridges a normally open gap, allows current to flow, and lets the parent device register a keypress&quot;,
+  &quot;predicate&quot;: &quot;closes_circuit&quot;,
+  &quot;subject&quot;: &quot;membrane keyboard contact&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_membrane_registration</code> | bytes [2323, 2501) | <code>c29a26aed9e56d69c7b3f5557e550a98ce0515fac5f349f25d95161f17874c9d</code></div><pre class="context"><span>being pressed. The third layer keeps the other two layers separated in order to prevent short-circuit . [ 5 ] [ 1 ] Under normal conditions, the switch (key) is open, because current cannot cross the non-conductive gap between the traces on the bottom layer. However, when the top layer is pressed down (with a finger), it makes contact with the bottom layer. </span><mark>The conductive traces on the underside of the top layer can then bridge the gap, allowing current to flow. The switch is now &quot;closed&quot;, and the parent device registers a keypress.</mark><span> Many applications benefit from the sealed nature of the membrane keypad. Feedback can easily be provided to the user via audible means (e.g. a beep) or visually (lights or via the display itself), or via both means together. For additional wear resistance, a simple, easily replaceable protective clear sheet can be placed in front of the membrane. Membrane k</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Membrane_keyboard" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Membrane_keyboard</a></p><p>冻结文件: <a href="sources/3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22" target="_blank">sources/3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22</a></p><p>内容 SHA-256: <code>3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_switch_spec_diversity"><header><h3>assert_switch_spec_diversity</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the early project was missing Gateron and smaller manufacturers&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;switch-specification project thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_switch_spec_diversity</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;community_inventory_gap_not_universal_standard&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;object&quot;: &quot;the author&#x27;s incomplete database still lacked Gateron and smaller makers and sought comparable specifications and similar-feeling switches&quot;,
+  &quot;predicate&quot;: &quot;exposes_catalog_diversity&quot;,
+  &quot;subject&quot;: &quot;community switch-specification project&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_switch_missing</code> | bytes [333, 446) | <code>36a0293c0115bac9f2a43fb23cefa85e736c199d36cbb1c8a2a58986dcd13d7b</code></div><pre class="context"><span>I&#x27;ve built a website that has a list of (almost) all key switches!
+
+Hey there! During my last keyboard built, I was looking to find a similar switch to the ones I like, and was surprised to discover that there is no website that tries to collect all the possible key switches and their specs. So I&#x27;ve built one myself! AnySwitch.xyz </span><mark>It&#x27;s an early stage MVP, and it&#x27;s missing some key switches (mainly Gateron and some small brands/manufacturers).</mark><span> I plan to expand the database of switches, as well as add more functionality such as ability to find similar feeling switches, and price data. I&#x27;d appreciate any feedback you might have. If you have any suggestions for things you&#x27;d like to see, please let me know! Happy clacking! 45
+
+immediately what comes to mind is filtering settings for force... well act</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/100059/i-ve-built-a-website-that-has-a-list-of-almost-all-key" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/100059/i-ve-built-a-website-that-has-a-list-of-almost-all-key</a></p><p>冻结文件: <a href="sources/dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632" target="_blank">sources/dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632</a></p><p>内容 SHA-256: <code>dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_compact_blue_snapshot"><header><h3>ev_compact_blue_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;34.99 dollars, a wired 68-key layout, anti-ghosting, and a blue-switch configuration&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen 68-key compact listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_compact_blue_snapshot</code> | bytes [196, 433) | <code>497ba32f2de30a41c90ccfa5f0c04924f3f8a70aa421ed7bb3cb31e92c47b650</code></div><pre class="context"><span>60% Mechanical Gaming Keyboard Compact Type C Wired 68 Keys LED Backlit USB Waterproof Keyboard 18 Chroma RGB Backlight Full Anti-ghosting Keys Compatible with PS4/PS5/Xbox/PC (Blue/Blue Switch)
+
+</span><mark>In stock SKU B09KBJYZTZ Rating: 73 % of 100 4 Reviews Add Your Review $34.99 Color black/blue switch black/brown switch blue /blue switch pink/blue switch white/blue switch white/red switch Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Read more Read more Product Quick Look 【Classic 60% Compact Mini keyboard】This Mini 68 key gaming keyboard has a perfect size and it&#x27;s good for Home and Office use, UV coated keycaps and injection laser carving ABS keycaps design, the letter of characters never fade.High quality durable ABS material, portable film keys and s</span></pre></section><section class="span"><div class="span-meta"><code>span_compact_blue_title</code> | bytes [0, 194) | <code>a096d44f58043efe5ff4a5bf4d93e94520ad3e247b7db7ec614164837e458bf9</code></div><pre class="context"><span></span><mark>60% Mechanical Gaming Keyboard Compact Type C Wired 68 Keys LED Backlit USB Waterproof Keyboard 18 Chroma RGB Backlight Full Anti-ghosting Keys Compatible with PS4/PS5/Xbox/PC (Blue/Blue Switch)</mark><span>
+
+In stock SKU B09KBJYZTZ Rating: 73 % of 100 4 Reviews Add Your Review $34.99 Color black/blue switch black/brown switch blue /blue switch pink/blue switch white/blue switch white/red switch Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more Read more Product Quick Look 【Classic 60% Compact Mini keyboard】This Mini 68 </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/60-mechanical-gaming-keyboard-compact-type-c-wired-68-keys-led-backlit-usb-waterproof-keyboard-18-chroma-rgb-backlight-full-anti-ghosting-keys-compatible-with-ps4-ps5-xbox-pc-blue-blue-switch.html" target="_blank" rel="noreferrer">http://localhost:7770/60-mechanical-gaming-keyboard-compact-type-c-wired-68-keys-led-backlit-usb-waterproof-keyboard-18-chroma-rgb-backlight-full-anti-ghosting-keys-compatible-with-ps4-ps5-xbox-pc-blue-blue-switch.html</a></p><p>冻结文件: <a href="sources/743706f4786f313c9b3e249f92f2f8e1c4fcbb93e6300883f66e9f7140004ddd" target="_blank">sources/743706f4786f313c9b3e249f92f2f8e1c4fcbb93e6300883f66e9f7140004ddd</a></p><p>内容 SHA-256: <code>743706f4786f313c9b3e249f92f2f8e1c4fcbb93e6300883f66e9f7140004ddd</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_snapshot_not_controlled_test&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen compact listing advertises a 34.99 dollar wired 68-key board with anti-ghosting and a blue-switch configuration; its seller score and claims are not an independent quality, sound, or latency test.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_epomaker_yellow_snapshot"><header><h3>ev_epomaker_yellow_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;89.99 dollars, a wired 61-key hot-swappable board, and Gateron Yellow, Orange, or Pink options&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen EPOMAKER AKKO 3061S listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_epomaker_hotswap</code> | bytes [1183, 1268) | <code>a24de95fba14eed22ac4ef523c6407e5535337cea78afc2707ec5158f92279c9</code></div><pre class="context"><span>ghts to personalize your typing experiences. Being better ergonomic as to provide customized height experience . Package including 3061S R2 keyboard Usb C Cable Key switch opener Uaer manual Read more Product Quick Look 【The Updated Version of AKKO 3061 R2 Keyboard】The biggest difference between new version and the previous one is hotswappable terminal. </span><mark>A hotswappable keyboard ensures free replacing of key switch without soldering issue.</mark><span> The new version is compatible with 5 pin switch so you can replace original gateron switch with the one you prefer. Newly added silent cotton layer makes typing more satisfactory and appealing 【60% Compact Layout Professional Keyboard】Continuing the legend of AKKO 3068/3084 series, AKKO had add the new 3061S compact keyboard to its family. As a professi</span></pre></section><section class="span"><div class="span-meta"><code>span_epomaker_snapshot</code> | bytes [199, 392) | <code>6483f6345fbcc5f166e4fd13623ddf5bb3efb182761c38339e8f1daa434dfd6f</code></div><pre class="context"><span>EPOMAKER AKKO 3061S World Tour R2 60% Wired Hotswap Mechanical Gaming Keyboard with RGB Backlight, Dye Sublimation PBT Keycaps, NKRO Programmable for Gamers/Mac/Win (Gateron Yellow Switch, 61 Keys)
+
+</span><mark>In stock SKU B09GVT3FH2 Rating: 93 % of 100 4 Reviews Add Your Review $89.99 Size Gateron Orange Switch Gateron Pink Switch Gateron Yellow Switch Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Read more Read more Read more Read more USB-C Port The AKKO 3061S R2 adopts classic USB C detachable cable for convenience of portability. It is fully compatible with every operating system (OS) from Mac/iOS to Android and Windows, and you can easily switch between the different OS with just the flip of a switch. Adjustable feet</span></pre></section><section class="span"><div class="span-meta"><code>span_epomaker_title</code> | bytes [0, 197) | <code>04cbcabaa722d91792528f8eec8a2cfb9c49c7a83df9e5bb828db485fb2f3e35</code></div><pre class="context"><span></span><mark>EPOMAKER AKKO 3061S World Tour R2 60% Wired Hotswap Mechanical Gaming Keyboard with RGB Backlight, Dye Sublimation PBT Keycaps, NKRO Programmable for Gamers/Mac/Win (Gateron Yellow Switch, 61 Keys)</mark><span>
+
+In stock SKU B09GVT3FH2 Rating: 93 % of 100 4 Reviews Add Your Review $89.99 Size Gateron Orange Switch Gateron Pink Switch Gateron Yellow Switch Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more Read more Read more Read more USB-C Port The AKKO 3061S R2 adopts classic USB C detachable cable for convenience of portabili</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/epomaker-akko-3061s-world-tour-r2-60-wired-hotswap-mechanical-gaming-keyboard-with-rgb-backlight-dye-sublimation-pbt-keycaps-nkro-programmable-for-gamers-mac-win-gateron-yellow-switch-61-keys.html" target="_blank" rel="noreferrer">http://localhost:7770/epomaker-akko-3061s-world-tour-r2-60-wired-hotswap-mechanical-gaming-keyboard-with-rgb-backlight-dye-sublimation-pbt-keycaps-nkro-programmable-for-gamers-mac-win-gateron-yellow-switch-61-keys.html</a></p><p>冻结文件: <a href="sources/0513b06a1d0d165ce426a5a79e7bb9d06ef92468bf0abe5c85bf65d1ace76bbb" target="_blank">sources/0513b06a1d0d165ce426a5a79e7bb9d06ef92468bf0abe5c85bf65d1ace76bbb</a></p><p>内容 SHA-256: <code>0513b06a1d0d165ce426a5a79e7bb9d06ef92468bf0abe5c85bf65d1ace76bbb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_snapshot_not_controlled_test&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen EPOMAKER listing advertises an 89.99 dollar wired 61-key hot-swappable board with Gateron Yellow, Orange, or Pink options; the listing does not independently establish how those switches feel for this buyer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_hyssp_compact_snapshot"><header><h3>ev_hyssp_compact_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;49.99 dollars, 61 keys, Bluetooth and USB-C, brown or blue styles, NKRO, and no posted review&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen HYSSP STK61 listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_hyssp_snapshot</code> | bytes [192, 361) | <code>2a6f91a1b07ccba8d69d551f68af14c6c6ce45906448b815abc8f16aff573cd3</code></div><pre class="context"><span>HYSSP STK61 Wireless Mechanical Gaming Keyboard, 61-Keys Compact Keyboard, GK61 Bluetooth Keyboard with Shine Through PBT Keycaps, Type-c Cable, NKRO, for PC/Mac (Brown Switch, Black Dragon)
+
+</span><mark>In stock SKU B098Q2WPSP Be the first to review this product $49.99 Color Black Dragon Miami Size Blue Switch Brown Switch Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description 60% mechanical keyboard STK61 60% gaming keyboard adopts a 61-key ultra-compact layout, allowing you to have a neat and orderly desktop. A keyboard without a small keyboard is the choice of most FPS gamers, leaving room for mouse movement More space If you are playing CS:GO, Call of Duty, League of Legends, World of Warcraft or </span></pre></section><section class="span"><div class="span-meta"><code>span_hyssp_title</code> | bytes [0, 190) | <code>9ea5fd5ac923ad7cc853def8c1b393cbc0f99750e164c9b0dd3b4d885430bb8d</code></div><pre class="context"><span></span><mark>HYSSP STK61 Wireless Mechanical Gaming Keyboard, 61-Keys Compact Keyboard, GK61 Bluetooth Keyboard with Shine Through PBT Keycaps, Type-c Cable, NKRO, for PC/Mac (Brown Switch, Black Dragon)</mark><span>
+
+In stock SKU B098Q2WPSP Be the first to review this product $49.99 Color Black Dragon Miami Size Blue Switch Brown Switch Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description 60% mechanical keyboard STK61 60% gaming keyboard adopts a 61-key ultra-compact layout, allowing you to have a neat and orderly desktop. A keyboard without a s</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hyssp-stk61-wireless-mechanical-gaming-keyboard-61-keys-compact-keyboard-gk61-bluetooth-keyboard-with-shine-through-pbt-keycaps-type-c-cable-nkro-for-pc-mac-brown-switch-black-dragon.html" target="_blank" rel="noreferrer">http://localhost:7770/hyssp-stk61-wireless-mechanical-gaming-keyboard-61-keys-compact-keyboard-gk61-bluetooth-keyboard-with-shine-through-pbt-keycaps-type-c-cable-nkro-for-pc-mac-brown-switch-black-dragon.html</a></p><p>冻结文件: <a href="sources/ce81c506541f15428ab091957ed2f906576f7d21dca100e85dc2c91afcd431d5" target="_blank">sources/ce81c506541f15428ab091957ed2f906576f7d21dca100e85dc2c91afcd431d5</a></p><p>内容 SHA-256: <code>ce81c506541f15428ab091957ed2f906576f7d21dca100e85dc2c91afcd431d5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_snapshot_not_controlled_test&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen HYSSP listing advertises a 49.99 dollar 61-key compact board with Bluetooth, a Type-C cable, NKRO, and brown or blue styles, while saying it has no posted review; it does not establish independent quality or switch feel.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_newmen_full_size_snapshot"><header><h3>ev_newmen_full_size_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;49.99 dollars, a full-size 104-key USB board, OUTEMU switches, red or blue styles, hot-swap, and NKRO&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen NEWMEN GM711 listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_newmen_snapshot</code> | bytes [168, 322) | <code>7a9c39514ab40e798bb429278a64318cc918de7fc04fcdf7178feb5b07bef1f7</code></div><pre class="context"><span>NEWMEN GM711 Full Size RGB Mechanical Gaming Keyboard, Hot Swappable, NKRO, Double Injection Keycaps, with Media Control, Compatible with Windows and Mac (Red Switch)
+
+</span><mark>In stock SKU B08QV1XYDN Rating: 75 % of 100 11 Reviews Add Your Review $49.99 Style Blue Switch Red Switch Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Specifications Keys 104 Compatible Switch OUTEMU Switches Key Stroke 2.2±0.6mm Interface USB 2.0 Switch Lifespan ≥5,000,000 clicks Operating force 60±5g Cable 1.5m Antighosting 104 keys NKRO Product Quick Look DECORATIVE OUTLOOK --- Up to 9 RGB backlit modes to choose from, or just personalize your own per-key backlight styl</span></pre></section><section class="span"><div class="span-meta"><code>span_newmen_specs</code> | bytes [352, 409) | <code>09aee07f52d0f5e097b8f3efa9683262580b2131bf6a82440a1ed38d72a17a3a</code></div><pre class="context"><span>NEWMEN GM711 Full Size RGB Mechanical Gaming Keyboard, Hot Swappable, NKRO, Double Injection Keycaps, with Media Control, Compatible with Windows and Mac (Red Switch)
+
+In stock SKU B08QV1XYDN Rating: 75 % of 100 11 Reviews Add Your Review $49.99 Style Blue Switch Red Switch Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description </span><mark>Specifications Keys 104 Compatible Switch OUTEMU Switches</mark><span> Key Stroke 2.2±0.6mm Interface USB 2.0 Switch Lifespan ≥5,000,000 clicks Operating force 60±5g Cable 1.5m Antighosting 104 keys NKRO Product Quick Look DECORATIVE OUTLOOK --- Up to 9 RGB backlit modes to choose from, or just personalize your own per-key backlight style, decorated with a vivid RGB light stripe circling around the verge. HOT SWAPPABLE ---</span></pre></section><section class="span"><div class="span-meta"><code>span_newmen_title</code> | bytes [0, 166) | <code>2093895e3daaf28e916a9a66fded8a8599956661a92c3ffa7df835d2a0559884</code></div><pre class="context"><span></span><mark>NEWMEN GM711 Full Size RGB Mechanical Gaming Keyboard, Hot Swappable, NKRO, Double Injection Keycaps, with Media Control, Compatible with Windows and Mac (Red Switch)</mark><span>
+
+In stock SKU B08QV1XYDN Rating: 75 % of 100 11 Reviews Add Your Review $49.99 Style Blue Switch Red Switch Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Specifications Keys 104 Compatible Switch OUTEMU Switches Key Stroke 2.2±0.6mm Interface USB 2.0 Switch Lifespan ≥5,000,000 clicks Operating force 60±5g Cable 1.5m Antigh</span></pre></section><section class="span"><div class="span-meta"><code>span_newmen_usb</code> | bytes [432, 449) | <code>24d0ad56c5da4798c2065108f96768624c6788dfb828daa8b0ff1af8130461aa</code></div><pre class="context"><span>RO, Double Injection Keycaps, with Media Control, Compatible with Windows and Mac (Red Switch)
+
+In stock SKU B08QV1XYDN Rating: 75 % of 100 11 Reviews Add Your Review $49.99 Style Blue Switch Red Switch Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Specifications Keys 104 Compatible Switch OUTEMU Switches Key Stroke 2.2±0.6mm </span><mark>Interface USB 2.0</mark><span> Switch Lifespan ≥5,000,000 clicks Operating force 60±5g Cable 1.5m Antighosting 104 keys NKRO Product Quick Look DECORATIVE OUTLOOK --- Up to 9 RGB backlit modes to choose from, or just personalize your own per-key backlight style, decorated with a vivid RGB light stripe circling around the verge. HOT SWAPPABLE --- All switches are hot swappable without </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/newmen-gm711-full-size-rgb-mechanical-gaming-keyboard-hot-swappable-nkro-double-injection-keycaps-with-media-control-compatible-with-windows-and-mac-red-switch.html" target="_blank" rel="noreferrer">http://localhost:7770/newmen-gm711-full-size-rgb-mechanical-gaming-keyboard-hot-swappable-nkro-double-injection-keycaps-with-media-control-compatible-with-windows-and-mac-red-switch.html</a></p><p>冻结文件: <a href="sources/0b599cbed95cb0d297ca6cf4b625106681bcaf4b7379da6e635564b427682b1c" target="_blank">sources/0b599cbed95cb0d297ca6cf4b625106681bcaf4b7379da6e635564b427682b1c</a></p><p>内容 SHA-256: <code>0b599cbed95cb0d297ca6cf4b625106681bcaf4b7379da6e635564b427682b1c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_snapshot_not_controlled_test&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen NEWMEN listing advertises a 49.99 dollar full-size 104-key USB board with OUTEMU switches, red or blue styles, hot-swap, and NKRO; these are seller observations, not an independent quality or latency test.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_brown_tactility_counterexample"><header><h3>prop_brown_tactility_counterexample</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Brown felt less tactile than that user&#x27;s laptop and membrane keyboard, leading them to demand a force chart before buying&quot;,
+  &quot;predicate&quot;: &quot;reports_negative_fit&quot;,
+  &quot;subject&quot;: &quot;one Cherry MX Brown user&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_brown_force_chart</code> | bytes [675, 801) | <code>ff75aeee8fd264fb661eb8e6b1e24d582262e1e70e47dfafe904038fed5bd1de</code></div><pre class="context"><span>tches! Hek! A membrane cheapo Logitech K120 non-low-profile full keyboard is probably a better investment for me than ANY mechanical keyboard based on Cherry MX Brown or any switches anywhere close in characteristics. I was considering buying a mechanical keyboard because I value ergonomy and well-built items more and more. But damn, did I miss that bullet! </span><mark>I&#x27;m not buying anything without seeing a force chart of the switches suitable for comparison with cherry MX brown force chart.</mark><span> 0
+
+Nah mate, Mx Browns are simply endgame.
+
+Just don&#x27;t buy or try anything else. Very important.
+
+Well, now you know why browns are such a meme.
+
+But I always thought it&#x27;s just a meme created and perpetrated by purists! :)
+
+A reason that I don&#x27;t really disagree on the sandy linear as a nickname for the switch.
+
+Sandy linear, yeah... When I first approached </span></pre></section><section class="span"><div class="span-meta"><code>span_brown_membrane_comparison</code> | bytes [327, 532) | <code>3a754e15b1c63101dc1f14184ef7f821e80f56d0add9fa72216298446434db83</code></div><pre class="context"><span>MX Brown - where tactility (insert ape meme)?!
+
+I tried Cherry MX brown recently. They are NOT TACTILE! To put it into perspective. Regular chicklet low-rpofile keys in your run of the mill laptop like Lenovo Ideapad provide the tactile bump/threshold at least 3 time more pronounced compared to Cherry MX Brown switches! Hek! </span><mark>A membrane cheapo Logitech K120 non-low-profile full keyboard is probably a better investment for me than ANY mechanical keyboard based on Cherry MX Brown or any switches anywhere close in characteristics.</mark><span> I was considering buying a mechanical keyboard because I value ergonomy and well-built items more and more. But damn, did I miss that bullet! I&#x27;m not buying anything without seeing a force chart of the switches suitable for comparison with cherry MX brown force chart. 0
+
+Nah mate, Mx Browns are simply endgame.
+
+Just don&#x27;t buy or try anything else. Very impo</span></pre></section><section class="span"><div class="span-meta"><code>span_brown_negative</code> | bytes [48, 103) | <code>3e8e11ee6b088843fee69e53a90286f245682993c76e22cef29f3324183fbbe4</code></div><pre class="context"><span>MX Brown - where tactility (insert ape meme)?!
+
+</span><mark>I tried Cherry MX brown recently. They are NOT TACTILE!</mark><span> To put it into perspective. Regular chicklet low-rpofile keys in your run of the mill laptop like Lenovo Ideapad provide the tactile bump/threshold at least 3 time more pronounced compared to Cherry MX Brown switches! Hek! A membrane cheapo Logitech K120 non-low-profile full keyboard is probably a better investment for me than ANY mechanical keyboard based </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/14477/mx-brown-where-tactility-insert-ape-meme" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/14477/mx-brown-where-tactility-insert-ape-meme</a></p><p>冻结文件: <a href="sources/7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31" target="_blank">sources/7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31</a></p><p>内容 SHA-256: <code>7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_negative_experience_not_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One Cherry MX Brown user reports that Brown felt insufficiently tactile compared with their laptop and membrane Logitech K120 and says they would not buy without a force chart; this is an individual counterexample, not a universal ranking.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cherry_mx_color_scope"><header><h3>prop_cherry_mx_color_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;within Cherry MX, Red is linear, Brown is tactile non-clicky, and Blue is tactile clicky, while other makers may imitate the family and even Grey has multiple behavior variants&quot;,
+  &quot;predicate&quot;: &quot;defines_family_scoped_color_shorthand&quot;,
+  &quot;subject&quot;: &quot;Cherry MX switch family&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_cherry_categories</code> | bytes [4959, 5197) | <code>94858a02015d9cd08ac3c685491c5b5282b45a570e15175912dfc5309d5a9d3b</code></div><pre class="context"><span>zer Black widow Chroma. [ 16 ] Cherry sells its own keyboards in &quot;modest volumes.&quot; Its MX 10.0 TKL keyboard lacks the tenkey section of the keyboard. [ 17 ] In 2018, the company introduced mechanical keyboard switches for thinner keyboards. [ 18 ] It makes its Cherry MX Silent switches, or Pink switches, as a range on keyboards like the Corsair K70. [ 19 ] </span><mark>The most common Cherry MX switches are: Linear Red Silent Red Speed Silver Nature White Orange Black Silent Black Black Clear-Top Linear Grey Tactile , non-clicky Purple Ergo Clear Brown Clear Tactile Grey Tactile, Clicky Blue White Green</mark><span> Cherry MX Grey switches can be found in linear (which provides a smooth, consistent feel sans feedback), [ 20 ] tactile, and clicky variants. They are distinguished by stem color, with linear being darker than tactile. The clicky version is no longer made. It is debated as to whether it even clicks, since it is not listed as a &quot;click&quot; switch by Cherry in th</span></pre></section><section class="span"><div class="span-meta"><code>span_cherry_color_reference</code> | bytes [4209, 4310) | <code>5d1e2393f1420df31e42a39981f9b65242aa8a2871d711647572c146a7940eee</code></div><pre class="context"><span>irst &quot;fully mechanical switch&quot; intended for the &quot;value market,&quot; or lower cost keyboards called Cherry Viola. [ 13 ] Currently, Cherry makes the following products: Keyboards Mice Card reader Peripheral MIX Technology Cherry MX Cherry âMechanical X-Pointâ (&quot;MX&quot;) switches were developed and patented in the early 1980s and first marketed around 1985. </span><mark>In the consumer keyboard market, Cherry MX switches are often referenced by the color of the key stem</mark><span>âthe part of the switch below the keycap which moves downwards when pressed. [ 14 ] Keyboard makers such as Cooler Master , Corsair , and G.Skill use Cherry&#x27;s Cherry MX switches in their designs or &quot;imitate them,&quot; [ 15 ] such as Razer&#x27;s Kailh Green switches in the first Generation Razer Black widow Chroma. [ 16 ] Cherry sells its own keyboards in &quot;modes</span></pre></section><section class="span"><div class="span-meta"><code>span_cherry_force_varies</code> | bytes [6170, 6298) | <code>f3253b1321af30a7435c007e1e722597877ab93b25e5b6f808736b2121fb8b1f</code></div><pre class="context"><span>witches, such as Green and Grey, are used for larger keys ( Space Bar , â§ Shift , âµ Enter , etc.). The feel of Cherry MX Green switches are often compared to that of the &quot;buckling spring&quot; switches on original IBM Model M keyboards . [ 22 ] Cherry switches have an advertised lifespan of up to 100 million actuations, depending on switch type. [ 23 ] </span><mark>The auditory and tactile nature of each switch, and the amount of force needed to actuate it, vary depending on the switch type:</mark><span> Switch type Clicky Tactile Actuation force Tactile force Actuation point Total travel Product code Type Blossom No No 0.35 N N/A 2.0 mm 3.8 mm MX2A-LC9D Normal Speed Silver No No 0.45 N N/A 1.2 mm 3.4 mm MX1A-51xx Normal Northern Light No No 0.45 N N/A 1.6 mm 3.7 mm MX2A-8C7D Normal Silent Red No No 0.45 N N/A 1.9 mm 3.7 mm MX3A-L1xx Normal Red </span></pre></section><section class="span"><div class="span-meta"><code>span_cherry_grey_variants</code> | bytes [5198, 5339) | <code>e462ab7e97c6567e7fc5f883cda2b4cf9bb11db49bafb326d544ccb2dbfa5d87</code></div><pre class="context"><span>s. [ 18 ] It makes its Cherry MX Silent switches, or Pink switches, as a range on keyboards like the Corsair K70. [ 19 ] The most common Cherry MX switches are: Linear Red Silent Red Speed Silver Nature White Orange Black Silent Black Black Clear-Top Linear Grey Tactile , non-clicky Purple Ergo Clear Brown Clear Tactile Grey Tactile, Clicky Blue White Green </span><mark>Cherry MX Grey switches can be found in linear (which provides a smooth, consistent feel sans feedback), [ 20 ] tactile, and clicky variants.</mark><span> They are distinguished by stem color, with linear being darker than tactile. The clicky version is no longer made. It is debated as to whether it even clicks, since it is not listed as a &quot;click&quot; switch by Cherry in their 1994 &quot; Keymodule MX brochure&quot;, along with MX Whites, which are greased to reduce the click. [ 21 ] Given their use primarily in large keys</span></pre></section><section class="span"><div class="span-meta"><code>span_cherry_imitation</code> | bytes [4399, 4528) | <code>ccc8f5914107d01721bbd011112df9fd9894898cee7dc509682ae39b06157857</code></div><pre class="context"><span> Peripheral MIX Technology Cherry MX Cherry âMechanical X-Pointâ (&quot;MX&quot;) switches were developed and patented in the early 1980s and first marketed around 1985. In the consumer keyboard market, Cherry MX switches are often referenced by the color of the key stemâthe part of the switch below the keycap which moves downwards when pressed. [ 14 ] </span><mark>Keyboard makers such as Cooler Master , Corsair , and G.Skill use Cherry&#x27;s Cherry MX switches in their designs or &quot;imitate them,&quot;</mark><span> [ 15 ] such as Razer&#x27;s Kailh Green switches in the first Generation Razer Black widow Chroma. [ 16 ] Cherry sells its own keyboards in &quot;modest volumes.&quot; Its MX 10.0 TKL keyboard lacks the tenkey section of the keyboard. [ 17 ] In 2018, the company introduced mechanical keyboard switches for thinner keyboards. [ 18 ] It makes its Cherry MX Silent switches, </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cherry_AG" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cherry_AG</a></p><p>冻结文件: <a href="sources/54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e" target="_blank">sources/54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e</a></p><p>内容 SHA-256: <code>54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;cherry_mx_family_only_not_universal_color_standard&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Within the documented Cherry MX family, Red is linear, Brown is tactile non-clicky, and Blue is tactile clicky. The source says stem color is used for Cherry MX, other makers may imitate the family, forces vary by switch type, and Grey itself has linear, tactile, and clicky variants; this is not a cross-manufacturer universal color standard.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_first_mechanical_positive"><header><h3>prop_first_mechanical_positive</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Tealio linears felt excellent, but an overly sensitive W switch required desoldering and replacement&quot;,
+  &quot;predicate&quot;: &quot;reports_positive_fit_with_caveat&quot;,
+  &quot;subject&quot;: &quot;one first-time mechanical-board builder&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_first_mechanical_caveat</code> | bytes [258, 418) | <code>01cf9b41b547c6271dece3948e5d1b6c92f1d51857bff5bba6eb9eba7b5d537b</code></div><pre class="context"><span>First mechanical keyboard
+
+During the covid lockdown, I got lucky and got one of the Bauer 2. I finally had some time to build it and I now can retire my loyal sticky razer friend. Now I know why people love mechanical keyboards :) It feels amazing to type. </span><mark>I used Tealio linear switches, after I completed the build I realized the W key was incredibly sensitive to any movement had to desolder and replace the switch.</mark><span> Now it is perfect. &amp;#x200B; https://preview.redd.it/rrk6be7xfi7a1.jpg?width=4032&amp;format=pjpg&amp;auto=webp&amp;s=55e8f08d193a518bd19050093170542b9284028b 11
+
+Holy shit you started at the top!
+
+I had to look it up. Very high end!
+
+Gotta say this keyboard is pretty cool but it is probably overkill for me :) During covid lockdown there weren&#x27;t many options to pick fro</span></pre></section><section class="span"><div class="span-meta"><code>span_first_mechanical_positive</code> | bytes [181, 257) | <code>9ba890eacb3ee361223c6a22319ee62bbca32a65d3ace7c5c834891e0b3cd659</code></div><pre class="context"><span>First mechanical keyboard
+
+During the covid lockdown, I got lucky and got one of the Bauer 2. I finally had some time to build it and I now can retire my loyal sticky razer friend. </span><mark>Now I know why people love mechanical keyboards :) It feels amazing to type.</mark><span> I used Tealio linear switches, after I completed the build I realized the W key was incredibly sensitive to any movement had to desolder and replace the switch. Now it is perfect. &amp;#x200B; https://preview.redd.it/rrk6be7xfi7a1.jpg?width=4032&amp;format=pjpg&amp;auto=webp&amp;s=55e8f08d193a518bd19050093170542b9284028b 11
+
+Holy shit you started at the top!
+
+I had to look</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/56360/first-mechanical-keyboard" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/56360/first-mechanical-keyboard</a></p><p>冻结文件: <a href="sources/cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a" target="_blank">sources/cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a</a></p><p>内容 SHA-256: <code>cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_positive_experience_with_unit_caveat&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One first-time mechanical-board builder reports that Tealio linears felt excellent, while also reporting an overly sensitive W switch that required desoldering and replacement; this is a scoped positive experience with a unit-level caveat.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_longtime_user_requirements"><header><h3>prop_longtime_user_requirements</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;noise, numpad placement, no soldering, Mac and Windows support, and untested accuracy expectations are person-specific constraints&quot;,
+  &quot;predicate&quot;: &quot;poses_transition_requirements&quot;,
+  &quot;subject&quot;: &quot;long-time nonmechanical keyboard user&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_longtime_history</code> | bytes [77, 239) | <code>3338f9f8d01c14091379eea5cc51efde5a485125fc3e4c09e97f0d7c0abec196</code></div><pre class="context"><span>Quiet mechanical keyboard options for a Mac keyboard user - seeking advice!
+
+</span><mark>I&#x27;ve always dismissed mechanical keyboards due to their noise. I&#x27;ve been using mac-like keyboard experiences for around 15 years, currently using Logitech Craft .</mark><span> That&#x27;s the kind of experience I&#x27;m used to (and think I enjoy), but I&#x27;m wondering what I&#x27;m missing out on? Or maybe this just isn&#x27;t for me? I&#x27;ve never tried a mechanical keyboards, and don&#x27;t think there are any options locally to test (based in Norway). What got me curious was seeing the Keychron Q12 with the numpad on the left side. As I switch my right han</span></pre></section><section class="span"><div class="span-meta"><code>span_longtime_no_trial</code> | bytes [379, 492) | <code>54724b5c32e5c619f0239b88437711d417edccbc592d80cd653fe4b2442394dc</code></div><pre class="context"><span>yboard options for a Mac keyboard user - seeking advice!
+
+I&#x27;ve always dismissed mechanical keyboards due to their noise. I&#x27;ve been using mac-like keyboard experiences for around 15 years, currently using Logitech Craft . That&#x27;s the kind of experience I&#x27;m used to (and think I enjoy), but I&#x27;m wondering what I&#x27;m missing out on? Or maybe this just isn&#x27;t for me? </span><mark>I&#x27;ve never tried a mechanical keyboards, and don&#x27;t think there are any options locally to test (based in Norway).</mark><span> What got me curious was seeing the Keychron Q12 with the numpad on the left side. As I switch my right hand a lot between the keyboard and mouse, reducing the travel distance and giving more tasks to my left hand would be nice. I&#x27;m considering the Barebone ISO of Keychron Q12, and finding some quiet switches and Norwegian caps. Motivation: As a developer, w</span></pre></section><section class="span"><div class="span-meta"><code>span_longtime_requirements</code> | bytes [971, 1102) | <code>9cdaf85fd18cee0e14640cd3ef889e0b43175fac9c342efba389226689a2b967</code></div><pre class="context"><span>een the keyboard and mouse, reducing the travel distance and giving more tasks to my left hand would be nice. I&#x27;m considering the Barebone ISO of Keychron Q12, and finding some quiet switches and Norwegian caps. Motivation: As a developer, want to be more accurate using a keyboard. Often my right hand has trouble locating the home row after using the mouse. </span><mark>Requirements: Quiet operation Numpad (south paw is a plus) No soldering or too time consuming assembly Both mac and windows support</mark><span> Looking for tips and guidance, what do you tell your friends when they ask? Is my expectations in check (will it make a difference?), or should I just stick with what I&#x27;m used to. 4
+
+Please check if your post is a help request. As per the rules, &quot;Help requests, keyboard buying advice, and simple questions must be posted in the daily post stickied to the top</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/100126/quiet-mechanical-keyboard-options-for-a-mac-keyboard-user" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/100126/quiet-mechanical-keyboard-options-for-a-mac-keyboard-user</a></p><p>冻结文件: <a href="sources/9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88" target="_blank">sources/9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88</a></p><p>内容 SHA-256: <code>9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_not_outcome_or_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A long-time Mac-like and Logitech Craft user who had not tried a mechanical keyboard identifies quiet operation, a numpad, no soldering, Mac and Windows support, and uncertain accuracy benefit as person-specific first-board requirements, not measured outcomes.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_matrix_controller_registration"><header><h3>prop_matrix_controller_registration</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the controller scans row-column crossings, identifies the pressed intersection, and generates the key code from a binary switch state&quot;,
+  &quot;predicate&quot;: &quot;scans_and_generates_code&quot;,
+  &quot;subject&quot;: &quot;keyboard matrix controller&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_matrix_binary</code> | bytes [1178, 1255) | <code>5c31d02ee36f5a24105218d452ba36d4ecd4c4b5c137f960dfd09ff8359fcc70</code></div><pre class="context"><span>section. The keyboard controller scans the columns. If a key has been pressed, the controller scans the rows, determines the row-column combination at which a key has been pressed, and generates the code corresponding to that key. This process occurs so quickly that the user is unaware of any delay. [ 1 ] There are at least two limitations with this system. </span><mark>The first is that it provides only a crude binary on/off signal for each key.</mark><span> Better electronic musical keyboards employ two sets of switches for each key that are slightly offset. By determining the timing between the activation of the first and second switches, the velocity of a key press can be determinedâgreatly improving the performance dynamic of a keyboard. The second is that instruments with a matrix circuit can only pla</span></pre></section><section class="span"><div class="span-meta"><code>span_matrix_scan</code> | bytes [827, 1048) | <code>c9ef9fc8ad4775998c6069e507a96d8314796fabf824d45a77a53a12fc0a7b03</code></div><pre class="context"><span>t, a 61-key keyboard for a digital piano or a computer keyboard might require 62 wires to connect (one for each key, and a ground)âan awkwardly thick bundle of wiring. With a matrix circuit, any of 61 keys can be determined with only 16 wires. This is drawn schematically as a matrix of 8 columns and 8 rows of wires, with a switch at every intersection. </span><mark>The keyboard controller scans the columns. If a key has been pressed, the controller scans the rows, determines the row-column combination at which a key has been pressed, and generates the code corresponding to that key.</mark><span> This process occurs so quickly that the user is unaware of any delay. [ 1 ] There are at least two limitations with this system. The first is that it provides only a crude binary on/off signal for each key. Better electronic musical keyboards employ two sets of switches for each key that are slightly offset. By determining the timing between the activation </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_matrix_circuit" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_matrix_circuit</a></p><p>冻结文件: <a href="sources/91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5" target="_blank">sources/91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5</a></p><p>内容 SHA-256: <code>91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;matrix_detection_not_switch_feel_or_latency_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The keyboard-matrix source says the controller scans columns and rows, determines the pressed row-column combination, and generates the corresponding code from a binary on-or-off switch signal.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_membrane_contact_registration"><header><h3>prop_membrane_contact_registration</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;pressing brings conductive layers together, bridges a normally open gap, allows current to flow, and lets the parent device register a keypress&quot;,
+  &quot;predicate&quot;: &quot;closes_circuit&quot;,
+  &quot;subject&quot;: &quot;membrane keyboard contact&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_membrane_modern_dome</code> | bytes [1551, 1693) | <code>d521b8ad0be77e030a74f8519ed2010d72ee3b3f876919dd9057eb87308ea73e</code></div><pre class="context"><span>ces. Smaller, specialized membrane keyboards, typically numeric-and-a-few-control-keys only, have been used in access control systems (for buildings and restricted areas), simple handheld calculators, domestic remote control keypads, microwave ovens, and other similar devices where the amount of typing is relatively small or infrequent, such as cell phones. </span><mark>Modern PC keyboards are essentially a membrane keyboard mechanism covered with an array of dome switches which give positive tactile feedback.</mark><span> Mechanism The membrane (typically made out of Polyethylene terephthalate or PET) keyboard consists of three layers: two layers containing traces of conductive ink and the center layer is a &quot;spacer&quot; containing holes wherever a two conductive &quot;key&quot; pads count touch upon being pressed. The third layer keeps the other two layers separated in order to prevent sh</span></pre></section><section class="span"><div class="span-meta"><code>span_membrane_registration</code> | bytes [2079, 2501) | <code>b8d2f4aa99dd32791473518daa23c677199aede47ac70d3b50ac9c91db54e297</code></div><pre class="context"><span>ypically made out of Polyethylene terephthalate or PET) keyboard consists of three layers: two layers containing traces of conductive ink and the center layer is a &quot;spacer&quot; containing holes wherever a two conductive &quot;key&quot; pads count touch upon being pressed. The third layer keeps the other two layers separated in order to prevent short-circuit . [ 5 ] [ 1 ] </span><mark>Under normal conditions, the switch (key) is open, because current cannot cross the non-conductive gap between the traces on the bottom layer. However, when the top layer is pressed down (with a finger), it makes contact with the bottom layer. The conductive traces on the underside of the top layer can then bridge the gap, allowing current to flow. The switch is now &quot;closed&quot;, and the parent device registers a keypress.</mark><span> Many applications benefit from the sealed nature of the membrane keypad. Feedback can easily be provided to the user via audible means (e.g. a beep) or visually (lights or via the display itself), or via both means together. For additional wear resistance, a simple, easily replaceable protective clear sheet can be placed in front of the membrane. Membrane k</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Membrane_keyboard" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Membrane_keyboard</a></p><p>冻结文件: <a href="sources/3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22" target="_blank">sources/3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22</a></p><p>内容 SHA-256: <code>3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;contact_closure_not_cross_keyboard_latency_test&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The membrane source describes a normally open gap that closes when pressing brings conductive layers together, allowing current to flow and the parent device to register a keypress; modern PC examples may add dome switches for tactile feedback.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_switch_spec_diversity"><header><h3>prop_switch_spec_diversity</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author&#x27;s incomplete database still lacked Gateron and smaller makers and sought comparable specifications and similar-feeling switches&quot;,
+  &quot;predicate&quot;: &quot;exposes_catalog_diversity&quot;,
+  &quot;subject&quot;: &quot;community switch-specification project&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_switch_database_goal</code> | bytes [79, 292) | <code>8f3ff18fc6b65f12bcc8f71599b5eed74753b2c81985517999f2d6a121c90fc8</code></div><pre class="context"><span>I&#x27;ve built a website that has a list of (almost) all key switches!
+
+Hey there! </span><mark>During my last keyboard built, I was looking to find a similar switch to the ones I like, and was surprised to discover that there is no website that tries to collect all the possible key switches and their specs.</mark><span> So I&#x27;ve built one myself! AnySwitch.xyz It&#x27;s an early stage MVP, and it&#x27;s missing some key switches (mainly Gateron and some small brands/manufacturers). I plan to expand the database of switches, as well as add more functionality such as ability to find similar feeling switches, and price data. I&#x27;d appreciate any feedback you might have. If you have any su</span></pre></section><section class="span"><div class="span-meta"><code>span_switch_database_missing</code> | bytes [333, 446) | <code>36a0293c0115bac9f2a43fb23cefa85e736c199d36cbb1c8a2a58986dcd13d7b</code></div><pre class="context"><span>I&#x27;ve built a website that has a list of (almost) all key switches!
+
+Hey there! During my last keyboard built, I was looking to find a similar switch to the ones I like, and was surprised to discover that there is no website that tries to collect all the possible key switches and their specs. So I&#x27;ve built one myself! AnySwitch.xyz </span><mark>It&#x27;s an early stage MVP, and it&#x27;s missing some key switches (mainly Gateron and some small brands/manufacturers).</mark><span> I plan to expand the database of switches, as well as add more functionality such as ability to find similar feeling switches, and price data. I&#x27;d appreciate any feedback you might have. If you have any suggestions for things you&#x27;d like to see, please let me know! Happy clacking! 45
+
+immediately what comes to mind is filtering settings for force... well act</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/100059/i-ve-built-a-website-that-has-a-list-of-almost-all-key" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/100059/i-ve-built-a-website-that-has-a-list-of-almost-all-key</a></p><p>冻结文件: <a href="sources/dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632" target="_blank">sources/dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632</a></p><p>内容 SHA-256: <code>dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;community_inventory_gap_not_universal_standard&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboard_transition_and_switch_scope&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A community author building a switch-specification database says the early project still lacked Gateron and smaller manufacturers and was motivated by finding similar switches from specifications; this demonstrates catalog diversity, not an authoritative universal mapping.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_keyboard_transition_0024</td><td>case_spec</td><td><a href="sources/4d1e1699615ba4973b38a671051cce426abf85811c71f43fdfdcc8e740933fdb">4d1e1699615ba4973b38a671051cce426abf85811c71f43fdfdcc8e740933fdb</a></td><td><a href="http://case-spec.local/dra_v3_formal_mechanical_keyboards_0024" target="_blank" rel="noreferrer">来源 URL</a></td><td>7329</td></tr><tr><td>reg_magento_compact_blue</td><td>magento</td><td><a href="sources/743706f4786f313c9b3e249f92f2f8e1c4fcbb93e6300883f66e9f7140004ddd">743706f4786f313c9b3e249f92f2f8e1c4fcbb93e6300883f66e9f7140004ddd</a></td><td><a href="http://localhost:7770/60-mechanical-gaming-keyboard-compact-type-c-wired-68-keys-led-backlit-usb-waterproof-keyboard-18-chroma-rgb-backlight-full-anti-ghosting-keys-compatible-with-ps4-ps5-xbox-pc-blue-blue-switch.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2531</td></tr><tr><td>reg_magento_epomaker_yellow_hotswap</td><td>magento</td><td><a href="sources/0513b06a1d0d165ce426a5a79e7bb9d06ef92468bf0abe5c85bf65d1ace76bbb">0513b06a1d0d165ce426a5a79e7bb9d06ef92468bf0abe5c85bf65d1ace76bbb</a></td><td><a href="http://localhost:7770/epomaker-akko-3061s-world-tour-r2-60-wired-hotswap-mechanical-gaming-keyboard-with-rgb-backlight-dye-sublimation-pbt-keycaps-nkro-programmable-for-gamers-mac-win-gateron-yellow-switch-61-keys.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3229</td></tr><tr><td>reg_magento_hyssp_compact_brown</td><td>magento</td><td><a href="sources/ce81c506541f15428ab091957ed2f906576f7d21dca100e85dc2c91afcd431d5">ce81c506541f15428ab091957ed2f906576f7d21dca100e85dc2c91afcd431d5</a></td><td><a href="http://localhost:7770/hyssp-stk61-wireless-mechanical-gaming-keyboard-61-keys-compact-keyboard-gk61-bluetooth-keyboard-with-shine-through-pbt-keycaps-type-c-cable-nkro-for-pc-mac-brown-switch-black-dragon.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3556</td></tr><tr><td>reg_magento_newmen_full_size_red</td><td>magento</td><td><a href="sources/0b599cbed95cb0d297ca6cf4b625106681bcaf4b7379da6e635564b427682b1c">0b599cbed95cb0d297ca6cf4b625106681bcaf4b7379da6e635564b427682b1c</a></td><td><a href="http://localhost:7770/newmen-gm711-full-size-rgb-mechanical-gaming-keyboard-hot-swappable-nkro-double-injection-keycaps-with-media-control-compatible-with-windows-and-mac-red-switch.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1763</td></tr><tr><td>reg_postmill_brown_tactility_counterexample</td><td>postmill</td><td><a href="sources/7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31">7315ab9ed0a2980e7d6327e3bd8ace3dc74367f239d5ea17c4c6c94e923c5f31</a></td><td><a href="http://localhost:9999/f/MechanicalKeyboards/14477/mx-brown-where-tactility-insert-ape-meme" target="_blank" rel="noreferrer">来源 URL</a></td><td>3269</td></tr><tr><td>reg_postmill_first_mechanical_positive</td><td>postmill</td><td><a href="sources/cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a">cf6941f02f708001c4dc71ad4101c50fd53cd0ace50cf985239f97da3212191a</a></td><td><a href="http://localhost:9999/f/MechanicalKeyboards/56360/first-mechanical-keyboard" target="_blank" rel="noreferrer">来源 URL</a></td><td>1938</td></tr><tr><td>reg_postmill_longtime_nonmechanical_user</td><td>postmill</td><td><a href="sources/9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88">9bcf35e0638f0ac0004c6563390a921c085e9e1e8eaa2a1189a1461efe52ac88</a></td><td><a href="http://localhost:9999/f/MechanicalKeyboards/100126/quiet-mechanical-keyboard-options-for-a-mac-keyboard-user" target="_blank" rel="noreferrer">来源 URL</a></td><td>3264</td></tr><tr><td>reg_postmill_switch_spec_diversity</td><td>postmill</td><td><a href="sources/dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632">dbc3c7899d652d465539a245661d0f71c7b261321d2048e0c4d2a5a20502b632</a></td><td><a href="http://localhost:9999/f/MechanicalKeyboards/100059/i-ve-built-a-website-that-has-a-list-of-almost-all-key" target="_blank" rel="noreferrer">来源 URL</a></td><td>2658</td></tr><tr><td>reg_search_brown_counterexample</td><td>search_result</td><td><a href="sources/74f4e3f1d0f31c4258b59760cf3b3801728d80e0676394f735206cad68667eef">74f4e3f1d0f31c4258b59760cf3b3801728d80e0676394f735206cad68667eef</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=840a705f-b79e-4075-b7be-2571f5bf22f0" target="_blank" rel="noreferrer">来源 URL</a></td><td>44810</td></tr><tr><td>reg_search_cherry</td><td>search_result</td><td><a href="sources/2e2d3afba079418d0d254a74466f58be4272edf1bef68c9ca3b1a370d4a504a9">2e2d3afba079418d0d254a74466f58be4272edf1bef68c9ca3b1a370d4a504a9</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=3984db2d-ac8a-4a00-80f8-e2be8679cd8f" target="_blank" rel="noreferrer">来源 URL</a></td><td>5902</td></tr><tr><td>reg_search_compact_blue</td><td>search_result</td><td><a href="sources/da9e67a4a8788689c22348f75fa8e9f5e90f4c6b4a4f50f8cf272841c34c2ace">da9e67a4a8788689c22348f75fa8e9f5e90f4c6b4a4f50f8cf272841c34c2ace</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=eaa12bfa-e9df-4e54-9b06-e4847a465983" target="_blank" rel="noreferrer">来源 URL</a></td><td>8496</td></tr><tr><td>reg_search_epomaker</td><td>search_result</td><td><a href="sources/975b6f6bc93179f4e47e503be8c600e2d74aaf52b2b93d5e38ed2bae9158edf1">975b6f6bc93179f4e47e503be8c600e2d74aaf52b2b93d5e38ed2bae9158edf1</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=7dd216cd-7b0a-4502-9dd7-a82ad50dc18e" target="_blank" rel="noreferrer">来源 URL</a></td><td>8590</td></tr><tr><td>reg_search_first_mechanical</td><td>search_result</td><td><a href="sources/ac6ad882551fddbcb3284ad26cff8c4a0c4eae666b5da467705d2cf13375ebb9">ac6ad882551fddbcb3284ad26cff8c4a0c4eae666b5da467705d2cf13375ebb9</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=77d87dd5-b242-49fb-9804-c3333c764a12" target="_blank" rel="noreferrer">来源 URL</a></td><td>47614</td></tr><tr><td>reg_search_hyssp</td><td>search_result</td><td><a href="sources/0e3538678d1fc37574ab9aa1f73069de6d5734f9f6cab55ccb081402cff6fa6c">0e3538678d1fc37574ab9aa1f73069de6d5734f9f6cab55ccb081402cff6fa6c</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=15a14cc1-1c40-4fa4-ad43-b89672ba365c" target="_blank" rel="noreferrer">来源 URL</a></td><td>8118</td></tr><tr><td>reg_search_longtime_user</td><td>search_result</td><td><a href="sources/a6bdcaaa175f9d238b97477c1221683d139505cac2e47b1fe36f7bf3166d55ef">a6bdcaaa175f9d238b97477c1221683d139505cac2e47b1fe36f7bf3166d55ef</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=9d8ab849-7255-463e-a10f-d91ab0053e67" target="_blank" rel="noreferrer">来源 URL</a></td><td>48698</td></tr><tr><td>reg_search_matrix</td><td>search_result</td><td><a href="sources/3d988a2ff282fa11fa040c250ad010681cf92daedc2ab67b8a0065e9938e1471">3d988a2ff282fa11fa040c250ad010681cf92daedc2ab67b8a0065e9938e1471</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=956a947d-9a44-4514-8e95-248313fd5c0f" target="_blank" rel="noreferrer">来源 URL</a></td><td>18480</td></tr><tr><td>reg_search_membrane</td><td>search_result</td><td><a href="sources/0efdef509fad1e39622cd8c45eeba051e903f38bf89bb82c51c13503e0f798ae">0efdef509fad1e39622cd8c45eeba051e903f38bf89bb82c51c13503e0f798ae</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=36357da7-fd5d-43db-87be-b08e6d1b4704" target="_blank" rel="noreferrer">来源 URL</a></td><td>2033</td></tr><tr><td>reg_search_newmen</td><td>search_result</td><td><a href="sources/bcab6b125e9078e746578e6c90a6b0fab2fdabe59ec29dfe9089652c5c80d676">bcab6b125e9078e746578e6c90a6b0fab2fdabe59ec29dfe9089652c5c80d676</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=847301df-ea68-4392-8ed3-c02895f00e6e" target="_blank" rel="noreferrer">来源 URL</a></td><td>8519</td></tr><tr><td>reg_search_switch_diversity</td><td>search_result</td><td><a href="sources/8dd86ab2e1b677b5b32910e60fa75abe6fb1a1880b98b992d18469317dd85c68">8dd86ab2e1b677b5b32910e60fa75abe6fb1a1880b98b992d18469317dd85c68</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0024-replacement-20260716-r1&amp;request_id=5a17c95a-6bc5-4ce6-bbb3-6eea4e013472" target="_blank" rel="noreferrer">来源 URL</a></td><td>61308</td></tr><tr><td>reg_wiki_cherry_mx_color_scope</td><td>wikipedia</td><td><a href="sources/54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e">54b9a7b173b036ae47fa78bac233fb220c75190b8f1bd50aa378b01649776e4e</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cherry_AG" target="_blank" rel="noreferrer">来源 URL</a></td><td>12595</td></tr><tr><td>reg_wiki_keyboard_matrix_registration</td><td>wikipedia</td><td><a href="sources/91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5">91eb7e0899251d8f9b035b3a35e2acc6a44a00001fd3ac1404088508cbc3b5d5</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_matrix_circuit" target="_blank" rel="noreferrer">来源 URL</a></td><td>3115</td></tr><tr><td>reg_wiki_membrane_registration</td><td>wikipedia</td><td><a href="sources/3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22">3556fabe4479236f89b3a5f39b703047222f9a427735665ba9a3ce8a180dda22</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Membrane_keyboard" target="_blank" rel="noreferrer">来源 URL</a></td><td>3863</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-mechanical-keyboards-0024-replacement-20260716-r1";
+const graphHash = "111eb4ea8d4c885a3b9e358678a03684239cfb1ff6f0d449909d25ed93a6ac22";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

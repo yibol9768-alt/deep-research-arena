@@ -1,0 +1,168 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_audio_0001",
+  "cluster_id": "audio_budget_split",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.35,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "anc_form_factor_reconciliation_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "ANC performance is not determined by earbud size alone; active cancellation is frequency-dependent, and seal or passive isolation affects the result."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "full_workday_fit_risk_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "For a full workday, the Lenovo earbuds require charging breaks and carry a scoped long-use comfort caveat from the community evidence."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "route_a_budget_office_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The JBL route costs $199.95, leaves $50.05 of the budget, offers up to 40 hours with ANC and Bluetooth, and trades this for over-ear bulk or weight."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "route_b_budget_camping_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The Lenovo plus ROKFORM route costs $159.98, leaves $90.02, adds an IPX7 rugged speaker with 24-hour battery, and limits earbud ANC use to 5.5 hours per charge."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "office_first_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Because office noise control and full-workday use come first, I recommend the JBL Live 660NC only."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "JBL Live 660NC only": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "I recommend the JBL Live 660NC only.",
+            "The JBL Live 660NC only is the recommended route."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_blanket_size_claim",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Earbud noise cancellation is physically incapable of working effectively because earbuds are smaller."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    },
+    {
+      "claim_id": "wrong_split_budget_claim",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Lenovo earbuds plus ROKFORM speaker exceed the $250 budget."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build and compare the two budget-valid product routes, including battery and camping-relevant attributes.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "B3", "B4"],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Resolve the size-only ANC claim by combining frequency, form-factor, and seal evidence.",
+      "critical": true,
+      "requires": ["E4", "E5", "E7", "B1"],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Assess whether the earbud route fits uninterrupted full-workday use and correctly scope the community caveat.",
+      "critical": true,
+      "requires": ["E2", "E6", "B2"],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Apply the office-first priority to all verified route and mechanism conclusions and state the final purchase decision.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "B1", "B2", "B3", "B4", "D1"],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Compare the complete costs, battery constraints, and camping attributes of both purchase routes.",
+      "slot_ids": ["E1", "E2", "E3", "B3", "B4"],
+      "subgoal_ids": ["G1"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain the role of frequency, form factor, and seal without repeating a blanket size-only ANC claim.",
+      "slot_ids": ["E4", "E5", "E7", "B1"],
+      "subgoal_ids": ["G2"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Assess full-workday earbud use using product battery evidence and carefully scoped community experience.",
+      "slot_ids": ["E2", "E6", "B2"],
+      "subgoal_ids": ["G3"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Give one office-first recommendation that depends on every necessary evidence branch and states the main forfeited benefit and tradeoff.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "B1", "B2", "B3", "B4", "D1"],
+      "subgoal_ids": ["G4"],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": ["JBL Live 660NC only"],
+  "oracle": {
+    "proof": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "B1", "B2", "B3", "B4", "D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 15,
+    "minimum_required_evidence_nodes": 7,
+    "minimum_reasoning_depth": 2
+  }
+}

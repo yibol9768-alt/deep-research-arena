@@ -50,9 +50,10 @@ four-axis K0. Structure derived from two adversarial criteria, not tuned):
     of exact weights is not claimed optimal: raw axis scores are published and
     the ranking's weight-sensitivity is disclosed (FORMULA_LOCK Dirichlet
     table). "fewer parameters / averaging" is never offered as a reason.
-  * gamma defaults to 1.5, calibrated EXTERNALLY on an injected-fabrication set,
-    never fitted on the eval panel; sensitivity() reports how the ranking moves
-    across candidate gammas.
+  * gamma defaults to 1.0, so the headline score is the directly interpretable
+    product ``gate * quality``.  Larger exponents remain available only for
+    sensitivity analysis; the fabrication-injection sweep showed the expected
+    stronger penalty but did not identify a uniquely justified exponent.
   * no cross-denominator arithmetic: the old (fact+pof)/2 averaged two ratios
     with different denominators (M-L1); they are separate weighted terms.
 
@@ -81,17 +82,10 @@ from enum import Enum
 # Tunables (defaults; see each docstring for the calibration story)
 # ---------------------------------------------------------------------------
 
-GAMMA_DEFAULT = 1.5      # grounding gate exponent, calibrated EXTERNALLY on an
-                         # injected-fabrication series (M-H3): data/results/
-                         # pof_gamma_calibration.json. Truth is monotone
-                         # non-increasing in the fabrication rate at every tested
-                         # gamma; under K6 (spec out, floor-if-active) 1.5 gives
-                         # clean-vs-50% mean separation 0.0093 (the absolute
-                         # scale shrank vs the 0.042 four-axis K0 figure because
-                         # spec no longer inflates quality; monotonicity and the
-                         # gamma ranking are unchanged) and is not dominated (no
-                         # gamma beats it on BOTH separation and monotonicity),
-                         # so it is retained.
+GAMMA_DEFAULT = 1.0      # Linear, interpretable headline gate: truth = gate *
+                         # quality. The injection sweep is retained as a
+                         # sensitivity analysis, not as evidence that 1.5 is a
+                         # uniquely calibrated operating point.
 EPS_FLOOR = 0.0          # NO quality floor (D1 endgame): the FLOOR-IF-ACTIVE
                          # eps=0.05 inflated a "mini-shell" (each axis grazed to
                          # raw~0.01) to truth=0.05 and beat 9-10/12 honest
@@ -2485,8 +2479,8 @@ def compose_truth(reach: float, fact: float, pof: float, completeness: float,
     AND a trivial mini-shell that only grazes each axis scores its earned value
     rather than an inflated 0.05 plateau. reach is UNfloored: it is the
     anti-fabrication gate and a pure fabricator collapses to 0 (criterion C1).
-    gamma defaults to 1.5, calibrated EXTERNALLY on an injected-fabrication set;
-    sensitivity() is the accompanying rank-stability probe. ``eps`` is retained
+    gamma defaults to 1.0, making the headline score ``reach * quality``;
+    sensitivity() can still probe alternative exponents. ``eps`` is retained
     for back-compat: a positive value re-enables the old floor-if-active
     (max(eps,v) for v>0). Returns (truth, quality, floors_applied)."""
     floors_applied = {}

@@ -1,0 +1,81 @@
+{
+  "artifacts": {
+    "case_provenance.jsonl": {
+      "bytes": 55492,
+      "sha256": "e4b6b37caa50b5382f95dd872b85ba1bda122d391eb9cdfa659d5776de1b313e"
+    },
+    "rl_preference_pairs.jsonl": {
+      "bytes": 8902774,
+      "sha256": "0008699452bb0b9ca23f7f8d1dbdeb55489c1817431ebcbddcd5e20186071246"
+    },
+    "rl_scored_qa.jsonl": {
+      "bytes": 8608367,
+      "sha256": "e0954e44ac30e5f73b1bb8f2be47e4f185e45fb80c403d1a136e188e61cea3c4"
+    },
+    "sft_all_messages.jsonl": {
+      "bytes": 6437582,
+      "sha256": "7935e68c1d049dfec946bb060899a4e0eb286858f8f56ab7254da4b857b59cdf"
+    },
+    "sft_full_qa.jsonl": {
+      "bytes": 1191555,
+      "sha256": "6b5b332438fe908e3c0f219124b181c8ae0c17a9747b10819cea5cfeb9dfe3df"
+    },
+    "sft_proof_qa.jsonl": {
+      "bytes": 17438975,
+      "sha256": "6ab2dd65d500bdb6ea27b2b374100b3a3dcca98f3992270e26f2b28443bc9a07"
+    }
+  },
+  "counts": {
+    "human_validated_source_cases": 0,
+    "proof_bridge": 195,
+    "proof_decision": 31,
+    "proof_evidence": 440,
+    "rl_adversarial_negative": 310,
+    "rl_oracle_positive": 31,
+    "rl_preference_pairs": 310,
+    "rl_scored_qa": 341,
+    "sft_all": 697,
+    "sft_full_qa": 31,
+    "sft_proof_qa": 666,
+    "skipped_synthetic_suites": 0,
+    "source_cases": 31,
+    "synthetic_source_cases": 31
+  },
+  "dataset_id": "dra-v3-sft-rl-qa-b234737e0bbf2fc0",
+  "dataset_sha256": "b234737e0bbf2fc0e76c2e2bd4aeb421ad27dd955058e0c572d47b6cb5413322",
+  "overlap_and_release": {
+    "exact_source_task_overlap": true,
+    "formal_benchmark_eligible": false,
+    "generalization_claim_allowed": false,
+    "human_validity_claim_allowed": false
+  },
+  "reward_contract": {
+    "available_components": [
+      "partial_completion",
+      "full_pass",
+      "grounding_gate_pass",
+      "fabricated_citations",
+      "critical_contradictions"
+    ],
+    "no_arbitrary_combined_scalar": true
+  },
+  "schema": "dra_v3_sft_rl_qa_dataset_v1",
+  "source": {
+    "candidates_root": "data/pilot_v3/formal_candidates",
+    "requires_machine_oracle_full_pass": 1,
+    "requires_replay_validation_status": "validated",
+    "suite_globs": [
+      "*/oracle_suite/suite.json",
+      "*/oracle_suites/synthetic/suite.json"
+    ],
+    "synthetic_sources_allowed": true
+  },
+  "supervision_contract": {
+    "assistant_action_trace_available": false,
+    "full_sft": "exact_report_replayed_by_proof_steps_v1",
+    "observation_ledger_available_by_reference": true,
+    "proof_sft": "teacher_forced_derivation_from_replayed_step_matches_and_observed_source_content",
+    "rl_preference": "machine_full_pass_preferred_over_each_adversarial_run",
+    "rl_qa": "report_plus_replayed_scorer_outcome_and_ledger_reference"
+  }
+}

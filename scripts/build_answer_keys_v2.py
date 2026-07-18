@@ -20,7 +20,8 @@ assembles an AnswerKey from the cluster's box-derived data:
                    claim-check/community-vs-ratings -> verdict-style section;
                    all -> min_words 300 (a report, not a one-liner);
   gold_contradictions = ADJUDICATED gold only, attached from
-                   data/golden/contradictions/*.gold.json by cluster match
+                   data/golden/contradictions/*.gold.json by cluster match,
+                   optionally narrowed to the task's ranked products
                    (registry T4 honesty contract: the builder itself never
                    invents gold; it only reads what the adjudication
                    pipeline promoted). decidable_verdicts follow the same
@@ -131,6 +132,30 @@ def load_adjudicated_verdicts(verdicts_dir: Path = VERDICTS_DIR) -> dict[str, di
             by_task.setdefault(tid, {})[cid] = verdict
     return by_task
 
+
+def scope_gold_contradictions(answer_key: AnswerKey, candidates: list,
+                              spec: dict) -> list:
+    """Apply an explicit task-level product scope to cluster contradiction gold.
+
+    Cluster-wide attachment is retained as the default for compatibility.  A
+    focused task can declare ``contradictions_product_scope: vital`` (or
+    ``ranked`` for vital + useful) so unrelated products from the same broad
+    catalog cluster do not become hidden requirements.
+    """
+    scope = str(spec.get("contradictions_product_scope") or "cluster").lower()
+    if scope == "cluster":
+        return list(candidates)
+    nuggets = list(answer_key.vital_nuggets)
+    if scope == "ranked":
+        nuggets += list(answer_key.useful_nuggets)
+    elif scope != "vital":
+        raise ValueError(f"unknown contradictions_product_scope: {scope}")
+    allowed = {
+        n.source_url for n in nuggets
+        if getattr(n, "predicate", "") != "concept_coverage"
+    }
+    return [c for c in candidates if c.get("product_url") in allowed]
+
 N_VITAL_SENT = 12      # top sentiment products as vital nuggets
 N_USEFUL_SENT = 20     # next tier as useful
 
@@ -236,11 +261,25 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
 
     ranked = sorted(pool0, key=lambda s: (-_affinity(s["name"]),
                                           -s["n_reviews"]))
+    override_urls = [str(u) for u in (spec.get("vital_product_urls") or [])]
+    override_used = False
+    if override_urls:
+        by_url = {f"http://localhost:7770/{s['url_key']}.html": s for s in pool0}
+        missing = [u for u in override_urls if u not in by_url]
+        if missing:
+            raise ValueError(
+                f"{task_id}: vital_product_urls missing reviewed cluster rows: {missing}"
+            )
+        selected = [by_url[u] for u in override_urls]
+        selected_keys = {s["url_key"] for s in selected}
+        ranked = selected + [s for s in ranked if s["url_key"] not in selected_keys]
+        override_used = True
     vital, useful = [], []
     for s in ranked:
         if s["name"].startswith("None/"):
             s["name"] = s["name"][5:]
-    for i, s in enumerate(ranked[:N_VITAL_SENT + N_USEFUL_SENT]):
+    n_vital = len(override_urls) if override_used else N_VITAL_SENT
+    for i, s in enumerate(ranked[:n_vital + N_USEFUL_SENT]):
         url = f"http://localhost:7770/{s['url_key']}.html"
         complaint = (s.get("complaint_terms") or [["", 0]])[0][0]
         text = (f"{s['name']}: rated {s.get('rating_pct')}% over "
@@ -250,8 +289,8 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
                      predicate="buyer_sentiment",
                      object=f"{s.get('rating_pct')}%/{s['n_reviews']}rev",
                      source_url=url,
-                     importance="vital" if i < N_VITAL_SENT else "useful")
-        (vital if i < N_VITAL_SENT else useful).append(nug)
+                     importance="vital" if i < n_vital else "useful")
+        (vital if i < n_vital else useful).append(nug)
     for wt in spec.get("wiki_topics") or []:
         vital.append(Nugget(
             text=f"Explains the factual core: {wt}",
@@ -303,6 +342,8 @@ def build_key(task_id: str, spec: dict, products: list, sent: dict) -> AnswerKey
                   "inline_nugget_citation_required": True,
                   "n_relevant": len(entities),
                   "sentiment_products": len(ranked),
+                  "vital_product_override": override_used,
+                  "vital_product_count": n_vital,
                   "source": "db_category_enumeration + review_sentiment_deriver"})
 
 
@@ -312,6 +353,8 @@ def main() -> int:
                     help="optional workflow specs json; default reads the "
                          "task files' tri_source blocks (single source of "
                          "truth, covers kept tasks too)")
+    ap.add_argument("--task", default=None,
+                    help="rebuild only this task id (safe targeted remediation)")
     args = ap.parse_args()
     if args.specs:
         specs = json.loads((ROOT / args.specs).read_text())["specs"]
@@ -322,13 +365,15 @@ def main() -> int:
             t = json.loads(tp.read_text())
             ts = t.get("tri_source")
             if t.get("task_version") == 2 and ts:
-                specs[tp.stem] = {"cluster": ts["cluster"],
-                                  "archetype": ts.get("archetype"),
-                                  "angle": ts.get("angle"),
-                                  "forums": ts.get("forums"),
-                                  "wiki_topics": ts.get("wiki_topics"),
-                                  "intent": t.get("intent", ""),
-                                  "min_words": (t.get("markdown_spec") or {}).get("min_words")}
+                specs[tp.stem] = {
+                    **ts,
+                    "intent": t.get("intent", ""),
+                    "min_words": (t.get("markdown_spec") or {}).get("min_words"),
+                }
+    if args.task:
+        if args.task not in specs:
+            raise SystemExit(f"unknown or non-v2 task: {args.task}")
+        specs = {args.task: specs[args.task]}
 
     KEYS_OUT.mkdir(parents=True, exist_ok=True)
     CHECK_OUT = ROOT / "data/golden/checklists"
@@ -345,7 +390,10 @@ def main() -> int:
             cache[cl] = load_cluster(cl)
         products, sent = cache[cl]
         ak = build_key(tid, spec, products, sent)
-        ak.gold_contradictions = gold_by_cluster.get(cl, [])
+        ak.gold_contradictions = scope_gold_contradictions(
+            ak, gold_by_cluster.get(cl, []), spec
+        )
+        ak.metadata["contradiction_scorable"] = ak.contradiction_scorable
         n_gold_attached += len(ak.gold_contradictions)
         ak.decidable_verdicts = verdicts_by_task.get(tid, {})
         n_verdicts_attached += len(ak.decidable_verdicts)

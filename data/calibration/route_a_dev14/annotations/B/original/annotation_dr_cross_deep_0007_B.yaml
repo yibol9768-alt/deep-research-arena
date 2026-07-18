@@ -1,0 +1,91 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0007
+query_sha256: "2c28de321ad3a419f3f03fcf9f16393f3ccc814c87ff94d9ce045ffc684dbe0a"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 推荐一个能够长期使用的耳机。
+
+  Q2: 必须覆盖使用的时间长度问题。
+
+  Q3: 验证耳机的使用寿命要足够长。
+
+  Q4: 一定要有长期用户的评价。
+
+  Q5: 一定要有拥有者的评价。
+
+  Q6: 每一项都要有。
+
+  Q7: 没有模糊的内容。
+
+initial_requirements:
+  - 分析耳机逐年损耗的核心因素
+  - 验证无线耳机是否因电池注定短命
+  - 验证可更换配件是实质重要还是噱头
+  - 包含长期拥有者的十年使用经验
+  - 推荐一副能用到2036年的耳机
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 分析导致头戴耳机逐年损耗的核心因素（头梁开裂、耳罩掉皮、电池报废等）
+    necessity_reason: |-
+      Query 直接问"What actually kills headphones over the years"，
+      省略此分析则后续关于寿命的讨论缺乏事实基础。
+    query_basis: "What actually kills headphones over the years"
+    output_form: explain
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 验证无线耳机是否因不可更换电池问题"从一开始就注定短命"，与有线方案对比分析长期耐久性
+    necessity_reason: |-
+      Query 直接问"does going wireless doom me from the start because of the battery"，
+      这是用户选择有线还是无线的根本决策依据，省略则核心选项未经评估。
+    query_basis: "does going wireless doom me from the start because of the battery?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 验证可更换耳罩和可插拔线材是真正延长寿命的关键因素还是参数表上的噱头
+    necessity_reason: |-
+      Query 直接问"Do replaceable pads and cables genuinely matter or is that a spec-sheet gimmick?"，
+      省略则用户无法判断哪些维修性特征是真正值得为长期使用买单的。
+    query_basis: "Do replaceable pads and cables genuinely matter or is that a spec-sheet gimmick?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R4
+    requirement: 包含长期拥有者的真实使用经验——哪些头戴耳机撑过了十年日常使用，哪些因素最影响长期寿命
+    necessity_reason: |-
+      Query 明确要求"I want to hear what long-term owners say survived a decade of daily use"，
+      缺少真实用户经验则用户无法验证理论分析在实际场景中是否站得住。
+    query_basis: "I want to hear what long-term owners say survived a decade of daily use"
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 明确要求"long-term owners"的经验，长期拥有者社区的反馈在此不可替代
+
+  - local_id: R5
+    requirement: 综合 R1-R4 的分析与用户经验，推荐一副有把握能用到 2036 年的头戴耳机
+    necessity_reason: |-
+      Query 结尾明确要求"the one pair you'd bet on"，
+      同时用户目标"still be wearing in 2036"；
+      没有分析直接推荐不通过，有分析无推荐同样不通过——两者缺一不可。
+    query_basis: "the one pair you'd bet on" + "this time I want one pair of over-ears I can still be wearing in 2036"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities: []
+
+unresolved: []
+
+evidence_answerability: not_assessed

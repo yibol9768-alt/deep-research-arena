@@ -72,6 +72,61 @@ def test_tavily_search_schema(client: TestClient) -> None:
     )
 
 
+def test_tavily_search_raw_content_fetches_pages(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """include_raw_content must serve page text, not duplicate a snippet."""
+    seen: dict[str, Any] = {}
+
+    def _fake_extract(urls: Any) -> list[dict]:
+        seen["urls"] = list(urls)
+        return [
+            {
+                "url": url,
+                "raw_content": f"FULL PAGE FOR {url}",
+                "title": "page",
+                "source": "sandbox",
+                "status": 200,
+            }
+            for url in seen["urls"]
+        ]
+
+    monkeypatch.setenv("SHIM_EVIDENCE", "0")
+    monkeypatch.setattr(app_module, "extract", _fake_extract)
+    response = client.post(
+        "/search",
+        json={
+            "query": "anc headphones",
+            "max_results": 2,
+            "include_raw_content": True,
+        },
+    )
+
+    assert response.status_code == 200
+    assert seen == {
+        "urls": [hit.url for hit in _FAKE_HITS],
+    }
+    first = response.json()["results"][0]
+    assert first["raw_content"] == f"FULL PAGE FOR {_FAKE_HITS[0].url}"
+    assert first["raw_content"] != first["content"]
+
+
+def test_tavily_search_without_raw_content_does_not_fetch(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    def _unexpected_extract(*_args: Any, **_kwargs: Any) -> list[dict]:
+        raise AssertionError("plain Tavily search must remain snippet-only")
+
+    monkeypatch.setattr(app_module, "extract", _unexpected_extract)
+    response = client.post(
+        "/search",
+        json={"query": "anc headphones", "max_results": 2},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["results"][0]["raw_content"] is None
+
+
 def test_tavily_search_get_schema(client: TestClient) -> None:
     r = client.get("/search", params={"q": "anc headphones", "count": 2})
     assert r.status_code == 200
@@ -315,6 +370,40 @@ def test_firecrawl_scrape_success(
     assert data["data"]["markdown"] == "Full page markdown here."
 
 
+def test_tavily_extract_advanced_is_explicit_opt_in(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """Only an explicit advanced request may use the v3 extraction path."""
+    seen: dict[str, Any] = {}
+
+    def _fake_extract(urls: Any, *, extract_depth: str) -> list[dict]:
+        seen["urls"] = list(urls)
+        seen["extract_depth"] = extract_depth
+        return [{
+            "url": seen["urls"][0],
+            "raw_content": "title\n\nmain\n\ndetails",
+            "title": "title",
+            "source": "shopping",
+            "status": 200,
+        }]
+
+    monkeypatch.setenv("SHIM_EVIDENCE", "0")
+    monkeypatch.setattr(app_module, "extract", _fake_extract)
+    r = client.post(
+        "/extract",
+        json={
+            "urls": ["http://localhost:7770/headphone-x.html"],
+            "extract_depth": "advanced",
+        },
+    )
+    assert r.status_code == 200
+    assert seen == {
+        "urls": ["http://localhost:7770/headphone-x.html"],
+        "extract_depth": "advanced",
+    }
+    assert r.json()["results"][0]["raw_content"] == "title\n\nmain\n\ndetails"
+
+
 # ---------------------------------------------------------------------------
 # post_lookup: field names must align with get_submission's actual keys
 # ---------------------------------------------------------------------------
@@ -481,6 +570,137 @@ def test_extract_open_mode_follows_redirects(
     assert rows[0]["status"] == 200
     assert "hello world" in rows[0]["raw_content"]
     assert "error" not in rows[0]
+
+
+def test_extract_basic_keeps_legacy_single_product_section(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Default/basic output must not change when advanced extraction is added."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.delenv("SHIM_MODE", raising=False)
+    html = """
+    <html><body><main>
+      <h1>Headphone X</h1>
+      <div class="product-info-main">In stock $199.99</div>
+      <div class="product info detailed">Over-ear ANC, folds flat, 30 hours.</div>
+    </main></body></html>
+    """
+
+    def _fake_get(url: str, **_kw: Any) -> _FakeResponse:
+        return _FakeResponse(status_code=200, url=url, text=html)
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+    rows = backend_mod.extract(["http://localhost:7770/headphone-x.html"])
+    assert rows[0]["raw_content"] == "In stock $199.99"
+    assert "Over-ear ANC" not in rows[0]["raw_content"]
+
+
+def test_extract_advanced_combines_product_identity_and_specs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Advanced Magento extraction exposes title, offer, and detail sections."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.delenv("SHIM_MODE", raising=False)
+    html = """
+    <html><body><main>
+      <h1>Headphone X</h1>
+      <div class="product-info-main">
+        In stock $199.99 <a href="/warranty">Warranty</a>
+      </div>
+      <div class="product info detailed">
+        Over-ear ANC, folds flat, 30 hours.
+        <a href="/manual">Manual</a>
+      </div>
+    </main></body></html>
+    """
+
+    def _fake_get(url: str, **_kw: Any) -> _FakeResponse:
+        return _FakeResponse(status_code=200, url=url, text=html)
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+    rows = backend_mod.extract(
+        ["http://localhost:7770/headphone-x.html"],
+        extract_depth="advanced",
+    )
+    row = rows[0]
+    assert row["raw_content"].split("\n\n") == [
+        "Headphone X",
+        "In stock $199.99 Warranty",
+        "Over-ear ANC, folds flat, 30 hours. Manual",
+    ]
+    assert row["links"] == [
+        "http://localhost:7770/warranty",
+        "http://localhost:7770/manual",
+    ]
+
+
+def test_extract_advanced_adds_postmill_comments_without_changing_basic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Postmill comments are v3 evidence only when advanced is requested."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.delenv("SHIM_MODE", raising=False)
+    html = """
+    <html><body>
+      <article class="submission">
+        <header><h1 class="submission__title">Glasses with headphones</h1></header>
+        <div class="submission__body">Do glasses hurt headphone performance?</div>
+      </article>
+      <article class="comment">
+        <header>D00M98 wrote</header>
+        <div class="comment__body">
+          With closed-back headphones, seal is important for bass.
+          Glasses will break that seal, reducing bass.
+        </div>
+      </article>
+    </body></html>
+    """
+
+    def _fake_get(url: str, **_kw: Any) -> _FakeResponse:
+        return _FakeResponse(status_code=200, url=url, text=html)
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+    url = "http://localhost:9999/f/headphones/61980/example"
+    basic = backend_mod.extract([url])[0]
+    advanced = backend_mod.extract([url], extract_depth="advanced")[0]
+    assert basic["raw_content"] == "Do glasses hurt headphone performance?"
+    assert "seal is important for bass" not in basic["raw_content"]
+    assert advanced["raw_content"].split("\n\n") == [
+        "Glasses with headphones",
+        "Do glasses hurt headphone performance?",
+        (
+            "With closed-back headphones, seal is important for bass. "
+            "Glasses will break that seal, reducing bass."
+        ),
+    ]
+
+
+def test_extract_advanced_leaves_other_sources_on_basic_content_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Advanced is source-specific and must not rewrite Kiwix/general pages."""
+    from integrations.search_shim import backend as backend_mod
+
+    monkeypatch.delenv("SHIM_MODE", raising=False)
+    html = """
+    <html><body><main>
+      <h1>Active noise control</h1>
+      <p>Cancellation uses destructive interference.</p>
+    </main></body></html>
+    """
+
+    def _fake_get(url: str, **_kw: Any) -> _FakeResponse:
+        return _FakeResponse(status_code=200, url=url, text=html)
+
+    monkeypatch.setattr(backend_mod.requests, "get", _fake_get)
+    url = "http://localhost:8090/content/wiki/Active_noise_control"
+    basic = backend_mod.extract([url])[0]
+    advanced = backend_mod.extract([url], extract_depth="advanced")[0]
+    assert advanced["raw_content"] == basic["raw_content"]
+    assert advanced["links"] == basic["links"]
 
 
 def test_extract_strict_allows_inorigin_200(

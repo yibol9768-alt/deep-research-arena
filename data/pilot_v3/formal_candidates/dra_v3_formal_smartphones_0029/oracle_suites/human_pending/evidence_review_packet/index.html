@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-smartphones-0029-display-value-20260716-r1</code></p>
+<p>证据图哈希: <code>8e6c3446cb0181dd64dca79d065d508445d67e3b3eb48c14fd5a80871c03862f</code></p>
+<p>待审项 22 个，其中语义项 9 个、结构化项 4 个；冻结来源 27 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_contrast_measurement_context"><header><h3>assert_contrast_measurement_context</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;manufacturer contrast figures and real-room contrast depend on method and environment&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;contrast-ratio reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_contrast_measurement_context</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;measurement_method_and_ambient_context_required&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;contrast compares white and black luminance, but manufacturer figures are not necessarily comparable and room light lowers observed contrast&quot;,
+  &quot;predicate&quot;: &quot;depends_on_measurement_and_environment&quot;,
+  &quot;subject&quot;: &quot;display contrast ratio&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_contrast_nonstandard</code> | bytes [423, 806) | <code>c76829ada9696f25b223c673226c8033ebe86323fa66e9d2f9048c2f25c8d65b</code></div><pre class="context"><span>) definition for paint, see Contrast ratio (paint) . The contrast ratio ( CR ) is a property of a display system, defined as the ratio of the luminance of the brightest shade (white) to that of the darkest shade (black) that the system is capable of producing. A high contrast ratio is a desired aspect of any display. It has similarities with dynamic range . </span><mark>There is no official, standardized way to measure contrast ratio for a system or its parts, nor is there a standard for defining &quot;Contrast Ratio&quot; that is accepted by any standards organization so ratings provided by different manufacturers of display devices are not necessarily comparable to each other due to differences in method of measurement, operation, and unstated variables.</mark><span> [ 1 ] Manufacturers have traditionally favored measurement methods that isolate the device from the system, whereas other designers have more often taken the effect of the room into account. An ideal room would absorb all the light reflecting from a projection screen or emitted by a cathode-ray tube , and the only light seen in the room would come from the </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Contrast_ratio" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Contrast_ratio</a></p><p>冻结文件: <a href="sources/eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7" target="_blank">sources/eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7</a></p><p>内容 SHA-256: <code>eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lcd_brightness_disagreement"><header><h3>assert_lcd_brightness_disagreement</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the original report and replies disagree about display performance and possible explanation&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;older-LCD versus newer-OLED discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lcd_brightness_disagreement</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;unresolved_individual_comparison_not_general_panel_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;the author says the older LCD looked better or brighter in some shots, while replies raise settings or a possible defect&quot;,
+  &quot;predicate&quot;: &quot;reports_unresolved_comparison&quot;,
+  &quot;subject&quot;: &quot;one older-LCD versus newer-OLED discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lcd_better_defect</code> | bytes [592, 662) | <code>cc86e140275654692a9880c681a3bb02311d30709f616eb4ea5a70fc3f550e5a</code></div><pre class="context"><span>’t able to match the brightness. Is this because of it being LCD vs OLED? 0
+
+Make sure auto brightness is off on the 13 or should be a significantly brighter and better screen than the 6s.
+
+Auto brightness off, the 13 pro was not as good for action shots and low light. There’s a yellow / grainy tinge with the 13 pro display and it’s quite remarkable.
+
+</span><mark>Based on how you are describing it sounds more like a hardware defect.</mark><span>
+
+Will report back perhaps with a video to try and show the difference !
+
+Auto brightness allows the phone to go brighter than manually so keep it on.
+
+Also make sure True Tone is off
+
+True Tone also off
+
+🚮</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_lcd_better_report</code> | bytes [49, 266) | <code>5b37ab693e0c278beb04629d1fe5033fa1bdb59df1efb42d1bfb0f199bce01a7</code></div><pre class="context"><span>iPhone 6s Plus screen looks better than 13 pro?
+
+</span><mark>Hey all this is really weird, but I believe my iPhone 6s Plus screen looks better in some shots in comparison to the iPhone 13 pro. It also manages to get really bright and the 13 isn’t able to match the brightness.</mark><span> Is this because of it being LCD vs OLED? 0
+
+Make sure auto brightness is off on the 13 or should be a significantly brighter and better screen than the 6s.
+
+Auto brightness off, the 13 pro was not as good for action shots and low light. There’s a yellow / grainy tinge with the 13 pro display and it’s quite remarkable.
+
+Based on how you are describing it</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/84561/iphone-6s-plus-screen-looks-better-than-13-pro" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/84561/iphone-6s-plus-screen-looks-better-than-13-pro</a></p><p>冻结文件: <a href="sources/673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe" target="_blank">sources/673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe</a></p><p>内容 SHA-256: <code>673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lcd_light_modulation"><header><h3>assert_lcd_light_modulation</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;liquid crystals modulate rather than directly emit the display light&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;LCD reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lcd_light_modulation</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;display_mechanism_not_phone_quality_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;liquid crystals and polarizers modulate light and do not emit it directly, using a backlight or reflector&quot;,
+  &quot;predicate&quot;: &quot;modulates_external_light&quot;,
+  &quot;subject&quot;: &quot;liquid-crystal display&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lcd_backlight</code> | bytes [311, 443) | <code>5bc328517db0e96e853e455346fab1cc48b36cc49acfd5d808a44c26873f2e63</code></div><pre class="context"><span>&quot;LCD&quot; redirects here. For other uses, see LCD (disambiguation) . Not to be confused with LED . A liquid-crystal display ( LCD ) is a flat-panel display or other electronically modulated optical device that uses the light-modulating properties of liquid crystals combined with polarizers to display information. </span><mark>Liquid crystals do not emit light directly [ 1 ] but instead use a backlight or reflector to produce images in color or monochrome .</mark><span> [ 2 ] LCDs are available to display arbitrary images (as in a general-purpose computer display) or fixed images with low information content, which can be displayed or hidden: preset words, digits, and seven-segment displays (as in a digital clock) are all examples of devices with these displays. They use the same basic technology, except that arbitrary ima</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Liquid-crystal_display" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Liquid-crystal_display</a></p><p>冻结文件: <a href="sources/a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79" target="_blank">sources/a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79</a></p><p>内容 SHA-256: <code>a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_luminance_brightness_scope"><header><h3>assert_luminance_brightness_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;luminance is objective while brightness is subjective&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;luminance reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_luminance_brightness_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;objective_metric_and_subjective_impression_are_distinct&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;luminance is an objective directional intensity per area measured in cd/m2 or nits, while brightness is subjective&quot;,
+  &quot;predicate&quot;: &quot;separates_objective_measurement_from_subjective_impression&quot;,
+  &quot;subject&quot;: &quot;display luminance and perceived brightness&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_luminance_brightness</code> | bytes [535, 635) | <code>5216429bb190ef0b6dc5d83ea6d9247d78a70996ed28d6b5b6162af8b8439da9</code></div><pre class="context"><span>etric measure of the luminous intensity per unit area of light travelling in a given direction. [ 1 ] It describes the amount of light that passes through, is emitted from, or is reflected from a particular area, and falls within a given solid angle . The procedure for conversion from spectral radiance to luminance is standardized by the CIE and ISO . [ 2 ] </span><mark>Brightness is the term for the subjective impression of the objective luminance measurement standard</mark><span> (see Objectivity (science) Â§ Objectivity in measurement for the importance of this contrast). The SI unit for luminance is candela per square metre (cd/m 2 ). A non-SI term for the same unit is the nit . The unit in the Centimetreâgramâsecond system of units (CGS) (which predated the SI system) is the stilb , which is equal to one candela per </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Luminance" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Luminance</a></p><p>冻结文件: <a href="sources/ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a" target="_blank">sources/ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a</a></p><p>内容 SHA-256: <code>ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_oled_eye_strain_experience"><header><h3>assert_oled_eye_strain_experience</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the original author and replies describe differing personal outcomes after using newer phone displays&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;eye-strain discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_oled_eye_strain_experience</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;short_and_individual_comfort_reports_not_medical_causation&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;a short store trial and replies describe different discomfort and adaptation outcomes without a controlled diagnosis&quot;,
+  &quot;predicate&quot;: &quot;report_scoped_experiences&quot;,
+  &quot;subject&quot;: &quot;users discussing eye strain after changing phones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_eye_other_user</code> | bytes [1586, 1697) | <code>c0ed1a21c832fe48715e38493b17f39dfa246473e6d66f522d9134f06841d9c7</code></div><pre class="context"><span>g out what it is hahaha
+
+So I’m guessing your eyes got used to it?
+
+Not necessarily used to it, but more as in I just gotta deal with it
+
+I had eye strain and migraines when I first got my 12 mini. I played around with various settings but the cure was turning off the needs attention and Face ID features - turns out I&#x27;m sensitive to the infrared they use
+
+</span><mark>I had the same problem when I first switched from and LCD iPhone to an OLED iPhone, I eventually got used to it</mark><span>
+
+How long did it take for you to get used to it?
+
+A few weeks
+
+/r/PWM_Sensitive</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_eye_short_trial</code> | bytes [170, 377) | <code>15d924d2d42fdd1767088b93d34fac06bd9216821c850365b8a3ccaaa799f91d</code></div><pre class="context"><span>Eye strain with iPhone 13s/14s?
+
+I have had iPhone XR for 3+ years and it has been great. It has LCD screen instead of OLED which is what all the new iPhone models have. </span><mark>I played around with regular iPhone 14 the other day at Verizon store for like 5-10 minutes and i noticed that because of the display being more crispy and brighter, I felt more eye strain compared to my XR.</mark><span> Has anyone experienced something like this with the new iPhone models? Am I just imagining this? I could do with a new phone but it would be a bummer if I can’t use it because of eye strain. How can I deal with this? 3
+
+Use the reduce white point feature. I found that really helped with eye strain, especially in the dark.
+
+It’s very possible you have a </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62285/eye-strain-with-iphone-13s-14s" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62285/eye-strain-with-iphone-13s-14s</a></p><p>冻结文件: <a href="sources/7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36" target="_blank">sources/7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36</a></p><p>内容 SHA-256: <code>7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_oled_pixel_emission"><header><h3>assert_oled_pixel_emission</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the organic emissive layer produces light under current&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;OLED reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_oled_pixel_emission</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;display_mechanism_not_phone_quality_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;an organic electroluminescent layer emits light under current, and AMOLED uses a TFT backplane to switch individual pixels&quot;,
+  &quot;predicate&quot;: &quot;emits_light_from_organic_layer&quot;,
+  &quot;subject&quot;: &quot;organic light-emitting diode display&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_oled_definition</code> | bytes [123, 408) | <code>fd2ce2aac5e590f0c8820d72b145619d43f6cb7d81250c55646589d0987036d8</code></div><pre class="context"><span>Organic light-emitting diode Prototype OLED lighting panels Component type LED Working principle â Electroluminescent </span><mark>An organic light-emitting diode ( OLED ), also known as organic electroluminescent ( organic EL ) diode , [ 1 ] [ 2 ] is a type of light-emitting diode (LED) in which the emissive electroluminescent layer is an organic compound film that emits light in response to an electric current.</mark><span> This organic layer is situated between two electrodes ; typically, at least one of these electrodes is transparent. OLEDs are used to create digital displays in devices such as television screens, computer monitors , and portable systems such as smartphones and handheld game consoles . A major area of research is the development of white OLED devices for us</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/OLED" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/OLED</a></p><p>冻结文件: <a href="sources/04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0" target="_blank">sources/04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0</a></p><p>内容 SHA-256: <code>04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_pixel_threshold_distance"><header><h3>assert_pixel_threshold_distance</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;pixel-density thresholds vary with viewing distance&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Retina display reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_pixel_threshold_distance</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;viewing_distance_dependent_threshold_not_universal_ppi_cutoff&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;there is no fixed minimum pixel density across devices because required density varies with typical viewing distance and angular resolution&quot;,
+  &quot;predicate&quot;: &quot;depends_on_density_and_viewing_distance&quot;,
+  &quot;subject&quot;: &quot;visible-pixel threshold&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_retina_no_fixed_density</code> | bytes [2367, 2524) | <code>2d79d9f7ca67aab8dd7f0b6fd1e2d9f1505c181e7abd369a358fcfad863a6eb8</code></div><pre class="context"><span>ting terms to differentiate between its LCD and OLED displays having various resolutions , contrast levels, color reproduction , or refresh rates . It is known as Liquid Retina display for the iPhone XR , iPad Air (4th generation) , iPad Mini (6th generation) , iPad Pro (3rd generation) and later versions, [ 10 ] and Retina 4.5K display for the iMac. [ 11 ] </span><mark>Apple&#x27;s Retina displays do not have a fixed minimum pixel density, but vary depending on and at what distance the user would typically be viewing the screen.</mark><span> Where on smaller devices held or worn closer to the userâs eyes, such as watches and phones, the displays must have very high pixel density for the pixels to be indiscernible to the user, for displays viewed from farther away, such as those of notebook or desktop computers, slightly less pixel density is required in order to achieve the same angular re</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Retina_display" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Retina_display</a></p><p>冻结文件: <a href="sources/e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce" target="_blank">sources/e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce</a></p><p>内容 SHA-256: <code>e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_refresh_rate_scope"><header><h3>assert_refresh_rate_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;refresh, touch response, and content frame rate are different rates&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;high-refresh smartphone reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_refresh_rate_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;metric_definition_not_universal_noticeability&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;refresh rate counts hardware buffer updates per second and is not touch response rate or content frame rate&quot;,
+  &quot;predicate&quot;: &quot;is_distinct_from_input_and_content_rates&quot;,
+  &quot;subject&quot;: &quot;display refresh rate&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_refresh_distinctions</code> | bytes [170, 406) | <code>9a37e34ccaeb3aa6247439c5b7efb427f14247071203fbea4cac41389230628d</code></div><pre class="context"><span>The following is a list of smartphones with a high refresh rate display . The refresh rate is the number of times in a second that a display hardware updates its buffer. </span><mark>It is not to be confused with the touch response rate, which is the frequency that the touchscreen senses input, or the frame rate , which describes how many images are stored or generated every second by the device driving the display.</mark><span>  The first smartphone released with a high refresh rate was the Razer Phone , released in November 2017. [ 1 ] [ 2 ] [ 3 ] 120 Hz Brand Model Release month Display type Resolution (pixels) Display size Apple iPhone 13 Pro September 2021 OLED 2532âÃâ1170 6.1 in (150 mm) Apple iPhone 13 Pro Max September 2021 OLED 2778âÃâ1284 6.7 </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/List_of_smartphones_with_a_high_refresh_rate_display" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/List_of_smartphones_with_a_high_refresh_rate_display</a></p><p>冻结文件: <a href="sources/85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192" target="_blank">sources/85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192</a></p><p>内容 SHA-256: <code>85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_refresh_value_disagreement"><header><h3>assert_refresh_value_disagreement</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;participants report different importance and adaptation outcomes for 60 Hz and 120 Hz&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;120 Hz phone discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_refresh_value_disagreement</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_experiences_and_disagreement_not_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;object&quot;: &quot;some users call 120 Hz important or clearly noticeable, while others say 60 Hz remained usable or the saving could matter for light phone use&quot;,
+  &quot;predicate&quot;: &quot;report_scoped_disagreement&quot;,
+  &quot;subject&quot;: &quot;phone users discussing 60 Hz and 120 Hz&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_refresh_nonessential</code> | bytes [958, 1036) | <code>4460e8b0f819e6feac15288e517f3e92862367299e88db1efe8a01b8a8a90e45</code></div><pre class="context"><span>ps as well as youtube. I don&#x27;t play mobile games very often if ever. Thanks! 1
+
+For me it’s more noticeable when I pick up an older device and it seems less smooth. Otherwise I feel that’s not enough to upgrade for as some claim to not notice at all.
+
+Yep, exactly!!
+
+I have a 13 mini and 13 Pro. I&#x27;m going to be selling the pro after using it for a year. </span><mark>At first it was super noticeable but after time the 60hz didn&#x27;t feel unusable.</mark><span> I have a high refresh rate gaming monitor and can 100% tell the difference between something running at 60hz vs 144hz, but for me on the phone it&#x27;s not a deal breaker, even though when I first got the pro I thought I&#x27;d never be able to go back. Hopefully that helps.
+
+Thanks for sharing! :)
+
+Absolutely. It&#x27;s actually one of the main features I was looking fo</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_refresh_positive</code> | bytes [1549, 1566) | <code>6b22b08c08a87ad20b7bb2a09fdf1eb0f5acbc4ac8d28fc0a3fe1fde7fc8bd66</code></div><pre class="context"><span>a deal breaker, even though when I first got the pro I thought I&#x27;d never be able to go back. Hopefully that helps.
+
+Thanks for sharing! :)
+
+Absolutely. It&#x27;s actually one of the main features I was looking forward to when I got this phone. My S10+ was 60hz and whenever I used my mum&#x27;s or mate&#x27;s S20 with 120hz, I&#x27;d be left feeling like I&#x27;m lacking on my S10+. </span><mark>I love the 120hz.</mark><span>
+
+Wow, to be honest I wouldn&#x27;t of expected that- but I&#x27;ve only ever been on 60hz. I might have to try it.
+
+I think the base iPhone 14 is a royal waste of money. It has a severe lack of features and costs a mind blowing £849. The Pro is the only one worth having. I know I&#x27;ll be downvoted to shit for this, but if you don&#x27;t want to spend £1k+, stick to androi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/84480/is-the-120hz-display-on-the-14-pro-noticeable-coming-from-a" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/84480/is-the-120hz-display-on-the-14-pro-noticeable-coming-from-a</a></p><p>冻结文件: <a href="sources/0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db" target="_blank">sources/0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db</a></p><p>内容 SHA-256: <code>0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_motorola_90hz_oled_snapshot"><header><h3>ev_motorola_90hz_oled_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;360 dollars, a 6.7-inch FHD+ 90 Hz OLED, five posted reviews, and an international model without a US warranty&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen Motorola Edge 20 Lite listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_motorola_display</code> | bytes [1354, 1444) | <code>1db30de0b38459a5478c6107f411d67bd1f40afa3cf3a091de4a919c0ded9541</code></div><pre class="context"><span>the light sensitivity. 32 MP selfie - Always look your best with a front-facing 32 MP selfie camera with Quad Pixel technology. Hit the accelerator: Speed up your favorite apps, games, and more with a powerful MediaTek Dimensity 720 processor and 6 GB RAM. And with superfast 5G, you can connect, stream, and download on the fastest networks around the world. </span><mark>6.7&quot; FHD+ Ultra-wide Max Vision display, 1080 x 2400 pixels, 90Hz refresh rate, Android 11</mark><span> 128GB ROM, 6GB RAM, MediaTek MT6853 Dimensity 720 5G (7 nm), Octa-core, Mali-G57 MC3 GPU Rear Camera: 108MP (f/1.8) + 8MP (f/2.2) + 2MP (f/2.4), Front Camera: 32MP (f/2.3), 5000mAh Battery 2G: GSM 850 /900 /1800 /1900, 3G: HSDPA 850 /900 /1700(AWS) /1900 /2100, 4G: LTE 1/2/3/4/5/7/8/12/13/17/18/19/20/26/28/32/34/38/39/40/41/42/43/66, 5G: 1/3/5/7/8/20/28/38/</span></pre></section><section class="span"><div class="span-meta"><code>span_motorola_price</code> | bytes [195, 357) | <code>69251862be9d94ce3eb187696ac1bea9522ef94d0cfd5076191cb7e0766901ab</code></div><pre class="context"><span>Motorola Edge 20 Lite (128GB, 6GB) 6.7&quot; 90Hz OLED, 108MP Triple Camera, Dual SIM (Euro 5G / Global 4G LTE) GSM Unlocked (T-Mobile, AT&amp;T, Metro) International Model XT2139-1 (w/ 128GB SD, Green)
+
+</span><mark>In stock SKU B09HN52ST3 Rating: 80 % of 100 5 Reviews Add Your Review $360.00 Color Electric Graphite Lagoon Green Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Over a billion colors: Give your favorite shows and films the brilliant screen they deserve with an OLED display and over a billion shades of color. 6.7&quot; Ultra-wide Max Vision display - 90Hz Ultra-smooth scrolling &amp; visuals - HDR10+ More vivid, true-to-life colours - DCI-P36 A 25% larger colour range Days of battery: A 5000 mAh b</span></pre></section><section class="span"><div class="span-meta"><code>span_motorola_title</code> | bytes [0, 193) | <code>37e92098c8e44674aafa3e1a5f825680fdf05583babd644e65275d0707695b54</code></div><pre class="context"><span></span><mark>Motorola Edge 20 Lite (128GB, 6GB) 6.7&quot; 90Hz OLED, 108MP Triple Camera, Dual SIM (Euro 5G / Global 4G LTE) GSM Unlocked (T-Mobile, AT&amp;T, Metro) International Model XT2139-1 (w/ 128GB SD, Green)</mark><span>
+
+In stock SKU B09HN52ST3 Rating: 80 % of 100 5 Reviews Add Your Review $360.00 Color Electric Graphite Lagoon Green Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Over a billion colors: Give your favorite shows and films the brilliant screen they deserve with an OLED display and over a billion shades of color. 6.7&quot; Ultra-wide Ma</span></pre></section><section class="span"><div class="span-meta"><code>span_motorola_warranty</code> | bytes [1866, 1913) | <code>e90309e76da7ac186279b5822e70cc6b40b6fbfe8ab123d756fd90ef683ff061</code></div><pre class="context"><span>Octa-core, Mali-G57 MC3 GPU Rear Camera: 108MP (f/1.8) + 8MP (f/2.2) + 2MP (f/2.4), Front Camera: 32MP (f/2.3), 5000mAh Battery 2G: GSM 850 /900 /1800 /1900, 3G: HSDPA 850 /900 /1700(AWS) /1900 /2100, 4G: LTE 1/2/3/4/5/7/8/12/13/17/18/19/20/26/28/32/34/38/39/40/41/42/43/66, 5G: 1/3/5/7/8/20/28/38/40/41/77/78/66 SA/NSA/Sub6 - Dual SIM Euro 5G, Global 4G LTE. </span><mark>International Model, Does not have US Warranty.</mark><span> Will work with Most GSM SIM cards in the U.S. and the world Including AT&amp;T, T-Mobile, Etc. Will NOT work with CDMA Carriers Such as Verizon. Product Dimensions 6 x 4 x 2 inches Item Weight 14.9 ounces OS Android 11 Wireless communication technologies Cellular Display technology OLED Other display features Wireless Other camera features Front Colour Lagoon G</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/motorola-edge-20-lite-128gb-6gb-6-7-90hz-oled-108mp-triple-camera-dual-sim-euro-5g-global-4g-lte-gsm-unlocked-t-mobile-at-t-metro-international-model-xt2139-1-w-128gb-sd-green.html" target="_blank" rel="noreferrer">http://localhost:7770/motorola-edge-20-lite-128gb-6gb-6-7-90hz-oled-108mp-triple-camera-dual-sim-euro-5g-global-4g-lte-gsm-unlocked-t-mobile-at-t-metro-international-model-xt2139-1-w-128gb-sd-green.html</a></p><p>冻结文件: <a href="sources/ab76405032c2247e3e127ef6057815b999cc9d1ed395b4a5bd0c6a4e54748368" target="_blank">sources/ab76405032c2247e3e127ef6057815b999cc9d1ed395b4a5bd0c6a4e54748368</a></p><p>内容 SHA-256: <code>ab76405032c2247e3e127ef6057815b999cc9d1ed395b4a5bd0c6a4e54748368</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_snapshot_with_warranty_caveat&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Motorola Edge 20 Lite listing advertises a 360 dollar international configuration with a 6.7-inch FHD+ 90 Hz OLED, five posted reviews, and no US warranty; these are listing-level facts, not controlled quality results.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_samsung_a51_amoled_snapshot"><header><h3>ev_samsung_a51_amoled_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;134.99 dollars, a 6.5-inch Super AMOLED display, no posted review, and Verizon-only compatibility&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen Samsung Galaxy A51 listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_a51_carrier</code> | bytes [1965, 1997) | <code>91a00ac97d125b10b86a80e328ed165d99796649205271841609062295505525</code></div><pre class="context"><span>ap: From epic landscape shots and dramatic portraits, to macro angles that reveal intricate textures and detail, this impressive quad camera has a lens for whatever inspires you. Smooth, stable shots: Take remarkably smooth video of fast-moving action in crisp, UHD quality. Its top-notch stability makes photos and videos look super smooth with minimal blur. </span><mark>Works with VERIZON Network Only!</mark><span> Included components: Handset and Headset Operating system: Android Wireless communication technology: Cellular Product Dimensions 6.24 x 2.9 x 0.31 inches Item Weight 6.1 ounces Item model number SM-A515UZKNVZW Batteries 1 Lithium ion batteries required. (included) Date First Available May 3, 2020 Manufacturer Samsung Reviews Write Your Own Review You&#x27;re re</span></pre></section><section class="span"><div class="span-meta"><code>span_a51_price</code> | bytes [171, 327) | <code>47e4ef92191086c9f36f65637c5391f4585676fdf119902ff0cee64fdaa92421</code></div><pre class="context"><span>Samsung Galaxy A51 LTE Verizon | 6.5&quot; AMOLED Screen | 128GB of Storage | Long Lasting Battery | Single SIM | 2020 Model | US Version &amp; Warranty| Black - (SM-A515UZKNVZW)
+
+</span><mark>In stock SKU B08B8JSG95 Be the first to review this product $134.99 Style A01 A11 A51 A51G – 5G A71 – 5G Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the manufacturer Previous page Next page 1 Long Lasting Battery 2 Quad Camera 3 Display 4 Super Steady Mode Product Quick Look The Samsung Galaxy A51 has the features you’ve been waiting for in your smartphone. With a quad cam, including a 48MP main camera, you’ll want to post every pic you take. Videos will look flawlessly smooth thanks t</span></pre></section><section class="span"><div class="span-meta"><code>span_a51_title</code> | bytes [0, 169) | <code>6b0c434edb44acc076e4316162e5dfda1d4f570d9f1b30df59818dbe4c0f9313</code></div><pre class="context"><span></span><mark>Samsung Galaxy A51 LTE Verizon | 6.5&quot; AMOLED Screen | 128GB of Storage | Long Lasting Battery | Single SIM | 2020 Model | US Version &amp; Warranty| Black - (SM-A515UZKNVZW)</mark><span>
+
+In stock SKU B08B8JSG95 Be the first to review this product $134.99 Style A01 A11 A51 A51G – 5G A71 – 5G Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Previous page Next page 1 Long Lasting Battery 2 Quad Camera 3 Display 4 Super Steady Mode Product Quick Look The Samsung Galaxy A51 has the features you’ve been waitin</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/samsung-galaxy-a51-lte-verizon-6-5-amoled-screen-128gb-of-storage-long-lasting-battery-single-sim-2020-model-us-version-warranty-black-sm-a515uzknvzw.html" target="_blank" rel="noreferrer">http://localhost:7770/samsung-galaxy-a51-lte-verizon-6-5-amoled-screen-128gb-of-storage-long-lasting-battery-single-sim-2020-model-us-version-warranty-black-sm-a515uzknvzw.html</a></p><p>冻结文件: <a href="sources/532ffb40f7f64e355572a55c9412b136745465c8acaf8b9055fae4e63fdfdde1" target="_blank">sources/532ffb40f7f64e355572a55c9412b136745465c8acaf8b9055fae4e63fdfdde1</a></p><p>内容 SHA-256: <code>532ffb40f7f64e355572a55c9412b136745465c8acaf8b9055fae4e63fdfdde1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_snapshot_with_configuration_caveat&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Samsung Galaxy A51 listing advertises a 134.99 dollar 6.5-inch Super AMOLED configuration, no posted review, and Verizon-only compatibility; its lower snapshot price does not prove a better or worse display than the other listings.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_tcl_lcd_snapshot"><header><h3>ev_tcl_lcd_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;179.99 dollars, a 6.53-inch FHD+ LCD, no posted review, and seller display-enhancement claims&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen TCL 10L listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_tcl_display</code> | bytes [5199, 5407) | <code>aa0228609d9a16e0505c4d82c84b8e6eaf6801b84058bde8ba09ddb1b47de30b</code></div><pre class="context"><span>ort: microSD up to 256GB Weight: 6.35oz/ 180g GPU: Adreno 610 Dimensions: 6.38” x 2.98” x 0.33” / 162.2 x 75.6 x 8.4 mm What’s Included 1 x TCL 10L Mobile phone(with Screen Protector) 1 x TCL 10L Mobile Phone Case 1 x Sim Card Tray Pin 1 x Type-C Cable 1 x charger 1 x use manual Notes: Headphones, Sim Card and SD Card not included Product Quick Look </span><mark>6.53” FHD+ Dotch LCD display, powered by NXTVISION, will upgrade your visual experience with the sharper details, vibrant images and allow you to enjoy true-to-life color accuracy in everything you present.</mark><span> Quad rear cameras with dual LED flash: 48MP (high-res) + 8MP (118° super wide-angle) + 2MP (macro) + 2MP (depth). 16MP front-facing selfie camera for capturing your beauty. Up to 64GB of internal memory, expandable up to 256GB via microSD card (sold separately). Compatible with GSM carriers, including AT&amp;T and T-Mobile. This device is also certified for us</span></pre></section><section class="span"><div class="span-meta"><code>span_tcl_price</code> | bytes [128, 291) | <code>08e8e3461a3436e691107c06aa0e41bef82b746b13585e97d9875f415fb988a8</code></div><pre class="context"><span>TCL 10L, Unlocked Android Smartphone with 6.53&quot; FHD + LCD Display, 48MP Quad Rear Camera System, 64GB+6GB RAM, 4000mAh Battery
+
+</span><mark>In stock SKU B087LYQ22N Be the first to review this product $179.99 Color Arctic White Mariana Blue Size 256GB 64GB Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the brand Previous page TCL 10 L Revolutionary Viewing TCL 10 SE Power Your Experience TCL 10 Pro Unparalleled Power TCL 20 Pro 5G Elevate Your Vision TCL 20 SE Maximize Your Entertainment TCL 20 S Unleash Your Imagination TCL enjoy more Visit the Store Next page Product Description Superior Clarity Capture the moment like never before with an</span></pre></section><section class="span"><div class="span-meta"><code>span_tcl_title</code> | bytes [0, 126) | <code>834b149f131a08711bb37a7b602c7fb23ce83befa36c436b5c93f91294ed4d06</code></div><pre class="context"><span></span><mark>TCL 10L, Unlocked Android Smartphone with 6.53&quot; FHD + LCD Display, 48MP Quad Rear Camera System, 64GB+6GB RAM, 4000mAh Battery</mark><span>
+
+In stock SKU B087LYQ22N Be the first to review this product $179.99 Color Arctic White Mariana Blue Size 256GB 64GB Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the brand Previous page TCL 10 L Revolutionary Viewing TCL 10 SE Power Your Experience TCL 10 Pro Unparalleled Power TCL 20 Pro 5G Elevate Your Vision TCL 20 SE Maximize Your Enter</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/tcl-10l-unlocked-android-smartphone-with-6-53-fhd-lcd-display-48mp-quad-rear-camera-system-64gb-6gb-ram-4000mah-battery.html" target="_blank" rel="noreferrer">http://localhost:7770/tcl-10l-unlocked-android-smartphone-with-6-53-fhd-lcd-display-48mp-quad-rear-camera-system-64gb-6gb-ram-4000mah-battery.html</a></p><p>冻结文件: <a href="sources/a67b1e77f7cee9d95e1bdabb25b57c273397249ada9fe3dd84f3861c28806ac9" target="_blank">sources/a67b1e77f7cee9d95e1bdabb25b57c273397249ada9fe3dd84f3861c28806ac9</a></p><p>内容 SHA-256: <code>a67b1e77f7cee9d95e1bdabb25b57c273397249ada9fe3dd84f3861c28806ac9</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_snapshot_not_independent_display_test&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen TCL 10L listing advertises a 179.99 dollar 6.53-inch FHD+ LCD configuration and seller display-enhancement wording while showing no posted review; it is a catalog snapshot, not an independent display measurement.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_xperia_4k_120hz_oled_snapshot"><header><h3>ev_xperia_4k_120hz_oled_snapshot</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;1496 dollars, a 6.5-inch 4K HDR OLED at 120 Hz, twelve posted reviews, and phone-only or headphone-bundle style choices&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen Xperia 1 III bundle listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_xperia_display_claim</code> | bytes [395, 459) | <code>ca8993dfe8d09a670a163976288b94dd01b2d9bae82d5c3ac1ab84a0d9b2f128</code></div><pre class="context"><span>20Hz 6.5&quot; 21:9 4K HDR OLED Display with Sony WF-1000XM3 Industry Leading Noise Canceling Truly Wireless Earbuds Headset/Headphones
+
+In stock SKU B097QLK1N9 Rating: 72 % of 100 12 Reviews Add Your Review $1,496.00 Color Black Purple Style Phone only Phone Only w/ WF1000XM3 Headphones Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look </span><mark>World’s first smartphone with 120Hz 6.5” 4K HDR OLED display</mark><span> World´s first smartphone with variable tele lens and Dual PD sensor World’s first smartphone with 360 Reality Audio through its speakers Digital noise canceling: Industry leading anc lends a personalized, virtually soundproof experience. Phone call: A built-in mic enables you to take hands-free calls 24bit Audio signal processing delivers dramatically im</span></pre></section><section class="span"><div class="span-meta"><code>span_xperia_price_bundle</code> | bytes [167, 366) | <code>422090ea8e02e05cab37cba0709a0182545d348963bee8ac49722731c3cdb6cd</code></div><pre class="context"><span>Xperia 1 III - 5G Smartphone with 120Hz 6.5&quot; 21:9 4K HDR OLED Display with Sony WF-1000XM3 Industry Leading Noise Canceling Truly Wireless Earbuds Headset/Headphones
+
+</span><mark>In stock SKU B097QLK1N9 Rating: 72 % of 100 12 Reviews Add Your Review $1,496.00 Color Black Purple Style Phone only Phone Only w/ WF1000XM3 Headphones Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look World’s first smartphone with 120Hz 6.5” 4K HDR OLED display World´s first smartphone with variable tele lens and Dual PD sensor World’s first smartphone with 360 Reality Audio through its speakers Digital noise canceling: Industry leading anc lends a personalized, virtually soundproof experience. Phone call: A built-in mi</span></pre></section><section class="span"><div class="span-meta"><code>span_xperia_title</code> | bytes [0, 165) | <code>cab01b81319f8a984b8c586d3f7187cf81bfca21c43c8d3eb7c910c5f7c6ecc0</code></div><pre class="context"><span></span><mark>Xperia 1 III - 5G Smartphone with 120Hz 6.5&quot; 21:9 4K HDR OLED Display with Sony WF-1000XM3 Industry Leading Noise Canceling Truly Wireless Earbuds Headset/Headphones</mark><span>
+
+In stock SKU B097QLK1N9 Rating: 72 % of 100 12 Reviews Add Your Review $1,496.00 Color Black Purple Style Phone only Phone Only w/ WF1000XM3 Headphones Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look World’s first smartphone with 120Hz 6.5” 4K HDR OLED display World´s first smartphone with variable tele lens and Dual PD sen</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/xperia-1-iii-5g-smartphone-with-120hz-6-5-21-9-4k-hdr-oled-display-with-sony-wf-1000xm3-industry-leading-noise-canceling-truly-wireless-earbuds-headset-headphones.html" target="_blank" rel="noreferrer">http://localhost:7770/xperia-1-iii-5g-smartphone-with-120hz-6-5-21-9-4k-hdr-oled-display-with-sony-wf-1000xm3-industry-leading-noise-canceling-truly-wireless-earbuds-headset-headphones.html</a></p><p>冻结文件: <a href="sources/ce0875f0feda3dd17f6970228f64bcdbe2cb5aa9490814d5578a3a3b810d5cf8" target="_blank">sources/ce0875f0feda3dd17f6970228f64bcdbe2cb5aa9490814d5578a3a3b810d5cf8</a></p><p>内容 SHA-256: <code>ce0875f0feda3dd17f6970228f64bcdbe2cb5aa9490814d5578a3a3b810d5cf8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;catalog_bundle_snapshot_not_screen_value_test&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Xperia listing advertises a 1496 dollar phone or headphone-bundle configuration with a 6.5-inch 4K HDR OLED at 120 Hz and twelve posted reviews; it does not isolate the screen&#x27;s share of price or independently measure display quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_contrast_measurement_context"><header><h3>prop_contrast_measurement_context</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;contrast compares white and black luminance, but manufacturer figures are not necessarily comparable and room light lowers observed contrast&quot;,
+  &quot;predicate&quot;: &quot;depends_on_measurement_and_environment&quot;,
+  &quot;subject&quot;: &quot;display contrast ratio&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_contrast_definition</code> | bytes [116, 323) | <code>c22207cfeac42400a22c4c9ee14446e20f2c2b128a74ac30fe610bb9079e5ee0</code></div><pre class="context"><span>This article is about a property of a display. For a (different) definition for paint, see Contrast ratio (paint) . </span><mark>The contrast ratio ( CR ) is a property of a display system, defined as the ratio of the luminance of the brightest shade (white) to that of the darkest shade (black) that the system is capable of producing.</mark><span> A high contrast ratio is a desired aspect of any display. It has similarities with dynamic range . There is no official, standardized way to measure contrast ratio for a system or its parts, nor is there a standard for defining &quot;Contrast Ratio&quot; that is accepted by any standards organization so ratings provided by different manufacturers of display devices a</span></pre></section><section class="span"><div class="span-meta"><code>span_contrast_nonstandard</code> | bytes [423, 806) | <code>c76829ada9696f25b223c673226c8033ebe86323fa66e9d2f9048c2f25c8d65b</code></div><pre class="context"><span>) definition for paint, see Contrast ratio (paint) . The contrast ratio ( CR ) is a property of a display system, defined as the ratio of the luminance of the brightest shade (white) to that of the darkest shade (black) that the system is capable of producing. A high contrast ratio is a desired aspect of any display. It has similarities with dynamic range . </span><mark>There is no official, standardized way to measure contrast ratio for a system or its parts, nor is there a standard for defining &quot;Contrast Ratio&quot; that is accepted by any standards organization so ratings provided by different manufacturers of display devices are not necessarily comparable to each other due to differences in method of measurement, operation, and unstated variables.</mark><span> [ 1 ] Manufacturers have traditionally favored measurement methods that isolate the device from the system, whereas other designers have more often taken the effect of the room into account. An ideal room would absorb all the light reflecting from a projection screen or emitted by a cathode-ray tube , and the only light seen in the room would come from the </span></pre></section><section class="span"><div class="span-meta"><code>span_contrast_room</code> | bytes [1288, 1400) | <code>9c351c5d48b3abcfcd208d969aa697d7141ad20532af19774e23701fa87fddb9</code></div><pre class="context"><span> designers have more often taken the effect of the room into account. An ideal room would absorb all the light reflecting from a projection screen or emitted by a cathode-ray tube , and the only light seen in the room would come from the display device. With such a room, the contrast ratio of the image would be the same as the contrast ratio of the device . </span><mark>Real rooms reflect some of the light back to the displayed image, lowering the contrast ratio seen in the image.</mark><span> Static contrast ratio (or simultaneous contrast ratio ) is the luminosity ratio comparing the brightest and darkest shade the system is capable of producing simultaneously at any instant of time, typically measured using ANSI checkerboard pattern; on the other hand, dynamic contrast ratio (or sequential contrast ratio ) is the luminosity ratio comparing the</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Contrast_ratio" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Contrast_ratio</a></p><p>冻结文件: <a href="sources/eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7" target="_blank">sources/eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7</a></p><p>内容 SHA-256: <code>eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;measurement_method_and_ambient_context_required&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Contrast ratio compares brightest white with darkest black, but manufacturer ratings need not be comparable because methods differ, and reflected room light lowers the contrast seen in practice.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lcd_brightness_disagreement"><header><h3>prop_lcd_brightness_disagreement</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author says the older LCD looked better or brighter in some shots, while replies raise settings or a possible defect&quot;,
+  &quot;predicate&quot;: &quot;reports_unresolved_comparison&quot;,
+  &quot;subject&quot;: &quot;one older-LCD versus newer-OLED discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_lcd_better_defect</code> | bytes [592, 662) | <code>cc86e140275654692a9880c681a3bb02311d30709f616eb4ea5a70fc3f550e5a</code></div><pre class="context"><span>’t able to match the brightness. Is this because of it being LCD vs OLED? 0
+
+Make sure auto brightness is off on the 13 or should be a significantly brighter and better screen than the 6s.
+
+Auto brightness off, the 13 pro was not as good for action shots and low light. There’s a yellow / grainy tinge with the 13 pro display and it’s quite remarkable.
+
+</span><mark>Based on how you are describing it sounds more like a hardware defect.</mark><span>
+
+Will report back perhaps with a video to try and show the difference !
+
+Auto brightness allows the phone to go brighter than manually so keep it on.
+
+Also make sure True Tone is off
+
+True Tone also off
+
+🚮</span></pre></section><section class="span"><div class="span-meta"><code>span_lcd_better_report</code> | bytes [49, 266) | <code>5b37ab693e0c278beb04629d1fe5033fa1bdb59df1efb42d1bfb0f199bce01a7</code></div><pre class="context"><span>iPhone 6s Plus screen looks better than 13 pro?
+
+</span><mark>Hey all this is really weird, but I believe my iPhone 6s Plus screen looks better in some shots in comparison to the iPhone 13 pro. It also manages to get really bright and the 13 isn’t able to match the brightness.</mark><span> Is this because of it being LCD vs OLED? 0
+
+Make sure auto brightness is off on the 13 or should be a significantly brighter and better screen than the 6s.
+
+Auto brightness off, the 13 pro was not as good for action shots and low light. There’s a yellow / grainy tinge with the 13 pro display and it’s quite remarkable.
+
+Based on how you are describing it</span></pre></section><section class="span"><div class="span-meta"><code>span_lcd_better_setting</code> | bytes [311, 422) | <code>9022a3f7a594e55c5869f0130cae943c8fa53ee5573295971db9e4b4be3fd95f</code></div><pre class="context"><span>iPhone 6s Plus screen looks better than 13 pro?
+
+Hey all this is really weird, but I believe my iPhone 6s Plus screen looks better in some shots in comparison to the iPhone 13 pro. It also manages to get really bright and the 13 isn’t able to match the brightness. Is this because of it being LCD vs OLED? 0
+
+</span><mark>Make sure auto brightness is off on the 13 or should be a significantly brighter and better screen than the 6s.</mark><span>
+
+Auto brightness off, the 13 pro was not as good for action shots and low light. There’s a yellow / grainy tinge with the 13 pro display and it’s quite remarkable.
+
+Based on how you are describing it sounds more like a hardware defect.
+
+Will report back perhaps with a video to try and show the difference !
+
+Auto brightness allows the phone to go brighte</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/84561/iphone-6s-plus-screen-looks-better-than-13-pro" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/84561/iphone-6s-plus-screen-looks-better-than-13-pro</a></p><p>冻结文件: <a href="sources/673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe" target="_blank">sources/673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe</a></p><p>内容 SHA-256: <code>673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;unresolved_individual_comparison_not_general_panel_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One user says an iPhone 6s Plus LCD looked better or brighter than an iPhone 13 Pro in some scenes, while replies suggest settings or a possible defect; the exchange is unresolved and cannot establish a general LCD-versus-OLED ranking.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lcd_light_modulation"><header><h3>prop_lcd_light_modulation</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;liquid crystals and polarizers modulate light and do not emit it directly, using a backlight or reflector&quot;,
+  &quot;predicate&quot;: &quot;modulates_external_light&quot;,
+  &quot;subject&quot;: &quot;liquid-crystal display&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_lcd_backlight</code> | bytes [311, 443) | <code>5bc328517db0e96e853e455346fab1cc48b36cc49acfd5d808a44c26873f2e63</code></div><pre class="context"><span>&quot;LCD&quot; redirects here. For other uses, see LCD (disambiguation) . Not to be confused with LED . A liquid-crystal display ( LCD ) is a flat-panel display or other electronically modulated optical device that uses the light-modulating properties of liquid crystals combined with polarizers to display information. </span><mark>Liquid crystals do not emit light directly [ 1 ] but instead use a backlight or reflector to produce images in color or monochrome .</mark><span> [ 2 ] LCDs are available to display arbitrary images (as in a general-purpose computer display) or fixed images with low information content, which can be displayed or hidden: preset words, digits, and seven-segment displays (as in a digital clock) are all examples of devices with these displays. They use the same basic technology, except that arbitrary ima</span></pre></section><section class="span"><div class="span-meta"><code>span_lcd_definition</code> | bytes [95, 310) | <code>73dfcbf999ce93794ec4a9caf2e3316e49f5add31204faa01b6d6e778891a556</code></div><pre class="context"><span>&quot;LCD&quot; redirects here. For other uses, see LCD (disambiguation) . Not to be confused with LED . </span><mark>A liquid-crystal display ( LCD ) is a flat-panel display or other electronically modulated optical device that uses the light-modulating properties of liquid crystals combined with polarizers to display information.</mark><span> Liquid crystals do not emit light directly [ 1 ] but instead use a backlight or reflector to produce images in color or monochrome . [ 2 ] LCDs are available to display arbitrary images (as in a general-purpose computer display) or fixed images with low information content, which can be displayed or hidden: preset words, digits, and seven-segment displays (</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Liquid-crystal_display" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Liquid-crystal_display</a></p><p>冻结文件: <a href="sources/a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79" target="_blank">sources/a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79</a></p><p>内容 SHA-256: <code>a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;display_mechanism_not_phone_quality_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;An LCD uses the light-modulating properties of liquid crystals and polarizers; the liquid crystals do not emit light directly, so a backlight or reflector supplies the light.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_luminance_brightness_scope"><header><h3>prop_luminance_brightness_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;luminance is an objective directional intensity per area measured in cd/m2 or nits, while brightness is subjective&quot;,
+  &quot;predicate&quot;: &quot;separates_objective_measurement_from_subjective_impression&quot;,
+  &quot;subject&quot;: &quot;display luminance and perceived brightness&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_luminance_brightness</code> | bytes [535, 635) | <code>5216429bb190ef0b6dc5d83ea6d9247d78a70996ed28d6b5b6162af8b8439da9</code></div><pre class="context"><span>etric measure of the luminous intensity per unit area of light travelling in a given direction. [ 1 ] It describes the amount of light that passes through, is emitted from, or is reflected from a particular area, and falls within a given solid angle . The procedure for conversion from spectral radiance to luminance is standardized by the CIE and ISO . [ 2 ] </span><mark>Brightness is the term for the subjective impression of the objective luminance measurement standard</mark><span> (see Objectivity (science) Â§ Objectivity in measurement for the importance of this contrast). The SI unit for luminance is candela per square metre (cd/m 2 ). A non-SI term for the same unit is the nit . The unit in the Centimetreâgramâsecond system of units (CGS) (which predated the SI system) is the stilb , which is equal to one candela per </span></pre></section><section class="span"><div class="span-meta"><code>span_luminance_definition</code> | bytes [154, 270) | <code>8eb670c4a731965e48d0ace6311c4ba3ce0eb9bbbb5faccdbd22c168400fd372</code></div><pre class="context"><span>Not to be confused with Luma (video) , Luminescence , Luminosity , Luminous intensity , or Illuminance . For other uses, see Luminance (disambiguation) . </span><mark>Luminance is a photometric measure of the luminous intensity per unit area of light travelling in a given direction.</mark><span> [ 1 ] It describes the amount of light that passes through, is emitted from, or is reflected from a particular area, and falls within a given solid angle . The procedure for conversion from spectral radiance to luminance is standardized by the CIE and ISO . [ 2 ] Brightness is the term for the subjective impression of the objective luminance measurement sta</span></pre></section><section class="span"><div class="span-meta"><code>span_luminance_unit</code> | bytes [734, 843) | <code>3e756b220e57811f9a03c4c27e6d5554bfa786beb5f7e8c6f6125a91d08436e2</code></div><pre class="context"><span>ticular area, and falls within a given solid angle . The procedure for conversion from spectral radiance to luminance is standardized by the CIE and ISO . [ 2 ] Brightness is the term for the subjective impression of the objective luminance measurement standard (see Objectivity (science) Â§ Objectivity in measurement for the importance of this contrast). </span><mark>The SI unit for luminance is candela per square metre (cd/m 2 ). A non-SI term for the same unit is the nit .</mark><span> The unit in the Centimetreâgramâsecond system of units (CGS) (which predated the SI system) is the stilb , which is equal to one candela per square centimetre or 10 kcd/m 2 . Description Luminance is often used to characterize emission or reflection from flat, diffuse surfaces. Luminance levels indicate how much luminous power could be detected b</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Luminance" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Luminance</a></p><p>冻结文件: <a href="sources/ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a" target="_blank">sources/ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a</a></p><p>内容 SHA-256: <code>ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;objective_metric_and_subjective_impression_are_distinct&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Luminance is an objective photometric measure expressed in candela per square metre or nits, whereas brightness is the subjective impression of that objective quantity.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_oled_eye_strain_experience"><header><h3>prop_oled_eye_strain_experience</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a short store trial and replies describe different discomfort and adaptation outcomes without a controlled diagnosis&quot;,
+  &quot;predicate&quot;: &quot;report_scoped_experiences&quot;,
+  &quot;subject&quot;: &quot;users discussing eye strain after changing phones&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_eye_not_used_to_it</code> | bytes [1296, 1364) | <code>0289d2b9bdb7436a1dbcb9b5cdf811572541411ba8519ce5e79abddcb1d16214</code></div><pre class="context"><span> 14 my eyes felt weird if that makes sense
+
+Did you just end up keeping the 14 pro max? How are your eyes feeling now?
+
+Yes I’m not super sensitive to it but when switching phones my eyes feel less heavy if that makes sense. I honestly had no idea anything about PWM I’m just now finding out what it is hahaha
+
+So I’m guessing your eyes got used to it?
+
+</span><mark>Not necessarily used to it, but more as in I just gotta deal with it</mark><span>
+
+I had eye strain and migraines when I first got my 12 mini. I played around with various settings but the cure was turning off the needs attention and Face ID features - turns out I&#x27;m sensitive to the infrared they use
+
+I had the same problem when I first switched from and LCD iPhone to an OLED iPhone, I eventually got used to it
+
+How long did it take for </span></pre></section><section class="span"><div class="span-meta"><code>span_eye_other_user</code> | bytes [1586, 1697) | <code>c0ed1a21c832fe48715e38493b17f39dfa246473e6d66f522d9134f06841d9c7</code></div><pre class="context"><span>g out what it is hahaha
+
+So I’m guessing your eyes got used to it?
+
+Not necessarily used to it, but more as in I just gotta deal with it
+
+I had eye strain and migraines when I first got my 12 mini. I played around with various settings but the cure was turning off the needs attention and Face ID features - turns out I&#x27;m sensitive to the infrared they use
+
+</span><mark>I had the same problem when I first switched from and LCD iPhone to an OLED iPhone, I eventually got used to it</mark><span>
+
+How long did it take for you to get used to it?
+
+A few weeks
+
+/r/PWM_Sensitive</span></pre></section><section class="span"><div class="span-meta"><code>span_eye_short_trial</code> | bytes [170, 377) | <code>15d924d2d42fdd1767088b93d34fac06bd9216821c850365b8a3ccaaa799f91d</code></div><pre class="context"><span>Eye strain with iPhone 13s/14s?
+
+I have had iPhone XR for 3+ years and it has been great. It has LCD screen instead of OLED which is what all the new iPhone models have. </span><mark>I played around with regular iPhone 14 the other day at Verizon store for like 5-10 minutes and i noticed that because of the display being more crispy and brighter, I felt more eye strain compared to my XR.</mark><span> Has anyone experienced something like this with the new iPhone models? Am I just imagining this? I could do with a new phone but it would be a bummer if I can’t use it because of eye strain. How can I deal with this? 3
+
+Use the reduce white point feature. I found that really helped with eye strain, especially in the dark.
+
+It’s very possible you have a </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62285/eye-strain-with-iphone-13s-14s" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62285/eye-strain-with-iphone-13s-14s</a></p><p>冻结文件: <a href="sources/7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36" target="_blank">sources/7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36</a></p><p>内容 SHA-256: <code>7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;short_and_individual_comfort_reports_not_medical_causation&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;An XR user reports eye strain after a five-to-ten-minute iPhone 14 store trial, while replies describe different adjustment or continued-discomfort experiences; the thread does not provide a controlled cause, diagnosis, or population rate.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_oled_pixel_emission"><header><h3>prop_oled_pixel_emission</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an organic electroluminescent layer emits light under current, and AMOLED uses a TFT backplane to switch individual pixels&quot;,
+  &quot;predicate&quot;: &quot;emits_light_from_organic_layer&quot;,
+  &quot;subject&quot;: &quot;organic light-emitting diode display&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_oled_amoled_control</code> | bytes [1162, 1449) | <code>f7746377a6cf340c42a23b0534374a3b9375157d61da6bb9422ff09314809105</code></div><pre class="context"><span>ions. [ 3 ] [ 4 ] [ 5 ] There are two main families of OLED: those based on small molecules and those employing polymers . Adding mobile ions to an OLED creates a light-emitting electrochemical cell (LEC) which has a slightly different mode of operation. An OLED display can be driven with a passive-matrix (PMOLED) or active-matrix ( AMOLED ) control scheme. </span><mark>In the PMOLED scheme, each row and line in the display is controlled sequentially, one by one, [ 6 ] whereas AMOLED control uses a thin-film transistor (TFT) backplane to directly access and switch each individual pixel on or off, allowing for higher resolution and larger display sizes.</mark><span> OLEDs are fundamentally different from LEDs , which are based on a pân diode crystalline solid structure. In LEDs, doping is used to create p- and n-regions by changing the conductivity of the host semiconductor . OLEDs do not employ a crystalline p-n structure. Doping of OLEDs is used to increase radiative efficiency by direct modification of the quan</span></pre></section><section class="span"><div class="span-meta"><code>span_oled_definition</code> | bytes [123, 408) | <code>fd2ce2aac5e590f0c8820d72b145619d43f6cb7d81250c55646589d0987036d8</code></div><pre class="context"><span>Organic light-emitting diode Prototype OLED lighting panels Component type LED Working principle â Electroluminescent </span><mark>An organic light-emitting diode ( OLED ), also known as organic electroluminescent ( organic EL ) diode , [ 1 ] [ 2 ] is a type of light-emitting diode (LED) in which the emissive electroluminescent layer is an organic compound film that emits light in response to an electric current.</mark><span> This organic layer is situated between two electrodes ; typically, at least one of these electrodes is transparent. OLEDs are used to create digital displays in devices such as television screens, computer monitors , and portable systems such as smartphones and handheld game consoles . A major area of research is the development of white OLED devices for us</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/OLED" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/OLED</a></p><p>冻结文件: <a href="sources/04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0" target="_blank">sources/04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0</a></p><p>内容 SHA-256: <code>04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;display_mechanism_not_phone_quality_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;An OLED contains an organic electroluminescent layer that emits light in response to current; AMOLED uses a TFT backplane to access and switch individual pixels.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_pixel_threshold_distance"><header><h3>prop_pixel_threshold_distance</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;there is no fixed minimum pixel density across devices because required density varies with typical viewing distance and angular resolution&quot;,
+  &quot;predicate&quot;: &quot;depends_on_density_and_viewing_distance&quot;,
+  &quot;subject&quot;: &quot;visible-pixel threshold&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_retina_distance</code> | bytes [3496, 3708) | <code>941af38f26d78cab80eb4cb85890e45febd4efe037656d961a54403a5515fb92</code></div><pre class="context"><span>display , and Liquid Retina display for various iterations. [ 13 ] [ 14 ] Rationale and detractors See also: Fovea centralis Â§ Angular size of foveal cones When introducing the iPhone 4 , Steve Jobs said the density of pixels needed for a Retina display is about 300 PPI (120 dot/cm) for a device held 10 to 12 inches (25 to 30 cm) from the eye. [ 1 ] </span><mark>This definition includes the distance from the screen to the observer (the viewing distance ), because moving the eye closer to the display makes it easier to see detail up close, and moving away makes it harder.</mark><span> One metric that takes into account both the pixel density of a screen and the viewing distance is angular pixel density , typically expressed in units of pixels per degree ( PPD ). For pixels centered in the field of vision spanning a small visual angle, the angular pixel density can be approximated as: [ 15 ] Ï 360 arctan â¡ ( 0.5 d r ) {\displaysty</span></pre></section><section class="span"><div class="span-meta"><code>span_retina_no_fixed_density</code> | bytes [2367, 2524) | <code>2d79d9f7ca67aab8dd7f0b6fd1e2d9f1505c181e7abd369a358fcfad863a6eb8</code></div><pre class="context"><span>ting terms to differentiate between its LCD and OLED displays having various resolutions , contrast levels, color reproduction , or refresh rates . It is known as Liquid Retina display for the iPhone XR , iPad Air (4th generation) , iPad Mini (6th generation) , iPad Pro (3rd generation) and later versions, [ 10 ] and Retina 4.5K display for the iMac. [ 11 ] </span><mark>Apple&#x27;s Retina displays do not have a fixed minimum pixel density, but vary depending on and at what distance the user would typically be viewing the screen.</mark><span> Where on smaller devices held or worn closer to the userâs eyes, such as watches and phones, the displays must have very high pixel density for the pixels to be indiscernible to the user, for displays viewed from farther away, such as those of notebook or desktop computers, slightly less pixel density is required in order to achieve the same angular re</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Retina_display" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Retina_display</a></p><p>冻结文件: <a href="sources/e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce" target="_blank">sources/e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce</a></p><p>内容 SHA-256: <code>e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;viewing_distance_dependent_threshold_not_universal_ppi_cutoff&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Retina reference does not use one fixed minimum pixel density across devices: the threshold varies with typical viewing distance and angular resolution, so a universal phone-resolution stopping point is unsupported.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_refresh_rate_scope"><header><h3>prop_refresh_rate_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;refresh rate counts hardware buffer updates per second and is not touch response rate or content frame rate&quot;,
+  &quot;predicate&quot;: &quot;is_distinct_from_input_and_content_rates&quot;,
+  &quot;subject&quot;: &quot;display refresh rate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_refresh_definition</code> | bytes [74, 169) | <code>4678d0760cb871032e15c3d8090b7525f830550c9f3d3c32234bc2d43be97e9c</code></div><pre class="context"><span>The following is a list of smartphones with a high refresh rate display . </span><mark>The refresh rate is the number of times in a second that a display hardware updates its buffer.</mark><span> It is not to be confused with the touch response rate, which is the frequency that the touchscreen senses input, or the frame rate , which describes how many images are stored or generated every second by the device driving the display.  The first smartphone released with a high refresh rate was the Razer Phone , released in November 2017. [ 1 ] [ 2 ] [ 3 ]</span></pre></section><section class="span"><div class="span-meta"><code>span_refresh_distinctions</code> | bytes [170, 406) | <code>9a37e34ccaeb3aa6247439c5b7efb427f14247071203fbea4cac41389230628d</code></div><pre class="context"><span>The following is a list of smartphones with a high refresh rate display . The refresh rate is the number of times in a second that a display hardware updates its buffer. </span><mark>It is not to be confused with the touch response rate, which is the frequency that the touchscreen senses input, or the frame rate , which describes how many images are stored or generated every second by the device driving the display.</mark><span>  The first smartphone released with a high refresh rate was the Razer Phone , released in November 2017. [ 1 ] [ 2 ] [ 3 ] 120 Hz Brand Model Release month Display type Resolution (pixels) Display size Apple iPhone 13 Pro September 2021 OLED 2532âÃâ1170 6.1 in (150 mm) Apple iPhone 13 Pro Max September 2021 OLED 2778âÃâ1284 6.7 </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/List_of_smartphones_with_a_high_refresh_rate_display" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/List_of_smartphones_with_a_high_refresh_rate_display</a></p><p>冻结文件: <a href="sources/85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192" target="_blank">sources/85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192</a></p><p>内容 SHA-256: <code>85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;metric_definition_not_universal_noticeability&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Display refresh rate is how often hardware updates its buffer and must not be confused with touch response rate or the content frame rate.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_refresh_value_disagreement"><header><h3>prop_refresh_value_disagreement</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;some users call 120 Hz important or clearly noticeable, while others say 60 Hz remained usable or the saving could matter for light phone use&quot;,
+  &quot;predicate&quot;: &quot;report_scoped_disagreement&quot;,
+  &quot;subject&quot;: &quot;phone users discussing 60 Hz and 120 Hz&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_refresh_nonessential</code> | bytes [958, 1036) | <code>4460e8b0f819e6feac15288e517f3e92862367299e88db1efe8a01b8a8a90e45</code></div><pre class="context"><span>ps as well as youtube. I don&#x27;t play mobile games very often if ever. Thanks! 1
+
+For me it’s more noticeable when I pick up an older device and it seems less smooth. Otherwise I feel that’s not enough to upgrade for as some claim to not notice at all.
+
+Yep, exactly!!
+
+I have a 13 mini and 13 Pro. I&#x27;m going to be selling the pro after using it for a year. </span><mark>At first it was super noticeable but after time the 60hz didn&#x27;t feel unusable.</mark><span> I have a high refresh rate gaming monitor and can 100% tell the difference between something running at 60hz vs 144hz, but for me on the phone it&#x27;s not a deal breaker, even though when I first got the pro I thought I&#x27;d never be able to go back. Hopefully that helps.
+
+Thanks for sharing! :)
+
+Absolutely. It&#x27;s actually one of the main features I was looking fo</span></pre></section><section class="span"><div class="span-meta"><code>span_refresh_positive</code> | bytes [1549, 1566) | <code>6b22b08c08a87ad20b7bb2a09fdf1eb0f5acbc4ac8d28fc0a3fe1fde7fc8bd66</code></div><pre class="context"><span>a deal breaker, even though when I first got the pro I thought I&#x27;d never be able to go back. Hopefully that helps.
+
+Thanks for sharing! :)
+
+Absolutely. It&#x27;s actually one of the main features I was looking forward to when I got this phone. My S10+ was 60hz and whenever I used my mum&#x27;s or mate&#x27;s S20 with 120hz, I&#x27;d be left feeling like I&#x27;m lacking on my S10+. </span><mark>I love the 120hz.</mark><span>
+
+Wow, to be honest I wouldn&#x27;t of expected that- but I&#x27;ve only ever been on 60hz. I might have to try it.
+
+I think the base iPhone 14 is a royal waste of money. It has a severe lack of features and costs a mind blowing £849. The Pro is the only one worth having. I know I&#x27;ll be downvoted to shit for this, but if you don&#x27;t want to spend £1k+, stick to androi</span></pre></section><section class="span"><div class="span-meta"><code>span_refresh_savings</code> | bytes [3927, 4068) | <code>b1a89de434c7b7f8b5d9c3bd837780d0cb9d07b81c9fdd964648b422ff11b338</code></div><pre class="context"><span>e.
+
+I went Pro just for the higher refresh rate. I had an Android with 90 Hz and an iPhone 12 with 60 Hz and the only thing I hated about the iPhone 12 was the 60 Hz. Got the 14 Pro and it’s so smooth.
+
+Definitely noticeable. When I put my phone in low battery mode (lowers the hz) I can see and feel the difference. Not a big deal but for sure noticeable.
+
+</span><mark>Yes it is noticeable. But in my experience (and I’m a sucker for HRR) on a phone it’s not absolutely needed, if the savings are worth it.</mark><span> About the CPU, don’t even bother, the A16 is a small step up from the A15 and even an A13 is still plenty fast for almost everybody. The RAM is more important and both have 6gb. Up to you really. Try getting a hold of both on a store, because the Pro is way heavier also. Bear in mind that side by side, the 120hz will be even more noticeable, but your eyes</span></pre></section><section class="span"><div class="span-meta"><code>span_refresh_use_case</code> | bytes [531, 666) | <code>3e726c7b0cd95d16d1fdb21434aad0fd5eca9df41f78a772faf9d8f33902c6c4</code></div><pre class="context"><span> problems deciding between the 14 Pro &amp; the 14 base model? The dynamic island looks useful but I could easily be without that I feel. The faster processor and higher refresh rate has me leaning towards the Pro (but) I&#x27;d love to know whether or not the difference in speed/performance is noticeable enough to justify the £200 price difference between the two. </span><mark>I&#x27;ll mostly be calling, texting, and browsing a few social media apps as well as youtube. I don&#x27;t play mobile games very often if ever.</mark><span> Thanks! 1
+
+For me it’s more noticeable when I pick up an older device and it seems less smooth. Otherwise I feel that’s not enough to upgrade for as some claim to not notice at all.
+
+Yep, exactly!!
+
+I have a 13 mini and 13 Pro. I&#x27;m going to be selling the pro after using it for a year. At first it was super noticeable but after time the 60hz didn&#x27;t feel</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/84480/is-the-120hz-display-on-the-14-pro-noticeable-coming-from-a" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/84480/is-the-120hz-display-on-the-14-pro-noticeable-coming-from-a</a></p><p>冻结文件: <a href="sources/0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db" target="_blank">sources/0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db</a></p><p>内容 SHA-256: <code>0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_experiences_and_disagreement_not_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_display_value_and_personal_threshold&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A phone-refresh-rate discussion contains materially different individual outcomes: some users strongly value 120 Hz, while another says 60 Hz did not become unusable and another says high refresh is noticeable but not essential when savings matter; the original poster mainly calls, texts, browses, and watches YouTube.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_smartphone_display_value</td><td>case_spec</td><td><a href="sources/9c77dec4ad5a1a250cb2d22d4b91b517bfd56d4f6b22a3b5c677aa05fb6a7f52">9c77dec4ad5a1a250cb2d22d4b91b517bfd56d4f6b22a3b5c677aa05fb6a7f52</a></td><td><a href="http://case-spec.local/dra_v3_formal_smartphones_0029" target="_blank" rel="noreferrer">来源 URL</a></td><td>7480</td></tr><tr><td>reg_magento_motorola_edge_20_lite_oled</td><td>magento</td><td><a href="sources/ab76405032c2247e3e127ef6057815b999cc9d1ed395b4a5bd0c6a4e54748368">ab76405032c2247e3e127ef6057815b999cc9d1ed395b4a5bd0c6a4e54748368</a></td><td><a href="http://localhost:7770/motorola-edge-20-lite-128gb-6gb-6-7-90hz-oled-108mp-triple-camera-dual-sim-euro-5g-global-4g-lte-gsm-unlocked-t-mobile-at-t-metro-international-model-xt2139-1-w-128gb-sd-green.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2676</td></tr><tr><td>reg_magento_samsung_a51_amoled</td><td>magento</td><td><a href="sources/532ffb40f7f64e355572a55c9412b136745465c8acaf8b9055fae4e63fdfdde1">532ffb40f7f64e355572a55c9412b136745465c8acaf8b9055fae4e63fdfdde1</a></td><td><a href="http://localhost:7770/samsung-galaxy-a51-lte-verizon-6-5-amoled-screen-128gb-of-storage-long-lasting-battery-single-sim-2020-model-us-version-warranty-black-sm-a515uzknvzw.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2631</td></tr><tr><td>reg_magento_tcl_10l_lcd</td><td>magento</td><td><a href="sources/a67b1e77f7cee9d95e1bdabb25b57c273397249ada9fe3dd84f3861c28806ac9">a67b1e77f7cee9d95e1bdabb25b57c273397249ada9fe3dd84f3861c28806ac9</a></td><td><a href="http://localhost:7770/tcl-10l-unlocked-android-smartphone-with-6-53-fhd-lcd-display-48mp-quad-rear-camera-system-64gb-6gb-ram-4000mah-battery.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>7969</td></tr><tr><td>reg_magento_xperia_1_iii_oled</td><td>magento</td><td><a href="sources/ce0875f0feda3dd17f6970228f64bcdbe2cb5aa9490814d5578a3a3b810d5cf8">ce0875f0feda3dd17f6970228f64bcdbe2cb5aa9490814d5578a3a3b810d5cf8</a></td><td><a href="http://localhost:7770/xperia-1-iii-5g-smartphone-with-120hz-6-5-21-9-4k-hdr-oled-display-with-sony-wf-1000xm3-industry-leading-noise-canceling-truly-wireless-earbuds-headset-headphones.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1520</td></tr><tr><td>reg_postmill_iphone_120hz_noticeability</td><td>postmill</td><td><a href="sources/0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db">0e55ffea5c5acf0b059e1f421d43985d17a45d39e3a4ef4c88f493cf4fcb04db</a></td><td><a href="http://localhost:9999/f/iphone/84480/is-the-120hz-display-on-the-14-pro-noticeable-coming-from-a" target="_blank" rel="noreferrer">来源 URL</a></td><td>4499</td></tr><tr><td>reg_postmill_iphone_lcd_looks_better</td><td>postmill</td><td><a href="sources/673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe">673c59510c4d8157327cb7cdcf44a9efb48e6e5ca5165e94240846aec786c1fe</a></td><td><a href="http://localhost:9999/f/iphone/84561/iphone-6s-plus-screen-looks-better-than-13-pro" target="_blank" rel="noreferrer">来源 URL</a></td><td>871</td></tr><tr><td>reg_postmill_iphone_oled_eye_strain</td><td>postmill</td><td><a href="sources/7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36">7b7e7351b4d25a5059e8c01a0b4a2ac726944428491209b7888774e4eceb9a36</a></td><td><a href="http://localhost:9999/f/iphone/62285/eye-strain-with-iphone-13s-14s" target="_blank" rel="noreferrer">来源 URL</a></td><td>1777</td></tr><tr><td>reg_search_contrast</td><td>search_result</td><td><a href="sources/4fa7c12f61cdc3e14569f96391fd28813548377519746edee20d1b5d9a3b3950">4fa7c12f61cdc3e14569f96391fd28813548377519746edee20d1b5d9a3b3950</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=44acc5fc-073f-4bab-8474-fdf1867d2a80" target="_blank" rel="noreferrer">来源 URL</a></td><td>60722</td></tr><tr><td>reg_search_eye_strain_experience</td><td>search_result</td><td><a href="sources/8cb5b356541ca17eeb38f6547b82876bf0167d2b9dd430d0602a54113992cccd">8cb5b356541ca17eeb38f6547b82876bf0167d2b9dd430d0602a54113992cccd</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=32435e97-6358-496a-a169-76bf9d89983b" target="_blank" rel="noreferrer">来源 URL</a></td><td>53225</td></tr><tr><td>reg_search_high_refresh_definition</td><td>search_result</td><td><a href="sources/d6ac835207deed30e3274732c6a37c6ee4bf9125fdb9ee6b7a5cdc14a8ab4b06">d6ac835207deed30e3274732c6a37c6ee4bf9125fdb9ee6b7a5cdc14a8ab4b06</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=d8f81b0b-bba1-49e2-a168-10f9a0821632" target="_blank" rel="noreferrer">来源 URL</a></td><td>60628</td></tr><tr><td>reg_search_lcd_better_experience</td><td>search_result</td><td><a href="sources/8f20e7c6bb1d08f6ca917d19f6352bf69b2d01db957c2a74990993905fd6f815">8f20e7c6bb1d08f6ca917d19f6352bf69b2d01db957c2a74990993905fd6f815</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=83a46da2-3e2c-4f51-8002-4d2807ae4460" target="_blank" rel="noreferrer">来源 URL</a></td><td>50279</td></tr><tr><td>reg_search_lcd_mechanism</td><td>search_result</td><td><a href="sources/e956b53e1876fe921750a30cbaf99cef9f84f5040701acff0c3ce51571fe5316">e956b53e1876fe921750a30cbaf99cef9f84f5040701acff0c3ce51571fe5316</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=2075d322-1f32-4a21-9531-94f766a920af" target="_blank" rel="noreferrer">来源 URL</a></td><td>61264</td></tr><tr><td>reg_search_luminance</td><td>search_result</td><td><a href="sources/48b77103e20f0132c663ae9dd0380796715db6fda092322e68b72840823bcdf4">48b77103e20f0132c663ae9dd0380796715db6fda092322e68b72840823bcdf4</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=c6f785a6-3d53-467f-90d9-08d1e3712fc0" target="_blank" rel="noreferrer">来源 URL</a></td><td>791</td></tr><tr><td>reg_search_motorola_edge_oled</td><td>search_result</td><td><a href="sources/6dc2d3f9b51e406460a97ed867335cacf2745d7f346695ab5a095cf4d2f045fc">6dc2d3f9b51e406460a97ed867335cacf2745d7f346695ab5a095cf4d2f045fc</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=430f6747-bab2-4952-b8a7-3f2d5b75d6c4" target="_blank" rel="noreferrer">来源 URL</a></td><td>7683</td></tr><tr><td>reg_search_oled_mechanism</td><td>search_result</td><td><a href="sources/4b1ceb394aedb1736ad26e4faa0b74793aea4d77e99a1752c5fe08dd9a82fe30">4b1ceb394aedb1736ad26e4faa0b74793aea4d77e99a1752c5fe08dd9a82fe30</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=a5be7308-b205-4818-a56d-c7478d78d8a7" target="_blank" rel="noreferrer">来源 URL</a></td><td>61050</td></tr><tr><td>reg_search_refresh_experience</td><td>search_result</td><td><a href="sources/4c2f47ef055d4f857cf5b2c66581c7d0bb8a92a4b6cad10d5d0cb36e5de2a772">4c2f47ef055d4f857cf5b2c66581c7d0bb8a92a4b6cad10d5d0cb36e5de2a772</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=dea21259-af18-4f97-9470-356bc72a6782" target="_blank" rel="noreferrer">来源 URL</a></td><td>54091</td></tr><tr><td>reg_search_retina_threshold</td><td>search_result</td><td><a href="sources/2e4012b4e380d54ba8f7d1a38662cf28e78f2e61793abf34b7661e893ef37748">2e4012b4e380d54ba8f7d1a38662cf28e78f2e61793abf34b7661e893ef37748</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=4f31e593-d928-4720-a6f2-3a77b5b1646d" target="_blank" rel="noreferrer">来源 URL</a></td><td>13391</td></tr><tr><td>reg_search_samsung_a51_amoled</td><td>search_result</td><td><a href="sources/7a6c852d502cb74a5fd3cc4368c447ab22bb133a114beb03a72757999da3ebd1">7a6c852d502cb74a5fd3cc4368c447ab22bb133a114beb03a72757999da3ebd1</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=ad043d74-51de-4f53-bc23-1de301e4c179" target="_blank" rel="noreferrer">来源 URL</a></td><td>6313</td></tr><tr><td>reg_search_tcl_lcd</td><td>search_result</td><td><a href="sources/0673a77a7a2c9beb90123d6f35f53229ab1848649d379c69256682cff6afcd36">0673a77a7a2c9beb90123d6f35f53229ab1848649d379c69256682cff6afcd36</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=ae1eed93-c187-4503-93b1-651e5e791f7d" target="_blank" rel="noreferrer">来源 URL</a></td><td>7505</td></tr><tr><td>reg_search_xperia_oled</td><td>search_result</td><td><a href="sources/3e0d55d5e95cd6a350079213746a8ac1aad5ed3168b5d9b9227d7dbbc8f280f0">3e0d55d5e95cd6a350079213746a8ac1aad5ed3168b5d9b9227d7dbbc8f280f0</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0029-display-value-20260716-r1&amp;request_id=732ae7dd-758d-4587-b8d3-7e24014a2227" target="_blank" rel="noreferrer">来源 URL</a></td><td>7707</td></tr><tr><td>reg_wiki_contrast_ratio</td><td>wikipedia</td><td><a href="sources/eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7">eb87f3d79f323bfd1d3fa428627aac656f0d06cb668d54c05262c10be1863eb7</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Contrast_ratio" target="_blank" rel="noreferrer">来源 URL</a></td><td>7902</td></tr><tr><td>reg_wiki_high_refresh_smartphones</td><td>wikipedia</td><td><a href="sources/85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192">85ffd3c41bb2191cabe705c580d6d43e2c3905cc7638bf3c6655a2e3b9b2f192</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/List_of_smartphones_with_a_high_refresh_rate_display" target="_blank" rel="noreferrer">来源 URL</a></td><td>22640</td></tr><tr><td>reg_wiki_liquid_crystal_display</td><td>wikipedia</td><td><a href="sources/a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79">a2bdc232448bc3b342938a34964af9359aae2bb7c1a2b77c989b2036b0c52d79</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Liquid-crystal_display" target="_blank" rel="noreferrer">来源 URL</a></td><td>20019</td></tr><tr><td>reg_wiki_luminance</td><td>wikipedia</td><td><a href="sources/ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a">ea937b02c5255999c7999443e4077787c26ebc53ea0b6a66dafeada045a1553a</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Luminance" target="_blank" rel="noreferrer">来源 URL</a></td><td>11977</td></tr><tr><td>reg_wiki_oled</td><td>wikipedia</td><td><a href="sources/04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0">04ec38fad50a7d3971e6b600d8c2050060984da5396516189eb01195aa7080c0</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/OLED" target="_blank" rel="noreferrer">来源 URL</a></td><td>20023</td></tr><tr><td>reg_wiki_retina_display</td><td>wikipedia</td><td><a href="sources/e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce">e03c374e105c906d352a153bb85cb532eb38be1d1fa393aad2d7f0ee48cdddce</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Retina_display" target="_blank" rel="noreferrer">来源 URL</a></td><td>19062</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-smartphones-0029-display-value-20260716-r1";
+const graphHash = "8e6c3446cb0181dd64dca79d065d508445d67e3b3eb48c14fd5a80871c03862f";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

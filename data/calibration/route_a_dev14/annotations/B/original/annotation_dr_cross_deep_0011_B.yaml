@@ -1,0 +1,78 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0011
+query_sha256: "5b82bc20865afbc19687199389796e69c33e8b3042150ae22324360ca5557db4"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 键盘的购买推荐。
+
+  Q2: 必须覆盖不同推荐，时效性近期。
+
+  Q3: 解释成品键盘 vs 定制化键盘如何选择，线性轴 vs 段落轴如何选择。
+
+  Q4: 要有购买过各种类型键盘的人的真实评价/回访评价。
+
+  Q5: 一定要有拥有者的评价，也需要有一些专家的评价。
+
+  Q6: [由访谈助手完成] 不可省略项：热插拔vs成品对比、线性vs段落轴建议、$120内推荐、买家后悔率、双场景约束、时效性。
+
+  Q7: [由访谈助手完成] 模糊短语：hot-swappable支持范围、nicer switches标准、well-known prebuilt边界、suit someone like me主观性。
+
+initial_requirements:
+  - 对比热插拔vs成品、线性vs段落轴
+  - 推荐$120预算内产品
+  - 包含购买者的后悔率/评价
+  - 包含专家评价建议
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 对比热插拔键盘（省钱升级轴）和成品键盘（一步到位）两种方案，以及线性轴与段落轴的区别，针对白天写作+晚上射击游戏的双重场景给出选型建议，阐明$120价位什么因素最关键
+    necessity_reason: |-
+      Query 核心是两个选择困境——"hot-swappable vs prebuilt" 和 "linear vs tactile"，
+      以及"what actually matters at this price"的开放式问题。
+      省略则用户在两个维度上都无法做出知情决策。
+    query_basis: "stuck between a cheaper hot-swappable board... or blowing the whole budget on a well-known prebuilt" + "whether linear or tactile switches suit someone like me" + "what actually matters at this price"
+    output_form: compare
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 基于 R1 的对比分析，推荐$120预算内的具体键盘产品，必须是近期在售的
+    necessity_reason: Query 结尾明确要求"what would you put in the cart if you were me"，
+      且推荐需严格受$120预算约束——有分析无推荐或超预算均不完整。
+    query_basis: "what would you put in the cart if you were me?" + "about 120 dollars"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 包含购买过不同选项（热插拔/成品、线性轴/段落轴）的用户真实评价和后悔率，以及专家对参数体验的专业解读
+    necessity_reason: |-
+      Query 明确问"what people who bought each option ended up regretting"，
+      且用户首次接触机械键盘，仅有规格对比缺乏真实经验则不足以支撑决策；
+      专家评价可补充消费者不熟悉的参数体验维度。
+    query_basis: "what people who bought each option ended up regretting"
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 明确要求"people who bought each option"的后悔率，拥有者经验在此不可替代；专家解读为增值补充
+
+optional_items: []
+
+ambiguities:
+  - phrase: "hot-swappable board"
+    note: 热插拔支持的轴体兼容性范围不同标注者可能有不同标准
+  - phrase: "nicer switches later"
+    note: "更好的轴"标准主观——手感更高级、更静音、还是寿命更长？
+  - phrase: "well-known prebuilt"
+    note: "知名成品品牌"边界模糊
+  - phrase: "suit someone like me"
+    note: "适合"的主观性——同一个人写作和射击的需求可能冲突
+
+unresolved: []
+
+evidence_answerability: not_assessed

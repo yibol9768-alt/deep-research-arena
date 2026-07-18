@@ -1,0 +1,388 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_keyboard_0005",
+  "cluster_id": "keyboard_latency_claims",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 3,
+    "distractor_density": 0.4,
+    "contradiction_count": 1
+  },
+  "rule_definitions": {
+    "keyboard_feature_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Both frozen listings are below $100 and claim wired NKRO. The K6 is $83.99 with 68 keys, dedicated arrows, wired NKRO and 6KRO wireless; the SK61 is $94.39 with 61 keys, NKRO wording and optical-only hot swapping, while its title says Optical Yellow and its specification says Optical Red. Neither body states a polling rate or measured latency."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "optical_debounce_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Optical sensing and contact debouncing are real mechanisms, and the community discussion identifies possible response advantages and optical-switch ecosystem limits, but explicitly lacks evidence that the latency difference is noticeable and does not instrumentally compare the SK61 with the K6."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "polling_interval_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "USB HID hosts periodically poll keyboard report endpoints, and hypothetical 8000 Hz and 1000 Hz periods are 0.125 ms and 1 ms, but neither product body states an actual rate and no frozen source measures full input-to-display latency, human perceptibility or aim benefit."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "rollover_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "NKRO independently detects simultaneous keys and can prevent multi-key loss or ghosting in gaming, but that rollover property does not establish faster single-key actuation, lower end-to-end latency or improved aim."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_keyboard_value_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Under the $100 ceiling, wired-NKRO requirement, switch-flexibility priority and refusal to pay for unverified 8000 Hz benefits, I recommend the Keychron K6 wired NKRO value route while preserving seller-evidence, compatibility, review, switch-color inconsistency, latency and perceptibility caveats."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "keychron_k6_wired_nkro_value": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "I recommend the Keychron K6 wired NKRO value route.",
+            "The Keychron K6 wired NKRO value route is the recommendation."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_poll_period_equals_end_to_end_latency",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An 8000 Hz keyboard necessarily has exactly 0.125 ms end-to-end input latency."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_product_bodies_state_8000hz",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen SK61 and K6 product bodies both state an 8000 Hz polling rate."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_nkro_proves_aim",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Full NKRO proves lower single-key latency and better shooter aim."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_forum_proves_sk61_perceptible_win",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The community thread proves that the SK61 is perceptibly faster than the K6."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_k6_wireless_full_nkro",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen K6 listing promises full NKRO in wireless mode."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Compare the complete frozen product bodies for price, review display, layout, wired path, NKRO scope, switch wording and hot-swap limits, including the SK61 switch-color inconsistency and absent polling measurements.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Explain the physical scope of NKRO and distinguish simultaneous-key handling from single-key latency or aim performance.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E5",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Reconcile optical sensing and contact debouncing with the community's switch-choice and latency discussion without converting non-instrumented opinion into a product-specific perceptibility result.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E6",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Connect generic polling, USB HID reports and hertz arithmetic, calculate hypothetical poll periods, and keep them separate from actual device rate, total latency and human perceptibility.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E4",
+        "E7",
+        "E8",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Apply every verified branch to one value route while preserving seller, review, compatibility, switch-color, polling, latency, perceptibility and community-scope caveats.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit both complete frozen product bodies for exact price, review display, key count, wired path, NKRO mode, switch and hot-swap wording, internal inconsistency, and absent polling or measured-latency fields.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain what NKRO physically provides and why it does not by itself prove faster single-key actuation, lower end-to-end latency or improved aim.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E5",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Separate generic optical and debounce mechanisms from product-specific performance, and scope the community discussion as non-instrumented opinion with explicit perceptibility uncertainty.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E6",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Define polling and USB HID reporting, calculate 8000 Hz and 1000 Hz poll periods, and state why this arithmetic is not an actual product rate, full latency measurement or perceptibility threshold.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E4",
+        "E7",
+        "E8",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Recommend one route under the budget, wired-NKRO, switch-flexibility and evidence-boundary priorities, preserving every seller, compatibility, review, switch-color, latency, perceptibility and community caveat.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "keychron_k6_wired_nkro_value"
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      },
+      "E8": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 20,
+    "minimum_required_evidence_nodes": 8,
+    "minimum_reasoning_depth": 2
+  }
+}

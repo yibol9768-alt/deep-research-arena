@@ -1,0 +1,346 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_audio_0002",
+  "cluster_id": "audio_speaker_claims",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.3,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "marketing_boundary_reconciliation_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Passive radiators and dispersion are real design concepts, but those labels do not prove superior bass or uniform 360-degree response; a hi-res label also does not prove a lossless or stable Bluetooth path."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "watt_and_distortion_context_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The Ortizan costs $57.99, but its 40W figure is two 20W Max channels and the listing gives no THD threshold or continuous-power condition for its distortion-free-at-maximum claim."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "speaker_claim_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The Soundcore Flare 2 costs $53.49, specifies 20W as two 10W channels, and lists THD+N below one percent, although the captured listing does not state the THD test condition."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "water_rating_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Both listings claim IPX7, which is bounded temporary immersion; the captured community threads do not provide same-model pool or beach validation for either candidate."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "auditability_first_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Because claim auditability and distortion risk come before headline wattage, I recommend the Soundcore Flare 2 while retaining the measurement and water-validation caveats."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "soundcore_flare2": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "I recommend the Soundcore Flare 2.",
+            "The Soundcore Flare 2 is the recommended route."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_wattage_proves_clean_output",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Ortizan's 40W Max headline proves that it is louder and distortion-free at maximum volume."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_ipx7_unlimited_waterproofing",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "IPX7 means either speaker is waterproof without limits in any pool or beach condition."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_forum_same_model_validation",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Owners in the captured forum threads tested the Soundcore Flare 2 and Ortizan at pools or beaches."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Compare both frozen product listings and interpret their wattage and distortion disclosures under the same measurement context.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E10",
+        "B2",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Separate physically real design mechanisms from unsupported quality inferences for passive radiators, 360-degree sound, and hi-res Bluetooth claims.",
+      "critical": true,
+      "requires": [
+        "E3",
+        "E4",
+        "E5",
+        "E7",
+        "E8",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Interpret IPX7 within its test scope and distinguish general community discussion from same-model pool or beach validation.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E6",
+        "E9",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Apply the auditability-first priority to all verified branches, choose one speaker, and preserve every material limitation.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Compare the prices and exact output, distortion, battery, water, and radiation-pattern wording in both product listings.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E10",
+        "B2",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain which passive-radiator, 360-degree, and hi-res-over-Bluetooth claims describe real mechanisms and which stronger quality conclusions remain unsupported.",
+      "slot_ids": [
+        "E3",
+        "E4",
+        "E5",
+        "E7",
+        "E8",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Interpret IPX7 within its defined test scope and state exactly what the captured community evidence does and does not validate about either candidate.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E6",
+        "E9",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Give one auditability-first recommendation that depends on every necessary evidence branch and states the measurement and real-world-validation caveats.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "soundcore_flare2"
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9",
+      "E10",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      },
+      "E8": {
+        "outcome": "decision_unresolved"
+      },
+      "E9": {
+        "outcome": "decision_unresolved"
+      },
+      "E10": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 20,
+    "minimum_required_evidence_nodes": 10,
+    "minimum_reasoning_depth": 2
+  }
+}

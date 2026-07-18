@@ -8,6 +8,8 @@ diagnostic / report extraction from subprocess stdout.
 from __future__ import annotations
 
 import ast
+import sys
+import types
 
 from scripts.runners import gpt_researcher_runner as gptr
 from scripts.runners.registry import discover
@@ -70,6 +72,52 @@ def test_build_driver_script_is_valid_python() -> None:
     # The grounding diagnostic must still be wired in.
     assert gptr._DIAG_MARK in drv
     assert "retrieved=%d localhost=%d" in drv
+
+
+def test_fetch_intercept_rewrites_only_sandbox_gets_through_shim() -> None:
+    captured: list[tuple[str, str]] = []
+
+    class _Session:
+        def send(self, request, **kwargs):
+            captured.append((request.method, request.url))
+            return object()
+
+    fake_requests = types.ModuleType("requests")
+    fake_requests.Session = _Session
+    saved = sys.modules.get("requests")
+    sys.modules["requests"] = fake_requests
+    try:
+        ns: dict = {}
+        block = gptr._build_fetch_intercept_block("http://shim:8081")
+        exec(compile(block, "<fetch_block>", "exec"), ns)
+
+        request = types.SimpleNamespace(
+            method="GET",
+            url="http://localhost:8090/content/wiki/Noise",
+        )
+        _Session().send(request)
+        assert captured[-1] == (
+            "GET",
+            "http://shim:8081/fetch?url="
+            "http%3A%2F%2Flocalhost%3A8090%2Fcontent%2Fwiki%2FNoise",
+        )
+
+        public = types.SimpleNamespace(
+            method="GET", url="https://example.com/not-a-sandbox-page"
+        )
+        _Session().send(public)
+        assert captured[-1] == ("GET", public.url)
+
+        search_post = types.SimpleNamespace(
+            method="POST", url="http://shim:8081/search"
+        )
+        _Session().send(search_post)
+        assert captured[-1] == ("POST", search_post.url)
+    finally:
+        if saved is None:
+            sys.modules.pop("requests", None)
+        else:
+            sys.modules["requests"] = saved
 
 
 def test_host_model_and_tavily_pollution_is_overwritten(monkeypatch) -> None:

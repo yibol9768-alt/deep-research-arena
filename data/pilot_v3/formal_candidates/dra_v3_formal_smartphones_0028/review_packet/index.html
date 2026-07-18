@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-smartphones-0028-20260716-r1</code></p>
+<p>证据图哈希: <code>4a6d8fe91f55093ca4b317e010046015cf31e687eb96e5249b3fe917ea0b1dba</code></p>
+<p>待审项 21 个，其中语义项 10 个、结构化项 1 个；冻结来源 19 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_apple_leather_two_year_scope"><header><h3>assert_apple_leather_two_year_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;about two years before that participant degrades the corners&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Apple Leather Cases used by one participant&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_apple_leather_two_year_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;about_two_year_corner_failure_not_protection_test&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;about two years before that participant degrades the corners&quot;,
+  &quot;predicate&quot;: &quot;reports_failure_time&quot;,
+  &quot;subject&quot;: &quot;Apple Leather Cases used by one participant&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_apple_leather_two_year_scope_1</code> | bytes [246, 424) | <code>a15f96d55d2c99e4e25a877d5fb084452bbf293de78b7d8b1392db0cd11ee3a2</code></div><pre class="context"><span>I found Walmart&#x27;s $6.88 onn iPhone 14 Pro gel case pretty good. I got this as a short term case (till black Friday), but am considering keeping it. I find it fairly similar to the Otterbox Symmetry case on my iPhone X, that I upgraded from.
+
+22
+
+</span><mark>I dislike the feeling of plastic, so even though they only last about two years before I inevitably degrade the corners, it’s the Apple Leather Cases with metal buttons for me.</mark><span> But about once a month I get jealous when I see someone going naked or with the clear case (a fresh one not yellow yet lol).
+
+I am considering getting the Apple leather case, but the reviews I read here say that the phone pops out easily if the phone drops face down. This cheap onn case has a lip over the edge of the phone and so the phone is not easy to ta</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty</a></p><p>冻结文件: <a href="sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e" target="_blank">sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</a></p><p>内容 SHA-256: <code>1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_casetify_one_year_scope"><header><h3>assert_casetify_one_year_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;after more than one year and multiple uncontrolled drops, the case was undinged and its graphics remained bright and unscratched, but the exact model was not stated&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one Casetify case&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_casetify_one_year_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;more_than_one_year_brand_level_uncontrolled_report&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;after more than one year and multiple uncontrolled drops, the case was undinged and its graphics remained bright and unscratched, but the exact model was not stated&quot;,
+  &quot;predicate&quot;: &quot;reports_scoped_appearance_and_drop_outcomes&quot;,
+  &quot;subject&quot;: &quot;one Casetify case&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_casetify_one_year_scope_1</code> | bytes [491, 761) | <code>763b786b06af29b8afbf1308feb7bf63a7936e4992e7655126d111a2c628fa43</code></div><pre class="context"><span>s in the past. However, I’d love a case that is both cute and protective. Phone case needs to be Durable, protective, cute, and magsafe. I want to be able to add my popsocket on the back. Here are the brands I was looking at: 🍀Casetify - but then I read some bad reviews 🍀Caudable - but no cute colors or designs. Thank you for the recommendations! 7
+
+</span><mark>Don’t know what the bad reviews are saying but I’ve had a Casetify case on my phone for over a year. No problems at all with it. I’ve dropped my phone multiple times and the case isn’t even dinged. The graphics on the case are still bright and are not scratched.</mark><span> I don’t use magsafe but I do have a ring holder attached.
+
+Thank you! That helps me feel better! They have the cutest cases by far! Basically I saw a tiktok where the person’s case separated from the bumper and they hadn’t even dropped it! Casetify took over a month to replace it and tell them that they don’t carry their case anymore
+
+I just got my </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62383/case-recs-for-iphone-14-pro-max-and-iphone-14" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62383/case-recs-for-iphone-14-pro-max-and-iphone-14</a></p><p>冻结文件: <a href="sources/8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b" target="_blank">sources/8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b</a></p><p>内容 SHA-256: <code>8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_clear_two_year_scope"><header><h3>assert_clear_two_year_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the same unnamed clear case remained clear for two years, with no material, exposure, or protection outcome identified&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for unnamed clear-case owner&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_clear_two_year_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;two_year_clarity_only_unnamed_case&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;the same unnamed clear case remained clear for two years, with no material, exposure, or protection outcome identified&quot;,
+  &quot;predicate&quot;: &quot;reports_scoped_outcome&quot;,
+  &quot;subject&quot;: &quot;unnamed clear-case owner&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_clear_two_year_scope_1</code> | bytes [62, 306) | <code>d8a1db97cff3bacddaa5cbb4a47c283d34939c04e3988cac77d91336d4c10c87</code></div><pre class="context"><span>Yellow case,is it fr getting yellow after god damn 2 months?
+
+</span><mark>Im about to change from android to ios,I got the same clear case in my phone for 2 years,and it&#x27;s still clear as hell,im seeing a lot of people complaining about their clear cases being &quot;yellow&quot;,is it a common thing in the iPhone case industry?</mark><span> 0
+
+It’s the nature of a clear case. It happens. Just don’t use a clear case. You think android clear cases won’t or something? Lol
+
+You’re this upset about a fucking phone case lmao
+
+Nobody said im upset learn how to read
+
+Yes
+
+You taking about the official apple one?
+
+Silicone cases always yellow eventually. You need a case that is not silicone bas</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/40968/yellow-case-is-it-fr-getting-yellow-after-god-damn-2-months" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/40968/yellow-case-is-it-fr-getting-yellow-after-god-damn-2-months</a></p><p>冻结文件: <a href="sources/56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b" target="_blank">sources/56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b</a></p><p>内容 SHA-256: <code>56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_leather_deterioration_scope"><header><h3>assert_leather_deterioration_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;temperature and humidity variation can contribute to cracks, handling affects deterioration, and dressings can create tacky surfaces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for leather and leather finishes&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_leather_deterioration_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_leather_conservation_not_phone_case_corner_causation&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;temperature and humidity variation can contribute to cracks, handling affects deterioration, and dressings can create tacky surfaces&quot;,
+  &quot;predicate&quot;: &quot;have_environment_and_handling_boundaries&quot;,
+  &quot;subject&quot;: &quot;leather and leather finishes&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_leather_deterioration_scope_1</code> | bytes [7457, 7570) | <code>22c3f56c3ee87684a50b3848fc9bf1687659876de4a1f8579a31c0da5f985aea</code></div><pre class="context"><span>s is referred to as hysteresis. This is due to the interconnected nature of external heat and moisture content in leather. Water: see the above relationship of heat and moisture content in leather Incorrect relative humidity When kept at a humidity level of about 70% combined with an excess of oil and lubricants, mold can form on the surface of the leather.
+</span><mark>If the humidity is at a level of about 40% with a fluctuation of temperature, cracks can occur along the surface.</mark><span> [ 5 ] Pollutants Red rot is the degradation of leather when it reacts with sulfur dioxide or other air pollutants. Objects affected by red rot go through several stages. In the early stages of red rot, leather will exhibit a pinkish color that becomes progressively darker as the decay progresses. The degradation and disintegration of red rot cannot be rever</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_leather_objects" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_leather_objects</a></p><p>冻结文件: <a href="sources/77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f" target="_blank">sources/77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f</a></p><p>内容 SHA-256: <code>77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_otterbox_failure_warranty_scope"><header><h3>assert_otterbox_failure_warranty_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a difficult warranty attempt, a torn charging-port cover, separating rubber shell, and one cracked plastic part&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one OtterBox owner&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_otterbox_failure_warranty_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;uncontrolled_owner_failure_and_warranty_report&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a difficult warranty attempt, a torn charging-port cover, separating rubber shell, and one cracked plastic part&quot;,
+  &quot;predicate&quot;: &quot;reports_failure_and_service&quot;,
+  &quot;subject&quot;: &quot;one OtterBox owner&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_otterbox_failure_warranty_scope_1</code> | bytes [1228, 1532) | <code>b3a2418bd360572c9c4b9b6225a705f2cbdbbb134f9a877ac01ecae680e49b2c</code></div><pre class="context"><span>rtphone/
+
+I work blue collar in a factory so I&#x27;ll definitely be using one of the sticky screen protectors. That said the Spigen comes with a plastic screen cover that I see a lot of people reporting issues with.
+
+Is there a problem with the OtterBox Defender? I was looking to buy one for my iPhone 14 Pro Max and its lifetime warranty really appealed to me.
+
+</span><mark>I&#x27;ve tried to use the warranty before and it&#x27;s difficult to say the least. I fidget too much with the charging port cover and it inevitably rips off, same goes for the rubber covering around the base which causes the rubber shell to separate. The plastic has also gotten cracked on me once in a backpack.</mark><span> But to my knowledge it is the most durable reliable phone case on the market that does an amazing job protecting your device. I&#x27;m just cheap and hell on gear.
+
+I see... If you want the best value, it&#x27;s Spigen for sure. It&#x27;s not the best case, but it&#x27;s really rugged and resilient. I had it for years on my Samsung without any problem. My model didn&#x27;t have the</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender</a></p><p>冻结文件: <a href="sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7" target="_blank">sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</a></p><p>内容 SHA-256: <code>200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_polycarbonate_uv_scope"><header><h3>assert_polycarbonate_uv_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;it can yellow under ultraviolet exposure, while stabilizers or surface coatings can improve weathering resistance&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for polycarbonate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_polycarbonate_uv_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_material_mechanism_not_case_lifetime&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;it can yellow under ultraviolet exposure, while stabilizers or surface coatings can improve weathering resistance&quot;,
+  &quot;predicate&quot;: &quot;has_uv_degradation_boundary&quot;,
+  &quot;subject&quot;: &quot;polycarbonate&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_polycarbonate_uv_scope_1</code> | bytes [9679, 9836) | <code>d23fc8ae0b506bedc2a28040ee35b89616c0733f8b653cc91bd92a703a34a71d</code></div><pre class="context"><span>arbonate can produce very smooth surfaces that make it well-suited for sputter deposition or evaporation deposition of aluminium without the need for a base-coat. Decorative bezels and optical reflectors are commonly made of polycarbonate.
+Its low weight and high impact resistance have made polycarbonate the dominant material for automotive headlamp lenses. </span><mark>However, automotive headlamps require outer surface coatings because of its low scratch resistance and susceptibility to ultraviolet degradation (yellowing).</mark><span> The use of polycarbonate in automotive applications is limited to low stress applications. Stress from fasteners, plastic welding and molding render polycarbonate susceptible to stress corrosion cracking when it comes in contact with certain accelerants such as salt water and plastisol . It can be laminated to make bullet-proof &quot;glass&quot; , although &quot;bullet-re</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Polycarbonate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Polycarbonate</a></p><p>冻结文件: <a href="sources/8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904" target="_blank">sources/8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904</a></p><p>内容 SHA-256: <code>8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_polyurethane_sticky_scope"><header><h3>assert_polyurethane_sticky_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;polyurethane can become yellowed, brittle, sticky, and crumbly, and urethane-containing condensation plastics can weaken through hydrolysis&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for polyurethane deterioration&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_polyurethane_sticky_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_conservation_mechanism_not_phone_case_diagnosis&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;polyurethane can become yellowed, brittle, sticky, and crumbly, and urethane-containing condensation plastics can weaken through hydrolysis&quot;,
+  &quot;predicate&quot;: &quot;can_produce_surface_and_strength_failures&quot;,
+  &quot;subject&quot;: &quot;polyurethane deterioration&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_polyurethane_sticky_scope_1</code> | bytes [9128, 9176) | <code>a8bf42ad22cb9b6b35d206a7b3803fa19bdfe2aa0f906ec69e59c8d09f9fb45e</code></div><pre class="context"><span>enolics ( phenol formaldehyde ) discolored and more matte discolored and more matte fillers swell and surface mottles with solvents phenol and formaldehyde with severe degradation Polyolefin (polyethylene, polypropylene) yellowed, brittle resistant swollen by some organics none Polystyrene yellowed, brittled resistant dissolved, swelled, stress cracked none </span><mark>Polyurethane yellowed, brittle, sticky, crumbles</mark><span> yellowed, brittle, sticky, crumbles swelled, stress cracked nitrogenous organic gases and liquids Polyvinyl chloride yellowed, brittle resistant dissolved, swelled, embrittled by plasticizer extraction oily plasticizer liquids, maybe hydrochloric acid gas under extreme conditions of moisture and light exposure Rubber, ebonite , vulcanite brittle, discolored</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_plastic_objects" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_plastic_objects</a></p><p>冻结文件: <a href="sources/00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b" target="_blank">sources/00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b</a></p><p>内容 SHA-256: <code>00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_spigen_duration_scope"><header><h3>assert_spigen_duration_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one Pixel user reports many drops without a cracked screen while describing about four years as a Pixel user, and another Samsung user says a Spigen was used for years without problems; neither identifies an exact model and the first does not establish one-case continuity&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for brand-level Spigen owner reports&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_spigen_duration_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;brand_level_imprecise_duration_and_ambiguous_continuity&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one Pixel user reports many drops without a cracked screen while describing about four years as a Pixel user, and another Samsung user says a Spigen was used for years without problems; neither identifies an exact model and the first does not establish one-case continuity&quot;,
+  &quot;predicate&quot;: &quot;report_scoped_protection&quot;,
+  &quot;subject&quot;: &quot;brand-level Spigen owner reports&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_spigen_duration_scope_1</code> | bytes [49, 253) | <code>21ff29b526e4dc77091f78b7b31048f91d219978b67ddea2416338232e0bc8a7</code></div><pre class="context"><span>Alternatives to OtterBox Defender?
+
+[deleted] 1
+
+</span><mark>Been a Pixel person for maybe 4 years now, currently have the 7 Pro. I use Spigen off Amazon, affordable and seems to work well. I&#x27;ve dropped my phone plenty, haven&#x27;t ever had a cracked screen or anything</mark><span>
+
+Do you have to use the plastic screen cover?
+
+Haven&#x27;t put the sticky screen guard on any of my phones in ages. The gorilla glass or whatever it is they use for screens now is strong enough. I&#x27;ve always felt like that was putting a band-aid on something that isn&#x27;t even broken. Back in the day my iPhone screens would crack like regular glass, but nowadays I </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender</a></p><p>冻结文件: <a href="sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7" target="_blank">sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</a></p><p>内容 SHA-256: <code>200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_symmetry_three_year_scope"><header><h3>assert_symmetry_three_year_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the thin silicone strip near the charging port broke after about three years of being used to pull the phone from a pocket&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one OtterBox Symmetry case&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_symmetry_three_year_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;about_three_year_geometry_and_use_failure_not_year_four&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;the thin silicone strip near the charging port broke after about three years of being used to pull the phone from a pocket&quot;,
+  &quot;predicate&quot;: &quot;reports_failure_time&quot;,
+  &quot;subject&quot;: &quot;one OtterBox Symmetry case&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_symmetry_three_year_scope_1</code> | bytes [4061, 4294) | <code>96075cf908e9f26c004ae3aece4520ba3060ed4fc5f83ac71d2df96b80a88dcd</code></div><pre class="context"><span> bulk and are quite premium feeling yet simple. I don’t believe the marketing hype about protection, but I also rarely drop mine(maybe once or twice a year).
+
+I had a similar Otterbox case for my iPhone Xr. The failure point will be those joins between the silicone and plastic if you plan on taking it out at all. Still, it&#x27;s a pretty good deal for $6.88.
+
+</span><mark>I used to pull my iPhone X out of my pocket using the tiny strip of silicone between the charging port and the screen of the Otterbox Symmetry case. After about 3 years, the case broke at that point. I think that was a good long run.</mark><span> This case is not a dual plastic-silicone body like the Otterbox Symmetry, but still feels fairly protective (except for the lens area, but that is the same for almost all cases, including Apple&#x27;s).
+
+Yeah, that was the other point for my one. Can’t remember if it was a Symmetry but must have at least been very similar to it because I know exactly what you </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty</a></p><p>冻结文件: <a href="sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e" target="_blank">sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</a></p><p>内容 SHA-256: <code>1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_tpu_formulation_scope"><header><h3>assert_tpu_formulation_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;polyether TPU is selected for additional hydrolysis resistance, while aliphatic TPU is used for stable light color and non-yellowing performance&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for thermoplastic polyurethane formulations&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_tpu_formulation_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;formulation_distinction_not_product_identity_or_lifetime&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;object&quot;: &quot;polyether TPU is selected for additional hydrolysis resistance, while aliphatic TPU is used for stable light color and non-yellowing performance&quot;,
+  &quot;predicate&quot;: &quot;differ_in_hydrolysis_and_colour_stability&quot;,
+  &quot;subject&quot;: &quot;thermoplastic polyurethane formulations&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_tpu_formulation_scope_1</code> | bytes [5530, 5710) | <code>44baa542595325bea954f1f481842fbe4322c3174e19fe750b56c35ab5c3c374</code></div><pre class="context"><span>her-based TPU Abrasion resistance A A Mechanical properties A B Low temperature flexibility B A Heat aging B D Hydrolysis resistance D A Chemical resistance A C Microbial resistance D A Adhesion strength B D Injectability B B TPU is the right choice when flexibility at low temperatures and/or an abrasion resistant thermoplastic elastomer (TPE) is requested. </span><mark>Polyether-based TPU in cases where additional excellent hydrolysis and microbial resistance is required, as well as in cases where extreme low-temperature flexibility is important.</mark><span> Ester-based TPU in cases where oil and grease resistance is more relevant. When stable light colour and non-yellowing performance are required, aliphatic TPU (ATPU) based on aliphatic isocyanates is used. BASF has pioneered crosslinking during TPU transformation, made possible by adding liquid crosslinkers or using a solid granulated additive masterbatch . </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Thermoplastic_polyurethane" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Thermoplastic_polyurethane</a></p><p>冻结文件: <a href="sources/4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8" target="_blank">sources/4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8</a></p><p>内容 SHA-256: <code>4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_casekoo_seller_claims"><header><h3>ev_casekoo_seller_claims</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;25.99 dollars, PC and TPU construction, a 99.9 percent anti-yellow claim, military-level drop protection, and one-year replacement&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen CASEKOO clear-case listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_ev_casekoo_seller_claims_1</code> | bytes [185, 299) | <code>810ec28e1cbe979e957d90044ba2eb75e3ed09d3feadb1b4b47c588fd411a55c</code></div><pre class="context"><span>CASEKOO Magnetic Clear for iPhone 13 Pro Max Case [Never Yellow] [Stronger Magnetic Power] [Military Level Drop Protection] with MagSafe Shockproof Slim Thin Cover 6.7 inch 2021-Clear
+
+</span><mark>In stock SKU B09HKLWYJF Be the first to review this product $25.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the brand Only for iPhone 13 Pro Max -Lifetime Service &amp; Free Replacement- Any problem, message us via Amazon at any time! Previous page How we got our start? CASEKOO was founded in 2017 which is a dynamic design brand for mobile accessories from Australia. Our global sales volume has reached more than 1,000,000 per year in just a few years. F</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_casekoo_seller_claims_2</code> | bytes [1585, 1633) | <code>0eccaadc596088cdfe785a7b47cb743caef491970bbcd1d2e11651917cd58d3d</code></div><pre class="context"><span>uniqueness. The high quality of our products is only the minimum standard. Next page Product Description Product Features : Supports All MagSafe Accessories/ Powerful Built-in Magnets / Military Level Drop Protection/ Anti-Yellowing / Non-slip Notice: This case is only designed for iPhone 13 Pro Max 6.7 inch 2021 / PROMISE /: 1. Accurate website description </span><mark>2. Free replacement without return within 1 year</mark><span> 3. Dedicated customer one-on-one service with quick feedback ——Quality accessories are like good insurance. Reliable &amp; risk-averse. —— Any issues welcome to message us via Amazon any time! Product Quick Look 【Powerful Magnetism】Made of 36 super N52 magnets, the built-in magnetic ring can strengthen the MagSafe connection to be compatible with al</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_casekoo_seller_claims_3</code> | bytes [2067, 2394) | <code>e247cb93a97e2208d040b92dbba5dba45605d8ba4179bb81e025c68a5991f30e</code></div><pre class="context"><span>y accessories are like good insurance. Reliable &amp; risk-averse. —— Any issues welcome to message us via Amazon any time! Product Quick Look 【Powerful Magnetism】Made of 36 super N52 magnets, the built-in magnetic ring can strengthen the MagSafe connection to be compatible with all MagSafe accessories, and supports the original 15W high-speed charging. </span><mark>【Never Yellow &amp; Showcases Clear】: Using high-grade Bayer&#x27;s ultra-clear TPU and PC material, allowing you to admire the original sublime beauty of your phone while won&#x27;t get oily when used. &quot;Never yellow&quot; thanks to the anti-yellow coating which can effectively resist 99.9% of yellowing caused by ultraviolet rays and sweat.</mark><span> 【Military Level Drop Protection】: Equipped with Flex-impact Cushion Tech to disperse severe shocks, guaranteed with [MIL-STD-810G] standard. The backplane is made with rigid polycarbonate and flexible shockproof TPU bumpers around the edge to create tough protection. 【Non-slip Grip】: Allows your phone to fit easily your pocket and also look stylish.</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_casekoo_seller_claims_4</code> | bytes [2395, 2666) | <code>a2925f4694a393db6465797fea4a9963f0d64b21cc8d778fddf213a6eeea63cf</code></div><pre class="context"><span>iginal 15W high-speed charging. 【Never Yellow &amp; Showcases Clear】: Using high-grade Bayer&#x27;s ultra-clear TPU and PC material, allowing you to admire the original sublime beauty of your phone while won&#x27;t get oily when used. &quot;Never yellow&quot; thanks to the anti-yellow coating which can effectively resist 99.9% of yellowing caused by ultraviolet rays and sweat. </span><mark>【Military Level Drop Protection】: Equipped with Flex-impact Cushion Tech to disperse severe shocks, guaranteed with [MIL-STD-810G] standard. The backplane is made with rigid polycarbonate and flexible shockproof TPU bumpers around the edge to create tough protection.</mark><span> 【Non-slip Grip】: Allows your phone to fit easily your pocket and also look stylish. Processed TPU frame provides a secure non-slip grip designed for texting, gaming and selfies. 【Camera &amp; Screen Guard】: Raised bezels lift screen and camera off flat surfaces to prevent daily scratches. And compatible with all screen or camera protectors. Product Dime</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/casekoo-magnetic-clear-for-iphone-13-pro-max-case-never-yellow-stronger-magnetic-power-military-level-drop-protection-with-magsafe-shockproof-slim-thin-cover-6-7-inch-2021-clear.html" target="_blank" rel="noreferrer">http://localhost:7770/casekoo-magnetic-clear-for-iphone-13-pro-max-case-never-yellow-stronger-magnetic-power-military-level-drop-protection-with-magsafe-shockproof-slim-thin-cover-6-7-inch-2021-clear.html</a></p><p>冻结文件: <a href="sources/0c158812b6cffcde7271800d4ccee690eb872b5ef73d5edda9a3f2d844142494" target="_blank">sources/0c158812b6cffcde7271800d4ccee690eb872b5ef73d5edda9a3f2d844142494</a></p><p>内容 SHA-256: <code>0c158812b6cffcde7271800d4ccee690eb872b5ef73d5edda9a3f2d844142494</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_snapshot_not_longevity_or_drop_test&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen listing advertises a 25.99 dollar PC-and-TPU case, anti-yellow and military-level drop claims, and one-year replacement; these are seller statements rather than four-year results.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_apple_leather_two_year_scope"><header><h3>prop_apple_leather_two_year_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;about two years before that participant degrades the corners&quot;,
+  &quot;predicate&quot;: &quot;reports_failure_time&quot;,
+  &quot;subject&quot;: &quot;Apple Leather Cases used by one participant&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_apple_leather_two_year_scope_1</code> | bytes [246, 424) | <code>a15f96d55d2c99e4e25a877d5fb084452bbf293de78b7d8b1392db0cd11ee3a2</code></div><pre class="context"><span>I found Walmart&#x27;s $6.88 onn iPhone 14 Pro gel case pretty good. I got this as a short term case (till black Friday), but am considering keeping it. I find it fairly similar to the Otterbox Symmetry case on my iPhone X, that I upgraded from.
+
+22
+
+</span><mark>I dislike the feeling of plastic, so even though they only last about two years before I inevitably degrade the corners, it’s the Apple Leather Cases with metal buttons for me.</mark><span> But about once a month I get jealous when I see someone going naked or with the clear case (a fresh one not yellow yet lol).
+
+I am considering getting the Apple leather case, but the reviews I read here say that the phone pops out easily if the phone drops face down. This cheap onn case has a lip over the edge of the phone and so the phone is not easy to ta</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty</a></p><p>冻结文件: <a href="sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e" target="_blank">sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</a></p><p>内容 SHA-256: <code>1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;about_two_year_corner_failure_not_protection_test&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A participant reports Apple Leather Cases lasting about two years before that participant degrades the corners; this is not an intact year-four or controlled protection result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_casetify_one_year_scope"><header><h3>prop_casetify_one_year_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;after more than one year and multiple uncontrolled drops, the case was undinged and its graphics remained bright and unscratched, but the exact model was not stated&quot;,
+  &quot;predicate&quot;: &quot;reports_scoped_appearance_and_drop_outcomes&quot;,
+  &quot;subject&quot;: &quot;one Casetify case&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_casetify_one_year_scope_1</code> | bytes [491, 761) | <code>763b786b06af29b8afbf1308feb7bf63a7936e4992e7655126d111a2c628fa43</code></div><pre class="context"><span>s in the past. However, I’d love a case that is both cute and protective. Phone case needs to be Durable, protective, cute, and magsafe. I want to be able to add my popsocket on the back. Here are the brands I was looking at: 🍀Casetify - but then I read some bad reviews 🍀Caudable - but no cute colors or designs. Thank you for the recommendations! 7
+
+</span><mark>Don’t know what the bad reviews are saying but I’ve had a Casetify case on my phone for over a year. No problems at all with it. I’ve dropped my phone multiple times and the case isn’t even dinged. The graphics on the case are still bright and are not scratched.</mark><span> I don’t use magsafe but I do have a ring holder attached.
+
+Thank you! That helps me feel better! They have the cutest cases by far! Basically I saw a tiktok where the person’s case separated from the bumper and they hadn’t even dropped it! Casetify took over a month to replace it and tell them that they don’t carry their case anymore
+
+I just got my </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62383/case-recs-for-iphone-14-pro-max-and-iphone-14" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62383/case-recs-for-iphone-14-pro-max-and-iphone-14</a></p><p>冻结文件: <a href="sources/8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b" target="_blank">sources/8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b</a></p><p>内容 SHA-256: <code>8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;more_than_one_year_brand_level_uncontrolled_report&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A Casetify owner reports more than one year, multiple drops, an undinged case, and bright unscratched graphics, but gives no exact model or standardized drop conditions.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_clear_two_year_scope"><header><h3>prop_clear_two_year_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the same unnamed clear case remained clear for two years, with no material, exposure, or protection outcome identified&quot;,
+  &quot;predicate&quot;: &quot;reports_scoped_outcome&quot;,
+  &quot;subject&quot;: &quot;unnamed clear-case owner&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_clear_two_year_scope_1</code> | bytes [62, 306) | <code>d8a1db97cff3bacddaa5cbb4a47c283d34939c04e3988cac77d91336d4c10c87</code></div><pre class="context"><span>Yellow case,is it fr getting yellow after god damn 2 months?
+
+</span><mark>Im about to change from android to ios,I got the same clear case in my phone for 2 years,and it&#x27;s still clear as hell,im seeing a lot of people complaining about their clear cases being &quot;yellow&quot;,is it a common thing in the iPhone case industry?</mark><span> 0
+
+It’s the nature of a clear case. It happens. Just don’t use a clear case. You think android clear cases won’t or something? Lol
+
+You’re this upset about a fucking phone case lmao
+
+Nobody said im upset learn how to read
+
+Yes
+
+You taking about the official apple one?
+
+Silicone cases always yellow eventually. You need a case that is not silicone bas</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/40968/yellow-case-is-it-fr-getting-yellow-after-god-damn-2-months" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/40968/yellow-case-is-it-fr-getting-yellow-after-god-damn-2-months</a></p><p>冻结文件: <a href="sources/56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b" target="_blank">sources/56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b</a></p><p>内容 SHA-256: <code>56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;two_year_clarity_only_unnamed_case&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One author reports an unnamed clear case still clear after two years, but supplies no exact model, material, exposure history, or protection result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_leather_deterioration_scope"><header><h3>prop_leather_deterioration_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;temperature and humidity variation can contribute to cracks, handling affects deterioration, and dressings can create tacky surfaces&quot;,
+  &quot;predicate&quot;: &quot;have_environment_and_handling_boundaries&quot;,
+  &quot;subject&quot;: &quot;leather and leather finishes&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_leather_deterioration_scope_1</code> | bytes [7457, 7570) | <code>22c3f56c3ee87684a50b3848fc9bf1687659876de4a1f8579a31c0da5f985aea</code></div><pre class="context"><span>s is referred to as hysteresis. This is due to the interconnected nature of external heat and moisture content in leather. Water: see the above relationship of heat and moisture content in leather Incorrect relative humidity When kept at a humidity level of about 70% combined with an excess of oil and lubricants, mold can form on the surface of the leather.
+</span><mark>If the humidity is at a level of about 40% with a fluctuation of temperature, cracks can occur along the surface.</mark><span> [ 5 ] Pollutants Red rot is the degradation of leather when it reacts with sulfur dioxide or other air pollutants. Objects affected by red rot go through several stages. In the early stages of red rot, leather will exhibit a pinkish color that becomes progressively darker as the decay progresses. The degradation and disintegration of red rot cannot be rever</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_leather_deterioration_scope_2</code> | bytes [10192, 10327) | <code>8d3ffc164b9c9e8c9e202d5e68af1b8f4d161a576f5b893ebae56abdc592f9b8</code></div><pre class="context"><span>st if not all of the leather covering of an object would need to be replaced.  The context in which an object is to be displayed is an important factor in determining what degree of repairs should take place. A used workman&#x27;s pouch or bag would not require a new condition look as it would alter the object&#x27;s interpretation, dependent on location and history. </span><mark>Handling The degree of handling and access will play a large role in the decisions of care and treatment, as well as display locations.</mark><span> If an object is in a position that is highly susceptible to touching or handling by the public, it should either be moved away to a newer location away from open display or staff should be prepared for the object&#x27;s frequent repair or eventual replacement. In most cases, if an object&#x27;s condition is to a point where it may be lost forever due to continued exp</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_leather_deterioration_scope_3</code> | bytes [11238, 11300) | <code>006fd1952254cf41e09587baebba7e2d0353c01b9fb0ea13390be0e34c174de5</code></div><pre class="context"><span> than conservation. When a dressing is applied, it may brighten an object and give a new sheen to the leather without contributing to the preservation of the object. However, in some instances, this may lead to conservation problems. Therefore, any applied finishes should be carefully considered and studied before placing them on an object for conservation. </span><mark>Dressing or finishes may absorb dirt creating a tacky surface.</mark><span> Some contain inappropriate ingredients. Over application may lead to spewing , which is the rise of white deposits of free fatty acids on the leather surface, often mistaken for mold.
+Dressings should never be applied to painted leather of any kind. The oils and fats can permanently discolor and soften the varnishes. Application of this kind may not happen </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_leather_objects" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_leather_objects</a></p><p>冻结文件: <a href="sources/77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f" target="_blank">sources/77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f</a></p><p>内容 SHA-256: <code>77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_leather_conservation_not_phone_case_corner_causation&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;General leather-conservation evidence identifies environmental, handling, cracking, and finish risks, but cannot by itself explain a phone-case corner failure or its lifetime.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_otterbox_failure_warranty_scope"><header><h3>prop_otterbox_failure_warranty_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a difficult warranty attempt, a torn charging-port cover, separating rubber shell, and one cracked plastic part&quot;,
+  &quot;predicate&quot;: &quot;reports_failure_and_service&quot;,
+  &quot;subject&quot;: &quot;one OtterBox owner&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_otterbox_failure_warranty_scope_1</code> | bytes [1228, 1532) | <code>b3a2418bd360572c9c4b9b6225a705f2cbdbbb134f9a877ac01ecae680e49b2c</code></div><pre class="context"><span>rtphone/
+
+I work blue collar in a factory so I&#x27;ll definitely be using one of the sticky screen protectors. That said the Spigen comes with a plastic screen cover that I see a lot of people reporting issues with.
+
+Is there a problem with the OtterBox Defender? I was looking to buy one for my iPhone 14 Pro Max and its lifetime warranty really appealed to me.
+
+</span><mark>I&#x27;ve tried to use the warranty before and it&#x27;s difficult to say the least. I fidget too much with the charging port cover and it inevitably rips off, same goes for the rubber covering around the base which causes the rubber shell to separate. The plastic has also gotten cracked on me once in a backpack.</mark><span> But to my knowledge it is the most durable reliable phone case on the market that does an amazing job protecting your device. I&#x27;m just cheap and hell on gear.
+
+I see... If you want the best value, it&#x27;s Spigen for sure. It&#x27;s not the best case, but it&#x27;s really rugged and resilient. I had it for years on my Samsung without any problem. My model didn&#x27;t have the</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender</a></p><p>冻结文件: <a href="sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7" target="_blank">sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</a></p><p>内容 SHA-256: <code>200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;uncontrolled_owner_failure_and_warranty_report&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One OtterBox owner reports difficult warranty use, port-cover tearing, rubber-shell separation, and a cracked plastic part, without a precise model or duration.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_polycarbonate_uv_scope"><header><h3>prop_polycarbonate_uv_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;it can yellow under ultraviolet exposure, while stabilizers or surface coatings can improve weathering resistance&quot;,
+  &quot;predicate&quot;: &quot;has_uv_degradation_boundary&quot;,
+  &quot;subject&quot;: &quot;polycarbonate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_polycarbonate_uv_scope_1</code> | bytes [9679, 9836) | <code>d23fc8ae0b506bedc2a28040ee35b89616c0733f8b653cc91bd92a703a34a71d</code></div><pre class="context"><span>arbonate can produce very smooth surfaces that make it well-suited for sputter deposition or evaporation deposition of aluminium without the need for a base-coat. Decorative bezels and optical reflectors are commonly made of polycarbonate.
+Its low weight and high impact resistance have made polycarbonate the dominant material for automotive headlamp lenses. </span><mark>However, automotive headlamps require outer surface coatings because of its low scratch resistance and susceptibility to ultraviolet degradation (yellowing).</mark><span> The use of polycarbonate in automotive applications is limited to low stress applications. Stress from fasteners, plastic welding and molding render polycarbonate susceptible to stress corrosion cracking when it comes in contact with certain accelerants such as salt water and plastisol . It can be laminated to make bullet-proof &quot;glass&quot; , although &quot;bullet-re</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_polycarbonate_uv_scope_2</code> | bytes [13021, 13107) | <code>943a7278de9f7bdefd14a874aa192143219b1e3a8724c433e713926842353317</code></div><pre class="context"><span> luggage, MP3/digital audio player cases , ocarinas , computer cases, riot shields , instrument panels, tealight candle containers and food blender jars.  Many toys and hobby items are made from polycarbonate parts, like fins, gyro mounts, and flybar locks in radio-controlled helicopters , [ 18 ] and transparent LEGO ( ABS is used for opaque pieces). [ 19 ] </span><mark>Standard polycarbonate resins are not suitable for long term exposure to UV radiation.</mark><span> To overcome this, the primary resin can have UV stabilisers added. These grades are sold as UV stabilized polycarbonate to injection moulding and extrusion companies. Other applications, including polycarbonate sheets, may have the anti-UV layer added as a special coating or a coextrusion for enhanced weathering resistance. Polycarbonate is also used as a p</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_polycarbonate_uv_scope_3</code> | bytes [13108, 13174) | <code>8fc9a69115d73876f9cd7dec6fdd5f59f0212a7db9d19e406c647693bae6bde7</code></div><pre class="context"><span>strument panels, tealight candle containers and food blender jars.  Many toys and hobby items are made from polycarbonate parts, like fins, gyro mounts, and flybar locks in radio-controlled helicopters , [ 18 ] and transparent LEGO ( ABS is used for opaque pieces). [ 19 ] Standard polycarbonate resins are not suitable for long term exposure to UV radiation. </span><mark>To overcome this, the primary resin can have UV stabilisers added.</mark><span> These grades are sold as UV stabilized polycarbonate to injection moulding and extrusion companies. Other applications, including polycarbonate sheets, may have the anti-UV layer added as a special coating or a coextrusion for enhanced weathering resistance. Polycarbonate is also used as a printing substrate for nameplate and other forms of industrial grade</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Polycarbonate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Polycarbonate</a></p><p>冻结文件: <a href="sources/8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904" target="_blank">sources/8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904</a></p><p>内容 SHA-256: <code>8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_material_mechanism_not_case_lifetime&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Polycarbonate is susceptible to ultraviolet degradation and yellowing, and stabilizers or coatings can improve resistance; this does not predict one phone case&#x27;s lifetime.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_polyurethane_sticky_scope"><header><h3>prop_polyurethane_sticky_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;polyurethane can become yellowed, brittle, sticky, and crumbly, and urethane-containing condensation plastics can weaken through hydrolysis&quot;,
+  &quot;predicate&quot;: &quot;can_produce_surface_and_strength_failures&quot;,
+  &quot;subject&quot;: &quot;polyurethane deterioration&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_polyurethane_sticky_scope_1</code> | bytes [9128, 9176) | <code>a8bf42ad22cb9b6b35d206a7b3803fa19bdfe2aa0f906ec69e59c8d09f9fb45e</code></div><pre class="context"><span>enolics ( phenol formaldehyde ) discolored and more matte discolored and more matte fillers swell and surface mottles with solvents phenol and formaldehyde with severe degradation Polyolefin (polyethylene, polypropylene) yellowed, brittle resistant swollen by some organics none Polystyrene yellowed, brittled resistant dissolved, swelled, stress cracked none </span><mark>Polyurethane yellowed, brittle, sticky, crumbles</mark><span> yellowed, brittle, sticky, crumbles swelled, stress cracked nitrogenous organic gases and liquids Polyvinyl chloride yellowed, brittle resistant dissolved, swelled, embrittled by plasticizer extraction oily plasticizer liquids, maybe hydrochloric acid gas under extreme conditions of moisture and light exposure Rubber, ebonite , vulcanite brittle, discolored</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_polyurethane_sticky_scope_2</code> | bytes [9868, 9978) | <code>37d01409431db4162ff26d621c4ae87d6594e2ffdbe9a7985b2c1b3c36ad449d</code></div><pre class="context"><span>ulcanite brittle, discolored, increase in matteness hydrogen sulfide and other gases, sulfuric acid on surfaces surface mottled by solvents hydrogen sulfide and other sulfur-containing gases, sulfuric acid on surfaces All plastics (and organics) should be considered as prone to damage by ultraviolet radiation usually resulting in yellowing and embrittlement </span><mark>condensation plastics like esters , amides , and urethanes are subject to hydrolysis with subsequent weakening</mark><span> thermoplastics may dissolve, thermosets may swell, stress cracking harmful gases from plastics with chlorine, sulfur, and pendant (not main chain) ester groups Additional effects of deterioration: Plastics composed of cellulose acetate, when exposed to water, often will give off a smell of vinegar ( vinegar syndrome ); the surface will have a white powder r</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_plastic_objects" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_plastic_objects</a></p><p>冻结文件: <a href="sources/00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b" target="_blank">sources/00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b</a></p><p>内容 SHA-256: <code>00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_conservation_mechanism_not_phone_case_diagnosis&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A general conservation source lists polyurethane as yellowing, becoming brittle, sticky, and crumbly and notes hydrolysis weakening; it does not diagnose an exact phone-case coating.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_spigen_duration_scope"><header><h3>prop_spigen_duration_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one Pixel user reports many drops without a cracked screen while describing about four years as a Pixel user, and another Samsung user says a Spigen was used for years without problems; neither identifies an exact model and the first does not establish one-case continuity&quot;,
+  &quot;predicate&quot;: &quot;report_scoped_protection&quot;,
+  &quot;subject&quot;: &quot;brand-level Spigen owner reports&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_spigen_duration_scope_1</code> | bytes [49, 253) | <code>21ff29b526e4dc77091f78b7b31048f91d219978b67ddea2416338232e0bc8a7</code></div><pre class="context"><span>Alternatives to OtterBox Defender?
+
+[deleted] 1
+
+</span><mark>Been a Pixel person for maybe 4 years now, currently have the 7 Pro. I use Spigen off Amazon, affordable and seems to work well. I&#x27;ve dropped my phone plenty, haven&#x27;t ever had a cracked screen or anything</mark><span>
+
+Do you have to use the plastic screen cover?
+
+Haven&#x27;t put the sticky screen guard on any of my phones in ages. The gorilla glass or whatever it is they use for screens now is strong enough. I&#x27;ve always felt like that was putting a band-aid on something that isn&#x27;t even broken. Back in the day my iPhone screens would crack like regular glass, but nowadays I </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_spigen_duration_scope_2</code> | bytes [1693, 1949) | <code>0a37a393d542b945438b65a072ab5db53ac9a309e14c6d6d9e3830b4cbc01bce</code></div><pre class="context"><span>rging port cover and it inevitably rips off, same goes for the rubber covering around the base which causes the rubber shell to separate. The plastic has also gotten cracked on me once in a backpack. But to my knowledge it is the most durable reliable phone case on the market that does an amazing job protecting your device. I&#x27;m just cheap and hell on gear.
+
+</span><mark>I see... If you want the best value, it&#x27;s Spigen for sure. It&#x27;s not the best case, but it&#x27;s really rugged and resilient. I had it for years on my Samsung without any problem. My model didn&#x27;t have the plastic screen cover, I used a separate screen protector</mark><span>
+
+That seems to be what I&#x27;m coming back to. Thank you for the info.
+
+Unicorn beatle pro is very good. I used to swear by the griffen defender but switched to the unicorn. Great cases.
+
+Spigen seems to be the answer.
+
+You don’t need the defender it’s way too bulky. I always have used the Otterbox commuter it’s same durability but way slimmer and very pr</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender</a></p><p>冻结文件: <a href="sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7" target="_blank">sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</a></p><p>内容 SHA-256: <code>200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;brand_level_imprecise_duration_and_ambiguous_continuity&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Spigen reports are brand-level and do not provide an exact model with a precise continuous four-year observation; one reports many drops without a cracked screen and another says only &#x27;for years.&#x27;&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_symmetry_three_year_scope"><header><h3>prop_symmetry_three_year_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the thin silicone strip near the charging port broke after about three years of being used to pull the phone from a pocket&quot;,
+  &quot;predicate&quot;: &quot;reports_failure_time&quot;,
+  &quot;subject&quot;: &quot;one OtterBox Symmetry case&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_symmetry_three_year_scope_1</code> | bytes [4061, 4294) | <code>96075cf908e9f26c004ae3aece4520ba3060ed4fc5f83ac71d2df96b80a88dcd</code></div><pre class="context"><span> bulk and are quite premium feeling yet simple. I don’t believe the marketing hype about protection, but I also rarely drop mine(maybe once or twice a year).
+
+I had a similar Otterbox case for my iPhone Xr. The failure point will be those joins between the silicone and plastic if you plan on taking it out at all. Still, it&#x27;s a pretty good deal for $6.88.
+
+</span><mark>I used to pull my iPhone X out of my pocket using the tiny strip of silicone between the charging port and the screen of the Otterbox Symmetry case. After about 3 years, the case broke at that point. I think that was a good long run.</mark><span> This case is not a dual plastic-silicone body like the Otterbox Symmetry, but still feels fairly protective (except for the lens area, but that is the same for almost all cases, including Apple&#x27;s).
+
+Yeah, that was the other point for my one. Can’t remember if it was a Symmetry but must have at least been very similar to it because I know exactly what you </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty</a></p><p>冻结文件: <a href="sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e" target="_blank">sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</a></p><p>内容 SHA-256: <code>1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;about_three_year_geometry_and_use_failure_not_year_four&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One OtterBox Symmetry owner reports that a thin silicone strip used to pull the phone from a pocket broke after about three years.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_tpu_formulation_scope"><header><h3>prop_tpu_formulation_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;polyether TPU is selected for additional hydrolysis resistance, while aliphatic TPU is used for stable light color and non-yellowing performance&quot;,
+  &quot;predicate&quot;: &quot;differ_in_hydrolysis_and_colour_stability&quot;,
+  &quot;subject&quot;: &quot;thermoplastic polyurethane formulations&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_tpu_formulation_scope_1</code> | bytes [5530, 5710) | <code>44baa542595325bea954f1f481842fbe4322c3174e19fe750b56c35ab5c3c374</code></div><pre class="context"><span>her-based TPU Abrasion resistance A A Mechanical properties A B Low temperature flexibility B A Heat aging B D Hydrolysis resistance D A Chemical resistance A C Microbial resistance D A Adhesion strength B D Injectability B B TPU is the right choice when flexibility at low temperatures and/or an abrasion resistant thermoplastic elastomer (TPE) is requested. </span><mark>Polyether-based TPU in cases where additional excellent hydrolysis and microbial resistance is required, as well as in cases where extreme low-temperature flexibility is important.</mark><span> Ester-based TPU in cases where oil and grease resistance is more relevant. When stable light colour and non-yellowing performance are required, aliphatic TPU (ATPU) based on aliphatic isocyanates is used. BASF has pioneered crosslinking during TPU transformation, made possible by adding liquid crosslinkers or using a solid granulated additive masterbatch . </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tpu_formulation_scope_2</code> | bytes [5786, 5915) | <code>44c090090c38323e9f56b836aceb6942f9898776422d0954e8e2781fba0660db</code></div><pre class="context"><span>lexibility at low temperatures and/or an abrasion resistant thermoplastic elastomer (TPE) is requested. Polyether-based TPU in cases where additional excellent hydrolysis and microbial resistance is required, as well as in cases where extreme low-temperature flexibility is important. Ester-based TPU in cases where oil and grease resistance is more relevant. </span><mark>When stable light colour and non-yellowing performance are required, aliphatic TPU (ATPU) based on aliphatic isocyanates is used.</mark><span> BASF has pioneered crosslinking during TPU transformation, made possible by adding liquid crosslinkers or using a solid granulated additive masterbatch .  Plant-based bio TPU has been developed for green thermoplastic elastomer applications by BASF, Merquinsa-Lubrizol and GRECO, marketed as Elastollan N, Pearlthane ECO and Isothane respectively. Safety TPU </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Thermoplastic_polyurethane" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Thermoplastic_polyurethane</a></p><p>冻结文件: <a href="sources/4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8" target="_blank">sources/4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8</a></p><p>内容 SHA-256: <code>4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;formulation_distinction_not_product_identity_or_lifetime&quot;,
+    &quot;topic_cluster&quot;: &quot;phone_case_four_year_evidence_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;TPU formulation matters: polyether TPU offers additional hydrolysis resistance and aliphatic TPU is used for stable light color, so a generic TPU label is insufficient.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_phone_case_0028</td><td>case_spec</td><td><a href="sources/82112e875c8407cfb7c35622a4415d54378656229f1f2690641fb645bcdaf445">82112e875c8407cfb7c35622a4415d54378656229f1f2690641fb645bcdaf445</a></td><td><a href="http://case-spec.local/dra_v3_formal_smartphones_0028" target="_blank" rel="noreferrer">来源 URL</a></td><td>7587</td></tr><tr><td>reg_magento_casekoo_clear_claims</td><td>magento</td><td><a href="sources/0c158812b6cffcde7271800d4ccee690eb872b5ef73d5edda9a3f2d844142494">0c158812b6cffcde7271800d4ccee690eb872b5ef73d5edda9a3f2d844142494</a></td><td><a href="http://localhost:7770/casekoo-magnetic-clear-for-iphone-13-pro-max-case-never-yellow-stronger-magnetic-power-military-level-drop-protection-with-magsafe-shockproof-slim-thin-cover-6-7-inch-2021-clear.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3762</td></tr><tr><td>reg_postmill_bifl_protection_failures</td><td>postmill</td><td><a href="sources/200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7">200cc5ad54e8b33e6119e5255e7e36211fa4b05a5f29b8521b13a22216fd9fc7</a></td><td><a href="http://localhost:9999/f/BuyItForLife/75603/alternatives-to-otterbox-defender" target="_blank" rel="noreferrer">来源 URL</a></td><td>2763</td></tr><tr><td>reg_postmill_casetify_one_year</td><td>postmill</td><td><a href="sources/8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b">8fc2661e664c9053c5aea3de969b61aacb513cb4390553a9deded3828f8c683b</a></td><td><a href="http://localhost:9999/f/iphone/62383/case-recs-for-iphone-14-pro-max-and-iphone-14" target="_blank" rel="noreferrer">来源 URL</a></td><td>3263</td></tr><tr><td>reg_postmill_clear_two_year_observation</td><td>postmill</td><td><a href="sources/56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b">56a93d9e1e80d3084744055b2b7fe94e866607d55c79a6665988998e301b215b</a></td><td><a href="http://localhost:9999/f/iphone/40968/yellow-case-is-it-fr-getting-yellow-after-god-damn-2-months" target="_blank" rel="noreferrer">来源 URL</a></td><td>707</td></tr><tr><td>reg_postmill_leather_and_symmetry_duration</td><td>postmill</td><td><a href="sources/1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e">1719b4ef7006a037526e7abca944c6135c3ed6b1a533c3fb6fc93397610c483e</a></td><td><a href="http://localhost:9999/f/iphone/41138/i-found-walmart-s-6-88-onn-iphone-14-pro-gel-case-pretty" target="_blank" rel="noreferrer">来源 URL</a></td><td>4794</td></tr><tr><td>reg_search_bifl_reports</td><td>search_result</td><td><a href="sources/607ed6d488d6d8e7e98631baae44af0f901a1d40cd8c422df1cadf869fc3dafe">607ed6d488d6d8e7e98631baae44af0f901a1d40cd8c422df1cadf869fc3dafe</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=0f38f341-d8b7-4a17-9519-6f87b87c17c1" target="_blank" rel="noreferrer">来源 URL</a></td><td>46337</td></tr><tr><td>reg_search_casekoo</td><td>search_result</td><td><a href="sources/6f0d6363ce5131d26db778b49d5570164691cde3a17e28518255a84fd631ae34">6f0d6363ce5131d26db778b49d5570164691cde3a17e28518255a84fd631ae34</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=15ea7c4e-10c9-4c74-b73b-a69bc7716cb9" target="_blank" rel="noreferrer">来源 URL</a></td><td>8835</td></tr><tr><td>reg_search_casetify_year</td><td>search_result</td><td><a href="sources/17d04d148cd20d5d781b36753c421f2a923f3e2fa4a12fbc4b4f043f6359dd39">17d04d148cd20d5d781b36753c421f2a923f3e2fa4a12fbc4b4f043f6359dd39</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=cd79cc5d-e69d-4dc2-9066-d1d8cec0d9e2" target="_blank" rel="noreferrer">来源 URL</a></td><td>51247</td></tr><tr><td>reg_search_clear_two_year</td><td>search_result</td><td><a href="sources/d99a7e2d30bdb14c84111e31d4c81c99438b9a5cc80743a11ead9ad5e4463510">d99a7e2d30bdb14c84111e31d4c81c99438b9a5cc80743a11ead9ad5e4463510</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=f65f2969-f0db-4a9a-a31b-631644a1f2ed" target="_blank" rel="noreferrer">来源 URL</a></td><td>55536</td></tr><tr><td>reg_search_leather</td><td>search_result</td><td><a href="sources/df5de72742e1d2ca944ad9369b6220df5c495cff164828de5f496adf162c9b91">df5de72742e1d2ca944ad9369b6220df5c495cff164828de5f496adf162c9b91</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=7019167d-784f-410e-9344-834f148986d4" target="_blank" rel="noreferrer">来源 URL</a></td><td>17775</td></tr><tr><td>reg_search_leather_symmetry</td><td>search_result</td><td><a href="sources/ff95811f5c8526c1339c01e221f03ba24d5b7958d48ccb9d09b687c7ec1583e4">ff95811f5c8526c1339c01e221f03ba24d5b7958d48ccb9d09b687c7ec1583e4</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=b7f14da2-ee03-42b2-bb1a-43b54ce64d60" target="_blank" rel="noreferrer">来源 URL</a></td><td>45807</td></tr><tr><td>reg_search_polycarbonate</td><td>search_result</td><td><a href="sources/7630fa56c14d85479f24599ffdbb31b64eb6bcc9ead63ee597d30d9ffce9997f">7630fa56c14d85479f24599ffdbb31b64eb6bcc9ead63ee597d30d9ffce9997f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=26f59384-7424-4886-b67e-3afb8d4ad457" target="_blank" rel="noreferrer">来源 URL</a></td><td>10444</td></tr><tr><td>reg_search_polyurethane</td><td>search_result</td><td><a href="sources/85ef979ed78fdcf22f66ff6efcf637d9b0c6a32d93326fc1da55c73c50228931">85ef979ed78fdcf22f66ff6efcf637d9b0c6a32d93326fc1da55c73c50228931</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=f289a860-b32e-4df0-81bc-c6a38c01f541" target="_blank" rel="noreferrer">来源 URL</a></td><td>1562</td></tr><tr><td>reg_search_tpu</td><td>search_result</td><td><a href="sources/61d2a4d185cfddd29461a4515024c83045428207f6cb274ad19ead4a5a5f38f2">61d2a4d185cfddd29461a4515024c83045428207f6cb274ad19ead4a5a5f38f2</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0028-20260716-r1&amp;request_id=b6e637e2-7c74-4439-b00e-b45f86084b9e" target="_blank" rel="noreferrer">来源 URL</a></td><td>850</td></tr><tr><td>reg_wiki_leather_deterioration</td><td>wikipedia</td><td><a href="sources/77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f">77dff2ccb712deb7ffd82c6dff4f1cea124e748b9d894c5be2070fd05415de1f</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_leather_objects" target="_blank" rel="noreferrer">来源 URL</a></td><td>20075</td></tr><tr><td>reg_wiki_plastic_deterioration</td><td>wikipedia</td><td><a href="sources/00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b">00dbee3e4107e41a7157ed8123c30d4603d16458312d149af05f07eade1bf14b</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conservation_and_restoration_of_plastic_objects" target="_blank" rel="noreferrer">来源 URL</a></td><td>20065</td></tr><tr><td>reg_wiki_polycarbonate_uv</td><td>wikipedia</td><td><a href="sources/8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904">8baeeaab4045d5d263114a3689d11eac7d5d2ee25f5ca556cdb5f87e0fab1904</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Polycarbonate" target="_blank" rel="noreferrer">来源 URL</a></td><td>20338</td></tr><tr><td>reg_wiki_tpu_formulations</td><td>wikipedia</td><td><a href="sources/4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8">4c61c5a5173bb0bcec292c89c9e8443973869ba3d74f7a5e400b3ac11dff0bf8</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Thermoplastic_polyurethane" target="_blank" rel="noreferrer">来源 URL</a></td><td>7660</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-smartphones-0028-20260716-r1";
+const graphHash = "4a6d8fe91f55093ca4b317e010046015cf31e687eb96e5249b3fe917ea0b1dba";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

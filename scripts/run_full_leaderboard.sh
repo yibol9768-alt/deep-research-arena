@@ -303,10 +303,17 @@ COST_LEDGER=${RUN_DIR}/api_costs.worker-${WORKER_ID}.json
 
 write_cost_ledger() {
     if [ -n "${DSPROXY_USAGE_LOG:-}" ] && [ -f "$DSPROXY_USAGE_LOG" ]; then
+        COST_PRICE_ARGS=()
+        if [ -n "${DRA_COST_PRICE_NAMESPACE:-}" ]; then
+            COST_PRICE_ARGS+=(--price-namespace "$DRA_COST_PRICE_NAMESPACE")
+        elif [ -n "${DRA_COST_PRICE_KEY:-}" ]; then
+            COST_PRICE_ARGS+=(--price-key "$DRA_COST_PRICE_KEY")
+        fi
         "$PYTHON" scripts/aggregate_run_costs.py \
             --log "$DSPROXY_USAGE_LOG" --out "$COST_LEDGER" \
             --run-set-id "$RUN_SET_ID" --backbone "$BACKBONE" \
-            --worker "$WORKER_ID" >/dev/null 2>&1 || true
+            --worker "$WORKER_ID" "${COST_PRICE_ARGS[@]}" \
+            >/dev/null 2>&1 || true
     fi
 }
 

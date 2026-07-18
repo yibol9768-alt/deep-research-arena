@@ -1,0 +1,82 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0002
+query_sha256: "407bcfca6fa862075a849e80187ea71b37d3bffe3eb1b3e2bdca634a1161becf"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 核心任务是说明如何在自己家里做咖啡，并对比几种方案。
+
+  Q2: 必须覆盖每个方案的优缺点、成本以及用户的真实评价等相关内容。
+
+  Q3: 明确要求验证深烘是否真的咖啡因更多，以及咖啡豆是不是几周就会变质。
+
+  Q4: 用户是"初学者"，这个约束必须实质性影响比较或推荐。
+
+  Q5: 需包含关于"自己在家里做咖啡"的经验论断，需包含专业信息内容（咖啡因/咖啡豆变质验证），需覆盖目标用户（初学者）的经验。
+
+  Q6: 以上每个内容都应该覆盖到。
+
+  Q7: 目前没有看到模糊的部分。
+
+initial_requirements:
+  - 对比在家做咖啡方案的优缺点和成本
+  - 验证深烘是否咖啡因更多
+  - 验证咖啡豆是否几周就会变质
+  - 基于初学者身份给出推荐
+  - 包含自己做咖啡的经验论断
+  - 包含专业信息内容支撑
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 对比在家做咖啡的几种方案（单品豆/超市拼配/深烘/整豆/摩卡壶等）的优缺点和成本，以初学者视角进行对比并推荐适合方案
+    necessity_reason: |-
+      Query 开篇即罗列了多种咖啡方案，用户需要在不熟悉领域中做出选择；
+      且明确要求"what would you honestly start a beginner on"，
+      省略则用户面对的"intimidating" 货架信息得不到梳理。
+    query_basis: "the coffee aisle is intimidating: single-origin bags... stovetop espresso pot... what would you honestly start a beginner on?"
+    output_form: compare
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 验证"深烘是否真的咖啡因更多"的说法是否真实，需引用专业信息来源作为支撑
+    necessity_reason: Query 直接提问"whether dark roast really has more caffeine"，
+      省略则用户的明确事实性质疑未被回答。
+    query_basis: "whether dark roast really has more caffeine"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 验证"咖啡豆是否几周就会变质"的说法是否真实，需引用专业信息来源作为支撑
+    necessity_reason: Query 直接提问"beans really go stale in weeks"，
+      省略则用户的明确事实性质疑未被回答。
+    query_basis: "beans really go stale in weeks"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R4
+    requirement: 包含关于"自己在家里做咖啡"的实践经验或真实用户评价，帮助初学者建立可信度
+    necessity_reason: |-
+      Query 从"instant coffee" 升级到"make the real thing at home"，
+      仅靠方案对比和理论验证不足以满足用户对"实际体验如何"的隐性需求；
+      缺少经验内容会让推荐缺乏可信度。
+    query_basis: "I've been living on instant coffee and I'm finally ready to make the real thing at home"
+    output_form: experience
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "make the real thing at home"
+    note: 对"真正的咖啡"的定义不明确——是手冲、意式、摩卡壶还是其他方式？不同标注者可能理解不同
+
+unresolved: []
+
+evidence_answerability: not_assessed

@@ -35,8 +35,8 @@ BACKBONE = "model-a"
 
 
 def test_formula_stamp_discloses_forum_and_local_attribution_semantics():
-    assert FORMULA_VERSION == "tv2.4-provenance-gate-factscope-forum-attribution"
-    protocol = _protocols(1.5, [TASK], "transport_v2", "provenance_v2")
+    assert FORMULA_VERSION == "tv2.5-linear-provenance-gate-factscope-forum-attribution"
+    protocol = _protocols(1.0, [TASK], "transport_v2", "provenance_v2")
     assert "forum" in protocol["sources_scored"]["completeness"]
     assert "same Markdown line" in protocol["sources_note"]
     assert "same sentence or table row" in protocol["sources_note"]
@@ -386,8 +386,12 @@ def test_board_zero_pads_all_task_replicates_and_publishes_outcomes(tmp_path):
     assert result.returncode == 0, result.stderr[-1000:]
     board = json.loads(out.read_text())
     assert board["protocols"]["formula_version"] == (
-        "tv2.4-provenance-gate-factscope-forum-attribution"
+        "tv2.5-linear-provenance-gate-factscope-forum-attribution"
     )
+    assert board["protocols"]["gamma"] == 1.0
+    assert board["protocols"]["gate_semantics"] == "reach_v1"
+    assert board["composition"].startswith("truth = reach *")
+    assert "^" not in board["composition"].split(",", 1)[0]
     assert "forum" in board["protocols"]["sources_scored"]["completeness"]
     row = board["rows"][0]
     assert row["n_task_replicates_expected"] == board["n_answer_keys"] * 5

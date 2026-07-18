@@ -1,0 +1,71 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0005
+query_sha256: "7260d01fb230cb2ba7a1cd862723fc269b44ae1ddcbdd8fa2c5f0f80b495c9b7"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 推荐一款宣传和实际相符的音箱。
+
+  Q2: 覆盖产品的功能特性与实际使用体验是否一致。
+
+  Q3: 验证标称数据是否真实。
+
+  Q4: 一定要真实用户反馈的意见才能被采纳。
+
+  Q5: 一定要已购买产品的用户的真实体验，且必须是好评的体验。
+
+  Q6: 不可省略内容：真实用户的经验。没有真实用户经验，回答就不完整。
+
+  Q7: 没有特别模糊的内容。
+
+initial_requirements:
+  - 分析宣传参数哪些是真实的、哪些是营销
+  - 验证标称功能在实际使用场景中的表现
+  - 包含已购买用户的真实使用体验
+  - 推荐一款宣传与实际相符的音箱
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 逐一分析音箱宣传参数（40W/360度音效/IPX7防水/被动振膜/高解析蓝牙）哪些在这个尺寸中有物理实义、哪些是营销话术
+    necessity_reason: |-
+      Query 直接提问"Which of these claims mean something physically real... which are marketing"，
+      省略则用户的核心质疑（"I flat out don't trust the boxes anymore"）未被回答。
+    query_basis: "Which of these claims mean something physically real in a speaker this size, and which are marketing?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 验证标称功能在实际使用场景（如大音量是否失真、泳池/海滩防水表现等）中的表现，必须通过已购买用户的真实使用体验来验证
+    necessity_reason: |-
+      Query 明确要求"do owners who actually took theirs to the pool or beach back any of it up?"，
+      且用户此前被"一开大就失真"坑过，省略则用户对宣传的不信任感无法通过真实反馈来消解。
+    query_basis: "\"do owners who actually took theirs to the pool or beach back any of it up?\" + \"I got burned before by a speaker that distorted\""
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 直接提问已购买用户（owners）是否能证实宣传，论坛/拥有者经验在此不可替代
+
+  - local_id: R3
+    requirement: 推荐一款宣传与实际相符的具体音箱产品
+    necessity_reason: Query 结尾明确要求"Point me at a speaker whose claims actually hold"，这是用户的最终行动目标，省略则停留在抽象分析而无落地结论
+    query_basis: "Point me at a speaker whose claims actually hold"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "physically real"
+    note: "\"有物理实义\"的判定标准不明确——是可测量的技术指标还是可感知的效果？"
+  - phrase: "marketing"
+    note: 营销话术的边界不明确——是夸大还是完全虚假？
+
+unresolved: []
+
+evidence_answerability: not_assessed

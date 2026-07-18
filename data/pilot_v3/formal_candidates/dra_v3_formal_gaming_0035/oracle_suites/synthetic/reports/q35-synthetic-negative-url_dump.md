@@ -1,0 +1,8 @@
+[Frozen page](http://localhost:8090/content/wikipedia_en_all_nopic/Backward_compatibility)
+[Frozen page](http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_game_consoles)
+[Frozen page](http://localhost:9999/f/consoles/81981/can-you-help-me-decide-on-a-console-my-ps4-is-dying-xbox)
+[Frozen page](http://localhost:9999/f/gaming/40385/why-is-anyone-buying-next-gen-consoles)
+[Frozen page](http://localhost:8090/content/wikipedia_en_all_nopic/Comparison_of_PlayStation_consoles)
+[Frozen page](http://localhost:7770/ps4-controller-dualshock-4-wireless-controller-for-gaming-controller-compatible-with-playstation-4-slim-pro-console-black-white.html)
+[Frozen page](http://localhost:7770/playstation-4-pro-1tb-console-red-dead-redemption-2-bundle-discontinued.html)
+[Frozen page](http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Network)

@@ -32,8 +32,10 @@ Pipeline:
   - Sanitize is NOT performed here: gpt-researcher's report writer is robust
     to localhost URLs in the intent (we did NOT add sanitization to the
     in-process runner originally).
-  - Append CITATION REQUIREMENTS so the report cites all three sandbox
-    sources (shopping / reddit / wikipedia).
+  - Preserve the shared task/report prompt unchanged; no lane-specific
+    citation syntax, source quota, or example URL is injected here.
+  - Route the framework's page GETs through the recording shim's ``/fetch``
+    endpoint so searches and full-page reads share one attributable run log.
   - Launch subprocess in .venv-gptr, run conduct_research + write_report.
   - Report is emitted between sentinels and extracted by the parent.
 

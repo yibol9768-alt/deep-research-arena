@@ -1,0 +1,86 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0008
+query_sha256: "a74f808ead73173c6756d5290ea684ec06c4f982526575180676c1f776f02d0c"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 明确输出在哪个价位以上性能就不会再提升了。
+
+  Q2: 必须覆盖解码器和用户的真实体验。
+
+  Q3: 验证不同价位耳塞的区别，找出价格-性能曲线的拐点。
+
+  Q4: 一定要有价格与性能的真实对比测验或购买用户的想法。
+
+  Q5: 明确要求一定要有拥有者的想法。
+
+  Q6: 无要求。
+
+  Q7: 无要求。
+
+initial_requirements:
+  - 找出价格不再提升性能的拐点价位
+  - 验证蓝牙编解码器是否能改变拐点
+  - 对比不同价位耳塞的差异
+  - 包含拥有者的真实想法
+  - 推荐具体价位和具体产品
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 分析真无线耳塞的价格-性能关系曲线，找出"价格不再实质性提升音质/体验"的拐点价位
+    necessity_reason: |-
+      Query 核心问题是"where the money actually stops buying sound" + "is there a real cutoff price"，
+      用户兄弟的 $30 和朋友 $280 的差异对比引出此分析；
+      省略则用户升级决策缺乏依据。
+    query_basis: "where the money actually stops buying sound in true wireless earbuds" + "Is there a real cutoff price?"
+    output_form: compare
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 验证 aptX 等蓝牙编解码器是否能实质性改变价格-性能拐点，还是只在高端设备上才能听出区别
+    necessity_reason: |-
+      Query 直接提问"does stuff like aptX or other fancy Bluetooth codecs shift it, or is that only audible on gear I'll never own"，
+      省略则用户无法判断编解码器是否值得作为选购因素。
+    query_basis: "does stuff like aptX or other fancy Bluetooth codecs shift it, or is that only audible on gear I'll never own?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 包含同时拥有便宜和旗舰耳塞的用户的真实体验，验证价格差异在实际听感中是否可感知
+    necessity_reason: |-
+      Query 明确指出"owners of both cheap and flagship buds must have opinions here"，
+      用户的困惑源于"在公交车上分不出 $30 和 $280"的切身经历，
+      缺少真实用户对比经验则分析停留在理论层面。
+    query_basis: "owners of both cheap and flagship buds must have opinions here"
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 明确要求同时拥有便宜和旗舰耳塞的用户意见，这种跨价位对比经验在论坛/社区中不可替代
+
+  - local_id: R4
+    requirement: 基于 R1-R3 的分析和用户经验，推荐一个具体的"性价比拐点"价位及该价位对应的具体产品
+    necessity_reason: Query 结尾明确要求"tell me the price you'd stop at and the pair to get there"，结论必须落到可执行的具体推荐
+    query_basis: "Tell me the price you'd stop at and the pair to get there"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "cutoff price"
+    note: "拐点价位"的判定标准不明确——是音质、功能还是综合体验不再提升？
+  - phrase: "only audible on gear I'll never own"
+    note: "永远不会拥有的设备"边界不清
+  - phrase: "stops buying sound"
+    note: "停止买到音质"的感知是主观的，不同人的听觉敏感度不同
+
+unresolved: []
+
+evidence_answerability: not_assessed

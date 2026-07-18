@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-smartphones-0030-20260716-r1</code></p>
+<p>证据图哈希: <code>43939fb99a3ee06ecff1f587c10536cf54ee022946489a4e22bce5589f7c0b26</code></p>
+<p>待审项 20 个，其中语义项 8 个、结构化项 4 个；冻结来源 25 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_gt_neo5_bundle_scope"><header><h3>assert_gt_neo5_bundle_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the bundled proprietary charger and proprietary USB-C cable to use the advertised charging rate&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Realme GT Neo5 240 W SuperVOOC implementation&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_gt_neo5_bundle_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_realme_gt_neo5_bundle_not_other_models_or_families&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;the bundled proprietary charger and proprietary USB-C cable to use the advertised charging rate&quot;,
+  &quot;predicate&quot;: &quot;requires_exact_proprietary_bundle&quot;,
+  &quot;subject&quot;: &quot;Realme GT Neo5 240 W SuperVOOC implementation&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_gt_neo5_bundle_scope_1</code> | bytes [6392, 6551) | <code>5a69326ef2e83d1c5b60366653c9ebdea218ca6c9e9b719d31fcaefd86aecec0</code></div><pre class="context"><span> , and Super Flash Charge . [ 23 ] [ 24 ] For regions that use a voltage of 100-125V, including Japan, Taiwan, North America, and Latin America, the charging supports up to 66W. [ 25 ] 240 W version of SuperVOOC (2022). 20V/12A. Announced at 2022 Mobile World Congress . [ 26 ] It is advertised as being able to charge 4,500 mAh battery in 9 minutes. [ 27 ] </span><mark>It is implemented by Realme GT Neo5, which requires the use of bundled proprietary charger and proprietary USB-C cable to utilize the advertised charging rate.</mark><span> The power is delivered through the cable at 20 V and converted to 10 V inside the handset by 3 charge controller chips, each rated 100 W max, before finally being stepped down to 4.5 V for the battery. [ 28 ] HyperTone camera systems In November 2023, at Paris Photo 2023, OPPO and Hasselblad revealed their collaboration to develop the next generation of H</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Oppo" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Oppo</a></p><p>冻结文件: <a href="sources/fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e" target="_blank">sources/fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e</a></p><p>内容 SHA-256: <code>fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_iphone_charge_state_scope"><header><h3>assert_iphone_charge_state_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;slow progress near 75 percent with MagSafe and Lightning connected to a 30 W USB-C brick, followed by faster progress in a later trial starting at 49 percent&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one iPhone 14 Pro Max charging thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_iphone_charge_state_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_uncontrolled_report_magsafe_or_lightning_phone_side_not_usbc&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;slow progress near 75 percent with MagSafe and Lightning connected to a 30 W USB-C brick, followed by faster progress in a later trial starting at 49 percent&quot;,
+  &quot;predicate&quot;: &quot;reports_scoped_rate_changes&quot;,
+  &quot;subject&quot;: &quot;one iPhone 14 Pro Max charging thread&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_iphone_charge_state_scope_1</code> | bytes [137, 404) | <code>7ae2ae730596a0cfd0ef3f583dd816d9a19638d78d62938deb54197b783aaf82</code></div><pre class="context"><span>Support request - iPhone 14PM charging speed question
+
+Just came from a 12Pro (regular) and it charged lightning (no pun intended) fast. </span><mark>With this new iPhone 14PM, I put it on at 75% and it took a full 5 minutes to go up a single percentage. True on both MagSafe and lightning cable attached to a MacBook Air USB C 30w brick. All Apple cables and chargers. Also true regardless of optimization on or off.</mark><span> 0
+
+You went to a phone with a larger battery. It’ll take longer to charge in general, no matter the method.
+
+Fair but 1% in 5 minutes on a 30w charger is particularly slow, no? That suggests it would take 8 hours to charge on a fast charger.
+
+Depends on how charged it is when you plug it in. Charging isn’t an instant thing, you know. :)
+
+Haha fair
+
+5 mi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62346/support-request-iphone-14pm-charging-speed-question" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62346/support-request-iphone-14pm-charging-speed-question</a></p><p>冻结文件: <a href="sources/b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e" target="_blank">sources/b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e</a></p><p>内容 SHA-256: <code>b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lightning_pin_anecdote_scope"><header><h3>assert_lightning_pin_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author reports Lightning pin failures as quickly as one week while another participant reports no official Apple cable failure and identifies unusually careful handling&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for participants in one Lightning cable thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lightning_pin_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;conflicting_lightning_anecdotes_not_usb_c_lifetime_or_brand_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one author reports Lightning pin failures as quickly as one week while another participant reports no official Apple cable failure and identifies unusually careful handling&quot;,
+  &quot;predicate&quot;: &quot;report_conflicting_individual_experiences&quot;,
+  &quot;subject&quot;: &quot;participants in one Lightning cable thread&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lightning_pin_anecdote_scope_1</code> | bytes [136, 302) | <code>a6b46775e969e3e2f5b89cae5796fb8b3209d211c63d46ecd532182c02cc3a20</code></div><pre class="context"><span>Cables with the most durable lighting pins?
+
+I keep noticing that out of all the cables I own, lighting connectors degrade really fast. </span><mark>I have usb cables that are 20 years old that still work. I’ve had lighting connectors go bag in a week. The pins degrade and seem to run off or fall out or oxidize.</mark><span> Anyone know if a cable with a really durable connector or what to look for? 2
+
+I mean. I’ve never had an official Apple cable fail me. Get tatty? Sure. But fail me? I’ve not had that happen personally. But full disclosure I’m a very cautious user of all my tech soo I’m probably more gentle than most.
+
+The 4th pin is burned right? I think the cable i</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106050/cables-with-the-most-durable-lighting-pins" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106050/cables-with-the-most-durable-lighting-pins</a></p><p>冻结文件: <a href="sources/f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b" target="_blank">sources/f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b</a></p><p>内容 SHA-256: <code>f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_s22_profile_scope"><header><h3>assert_s22_profile_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;S22 at 25 W with PPS or 15 W without PPS, and S22+ or S22 Ultra at 45 W with PPS or 15 W without PPS&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Samsung Galaxy S22 family&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_s22_profile_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_s22_family_profiles_not_other_galaxy_models&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;S22 at 25 W with PPS or 15 W without PPS, and S22+ or S22 Ultra at 45 W with PPS or 15 W without PPS&quot;,
+  &quot;predicate&quot;: &quot;lists_model_specific_charging_profiles&quot;,
+  &quot;subject&quot;: &quot;Samsung Galaxy S22 family&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_s22_profile_scope_1</code> | bytes [1612, 1731) | <code>544ab034f04ae16d03640acd318aac606bbd8af2b9d72e93c9cabb3c21fc0906</code></div><pre class="context"><span>) GPU Exynos : Xclipse 920 (based on AMD RDNA 2 ) Snapdragon : Adreno 730 Memory S22 and S22+ : 8 GB RAM S22 Ultra : 8 or 12 GB RAM Storage UFS 3.1 S22/S22+ : 128 or 256 GB S22 Ultra : 128, 256, 512 GB or 1 TB Removable storage None SIM nanoSIM , eSIM Single SIM or Hybrid Dual SIM in dual stand-by Battery S22 : 3700 mAh S22+ : 4500 mAh S22 Ultra : 5000 mAh </span><mark>Charging USB PD: S22 : 25 W (PPS), 15W (non-PPS) S22+ and S22 Ultra : 45W (PPS), 15W (non-PPS) All models: 15W wireless</mark><span> Rear camera S22 and S22+ : 50 MP, f/1.8, 24 mm (wide), 1/1.56&quot;, 1.0Âµm, Dual Pixel PDAF, OIS 10 MP, f/2.4, 70 mm (telephoto), 1/3.94&quot;, 1.0Âµm, PDAF, OIS, 3x optical zoom 12 MP, f/2.2, 13 mm, 120Ë (ultrawide), 1/2.55&quot; 1.4Âµm, Super Steady video S22 Ultra: 108 MP, f/1.8, 24 mm (wide), 1/1.33&quot;, 0.8Âµm, PDAF, Laser AF, OIS 10 MP, f/4.9, 230 mm (</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22</a></p><p>冻结文件: <a href="sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835" target="_blank">sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</a></p><p>内容 SHA-256: <code>2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_usb_convergence_optional_scope"><header><h3>assert_usb_convergence_optional_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;USB began by replacing several peripheral interfaces, Standard, Mini, and Micro forms preceded Type-C, and reversible Type-C supports many hardware-dependent optional functions&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for USB connector evolution and USB-C&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_usb_convergence_optional_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_history_and_optional_capabilities_not_one_product&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;USB began by replacing several peripheral interfaces, Standard, Mini, and Micro forms preceded Type-C, and reversible Type-C supports many hardware-dependent optional functions&quot;,
+  &quot;predicate&quot;: &quot;standardizes_shape_without_fixing_all_capabilities&quot;,
+  &quot;subject&quot;: &quot;USB connector evolution and USB-C&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_usb_convergence_optional_scope_1</code> | bytes [982, 1205) | <code>2b676f943fd63336052f5fc431f264fc94d1a40a5649970f3493093dfd958281</code></div><pre class="context"><span>very between many types of electronics. It specifies the architecture, in particular the physical interfaces , and communication protocols to and from hosts , such as personal computers , to and from peripheral devices , e.g. displays, keyboards, and mass storage devices, and to and from intermediate hubs , which multiply the number of a host&#x27;s ports. [ 2 ] </span><mark>Introduced in 1996, USB was originally designed to standardize the connection of peripherals to computers, replacing various interfaces such as serial ports , parallel ports , game ports , and Apple Desktop Bus (ADB) ports.</mark><span> [ 3 ] Early versions of USB became commonplace on a wide range of devices, such as keyboards, mice, cameras, printers, scanners, flash drives, smartphones, game consoles, and power banks. [ 4 ] USB has since evolved into a standard to replace virtually all common ports on computers, mobile devices, peripherals, power supplies, and manifold other small elect</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/USB</a></p><p>冻结文件: <a href="sources/8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e" target="_blank">sources/8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e</a></p><p>内容 SHA-256: <code>8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_usb_hardware_cable_scope"><header><h3>assert_usb_hardware_cable_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;USB Power Delivery can reach 240 W, a standard USB-C cable is specified for 60 W and at least USB 2.0 data, Type-C peers negotiate roles, and broader USB cabling includes charge-only arrangements&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for USB power and cable hardware&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_usb_hardware_cable_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_usb_hardware_boundaries_not_specific_combination_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;USB Power Delivery can reach 240 W, a standard USB-C cable is specified for 60 W and at least USB 2.0 data, Type-C peers negotiate roles, and broader USB cabling includes charge-only arrangements&quot;,
+  &quot;predicate&quot;: &quot;separates_power_data_and_role_capabilities&quot;,
+  &quot;subject&quot;: &quot;USB power and cable hardware&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_usb_hardware_cable_scope_1</code> | bytes [799, 893) | <code>c61f056f143cf48460b282e961e26baaf84d66469f28c87c99b4a12a2be4ee50</code></div><pre class="context"><span> namely, in 2008, USB 3.0 added a full-duplex lane (two twisted pairs of wires for one differential signal of serial data per direction), and in 2014, the USB-C specification added a second full-duplex lane. USB has always included some capability of providing power to peripheral devices, but the amount of power that can be provided has increased over time. </span><mark>The modern specifications are called USB Power Delivery ( USB-PD ) and allow up to 240 watts .</mark><span> Initially USB 1.0/2.0 provided up to 2.5 W, USB 3.0 provided up to 4.5 W, and subsequent Battery Charging (BC) specifications provided power up to 7.5 W. The modern Power Delivery specifications began with USB PD 1.0 in 2012, providing for power delivery up to 60 watts; PD 2.0 version 1.2 in 2013, along with USB 3.1, up to 100 W; and USB PD 3.1 in</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB_hardware" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/USB_hardware</a></p><p>冻结文件: <a href="sources/3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e" target="_blank">sources/3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e</a></p><p>内容 SHA-256: <code>3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_usb_negotiation_scope"><header><h3>assert_usb_negotiation_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;parameters such as speed and power through standard protocols including USB Device Framework and USB Power Delivery&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for connected USB devices&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_usb_negotiation_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_protocol_mechanism_not_fastest_mode_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;parameters such as speed and power through standard protocols including USB Device Framework and USB Power Delivery&quot;,
+  &quot;predicate&quot;: &quot;identify_and_negotiate&quot;,
+  &quot;subject&quot;: &quot;connected USB devices&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_usb_negotiation_scope_1</code> | bytes [772, 957) | <code>cdeffcba4fd8402821bbd516aa3019055ce7ec125fc185c37e9a57919217eee7</code></div><pre class="context"><span>s, mice, flash drives , external hard drives , joysticks , cameras , monitors , and more to computers of all kinds. USB also supports signaling rates from 1.5 Mbit/s (Low speed) to 80 Gbit/s ( USB4 2.0) depending on the version of the standard. The article explains how USB devices transmit and receive data using electrical signals over the physical layer , </span><mark>how they identify themselves and negotiate parameters such as speed and power with the host or other devices using standard protocols such as USB Device Framework and USB Power Delivery</mark><span>, and how they exchange data using packets of different types and formats such as token, data, handshake, and special packets. Signaling (USB PHY) Signaling rate (transmission rate) Mode [ 1 ] Abbrev. Signaling rate Typical data rates Introduced in Low speed LS 1.5 Mbit/s (187.5 KB/s) USB 1.0 Full speed FS 12 Mbit/s (1.5 MB/s) USB 1.0 High speed; also,</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB_communications" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/USB_communications</a></p><p>冻结文件: <a href="sources/d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788" target="_blank">sources/d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788</a></p><p>内容 SHA-256: <code>d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_xsmax_repair_debris_scope"><header><h3>assert_xsmax_repair_debris_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;several MFi cables stopped working after back-glass repair while an official 20 W combination and wireless charging worked, then small port debris removal was reported to fix the problem&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one post-repair iPhone XS Max thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_xsmax_repair_debris_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;lightning_phone_post_repair_and_debris_confounding&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;object&quot;: &quot;several MFi cables stopped working after back-glass repair while an official 20 W combination and wireless charging worked, then small port debris removal was reported to fix the problem&quot;,
+  &quot;predicate&quot;: &quot;reports_confounded_compatibility_and_fix&quot;,
+  &quot;subject&quot;: &quot;one post-repair iPhone XS Max thread&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_xsmax_repair_debris_scope_1</code> | bytes [0, 141) | <code>db4923a3fae48b2ef95320cea8b439147e433d7d805b4f684293e3a9f594a1e6</code></div><pre class="context"><span></span><mark>Changed my back-glass on XS Max, now only my 20w official apple charger and wireless chargers will work. Any ideas what may have caused this?</mark><span>
+
+I&#x27;ve got a bunch of MFi certified cables that just don&#x27;t work now... and though it&#x27;s not a massive problem, it seems quite strange to me. Could I have damaged the MFi sensor or something? I suppose it&#x27;s possible the back glass replacement had nothing to do with it, but I find that difficult to believe. Everything else is working fine. 3
+
+Hard to say withou</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106055/changed-my-back-glass-on-xs-max-now-only-my-20w-official" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106055/changed-my-back-glass-on-xs-max-now-only-my-20w-official</a></p><p>冻结文件: <a href="sources/3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765" target="_blank">sources/3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765</a></p><p>内容 SHA-256: <code>3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_100w_cable_claims"><header><h3>ev_100w_cable_claims</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;100 W power, 20 Gbit/s data, an E-Marker, and video only when the connected USB-C port supports DisplayPort Alternate Mode&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen ULT-WIIQ USB-C cable listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_ev_100w_cable_claims_1</code> | bytes [541, 663) | <code>3a72b827e4b7978e2a31bd22205022543379ad76b03d318fd01dfea751ec182e</code></div><pre class="context"><span>Dell XPS (6.6 Ft)
+
+In stock SKU B09GN3JGRW Rating: 70 % of 100 8 Reviews Add Your Review $14.69 Size 1.65 Feet 3.3 Feet 6.6 Feet Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description ULT-WIIQ Updated Right Angle USB C 3.2 Gen2x2 Cable ULT-WIIQ right angle USB C 3.2 cable is completely compliance with the USB-IF USB 3.2 specifications, </span><mark>supports 100W PD 20V5A, 4K@60Hz, 2K@144Hz, 2K@120Hz, 2K@60Hz, 1080P@60Hz video output and 20Gbps high speed data transfer.</mark><span> Compatible with Thunderbolt 3, Thunderbolt 4, USB4 and USB 3.1. Read more Product Specifications USB Standard The Latest USB 3.2 Gen2x2 Type C Charging Power 100W of Power Delivery for Fast Charging, also support 65W, 60W, 55W, 50W, 40W, 30W, 25W, 18W, and more Data Transfer Up to 20Gbps Video Resolution 4K@60Hz, 2K@144Hz, 2K@120Hz, 2K@60Hz, 1080P@60Hz (for</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_100w_cable_claims_2</code> | bytes [3986, 4081) | <code>7213a7c437de06ba4e14ff3c2ddad6301850b6a0d37a65a0e29311f4baaec925</code></div><pre class="context"><span>B 3.1, connect Thunderbolt 3 External SSD to transfer big files in seconds. 【4K Video &amp; Audio Output】 This USB C 3.2 charging cable can also be used as video output cord, supports 4K@60Hz video signal transmission, delivering a vivid image without motion blur or lag. You can enjoy dual screens and true-to-life 4K visuals to increase productivity. (Note: </span><mark>The video function only works for devices whose USB-C port supports DisplayPort Alternate Mode.</mark><span>) 【Certified Safety &amp; Quality Assurancel】 Certified by the USB IF, auto fit to protect your device while charging at a max speed. No need to worry about thread body tearing, fraying, or damage to the original device port caused by repeated plugging and unplugging. Each product is thoroughly tested before being sold, and comes with a worry-free 18-month w</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_100w_cable_claims_3</code> | bytes [2116, 2266) | <code>be03e416622387d0c77dd18817930b72b8ec90841956783a58b61ecbcd4d4211</code></div><pre class="context"><span>ose devices whose USB-C ports support DP Alt Mode, which means it supports data transfer, power input and video output functions. Ultra 20Gbps Data Transfer ULT-WIIQ USB 3.2 cable fully complies with USB 3.2 Gen2x2 standards, it offers up to 20Gbps SuperSpeed data transfer with Thunderbolt 3/4 &amp; USB4 External SSD Drive, just transfer large files in seconds. </span><mark>E-Marker with Premium Material Designed with an advanced E-Marker chip in each connector for greater charging stability and clear signal transmission.</mark><span> Tinned copper with triple-layer shielding and nylon braided material for a longer lifespan. 4K@60Hz Visual Experience Output resolution up to 4K(3840x2160) @60Hz UHD to USB-C enabled display screen or monitor without any blur or distortion, such as LG 4k, Samsung, ASUS, HP EliteDisplay, Dell USB-C Monitors and more. Enjoy movies at home and work efficiently</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/usb-c-3-2-gen2x2-cable-100w-20gbps-updated-90-degree-right-angle-usb-c-to-c-3-2-cable-4kat60hz-video-cord-with-e-marker-for-thunderbolt-3-4-oculus-quest-imac-macbook-ipad-pro-dell-xps-6-6-ft.html" target="_blank" rel="noreferrer">http://localhost:7770/usb-c-3-2-gen2x2-cable-100w-20gbps-updated-90-degree-right-angle-usb-c-to-c-3-2-cable-4kat60hz-video-cord-with-e-marker-for-thunderbolt-3-4-oculus-quest-imac-macbook-ipad-pro-dell-xps-6-6-ft.html</a></p><p>冻结文件: <a href="sources/c6a7aa95d6d855b35909d7aca092ebcd78c0165b4110fab64b7d7153e76788cb" target="_blank">sources/c6a7aa95d6d855b35909d7aca092ebcd78c0165b4110fab64b7d7153e76788cb</a></p><p>内容 SHA-256: <code>c6a7aa95d6d855b35909d7aca092ebcd78c0165b4110fab64b7d7153e76788cb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_snapshot_power_data_emarker_and_video_condition&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen ULT-WIIQ seller page claims 100 W, 20 Gbit/s, an E-Marker, and video conditional on a USB-C port that supports DisplayPort Alternate Mode; these are not independently verified results.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_60w_usb2_cable_claims"><header><h3>ev_60w_usb2_cable_claims</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 60 W charging ceiling and USB 2.0 or 480 Mbit/s data behavior despite USB-C connectors&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen Anker PowerLine III USB-C cable listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_ev_60w_usb2_cable_claims_1</code> | bytes [1518, 1639) | <code>db06bdd7aee3a2e5879bea8e3a3b04d977faa8ad6e60caa9e52235cc1c0a789d</code></div><pre class="context"><span>: A8854 PowerLine III USB-C to USB-C Cable The Ultra-Strong Cable with Greater Grip Slim and Strong The latest generation of PowerLine is designed with a revolutionary internal layout, maintaining the classic Anker durability in a cable that’s slimmer than ever before (when compared with an Anker cable of equal length). Compatible with High-Speed Charging </span><mark>A maximum output of 60W allows for high-speed charging to a wide range of devices including phones, tablets, and laptops.</mark><span> Pair with an 18W Power Delivery charger (not included) to charge Samsung S10 to 50% in just 30 minutes. Improved Grip Designed with longer, textured connector ends for a more comfortable and effortless grip. Complete Freedom If you have outlets located far from your bed or sofa, or if you prefer to walk around while talking on the phone, this 10 ft cable gi</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_60w_usb2_cable_claims_2</code> | bytes [2683, 2919) | <code>c6303ec42648380becbbe9ac09f873285cab11bd32235a7b14c4718f3f33b2dc</code></div><pre class="context"><span>S10+/S10e/S20 Google Pixel 3/ Nexus 6P Nintendo Switch Huawei Matebook X MacBook Pro(2020/2019/2018/2017/2016) 13.3&#x27;&#x27; MacBook Air 2020/2019/2018 Compatible Devices (limited charging speeds) Google Nexus 5X MacBook Pro(2020/2019/2018/2017/2016) 15.4&#x27;&#x27; Lumia 950LG G5/G6/G7 LG V20/ V30+/ V40 Huawei Mate20/Mate20 Pro/ P30/P30 Pro Xiaomi 5 Lenovo IdeaPad 720S 13 </span><mark>USB C to USB C 2.0 USB C to USB C 2.0 USB C to USB C 2.0 (Nylon) USB C to USB C 2.0 (Nylon) USB C 3.1 Gen 2 USB C Thunderbolt 3.0 Charging Technology 60W 100W 60W 60W 100W 100W Data Transfer 480Mbps 480Mbps 480Mbps 480Mbps 10Gbps 40Gbps</mark><span> Length 1ft/3ft/6ft/10ft 6ft 3.3ft/6ft x 2 6ft 3ft 1.6ft Bend Lifespan 25000+ 25000+ 12,000 35000+ 12000+ 1800+ Lifetime Protection ✓ ✓ ✓ ✓ ✓ ✓ Product Quick Look The Anker Advantage: Join the 50 million+ powered by our leading technology. Slimmer Yet Stronger: Constructed with quadruple bulletproof fiber cores to withstand up to 25,000 bends. An</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_60w_usb2_cable_claims_3</code> | bytes [3708, 3754) | <code>29992dac59b1ca345992a4aa760b595eee132c4f783f73014a9bcff10107bd5e</code></div><pre class="context"><span> is even slimmer than its predecessors—with no reduction in strength. Power Delivery Compatible: Charge Samsung S10 up to 50% in just 30 minutes when you use PowerLine III together with an 18W Power Delivery charger. (Charger not included) Greater Grip: Textured grooves on the head of the cable provide improved grip for easier plug and pull. What You Get: </span><mark>PowerLine III USB-C to USB-C 2.0 Cable (10 ft)</mark><span>, welcome guide, worry-free lifetime warranty, and friendly customer service. Product Dimensions ‏ ‎ 118.11 x 0.47 x 0.27 inches; 3.52 Ounces Item model number ‏ ‎ A8854021 Date First Available ‏ ‎ December 24, 2019 Manufacturer ‏ ‎ anker ASIN ‏ ‎ B0832KMRLT Reviews 12 Write Your Own Review You&#x27;re reviewing: USB C Cable 60W 10ft, Anker Po</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/usb-c-cable-60w-10ft-anker-powerline-iii-usb-c-to-usb-c-cable-2-0-usb-c-charger-cable-for-macbook-pro-2020-ipad-pro-2020-switch-samsung-galaxy-s20-plus-s9-s8-plus-pixel-and-more-white.html" target="_blank" rel="noreferrer">http://localhost:7770/usb-c-cable-60w-10ft-anker-powerline-iii-usb-c-to-usb-c-cable-2-0-usb-c-charger-cable-for-macbook-pro-2020-ipad-pro-2020-switch-samsung-galaxy-s20-plus-s9-s8-plus-pixel-and-more-white.html</a></p><p>冻结文件: <a href="sources/1a1ebc6e4eeda9212c973ad0fd357ff3216604754d6a4a563c11008f1f59ae4f" target="_blank">sources/1a1ebc6e4eeda9212c973ad0fd357ff3216604754d6a4a563c11008f1f59ae4f</a></p><p>内容 SHA-256: <code>1a1ebc6e4eeda9212c973ad0fd357ff3216604754d6a4a563c11008f1f59ae4f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_snapshot_60w_and_usb2_data&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Anker seller page claims a 60 W maximum for this USB-C cable and identifies it as USB-C to USB-C 2.0 with 480 Mbit/s data in its comparison table; connector shape alone does not supply the 20 Gbit/s claim made by the other cable page.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_alogic_port_claims"><header><h3>ev_alogic_port_claims</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;USB-C port 1 up to 100 W alone, USB-C port 2 up to 18 W, two USB-A ports sharing 17 W, and 65 W plus 18 W plus 17 W when all outputs are active&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen ALOGIC four-port charger listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_ev_alogic_port_claims_1</code> | bytes [1164, 1405) | <code>704f42ac0bb2a7a11fca9b7cddf18b03c421ca7b58ab794ad6b111d81606e1e0</code></div><pre class="context"><span> × 29.5mm 66 × 63 × 29.5mm 70 × 68 × 29.5mm 56 × 50 × 29mm GaN Power Tech ✓ ✓ ✓ ✓ Product Quick Look 100W 4 Port Charging: Quick charge 4 devices (2 USB-C, 2 USB-A) at the same time, Max 100W, 2 x USB-C (supporting Power Delivery 3.0) and 2 x USB-A ports. 100W to quick charge a laptop, a tablet, smartphone, and mobile device at the same time. </span><mark>USB-C #1 single output: PD3.0 (5,9,15V/3A, 20V/5A) - 100W* | USB-C #2 single output: PD3.0 (5V/3A, 9V/2A) - 18W | USB-A #1 + #2 output: 5V/3.4A - 17W | *Derated when all ports active as follows: USB-C #1 65W + USB-C #2 18W, USB-A #1 + #2 17W</mark><span> GaN Technology: The ALOGIC USB-C Charger incorporates GaN “Gallium Nitride”, a next-generation semiconductor that replaces silicon &amp; enables very high energy &amp; power in a very small compact &amp; portable size. Compact Power Plug: Using the latest GaN charging technology, makes charger 40-50% smaller than traditional chargers and eliminates the need for a b</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_alogic_port_claims_2</code> | bytes [1969, 2052) | <code>1a7714b3041f8739f6bfe73e4a4f03ce204d394d1762259098e1f9f07fed999b</code></div><pre class="context"><span>e size. Compact Power Plug: Using the latest GaN charging technology, makes charger 40-50% smaller than traditional chargers and eliminates the need for a bulky cable to connect the charger to the power outlet. The result is a take-anywhere charger that can be thrown in a laptop bag for on the road use without taking up valuable space and weighing you down. </span><mark>2-meter Cable: Wall Charger comes with USB-C to USB-C 2-meter double braided cable.</mark><span> Certified Safe: The Charger has met stringent standards and earned certification from the USB Industry Foundation –the body that governs USB standards. The charger is also Certified in accordance with FCC and UL 60950-1 Reviews Write Your Own Review You&#x27;re reviewing: ALOGIC 100W 4-Port PD USB C Wall Charger with GaN Fast Tech, 2 USB-C, 2 USB-A, Dynamic Po</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/alogic-100w-4-port-pd-usb-c-wall-charger-with-gan-fast-tech-2-usb-c-2-usb-a-dynamic-power-allocation-power-delivery-3-0-charger-for-macbook-m1-mac-xps-ipad-pro-iphone-galaxy-more.html" target="_blank" rel="noreferrer">http://localhost:7770/alogic-100w-4-port-pd-usb-c-wall-charger-with-gan-fast-tech-2-usb-c-2-usb-a-dynamic-power-allocation-power-delivery-3-0-charger-for-macbook-m1-mac-xps-ipad-pro-iphone-galaxy-more.html</a></p><p>冻结文件: <a href="sources/eb1f5e27218c389b6bd881c8d5955f6f59e9c389c780574f51cf16578d123999" target="_blank">sources/eb1f5e27218c389b6bd881c8d5955f6f59e9c389c780574f51cf16578d123999</a></p><p>内容 SHA-256: <code>eb1f5e27218c389b6bd881c8d5955f6f59e9c389c780574f51cf16578d123999</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_snapshot_port_specific_and_all_ports_active&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen ALOGIC seller page assigns different ceilings to its ports and says all-port use derates USB-C port 1 from 100 W to 65 W while USB-C port 2 remains 18 W and the USB-A pair shares 17 W.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ev_ultranet_port_claims"><header><h3>ev_ultranet_port_claims</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one USB-C and one USB-A port, PD and PPS, up to 65 W on USB-C with one device, shared allocation with two devices, and an E-Mark cable condition for a MacBook claim&quot;,
+  &quot;predicate&quot;: &quot;advertises_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen ULTRANET charger listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_ev_ultranet_port_claims_1</code> | bytes [502, 649) | <code>0c4d97cc70cb3ae8c2609d3c5075dcd464ea7e4485474f93723d8b07414bc357</code></div><pre class="context"><span>Air, iPad, iPhone 12, Galaxy and All USB C Charger…
+
+In stock SKU B09G63XDQD Rating: 88 % of 100 12 Reviews Add Your Review $19.98 Color # Black # # New Black # # New Dark Black # # New Green # # New Pink # # New Purple # # New White# Dark Black Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more Simultaneous PD Charging </span><mark>ULTRANET 65W Charger Block with PPS &amp; PD protocol, reaches a max power delivery of 65W, which can fast charge your USB C &amp;A devices simultaneously.</mark><span> With this 2 in 1 power adapter, you do not need to prepare two charger blocks for your USB C and A devices. Faster Charge With upgraded 2nd generation ULTRA GaN+, our PD charger charge Macbook Pro and Air, ipad, iPhone and many other PD devices faster. LED charging indicator With LED charging indicator, observe whether the charger is working at any time. Wh</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_ultranet_port_claims_2</code> | bytes [3264, 3421) | <code>f7db40d0c4a8746740a9d04986f81de7288458f493019aededa0fe176cdb84b6</code></div><pre class="context"><span>ble easy fold back into place for maximum travel portability. A soft travel protecting pouch is provided in the packaging, together with our 2 years warranty and timely customer service. 【Latest GaN Technology】Powered by our upgraded ULTRA GaN+ Technology &amp; PD 3.0, our PPS PD charger is smaller &amp; maximizes charging efficiency with less heat dissipation. </span><mark>65W PD charger will power up your MacBook Pro 13.3” from 0% to 100% in only 2H via a USB-C to USB-C cable with E-Mark chip (Not Included, sold separately).</mark><span> 【Extraordinary Compatibility】 USB C fast charger for deliver the fastest charge to almost all USB-C and USB-A powered devices, undoubtedly your perfect all in one iPhone 12 charger, iPad charger, Macbook pro charger, Samsung Galaxy S21 charger, Nintendo Switch charger and more. 【Intelligent Power Allocation】ULTRANET PD GaN charger smartly distribute</span></pre></section><section class="span"><div class="span-meta"><code>span_ev_ultranet_port_claims_3</code> | bytes [3739, 4008) | <code>761801f67d76df84fd8eaac422a1cc2723edb42d5f5985a25614f01d417a7608</code></div><pre class="context"><span>Mark chip (Not Included, sold separately). 【Extraordinary Compatibility】 USB C fast charger for deliver the fastest charge to almost all USB-C and USB-A powered devices, undoubtedly your perfect all in one iPhone 12 charger, iPad charger, Macbook pro charger, Samsung Galaxy S21 charger, Nintendo Switch charger and more. 【Intelligent Power Allocation】</span><mark>ULTRANET PD GaN charger smartly distributes 65W of power between 2 devices when charging simultaneously to shorten charging time and minimize heat dissipation. Our USB wall charger supports high-speed charging up to 65W when a single device is connected via USB C port.</mark><span> Product Dimensions 2.16 x 1.28 x 2.13 inches Item Weight 5 ounces Connectivity technologies USB Other display features CE Colour # New White# Manufacturer ULTRANET Date First Available September 23, 2021 Reviews 12 Write Your Own Review You&#x27;re reviewing: Fast Charger with LED by ULTRANET, USB C Charger Block 65W 2-Port GaN+ PPS PD Charger, Foldable and Comp</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/fast-charger-with-led-by-ultranet-usb-c-charger-block-65w-2-port-gan-pps-pd-charger-foldable-and-compact-usb-wall-charger-for-macbook-pro-air-ipad-iphone-12-galaxy-and-all-usb-c-charger.html" target="_blank" rel="noreferrer">http://localhost:7770/fast-charger-with-led-by-ultranet-usb-c-charger-block-65w-2-port-gan-pps-pd-charger-foldable-and-compact-usb-wall-charger-for-macbook-pro-air-ipad-iphone-12-galaxy-and-all-usb-c-charger.html</a></p><p>冻结文件: <a href="sources/3ddf3c805b53741f2a1a6904f9964e0f9bdcabbf1ebfd6116245c0d7972af803" target="_blank">sources/3ddf3c805b53741f2a1a6904f9964e0f9bdcabbf1ebfd6116245c0d7972af803</a></p><p>内容 SHA-256: <code>3ddf3c805b53741f2a1a6904f9964e0f9bdcabbf1ebfd6116245c0d7972af803</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_snapshot_single_and_dual_port_conditions&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen ULTRANET seller page claims PD and PPS, 65 W from its USB-C port with one device, shared allocation with two devices, and an E-Mark cable condition for one MacBook charging claim; it is not an independent test.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_gt_neo5_bundle_scope"><header><h3>prop_gt_neo5_bundle_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the bundled proprietary charger and proprietary USB-C cable to use the advertised charging rate&quot;,
+  &quot;predicate&quot;: &quot;requires_exact_proprietary_bundle&quot;,
+  &quot;subject&quot;: &quot;Realme GT Neo5 240 W SuperVOOC implementation&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_gt_neo5_bundle_scope_1</code> | bytes [6392, 6551) | <code>5a69326ef2e83d1c5b60366653c9ebdea218ca6c9e9b719d31fcaefd86aecec0</code></div><pre class="context"><span> , and Super Flash Charge . [ 23 ] [ 24 ] For regions that use a voltage of 100-125V, including Japan, Taiwan, North America, and Latin America, the charging supports up to 66W. [ 25 ] 240 W version of SuperVOOC (2022). 20V/12A. Announced at 2022 Mobile World Congress . [ 26 ] It is advertised as being able to charge 4,500 mAh battery in 9 minutes. [ 27 ] </span><mark>It is implemented by Realme GT Neo5, which requires the use of bundled proprietary charger and proprietary USB-C cable to utilize the advertised charging rate.</mark><span> The power is delivered through the cable at 20 V and converted to 10 V inside the handset by 3 charge controller chips, each rated 100 W max, before finally being stepped down to 4.5 V for the battery. [ 28 ] HyperTone camera systems In November 2023, at Paris Photo 2023, OPPO and Hasselblad revealed their collaboration to develop the next generation of H</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_gt_neo5_bundle_scope_2</code> | bytes [5533, 5629) | <code>992d1e364f6c53fee279ee13e4b8ec71fa998a7b048315317fb1876bfb727ef7</code></div><pre class="context"><span>Multi-step Constant-Current Charging ) is a fast charging method for Oppo phones unveiled in 2014. [ 16 ] [ 17 ] [ 18 ] VOOC comes in a few variations: VOOC 2.0 (2015), same as the first version that was introduced in 2014, which operates at 5V/4A. SuperVOOC (2016), a successor of VOOC 2.0 with 10 V/5 A (50W). It charges a two-cell battery in series. [ 19 ] </span><mark>It is based on &quot;low voltage pulse&quot; charging that works in conjunction with a customized battery.</mark><span> [ 20 ] VOOC 3.0 (2019), Advertised as 23.8% faster than VOOC 2.0. [ 21 ] 5V/6A, also marketed as Warp Charge 30 . [ 16 ] VOOC 4.0 (2019 Sep), a successor of VOOC 3.0, which operates at 5 V/6 A (30W). [ 22 ] It can charge the phone up to 67% in 30 minutes. SuperVOOC 2.0 (2020), 10V/6.5A. Alternate name: Warp Charge 65. [ 16 ] SuperVOOC 2.0 (2022), 11V/7.3A. </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Oppo" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Oppo</a></p><p>冻结文件: <a href="sources/fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e" target="_blank">sources/fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e</a></p><p>内容 SHA-256: <code>fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_realme_gt_neo5_bundle_not_other_models_or_families&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Oppo page says the Realme GT Neo5 implementation requires its bundled proprietary charger and proprietary USB-C cable to use the advertised 240 W SuperVOOC rate; this cannot be generalized to unlisted Oppo, Realme, or OnePlus models.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_iphone_charge_state_scope"><header><h3>prop_iphone_charge_state_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;slow progress near 75 percent with MagSafe and Lightning connected to a 30 W USB-C brick, followed by faster progress in a later trial starting at 49 percent&quot;,
+  &quot;predicate&quot;: &quot;reports_scoped_rate_changes&quot;,
+  &quot;subject&quot;: &quot;one iPhone 14 Pro Max charging thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_iphone_charge_state_scope_1</code> | bytes [137, 404) | <code>7ae2ae730596a0cfd0ef3f583dd816d9a19638d78d62938deb54197b783aaf82</code></div><pre class="context"><span>Support request - iPhone 14PM charging speed question
+
+Just came from a 12Pro (regular) and it charged lightning (no pun intended) fast. </span><mark>With this new iPhone 14PM, I put it on at 75% and it took a full 5 minutes to go up a single percentage. True on both MagSafe and lightning cable attached to a MacBook Air USB C 30w brick. All Apple cables and chargers. Also true regardless of optimization on or off.</mark><span> 0
+
+You went to a phone with a larger battery. It’ll take longer to charge in general, no matter the method.
+
+Fair but 1% in 5 minutes on a 30w charger is particularly slow, no? That suggests it would take 8 hours to charge on a fast charger.
+
+Depends on how charged it is when you plug it in. Charging isn’t an instant thing, you know. :)
+
+Haha fair
+
+5 mi</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_iphone_charge_state_scope_2</code> | bytes [1368, 1516) | <code>48dd0454c7369aaca13f526b59c75c691f0e240ee454d94c6c81f69ac66eefda</code></div><pre class="context"><span>down. The last 25% takes longer than the first 75%, or close to it. This is on my 13Pro, but I’m sure it’s similar on the new 14’s.
+
+I’ve had issues where my phone was draining faster then it charges and it fixes after a restart, that could be the case here possibly
+
+Bigger battery and the lightning cable is not really the fastest charger out there
+
+</span><mark>Did some messing around and as someone said below, it seems to throttle as it gets closer to 80. Plugged it in at 49 for 4 minutes and it jumped 7%.</mark><span></span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62346/support-request-iphone-14pm-charging-speed-question" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62346/support-request-iphone-14pm-charging-speed-question</a></p><p>冻结文件: <a href="sources/b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e" target="_blank">sources/b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e</a></p><p>内容 SHA-256: <code>b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_uncontrolled_report_magsafe_or_lightning_phone_side_not_usbc&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One iPhone 14 Pro Max author reports one percentage point in five minutes near 75 percent with both MagSafe and a Lightning cable attached to a 30 W USB-C brick, then seven points in four minutes from 49 percent; this is an uncontrolled state-dependent observation and the phone-side cable is Lightning.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lightning_pin_anecdote_scope"><header><h3>prop_lightning_pin_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author reports Lightning pin failures as quickly as one week while another participant reports no official Apple cable failure and identifies unusually careful handling&quot;,
+  &quot;predicate&quot;: &quot;report_conflicting_individual_experiences&quot;,
+  &quot;subject&quot;: &quot;participants in one Lightning cable thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lightning_pin_anecdote_scope_1</code> | bytes [136, 302) | <code>a6b46775e969e3e2f5b89cae5796fb8b3209d211c63d46ecd532182c02cc3a20</code></div><pre class="context"><span>Cables with the most durable lighting pins?
+
+I keep noticing that out of all the cables I own, lighting connectors degrade really fast. </span><mark>I have usb cables that are 20 years old that still work. I’ve had lighting connectors go bag in a week. The pins degrade and seem to run off or fall out or oxidize.</mark><span> Anyone know if a cable with a really durable connector or what to look for? 2
+
+I mean. I’ve never had an official Apple cable fail me. Get tatty? Sure. But fail me? I’ve not had that happen personally. But full disclosure I’m a very cautious user of all my tech soo I’m probably more gentle than most.
+
+The 4th pin is burned right? I think the cable i</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lightning_pin_anecdote_scope_2</code> | bytes [382, 612) | <code>660a52f3d53e8e6fd1baac43583c36cd7d29f3bc05646c396dbbe4e58a285613</code></div><pre class="context"><span>urable lighting pins?
+
+I keep noticing that out of all the cables I own, lighting connectors degrade really fast. I have usb cables that are 20 years old that still work. I’ve had lighting connectors go bag in a week. The pins degrade and seem to run off or fall out or oxidize. Anyone know if a cable with a really durable connector or what to look for? 2
+
+</span><mark>I mean. I’ve never had an official Apple cable fail me. Get tatty? Sure. But fail me? I’ve not had that happen personally. But full disclosure I’m a very cautious user of all my tech soo I’m probably more gentle than most.</mark><span>
+
+The 4th pin is burned right? I think the cable is always energized and when you slide it in, it arcs.. burning the fourth pin over time. Best thing to do is to unplug and plug the charger before and after plugging the iPhone. Or use apple bricks rather than other bricks. With the new usb-c apple bricks, this is no longer the case, the power is requested by</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106050/cables-with-the-most-durable-lighting-pins" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106050/cables-with-the-most-durable-lighting-pins</a></p><p>冻结文件: <a href="sources/f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b" target="_blank">sources/f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b</a></p><p>内容 SHA-256: <code>f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;conflicting_lightning_anecdotes_not_usb_c_lifetime_or_brand_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One author reports rapid Lightning connector-pin failures while another careful user reports no official Apple cable failure; these conflicting anecdotes do not establish USB-C contact life, population reliability, or a brand ranking.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_s22_profile_scope"><header><h3>prop_s22_profile_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;S22 at 25 W with PPS or 15 W without PPS, and S22+ or S22 Ultra at 45 W with PPS or 15 W without PPS&quot;,
+  &quot;predicate&quot;: &quot;lists_model_specific_charging_profiles&quot;,
+  &quot;subject&quot;: &quot;Samsung Galaxy S22 family&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_s22_profile_scope_1</code> | bytes [1612, 1731) | <code>544ab034f04ae16d03640acd318aac606bbd8af2b9d72e93c9cabb3c21fc0906</code></div><pre class="context"><span>) GPU Exynos : Xclipse 920 (based on AMD RDNA 2 ) Snapdragon : Adreno 730 Memory S22 and S22+ : 8 GB RAM S22 Ultra : 8 or 12 GB RAM Storage UFS 3.1 S22/S22+ : 128 or 256 GB S22 Ultra : 128, 256, 512 GB or 1 TB Removable storage None SIM nanoSIM , eSIM Single SIM or Hybrid Dual SIM in dual stand-by Battery S22 : 3700 mAh S22+ : 4500 mAh S22 Ultra : 5000 mAh </span><mark>Charging USB PD: S22 : 25 W (PPS), 15W (non-PPS) S22+ and S22 Ultra : 45W (PPS), 15W (non-PPS) All models: 15W wireless</mark><span> Rear camera S22 and S22+ : 50 MP, f/1.8, 24 mm (wide), 1/1.56&quot;, 1.0Âµm, Dual Pixel PDAF, OIS 10 MP, f/2.4, 70 mm (telephoto), 1/3.94&quot;, 1.0Âµm, PDAF, OIS, 3x optical zoom 12 MP, f/2.2, 13 mm, 120Ë (ultrawide), 1/2.55&quot; 1.4Âµm, Super Steady video S22 Ultra: 108 MP, f/1.8, 24 mm (wide), 1/1.33&quot;, 0.8Âµm, PDAF, Laser AF, OIS 10 MP, f/4.9, 230 mm (</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_s22_profile_scope_2</code> | bytes [2974, 2996) | <code>159ea9c0001313930b24d9b589af0c30aebf4601a9824288264cc310ca2ddfef</code></div><pre class="context"><span>ak), Diamond PenTile S22 : 6.1 in (150 mm) 2340âÃâ1080 (425 ppi), 19.5:9 aspect ratio , 120 Hz refresh rate S22+ : 6.6 in (170 mm) 2340âÃâ1080 (393 ppi), 19.5:9 aspect ratio, 120 Hz S22 Ultra : 6.8 in (170 mm) 3088âÃâ1440 (500 ppi), 19.3:9 aspect ratio, 120 Hz LTPO Sound Dolby Atmos stereo speakers tuned by AKG </span><mark>Connectivity USB-C 3.2</mark><span> Wi-Fi 802.11 a/b/g/n/ac/6(6e: S22+ and S22 Ultra) , dual-band (S22)/tri-band (S22+ and S22 Ultra), Wi-Fi Direct, hotspot Bluetooth 5.2 , A2DP, LE Data inputs S Pen (S22 Ultra) Accelerometer Barometer Fingerprint scanner (under display, ultrasonic) Pressure sensor Magnetometer Gyroscope Hall sensor Proximity sensor RGB light sensor Dual band GNSS ( GPS / GLO</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22</a></p><p>冻结文件: <a href="sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835" target="_blank">sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</a></p><p>内容 SHA-256: <code>2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;exact_s22_family_profiles_not_other_galaxy_models&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Galaxy S22 page lists S22 at 25 W with PPS and 15 W without PPS, while S22+ and S22 Ultra are 45 W with PPS and 15 W without PPS; this is an exact family example, not a rule for other Galaxy phones.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_usb_convergence_optional_scope"><header><h3>prop_usb_convergence_optional_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;USB began by replacing several peripheral interfaces, Standard, Mini, and Micro forms preceded Type-C, and reversible Type-C supports many hardware-dependent optional functions&quot;,
+  &quot;predicate&quot;: &quot;standardizes_shape_without_fixing_all_capabilities&quot;,
+  &quot;subject&quot;: &quot;USB connector evolution and USB-C&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_usb_convergence_optional_scope_1</code> | bytes [982, 1205) | <code>2b676f943fd63336052f5fc431f264fc94d1a40a5649970f3493093dfd958281</code></div><pre class="context"><span>very between many types of electronics. It specifies the architecture, in particular the physical interfaces , and communication protocols to and from hosts , such as personal computers , to and from peripheral devices , e.g. displays, keyboards, and mass storage devices, and to and from intermediate hubs , which multiply the number of a host&#x27;s ports. [ 2 ] </span><mark>Introduced in 1996, USB was originally designed to standardize the connection of peripherals to computers, replacing various interfaces such as serial ports , parallel ports , game ports , and Apple Desktop Bus (ADB) ports.</mark><span> [ 3 ] Early versions of USB became commonplace on a wide range of devices, such as keyboards, mice, cameras, printers, scanners, flash drives, smartphones, game consoles, and power banks. [ 4 ] USB has since evolved into a standard to replace virtually all common ports on computers, mobile devices, peripherals, power supplies, and manifold other small elect</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usb_convergence_optional_scope_2</code> | bytes [3907, 3980) | <code>f73c22d8da43000ca4c56e4fedc4ed6c81d277c356b15355cb4354e5a2d34f54</code></div><pre class="context"><span>able devices. [ 10 ] [ 11 ] [ 12 ] USB connector interfaces are classified into three types: the many various legacy Type-A (controlling host) and Type-B (attached device) connectors found on hosts , hubs , and peripheral devices , and the modern Type-C ( USB-C ) connector, which replaces the many legacy connectors as the only applicable connector for USB4. </span><mark>The Type-A and Type-B connectors came in Standard, Mini, and Micro sizes.</mark><span> The standard format was the largest and was mainly used for desktop and larger peripheral equipment. The Mini-USB connectors (Mini-A, Mini-B, Mini-AB) were introduced for mobile devices. Still, they were quickly replaced by the thinner Micro-USB connectors (Micro-A, Micro-B, Micro-AB). The Type-C connector, also known as USB-C, is not exclusive to USB, is t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usb_convergence_optional_scope_3</code> | bytes [4268, 4477) | <code>21037cfa5be2a6571828ffb6fcc9aab447177085618a9341002f6e318ab24514</code></div><pre class="context"><span>he Type-A and Type-B connectors came in Standard, Mini, and Micro sizes. The standard format was the largest and was mainly used for desktop and larger peripheral equipment. The Mini-USB connectors (Mini-A, Mini-B, Mini-AB) were introduced for mobile devices. Still, they were quickly replaced by the thinner Micro-USB connectors (Micro-A, Micro-B, Micro-AB). </span><mark>The Type-C connector, also known as USB-C, is not exclusive to USB, is the only current standard for USB, is required for USB4, and is required by other standards, including modern DisplayPort and Thunderbolt.</mark><span> It is reversible and can support various functionalities and protocols, including USB; some are mandatory, and many are optional, depending on the type of hardware: host, peripheral device, or hub. [ 13 ] [ 14 ] USB specifications provide backward compatibility, usually resulting in decreased signaling rates, maximal power offered, and other capabilities. T</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usb_convergence_optional_scope_4</code> | bytes [4478, 4675) | <code>6e27e41cf9ab2c5a8c68223158fe7e811f797546d0465d6977cd7ec919a1e284</code></div><pre class="context"><span>i-B, Mini-AB) were introduced for mobile devices. Still, they were quickly replaced by the thinner Micro-USB connectors (Micro-A, Micro-B, Micro-AB). The Type-C connector, also known as USB-C, is not exclusive to USB, is the only current standard for USB, is required for USB4, and is required by other standards, including modern DisplayPort and Thunderbolt. </span><mark>It is reversible and can support various functionalities and protocols, including USB; some are mandatory, and many are optional, depending on the type of hardware: host, peripheral device, or hub.</mark><span> [ 13 ] [ 14 ] USB specifications provide backward compatibility, usually resulting in decreased signaling rates, maximal power offered, and other capabilities. The USB 1.1 specification replaces USB 1.0. The USB 2.0 specification is backward-compatible with USB 1.0/1.1. The USB 3.2 specification replaces USB 3.1 (and USB 3.0) while including the USB 2.0 spe</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usb_convergence_optional_scope_5</code> | bytes [4690, 4835) | <code>cff92c2e2170ae77df79aea7f203652fdbca5ede05e3ba54f3964c2b6af2419f</code></div><pre class="context"><span> USB, is the only current standard for USB, is required for USB4, and is required by other standards, including modern DisplayPort and Thunderbolt. It is reversible and can support various functionalities and protocols, including USB; some are mandatory, and many are optional, depending on the type of hardware: host, peripheral device, or hub. [ 13 ] [ 14 ] </span><mark>USB specifications provide backward compatibility, usually resulting in decreased signaling rates, maximal power offered, and other capabilities.</mark><span> The USB 1.1 specification replaces USB 1.0. The USB 2.0 specification is backward-compatible with USB 1.0/1.1. The USB 3.2 specification replaces USB 3.1 (and USB 3.0) while including the USB 2.0 specification. USB4 &quot;functionally replaces&quot; USB 3.2 while retaining the USB 2.0 bus operating in parallel. [ 5 ] [ 6 ] [ 15 ] [ 2 ] The USB 3.0 specification defi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/USB</a></p><p>冻结文件: <a href="sources/8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e" target="_blank">sources/8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e</a></p><p>内容 SHA-256: <code>8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_history_and_optional_capabilities_not_one_product&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;USB was introduced to standardize peripheral connections; Standard, Mini, and Micro forms preceded Type-C, while reversible USB-C can carry several protocols and many hardware-dependent optional functions, so appearance does not determine capability.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_usb_hardware_cable_scope"><header><h3>prop_usb_hardware_cable_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;USB Power Delivery can reach 240 W, a standard USB-C cable is specified for 60 W and at least USB 2.0 data, Type-C peers negotiate roles, and broader USB cabling includes charge-only arrangements&quot;,
+  &quot;predicate&quot;: &quot;separates_power_data_and_role_capabilities&quot;,
+  &quot;subject&quot;: &quot;USB power and cable hardware&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_usb_hardware_cable_scope_1</code> | bytes [799, 893) | <code>c61f056f143cf48460b282e961e26baaf84d66469f28c87c99b4a12a2be4ee50</code></div><pre class="context"><span> namely, in 2008, USB 3.0 added a full-duplex lane (two twisted pairs of wires for one differential signal of serial data per direction), and in 2014, the USB-C specification added a second full-duplex lane. USB has always included some capability of providing power to peripheral devices, but the amount of power that can be provided has increased over time. </span><mark>The modern specifications are called USB Power Delivery ( USB-PD ) and allow up to 240 watts .</mark><span> Initially USB 1.0/2.0 provided up to 2.5 W, USB 3.0 provided up to 4.5 W, and subsequent Battery Charging (BC) specifications provided power up to 7.5 W. The modern Power Delivery specifications began with USB PD 1.0 in 2012, providing for power delivery up to 60 watts; PD 2.0 version 1.2 in 2013, along with USB 3.1, up to 100 W; and USB PD 3.1 in</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usb_hardware_cable_scope_2</code> | bytes [1568, 1658) | <code>7c4028163f733e38ba1345d5d54cf0b5f9c916b5b1a87a8e3d43a54383b8a9f7</code></div><pre class="context"><span>th USB 3.1, up to 100 W; and USB PD 3.1 in 2021 raised the maximum to 240 W. USB has been selected as the charging format for many mobile phones and other peripheral devices and hubs, reducing the proliferation of proprietary chargers. Since USB 3.1 USB-PD is part of the USB standard. The latest PD versions can also provide power to lower power laptops. </span><mark>A standard USB-C cable is specified for 60 watts and at least of USB 2.0 data capability.</mark><span> In 2019, USB4, now exclusively based on USB-C, added connection-oriented video and audio interfacing abilities ( DisplayPort ) and compatibility to Thunderbolt 3+ . Connectors Unlike other data buses (such as Ethernet ), USB connections are directed; a host device has downstream -facing ports (DFP) that connect to the upstream -facing port (UFP) of hubs or </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usb_hardware_cable_scope_3</code> | bytes [3171, 3340) | <code>4191c62d487c5852d09eaf7d944e73d7fd0b6d8c76411cd28805b7c5e784c401</code></div><pre class="context"><span> not compliant with the USB standards. [ 1 ] With the release of TypeâC came transitional cables: a TypeâC plug at one end and a Type-A or a Type-B plug at the other. These transitional cables are still directional, and in such a cable the TypeâC plug is electrically marked as either A or B as appropriate to complement the opposite connector. </span><mark>The modern standard is a cable with a Type-C plug on each end; these cables are non-directional, leaving it to the connected devices to negotiate their respective roles.</mark><span> All legacy receptacles are either Type-A or Type-B except the MicroâAB and (deprecated [ 3 ] ) MiniâAB receptacles. A Type-AB receptacle accepts both Type-A and Type-B plugs, and a device with such a receptacle takes the DFP (host, hub DFP) or UFP (peripheral device, hub UFP) role according to the type of plug attached. There are three sizes of le</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usb_hardware_cable_scope_4</code> | bytes [13301, 13356) | <code>8e0d8199fa17187aaa82dd54f13e8e5d25f89b9a33d6d8cbb9f759a9eb3be3dc</code></div><pre class="context"><span>that power and grounding is established before the data conductors are connected, and the reverse when unplugging. Some devices operate in different modes depending on whether the data connection is made. Charging docks supply power and do not include a host device or data pins, allowing any capable USB device to charge or operate from a standard USB cable. </span><mark>Charging cables provide power connections but not data.</mark><span> In a charge-only cable, the data wires are shorted at the device end; otherwise, the device may reject the charger as unsuitable. Standard connectors StandardâA connectors: This plug has an elongated rectangular cross-section, inserts into a StandardâA receptacle on a downstream facing port (DFP) on a USB host or hub, and carries both power and da</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB_hardware" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/USB_hardware</a></p><p>冻结文件: <a href="sources/3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e" target="_blank">sources/3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e</a></p><p>内容 SHA-256: <code>3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_usb_hardware_boundaries_not_specific_combination_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The USB hardware page distinguishes power, data, and role behavior: USB Power Delivery can reach 240 W, a standard USB-C cable is specified for 60 W and at least USB 2.0 data, Type-C peers negotiate roles, and USB also has charge-only cable arrangements.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_usb_negotiation_scope"><header><h3>prop_usb_negotiation_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;parameters such as speed and power through standard protocols including USB Device Framework and USB Power Delivery&quot;,
+  &quot;predicate&quot;: &quot;identify_and_negotiate&quot;,
+  &quot;subject&quot;: &quot;connected USB devices&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_usb_negotiation_scope_1</code> | bytes [772, 957) | <code>cdeffcba4fd8402821bbd516aa3019055ce7ec125fc185c37e9a57919217eee7</code></div><pre class="context"><span>s, mice, flash drives , external hard drives , joysticks , cameras , monitors , and more to computers of all kinds. USB also supports signaling rates from 1.5 Mbit/s (Low speed) to 80 Gbit/s ( USB4 2.0) depending on the version of the standard. The article explains how USB devices transmit and receive data using electrical signals over the physical layer , </span><mark>how they identify themselves and negotiate parameters such as speed and power with the host or other devices using standard protocols such as USB Device Framework and USB Power Delivery</mark><span>, and how they exchange data using packets of different types and formats such as token, data, handshake, and special packets. Signaling (USB PHY) Signaling rate (transmission rate) Mode [ 1 ] Abbrev. Signaling rate Typical data rates Introduced in Low speed LS 1.5 Mbit/s (187.5 KB/s) USB 1.0 Full speed FS 12 Mbit/s (1.5 MB/s) USB 1.0 High speed; also,</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB_communications" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/USB_communications</a></p><p>冻结文件: <a href="sources/d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788" target="_blank">sources/d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788</a></p><p>内容 SHA-256: <code>d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_protocol_mechanism_not_fastest_mode_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The USB communications page says connected devices identify themselves and negotiate parameters such as speed and power through protocols including USB Device Framework and USB Power Delivery; negotiation does not guarantee the maximum printed on either device.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_xsmax_repair_debris_scope"><header><h3>prop_xsmax_repair_debris_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;several MFi cables stopped working after back-glass repair while an official 20 W combination and wireless charging worked, then small port debris removal was reported to fix the problem&quot;,
+  &quot;predicate&quot;: &quot;reports_confounded_compatibility_and_fix&quot;,
+  &quot;subject&quot;: &quot;one post-repair iPhone XS Max thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_xsmax_repair_debris_scope_1</code> | bytes [0, 141) | <code>db4923a3fae48b2ef95320cea8b439147e433d7d805b4f684293e3a9f594a1e6</code></div><pre class="context"><span></span><mark>Changed my back-glass on XS Max, now only my 20w official apple charger and wireless chargers will work. Any ideas what may have caused this?</mark><span>
+
+I&#x27;ve got a bunch of MFi certified cables that just don&#x27;t work now... and though it&#x27;s not a massive problem, it seems quite strange to me. Could I have damaged the MFi sensor or something? I suppose it&#x27;s possible the back glass replacement had nothing to do with it, but I find that difficult to believe. Everything else is working fine. 3
+
+Hard to say withou</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xsmax_repair_debris_scope_2</code> | bytes [143, 280) | <code>f1adafa47230acfccadd0970c5cae2bc1e72a027eb0da3238f1a9c98ab8e2b3c</code></div><pre class="context"><span>Changed my back-glass on XS Max, now only my 20w official apple charger and wireless chargers will work. Any ideas what may have caused this?
+
+</span><mark>I&#x27;ve got a bunch of MFi certified cables that just don&#x27;t work now... and though it&#x27;s not a massive problem, it seems quite strange to me.</mark><span> Could I have damaged the MFi sensor or something? I suppose it&#x27;s possible the back glass replacement had nothing to do with it, but I find that difficult to believe. Everything else is working fine. 3
+
+Hard to say without looking at device, please double (triple?) check the port itself, any debris or something? Did you change the back yourself? Could also j</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_xsmax_repair_debris_scope_3</code> | bytes [703, 998) | <code>3d0ed3b07921b942aca78536d116f624d7dc692024ae502825ca80d3554d552c</code></div><pre class="context"><span>&#x27;s possible the back glass replacement had nothing to do with it, but I find that difficult to believe. Everything else is working fine. 3
+
+Hard to say without looking at device, please double (triple?) check the port itself, any debris or something? Did you change the back yourself? Could also just that the connector wasn’t plugged back in correctly….
+
+</span><mark>The triple check for debris was it! I gave it a good brushing and scraping… but I guess my pursed lips don’t do as good a job at dust and small debris eviction as a legit air compressor with an air pic just did! Thank you!!! There was barely anything in there… but it did the trick anyway.</mark><span>
+
+Well done. Sometimes it’s the triple check if something doesn’t work but it suppose to be.
+
+I did change the back glass myself… though i did not (at least intentionally) disconnect anything to do so. I did my best to clean the port out thoroughly… I don’t believe that is the issue, as it worked fine just previous to the back glass replacement… </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106055/changed-my-back-glass-on-xs-max-now-only-my-20w-official" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106055/changed-my-back-glass-on-xs-max-now-only-my-20w-official</a></p><p>冻结文件: <a href="sources/3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765" target="_blank">sources/3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765</a></p><p>内容 SHA-256: <code>3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;lightning_phone_post_repair_and_debris_confounding&quot;,
+    &quot;topic_cluster&quot;: &quot;usbc_convergence_capability_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One iPhone XS Max author reports post-repair failures with several MFi cables and continued operation with an official 20 W combination and wireless charging, then says compressed-air removal of small port debris fixed it; repair timing and debris prevent attribution to a protocol or charger.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_usbc_0030</td><td>case_spec</td><td><a href="sources/f3097ce8721aa18a8c2d0042fef0089d6ce512871b04077d6b9f0233f2b81f40">f3097ce8721aa18a8c2d0042fef0089d6ce512871b04077d6b9f0233f2b81f40</a></td><td><a href="http://case-spec.local/dra_v3_formal_smartphones_0030" target="_blank" rel="noreferrer">来源 URL</a></td><td>9320</td></tr><tr><td>reg_magento_100w_20gbps_emarker_cable</td><td>magento</td><td><a href="sources/c6a7aa95d6d855b35909d7aca092ebcd78c0165b4110fab64b7d7153e76788cb">c6a7aa95d6d855b35909d7aca092ebcd78c0165b4110fab64b7d7153e76788cb</a></td><td><a href="http://localhost:7770/usb-c-3-2-gen2x2-cable-100w-20gbps-updated-90-degree-right-angle-usb-c-to-c-3-2-cable-4kat60hz-video-cord-with-e-marker-for-thunderbolt-3-4-oculus-quest-imac-macbook-ipad-pro-dell-xps-6-6-ft.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>5340</td></tr><tr><td>reg_magento_alogic_100w_four_port</td><td>magento</td><td><a href="sources/eb1f5e27218c389b6bd881c8d5955f6f59e9c389c780574f51cf16578d123999">eb1f5e27218c389b6bd881c8d5955f6f59e9c389c780574f51cf16578d123999</a></td><td><a href="http://localhost:7770/alogic-100w-4-port-pd-usb-c-wall-charger-with-gan-fast-tech-2-usb-c-2-usb-a-dynamic-power-allocation-power-delivery-3-0-charger-for-macbook-m1-mac-xps-ipad-pro-iphone-galaxy-more.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2608</td></tr><tr><td>reg_magento_anker_60w_usb2_cable</td><td>magento</td><td><a href="sources/1a1ebc6e4eeda9212c973ad0fd357ff3216604754d6a4a563c11008f1f59ae4f">1a1ebc6e4eeda9212c973ad0fd357ff3216604754d6a4a563c11008f1f59ae4f</a></td><td><a href="http://localhost:7770/usb-c-cable-60w-10ft-anker-powerline-iii-usb-c-to-usb-c-cable-2-0-usb-c-charger-cable-for-macbook-pro-2020-ipad-pro-2020-switch-samsung-galaxy-s20-plus-s9-s8-plus-pixel-and-more-white.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4372</td></tr><tr><td>reg_magento_ultranet_65w_two_port</td><td>magento</td><td><a href="sources/3ddf3c805b53741f2a1a6904f9964e0f9bdcabbf1ebfd6116245c0d7972af803">3ddf3c805b53741f2a1a6904f9964e0f9bdcabbf1ebfd6116245c0d7972af803</a></td><td><a href="http://localhost:7770/fast-charger-with-led-by-ultranet-usb-c-charger-block-65w-2-port-gan-pps-pd-charger-foldable-and-compact-usb-wall-charger-for-macbook-pro-air-ipad-iphone-12-galaxy-and-all-usb-c-charger.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4555</td></tr><tr><td>reg_postmill_iphone_charge_rate_question</td><td>postmill</td><td><a href="sources/b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e">b817612f314a0d4d5539b2cdf7ea279a896b31e4f9392e8ad69117219cab500e</a></td><td><a href="http://localhost:9999/f/iphone/62346/support-request-iphone-14pm-charging-speed-question" target="_blank" rel="noreferrer">来源 URL</a></td><td>1516</td></tr><tr><td>reg_postmill_lightning_pin_durability</td><td>postmill</td><td><a href="sources/f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b">f4478ee3a87640607b840db4efd8f0d9f993077b900ac329372fc46faefc7c1b</a></td><td><a href="http://localhost:9999/f/iphone/106050/cables-with-the-most-durable-lighting-pins" target="_blank" rel="noreferrer">来源 URL</a></td><td>1564</td></tr><tr><td>reg_postmill_post_repair_compatibility</td><td>postmill</td><td><a href="sources/3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765">3fc8a5d2e52d8ae873ff96d4fb379c45f7e083a4c09ca3883bd99bed4c611765</a></td><td><a href="http://localhost:9999/f/iphone/106055/changed-my-back-glass-on-xs-max-now-only-my-20w-official" target="_blank" rel="noreferrer">来源 URL</a></td><td>2227</td></tr><tr><td>reg_search_alogic</td><td>search_result</td><td><a href="sources/455f71aac556085274d19ced55fad654cb549ea081a208b80449958b9c97fdb0">455f71aac556085274d19ced55fad654cb549ea081a208b80449958b9c97fdb0</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=e2b0c5e4-47e9-4f09-b8cd-72bb59c89b0a" target="_blank" rel="noreferrer">来源 URL</a></td><td>8700</td></tr><tr><td>reg_search_cable_100w</td><td>search_result</td><td><a href="sources/6d51abcaa7b40e15085f1e6d51321afc387173fb6fc54f3dc7700bc62cfb7111">6d51abcaa7b40e15085f1e6d51321afc387173fb6fc54f3dc7700bc62cfb7111</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=96595dd9-894a-40c6-8ecc-85a7cf2340f8" target="_blank" rel="noreferrer">来源 URL</a></td><td>8442</td></tr><tr><td>reg_search_cable_60w</td><td>search_result</td><td><a href="sources/b5b06bb6d0a2149c38c042d81733f4a314e2e87f89f6d6e94a1da959bde7b315">b5b06bb6d0a2149c38c042d81733f4a314e2e87f89f6d6e94a1da959bde7b315</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=f3771c53-d402-4c12-bb3f-c75c9b003424" target="_blank" rel="noreferrer">来源 URL</a></td><td>8803</td></tr><tr><td>reg_search_gt_neo5_bundle</td><td>search_result</td><td><a href="sources/66f6c3202ffe57bfc3eff80d1c0fbfa751b1343f136313a5b310b58c3b8ba8aa">66f6c3202ffe57bfc3eff80d1c0fbfa751b1343f136313a5b310b58c3b8ba8aa</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=25cfadfe-f1b4-4aca-bf79-c239ca73c756" target="_blank" rel="noreferrer">来源 URL</a></td><td>1428</td></tr><tr><td>reg_search_iphone_charge_state</td><td>search_result</td><td><a href="sources/47d66903716b3b1d2d7f982c28ba5e633a6df0624dac378beae232d6827a2c89">47d66903716b3b1d2d7f982c28ba5e633a6df0624dac378beae232d6827a2c89</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=f77ff67c-c698-4a54-aca6-a6cab204c3e9" target="_blank" rel="noreferrer">来源 URL</a></td><td>56576</td></tr><tr><td>reg_search_lightning_pins</td><td>search_result</td><td><a href="sources/e1b786586c8eb5bb1fef38a73aac3a246c5c48338be1dbc6e42a18dbe3d20528">e1b786586c8eb5bb1fef38a73aac3a246c5c48338be1dbc6e42a18dbe3d20528</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=fdd27468-8389-476c-91d3-d352c95300ae" target="_blank" rel="noreferrer">来源 URL</a></td><td>47288</td></tr><tr><td>reg_search_s22_profiles</td><td>search_result</td><td><a href="sources/06936998b18dc93fa5269f9d827e76579ebb4d13b39b214c56c141bfa08f9152">06936998b18dc93fa5269f9d827e76579ebb4d13b39b214c56c141bfa08f9152</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=d3763dc5-fb45-4e3c-b93a-6eefd9c54c05" target="_blank" rel="noreferrer">来源 URL</a></td><td>1446</td></tr><tr><td>reg_search_ultranet</td><td>search_result</td><td><a href="sources/d19a535b986451f227951edadd94e9b1be71f4af269ddbfec192b65308016ed0">d19a535b986451f227951edadd94e9b1be71f4af269ddbfec192b65308016ed0</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=258a6605-7814-4c92-8ed3-d9f699df6416" target="_blank" rel="noreferrer">来源 URL</a></td><td>8817</td></tr><tr><td>reg_search_usb_hardware</td><td>search_result</td><td><a href="sources/b537e9c0996113c4168f87d7b57aea0fbe94a37ffa315da92ea1565ff7ceecd6">b537e9c0996113c4168f87d7b57aea0fbe94a37ffa315da92ea1565ff7ceecd6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=c998367c-fcf0-4f40-bc5f-b195f33638f0" target="_blank" rel="noreferrer">来源 URL</a></td><td>22810</td></tr><tr><td>reg_search_usb_history</td><td>search_result</td><td><a href="sources/d5cd81e5309f27890e6334bcbe65997e2df1d711fe9a823489a713bbf4ed99a9">d5cd81e5309f27890e6334bcbe65997e2df1d711fe9a823489a713bbf4ed99a9</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=6eac7926-2096-471e-9be7-f9d910d2f3a6" target="_blank" rel="noreferrer">来源 URL</a></td><td>60126</td></tr><tr><td>reg_search_usb_negotiation</td><td>search_result</td><td><a href="sources/96c8d65d2c822e7a1c9c6ae28af6bd7ffecaec8c664adc13cca708950861e845">96c8d65d2c822e7a1c9c6ae28af6bd7ffecaec8c664adc13cca708950861e845</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=98e6c8c9-3ce8-4d2f-8dbf-531e48f8f2cb" target="_blank" rel="noreferrer">来源 URL</a></td><td>60801</td></tr><tr><td>reg_search_xsmax_debris</td><td>search_result</td><td><a href="sources/08aac259cb3db8a487a098b7c5466037f10526a1e23d122ceadf5df794c25f44">08aac259cb3db8a487a098b7c5466037f10526a1e23d122ceadf5df794c25f44</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0030-20260716-r1&amp;request_id=1887fcaa-ce9a-4999-82d5-7a40ba09d892" target="_blank" rel="noreferrer">来源 URL</a></td><td>48133</td></tr><tr><td>reg_wiki_oppo_vooc_bundle</td><td>wikipedia</td><td><a href="sources/fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e">fe045098c7e2a4ca0f788dceedfefcf8d0aec9f83b6b4faa1b6f4ae963f5791e</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Oppo" target="_blank" rel="noreferrer">来源 URL</a></td><td>17704</td></tr><tr><td>reg_wiki_s22_charging_profiles</td><td>wikipedia</td><td><a href="sources/2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835">2d51e12d0666d43fe6781bccd88ee62143eeffd639ae169ba29d22f6e9acf835</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Samsung_Galaxy_S22" target="_blank" rel="noreferrer">来源 URL</a></td><td>20274</td></tr><tr><td>reg_wiki_usb_communications_negotiation</td><td>wikipedia</td><td><a href="sources/d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788">d2639aa485caad8bd9739958801531538f5d1333046ce929e5a0595e4d859788</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB_communications" target="_blank" rel="noreferrer">来源 URL</a></td><td>20276</td></tr><tr><td>reg_wiki_usb_hardware_power_cables</td><td>wikipedia</td><td><a href="sources/3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e">3fabbb51303df11f66153ba82a1fcb2928390886855153cb5d7c998496ad525e</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB_hardware" target="_blank" rel="noreferrer">来源 URL</a></td><td>20276</td></tr><tr><td>reg_wiki_usb_standardization</td><td>wikipedia</td><td><a href="sources/8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e">8f70e4f75a00461e6f2455715f1a41ae5c5274a23e027b56fa4733d0c7edda2e</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/USB" target="_blank" rel="noreferrer">来源 URL</a></td><td>20158</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-smartphones-0030-20260716-r1";
+const graphHash = "43939fb99a3ee06ecff1f587c10536cf54ee022946489a4e22bce5589f7c0b26";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

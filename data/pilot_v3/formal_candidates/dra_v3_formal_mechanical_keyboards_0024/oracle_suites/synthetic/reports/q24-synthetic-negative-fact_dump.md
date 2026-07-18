@@ -1,0 +1,21 @@
+The frozen compact listing advertises a 34.99 dollar wired 68-key board with anti-ghosting and a blue-switch configuration; its seller score and claims are not an independent quality, sound, or latency test. [Frozen evidence](http://localhost:7770/60-mechanical-gaming-keyboard-compact-type-c-wired-68-keys-led-backlit-usb-waterproof-keyboard-18-chroma-rgb-backlight-full-anti-ghosting-keys-compatible-with-ps4-ps5-xbox-pc-blue-blue-switch.html).
+
+The frozen EPOMAKER listing advertises an 89.99 dollar wired 61-key hot-swappable board with Gateron Yellow, Orange, or Pink options; the listing does not independently establish how those switches feel for this buyer. [Frozen evidence](http://localhost:7770/epomaker-akko-3061s-world-tour-r2-60-wired-hotswap-mechanical-gaming-keyboard-with-rgb-backlight-dye-sublimation-pbt-keycaps-nkro-programmable-for-gamers-mac-win-gateron-yellow-switch-61-keys.html).
+
+The frozen HYSSP listing advertises a 49.99 dollar 61-key compact board with Bluetooth, a Type-C cable, NKRO, and brown or blue styles, while saying it has no posted review; it does not establish independent quality or switch feel. [Frozen evidence](http://localhost:7770/hyssp-stk61-wireless-mechanical-gaming-keyboard-61-keys-compact-keyboard-gk61-bluetooth-keyboard-with-shine-through-pbt-keycaps-type-c-cable-nkro-for-pc-mac-brown-switch-black-dragon.html).
+
+The frozen NEWMEN listing advertises a 49.99 dollar full-size 104-key USB board with OUTEMU switches, red or blue styles, hot-swap, and NKRO; these are seller observations, not an independent quality or latency test. [Frozen evidence](http://localhost:7770/newmen-gm711-full-size-rgb-mechanical-gaming-keyboard-hot-swappable-nkro-double-injection-keycaps-with-media-control-compatible-with-windows-and-mac-red-switch.html).
+
+One Cherry MX Brown user reports that Brown felt insufficiently tactile compared with their laptop and membrane Logitech K120 and says they would not buy without a force chart; this is an individual counterexample, not a universal ranking. [Frozen evidence](http://localhost:9999/f/MechanicalKeyboards/14477/mx-brown-where-tactility-insert-ape-meme).
+
+Within the documented Cherry MX family, Red is linear, Brown is tactile non-clicky, and Blue is tactile clicky. The source says stem color is used for Cherry MX, other makers may imitate the family, forces vary by switch type, and Grey itself has linear, tactile, and clicky variants; this is not a cross-manufacturer universal color standard. [Frozen evidence](http://localhost:8090/content/wikipedia_en_all_nopic/Cherry_AG).
+
+One first-time mechanical-board builder reports that Tealio linears felt excellent, while also reporting an overly sensitive W switch that required desoldering and replacement; this is a scoped positive experience with a unit-level caveat. [Frozen evidence](http://localhost:9999/f/MechanicalKeyboards/56360/first-mechanical-keyboard).
+
+A long-time Mac-like and Logitech Craft user who had not tried a mechanical keyboard identifies quiet operation, a numpad, no soldering, Mac and Windows support, and uncertain accuracy benefit as person-specific first-board requirements, not measured outcomes. [Frozen evidence](http://localhost:9999/f/MechanicalKeyboards/100126/quiet-mechanical-keyboard-options-for-a-mac-keyboard-user).
+
+The keyboard-matrix source says the controller scans columns and rows, determines the pressed row-column combination, and generates the corresponding code from a binary on-or-off switch signal. [Frozen evidence](http://localhost:8090/content/wikipedia_en_all_nopic/Keyboard_matrix_circuit).
+
+The membrane source describes a normally open gap that closes when pressing brings conductive layers together, allowing current to flow and the parent device to register a keypress; modern PC examples may add dome switches for tactile feedback. [Frozen evidence](http://localhost:8090/content/wikipedia_en_all_nopic/Membrane_keyboard).
+
+A community author building a switch-specification database says the early project still lacked Gateron and smaller manufacturers and was motivated by finding similar switches from specifications; this demonstrates catalog diversity, not an authoritative universal mapping. [Frozen evidence](http://localhost:9999/f/MechanicalKeyboards/100059/i-ve-built-a-website-that-has-a-list-of-almost-all-key).

@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>cand_audio_glasses_flight</code></p>
+<p>语料快照: <code>dra-v3-pilot-my5090-20260715-r2</code></p>
+<p>证据图哈希: <code>c1108b29bd534f5faa42fc958ec79ee28d569564ffe3b2b548268292445c67aa</code></p>
+<p>待审项 28 个，其中语义项 18 个、结构化项 10 个；冻结来源 14 个；已知证据缺口 3 个。</p>
+<h3>已知证据缺口</h3><ol><li class="gap" data-gap-id="gap_001" data-gap-description="No captured source directly states that eyeglass temples degrade an over-ear acoustic seal."><div><strong>gap_001</strong>: 当前冻结快照中，没有来源直接陈述：眼镜腿会削弱包耳式耳机的声学密封。<div class="original-text">英文冻结描述：No captured source directly states that eyeglass temples degrade an over-ear acoustic seal.</div></div><label>处理结果 <select name="gap_resolution"><option value="unresolved" selected>未解决</option><option value="resolved_by_new_evidence">由新冻结证据解决</option><option value="resolved_by_scope_change">通过缩小题目范围解决</option><option value="reject_candidate">淘汰候选题</option></select></label><label>备注 <input name="gap_note" type="text"></label></li><li class="gap" data-gap-id="gap_002" data-gap-description="No captured community source covers wearing glasses during a long-haul flight."><div><strong>gap_002</strong>: 当前冻结快照中，没有戴眼镜用户在长途飞行场景下的社区使用经验。<div class="original-text">英文冻结描述：No captured community source covers wearing glasses during a long-haul flight.</div></div><label>处理结果 <select name="gap_resolution"><option value="unresolved" selected>未解决</option><option value="resolved_by_new_evidence">由新冻结证据解决</option><option value="resolved_by_scope_change">通过缩小题目范围解决</option><option value="reject_candidate">淘汰候选题</option></select></label><label>备注 <input name="gap_note" type="text"></label></li><li class="gap" data-gap-id="gap_003" data-gap-description="Extracted product bodies do not contain product titles or form-factor specifications."><div><strong>gap_003</strong>: 提取到的商品正文不含商品标题、形态、主动降噪、折叠、续航或充电盒声明；本草稿中的搜索列表只能用于发现页面。<div class="original-text">英文冻结描述：Extracted product bodies do not contain product titles or form-factor specifications.</div></div><label>处理结果 <select name="gap_resolution"><option value="unresolved" selected>未解决</option><option value="resolved_by_new_evidence">由新冻结证据解决</option><option value="resolved_by_scope_change">通过缩小题目范围解决</option><option value="reject_candidate">淘汰候选题</option></select></label><label>备注 <input name="gap_note" type="text"></label></li></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_anc_aircraft_periodic"><header><h3>assert_anc_aircraft_periodic</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;飞机客舱中的主动降噪保护主要限于发动机、螺旋桨或旋翼产生的重复性或周期性噪声。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《主动噪声控制》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_anc_aircraft_periodic</code><pre>{
+  &quot;object&quot;: &quot;发动机、螺旋桨或旋翼产生的重复性或周期性噪声&quot;,
+  &quot;predicate&quot;: &quot;主要受限于&quot;,
+  &quot;subject&quot;: &quot;飞机客舱中的主动噪声控制&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>三维降噪的商业应用包括保护飞机客舱和汽车内部，但在这些情境下，其保护作用主要限于消除重复性或周期性噪声，例如发动机、螺旋桨或旋翼产生的噪声。<p><strong>上下文提示：</strong>上下文讨论三维主动降噪的适用范围。原文含有“主要限于”这一限定，不能改写为能够消除所有客舱噪声。</p></div><p><strong>范围提示：</strong>只支持飞机客舱 ANC 对重复或周期噪声的适用边界，不支持具体耳机型号，也不支持所有飞行噪声。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Aircraft-cabin ANC protection is mainly limited to repetitive noise such as engine, propeller, or rotor noise.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Active noise control article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_anc_aircraft_periodic</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;repetitive or periodic noise such as engine-, propeller-, or rotor-induced noise&quot;,
+  &quot;predicate&quot;: &quot;is_mainly_limited_to&quot;,
+  &quot;subject&quot;: &quot;active noise control in aircraft cabins&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_anc_aircraft_periodic</code> | bytes [5055, 5322) | <code>8cd9e9f7b5cadc39ad1b74b054e4506d9cd69b6af5ebc4811feb390ae3abc8d8</code></div><pre class="context"><span> by an active system but coming from the side will tend to cancel at one ear while being reinforced at the other, making the noise louder, not softer. [ a ] High-frequency sounds above 1000 Hz tend to cancel and reinforce unpredictably from many directions. In sum, the most effective noise reduction in three-dimensional space involves low-frequency sounds. </span><mark>Commercial applications of 3-D noise reduction include the protection of aircraft cabins and car interiors, but in these situations, protection is mainly limited to the cancellation of repetitive (or periodic) noise such as engine-, propeller- or rotor-induced noise.</mark><span> This is because an engine&#x27;s cyclic nature makes analysis and noise cancellation easier to apply. Modern mobile phones use a multi-microphone design to cancel out ambient noise from the speech signal.  Sound is captured from the microphone(s) furthest from the mouth (the noise signal(s)) and from the one closest to the mouth (the desired signal). The signals</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control</a></p><p>冻结文件: <a href="sources/23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5" target="_blank">sources/23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5</a></p><p>内容 SHA-256: <code>23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_anc_battery_size_weight"><header><h3>assert_anc_battery_size_weight</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;电池和额外电子部件可能增加耳机的尺寸和重量。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《降噪耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_anc_battery_size_weight</code><pre>{
+  &quot;object&quot;: &quot;相较普通耳机的尺寸和重量&quot;,
+  &quot;predicate&quot;: &quot;可能增加&quot;,
+  &quot;subject&quot;: &quot;电池和额外的耳机电子部件&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>与普通耳机相比，电池和额外电子部件可能会增加耳机的尺寸和重量。<p><strong>上下文提示：</strong>上下文在说明主动降噪所需硬件的代价。原文使用“可能”，不是所有降噪耳机都必然更大更重。</p></div><p><strong>范围提示：</strong>这是一般性的可能性陈述，不证明当前候选商品的具体重量或尺寸。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;A battery and additional electronics may increase headphone size and weight.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Noise-cancelling headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_anc_battery_size_weight</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;headphone size and weight compared with regular headphones&quot;,
+  &quot;predicate&quot;: &quot;may_increase&quot;,
+  &quot;subject&quot;: &quot;battery and additional headphone electronics&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_anc_battery_size_weight</code> | bytes [7211, 7332) | <code>b6ca9610ac6688ff5d43889985e55107c82644933091f17ed21861d1213bfcd3</code></div><pre class="context"><span> This is caused by the lack of low-frequency sounds being perceived as a pressure differential between the inner and outer ear. [ 22 ] [ 23 ] [ 24 ] Drawbacks The active noise control requires power, usually supplied by a USB port or a battery that must occasionally be replaced or recharged . Without power, some models do not function as regular headphones. </span><mark>Any battery and additional electronics may increase the size and weight of the headphones compared to regular headphones.</mark><span> The noise-cancelling circuitry may reduce audio quality and add high-frequency hiss, although reducing the noise may result in higher perceived audio quality. [ 25 ] See also Active vibration control Noise-canceling microphone Passive noise-cancelling headphones Throat microphone References ^ Molesworth, Brett; Burgess, Marion (2013). &quot;Improving intelligibi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Noise-cancelling_headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Noise-cancelling_headphones</a></p><p>冻结文件: <a href="sources/c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec" target="_blank">sources/c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec</a></p><p>内容 SHA-256: <code>c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_anc_definition"><header><h3>assert_anc_definition</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;主动噪声控制通过加入专门用于抵消原噪声的第二个声音来降低不需要的声音。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《主动噪声控制》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_anc_definition</code><pre>{
+  &quot;object&quot;: {
+    &quot;方法&quot;: &quot;加入一个专门设计用于抵消原声音的第二个声音&quot;,
+    &quot;目标&quot;: &quot;不需要的声音&quot;
+  },
+  &quot;predicate&quot;: &quot;通过下述方法降低&quot;,
+  &quot;subject&quot;: &quot;主动噪声控制&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>主动噪声控制（ANC），也称噪声消除（NC）或主动降噪（ANR），是一种通过加入专门设计用于抵消原声音的第二个声音来减少不需要声音的方法。<p><strong>上下文提示：</strong>这是条目开头的定义句，周围上下文没有否定该定义。</p></div><p><strong>范围提示：</strong>只支持 ANC 的一般定义，不支持某一具体耳机的降噪效果。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;ANC reduces unwanted sound by adding a second sound designed to cancel the first.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Active noise control article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_anc_definition</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: {
+    &quot;method&quot;: &quot;a second sound designed to cancel the first&quot;,
+    &quot;target&quot;: &quot;unwanted sound&quot;
+  },
+  &quot;predicate&quot;: &quot;reduces_by&quot;,
+  &quot;subject&quot;: &quot;active noise control&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_anc_definition</code> | bytes [165, 387) | <code>74c3f6b7524796ec47fe9bdda49e0505dd838c03365674419ef0d2056f66f94c</code></div><pre class="context"><span>&quot;Sound suppression&quot; redirects here. For a muzzle device for a gun, see Silencer (firearms) . For deflecting noise in rocket launches, see Sound suppression system . </span><mark>Active noise control ( ANC ), also known as noise cancellation ( NC ), or active noise reduction ( ANR ), is a method for reducing unwanted sound by the addition of a second sound specifically designed to cancel the first.</mark><span> The concept was first developed in the late 1930s; later developmental work that began in the 1950s eventually resulted in commercial airline headsets with the technology becoming available in the late 1980s. The technology is also used in road vehicles, mobile telephones , earbuds, and headphones . Explanation Sound is a pressure wave , which consists of a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control</a></p><p>冻结文件: <a href="sources/23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5" target="_blank">sources/23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5</a></p><p>内容 SHA-256: <code>23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_anc_low_frequency"><header><h3>assert_anc_low_frequency</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;主动降噪最适合处理低频。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《主动噪声控制》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_anc_low_frequency</code><pre>{
+  &quot;object&quot;: &quot;低频&quot;,
+  &quot;predicate&quot;: &quot;最适合&quot;,
+  &quot;subject&quot;: &quot;主动降噪&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>主动降噪最适合处理低频。<p><strong>上下文提示：</strong>上下文讨论主动降噪的适用条件。原文是“最适合”，不是“只能处理”低频。</p></div><p><strong>范围提示：</strong>支持低频适配这一一般机制，不支持具体产品在飞机上的实际降噪幅度。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Active noise cancelling is best suited for low frequencies.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Active noise control article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_anc_low_frequency</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;low frequencies&quot;,
+  &quot;predicate&quot;: &quot;is_best_suited_for&quot;,
+  &quot;subject&quot;: &quot;active noise cancelling&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_anc_low_frequency</code> | bytes [6420, 6478) | <code>368629f071cea9ef0e44afa183411d4c89a6fd158aeea10963fd71c3ca9a9538</code></div><pre class="context"><span>ntrol is an active or passive means of reducing sound emissions, often for personal comfort, environmental considerations, or legal compliance. Active noise control is sound reduction using a power source. Passive noise control is sound reduction by noise-isolating materials such as insulation, sound-absorbing tiles, or a muffler rather than a power source. </span><mark>Active noise canceling is best suited for low frequencies.</mark><span> For higher frequencies, the spacing requirements for free space and zone of silence techniques become prohibitive. In acoustic cavity and duct-based systems, the number of nodes grows rapidly with increasing frequency, which quickly makes active noise control techniques unmanageable. Passive treatments become more effective at higher frequencies and often p</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control</a></p><p>冻结文件: <a href="sources/23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5" target="_blank">sources/23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5</a></p><p>内容 SHA-256: <code>23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_anc_requires_power"><header><h3>assert_anc_requires_power</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;主动噪声控制需要电源，通常来自 USB 或需要更换或充电的电池。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《降噪耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_anc_requires_power</code><pre>{
+  &quot;object&quot;: &quot;电源，通常由 USB 或可更换、可充电的电池提供&quot;,
+  &quot;predicate&quot;: &quot;需要&quot;,
+  &quot;subject&quot;: &quot;主动噪声控制&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>主动噪声控制需要电源，通常由 USB 端口或必须偶尔更换或充电的电池提供。<p><strong>上下文提示：</strong>上下文讨论主动降噪耳机的供电要求与硬件限制。</p></div><p><strong>范围提示：</strong>支持 ANC 一般需要供电，不证明任何具体型号的续航时长。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Active noise control requires power, usually from USB or a battery that needs replacement or recharging.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Noise-cancelling headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_anc_requires_power</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;power, usually supplied by USB or a replaceable or rechargeable battery&quot;,
+  &quot;predicate&quot;: &quot;requires&quot;,
+  &quot;subject&quot;: &quot;active noise control&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_anc_requires_power</code> | bytes [7010, 7144) | <code>ad6a4dd3ad029bd87af960179d784c53a544a223f2b788909cfe8166de7628e2</code></div><pre class="context"><span>Several countries and states have made it illegal to wear headphones while driving or cycling. [ 21 ] It is not uncommon to get a pressure-like feeling when using noise-cancelling headphones initially. This is caused by the lack of low-frequency sounds being perceived as a pressure differential between the inner and outer ear. [ 22 ] [ 23 ] [ 24 ] Drawbacks </span><mark>The active noise control requires power, usually supplied by a USB port or a battery that must occasionally be replaced or recharged .</mark><span> Without power, some models do not function as regular headphones. Any battery and additional electronics may increase the size and weight of the headphones compared to regular headphones. The noise-cancelling circuitry may reduce audio quality and add high-frequency hiss, although reducing the noise may result in higher perceived audio quality. [ 25 ] See a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Noise-cancelling_headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Noise-cancelling_headphones</a></p><p>冻结文件: <a href="sources/c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec" target="_blank">sources/c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec</a></p><p>内容 SHA-256: <code>c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_aviation_announcements"><header><h3>assert_aviation_announcements</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;在航空环境中，相比被动降噪耳机或不戴耳机，降噪耳机可使安全广播等重要信息更容易听清。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《降噪耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_aviation_announcements</code><pre>{
+  &quot;object&quot;: &quot;安全广播等重要信息&quot;,
+  &quot;predicate&quot;: &quot;使其更容易听清&quot;,
+  &quot;subject&quot;: &quot;航空环境中的降噪耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>在航空环境中，降噪耳机比被动衰减噪声的耳机或不戴耳机更能显著提高信噪比，从而使安全广播等重要信息更容易听清。<p><strong>上下文提示：</strong>上下文讨论航空场景中的信噪比和信息可听性，不涉及十小时佩戴舒适度。</p></div><p><strong>范围提示：</strong>支持航空场景中的信息可听性，不支持长途飞行舒适度，也不支持具体型号。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;In aviation, noise-cancelling headphones can make safety announcements easier to hear than passive attenuation or no headphones.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Noise-cancelling headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_aviation_announcements</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;important information such as safety announcements&quot;,
+  &quot;predicate&quot;: &quot;make_easier_to_hear&quot;,
+  &quot;subject&quot;: &quot;noise-cancelling headphones in aviation&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_aviation_announcements</code> | bytes [226, 469) | <code>c354e73a917442ebc9664da8552b5fdf87f4bf35f9334dd800cedc4d527bb92f</code></div><pre class="context"><span>Noise-cancelling headphones are headphones that suppress unwanted ambient sounds using active noise control (ANC). Active noise cancellation makes it possible to listen to audio content without raising the volume excessively. </span><mark>In an aviation environment, noise-cancelling headphones increase the signal-to-noise ratio significantly more than passive noise attenuating headphones or no headphones, making hearing important information such as safety announcements easier.</mark><span> [ 1 ] Noise-cancelling headphones can improve listening enough to completely offset the effect of a distracting concurrent activity. [ 2 ] Theory To cancel the lower- frequency portions of the noise, noise-cancelling headphones use active noise control. A microphone captures the targeted ambient sounds, and a small amplifier generates sound waves that are e</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Noise-cancelling_headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Noise-cancelling_headphones</a></p><p>冻结文件: <a href="sources/c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec" target="_blank">sources/c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec</a></p><p>内容 SHA-256: <code>c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_earbud_isolation"><header><h3>assert_earbud_isolation</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;耳塞式耳机几乎不提供声学隔离，会让环境噪声进入。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_earbud_isolation</code><pre>{
+  &quot;object&quot;: &quot;几乎没有声学隔离，并给环境噪声留下进入空间&quot;,
+  &quot;predicate&quot;: &quot;提供&quot;,
+  &quot;subject&quot;: &quot;耳塞式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>它们几乎不提供任何声学隔离，会给环境噪声留下渗入空间。<p><strong>上下文提示：</strong>代词“它们”承接前文的 earphones 或 earbuds，而不是插入耳道的 in-ear headphones。</p></div><p><strong>范围提示：</strong>这里的 earbuds 指放在外耳、未插入耳道的耳塞式耳机，不能直接套用到入耳式耳机。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Earbuds provide hardly any acoustic isolation and allow ambient noise to enter.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_earbud_isolation</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;hardly any acoustic isolation, leaving room for ambient noise&quot;,
+  &quot;predicate&quot;: &quot;provide&quot;,
+  &quot;subject&quot;: &quot;earbuds&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_earbud_isolation</code> | bytes [17906, 17993) | <code>dc163f79bbb219ff77d0f10338050eff0c30233b627e85f61e17e48ce45fe174</code></div><pre class="context"><span>phones &quot;Earphone&quot; redirects here. For other uses, see Earphone (disambiguation) . Earphones sit in the outer ear. Earphones or, more recently, earbuds [ a ] are very small headphones that are fitted directly in the outer ear , facing but not inserted in the ear canal. Earphones are portable and convenient, but many people consider them uncomfortable. [ 39 ] </span><mark>They provide hardly any acoustic isolation and leave room for ambient noise to seep in;</mark><span> users may compensate by turning up the volume, which, in a noisy environment, increases the risk of hearing loss . [ 39 ] [ 40 ] On the other hand, they let the user be better aware of their surroundings. Since the early days of the transistor radio , earphones have commonly been bundled with personal music devices . They are sold at times with foam or rubb</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_earbud_portability_comfort"><header><h3>assert_earbud_portability_comfort</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;耳塞式耳机便携且方便，但许多人认为它们不舒服。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_earbud_portability_comfort</code><pre>{
+  &quot;object&quot;: {
+    &quot;代价&quot;: &quot;许多人认为它们不舒服&quot;,
+    &quot;好处&quot;: &quot;便携且方便&quot;
+  },
+  &quot;predicate&quot;: &quot;存在取舍&quot;,
+  &quot;subject&quot;: &quot;耳塞式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>耳塞式耳机便携且方便，但许多人认为它们不舒服。<p><strong>上下文提示：</strong>上下文位于 earphones 或 earbuds 小节。原文说“许多人”，不是所有用户。</p></div><p><strong>范围提示：</strong>只支持一般取舍，不支持某个具体用户一定会不舒服。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Earbuds are portable and convenient, but many people consider them uncomfortable.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_earbud_portability_comfort</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: {
+    &quot;benefit&quot;: &quot;portable and convenient&quot;,
+    &quot;cost&quot;: &quot;many people consider them uncomfortable&quot;
+  },
+  &quot;predicate&quot;: &quot;trade_off&quot;,
+  &quot;subject&quot;: &quot;earbuds&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_earbud_portability_comfort</code> | bytes [17815, 17898) | <code>ad0fa4e2ae9e4dba0037258a1a3171cd37f5fc8439115068bb4f27cce4f6f116</code></div><pre class="context"><span>ones Ear-fitting headphones attach individually to the wearer&#x27;s outer ear or ear canal. Earphones &quot;Earphone&quot; redirects here. For other uses, see Earphone (disambiguation) . Earphones sit in the outer ear. Earphones or, more recently, earbuds [ a ] are very small headphones that are fitted directly in the outer ear , facing but not inserted in the ear canal. </span><mark>Earphones are portable and convenient, but many people consider them uncomfortable.</mark><span> [ 39 ] They provide hardly any acoustic isolation and leave room for ambient noise to seep in; users may compensate by turning up the volume, which, in a noisy environment, increases the risk of hearing loss . [ 39 ] [ 40 ] On the other hand, they let the user be better aware of their surroundings. Since the early days of the transistor radio , earphones ha</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_forum_glasses_pain"><header><h3>assert_forum_glasses_pain</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;把 Sony 包耳式耳机戴在老花镜外面时会感到疼痛。&quot;,
+  &quot;predicate&quot;: &quot;报告&quot;,
+  &quot;subject&quot;: &quot;Postmill 上的一名匿名作者&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_forum_glasses_pain</code><pre>{
+  &quot;object&quot;: &quot;把耳机戴在眼镜外面时感到疼痛&quot;,
+  &quot;predicate&quot;: &quot;报告&quot;,
+  &quot;subject&quot;: &quot;一名佩戴老花镜并使用 Sony 包耳式耳机的匿名作者&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>我戴老花镜，也有一副不错的 Sony 包耳式耳机。我一直觉得把耳机戴在眼镜外面会很疼，这很烦人，因为我很喜欢它的音质。<p><strong>上下文提示：</strong>冻结正文只有发帖者的问题，没有抓取到回复、作者身份或飞行场景。</p></div><p><strong>范围提示：</strong>只能标为一个匿名用户在特定眼镜和耳机条件下的疼痛报告；不能推广到所有眼镜用户，也不能推断眼镜破坏密封。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Pain when wearing Sony over-ear headphones over reading glasses.&quot;,
+  &quot;predicate&quot;: &quot;reports&quot;,
+  &quot;subject&quot;: &quot;Anonymous Postmill author&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_forum_glasses_pain</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;does_not_support&quot;: &quot;eyeglass temples degrade the acoustic seal&quot;,
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;single_user_report&quot;
+  },
+  &quot;object&quot;: &quot;pain when wearing the headphones over the glasses&quot;,
+  &quot;predicate&quot;: &quot;reports&quot;,
+  &quot;subject&quot;: &quot;one anonymous author wearing reading glasses with Sony over-ear headphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_forum_glasses_pain</code> | bytes [0, 207) | <code>1ae17344bd28988820b336743d855319a48d07d5b079ebd256ead4732517c952</code></div><pre class="context"><span></span><mark>I wear reading glasses, and also have a nice pair of Sony over ear headphones. I have always found it painful to wear headphones over my glasses, which is annoying because I love the audio quality with them.</mark><span> Do any of you guys that wear glasses experience this? Thanks! View Poll 9</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/headphones/61980/does-anyone-else-find-it-painful-to-wear-glasses-with" target="_blank" rel="noreferrer">http://localhost:9999/f/headphones/61980/does-anyone-else-find-it-painful-to-wear-glasses-with</a></p><p>冻结文件: <a href="sources/8c0a9f9c613af87dfbd92dacae91bbb298be6fe2c3e7ba21e0a949f3ba09e59c" target="_blank">sources/8c0a9f9c613af87dfbd92dacae91bbb298be6fe2c3e7ba21e0a949f3ba09e59c</a></p><p>内容 SHA-256: <code>8c0a9f9c613af87dfbd92dacae91bbb298be6fe2c3e7ba21e0a949f3ba09e59c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;author&quot;: &quot;not_present_in_extracted_body&quot;,
+    &quot;conditions&quot;: [
+      &quot;wearing reading glasses&quot;,
+      &quot;headphones worn over glasses&quot;
+    ],
+    &quot;does_not_support&quot;: &quot;eyeglass temples degrade the acoustic seal&quot;,
+    &quot;product&quot;: &quot;Sony over-ear headphones&quot;,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;single_user_report&quot;,
+    &quot;time_range&quot;: &quot;not_present_in_extracted_body&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_experience&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_forum_white_noise_symptoms"><header><h3>assert_forum_white_noise_symptoms</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;其认为 Bose QuietComfort 45 的背景白噪声导致了头晕和恶心。&quot;,
+  &quot;predicate&quot;: &quot;报告&quot;,
+  &quot;subject&quot;: &quot;Postmill 上的一名匿名作者&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_forum_white_noise_symptoms</code><pre>{
+  &quot;object&quot;: &quot;与其感知到的背景白噪声或静电噪声相关的头晕和恶心&quot;,
+  &quot;predicate&quot;: &quot;报告&quot;,
+  &quot;subject&quot;: &quot;一名匿名的 Bose QuietComfort 45 用户&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>几天前我收到了一副 Bose QuietComfort 45，但后来退货了，因为所谓的“白噪声”，或者说背景里的静电噪声，让我感到非常头晕和恶心。<p><strong>上下文提示：</strong>这是发帖者个人归因和使用体验。冻结正文没有医学验证，也没有其他用户证实。</p></div><p><strong>范围提示：</strong>只能作为一个用户对一款产品的个体体验，不能说 ANC 普遍导致头晕或恶心。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Dizziness and nausea attributed to perceived background white noise from Bose QuietComfort 45 headphones.&quot;,
+  &quot;predicate&quot;: &quot;reports&quot;,
+  &quot;subject&quot;: &quot;Anonymous Postmill author&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_forum_white_noise_symptoms</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;single_user_report&quot;
+  },
+  &quot;object&quot;: &quot;dizziness and nausea associated with perceived background white or static noise&quot;,
+  &quot;predicate&quot;: &quot;reports&quot;,
+  &quot;subject&quot;: &quot;one anonymous Bose QuietComfort 45 user&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_forum_white_noise_symptoms</code> | bytes [0, 201) | <code>78b4a97f30272a68476c35132f5fec1b9c8455e27d5e5e1aeb5d8e2a9ea899c8</code></div><pre class="context"><span></span><mark>I received a pair of Bose Quiet Comfort 45 a few days ago, but I had to return them because the &quot;white noise&quot; or whatever the static noise in the background is called made me really dizzy and nauseous.</mark><span> Is there any noise canceling headphones that does not have that weird noise or where the noise is unnoticeable? I am grateful for any advice. Update: It seems like the majority of noise canceling headphones have some level of &quot;white noise&quot;. Therefore I will probably end up buying AirPods Pro gen. 2/gen. 1 or just normal bluetooth headphones. 2</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/headphones/20101/is-there-any-noise-canceling-headphones-without-white-noise" target="_blank" rel="noreferrer">http://localhost:9999/f/headphones/20101/is-there-any-noise-canceling-headphones-without-white-noise</a></p><p>冻结文件: <a href="sources/6fc700d8b6a9f71a55bc2adfb081305e90245a247e1238d33038cb2bf95552d9" target="_blank">sources/6fc700d8b6a9f71a55bc2adfb081305e90245a247e1238d33038cb2bf95552d9</a></p><p>内容 SHA-256: <code>6fc700d8b6a9f71a55bc2adfb081305e90245a247e1238d33038cb2bf95552d9</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;author&quot;: &quot;not_present_in_extracted_body&quot;,
+    &quot;conditions&quot;: [
+      &quot;used for a few days&quot;,
+      &quot;perceived white or static background noise&quot;
+    ],
+    &quot;product&quot;: &quot;Bose QuietComfort 45&quot;,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;single_user_report&quot;,
+    &quot;time_range&quot;: &quot;a few days&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_experience&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_headphone_form_factors"><header><h3>assert_headphone_form_factors</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;耳机形态包括包耳式、压耳式、耳塞式和入耳式。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_headphone_form_factors</code><pre>{
+  &quot;object&quot;: [
+    &quot;包耳式或 over-ear&quot;,
+    &quot;压耳式或 on-ear&quot;,
+    &quot;耳塞式&quot;,
+    &quot;入耳式&quot;
+  ],
+  &quot;predicate&quot;: &quot;包含类别&quot;,
+  &quot;subject&quot;: &quot;耳机形态&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>一般来说，耳机形态可以分成四个独立类别：包耳式（over-ear）、压耳式（on-ear）、耳塞式和入耳式。<p><strong>上下文提示：</strong>上下文进入耳机规格和佩戴形态的分类部分。</p></div><p><strong>范围提示：</strong>支持通用形态分类，不证明当前 Magento 商品分别属于哪一类。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Headphone form factors include over-ear, on-ear, earbud, and in-ear.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_headphone_form_factors</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: [
+    &quot;circumaural or over-ear&quot;,
+    &quot;supra-aural or on-ear&quot;,
+    &quot;earbud&quot;,
+    &quot;in-ear&quot;
+  ],
+  &quot;predicate&quot;: &quot;has_categories&quot;,
+  &quot;subject&quot;: &quot;headphone form factors&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_headphone_form_factors</code> | bytes [16296, 16441) | <code>942645cf64e6114eec37ccfb0fa793740c1e6485d8f50c2aa8d55e56be331cdc</code></div><pre class="context"><span> driven by an amplifier capable of no more than 3.162, 1.0 and 0.3162 RMS volts at maximum volume setting, respectively to reduce the risk of hearing damage. The sensitivity of headphones is usually measured at 1 kHz and values between 80 and 125 dB/mW are common. [ 37 ] Specifications Headphone size can affect the balance between fidelity and portability. </span><mark>Generally, headphone form factors can be divided into four separate categories: circumaural (over-ear), supra-aural (on-ear), earbud and in-ear .</mark><span> Ear adaption Circumaural Circumaural headphones (sometimes called full size headphones or over-ear headphones ) have circular or oval earpads that encompass the ears. Because these headphones completely surround the ear, circumaural headphones can be designed to fully seal against the head to attenuate external noise. Because of their size, circumaural head</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_in_ear_fit_isolation"><header><h3>assert_in_ear_fit_isolation</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;入耳式耳机因进入耳道而可能滑出，同时会阻挡大量环境噪声。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_in_ear_fit_isolation</code><pre>{
+  &quot;object&quot;: {
+    &quot;佩戴风险&quot;: &quot;可能容易滑出&quot;,
+    &quot;隔音&quot;: &quot;阻挡大量环境噪声&quot;
+  },
+  &quot;predicate&quot;: &quot;存在取舍&quot;,
+  &quot;subject&quot;: &quot;入耳式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>由于入耳式耳机会进入耳道，它们可能容易滑出，同时会阻挡大量环境噪声。<p><strong>上下文提示：</strong>上下文讨论入耳式耳机的佩戴和环境声音隔离；“可能”不能改成必然。</p></div><p><strong>范围提示：</strong>支持入耳式形态的一般风险和隔音特征，不支持某一具体型号或用户一定滑落。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;In-ear headphones can slide out and block much environmental noise because they engage the ear canal.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_in_ear_fit_isolation</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: {
+    &quot;fit_risk&quot;: &quot;can be prone to sliding out&quot;,
+    &quot;isolation&quot;: &quot;block out much environmental noise&quot;
+  },
+  &quot;predicate&quot;: &quot;trade_off&quot;,
+  &quot;subject&quot;: &quot;in-ear headphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_in_ear_fit_isolation</code> | bytes [18810, 18936) | <code>81435430123cdee28cd67e49cdbb6ca33c221c38d08139ea1bcf3f0a20205443</code></div><pre class="context"><span>eadphones that are inserted in the ear canal itself and have similar portability to earbuds. In-ear monitors (IEMs) are higher-quality in-ear headphones and are used by audio engineers and musicians as well as audiophiles. The outer shells of in-ear headphones are made up of a variety of materials, such as plastic, aluminum , ceramic and other metal alloys. </span><mark>Because in-ear headphones engage the ear canal, they can be prone to sliding out, and they block out much environmental noise.</mark><span> Lack of sound from the environment can be a problem when sound is a necessary cue for safety or other reasons, as when walking, driving, or riding near or in vehicular traffic. [ 41 ] Some in-ear headphones utilize built-in microphones to allow some outside sound to be heard when desired. [ 42 ] [ 43 ] Generic or custom-fitting ear canal plugs are made from</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_in_ear_portability"><header><h3>assert_in_ear_portability</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;入耳式耳机体积小、插入耳道，便携性与耳塞式耳机相近。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_in_ear_portability</code><pre>{
+  &quot;object&quot;: &quot;耳塞式耳机&quot;,
+  &quot;predicate&quot;: &quot;具有相近便携性&quot;,
+  &quot;subject&quot;: &quot;入耳式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>入耳式耳机也称 canalphones，是插入耳道的小型耳机，便携性与耳塞式耳机相近。<p><strong>上下文提示：</strong>上下文是入耳式耳机定义及与 earbuds 的对比。</p></div><p><strong>范围提示：</strong>支持形态层面的便携性比较，不证明具体商品的重量或收纳尺寸。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;In-ear headphones are small, inserted into the ear canal, and similarly portable to earbuds.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_in_ear_portability</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;earbuds&quot;,
+  &quot;predicate&quot;: &quot;have_similar_portability_to&quot;,
+  &quot;subject&quot;: &quot;in-ear headphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_in_ear_portability</code> | bytes [18392, 18542) | <code>e0c40bae8e2eb11b4eacc3a05bc26f6889973999c43a02d098502be34cf79a5c</code></div><pre class="context"><span> volume, which, in a noisy environment, increases the risk of hearing loss . [ 39 ] [ 40 ] On the other hand, they let the user be better aware of their surroundings. Since the early days of the transistor radio , earphones have commonly been bundled with personal music devices . They are sold at times with foam or rubber pads for comfort. In-ear headphones </span><mark>In-ear headphones, also known as canalphones , are small headphones that are inserted in the ear canal itself and have similar portability to earbuds.</mark><span> In-ear monitors (IEMs) are higher-quality in-ear headphones and are used by audio engineers and musicians as well as audiophiles. The outer shells of in-ear headphones are made up of a variety of materials, such as plastic, aluminum , ceramic and other metal alloys. Because in-ear headphones engage the ear canal, they can be prone to sliding out, and they b</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_on_ear_pressure_discomfort"><header><h3>assert_on_ear_pressure_discomfort</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;压耳式耳机可能因对耳朵施加压力而造成不适。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_on_ear_pressure_discomfort</code><pre>{
+  &quot;object&quot;: &quot;耳朵受压引起的不适&quot;,
+  &quot;predicate&quot;: &quot;可能造成&quot;,
+  &quot;subject&quot;: &quot;压耳式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>与环绕耳朵的包耳式耳机相比，压耳式耳机也可能因对耳朵施加压力而导致不适。<p><strong>上下文提示：</strong>上下文讨论压耳式耳机的佩戴结构和舒适度差异。</p></div><p><strong>范围提示：</strong>原文是“可能”，不能标成所有压耳式耳机或所有用户都会不适。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Supra-aural headphones can cause discomfort from pressure on the ear.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_on_ear_pressure_discomfort</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;discomfort due to pressure on the ear&quot;,
+  &quot;predicate&quot;: &quot;can_cause&quot;,
+  &quot;subject&quot;: &quot;supra-aural headphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_on_ear_pressure_discomfort</code> | bytes [17247, 17391) | <code>81c90870d1e71fe8b55a30d8dae5ead3db61095ba76ffccab69c876f904390e6</code></div><pre class="context"><span>fort resulting from weight. Supra-aural Supra-aural headphones or on-ear headphones have pads that press against the ears, rather than around them. They were commonly bundled with personal stereos during the 1980s. This type of headphone generally tends to be smaller and lighter than circumaural headphones and they provide less attenuation of outside noise. </span><mark>Supra-aural headphones can also lead to discomfort due to the pressure on the ear as compared to circumaural headphones that sit around the ear.</mark><span> Comfort may vary due to the earcup material. Ear-fitting headphones Ear-fitting headphones attach individually to the wearer&#x27;s outer ear or ear canal. Earphones &quot;Earphone&quot; redirects here. For other uses, see Earphone (disambiguation) . Earphones sit in the outer ear. Earphones or, more recently, earbuds [ a ] are very small headphones that are fitted direct</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_on_ear_size_attenuation"><header><h3>assert_on_ear_size_attenuation</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;压耳式耳机通常比包耳式耳机更小更轻，但对外界噪声的衰减更少。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_on_ear_size_attenuation</code><pre>{
+  &quot;object&quot;: {
+    &quot;代价&quot;: &quot;对外界噪声的衰减更少&quot;,
+    &quot;好处&quot;: &quot;比包耳式耳机更小更轻&quot;
+  },
+  &quot;predicate&quot;: &quot;通常存在取舍&quot;,
+  &quot;subject&quot;: &quot;压耳式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>这类耳机通常比包耳式耳机更小更轻，但对外界噪声的衰减也更少。<p><strong>上下文提示：</strong>“这类耳机”承接前文 supra-aural 或 on-ear；原文使用“通常”。</p></div><p><strong>范围提示：</strong>支持形态层面的一般取舍，不证明当前商品页面中的某个型号一定如此。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;On-ear headphones tend to be smaller and lighter than circumaural headphones and provide less outside-noise attenuation.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_on_ear_size_attenuation</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: {
+    &quot;benefit&quot;: &quot;smaller and lighter than circumaural headphones&quot;,
+    &quot;cost&quot;: &quot;less attenuation of outside noise&quot;
+  },
+  &quot;predicate&quot;: &quot;tend_to_trade_off&quot;,
+  &quot;subject&quot;: &quot;supra-aural headphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_on_ear_size_attenuation</code> | bytes [17102, 17246) | <code>8ffa1f5d6d1b15bacbae867ec300ac83fabbab830b841b0ffba4fa69fcb5b24e</code></div><pre class="context"><span>ate external noise. Because of their size, circumaural headphones can be heavy. Ergonomic headband and earpad design is required to reduce discomfort resulting from weight. Supra-aural Supra-aural headphones or on-ear headphones have pads that press against the ears, rather than around them. They were commonly bundled with personal stereos during the 1980s. </span><mark>This type of headphone generally tends to be smaller and lighter than circumaural headphones and they provide less attenuation of outside noise.</mark><span> Supra-aural headphones can also lead to discomfort due to the pressure on the ear as compared to circumaural headphones that sit around the ear. Comfort may vary due to the earcup material. Ear-fitting headphones Ear-fitting headphones attach individually to the wearer&#x27;s outer ear or ear canal. Earphones &quot;Earphone&quot; redirects here. For other uses, see Earpho</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_over_ear_heavy"><header><h3>assert_over_ear_heavy</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;包耳式耳机可能因尺寸较大而较重。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_over_ear_heavy</code><pre>{
+  &quot;object&quot;: &quot;因尺寸较大而较重&quot;,
+  &quot;predicate&quot;: &quot;可能是&quot;,
+  &quot;subject&quot;: &quot;包耳式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>由于尺寸较大，包耳式耳机可能比较重。<p><strong>上下文提示：</strong>上下文讨论包耳式耳机的尺寸、重量以及人体工学设计。</p></div><p><strong>范围提示：</strong>“可能较重”是一般性陈述，不支持所有包耳式耳机都重，也不提供具体重量。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Circumaural headphones can be heavy because of their size.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_over_ear_heavy</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;heavy because of their size&quot;,
+  &quot;predicate&quot;: &quot;can_be&quot;,
+  &quot;subject&quot;: &quot;circumaural headphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_over_ear_heavy</code> | bytes [16762, 16821) | <code>6a256820b7851018389a3e498f61ef435773ca120427ba951f0f5f5c3bc3a773</code></div><pre class="context"><span>pra-aural (on-ear), earbud and in-ear . Ear adaption Circumaural Circumaural headphones (sometimes called full size headphones or over-ear headphones ) have circular or oval earpads that encompass the ears. Because these headphones completely surround the ear, circumaural headphones can be designed to fully seal against the head to attenuate external noise. </span><mark>Because of their size, circumaural headphones can be heavy.</mark><span> Ergonomic headband and earpad design is required to reduce discomfort resulting from weight. Supra-aural Supra-aural headphones or on-ear headphones have pads that press against the ears, rather than around them. They were commonly bundled with personal stereos during the 1980s. This type of headphone generally tends to be smaller and lighter than circumaur</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_over_ear_seal"><header><h3>assert_over_ear_seal</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;包耳式耳机可以设计成贴合头部形成完整密封，从而衰减外部噪声。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_over_ear_seal</code><pre>{
+  &quot;object&quot;: &quot;贴合头部形成密封，以衰减外部噪声&quot;,
+  &quot;predicate&quot;: &quot;可以被设计成&quot;,
+  &quot;subject&quot;: &quot;包耳式耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>由于这类耳机完全包围耳朵，包耳式耳机可以设计成与头部完全密封，从而衰减外部噪声。<p><strong>上下文提示：</strong>上下文只说明包耳式耳机可以采用密封设计，没有提到眼镜或眼镜腿。</p></div><p><strong>范围提示：</strong>这条一般命题可以成立，但绝不能用它单独证明眼镜腿会破坏密封。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Circumaural headphones can be designed to seal against the head and attenuate external noise.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_over_ear_seal</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;does_not_support&quot;: &quot;eyeglass temples degrade the seal&quot;,
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;seal against the head to attenuate external noise&quot;,
+  &quot;predicate&quot;: &quot;can_be_designed_to&quot;,
+  &quot;subject&quot;: &quot;circumaural headphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_over_ear_seal</code> | bytes [16609, 16761) | <code>44a7f09e06424dc2062ebd886eeabef9c772ee6e6580e2158e167b403ba422e2</code></div><pre class="context"><span> the balance between fidelity and portability. Generally, headphone form factors can be divided into four separate categories: circumaural (over-ear), supra-aural (on-ear), earbud and in-ear . Ear adaption Circumaural Circumaural headphones (sometimes called full size headphones or over-ear headphones ) have circular or oval earpads that encompass the ears. </span><mark>Because these headphones completely surround the ear, circumaural headphones can be designed to fully seal against the head to attenuate external noise.</mark><span> Because of their size, circumaural headphones can be heavy. Ergonomic headband and earpad design is required to reduce discomfort resulting from weight. Supra-aural Supra-aural headphones or on-ear headphones have pads that press against the ears, rather than around them. They were commonly bundled with personal stereos during the 1980s. This type of headph</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;does_not_support&quot;: &quot;eyeglass temples degrade the seal&quot;,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;general_design_capability&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_wireless_earphone_case"><header><h3>assert_wireless_earphone_case</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;部分无线耳机带有充电盒。&quot;,
+  &quot;predicate&quot;: &quot;陈述&quot;,
+  &quot;subject&quot;: &quot;《耳机》条目&quot;
+}</pre><strong>拟议 proposition 中文：</strong><div class="proposition"><code>prop_wireless_earphone_case</code><pre>{
+  &quot;object&quot;: &quot;充电盒&quot;,
+  &quot;predicate&quot;: &quot;可能包含&quot;,
+  &quot;subject&quot;: &quot;无线耳机&quot;
+}</pre></div><div class="translated-span"><strong>高亮原文译文：</strong>一些无线耳机带有充电盒。<p><strong>上下文提示：</strong>句子位于入耳式和无线耳机部分，使用“一些”这一数量限定。</p></div><p><strong>范围提示：</strong>只支持部分无线耳机可能带充电盒，不证明当前候选商品必然带充电盒。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Some wireless earphones include a charging case.&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;Headphones article&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_wireless_earphone_case</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;promotion_eligible&quot;: false,
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;
+  },
+  &quot;object&quot;: &quot;a charging case&quot;,
+  &quot;predicate&quot;: &quot;may_include&quot;,
+  &quot;subject&quot;: &quot;wireless earphones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_wireless_earphone_case</code> | bytes [19613, 19661) | <code>51b806d0caa65c8e044848b63621b78a94e1766e7f37008985fec48c73670a2b</code></div><pre class="context"><span>ustom-fitting ear canal plugs are made from silicone rubber, elastomer , or foam. Such plugs in lower-end devices may be interchangeable, which increases the risk of them falling off and getting lodged in the ear canal. Custom in-ear headphones use castings of the ear canal to create custom-molded plugs that provide added comfort and noise isolation. [ 39 ] </span><mark>Some wireless earphones include a charging case.</mark><span> Open- or closed-back Both circumaural and supra-aural headphones can be further differentiated by the type of earcups: Open-back Headphones having the back of the earcups open. This leaks more sound out of the headphone and also lets more ambient sounds into the headphone, but gives a more natural or speaker-like sound, due to including sounds from the envi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Headphones</a></p><p>冻结文件: <a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2" target="_blank">sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></p><p>内容 SHA-256: <code>fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;pending_human_semantic_review&quot;,
+    &quot;scope&quot;: &quot;article_assertion&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="attr_product_b07_price"><header><h3>attr_product_b07_price</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: {
+    &quot;货币&quot;: &quot;美元&quot;,
+    &quot;金额&quot;: &quot;149.99&quot;
+  },
+  &quot;predicate&quot;: &quot;价格为&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B07X9VG6ZJ&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>149.99 美元<p><strong>上下文提示：</strong>冻结商品正文在 SKU B07X9VG6ZJ 附近显示该价格。</p></div><p><strong>范围提示：</strong>只审核该冻结快照中的价格字段；不从 URL 名称推断商品形态、ANC 或续航。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: {
+    &quot;amount&quot;: &quot;149.99&quot;,
+    &quot;currency&quot;: &quot;USD&quot;
+  },
+  &quot;predicate&quot;: &quot;has_price&quot;,
+  &quot;subject&quot;: &quot;Magento product B07X9VG6ZJ&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b07_price</code> | bytes [60, 67) | <code>a80dc8eaa86b62e6b85bb39b5aa29c163ffa4a3ce3fe628b4e08676c0769a7f6</code></div><pre class="context"><span>In stock SKU B07X9VG6ZJ Be the first to review this product </span><mark>$149.99</mark><span> Color Copper Black Gold Beige Titanium Black Style Elite 7 Pro Elite 75t Elite 85t Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/jabra-elite-75t-earbuds-true-wireless-earbuds-with-charging-case-titanium-black-active-noise-cancelling-bluetooth-earbuds-with-a-comfortable-secure-fit-long-battery-life-great-sound.html" target="_blank" rel="noreferrer">http://localhost:7770/jabra-elite-75t-earbuds-true-wireless-earbuds-with-charging-case-titanium-black-active-noise-cancelling-bluetooth-earbuds-with-a-comfortable-secure-fit-long-battery-life-great-sound.html</a></p><p>冻结文件: <a href="sources/a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275" target="_blank">sources/a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275</a></p><p>内容 SHA-256: <code>a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;price&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;,
+    &quot;tolerance&quot;: null
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="attr_product_b08_price"><header><h3>attr_product_b08_price</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: {
+    &quot;货币&quot;: &quot;美元&quot;,
+    &quot;金额&quot;: &quot;14.19&quot;
+  },
+  &quot;predicate&quot;: &quot;价格为&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B08G54H5DG&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>14.19 美元<p><strong>上下文提示：</strong>冻结商品正文在 SKU B08G54H5DG 附近显示该价格。</p></div><p><strong>范围提示：</strong>只审核该冻结快照中的价格字段；不从 URL 名称推断商品形态、ANC 或续航。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: {
+    &quot;amount&quot;: &quot;14.19&quot;,
+    &quot;currency&quot;: &quot;USD&quot;
+  },
+  &quot;predicate&quot;: &quot;has_price&quot;,
+  &quot;subject&quot;: &quot;Magento product B08G54H5DG&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b08_price</code> | bytes [60, 66) | <code>59e9354eb01b902d358485bdeb4dc62cfe63fe7da2fd2a41a2662106d2368fc6</code></div><pre class="context"><span>In stock SKU B08G54H5DG Be the first to review this product </span><mark>$14.19</mark><span> Color Black Gray Green Orange White Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/on-ear-headset-foldable-stereo-noise-cancelling-wired-over-ear-headphones-with-mic-and-3-5mm-jack-for-children-kids-adults-pc-computer-laptop-tablet-phone-gray.html" target="_blank" rel="noreferrer">http://localhost:7770/on-ear-headset-foldable-stereo-noise-cancelling-wired-over-ear-headphones-with-mic-and-3-5mm-jack-for-children-kids-adults-pc-computer-laptop-tablet-phone-gray.html</a></p><p>冻结文件: <a href="sources/ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e" target="_blank">sources/ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e</a></p><p>内容 SHA-256: <code>ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;price&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;,
+    &quot;tolerance&quot;: null
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="attr_product_b09_price"><header><h3>attr_product_b09_price</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: {
+    &quot;货币&quot;: &quot;美元&quot;,
+    &quot;金额&quot;: &quot;79.99&quot;
+  },
+  &quot;predicate&quot;: &quot;价格为&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B09P54XLWY&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>79.99 美元<p><strong>上下文提示：</strong>冻结商品正文在 SKU B09P54XLWY 附近显示该价格。</p></div><p><strong>范围提示：</strong>只审核该冻结快照中的价格字段；不从 URL 名称推断商品形态、ANC 或续航。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: {
+    &quot;amount&quot;: &quot;79.99&quot;,
+    &quot;currency&quot;: &quot;USD&quot;
+  },
+  &quot;predicate&quot;: &quot;has_price&quot;,
+  &quot;subject&quot;: &quot;Magento product B09P54XLWY&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b09_price</code> | bytes [70, 76) | <code>7543a09c4afdf6b3d27f5f1d6405871315e315c974d19469892e66abddf90101</code></div><pre class="context"><span>In stock SKU B09P54XLWY Rating: 100 % of 100 1 Review Add Your Review </span><mark>$79.99</mark><span> Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/srhythm-nc35-noise-cancelling-headphones-real-over-ear-wireless-lightweight-durable-foldable-bluetooth-headset-bundles-with-protein-leather-earpads-replacement-memory-foam-cushions.html" target="_blank" rel="noreferrer">http://localhost:7770/srhythm-nc35-noise-cancelling-headphones-real-over-ear-wireless-lightweight-durable-foldable-bluetooth-headset-bundles-with-protein-leather-earpads-replacement-memory-foam-cushions.html</a></p><p>冻结文件: <a href="sources/ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5" target="_blank">sources/ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5</a></p><p>内容 SHA-256: <code>ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;price&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;,
+    &quot;tolerance&quot;: null
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="attr_product_b09_rating"><header><h3>attr_product_b09_rating</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: {
+    &quot;满分100的得分&quot;: 100,
+    &quot;评价数量&quot;: 1
+  },
+  &quot;predicate&quot;: &quot;评分为&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B09P54XLWY&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>评分为 100/100，共 1 条评价。<p><strong>上下文提示：</strong>冻结商品正文将该评分和评价数与 SKU B09P54XLWY 放在同一商品记录中。</p></div><p><strong>范围提示：</strong>只审核冻结记录中的聚合评分和评价数量，不把它当作舒适度或长期质量证据。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: {
+    &quot;percent_of_100&quot;: 100,
+    &quot;review_count&quot;: 1
+  },
+  &quot;predicate&quot;: &quot;has_rating&quot;,
+  &quot;subject&quot;: &quot;Magento product B09P54XLWY&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b09_rating</code> | bytes [24, 53) | <code>98a2bf983591945cc0569bcbf9a7658ebe17b873bc9a63e080e54a159dc8c657</code></div><pre class="context"><span>In stock SKU B09P54XLWY </span><mark>Rating: 100 % of 100 1 Review</mark><span> Add Your Review $79.99 Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/srhythm-nc35-noise-cancelling-headphones-real-over-ear-wireless-lightweight-durable-foldable-bluetooth-headset-bundles-with-protein-leather-earpads-replacement-memory-foam-cushions.html" target="_blank" rel="noreferrer">http://localhost:7770/srhythm-nc35-noise-cancelling-headphones-real-over-ear-wireless-lightweight-durable-foldable-bluetooth-headset-bundles-with-protein-leather-earpads-replacement-memory-foam-cushions.html</a></p><p>冻结文件: <a href="sources/ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5" target="_blank">sources/ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5</a></p><p>内容 SHA-256: <code>ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;rating&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="attr_product_b09l_price"><header><h3>attr_product_b09l_price</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: {
+    &quot;货币&quot;: &quot;美元&quot;,
+    &quot;金额&quot;: &quot;59.99&quot;
+  },
+  &quot;predicate&quot;: &quot;价格为&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B09LRJM42X&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>59.99 美元<p><strong>上下文提示：</strong>冻结商品正文在 SKU B09LRJM42X 附近显示该价格。</p></div><p><strong>范围提示：</strong>只审核该冻结快照中的价格字段；不从 URL 名称推断商品形态、ANC 或续航。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: {
+    &quot;amount&quot;: &quot;59.99&quot;,
+    &quot;currency&quot;: &quot;USD&quot;
+  },
+  &quot;predicate&quot;: &quot;has_price&quot;,
+  &quot;subject&quot;: &quot;Magento product B09LRJM42X&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b09l_price</code> | bytes [71, 77) | <code>c686da77c6a68c84e54c73a24ab08366529cc51b0e536f6e6a2c187248dd4718</code></div><pre class="context"><span>In stock SKU B09LRJM42X Rating: 83 % of 100 12 Reviews Add Your Review </span><mark>$59.99</mark><span> Color Black White Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html" target="_blank" rel="noreferrer">http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html</a></p><p>冻结文件: <a href="sources/67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d" target="_blank">sources/67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d</a></p><p>内容 SHA-256: <code>67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;price&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;,
+    &quot;tolerance&quot;: null
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="attr_product_b09l_rating"><header><h3>attr_product_b09l_rating</h3><span class="badge">structured</span><span class="badge">attribute</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: {
+    &quot;满分100的得分&quot;: 83,
+    &quot;评价数量&quot;: 12
+  },
+  &quot;predicate&quot;: &quot;评分为&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B09LRJM42X&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>评分为 83/100，共 12 条评价。<p><strong>上下文提示：</strong>冻结商品正文将该评分和评价数与 SKU B09LRJM42X 放在同一商品记录中。</p></div><p><strong>范围提示：</strong>只审核冻结记录中的聚合评分和评价数量，不把它当作舒适度或长期质量证据。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: {
+    &quot;percent_of_100&quot;: 83,
+    &quot;review_count&quot;: 12
+  },
+  &quot;predicate&quot;: &quot;has_rating&quot;,
+  &quot;subject&quot;: &quot;Magento product B09LRJM42X&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b09l_rating</code> | bytes [24, 54) | <code>0e03dbc3267fe2a5cc528c54a31cf20f687350ccf7ef4b64e5b9ff742e62a7a7</code></div><pre class="context"><span>In stock SKU B09LRJM42X </span><mark>Rating: 83 % of 100 12 Reviews</mark><span> Add Your Review $59.99 Color Black White Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html" target="_blank" rel="noreferrer">http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html</a></p><p>冻结文件: <a href="sources/67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d" target="_blank">sources/67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d</a></p><p>内容 SHA-256: <code>67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;rating&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ent_product_b07x9vg6zj"><header><h3>ent_product_b07x9vg6zj</h3><span class="badge">structured</span><span class="badge">entity</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;B07X9VG6ZJ&quot;,
+  &quot;predicate&quot;: &quot;由 SKU 标识&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B07X9VG6ZJ&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>SKU B07X9VG6ZJ<p><strong>上下文提示：</strong>冻结商品正文直接显示该 SKU。</p></div><p><strong>范围提示：</strong>只确认商品记录的 SKU 身份；不能用 URL slug 证明商品标题、形态或功能。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;B07X9VG6ZJ&quot;,
+  &quot;predicate&quot;: &quot;identified_by_sku&quot;,
+  &quot;subject&quot;: &quot;Magento product B07X9VG6ZJ&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b07_sku</code> | bytes [9, 23) | <code>e38001e486f71f8dd34eecb0c9521c51c00783ac80f7ec526448c4dad9e7fccd</code></div><pre class="context"><span>In stock </span><mark>SKU B07X9VG6ZJ</mark><span> Be the first to review this product $149.99 Color Copper Black Gold Beige Titanium Black Style Elite 7 Pro Elite 75t Elite 85t Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/jabra-elite-75t-earbuds-true-wireless-earbuds-with-charging-case-titanium-black-active-noise-cancelling-bluetooth-earbuds-with-a-comfortable-secure-fit-long-battery-life-great-sound.html" target="_blank" rel="noreferrer">http://localhost:7770/jabra-elite-75t-earbuds-true-wireless-earbuds-with-charging-case-titanium-black-active-noise-cancelling-bluetooth-earbuds-with-a-comfortable-secure-fit-long-battery-life-great-sound.html</a></p><p>冻结文件: <a href="sources/a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275" target="_blank">sources/a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275</a></p><p>内容 SHA-256: <code>a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;sku&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ent_product_b08g54h5dg"><header><h3>ent_product_b08g54h5dg</h3><span class="badge">structured</span><span class="badge">entity</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;B08G54H5DG&quot;,
+  &quot;predicate&quot;: &quot;由 SKU 标识&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B08G54H5DG&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>SKU B08G54H5DG<p><strong>上下文提示：</strong>冻结商品正文直接显示该 SKU。</p></div><p><strong>范围提示：</strong>只确认商品记录的 SKU 身份；不能用 URL slug 证明商品标题、形态或功能。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;B08G54H5DG&quot;,
+  &quot;predicate&quot;: &quot;identified_by_sku&quot;,
+  &quot;subject&quot;: &quot;Magento product B08G54H5DG&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b08_sku</code> | bytes [9, 23) | <code>ea1aeea803cf75d8be3a36a3d69a4f33c03a3530a5ad8719d7d00150e28fea0e</code></div><pre class="context"><span>In stock </span><mark>SKU B08G54H5DG</mark><span> Be the first to review this product $14.19 Color Black Gray Green Orange White Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/on-ear-headset-foldable-stereo-noise-cancelling-wired-over-ear-headphones-with-mic-and-3-5mm-jack-for-children-kids-adults-pc-computer-laptop-tablet-phone-gray.html" target="_blank" rel="noreferrer">http://localhost:7770/on-ear-headset-foldable-stereo-noise-cancelling-wired-over-ear-headphones-with-mic-and-3-5mm-jack-for-children-kids-adults-pc-computer-laptop-tablet-phone-gray.html</a></p><p>冻结文件: <a href="sources/ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e" target="_blank">sources/ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e</a></p><p>内容 SHA-256: <code>ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;sku&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ent_product_b09lrjm42x"><header><h3>ent_product_b09lrjm42x</h3><span class="badge">structured</span><span class="badge">entity</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;B09LRJM42X&quot;,
+  &quot;predicate&quot;: &quot;由 SKU 标识&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B09LRJM42X&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>SKU B09LRJM42X<p><strong>上下文提示：</strong>冻结商品正文直接显示该 SKU。</p></div><p><strong>范围提示：</strong>只确认商品记录的 SKU 身份；不能用 URL slug 证明商品标题、形态或功能。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;B09LRJM42X&quot;,
+  &quot;predicate&quot;: &quot;identified_by_sku&quot;,
+  &quot;subject&quot;: &quot;Magento product B09LRJM42X&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b09l_sku</code> | bytes [9, 23) | <code>28bc0eb1f7b09ff8931610ecd3c312bab31273a50c98030a81bc400c0406946e</code></div><pre class="context"><span>In stock </span><mark>SKU B09LRJM42X</mark><span> Rating: 83 % of 100 12 Reviews Add Your Review $59.99 Color Black White Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html" target="_blank" rel="noreferrer">http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html</a></p><p>冻结文件: <a href="sources/67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d" target="_blank">sources/67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d</a></p><p>内容 SHA-256: <code>67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;sku&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="structured" data-item-id="ent_product_b09p54xlwy"><header><h3>ent_product_b09p54xlwy</h3><span class="badge">structured</span><span class="badge">entity</span><span class="badge">magento</span></header><section class="translation"><h4>中文标注辅助（非证据）</h4><strong>拟议节点中文：</strong><pre>{
+  &quot;object&quot;: &quot;B09P54XLWY&quot;,
+  &quot;predicate&quot;: &quot;由 SKU 标识&quot;,
+  &quot;subject&quot;: &quot;Magento 商品 B09P54XLWY&quot;
+}</pre><strong>拟议 proposition 中文：</strong><p class="muted">结构化项没有 ASSERTS proposition。</p><div class="translated-span"><strong>高亮原文译文：</strong>SKU B09P54XLWY<p><strong>上下文提示：</strong>冻结商品正文直接显示该 SKU。</p></div><p><strong>范围提示：</strong>只确认商品记录的 SKU 身份；不能用 URL slug 证明商品标题、形态或功能。</p></section><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;B09P54XLWY&quot;,
+  &quot;predicate&quot;: &quot;identified_by_sku&quot;,
+  &quot;subject&quot;: &quot;Magento product B09P54XLWY&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_product_b09_sku</code> | bytes [9, 23) | <code>e8d2b7922e14b81e5a991d20f7be6dba254f60b40d169cccb5f90e0457c8ee31</code></div><pre class="context"><span>In stock </span><mark>SKU B09P54XLWY</mark><span> Rating: 100 % of 100 1 Review Add Your Review $79.99 Qty Add to Cart Add to Wish List Add to Compare</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/srhythm-nc35-noise-cancelling-headphones-real-over-ear-wireless-lightweight-durable-foldable-bluetooth-headset-bundles-with-protein-leather-earpads-replacement-memory-foam-cushions.html" target="_blank" rel="noreferrer">http://localhost:7770/srhythm-nc35-noise-cancelling-headphones-real-over-ear-wireless-lightweight-durable-foldable-bluetooth-headset-bundles-with-protein-leather-earpads-replacement-memory-foam-cushions.html</a></p><p>冻结文件: <a href="sources/ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5" target="_blank">sources/ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5</a></p><p>内容 SHA-256: <code>ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;review_status&quot;: &quot;machine_verified_pending_human_audit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;field&quot;: &quot;sku&quot;,
+    &quot;kind&quot;: &quot;structured_fact&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_magento_b07x9vg6zj</td><td>magento</td><td><a href="sources/a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275">a3b1babc511bae30936f19b493e7959031babb4d1125f1476a879b368386f275</a></td><td><a href="http://localhost:7770/jabra-elite-75t-earbuds-true-wireless-earbuds-with-charging-case-titanium-black-active-noise-cancelling-bluetooth-earbuds-with-a-comfortable-secure-fit-long-battery-life-great-sound.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>198</td></tr><tr><td>reg_magento_b08g54h5dg</td><td>magento</td><td><a href="sources/ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e">ac96b8db68f66fa59150384350ee92957d8035008522632e62411656e25ab03e</a></td><td><a href="http://localhost:7770/on-ear-headset-foldable-stereo-noise-cancelling-wired-over-ear-headphones-with-mic-and-3-5mm-jack-for-children-kids-adults-pc-computer-laptop-tablet-phone-gray.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>150</td></tr><tr><td>reg_magento_b09lrjm42x</td><td>magento</td><td><a href="sources/67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d">67c94bcf8ff86bf4ce8cfd0b36ff9634e688c315c06c69731f0746fb8267650d</a></td><td><a href="http://localhost:7770/lenovo-smart-true-wireless-earbuds-smart-switch-fast-pair-active-noise-cancelling-earphones-with-wireless-charging-case-28-hrs-playtime-headphones-6-built-in-mics-bluetooth-black.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>143</td></tr><tr><td>reg_magento_b09p54xlwy</td><td>magento</td><td><a href="sources/ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5">ea3488a56480bf99db26752758a829c41bb7d1126a7d42dc899d20e71480efa5</a></td><td><a href="http://localhost:7770/srhythm-nc35-noise-cancelling-headphones-real-over-ear-wireless-lightweight-durable-foldable-bluetooth-headset-bundles-with-protein-leather-earpads-replacement-memory-foam-cushions.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>124</td></tr><tr><td>reg_postmill_glasses_pain</td><td>postmill</td><td><a href="sources/8c0a9f9c613af87dfbd92dacae91bbb298be6fe2c3e7ba21e0a949f3ba09e59c">8c0a9f9c613af87dfbd92dacae91bbb298be6fe2c3e7ba21e0a949f3ba09e59c</a></td><td><a href="http://localhost:9999/f/headphones/61980/does-anyone-else-find-it-painful-to-wear-glasses-with" target="_blank" rel="noreferrer">来源 URL</a></td><td>281</td></tr><tr><td>reg_postmill_headphones_vs_earbuds</td><td>postmill</td><td><a href="sources/bcf0403a2d9372163189c5650609eab4d3aa2eafef5ba3e67ef55c5457e0e3c4">bcf0403a2d9372163189c5650609eab4d3aa2eafef5ba3e67ef55c5457e0e3c4</a></td><td><a href="http://localhost:9999/f/Music/121142/noise-cancelling-headphones-vs-earbuds-for-100" target="_blank" rel="noreferrer">来源 URL</a></td><td>382</td></tr><tr><td>reg_postmill_white_noise</td><td>postmill</td><td><a href="sources/6fc700d8b6a9f71a55bc2adfb081305e90245a247e1238d33038cb2bf95552d9">6fc700d8b6a9f71a55bc2adfb081305e90245a247e1238d33038cb2bf95552d9</a></td><td><a href="http://localhost:9999/f/headphones/20101/is-there-any-noise-canceling-headphones-without-white-noise" target="_blank" rel="noreferrer">来源 URL</a></td><td>547</td></tr><tr><td>reg_search_forum_glasses</td><td>search_result</td><td><a href="sources/7d57f4f88a09767c05268eea0ca5ada2ee720f577fc9a12e56d1f74b44167f57">7d57f4f88a09767c05268eea0ca5ada2ee720f577fc9a12e56d1f74b44167f57</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-audio-glasses-20260715-r2&amp;request_id=b8f2920c-6764-47df-9370-21bd37e00f80" target="_blank" rel="noreferrer">来源 URL</a></td><td>7122</td></tr><tr><td>reg_search_shop_earbuds</td><td>search_result</td><td><a href="sources/7e5554f7e82003a286b417279aabc3786fff629cfaec1424c521bf6a489b0743">7e5554f7e82003a286b417279aabc3786fff629cfaec1424c521bf6a489b0743</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-audio-glasses-20260715-r2&amp;request_id=4c97d4f5-b0fa-4ba5-9161-75bba69d08d3" target="_blank" rel="noreferrer">来源 URL</a></td><td>8247</td></tr><tr><td>reg_search_shop_foldable</td><td>search_result</td><td><a href="sources/3c7e0e85765fd50ab1f3b0c0371eb0a7dd955efb85d08684a16fafbaef7bcf7a">3c7e0e85765fd50ab1f3b0c0371eb0a7dd955efb85d08684a16fafbaef7bcf7a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-audio-glasses-20260715-r2&amp;request_id=6e75d0e1-fc95-4e34-9df7-0e722dbc1ca0" target="_blank" rel="noreferrer">来源 URL</a></td><td>7912</td></tr><tr><td>reg_search_wiki_anc</td><td>search_result</td><td><a href="sources/5b5b77895206e20785d45f49f17c61f69d89d912761aba1e990a6b539269ae99">5b5b77895206e20785d45f49f17c61f69d89d912761aba1e990a6b539269ae99</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-audio-glasses-20260715-r2&amp;request_id=8ce4f5fa-c2e8-4c11-aa0a-088359e4f4b0" target="_blank" rel="noreferrer">来源 URL</a></td><td>6900</td></tr><tr><td>reg_wiki_active_noise_control</td><td>wikipedia</td><td><a href="sources/23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5">23d10e4b2218ba99f89b4a5594b7253d99644e81ab9cada41185f3f11964cfd5</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Active_noise_control" target="_blank" rel="noreferrer">来源 URL</a></td><td>11589</td></tr><tr><td>reg_wiki_headphones</td><td>wikipedia</td><td><a href="sources/fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2">fdbf3c099be5a2b28414be2f03775528ee14ead992682fffe2d7429d1c0e10b2</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Headphones" target="_blank" rel="noreferrer">来源 URL</a></td><td>20044</td></tr><tr><td>reg_wiki_noise_cancelling_headphones</td><td>wikipedia</td><td><a href="sources/c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec">c3627ab7ccabfee04ee0ede7496c045d4ff9392cee898d785172c52bbf1e4cec</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Noise-cancelling_headphones" target="_blank" rel="noreferrer">来源 URL</a></td><td>12328</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "cand_audio_glasses_flight";
+const corpusSnapshot = "dra-v3-pilot-my5090-20260715-r2";
+const graphHash = "c1108b29bd534f5faa42fc958ec79ee28d569564ffe3b2b548268292445c67aa";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

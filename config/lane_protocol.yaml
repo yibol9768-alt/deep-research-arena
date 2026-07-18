@@ -44,6 +44,8 @@ shared:
   # Every lane receives exactly this and nothing more.
   intent_source: data/tasks/deep_research/cross_site_deep/<task_id>.json  # field: intent
   appended_to_intent: |
+    Base factual claims on sources retrieved during this run. Include the exact
+    retrieved URL for every source used in the final report.
     Deliver your answer as a single self-contained markdown report. Return the
     report only, with no planning notes or tool transcripts.
   # Capability granted to every lane, in whatever form its runtime accepts.
@@ -256,6 +258,11 @@ lanes:
         human_zh: "STORM 检索后的 SentenceTransformer 索引被替换为确定性词法打分器(离线 worker 无嵌入模型下载通道);其余检索预算保持框架原生。"
         human_en: "STORM's post-retrieval SentenceTransformer index is replaced by a deterministic lexical scorer (the offline worker has no embedding-model download channel); other research budgets stay framework-native."
         detail: "STORM's post-retrieval SentenceTransformer index is replaced with a deterministic lexical scorer because the formal offline worker has no embedding-model download channel. Research budgets remain native: max_conv_turn=3, max_perspective=3, search_top_k=3, retrieve_top_k=3, and max_thread_num=10. The lexical ranking substitution can change which already-collected snippets reach article generation and must be disclosed on comparative boards until a pinned read-only native embedding cache is mounted."
+      - kind: capability_delivery
+        code: capability_native_citation_bundle
+        human_zh: "STORM 1.1.1 原生输出由带 [N] 的封存文章和 url_to_info.json 引用表共同组成；适配层把已检索 URL 身份随原片段交给 writer，评分器核验字节数与 SHA-256 后仅在内存中解析正文实际出现的编号，不改写报告、不计未引用结果。"
+        human_en: "STORM 1.1.1 natively emits a sealed article with [N] anchors plus a url_to_info.json citation table; the adapter keeps each retrieved URL identity attached to its original snippets for the writer, and after verifying byte count and SHA-256 the scorer resolves only indices actually present inline, in memory, without modifying the report or crediting unused retrievals."
+        detail: "knowledge_storm 1.1.1 WriteSection explicitly says not to include a References section, ConvToSection otherwise drops Information.url before writing, and StormArticle.dump_reference_to_file writes the native URL-to-unified-index table separately. The adapter prepends each framework-selected Information object's already-retrieved canonical URL identity to that object's writer-visible snippets; it performs no extra search or source selection. scripts/score_deep_answer.py treats the sealed article and verified table as one native result bundle. It requires an intact report seal, a sibling artifact declared in meta.native_artifacts, matching byte count and SHA-256, an unambiguous integer index, and the URL in both native maps. Only inline indices are materialised in the temporary scoring view; conflicting model-written public reference URLs remain visible as bare citations for reachability penalty, the sealed Markdown remains byte-identical, and unused sources receive no credit."
       - kind: snippet_only
         code: snippet_only
         human_zh: "架构上无页面读取工具,仅消费搜索片段(fetch_mode: none);引用按 snippet_only 如实归类,与读页车道不同轨。"
@@ -263,8 +270,8 @@ lanes:
         detail: "STORM's only affordance is shim /search: it reads no pages, by architecture. pof=0 is honest here (there is no off-shim read to miss) and its real cited URLs land in the snippet_only provenance class. This is a structural difference from page-reading lanes that the board must disclose. How score_completeness's fetch threshold should treat declared fetch_mode:none lanes is a frozen semantic fork registered in docs/SPEC_ISSUES.md (section 1, first entry), pending the maintainer's ruling; this deviation only discloses the architecture."
   qx-agents:
     delivery: subprocess
-    fetch_observable: false
-    fetch_mode: direct_aiohttp
+    fetch_observable: true
+    fetch_mode: shim_fetch
     deviations:
       - kind: capability_delivery
         code: capability_searxng_shim
@@ -276,11 +283,16 @@ lanes:
         human_zh: "框架原生预算:max_iterations=5、max_time_minutes=10、max_turns=10、SearchXNG pageLength=10。"
         human_en: "Framework-native budgets: max_iterations=5, max_time_minutes=10, openai-agents max_turns=10, SearchXNG pageLength=10."
         detail: "Framework-native budgets: max_iterations=5, max_time_minutes=10, openai-agents max_turns=10, and SearchXNG pageLength default 10. The former harness-specific 1 iteration / 4 minute / 12 turn mix was removed."
-      - kind: fetch_withhold
-        code: fetch_withhold
-        human_zh: "页面读取经 aiohttp 直连、绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
-        human_en: "Page reads go via aiohttp direct to the site, bypassing the recording shim, so proof-of-fetch is withheld (available=False + reason) and never scored 0."
-        detail: "Page reads use an aiohttp session.get direct to the site, bypassing the recording shim, so proof-of-fetch cannot be observed for this lane. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
+      - kind: capability_delivery
+        code: capability_shim_fetch
+        human_zh: "qx 的沙盒页面 GET 经记录 shim 的 /fetch 传输；正式 worker 已证明搜索与全文读取均进入同一 run 证据流。"
+        human_en: "qx sandbox page GETs are transported through the recording shim's /fetch route; formal-worker evidence proves both searches and full-page reads enter the same run evidence stream."
+        detail: "The generated qx driver redirects only GETs to the declared sandbox site hosts through shim /fetch and leaves the internal SearchXNG adapter on direct loopback. Formal run smoke-fix-qx-deepseek-v4flash-v6-20260715T060500Z recorded 447 searches and 631 page fetches with zero public egress, so proof-of-fetch is observable for this lane."
+      - kind: capability_delivery
+        code: capability_closed_world_tools
+        human_zh: "正式沙盒把 qx 原生 SiteCrawlerAgent 映射到同一 SearchXNG 沙盒工具，并把 HTTP 200 成功全文读取的精确 URL 清单交给多阶段 writer；原生报告不做引用嫁接或后处理。"
+        human_en: "The formal sandbox maps qx's native SiteCrawlerAgent key to the same SearchXNG-backed sandbox tool and hands its multi-stage writers the exact URL manifest of HTTP-200 full-page reads; the native report receives no citation graft or post-processing."
+        detail: "qx's stock SiteCrawlerAgent accepts arbitrary public entity_website values and otherwise attempts direct public crawling, a capability the closed-world benchmark does not grant. Both native tool-agent keys therefore resolve to the same registered SearchXNG sandbox agent. The aiohttp transport records exact sandbox URLs only after shim /fetch returns HTTP 200; that run-native source manifest is supplied to WriterAgent and LongWriterAgent so the framework can preserve its own evidence identities across stages. URLs from failed requests, entity fields, or model memory are not retrieved sources. No URL is inserted into the final report by the harness, and no citation count, citation syntax, source quota, topical hint, or report mutation is introduced."
   # camel-ai's only page-read channel is the shim /extract tool (used when the
   # model calls tavily_extract); it has no direct-fetch bypass, so metrics are
   # trustworthy even though a given run may not fetch at all.
@@ -367,8 +379,13 @@ lanes:
   ldr:
     delivery: subprocess
     fetch_observable: false
-    fetch_mode: unknown
+    fetch_mode: none
     deviations:
+      - kind: search_adapter
+        code: official_custom_retriever
+        human_zh: "LDR 通过其官方 retrievers={name: BaseRetriever} 接口注册 dra_sandbox；适配器仅把 LDR 自己生成的 query 转为 shim /search，并把返回项映射为 LangChain Document，不预搜、不向提示注入来源、不改写报告。沙盒正文内嵌的公网出站 URL token 在进入 LDR 前被省略，正文其余内容和 canonical localhost source 保留，避免分章节写作器把帖子正文链接误当成检索来源。"
+        human_en: "LDR registers dra_sandbox through its official retrievers={name: BaseRetriever} API; the adapter only maps LDR's own queries to shim /search and maps results to LangChain Documents, with no pre-search, source injection, or report rewriting. Public outbound URL tokens embedded inside sandbox document bodies are omitted before LDR sees the Document, while the remaining text and canonical localhost source are preserved, so the section writer cannot mistake body links for retrieved source identities."
+        detail: "The built-in Tavily engine validates/resolves api.tavily.com before an HTTP transport rewrite can run; the formal worker intentionally has no public DNS/default route, so that path silently returned []. scripts/runners/ldr_runner.py instead uses generate_report(..., retrievers={'dra_sandbox': retriever}, search_tool='dra_sandbox'), an API explicitly supported by LDR 1.5.6. The retriever sends only LDR-generated queries to the owned shim and returns each result's canonical localhost URL plus its snippet as a Document. Because a sandbox Reddit page can quote its original public outbound links in the body, those URL tokens are omitted at the retriever boundary (and counted in diagnostics); prose is preserved, non-sandbox result identities are rejected, and the native report is never rewritten. A GET /healthz connectivity preflight retains no sources."
       - kind: mask_round_trip
         code: mask_round_trip
         human_zh: "localhost <-> onestopmarket.com 等的掩码,调用前施加、返回后还原;默认关闭(LDR_INTENT_MASK)。"
@@ -379,16 +396,31 @@ lanes:
         human_zh: "LDR 使用安装的框架默认:search.iterations=3、questions_per_iteration=1、max_results=50、snippets_only=true;正式运行拒绝任何覆盖。"
         human_en: "LDR uses its installed framework defaults: search.iterations=3, questions_per_iteration=1, max_results=50, snippets_only=true; every override is rejected for formal runs."
         detail: "LDR uses its installed framework defaults: search.iterations=3, search.questions_per_iteration=1, search.max_results=50, and search.snippets_only=true. The former adapter-specific 2/2/6/full-page override was removed. LDR_SEARCH_ITERATIONS, LDR_QUESTIONS_PER_ITERATION, and LDR_SEARCH_MAX_RESULTS remain env-addressable for debugging but every override is rejected for formal runs."
+      - kind: snippet_only
+        code: snippet_only
+        human_zh: "LDR 的 dra_sandbox retriever 只把 shim /search 返回的 URL 与片段映射为 Document，没有页面读取工具；引用按 snippet_only 归类。"
+        human_en: "LDR's dra_sandbox retriever maps only shim /search URLs and snippets to Documents and has no page-read tool; citations are classified as snippet_only."
+        detail: "scripts/runners/ldr_runner.py DraSandboxRetriever invokes only shim /search. It maps each returned URL and content/raw_content snippet to a LangChain Document; it does not call /fetch or any corpus page URL. This is an architectural fetch_mode:none lane, so snippet-only grounding is disclosed separately from page-read proof-of-fetch."
       - kind: fetch_withhold
         code: fetch_withhold
-        human_zh: "页面读取传输尚未证明经记录 shim(FETCH_FULL_PAGE 为上游行为),proof-of-fetch 予以保留,待传输冒烟证明后再计,绝不记 0。"
-        human_en: "The page-read transport is not yet proven to pass through the recording shim (FETCH_FULL_PAGE is upstream), so proof-of-fetch is withheld until a transport smoke proves it, and is never scored 0."
-        detail: "LDR's page-read transport is not yet proven to pass through the recording shim (FETCH_FULL_PAGE is an upstream behavior). pof is withheld (available=False + reason) until a transport smoke shows recorded fetch rows > 0; it is never scored 0."
+        human_zh: "官方 custom retriever 只消费 shim 搜索片段，没有页面读取工具；proof-of-fetch 按 fetch_mode:none 保留，不把架构上不存在的读取打成 0。"
+        human_en: "The official custom retriever consumes shim search snippets and has no page-read tool; proof-of-fetch is withheld under fetch_mode:none rather than scoring an architecturally absent read as 0."
+        detail: "LDR's registered dra_sandbox retriever maps /search results to Documents and performs no page fetch. pof is therefore withheld as unavailable for this fetch_mode:none lane; search/citation grounding remains independently auditable through shim search rows and exact report URLs."
   ii-researcher:
     delivery: subprocess
     fetch_observable: false
     fetch_mode: direct_requests
     deviations:
+      - kind: capability_delivery
+        code: api_tool_bridge
+        human_zh: "II 0.1.5 的 web_search/page_visit 文本动作同时以 Chat Completions function tools 暴露;模型自动选择后原样转换回 II 原生 fenced-Python 动作,不强制调用、不执行额外搜索。"
+        human_en: "II 0.1.5's textual web_search/page_visit actions are also exposed as Chat Completions function tools; an automatically selected call is translated back to II's native fenced-Python action without forcing use or executing extra searches."
+        detail: "ii-researcher 0.1.5 only advertises its registered web_search and page_visit tools as prompt-text Python snippets. OpenAI-compatible reasoning backbones can ignore that convention while supporting Chat Completions tools. The adapter supplies schemas for exactly those two native tools with tool_choice=auto and parallel_tool_calls=false. If the model selects one, the adapter validates its JSON and translates it to the exact fenced-Python action already parsed and executed by ReasoningAgent. It neither forces a tool choice nor calls search itself; invalid or expanded calls fail closed."
+      - kind: budget
+        code: budget_native_actions
+        human_zh: "II 0.1.5 的原生动作循环无上限;最多执行 10 个模型选择的原生工具动作,随后以无动作控制轮进入 II 自己的 ReportBuilder。"
+        human_en: "II 0.1.5's native action loop is unbounded; after at most 10 model-selected native tool actions, an action-free control turn enters II's own ReportBuilder."
+        detail: "ReasoningAgent.run is an unbounded while-True loop, and WebSearchTool's native suffix says each result may be insufficient and that more research must follow. On gpt-5.6-luna this produced 15 consecutive search actions with no terminal turn before the operator stopped the diagnostic run. The adapter therefore caps native actions at 10. On the next turn it returns only II's own </think> control marker, which contains no report content and causes ReasoningAgent to invoke its native ReportBuilder over the accumulated trace and ToolHistory. This prevents the lane from burning to the shared 750k-token fuse; it neither chooses tools/queries nor writes report evidence."
       - kind: fetch_withhold
         code: fetch_withhold
         human_zh: "页面读取经 requests 直连、绕过记录 shim,proof-of-fetch 予以保留(available=False + 原因码),绝不记 0。"
@@ -407,20 +439,20 @@ lanes:
         human_en: "Framework-native FlowSearcher-DS budgets (<=3 pages per subgoal, 3000 chars/page, 25000 total evidence chars, planner 3000 tokens, report 8192 tokens); content-neutral."
         detail: "Framework-native FlowSearcher-DS budgets: search max_results=10, up to 3 fetched pages per subgoal, 3000 characters per fetched page, 25000 total evidence characters, planner max_tokens=3000, and report max_tokens=8192. These remain content-neutral; the former scorer-shaped query/source/word/citation quotas were removed."
   gpt-researcher:
-    delivery: in_process
-    fetch_observable: false
-    fetch_mode: direct_requests
+    delivery: subprocess
+    fetch_observable: true
+    fetch_mode: shim_fetch
     deviations:
       - kind: capability_delivery
         code: retriever_shim
         human_zh: "gpt-researcher 的 TavilySearch 检索器被替换为绑定的 shim 后端检索类,使其无法触达真实网络,只经沙盒 shim /search 取结果。"
         human_en: "gpt-researcher's TavilySearch retriever is replaced by a bound shim-backed retriever class, so it cannot reach the real web and retrieves only through the sandbox shim /search."
         detail: "gpt-researcher resolves its retriever by the RETRIEVER name and runs a late `from gpt_researcher.retrievers import TavilySearch` at construction time. The adapter binds a self-contained shim-backed `_ShimTavilyRetriever` onto that exact name (in both `gpt_researcher.retrievers` and `gpt_researcher.retrievers.tavily.tavily_search`) so the retriever cannot reach the real web at all and returns only sandbox shim /search results. See scripts/runners/gpt_researcher_runner.py `_build_shim_retriever_block`."
-      - kind: fetch_withhold
-        code: fetch_withhold
-        human_zh: "绑定的 shim 检索器只喂片段,任何页面读取仍是 requests 直连、离记录 shim,proof-of-fetch 予以保留,绝不记 0。"
-        human_en: "The bound shim retriever feeds snippets, but any page read is requests direct to the site off the recording shim, so proof-of-fetch is withheld and never scored 0."
-        detail: "gpt-researcher's bound shim retriever feeds snippets, but any page read is requests.get direct to the site, off the recording shim. pof is withheld (available=False + reason) until an on-shim transport is proven; it is never scored 0."
+      - kind: capability_delivery
+        code: capability_shim_fetch
+        human_zh: "gpt-researcher 的沙盒页面 GET 经记录 shim 的 /fetch 传输；搜索与全文读取进入同一 run 证据流，原生报告不做引用嫁接或后处理。"
+        human_en: "gpt-researcher's sandbox page GETs are transported through the recording shim's /fetch route; search and full-page reads enter the same run evidence stream, with no citation graft or report post-processing."
+        detail: "The subprocess driver patches requests.Session.send before GPTResearcher is constructed. Only GETs whose exact destination is a declared sandbox site origin are rewritten to shim /fetch?url=<original>; shim search POSTs, model calls, and non-sandbox destinations are left untouched. The scraper receives the fetched bytes normally while the shim records the canonical source URL inside the active run bracket. No source URL or citation is inserted into the final report by the adapter."
   # opencode is taught the {shim}/fetch recipe, but its command allowlist also
   # permits curl to localhost:*, so the model can read the site off-shim. Treat
   # as unobservable until the allowlist is tightened (C3).

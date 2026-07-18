@@ -1,0 +1,461 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_keyboard_0006",
+  "cluster_id": "keyboard_bifl_serviceability",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 5,
+    "distractor_density": 0.45,
+    "contradiction_count": 7
+  },
+  "rule_definitions": {
+    "component_lifetime_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Seller claims that individual switches are rated for roughly 50 million cycles describe one component, not a complete keyboard lifetime. Generic contact, debounce and hot-swap mechanisms plus the Sun68 PCB failure leave cable, socket, controller and PCB failure paths, so a switch-cycle number cannot establish a ten-year whole-board guarantee."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "current_product_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The frozen Punkston TK87 is $32 with 87/100 from 11 reviews, double-shot ABS wording and a seller switch-cycle claim, but no stated hot swap or detachable cable. The RK100 is $85.99 with 77/100 from 12 reviews, PBT keycaps, broad three-pin and five-pin MX hot swapping, four replacement switches and an included Type-C cable. The CODE V3 is $180 with 77/100 from 12 reviews, a detachable cable and Cherry MX Brown switches advertised for 50 million cycles, but no stated hot swap. None has captured same-model longitudinal proof."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "repairability_and_spares_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Keycaps are replaceable wear items, PBT is harder and long-wearing, and doubleshot legends resist fading, so keycap shine is separable from board failure. The RK100 exposes a switch-replacement path and the CODE V3 exposes a cable-replacement path, but neither listing establishes replacement PCB or controller availability; the Sun68 report makes warranty and board-level spares a separate purchase gate."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "owner_evidence_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The frozen owner evidence includes an 11-year Unicomp survivor, almost four years of NYM96 daily use and an approximately 15-year-old secondhand Logitech G15, while the Unicomp thread also contains failures or wear at about 18 months, six years and 12 years. These anecdotes show possible long service and varied outcomes but do not provide a population failure rate or prove any current shopping listing will last a decade."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_bifl_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "No captured current listing is a proven decade winner. I choose the RK100 only as the repairability-first current-shopping fallback, not as a BIFL guarantee; I treat Unicomp as the strongest but mixed longitudinal reference rather than a captured catalog option, and I require confirmation of warranty, replacement PCB, cable, switch and keycap availability before purchase."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "rk100_repairability_first_current_buy": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "No current option is decade-proven; the RK100 is only the repairability-first fallback.",
+            "Choose the RK100 as a repairability fallback, not as a ten-year guarantee."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_switch_cycles_prove_decade_lifetime",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A 50-million-keystroke switch rating proves that the complete keyboard will last at least ten years."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_hotswap_makes_whole_board_repairable",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Hot-swappable switches make every controller and PCB failure repairable."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_keycap_material_proves_board_lifetime",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "PBT or doubleshot keycaps prove that the keyboard electronics will survive a decade."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_unicomp_thread_proves_uniform_reliability",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Unicomp thread proves that every Model M lasts more than ten years."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_logitech_age_is_continuous_daily_use",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Logitech G15 comment proves 15 years of continuous daily use by the same owner."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_code_v3_is_hotswappable",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen CODE V3 body states that its switches are hot-swappable."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_current_option_is_decade_proven",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen evidence proves that one current shopping option is guaranteed to last a decade."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build a complete frozen matrix for the Punkston TK87, RK100 and CODE V3, covering price, displayed review aggregate, keycap wording, switch-cycle wording, hot-swap scope, included spares, cable replacement and absent same-model longitudinal support.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Separate component-level switch, contact, debounce and socket mechanisms from complete-keyboard lifetime, using the board-level PCB counterexample to keep the scope explicit.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E4",
+        "E8",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Separate replaceable keycap wear and legend durability from switch, socket, controller and PCB longevity, including the four-year NYM96 shine observation.",
+      "critical": true,
+      "requires": [
+        "E2",
+        "E3",
+        "E5",
+        "E7",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Scope the Unicomp, NYM96 and Logitech long-use reports as individual observations, preserve the Unicomp counterexamples, and avoid inferring a model-wide failure rate or continuous-use history not stated by the sources.",
+      "critical": true,
+      "requires": [
+        "E6",
+        "E7",
+        "E9",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Audit which failure points are actually replaceable for each route and make warranty, replacement PCB, cable, switch and keycap availability explicit purchase gates.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E3",
+        "E4",
+        "E5",
+        "E8",
+        "B5"
+      ],
+      "local_conclusion_slot_id": "B5"
+    },
+    {
+      "subgoal_id": "G6",
+      "description": "Apply every verified branch to decide whether a decade-proven current option exists and, if not, identify only an evidence-bounded fallback while preserving all uncertainty and verification gates.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit all three complete frozen product bodies for exact price, displayed review aggregate, keycap material, switch-cycle wording, hot-swap compatibility, included replacement switches, detachable or included cable, and absent same-model long-term evidence.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain why switch-cycle ratings, contact materials, debounce and hot-swap sockets are component or mechanism evidence rather than a ten-year complete-keyboard lifetime test, including the PCB failure counterexample.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E4",
+        "E8",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Separate replaceable keycap wear, PBT properties and doubleshot legend durability from electronics lifetime, and do not treat visible shine as board failure.",
+      "slot_ids": [
+        "E2",
+        "E3",
+        "E5",
+        "E7",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Compare the 11-year Unicomp survivor, its shorter- and longer-age counterexamples, the almost-four-year NYM96 daily-driver report and the approximately 15-year-old secondhand Logitech G15 without converting anecdotes into population reliability or unstated continuous use.",
+      "slot_ids": [
+        "E6",
+        "E7",
+        "E9",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Audit replaceable failure points and explicitly gate any purchase on warranty and availability of replacement PCB, cable, switches and keycaps, recognizing that hot-swappable switches do not cover controller or PCB failure.",
+      "slot_ids": [
+        "E1",
+        "E3",
+        "E4",
+        "E5",
+        "E8",
+        "B5"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q6",
+      "text": "State whether any current option is actually decade-proven and make one evidence-bounded recommendation or fallback while preserving seller-evidence, anecdote, same-model, warranty and spare-part limitations.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G6"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "rk100_repairability_first_current_buy"
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      },
+      "E8": {
+        "outcome": "decision_unresolved"
+      },
+      "E9": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 25,
+    "minimum_required_evidence_nodes": 9,
+    "minimum_reasoning_depth": 2
+  }
+}

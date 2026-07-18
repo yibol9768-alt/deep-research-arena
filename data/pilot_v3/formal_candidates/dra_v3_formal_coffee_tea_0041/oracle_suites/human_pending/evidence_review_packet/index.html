@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1</code></p>
+<p>证据图哈希: <code>bca157b2d10ccc5f8e9372acb095ba261feb4c6acb40778411aa4a7a1011f1e4</code></p>
+<p>待审项 28 个，其中语义项 14 个、结构化项 0 个；冻结来源 29 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_basilur_loose_leaf_tin_snapshot"><header><h3>assert_basilur_loose_leaf_tin_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B092DXH7S8 at 24.99 dollars for two 100-gram loose-leaf metal tins with an 80-percent-of-100 aggregate over eight reviews and packed-at-source and garden-fresh copy&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Basilur loose-leaf tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_basilur_loose_leaf_tin_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_and_aggregate_not_exact_tin_barrier_dates_or_one_year_result&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B092DXH7S8 at 24.99 dollars for two 100-gram loose-leaf metal tins with an 80-percent-of-100 aggregate over eight reviews and packed-at-source and garden-fresh copy&quot;,
+  &quot;predicate&quot;: &quot;asserts_two_metal_tin_offer_and_freshness_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Basilur loose-leaf tea seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_basilur_loose_leaf_tin_snapshot_1</code> | bytes [153, 229) | <code>d2bd0d7fd12ca2c6a117ae383167e241335810093dc7edfaac75d1f63d309eb8</code></div><pre class="context"><span>Basilur, Ceylon English Breakfast Tea &amp; Earl Grey Tea, Pure Ceylon Black Tea, Single Origin and Low Elevation, 100g Loose Leaf per Metal Tin, Pack of 2
+
+</span><mark>In stock SKU B092DXH7S8 Rating: 80 % of 100 8 Reviews Add Your Review $24.99</mark><span> Flavor Name Earl Grey English Breakfast English Breakfast &amp; Earl Grey Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Earl Grey - A versatile Ceylon black tea enhanced with bergamot essence, brews up a distinctive, delicious flavor keeping the original characters of this fine brew intact. Available in exquisitely crafted metal ti</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/basilur-ceylon-english-breakfast-tea-earl-grey-tea-pure-ceylon-black-tea-single-origin-and-low-elevation-100g-loose-leaf-per-metal-tin-pack-of-2.html" target="_blank" rel="noreferrer">http://localhost:7770/basilur-ceylon-english-breakfast-tea-earl-grey-tea-pure-ceylon-black-tea-single-origin-and-low-elevation-100g-loose-leaf-per-metal-tin-pack-of-2.html</a></p><p>冻结文件: <a href="sources/6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb" target="_blank">sources/6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb</a></p><p>内容 SHA-256: <code>6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_bifl_food_storage_question_scope"><header><h3>assert_bifl_food_storage_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an individual author asks about small food and liquid containers after cheap lids bent, twisted, and stopped sealing properly&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one general food-container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_bifl_food_storage_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_and_replies_not_coffee_tea_storage_trial_or_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an individual author asks about small food and liquid containers after cheap lids bent, twisted, and stopped sealing properly&quot;,
+  &quot;predicate&quot;: &quot;reports_lid_warping_and_requests_longer_lived_small_containers&quot;,
+  &quot;subject&quot;: &quot;one general food-container community discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_bifl_food_storage_question_scope_1</code> | bytes [0, 29) | <code>7ed7c9052a126a962aba4e6818077717e44a2bb2e375dade6b81d2a7d8a5948a</code></div><pre class="context"><span></span><mark>Bifl Food Storage Containers?</mark><span>
+
+All of my food atarage tubs are cheap and the lids are all bent and twisted from microwaving, and don&#x27;t seal properly I&#x27;m looking for a set of smaller tubs for storing food and liquids, and for taking my lunch to work Is tupperware still a good brand? I don&#x27;t mind paying a little more for something that doesn&#x27;t need replacing every 6 months because the lid</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/53732/bifl-food-storage-containers" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/53732/bifl-food-storage-containers</a></p><p>冻结文件: <a href="sources/b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7" target="_blank">sources/b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7</a></p><p>内容 SHA-256: <code>b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_bulk_dry_container_question_scope"><header><h3>assert_bulk_dry_container_question_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an individual author requests bulk bean and rice storage while replies mention buckets, gamma lids, jars, vacuum sealing, cost, and disputed airtightness&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one bulk-dry-food-container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_bulk_dry_container_question_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_and_anecdotes_not_exact_package_or_long_term_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an individual author requests bulk bean and rice storage while replies mention buckets, gamma lids, jars, vacuum sealing, cost, and disputed airtightness&quot;,
+  &quot;predicate&quot;: &quot;asks_about_five_to_ten_pound_storage_and_contains_disputed_airtightness&quot;,
+  &quot;subject&quot;: &quot;one bulk-dry-food-container community discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_bulk_dry_container_question_scope_1</code> | bytes [0, 66) | <code>7f25efd3d70c15eb5a74573eadf04e5547fca108814aa0e7a12d22cf44f3fc4a</code></div><pre class="context"><span></span><mark>container to store (5-10lb) bulk dry food, such as beans and rice?</mark><span>
+
+I tried a couple cheap sets from Amazon that snap seal. The plastic feels flimsy and the snap isn&#x27;t easy to open and close. Oxo looks good but they are so expensive 12
+
+Go to a restaurant supply store, they have really great cheap food grade buckets with lids. I picked up 2- 6gal buckets with gamma lids for $14 a few weeks ago
+
+Try Consolidated Plastic for</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/75598/container-to-store-5-10lb-bulk-dry-food-such-as-beans-and" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/75598/container-to-store-5-10lb-bulk-dry-food-such-as-beans-and</a></p><p>冻结文件: <a href="sources/069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb" target="_blank">sources/069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb</a></p><p>内容 SHA-256: <code>069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_don_francisco_ground_can_snapshot"><header><h3>assert_don_francisco_ground_can_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B076ZZ1FGP at 16.47 dollars for three 12-ounce cans with a 65-percent-of-100 aggregate over twelve reviews and seller freshness and aroma claims&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Don Francisco ground-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_don_francisco_ground_can_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_and_store_aggregate_not_exact_can_or_one_year_test&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B076ZZ1FGP at 16.47 dollars for three 12-ounce cans with a 65-percent-of-100 aggregate over twelve reviews and seller freshness and aroma claims&quot;,
+  &quot;predicate&quot;: &quot;asserts_three_can_offer_and_freshness_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Don Francisco ground-coffee seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_don_francisco_ground_can_snapshot_1</code> | bytes [68, 145) | <code>8f92843727dbb501ebcadc8bdf26cc61a1587f7d57381e62b9df82d34de36fb9</code></div><pre class="context"><span>Don Francisco&#x27;s Vanilla Nut Flavored Ground Coffee (3 x12 oz Cans)
+
+</span><mark>In stock SKU B076ZZ1FGP Rating: 65 % of 100 12 Reviews Add Your Review $16.47</mark><span> Style Butterscotch Caramel Cream Cinnamon Hazelnut Colombia Supremo Decaf Colombia Supremo French Roast Hawaiian Blend Hawaiian Hazelnut Vanilla Nut Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Canned for peak quality. Celebrated for storied tradition. We package our coffee as masterfully as we roast it—and brew</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/don-francisco-s-vanilla-nut-flavored-ground-coffee-3-x12-oz-cans.html" target="_blank" rel="noreferrer">http://localhost:7770/don-francisco-s-vanilla-nut-flavored-ground-coffee-3-x12-oz-cans.html</a></p><p>冻结文件: <a href="sources/fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e" target="_blank">sources/fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e</a></p><p>内容 SHA-256: <code>fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_freeze_drying_mechanism_boundary"><header><h3>assert_freeze_drying_mechanism_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a low-temperature dehydration process used for coffee and preservation that can retain many original qualities after rehydration&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for freeze-drying preservation process&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_freeze_drying_mechanism_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_process_not_exact_product_water_activity_barrier_or_sensory_duration&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a low-temperature dehydration process used for coffee and preservation that can retain many original qualities after rehydration&quot;,
+  &quot;predicate&quot;: &quot;freezes_lowers_pressure_and_removes_ice_by_sublimation&quot;,
+  &quot;subject&quot;: &quot;freeze-drying preservation process&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_freeze_drying_mechanism_boundary_1</code> | bytes [78, 290) | <code>8a103dbf60769adac0697646c7becf04b96e74071893cc2e9e3a8761f8d159af</code></div><pre class="context"><span>&quot;Instant freeze&quot; redirects here. For the Batman episode, see Instant Freeze . </span><mark>Freeze drying , also known as lyophilization or cryodesiccation , is a low temperature dehydration process [ 1 ] that involves freezing the product and lowering pressure, thereby removing the ice by sublimation .</mark><span> [ 2 ] This is in contrast to dehydration by most conventional methods that evaporate water using heat. [ 3 ] Because of the low temperature used in processing, [ 1 ] the rehydrated product retains many of its original qualities. When solid objects like strawberries are freeze dried the original shape of the product is maintained. [ 4 ] If the product to be </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Freeze_drying" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Freeze_drying</a></p><p>冻结文件: <a href="sources/b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8" target="_blank">sources/b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8</a></p><p>内容 SHA-256: <code>b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_freezer_fridge_container_scope"><header><h3>assert_freezer_fridge_container_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;individual replies discuss glass durability, breakage, freezer headspace, vacuum sealing, stacking, and odor retention&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one freezer-and-fridge container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_freezer_fridge_container_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;uncontrolled_cold_storage_experiences_not_remote_pantry_or_exact_product_trial&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;individual replies discuss glass durability, breakage, freezer headspace, vacuum sealing, stacking, and odor retention&quot;,
+  &quot;predicate&quot;: &quot;contains_varied_personal_reports_about_breakage_headspace_vacuum_and_odors&quot;,
+  &quot;subject&quot;: &quot;one freezer-and-fridge container community discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_freezer_fridge_container_scope_1</code> | bytes [0, 78) | <code>3329ab57d217fe61388df4cb2504217aec3d50df1f3b4452ee241a42f726ff88</code></div><pre class="context"><span></span><mark>suggestions for food storage containers that will spend time in freezer/fridge</mark><span>
+
+144
+
+Glasslocks have worked very well for me over the last ~15 years. I&#x27;ve thrown out maybe three of 20 in that time, two because the lids broke, and one because the glass broke when dropped (surprise!). We use them all the time, fridge, freezer, microwave, whatever, and the whole thing goes in the dishwasher. Very happy with them.
+
+Seconded, tough, easy t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/32741/suggestions-for-food-storage-containers-that-will-spend-time" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/32741/suggestions-for-food-storage-containers-that-will-spend-time</a></p><p>冻结文件: <a href="sources/2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e" target="_blank">sources/2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e</a></p><p>内容 SHA-256: <code>2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_imozai_wrapped_tea_bag_snapshot"><header><h3>assert_imozai_wrapped_tea_bag_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07TRYNP88 at 8.99 dollars for one hundred individually wrapped oolong tea bags with an 85-percent-of-100 aggregate over 118 reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Imozai oolong tea-bag seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_imozai_wrapped_tea_bag_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_unitization_and_aggregate_not_wrapper_barrier_date_or_storage_test&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07TRYNP88 at 8.99 dollars for one hundred individually wrapped oolong tea bags with an 85-percent-of-100 aggregate over 118 reviews&quot;,
+  &quot;predicate&quot;: &quot;asserts_individually_wrapped_hundred_count_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Imozai oolong tea-bag seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_imozai_wrapped_tea_bag_snapshot_1</code> | bytes [63, 140) | <code>2c95d0732b3588daa6c8dbe15712f27e5ce35145ad9ee37968c5089af568a656</code></div><pre class="context"><span>Imozai Organic Oolong Tea Bags 100 Count Individually Wrapped
+
+</span><mark>In stock SKU B07TRYNP88 Rating: 85 % of 100 118 Reviews Add Your Review $8.99</mark><span> Flavor Name Assorted Teas black Earl Grey English Breakfast Tea Oolong Size 1 Pound (Pack of 1) 100 Count (Pack of 1) 100 Count (Pack of 2) 96 Count Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description iMoZai Black Tea Series iMoZai Black Tea Series Aside from water, black tea is one of the most consumed beverages in the world. Black</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/imozai-organic-oolong-tea-bags-100-count-individually-wrapped.html" target="_blank" rel="noreferrer">http://localhost:7770/imozai-organic-oolong-tea-bags-100-count-individually-wrapped.html</a></p><p>冻结文件: <a href="sources/c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60" target="_blank">sources/c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60</a></p><p>内容 SHA-256: <code>c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_mount_hagen_instant_pouch_snapshot"><header><h3>assert_mount_hagen_instant_pouch_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B08F9H762R at 40.98 dollars for two 7.05-ounce decaffeinated instant-coffee pouches with resealable Doypack and granule-protection language&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Mount Hagen instant-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_mount_hagen_instant_pouch_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_format_and_package_claim_not_exact_barrier_reseal_or_storage_trial&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B08F9H762R at 40.98 dollars for two 7.05-ounce decaffeinated instant-coffee pouches with resealable Doypack and granule-protection language&quot;,
+  &quot;predicate&quot;: &quot;asserts_freeze_dried_two_pouch_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Mount Hagen instant-coffee seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_mount_hagen_instant_pouch_snapshot_1</code> | bytes [202, 316) | <code>3b7ee4cedd6abc7280fdce80f58e99f9cd214ea9a12ff6889db7381076657f75</code></div><pre class="context"><span>Mount Hagen 7.05 oz Organic Fair Trade Freeze Dried Decaffeinated 2 Pack Instant Coffee Resealable Doypack Bag Kosher Single-origin 100% Arabica Freeze Dried Coffee Packets, Instant Coffee For Camping
+
+</span><mark>In stock SKU B08F9H762R Be the first to review this product $40.98 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Mount Hagen The Uncontested Winner of Organic Instant CoffeeA sip of our rich, smooth coffee is a taste of its pampered history in the paradise of Mount Hagen, Papua New Guinea. Our Arabica beans luxuriate in our perfected method, with each stage of the process coaxing maximum depth of flavor and aroma out of them. And of course,</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/mount-hagen-7-05-oz-organic-fair-trade-freeze-dried-decaffeinated-2-pack-instant-coffee-resealable-doypack-bag-kosher-single-origin-100-arabica-freeze-dried-coffee-packets-instant-coffee-for-camping.html" target="_blank" rel="noreferrer">http://localhost:7770/mount-hagen-7-05-oz-organic-fair-trade-freeze-dried-decaffeinated-2-pack-instant-coffee-resealable-doypack-bag-kosher-single-origin-100-arabica-freeze-dried-coffee-packets-instant-coffee-for-camping.html</a></p><p>冻结文件: <a href="sources/95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204" target="_blank">sources/95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204</a></p><p>内容 SHA-256: <code>95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_peruvian_whole_bean_multibag_snapshot"><header><h3>assert_peruvian_whole_bean_multibag_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B096T2F4V9 at 39.95 dollars for a nominal 36-ounce three-bag whole-bean offer with medium-roast Arabica and certification language&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Peruvian whole-bean seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_peruvian_whole_bean_multibag_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_not_exact_lot_date_barrier_seal_storage_or_one_year_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B096T2F4V9 at 39.95 dollars for a nominal 36-ounce three-bag whole-bean offer with medium-roast Arabica and certification language&quot;,
+  &quot;predicate&quot;: &quot;asserts_three_bag_offer_and_coffee_attributes&quot;,
+  &quot;subject&quot;: &quot;frozen Peruvian whole-bean seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_peruvian_whole_bean_multibag_snapshot_1</code> | bytes [196, 310) | <code>46703e94f9b4d444c5e8e05568c1457a95171f7a9dcb5629b94f6f3013fa24a6</code></div><pre class="context"><span>organic peruvian coffee beans - ORGANIC PERUVIAN WHOLE BEANS COFFEE, Medium Roast, 100% Arabica, Fair Trade, non gmo - fair trade organic coffee beans, by SWAN LIFE ESSENTIALS - (36 Ounce 3 Bag)
+
+</span><mark>In stock SKU B096T2F4V9 Be the first to review this product $39.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look organic peruvian coffee beans - ORGANIC PERUVIAN WHOLE BEANS COFFEE, Medium Roast, 100% Arabica, Fair Trade, non gmo - fair trade organic coffee beans, by SWAN LIFE ESSENTIALS - (36 Ounce 3 Bag) WHAT IS COFFEE? Coffee is one of the top commodities in the world. There are coffee shops in almost every corner of every city today. Ju</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/organic-peruvian-coffee-beans-organic-peruvian-whole-beans-coffee-medium-roast-100-arabica-fair-trade-non-gmo-fair-trade-organic-coffee-beans-by-swan-life-essentials-36-ounce-3-bag.html" target="_blank" rel="noreferrer">http://localhost:7770/organic-peruvian-coffee-beans-organic-peruvian-whole-beans-coffee-medium-roast-100-arabica-fair-trade-non-gmo-fair-trade-organic-coffee-beans-by-swan-life-essentials-36-ounce-3-bag.html</a></p><p>冻结文件: <a href="sources/33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d" target="_blank">sources/33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d</a></p><p>内容 SHA-256: <code>33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_rancidification_boundary"><header><h3>assert_rancidification_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;air, light, moisture, or bacterial action can produce compounds associated with undesirable odors and flavors&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for rancidification mechanism and sensory effects&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_rancidification_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_degradation_mechanism_not_exact_product_rate_or_health_finding&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;air, light, moisture, or bacterial action can produce compounds associated with undesirable odors and flavors&quot;,
+  &quot;predicate&quot;: &quot;can_follow_fat_oxidation_or_hydrolysis_under_environmental_exposure&quot;,
+  &quot;subject&quot;: &quot;rancidification mechanism and sensory effects&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_rancidification_boundary_1</code> | bytes [0, 224) | <code>a63a0ea7eaaaa54148f4a618cf17147a623a62d4d6d02c268c8cae7bbc41fc5e</code></div><pre class="context"><span></span><mark>Rancidification is the process of complete or incomplete autoxidation or hydrolysis of fats and oils when exposed to air, light, moisture, or bacterial action, producing short-chain aldehydes , ketones and free fatty acids .</mark><span> [ 1 ] When these processes occur in food, undesirable odors and flavors can result. In processed meats these flavors are collectively known as warmed-over flavor . In certain cases the flavors can be desirable, as in aged cheeses . [ 2 ] Rancidification can detract from the nutritional value of food, as some vitamins are sensitive to oxidation. [ 3 ] Oxidat</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Rancidification" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Rancidification</a></p><p>冻结文件: <a href="sources/7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d" target="_blank">sources/7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d</a></p><p>内容 SHA-256: <code>7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_shelf_life_condition_boundary"><header><h3>assert_shelf_life_condition_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a recommended maximum period for a defined quality under expected or specified conditions, distinct from several date, sale, use, safety, and quality concepts&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for shelf-life duration and endpoint&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_shelf_life_condition_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_definition_not_exact_product_duration_or_safety_finding&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a recommended maximum period for a defined quality under expected or specified conditions, distinct from several date, sale, use, safety, and quality concepts&quot;,
+  &quot;predicate&quot;: &quot;depend_on_defined_quality_and_specified_conditions&quot;,
+  &quot;subject&quot;: &quot;shelf-life duration and endpoint&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_shelf_life_condition_boundary_1</code> | bytes [722, 997) | <code>4ce458795f28d80dfeee0f5bd2e3c56146d4e43523b12cee1225fdb4dff9e2c2</code></div><pre class="context"><span>medical devices , medicines , explosives , pharmaceutical drugs , [ 2 ] chemicals , tyres , batteries , and many other perishable items. In some regions, an advisory best before , mandatory use by or freshness date is required on packaged perishable foods. The concept of expiration date is related but legally distinct in some jurisdictions. [ 3 ] Background </span><mark>Shelf life is the recommended maximum time for which products or fresh (harvested) produce can be stored, during which the defined quality of a specified proportion of the goods remains acceptable under expected (or specified) conditions of distribution, storage and display.</mark><span> [ 4 ] According to the United States Department of Agriculture (USDA), most &quot;canned foods are safe indefinitely as long as they are not exposed to freezing temperatures, or temperatures above 90 Â°F (32.2 Â°C)&quot;. [ 5 ] Not all canned goods are shelf-stable and those labeled &quot;keep refrigerated&quot; are not safe to store at room temperature. Rusted, swollen a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Shelf_life" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Shelf_life</a></p><p>冻结文件: <a href="sources/794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba" target="_blank">sources/794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba</a></p><p>内容 SHA-256: <code>794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_stackable_glass_container_scope"><header><h3>assert_stackable_glass_container_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an individual author states nesting, chipping, stacking, and leak-proof requirements while replies conflict about specific containers&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one stackable-glass-container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_stackable_glass_container_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_requirements_and_uncontrolled_replies_not_original_package_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an individual author states nesting, chipping, stacking, and leak-proof requirements while replies conflict about specific containers&quot;,
+  &quot;predicate&quot;: &quot;asks_for_non_chipping_stackable_and_leak_proof_properties&quot;,
+  &quot;subject&quot;: &quot;one stackable-glass-container community discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_stackable_glass_container_scope_1</code> | bytes [0, 34) | <code>4e811dbd97d29dd4fbbcea8bd58224f23c2a626d547be0bb5f01cbb05e99b68e</code></div><pre class="context"><span></span><mark>Stackable Glass Storage Containers</mark><span>
+
+Is anyone aware of any glass storage containers that actually stack? Requirements Non-Chip Nestable/Stackable with the same size contain (i.e. 8&quot; will nest into an 8&quot;) Leak-Proof Every container out there seems to not be stackable. Those that nest inside a container that is smaller always chip. I really don&#x27;t want to put the lid between containers, as it&#x27;s</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/32783/stackable-glass-storage-containers" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/32783/stackable-glass-storage-containers</a></p><p>冻结文件: <a href="sources/ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7" target="_blank">sources/ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7</a></p><p>内容 SHA-256: <code>ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_vacuum_packing_boundary"><header><h3>assert_vacuum_packing_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an oxygen-reduction method whose shelf-life effect depends on product, atmosphere, temperature, and package barrier&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for vacuum-packing preservation mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_vacuum_packing_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_mechanism_not_proof_any_exact_package_is_vacuumed_or_last_one_year&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an oxygen-reduction method whose shelf-life effect depends on product, atmosphere, temperature, and package barrier&quot;,
+  &quot;predicate&quot;: &quot;removes_air_before_sealing_with_product_and_package_dependent_results&quot;,
+  &quot;subject&quot;: &quot;vacuum-packing preservation mechanism&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_vacuum_packing_boundary_1</code> | bytes [0, 91) | <code>d0ab2389f289c62feea0c0cefd55f5d88d43506af54c49cc1a12723b5d60d0ab</code></div><pre class="context"><span></span><mark>Vacuum packing is a method of packaging that removes air from the package prior to sealing.</mark><span> This method involves placing items in a plastic film package, removing air from inside and sealing the package. [ 1 ] Shrink film is sometimes used to have a tight fit to the contents. The intent of vacuum packing is usually to remove oxygen from the container to extend the shelf life of foods and, with flexible package forms, to reduce the volume of the co</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Vacuum_packing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Vacuum_packing</a></p><p>冻结文件: <a href="sources/2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f" target="_blank">sources/2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f</a></p><p>内容 SHA-256: <code>2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_water_activity_boundary"><header><h3>assert_water_activity_boundary</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a product-specific variable used for shelf-stability, moisture migration, microbial control, quality, and safety&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for water activity in food&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_water_activity_boundary</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_measurement_concept_not_exact_product_aw_or_safety_result&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a product-specific variable used for shelf-stability, moisture migration, microbial control, quality, and safety&quot;,
+  &quot;predicate&quot;: &quot;is_equilibrium_vapor_ratio_not_water_concentration&quot;,
+  &quot;subject&quot;: &quot;water activity in food&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_water_activity_boundary_1</code> | bytes [599, 766) | <code>52639c949a24ba4e7300a4e2fbe104a6ebdb81fe31784fe10366f6012ab900ed</code></div><pre class="context"><span>isk-based preventive controls (HARPC) Critical control point Critical factors FAT TOM pH Water activity (a w ) Bacterial pathogens Clostridium botulinum Escherichia coli Listeria Salmonella Vibrio cholerae Cronobacter spp Viral pathogens Enterovirus Hepatitis A Norovirus Rotavirus Parasitic pathogens Cryptosporidium Entamoeba histolytica Giardia Trichinella </span><mark>In food science, water activity ( a w ) of a food is the ratio of its vapor pressure to the vapor pressure of water at the same temperature, both taken at equilibrium.</mark><span> [ 1 ] Pure water has a water activity of one. Put another way, a w is the equilibrium relative humidity (ERH) expressed as a fraction instead of as a percentage. As temperature increases, a w typically increases, except in some products with crystalline salt or sugar . Water migrates from areas of high a w to areas of low a w . For example, if honey ( a w �</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Water_activity" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Water_activity</a></p><p>冻结文件: <a href="sources/e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520" target="_blank">sources/e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520</a></p><p>内容 SHA-256: <code>e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_basilur_loose_leaf_tin_snapshot"><header><h3>prop_basilur_loose_leaf_tin_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B092DXH7S8 at 24.99 dollars for two 100-gram loose-leaf metal tins with an 80-percent-of-100 aggregate over eight reviews and packed-at-source and garden-fresh copy&quot;,
+  &quot;predicate&quot;: &quot;asserts_two_metal_tin_offer_and_freshness_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Basilur loose-leaf tea seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_basilur_loose_leaf_tin_snapshot_1</code> | bytes [153, 229) | <code>d2bd0d7fd12ca2c6a117ae383167e241335810093dc7edfaac75d1f63d309eb8</code></div><pre class="context"><span>Basilur, Ceylon English Breakfast Tea &amp; Earl Grey Tea, Pure Ceylon Black Tea, Single Origin and Low Elevation, 100g Loose Leaf per Metal Tin, Pack of 2
+
+</span><mark>In stock SKU B092DXH7S8 Rating: 80 % of 100 8 Reviews Add Your Review $24.99</mark><span> Flavor Name Earl Grey English Breakfast English Breakfast &amp; Earl Grey Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Earl Grey - A versatile Ceylon black tea enhanced with bergamot essence, brews up a distinctive, delicious flavor keeping the original characters of this fine brew intact. Available in exquisitely crafted metal ti</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_basilur_loose_leaf_tin_snapshot_2</code> | bytes [548, 626) | <code>c8b685418de2fe0f3ede29dc1bfa9e7b8324caaca82e99bd96e69a61b79b2f89</code></div><pre class="context"><span>% of 100 8 Reviews Add Your Review $24.99 Flavor Name Earl Grey English Breakfast English Breakfast &amp; Earl Grey Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Earl Grey - A versatile Ceylon black tea enhanced with bergamot essence, brews up a distinctive, delicious flavor keeping the original characters of this fine brew intact. </span><mark>Available in exquisitely crafted metal tins with Loose Leaf Tea (100g per tin)</mark><span> English Breakfast - A full-bodied, robust and rich black tea blended to go well with milk and sugar, in a style traditionally associated with a hearty full English breakfast. Available in exquisitely crafted metal tins with Loose Leaf Tea (100g per tin) - Specialty classic teas are some of Basilur’s most celebrated teas with the kaleidoscopic, intricately</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_basilur_loose_leaf_tin_snapshot_3</code> | bytes [1589, 1652) | <code>7e0efad71fc5c82915c8ae18015c6e57ee13ee5ac07b3dfe79fb79e663c74b47</code></div><pre class="context"><span>ver a century. An exceptional collection of delightful tea blends of your choice. Transforming an internationally beloved, 5,000-year old beverage, into a sophisticated, premium beverage! Basilur obtains the choicest tea leaves from the very source of its growth. We move a step further by proving the world&#x27;s finest tea in unique and extraordinary packaging. </span><mark>Pure Ceylon Tea, Packed at Source in Sri Lanka and Garden Fresh</mark><span> Product Dimensions ‏ ‎ 4 x 2 x 6 inches; 8 Ounces UPC ‏ ‎ 608631030054 Manufacturer ‏ ‎ Basilur ASIN ‏ ‎ B092DXH7S8 #1,758 in Black Tea Reviews 8 Write Your Own Review You&#x27;re reviewing: Basilur, Ceylon English Breakfast Tea &amp; Earl Grey Tea, Pure Ceylon Black Tea, Single Origin and Low Elevation, 100g Loose Leaf per Metal Tin, Pack of 2 Your </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/basilur-ceylon-english-breakfast-tea-earl-grey-tea-pure-ceylon-black-tea-single-origin-and-low-elevation-100g-loose-leaf-per-metal-tin-pack-of-2.html" target="_blank" rel="noreferrer">http://localhost:7770/basilur-ceylon-english-breakfast-tea-earl-grey-tea-pure-ceylon-black-tea-single-origin-and-low-elevation-100g-loose-leaf-per-metal-tin-pack-of-2.html</a></p><p>冻结文件: <a href="sources/6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb" target="_blank">sources/6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb</a></p><p>内容 SHA-256: <code>6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_and_aggregate_not_exact_tin_barrier_dates_or_one_year_result&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen loose-leaf page shows SKU B092DXH7S8 at 24.99 dollars for two 100-gram metal tins with an 80-percent-of-100 aggregate over eight reviews and seller copy saying packed at source and garden fresh; it gives no exact lot dates, tin lining or barrier, headspace, closure and seal test, opened duration, storage history, or twelve-month sensory outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_bifl_food_storage_question_scope"><header><h3>prop_bifl_food_storage_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an individual author asks about small food and liquid containers after cheap lids bent, twisted, and stopped sealing properly&quot;,
+  &quot;predicate&quot;: &quot;reports_lid_warping_and_requests_longer_lived_small_containers&quot;,
+  &quot;subject&quot;: &quot;one general food-container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_bifl_food_storage_question_scope_1</code> | bytes [0, 29) | <code>7ed7c9052a126a962aba4e6818077717e44a2bb2e375dade6b81d2a7d8a5948a</code></div><pre class="context"><span></span><mark>Bifl Food Storage Containers?</mark><span>
+
+All of my food atarage tubs are cheap and the lids are all bent and twisted from microwaving, and don&#x27;t seal properly I&#x27;m looking for a set of smaller tubs for storing food and liquids, and for taking my lunch to work Is tupperware still a good brand? I don&#x27;t mind paying a little more for something that doesn&#x27;t need replacing every 6 months because the lid</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bifl_food_storage_question_scope_2</code> | bytes [31, 413) | <code>bbc0ebf06d41e0796d36210662f6befe20a63151b701471f608cee79ef0e10fc</code></div><pre class="context"><span>Bifl Food Storage Containers?
+
+</span><mark>All of my food atarage tubs are cheap and the lids are all bent and twisted from microwaving, and don&#x27;t seal properly I&#x27;m looking for a set of smaller tubs for storing food and liquids, and for taking my lunch to work Is tupperware still a good brand? I don&#x27;t mind paying a little more for something that doesn&#x27;t need replacing every 6 months because the lids don&#x27;t go on UK based 6</mark><span>
+
+Get an Indian-style tiffin or 2.
+
+Mason jars?
+
+That was my first thought too. But one will have to buy new lids now and again. OP I’ve had the glass Pyrex with snap lid set from Costco for about 7 years - still almost like new (one snap broke on 1 lid). I just bought a 2nd so that I don’t run out when I freeze soup. The set comes with maybe 7 total, 4 </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/53732/bifl-food-storage-containers" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/53732/bifl-food-storage-containers</a></p><p>冻结文件: <a href="sources/b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7" target="_blank">sources/b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7</a></p><p>内容 SHA-256: <code>b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_and_replies_not_coffee_tea_storage_trial_or_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author reports cheap food-container lids bent and twisted after microwaving, no longer seal properly, and asks for smaller durable food and liquid containers; the discussion may suggest closure and durability checks but is not a controlled coffee or tea package test, prevalence estimate, safety result, or twelve-month pantry trial.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_bulk_dry_container_question_scope"><header><h3>prop_bulk_dry_container_question_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an individual author requests bulk bean and rice storage while replies mention buckets, gamma lids, jars, vacuum sealing, cost, and disputed airtightness&quot;,
+  &quot;predicate&quot;: &quot;asks_about_five_to_ten_pound_storage_and_contains_disputed_airtightness&quot;,
+  &quot;subject&quot;: &quot;one bulk-dry-food-container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_bulk_dry_container_question_scope_1</code> | bytes [0, 66) | <code>7f25efd3d70c15eb5a74573eadf04e5547fca108814aa0e7a12d22cf44f3fc4a</code></div><pre class="context"><span></span><mark>container to store (5-10lb) bulk dry food, such as beans and rice?</mark><span>
+
+I tried a couple cheap sets from Amazon that snap seal. The plastic feels flimsy and the snap isn&#x27;t easy to open and close. Oxo looks good but they are so expensive 12
+
+Go to a restaurant supply store, they have really great cheap food grade buckets with lids. I picked up 2- 6gal buckets with gamma lids for $14 a few weeks ago
+
+Try Consolidated Plastic for</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bulk_dry_container_question_scope_2</code> | bytes [68, 235) | <code>2cf9667a80159d555aefd66c5adb25c641a43410cd3d958f267f690bbb448641</code></div><pre class="context"><span>container to store (5-10lb) bulk dry food, such as beans and rice?
+
+</span><mark>I tried a couple cheap sets from Amazon that snap seal. The plastic feels flimsy and the snap isn&#x27;t easy to open and close. Oxo looks good but they are so expensive 12</mark><span>
+
+Go to a restaurant supply store, they have really great cheap food grade buckets with lids. I picked up 2- 6gal buckets with gamma lids for $14 a few weeks ago
+
+Try Consolidated Plastic for food safe buckets (various sizes) with gamma lids. They don’t sell the Mylar bags afaik but those are easily found online. If you’re considering the OXO Pop contain</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bulk_dry_container_question_scope_3</code> | bytes [552, 740) | <code>4441c467d72c56eda42ea190da4ed0d4b5cbb242330faea04d0f2326a7a5633d</code></div><pre class="context"><span>Oxo looks good but they are so expensive 12
+
+Go to a restaurant supply store, they have really great cheap food grade buckets with lids. I picked up 2- 6gal buckets with gamma lids for $14 a few weeks ago
+
+Try Consolidated Plastic for food safe buckets (various sizes) with gamma lids. They don’t sell the Mylar bags afaik but those are easily found online. </span><mark>If you’re considering the OXO Pop containers, reconsider-they are trash. Not dishwasher safe (the ones I bought about five years ago, this may have changed) and definitely not air tight.</mark><span>
+
+Came to say the same about the buckets and gamma lids. Pricey for what they are but they work well. I love large wide-mouth jars and my vacuum sealer attachment for smaller amounts of dry goods but if you need to store 20lbs of Flour, the buckets are the way.
+
+Oxo pop is terrible. Bought one to store my dog food and the top broke in, no joke, a week.
+
+Than</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/75598/container-to-store-5-10lb-bulk-dry-food-such-as-beans-and" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/75598/container-to-store-5-10lb-bulk-dry-food-such-as-beans-and</a></p><p>冻结文件: <a href="sources/069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb" target="_blank">sources/069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb</a></p><p>内容 SHA-256: <code>069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_question_and_anecdotes_not_exact_package_or_long_term_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author asks about storing five to ten pounds of beans and rice, and replies mention buckets, gamma lids, jars, vacuum sealing, cost, and disputed airtightness; these anecdotes can suggest closure verification but do not test any exact captured package, coffee or tea quality, safety, or one-year outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_don_francisco_ground_can_snapshot"><header><h3>prop_don_francisco_ground_can_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B076ZZ1FGP at 16.47 dollars for three 12-ounce cans with a 65-percent-of-100 aggregate over twelve reviews and seller freshness and aroma claims&quot;,
+  &quot;predicate&quot;: &quot;asserts_three_can_offer_and_freshness_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Don Francisco ground-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_don_francisco_ground_can_snapshot_1</code> | bytes [68, 145) | <code>8f92843727dbb501ebcadc8bdf26cc61a1587f7d57381e62b9df82d34de36fb9</code></div><pre class="context"><span>Don Francisco&#x27;s Vanilla Nut Flavored Ground Coffee (3 x12 oz Cans)
+
+</span><mark>In stock SKU B076ZZ1FGP Rating: 65 % of 100 12 Reviews Add Your Review $16.47</mark><span> Style Butterscotch Caramel Cream Cinnamon Hazelnut Colombia Supremo Decaf Colombia Supremo French Roast Hawaiian Blend Hawaiian Hazelnut Vanilla Nut Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Canned for peak quality. Celebrated for storied tradition. We package our coffee as masterfully as we roast it—and brew</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_don_francisco_ground_can_snapshot_2</code> | bytes [1017, 1115) | <code>68a301171211066875fa3a4c988e146100e0e1418ae5719fda43f73f5e0bd5b3</code></div><pre class="context"><span> you pop open one of our cans, you’re one step closer to the perfect cup. Read more A Case For Coffee in a Can Freshness, Redesigned Our cans may have a different look on the outside, but on the inside it&#x27;s still the same great coffee you love. We updated the packaging to better showcase our for the perfect cup of coffee. Enjoy! Optimal Flavor, Guaranteed </span><mark>Our steel can locks in the unmistakable aroma from our freshly roasted 100% premium Arabica beans.</mark><span> That’s why our canned coffee has remained a longstanding cornerstone, delivering consistent excellence you can taste. All Purpose Grind, All Purpose Can We care about the world around us and encourage eco-conscious choices. Once the can is empty, it’s recyclable. But why not skip the recycle bin and give it new life as a creative storage solution, plant</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_don_francisco_ground_can_snapshot_3</code> | bytes [3536, 3653) | <code>cff18fa775855a7973a7a449ab53b63bada0b24bd95d738bd186979c16cc15d2</code></div><pre class="context"><span> the process-- from sourcing high quality coffees to personally cupping samples each morning to our commitment to empowering sustainability. It is this careful attention to detail that allows us to ensure you are getting the best quality coffee in your cup. An indulgent coffee with nutty aroma and hints of vanilla flavor; Naturally and artificially flavored </span><mark>Our steel cans protect the freshness and aroma of our coffee; they’re recyclable for the preservation of our planet</mark><span> Quality in every cup: Feel good about putting our 100% Arabica coffee into your coffee maker, knowing it’s blended, roasted and packed right here in the US. Sustainably Minded. Coffee Driven: Don Francisco’s Coffee is committed to providing premium coffee with a greener footprint promoting sustainable practices. Family crafted coffee since 1870: Inspire</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/don-francisco-s-vanilla-nut-flavored-ground-coffee-3-x12-oz-cans.html" target="_blank" rel="noreferrer">http://localhost:7770/don-francisco-s-vanilla-nut-flavored-ground-coffee-3-x12-oz-cans.html</a></p><p>冻结文件: <a href="sources/fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e" target="_blank">sources/fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e</a></p><p>内容 SHA-256: <code>fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_copy_and_store_aggregate_not_exact_can_or_one_year_test&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen ground-coffee page shows SKU B076ZZ1FGP at 16.47 dollars for three 12-ounce cans with a 65-percent-of-100 aggregate over twelve reviews and seller claims that steel cans protect freshness and lock in aroma; neither the copy nor aggregate establishes the exact cans&#x27; dates, fill gas, residual oxygen, seal integrity, opened performance, storage history, or twelve-month outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_freeze_drying_mechanism_boundary"><header><h3>prop_freeze_drying_mechanism_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a low-temperature dehydration process used for coffee and preservation that can retain many original qualities after rehydration&quot;,
+  &quot;predicate&quot;: &quot;freezes_lowers_pressure_and_removes_ice_by_sublimation&quot;,
+  &quot;subject&quot;: &quot;freeze-drying preservation process&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_freeze_drying_mechanism_boundary_1</code> | bytes [78, 290) | <code>8a103dbf60769adac0697646c7becf04b96e74071893cc2e9e3a8761f8d159af</code></div><pre class="context"><span>&quot;Instant freeze&quot; redirects here. For the Batman episode, see Instant Freeze . </span><mark>Freeze drying , also known as lyophilization or cryodesiccation , is a low temperature dehydration process [ 1 ] that involves freezing the product and lowering pressure, thereby removing the ice by sublimation .</mark><span> [ 2 ] This is in contrast to dehydration by most conventional methods that evaporate water using heat. [ 3 ] Because of the low temperature used in processing, [ 1 ] the rehydrated product retains many of its original qualities. When solid objects like strawberries are freeze dried the original shape of the product is maintained. [ 4 ] If the product to be </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_freeze_drying_mechanism_boundary_2</code> | bytes [400, 519) | <code>343f4bad22f76b6ba139684e1284d82ee3024dc864d80f81bc9e93918ac57c4f</code></div><pre class="context"><span> Batman episode, see Instant Freeze . Freeze drying , also known as lyophilization or cryodesiccation , is a low temperature dehydration process [ 1 ] that involves freezing the product and lowering pressure, thereby removing the ice by sublimation . [ 2 ] This is in contrast to dehydration by most conventional methods that evaporate water using heat. [ 3 ] </span><mark>Because of the low temperature used in processing, [ 1 ] the rehydrated product retains many of its original qualities.</mark><span> When solid objects like strawberries are freeze dried the original shape of the product is maintained. [ 4 ] If the product to be dried is a liquid, as often seen in pharmaceutical applications, the properties of the final product are optimized by the combination of excipients (i.e., inactive ingredients). Primary applications of freeze drying include biolo</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_freeze_drying_mechanism_boundary_3</code> | bytes [828, 1005) | <code>b4d7e660f6bb7b2a23ae54c542433a740adce636f1a7ea033c5198f0b368f051</code></div><pre class="context"><span>ted product retains many of its original qualities. When solid objects like strawberries are freeze dried the original shape of the product is maintained. [ 4 ] If the product to be dried is a liquid, as often seen in pharmaceutical applications, the properties of the final product are optimized by the combination of excipients (i.e., inactive ingredients). </span><mark>Primary applications of freeze drying include biological (e.g., bacteria and yeasts), biomedical (e.g., surgical transplants), food processing (e.g., coffee), and preservation .</mark><span> [ 1 ] History The Inca were freeze drying potatoes into chuÃ±o since the 13th century. The process involved multiple cycles of exposing potatoes to below freezing temperatures on mountain peaks in the Andes during the evening, and squeezing water out and drying them in the sunlight during the day. [ 5 ] The Inca people also used the unique climate of the </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Freeze_drying" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Freeze_drying</a></p><p>冻结文件: <a href="sources/b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8" target="_blank">sources/b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8</a></p><p>内容 SHA-256: <code>b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_process_not_exact_product_water_activity_barrier_or_sensory_duration&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The freeze-drying page describes a low-temperature dehydration process that freezes a product, lowers pressure, and removes ice by sublimation, says rehydrated products can retain many original qualities, and lists coffee and preservation applications; it supplies no exact Mount Hagen process, water-activity, package, opened-pouch, or twelve-month sensory result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_freezer_fridge_container_scope"><header><h3>prop_freezer_fridge_container_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;individual replies discuss glass durability, breakage, freezer headspace, vacuum sealing, stacking, and odor retention&quot;,
+  &quot;predicate&quot;: &quot;contains_varied_personal_reports_about_breakage_headspace_vacuum_and_odors&quot;,
+  &quot;subject&quot;: &quot;one freezer-and-fridge container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_freezer_fridge_container_scope_1</code> | bytes [0, 78) | <code>3329ab57d217fe61388df4cb2504217aec3d50df1f3b4452ee241a42f726ff88</code></div><pre class="context"><span></span><mark>suggestions for food storage containers that will spend time in freezer/fridge</mark><span>
+
+144
+
+Glasslocks have worked very well for me over the last ~15 years. I&#x27;ve thrown out maybe three of 20 in that time, two because the lids broke, and one because the glass broke when dropped (surprise!). We use them all the time, fridge, freezer, microwave, whatever, and the whole thing goes in the dishwasher. Very happy with them.
+
+Seconded, tough, easy t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_freezer_fridge_container_scope_2</code> | bytes [830, 965) | <code>ab55f564d5d0ce0a0fcdd5b2c20274d6e157b57da610d033e45cdd5cb3dfe9bd</code></div><pre class="context"><span> think you can order replacement lids for free, though I haven&#x27;t tried it. I love my glasslocks though.
+
+Oooh...I didn&#x27;t know that...I still have one of the glass containers with no lid...maybe I&#x27;ll try to get a new lid!
+
+Only two at a time, but still very nice.
+
+Okay this comment single handedly sold me. This request has been answered! Thank you everyone!
+
+</span><mark>I&#x27;ve had one glass lock break (large crack) after doing direct transfer from fridge to microwave, but they otherwise hold up very well.</mark><span>
+
+I use canning jars! You just need to leave an inch of headspace (some even have a fill-to line). If you are a person that saves jars or cans, this is a good way to get more use out of them.
+
+Canning jars are very durable and versatile.
+
+I had been doing this! It just doesn&#x27;t make space in my freezer like I&#x27;d like.
+
+I love this option. I got the wide-mouth </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_freezer_fridge_container_scope_3</code> | bytes [967, 1063) | <code>c8c6e3ff25d0df6dea864300b31383ac954aef617a4dfb1d886f18ee52ced340</code></div><pre class="context"><span>ill have one of the glass containers with no lid...maybe I&#x27;ll try to get a new lid!
+
+Only two at a time, but still very nice.
+
+Okay this comment single handedly sold me. This request has been answered! Thank you everyone!
+
+I&#x27;ve had one glass lock break (large crack) after doing direct transfer from fridge to microwave, but they otherwise hold up very well.
+
+</span><mark>I use canning jars! You just need to leave an inch of headspace (some even have a fill-to line).</mark><span> If you are a person that saves jars or cans, this is a good way to get more use out of them.
+
+Canning jars are very durable and versatile.
+
+I had been doing this! It just doesn&#x27;t make space in my freezer like I&#x27;d like.
+
+I love this option. I got the wide-mouth mason jar attachment for my FoodSaver and I vacuum seal the jars to extend storage time.
+
+Dang! I </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/32741/suggestions-for-food-storage-containers-that-will-spend-time" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/32741/suggestions-for-food-storage-containers-that-will-spend-time</a></p><p>冻结文件: <a href="sources/2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e" target="_blank">sources/2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e</a></p><p>内容 SHA-256: <code>2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;uncontrolled_cold_storage_experiences_not_remote_pantry_or_exact_product_trial&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community discussion contains varied personal reports about glass durability and breakage, freezer headspace, vacuum sealing, stacking, and odor retention; these uncontrolled cold-storage experiences do not establish remote pantry conditions, exact coffee or tea package performance, a matched sensory result, or a universal container choice.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_imozai_wrapped_tea_bag_snapshot"><header><h3>prop_imozai_wrapped_tea_bag_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07TRYNP88 at 8.99 dollars for one hundred individually wrapped oolong tea bags with an 85-percent-of-100 aggregate over 118 reviews&quot;,
+  &quot;predicate&quot;: &quot;asserts_individually_wrapped_hundred_count_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Imozai oolong tea-bag seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_imozai_wrapped_tea_bag_snapshot_1</code> | bytes [63, 140) | <code>2c95d0732b3588daa6c8dbe15712f27e5ce35145ad9ee37968c5089af568a656</code></div><pre class="context"><span>Imozai Organic Oolong Tea Bags 100 Count Individually Wrapped
+
+</span><mark>In stock SKU B07TRYNP88 Rating: 85 % of 100 118 Reviews Add Your Review $8.99</mark><span> Flavor Name Assorted Teas black Earl Grey English Breakfast Tea Oolong Size 1 Pound (Pack of 1) 100 Count (Pack of 1) 100 Count (Pack of 2) 96 Count Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description iMoZai Black Tea Series iMoZai Black Tea Series Aside from water, black tea is one of the most consumed beverages in the world. Black</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_imozai_wrapped_tea_bag_snapshot_2</code> | bytes [2217, 2255) | <code>b4c92e77e6519f51b71e2b9bc6a9888191a5112fcbe6965e95aba2424ab27034</code></div><pre class="context"><span>elight aromatic with a mild flavor and bright golden color USDA Certified Organic Imozai organic oolong tea leaves from Anxi District of Fujian,China(Magical Village of Oolong Tea)Oolong is seni-fermented,combining the best qualities of black and green teas. A typical cup of oolong tea has about 30-40mg of caffeine,and a cup of coffee ranges from 100-180mg. </span><mark>Individually wrapped.Total 100 tea bag</mark><span> Product Dimensions ‏ ‎ 9 x 4 x 3 inches; 11.64 Ounces UPC ‏ ‎ 721450967506 Manufacturer ‏ ‎ Imozai enterprises inc ASIN ‏ ‎ B07TRYNP88 #26 in Black Tea Reviews 118 Write Your Own Review You&#x27;re reviewing: Imozai Organic Oolong Tea Bags 100 Count Individually Wrapped Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Re</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/imozai-organic-oolong-tea-bags-100-count-individually-wrapped.html" target="_blank" rel="noreferrer">http://localhost:7770/imozai-organic-oolong-tea-bags-100-count-individually-wrapped.html</a></p><p>冻结文件: <a href="sources/c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60" target="_blank">sources/c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60</a></p><p>内容 SHA-256: <code>c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_unitization_and_aggregate_not_wrapper_barrier_date_or_storage_test&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen oolong page shows SKU B07TRYNP88 at 8.99 dollars for one hundred individually wrapped tea bags with an 85-percent-of-100 aggregate over 118 reviews; the page and aggregate do not specify wrapper material or barrier, seal integrity, exact lot dates, storage history, prepared sensory endpoint, or twelve-month performance.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_mount_hagen_instant_pouch_snapshot"><header><h3>prop_mount_hagen_instant_pouch_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B08F9H762R at 40.98 dollars for two 7.05-ounce decaffeinated instant-coffee pouches with resealable Doypack and granule-protection language&quot;,
+  &quot;predicate&quot;: &quot;asserts_freeze_dried_two_pouch_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Mount Hagen instant-coffee seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_mount_hagen_instant_pouch_snapshot_1</code> | bytes [202, 316) | <code>3b7ee4cedd6abc7280fdce80f58e99f9cd214ea9a12ff6889db7381076657f75</code></div><pre class="context"><span>Mount Hagen 7.05 oz Organic Fair Trade Freeze Dried Decaffeinated 2 Pack Instant Coffee Resealable Doypack Bag Kosher Single-origin 100% Arabica Freeze Dried Coffee Packets, Instant Coffee For Camping
+
+</span><mark>In stock SKU B08F9H762R Be the first to review this product $40.98 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Mount Hagen The Uncontested Winner of Organic Instant CoffeeA sip of our rich, smooth coffee is a taste of its pampered history in the paradise of Mount Hagen, Papua New Guinea. Our Arabica beans luxuriate in our perfected method, with each stage of the process coaxing maximum depth of flavor and aroma out of them. And of course,</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_mount_hagen_instant_pouch_snapshot_2</code> | bytes [2186, 2303) | <code>6ddaf94e2473f41151d7f234ce6e5a5ab35d5a5686f7d3a8c0351d012bb27bbc</code></div><pre class="context"><span>y Granule Of Our Coffee Was Planted, Cultivated, Harvested, Processed, And Packaged By Workers Being Paid Fairly And Respectably, By Families Thriving On The Infrastructure We Provide, And By Communities Learning The Power Of Hope And A Future. MOUNT HAGEN: The trailblazer of organic Fair Trade coffee production, the conscience of the global coffee industry </span><mark>RESEALABLE DOYPACK: 2 resealable bags to keep your best instant coffee fresh, expertly packed to protect the granules</mark><span> BULK VALUE: 2 7.05oz decaffeinated bulk instant coffee packs, save on price without compromising on quality coffee, great for coffee jar refill TRAVEL FRIENDLY: Have your gourmet instant coffee on the go; camping, backpacking, or hiking SINGLE ORIGIN: Our favourite single-origin coffee boasts the velvety mildness and complex, sophisticated flavor unique to </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_mount_hagen_instant_pouch_snapshot_3</code> | bytes [2304, 2447) | <code>c19725d8deadbebf750f5c03112893d75251685528273403b4698697f7347c2d</code></div><pre class="context"><span>espectably, By Families Thriving On The Infrastructure We Provide, And By Communities Learning The Power Of Hope And A Future. MOUNT HAGEN: The trailblazer of organic Fair Trade coffee production, the conscience of the global coffee industry RESEALABLE DOYPACK: 2 resealable bags to keep your best instant coffee fresh, expertly packed to protect the granules </span><mark>BULK VALUE: 2 7.05oz decaffeinated bulk instant coffee packs, save on price without compromising on quality coffee, great for coffee jar refill</mark><span> TRAVEL FRIENDLY: Have your gourmet instant coffee on the go; camping, backpacking, or hiking SINGLE ORIGIN: Our favourite single-origin coffee boasts the velvety mildness and complex, sophisticated flavor unique to Papua New Guinea Package Dimensions ‏ ‎ 9.45 x 8.46 x 3.23 inches; 7.05 Ounces Manufacturer ‏ ‎ Mount Hagen ASIN ‏ ‎ B08F9H762R #273</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/mount-hagen-7-05-oz-organic-fair-trade-freeze-dried-decaffeinated-2-pack-instant-coffee-resealable-doypack-bag-kosher-single-origin-100-arabica-freeze-dried-coffee-packets-instant-coffee-for-camping.html" target="_blank" rel="noreferrer">http://localhost:7770/mount-hagen-7-05-oz-organic-fair-trade-freeze-dried-decaffeinated-2-pack-instant-coffee-resealable-doypack-bag-kosher-single-origin-100-arabica-freeze-dried-coffee-packets-instant-coffee-for-camping.html</a></p><p>冻结文件: <a href="sources/95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204" target="_blank">sources/95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204</a></p><p>内容 SHA-256: <code>95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_format_and_package_claim_not_exact_barrier_reseal_or_storage_trial&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen instant-coffee page shows SKU B08F9H762R at 40.98 dollars for two 7.05-ounce decaffeinated freeze-dried pouches and calls the Doypack bags resealable and protective of granules; the seller page supplies no exact lot date, measured water activity, film barrier, seal or repeated-reseal test, opened exposure, storage history, or twelve-month sensory result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_peruvian_whole_bean_multibag_snapshot"><header><h3>prop_peruvian_whole_bean_multibag_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B096T2F4V9 at 39.95 dollars for a nominal 36-ounce three-bag whole-bean offer with medium-roast Arabica and certification language&quot;,
+  &quot;predicate&quot;: &quot;asserts_three_bag_offer_and_coffee_attributes&quot;,
+  &quot;subject&quot;: &quot;frozen Peruvian whole-bean seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_peruvian_whole_bean_multibag_snapshot_1</code> | bytes [196, 310) | <code>46703e94f9b4d444c5e8e05568c1457a95171f7a9dcb5629b94f6f3013fa24a6</code></div><pre class="context"><span>organic peruvian coffee beans - ORGANIC PERUVIAN WHOLE BEANS COFFEE, Medium Roast, 100% Arabica, Fair Trade, non gmo - fair trade organic coffee beans, by SWAN LIFE ESSENTIALS - (36 Ounce 3 Bag)
+
+</span><mark>In stock SKU B096T2F4V9 Be the first to review this product $39.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look organic peruvian coffee beans - ORGANIC PERUVIAN WHOLE BEANS COFFEE, Medium Roast, 100% Arabica, Fair Trade, non gmo - fair trade organic coffee beans, by SWAN LIFE ESSENTIALS - (36 Ounce 3 Bag) WHAT IS COFFEE? Coffee is one of the top commodities in the world. There are coffee shops in almost every corner of every city today. Ju</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_peruvian_whole_bean_multibag_snapshot_2</code> | bytes [1553, 1712) | <code>1eb8a04d7a87a76ea253e48c4da24b4170e4f8472a395ee4b7c16807eb48192e</code></div><pre class="context"><span>s this coffee offers. PERUVIAN COFFEE HISTORY: Peru&#x27;s coffee farms and coffee bean production started in the 1700s. While coffee trees grew well and quickly thanks to the vast microclimates that Peru enjoys, the beautiful coffee beans that coffee farmers harvested were often was kept as a domestic product versus being an export. OUR ORGANIC PERUVIAN COFFEE: </span><mark>Our Peruvian Fair Trade and Organic certified medium roast coffee (100% Pure Arabica Coffee) is great for novice coffee drinkers and coffee connoisseurs alike.</mark><span> Smooth, balanced flavors can be enjoyed in hot or iced coffee depending on your preference. BENEFITS OF COFFEE: Coffee enthusiasts will tell you that the coffee has many benefits. When consumed in the right amounts, coffee can benfits our bodies in ways we never thought was possible. It helps your brain, not only is it good to get a boost of energy, but sev</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/organic-peruvian-coffee-beans-organic-peruvian-whole-beans-coffee-medium-roast-100-arabica-fair-trade-non-gmo-fair-trade-organic-coffee-beans-by-swan-life-essentials-36-ounce-3-bag.html" target="_blank" rel="noreferrer">http://localhost:7770/organic-peruvian-coffee-beans-organic-peruvian-whole-beans-coffee-medium-roast-100-arabica-fair-trade-non-gmo-fair-trade-organic-coffee-beans-by-swan-life-essentials-36-ounce-3-bag.html</a></p><p>冻结文件: <a href="sources/33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d" target="_blank">sources/33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d</a></p><p>内容 SHA-256: <code>33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_not_exact_lot_date_barrier_seal_storage_or_one_year_quality&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen whole-bean page shows SKU B096T2F4V9 at 39.95 dollars for a nominal 36-ounce three-bag offer and describes medium-roast Arabica plus certification language; it supplies no exact lot&#x27;s roast, pack, or best-before date, bag barrier, fill gas, seal test, storage history, opened duration, or twelve-month sensory result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_rancidification_boundary"><header><h3>prop_rancidification_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;air, light, moisture, or bacterial action can produce compounds associated with undesirable odors and flavors&quot;,
+  &quot;predicate&quot;: &quot;can_follow_fat_oxidation_or_hydrolysis_under_environmental_exposure&quot;,
+  &quot;subject&quot;: &quot;rancidification mechanism and sensory effects&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_rancidification_boundary_1</code> | bytes [0, 224) | <code>a63a0ea7eaaaa54148f4a618cf17147a623a62d4d6d02c268c8cae7bbc41fc5e</code></div><pre class="context"><span></span><mark>Rancidification is the process of complete or incomplete autoxidation or hydrolysis of fats and oils when exposed to air, light, moisture, or bacterial action, producing short-chain aldehydes , ketones and free fatty acids .</mark><span> [ 1 ] When these processes occur in food, undesirable odors and flavors can result. In processed meats these flavors are collectively known as warmed-over flavor . In certain cases the flavors can be desirable, as in aged cheeses . [ 2 ] Rancidification can detract from the nutritional value of food, as some vitamins are sensitive to oxidation. [ 3 ] Oxidat</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rancidification_boundary_2</code> | bytes [231, 308) | <code>23cbed0a466ac97bac56570f40246af498847ff94e662faba199549c0656c077</code></div><pre class="context"><span>Rancidification is the process of complete or incomplete autoxidation or hydrolysis of fats and oils when exposed to air, light, moisture, or bacterial action, producing short-chain aldehydes , ketones and free fatty acids . [ 1 ] </span><mark>When these processes occur in food, undesirable odors and flavors can result.</mark><span> In processed meats these flavors are collectively known as warmed-over flavor . In certain cases the flavors can be desirable, as in aged cheeses . [ 2 ] Rancidification can detract from the nutritional value of food, as some vitamins are sensitive to oxidation. [ 3 ] Oxidative degradation also occurs in other hydrocarbons, including lubricating oils , fuel</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rancidification_boundary_3</code> | bytes [4472, 4687) | <code>134f6987d82f732124e6c8a7ff0476a70ac7e2277d5d597156cbde815b09af52</code></div><pre class="context"><span>idants are used when a longer shelf-life is preferred. The effectiveness of water-soluble antioxidants is limited in preventing direct oxidation within fats, but is valuable in intercepting free radicals that travel through the aqueous parts of foods. A combination of water-soluble and fat-soluble antioxidants is ideal, usually in the ratio of fat to water. </span><mark>In addition, rancidification can be decreased by storing fats and oils in a cool, dark place with little exposure to oxygen or free radicals, since heat and light accelerate the rate of reaction of fats with oxygen.</mark><span> Antimicrobial agents can also delay or prevent rancidification by inhibiting the growth of bacteria or other micro-organisms that affect the process. [ 1 ] Oxygen scavenging technology can be used to remove oxygen from food packaging and therefore prevent oxidative rancidification. Oxidative stability measurement Oxidative stability is a measure of oil or f</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Rancidification" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Rancidification</a></p><p>冻结文件: <a href="sources/7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d" target="_blank">sources/7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d</a></p><p>内容 SHA-256: <code>7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_degradation_mechanism_not_exact_product_rate_or_health_finding&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The rancidification page describes oxidation or hydrolysis of fats and oils under air, light, moisture, or bacterial action and says undesirable odors and flavors can result, with cool, dark, low-oxygen storage reducing some reactions; it gives no exact coffee or tea degradation rate, package result, health finding, or one-year sensory threshold.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_shelf_life_condition_boundary"><header><h3>prop_shelf_life_condition_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a recommended maximum period for a defined quality under expected or specified conditions, distinct from several date, sale, use, safety, and quality concepts&quot;,
+  &quot;predicate&quot;: &quot;depend_on_defined_quality_and_specified_conditions&quot;,
+  &quot;subject&quot;: &quot;shelf-life duration and endpoint&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_shelf_life_condition_boundary_1</code> | bytes [722, 997) | <code>4ce458795f28d80dfeee0f5bd2e3c56146d4e43523b12cee1225fdb4dff9e2c2</code></div><pre class="context"><span>medical devices , medicines , explosives , pharmaceutical drugs , [ 2 ] chemicals , tyres , batteries , and many other perishable items. In some regions, an advisory best before , mandatory use by or freshness date is required on packaged perishable foods. The concept of expiration date is related but legally distinct in some jurisdictions. [ 3 ] Background </span><mark>Shelf life is the recommended maximum time for which products or fresh (harvested) produce can be stored, during which the defined quality of a specified proportion of the goods remains acceptable under expected (or specified) conditions of distribution, storage and display.</mark><span> [ 4 ] According to the United States Department of Agriculture (USDA), most &quot;canned foods are safe indefinitely as long as they are not exposed to freezing temperatures, or temperatures above 90 Â°F (32.2 Â°C)&quot;. [ 5 ] Not all canned goods are shelf-stable and those labeled &quot;keep refrigerated&quot; are not safe to store at room temperature. Rusted, swollen a</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_shelf_life_condition_boundary_2</code> | bytes [1732, 1830) | <code>bcab68ac8c78d33d718f46d856b695f60bf03bbe536c6978c9c46014cd545149</code></div><pre class="context"><span>may not be safe for consumption. Over time, most notably for high acid foods such as tomatoes, food stored in cans will change in taste and texture and will eventually have lowered nutritional value. [ 6 ] &quot;Sell by date&quot; is a less ambiguous term for what is often referred to as an &quot;expiration date&quot;. Most food is still edible after the expiration date. [ 7 ] </span><mark>A product that has passed its shelf life might still be safe, but quality is no longer guaranteed.</mark><span> In most food stores, waste is minimized by using stock rotation , which involves moving products with the earliest sell by date from the warehouse to the sales area, and then to the front of the shelf, so that most shoppers will pick them up first and thus they are likely to be sold before the end of their shelf life. Some stores can be fined for selling ou</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_shelf_life_condition_boundary_3</code> | bytes [2307, 2379) | <code>fceb4f8cb343bf835526a3611b54ff902952f908965489968b13dbd84ab2c318</code></div><pre class="context"><span>ell by date from the warehouse to the sales area, and then to the front of the shelf, so that most shoppers will pick them up first and thus they are likely to be sold before the end of their shelf life. Some stores can be fined for selling out of date products; most if not all would have to mark such products down as wasted , resulting in a financial loss. </span><mark>Shelf life depends on the degradation mechanism of the specific product.</mark><span> Most can be influenced by several factors: exposure to light , heat , moisture, transmission of gases , mechanical stresses , and contamination by things such as micro-organisms. Product quality is often mathematically modelled around a parameter (concentration of a chemical compound, a microbiological index, or moisture content). [ 8 ] For some foods, heal</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_shelf_life_condition_boundary_4</code> | bytes [2989, 3086) | <code>ddc21fc503e2a516e12e4d6d5f0c5738883ef9fd83e2b4ff71806ed84f57c51d</code></div><pre class="context"><span>oncentration of a chemical compound, a microbiological index, or moisture content). [ 8 ] For some foods, health issues are important in determining shelf life. Bacterial contaminants are ubiquitous, and foods left unused too long will often be contaminated by substantial amounts of bacterial colonies and become dangerous to eat, leading to food poisoning . </span><mark>However, shelf life alone is not an accurate indicator of how long the food can safely be stored.</mark><span> For example, pasteurized milk can remain fresh for five days after its sell-by date if it is refrigerated properly. However, improper storage of milk may result in bacterial contamination or spoilage before the expiration date. [ 9 ] Pharmaceuticals The expiration date of pharmaceuticals specifies the date the manufacturer guarantees the full potency and sa</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Shelf_life" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Shelf_life</a></p><p>冻结文件: <a href="sources/794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba" target="_blank">sources/794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba</a></p><p>内容 SHA-256: <code>794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_definition_not_exact_product_duration_or_safety_finding&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The shelf-life page defines a recommended maximum period for a specified quality under expected or specified distribution, storage, and display conditions, distinguishes quality from safety and several date concepts, and says degradation is product-specific; it gives no one-year duration for any exact captured product, lot, package, or opened state.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_stackable_glass_container_scope"><header><h3>prop_stackable_glass_container_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an individual author states nesting, chipping, stacking, and leak-proof requirements while replies conflict about specific containers&quot;,
+  &quot;predicate&quot;: &quot;asks_for_non_chipping_stackable_and_leak_proof_properties&quot;,
+  &quot;subject&quot;: &quot;one stackable-glass-container community discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_stackable_glass_container_scope_1</code> | bytes [0, 34) | <code>4e811dbd97d29dd4fbbcea8bd58224f23c2a626d547be0bb5f01cbb05e99b68e</code></div><pre class="context"><span></span><mark>Stackable Glass Storage Containers</mark><span>
+
+Is anyone aware of any glass storage containers that actually stack? Requirements Non-Chip Nestable/Stackable with the same size contain (i.e. 8&quot; will nest into an 8&quot;) Leak-Proof Every container out there seems to not be stackable. Those that nest inside a container that is smaller always chip. I really don&#x27;t want to put the lid between containers, as it&#x27;s</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_stackable_glass_container_scope_2</code> | bytes [36, 267) | <code>dadbb494fc0445502abc351b2c357da54e680f2de7db7f9da8c7c8b75e538f19</code></div><pre class="context"><span>Stackable Glass Storage Containers
+
+</span><mark>Is anyone aware of any glass storage containers that actually stack? Requirements Non-Chip Nestable/Stackable with the same size contain (i.e. 8&quot; will nest into an 8&quot;) Leak-Proof Every container out there seems to not be stackable.</mark><span> Those that nest inside a container that is smaller always chip. I really don&#x27;t want to put the lid between containers, as it&#x27;s not super convenient and not storage friendly. I found the perfect container but they don&#x27;t seem to sell it anymore: https://giantfood.com/groceries/laundry-paper-cleaning/food-storage-wraps/storage-containers/rubbermaid-easy-find-l</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_stackable_glass_container_scope_3</code> | bytes [1525, 1564) | <code>e4f0b2857cff5f535061334849fe52efab90420b254ebddcedfa4484e5dece00</code></div><pre class="context"><span>/no-leak-lid-10-piece-glass-food-storage-set
+
+Yes. The top ones. I don’t like the lids from the bottom link. They have a removable seal that is finicky some times.
+
+I have a bunch of the Simply Store ones too, and these basic lids have been my favorite of all the styles I’ve tried. Simple to use, good reliable seal. I haven’t experienced any leaking.
+
+</span><mark>The 1st link you have there. They leak.</mark><span>
+
+If I put soup in them and put them upside down they leak. If I put spaghetti in it is fine
+
+I got the glass ones from Costco, had them 5yrs no chips.
+
+These ones? https://www.costco.com/snapware-pyrex-18-piece-glass-food-storage-set.product.100358145.html Can a 4 cup medium square container fit into another 4 cup medium square container?
+
+&gt;https://www.cost</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/32783/stackable-glass-storage-containers" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/32783/stackable-glass-storage-containers</a></p><p>冻结文件: <a href="sources/ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7" target="_blank">sources/ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7</a></p><p>内容 SHA-256: <code>ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_requirements_and_uncontrolled_replies_not_original_package_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author asks for non-chipping, same-size stackable, leak-proof glass containers, while replies include conflicting leak reports; this identifies inspection questions but does not test any captured coffee or tea&#x27;s original package, pantry storage, sensory life, or safety.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_vacuum_packing_boundary"><header><h3>prop_vacuum_packing_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an oxygen-reduction method whose shelf-life effect depends on product, atmosphere, temperature, and package barrier&quot;,
+  &quot;predicate&quot;: &quot;removes_air_before_sealing_with_product_and_package_dependent_results&quot;,
+  &quot;subject&quot;: &quot;vacuum-packing preservation mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_vacuum_packing_boundary_1</code> | bytes [0, 91) | <code>d0ab2389f289c62feea0c0cefd55f5d88d43506af54c49cc1a12723b5d60d0ab</code></div><pre class="context"><span></span><mark>Vacuum packing is a method of packaging that removes air from the package prior to sealing.</mark><span> This method involves placing items in a plastic film package, removing air from inside and sealing the package. [ 1 ] Shrink film is sometimes used to have a tight fit to the contents. The intent of vacuum packing is usually to remove oxygen from the container to extend the shelf life of foods and, with flexible package forms, to reduce the volume of the co</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_vacuum_packing_boundary_2</code> | bytes [277, 470) | <code>4fd56946ba318fa3dc10da901602d097c6d281432afcd741966372d0034735e0</code></div><pre class="context"><span>Vacuum packing is a method of packaging that removes air from the package prior to sealing. This method involves placing items in a plastic film package, removing air from inside and sealing the package. [ 1 ] Shrink film is sometimes used to have a tight fit to the contents. </span><mark>The intent of vacuum packing is usually to remove oxygen from the container to extend the shelf life of foods and, with flexible package forms, to reduce the volume of the contents and package.</mark><span> [ 2 ] Vacuum packing reduces atmospheric oxygen, limiting the growth of aerobic bacteria or fungi , and preventing the evaporation of volatile components. It is also commonly used to store dry foods over a long period of time, such as cereals , nuts , cured meats , cheese , smoked fish , coffee , and potato chips ( crisps ). On a more short-term basis, vacu</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_vacuum_packing_boundary_3</code> | bytes [6421, 6569) | <code>f5f5a4f3d971d0076334f021a1f9a2421dbffe10d6c795b55ed41bab6b87c21c</code></div><pre class="context"><span>y issues. Some pathogens of concern in vacuum packed foods are spore-forming non-proteolytic Clostridium botulinum , Yersinia enterocolitica , and Listeria monocytogenes . [ 3 ] Vacuum packing is often used in combination with other food processing techniques, such as retorting or refrigeration, to inhibit the growth of anaerobic organisms. [ 3 ] Shelf life </span><mark>Depending on the product, atmosphere, temperature, and the barrier properties of the package, vacuum packaging extends the shelf life of many foods.</mark><span> [ 4 ] [ 5 ] The shelf life of meats can be extended by vacuum packaging, particularly when used with modified atmosphere packaging . [ 6 ] [ 7 ] High barrier-chamber vacuum shrink bags The amount of shelf life enhanced by a vacuum bag is dependent on the structure in the material. A standard vacuum bag is composed of a PA/PE structure where PA is for punctu</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Vacuum_packing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Vacuum_packing</a></p><p>冻结文件: <a href="sources/2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f" target="_blank">sources/2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f</a></p><p>内容 SHA-256: <code>2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_mechanism_not_proof_any_exact_package_is_vacuumed_or_last_one_year&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The vacuum-packing page describes removing air before sealing to reduce oxygen and says shelf-life effects depend on product, atmosphere, temperature, and package barrier; it does not establish that any captured product is vacuum packed, authenticate its exact seal or barrier, or provide a product-specific one-year quality result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_water_activity_boundary"><header><h3>prop_water_activity_boundary</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a product-specific variable used for shelf-stability, moisture migration, microbial control, quality, and safety&quot;,
+  &quot;predicate&quot;: &quot;is_equilibrium_vapor_ratio_not_water_concentration&quot;,
+  &quot;subject&quot;: &quot;water activity in food&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_water_activity_boundary_1</code> | bytes [599, 766) | <code>52639c949a24ba4e7300a4e2fbe104a6ebdb81fe31784fe10366f6012ab900ed</code></div><pre class="context"><span>isk-based preventive controls (HARPC) Critical control point Critical factors FAT TOM pH Water activity (a w ) Bacterial pathogens Clostridium botulinum Escherichia coli Listeria Salmonella Vibrio cholerae Cronobacter spp Viral pathogens Enterovirus Hepatitis A Norovirus Rotavirus Parasitic pathogens Cryptosporidium Entamoeba histolytica Giardia Trichinella </span><mark>In food science, water activity ( a w ) of a food is the ratio of its vapor pressure to the vapor pressure of water at the same temperature, both taken at equilibrium.</mark><span> [ 1 ] Pure water has a water activity of one. Put another way, a w is the equilibrium relative humidity (ERH) expressed as a fraction instead of as a percentage. As temperature increases, a w typically increases, except in some products with crystalline salt or sugar . Water migrates from areas of high a w to areas of low a w . For example, if honey ( a w �</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_water_activity_boundary_2</code> | bytes [1458, 1529) | <code>f67aae4f47a7012b47847beef047372e3fb2b59e3171bc138843d7d4c946a582</code></div><pre class="context"><span>or example, if honey ( a w â 0.6) is exposed to humid air ( a w â 0.7), the honey absorbs water from the air . If salami ( a w â 0.87) is exposed to dry air ( a w â 0.5), the salami dries out , which could preserve it or spoil it. Lower a w substances tend to support fewer microorganisms since these get desiccated by the water migration. </span><mark>Water activity is not simply a function of water concentration in food.</mark><span> The water in food has a tendency to evaporate, but the water vapor in the surrounding air has a tendency to condense into the food. When the two tendencies are in balanceâ and the air and food are stableâthe air&#x27;s relative humidity (expressed as a fraction instead of as a percentage) is taken to be the water activity, a w . Thus, water activity is</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_water_activity_boundary_3</code> | bytes [2973, 3059) | <code>bf4d4f2d1ee0ddc5ef167b931e03a5323019cafb9be98ce3293100ac95f552fc</code></div><pre class="context"><span> and is usually given as a percentage. [ 2 ] It is equal to water activity according to E R H = a w Ã 100 % . {\displaystyle \mathrm {ERH} =a_{w}\times 100\%.} The estimated mold-free shelf life (MFSL) in days at 21 Â°C depends on water activity according to [ 3 ] M F S L = 10 7.91 â 8.1 a w {\displaystyle \mathrm {MFSL} =10^{7.91-8.1a_{w}}} Uses </span><mark>Water activity is an important characteristic for food product design and food safety.</mark><span> Food product design Food designers use water activity to formulate shelf-stable food . If a product is kept below a certain water activity, then mold growth is inhibited. This results in a longer shelf life . [ 4 ] Water activity values can also help limit moisture migration within a food product made with different ingredients . If raisins of a higher wate</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_water_activity_boundary_4</code> | bytes [4234, 4315) | <code>72feba76f697fe4db540bf069af61f4bbe7386d125a0bd77cb2582d04a9d8a69</code></div><pre class="context"><span>re periodically taken from the production area and tested to ensure water activity values are within a specified range for food quality and safety. Measurements can be made in as little as five minutes, and are made regularly in most major food production facilities. For many years, researchers tried to equate bacterial growth potential with water content . </span><mark>They found that the values were not universal, but specific to each food product.</mark><span> W. J. Scott first established that bacterial growth correlated with water activity, not water content, in 1953. [ 5 ] It is firmly established that growth of bacteria is inhibited at specific water activity values. U.S. Food and Drug Administration (FDA) regulations for intermediate moisture foods are based on these values. Lowering the water activity of a </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Water_activity" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Water_activity</a></p><p>冻结文件: <a href="sources/e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520" target="_blank">sources/e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520</a></p><p>内容 SHA-256: <code>e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_measurement_concept_not_exact_product_aw_or_safety_result&quot;,
+    &quot;topic_cluster&quot;: &quot;remote_pantry_storage_format_and_rotation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The water-activity page defines an equilibrium vapor-pressure ratio, says it is not simply water concentration, and describes product-specific uses in shelf stability, moisture migration, microbial control, quality, and safety; it contains no measured water activity or resulting duration for any exact captured lot or package.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_remote_pantry_0041</td><td>case_spec</td><td><a href="sources/83edd7ef58ee24b97a9e55c03a6afc370c408d85d54b7d7d71917c20b5f070b9">83edd7ef58ee24b97a9e55c03a6afc370c408d85d54b7d7d71917c20b5f070b9</a></td><td><a href="http://case-spec.local/dra_v3_formal_coffee_tea_0041" target="_blank" rel="noreferrer">来源 URL</a></td><td>11065</td></tr><tr><td>reg_magento_basilur_loose_leaf_tins</td><td>magento</td><td><a href="sources/6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb">6dff619fbc0e920728c0c115049f27990f82514d97aefcf713172d55f561a5bb</a></td><td><a href="http://localhost:7770/basilur-ceylon-english-breakfast-tea-earl-grey-tea-pure-ceylon-black-tea-single-origin-and-low-elevation-100g-loose-leaf-per-metal-tin-pack-of-2.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2102</td></tr><tr><td>reg_magento_don_francisco_ground_cans</td><td>magento</td><td><a href="sources/fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e">fd12534d5db769297dd4abf744fbe851053fd6002c9fc584e078be5cefd9c91e</a></td><td><a href="http://localhost:7770/don-francisco-s-vanilla-nut-flavored-ground-coffee-3-x12-oz-cans.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>5122</td></tr><tr><td>reg_magento_imozai_wrapped_tea_bags</td><td>magento</td><td><a href="sources/c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60">c6afcf321a3e72ec32dcf9f71318f1ee7d3a21ba4322088a7bb8f60e635b9c60</a></td><td><a href="http://localhost:7770/imozai-organic-oolong-tea-bags-100-count-individually-wrapped.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2633</td></tr><tr><td>reg_magento_mount_hagen_freeze_dried_instant</td><td>magento</td><td><a href="sources/95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204">95b1c1cec8f964676e2c8c0f8eed3de0a7fef4533394044b55a7b637cb50c204</a></td><td><a href="http://localhost:7770/mount-hagen-7-05-oz-organic-fair-trade-freeze-dried-decaffeinated-2-pack-instant-coffee-resealable-doypack-bag-kosher-single-origin-100-arabica-freeze-dried-coffee-packets-instant-coffee-for-camping.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3170</td></tr><tr><td>reg_magento_peruvian_whole_bean_three_bag</td><td>magento</td><td><a href="sources/33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d">33cb579e88df64104590b6c1297c9853be20f4107da3ce16ab1249a5bcd4021d</a></td><td><a href="http://localhost:7770/organic-peruvian-coffee-beans-organic-peruvian-whole-beans-coffee-medium-roast-100-arabica-fair-trade-non-gmo-fair-trade-organic-coffee-beans-by-swan-life-essentials-36-ounce-3-bag.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2901</td></tr><tr><td>reg_postmill_bifl_food_storage</td><td>postmill</td><td><a href="sources/b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7">b22bc4add9f89d954cdaf6121bc8b729885c5d28a3f96ecfccec9cde6221acc7</a></td><td><a href="http://localhost:9999/f/BuyItForLife/53732/bifl-food-storage-containers" target="_blank" rel="noreferrer">来源 URL</a></td><td>2324</td></tr><tr><td>reg_postmill_bulk_dry_food_container</td><td>postmill</td><td><a href="sources/069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb">069f31bceeefa7074596d95e36ef942ac9977609b2229093e0564ec115dc00eb</a></td><td><a href="http://localhost:9999/f/BuyItForLife/75598/container-to-store-5-10lb-bulk-dry-food-such-as-beans-and" target="_blank" rel="noreferrer">来源 URL</a></td><td>4786</td></tr><tr><td>reg_postmill_freezer_fridge_storage</td><td>postmill</td><td><a href="sources/2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e">2792401ec66f28f557528729ac15e5aaf9f66cb018eaa9009e635add942ffe6e</a></td><td><a href="http://localhost:9999/f/BuyItForLife/32741/suggestions-for-food-storage-containers-that-will-spend-time" target="_blank" rel="noreferrer">来源 URL</a></td><td>12830</td></tr><tr><td>reg_postmill_stackable_glass_storage</td><td>postmill</td><td><a href="sources/ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7">ebe9da0aafc602be330968d31855e42f34ae1aaafe00784d9da798c6e089e9a7</a></td><td><a href="http://localhost:9999/f/BuyItForLife/32783/stackable-glass-storage-containers" target="_blank" rel="noreferrer">来源 URL</a></td><td>5813</td></tr><tr><td>reg_search_basilur_loose_leaf</td><td>search_result</td><td><a href="sources/4244b11fd57cc7aa8ba649bd2b98689ebcf4e7840a01ba46b5f87532d542e11f">4244b11fd57cc7aa8ba649bd2b98689ebcf4e7840a01ba46b5f87532d542e11f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=6ba4e120-b9ca-472d-a61d-be84650205c7" target="_blank" rel="noreferrer">来源 URL</a></td><td>6086</td></tr><tr><td>reg_search_bifl_food_storage</td><td>search_result</td><td><a href="sources/811edfb730ce7693c998e8762aaea04f135dc63a62e2092d49f32d582a385d6f">811edfb730ce7693c998e8762aaea04f135dc63a62e2092d49f32d582a385d6f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=7933248f-5994-4f17-b1fd-59039f33bd0c" target="_blank" rel="noreferrer">来源 URL</a></td><td>53292</td></tr><tr><td>reg_search_bulk_dry_food</td><td>search_result</td><td><a href="sources/93c66075d56d472e4fa8e49d86908c9571356cef1d7ce70af739d2ecb77e6da9">93c66075d56d472e4fa8e49d86908c9571356cef1d7ce70af739d2ecb77e6da9</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=f449c225-06c5-4726-b099-c13791de0165" target="_blank" rel="noreferrer">来源 URL</a></td><td>53547</td></tr><tr><td>reg_search_don_francisco_ground</td><td>search_result</td><td><a href="sources/86bf8ea5ef7a0c466a028fc2e36905aedd8f1a66aea19868a40f20c197529be6">86bf8ea5ef7a0c466a028fc2e36905aedd8f1a66aea19868a40f20c197529be6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=a172203b-1d8b-4ad6-ae15-b630a8465499" target="_blank" rel="noreferrer">来源 URL</a></td><td>6486</td></tr><tr><td>reg_search_freeze_drying</td><td>search_result</td><td><a href="sources/453368b819f7a43f4837281bb30bc11fa38a2c0d5622192ff777a54949fcc949">453368b819f7a43f4837281bb30bc11fa38a2c0d5622192ff777a54949fcc949</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=b003d5b3-1c30-4d53-ba34-c55486c9f3cf" target="_blank" rel="noreferrer">来源 URL</a></td><td>60612</td></tr><tr><td>reg_search_freezer_fridge</td><td>search_result</td><td><a href="sources/ca90567da44940938f112b7c122da7127ce222e3d719436e914a3c3f0649cae5">ca90567da44940938f112b7c122da7127ce222e3d719436e914a3c3f0649cae5</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=33484cd2-e505-441f-9536-71eba0f89330" target="_blank" rel="noreferrer">来源 URL</a></td><td>58473</td></tr><tr><td>reg_search_imozai_wrapped_bags</td><td>search_result</td><td><a href="sources/1484e61ce53558fa64fd1d90cbe14de3ab922744a803a011b3b65100ab4e95ff">1484e61ce53558fa64fd1d90cbe14de3ab922744a803a011b3b65100ab4e95ff</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=53ba2a73-b1cb-4d42-b80d-055d5f0c3f04" target="_blank" rel="noreferrer">来源 URL</a></td><td>6341</td></tr><tr><td>reg_search_mount_hagen_instant</td><td>search_result</td><td><a href="sources/af64be5fe766916eee4f8022ea52e5646e59a79254cf48d4b70255737f8fdcd6">af64be5fe766916eee4f8022ea52e5646e59a79254cf48d4b70255737f8fdcd6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=93319869-aa28-4df0-80ac-c258280dd866" target="_blank" rel="noreferrer">来源 URL</a></td><td>5568</td></tr><tr><td>reg_search_peruvian_whole_bean</td><td>search_result</td><td><a href="sources/d0d644ab9b6537b82c2dd8ad947e2486568ea52be389699c6da1c797493ed533">d0d644ab9b6537b82c2dd8ad947e2486568ea52be389699c6da1c797493ed533</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=8a038f8c-5802-427e-8884-c3c83f658a04" target="_blank" rel="noreferrer">来源 URL</a></td><td>6477</td></tr><tr><td>reg_search_rancidification</td><td>search_result</td><td><a href="sources/a273944a5f9316343bbc73fb9df96a7795c41aaf92ce9e6d0004525575c8be73">a273944a5f9316343bbc73fb9df96a7795c41aaf92ce9e6d0004525575c8be73</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=7e31ab20-f86c-41a7-9ab1-ff93685e490c" target="_blank" rel="noreferrer">来源 URL</a></td><td>5608</td></tr><tr><td>reg_search_shelf_life</td><td>search_result</td><td><a href="sources/d4b9a4230be65d0376b60f9fe378f282fd68396ddce92d092b95ba4dfc7fa34b">d4b9a4230be65d0376b60f9fe378f282fd68396ddce92d092b95ba4dfc7fa34b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=abc05a1f-9a83-4de3-826e-19df1d7b065b" target="_blank" rel="noreferrer">来源 URL</a></td><td>61710</td></tr><tr><td>reg_search_stackable_glass</td><td>search_result</td><td><a href="sources/4e29141af170f0780cbadba09bd41e200e1621b1b4ca22046e5abd798e18118d">4e29141af170f0780cbadba09bd41e200e1621b1b4ca22046e5abd798e18118d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=a159ab2c-4f7b-459b-8d33-92fd0af16865" target="_blank" rel="noreferrer">来源 URL</a></td><td>33999</td></tr><tr><td>reg_search_vacuum_packing</td><td>search_result</td><td><a href="sources/3ad9596071da72e6cfaa621078a29240ae9ccdd1c474f0b34f87305b4e80f51d">3ad9596071da72e6cfaa621078a29240ae9ccdd1c474f0b34f87305b4e80f51d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=32121763-1500-49da-b5a2-5e54533f75e6" target="_blank" rel="noreferrer">来源 URL</a></td><td>60185</td></tr><tr><td>reg_search_water_activity</td><td>search_result</td><td><a href="sources/1f4d7b50ccc1822cd6d33a508f36fb07da300bfff3c7d29e6db4826a73e05618">1f4d7b50ccc1822cd6d33a508f36fb07da300bfff3c7d29e6db4826a73e05618</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1&amp;request_id=60b64b59-75d1-47f6-a553-10e4b110fff7" target="_blank" rel="noreferrer">来源 URL</a></td><td>60427</td></tr><tr><td>reg_wiki_freeze_drying</td><td>wikipedia</td><td><a href="sources/b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8">b679847659661abe8d1d96e6b63c864c3f8cd9509f94e91bf6b527e4aaff51a8</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Freeze_drying" target="_blank" rel="noreferrer">来源 URL</a></td><td>20038</td></tr><tr><td>reg_wiki_rancidification</td><td>wikipedia</td><td><a href="sources/7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d">7ac7589122ab26f31799eb8625489892b095cf5c4668bde712de1ecd4352631d</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Rancidification" target="_blank" rel="noreferrer">来源 URL</a></td><td>10697</td></tr><tr><td>reg_wiki_shelf_life</td><td>wikipedia</td><td><a href="sources/794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba">794c156821f45a01ab01e94f9bd4baa977bab625be23744ea7aaebd0f2c6daba</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Shelf_life" target="_blank" rel="noreferrer">来源 URL</a></td><td>20059</td></tr><tr><td>reg_wiki_vacuum_packing</td><td>wikipedia</td><td><a href="sources/2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f">2ddbc0df8d3606c181dc35a90de6c84fa0f7a2d1c017a1199dddbee2f8fc4c2f</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Vacuum_packing" target="_blank" rel="noreferrer">来源 URL</a></td><td>15497</td></tr><tr><td>reg_wiki_water_activity</td><td>wikipedia</td><td><a href="sources/e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520">e2ef569064c6f3ff34d69a29be76ca5f7355666a54467276968b97067266d520</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Water_activity" target="_blank" rel="noreferrer">来源 URL</a></td><td>17854</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-coffee-tea-0041-remote-pantry-storage-formats-20260716-r1";
+const graphHash = "bca157b2d10ccc5f8e9372acb095ba261feb4c6acb40778411aa4a7a1011f1e4";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

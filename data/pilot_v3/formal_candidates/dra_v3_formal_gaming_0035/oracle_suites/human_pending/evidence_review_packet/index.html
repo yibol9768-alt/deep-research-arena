@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-gaming-0035-console-generation-value-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>cbe05d451bbcf3d08488ceba0032b11272a48498638c78cace8ea6588ce65849</code></p>
+<p>待审项 16 个，其中语义项 8 个、结构化项 0 个；冻结来源 17 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_backward_compatibility_scope"><header><h3>assert_backward_compatibility_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;interoperability with older systems or inputs that can preserve software and fill launch libraries but costs money to support&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for backward compatibility&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_backward_compatibility_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_feature_not_exact_game_save_dlc_account_disc_controller_or_revision_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;interoperability with older systems or inputs that can preserve software and fill launch libraries but costs money to support&quot;,
+  &quot;predicate&quot;: &quot;is_a_general_interoperability_feature_with_benefits_and_costs&quot;,
+  &quot;subject&quot;: &quot;backward compatibility&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_backward_compatibility_scope_1</code> | bytes [0, 278) | <code>71a357a3fd99cb37a1c5f858e36ca11395f732a2a686caec3f9f1dffb0bb84cf</code></div><pre class="context"><span></span><mark>In telecommunications and computing , backward compatibility (or backwards compatibility ) is a property of an operating system , software, real-world product, or technology that allows for interoperability with an older legacy system , or with input designed for such a system.</mark><span> Modifying a system in a way that does not allow backward compatibility is sometimes called &quot; breaking &quot; backward compatibility. [ 1 ] Such breaking usually incurs various types of costs, such as switching cost . A complementary concept is forward compatibility ; a design that is forward-compatible usually has a roadmap for compatibility with future standard</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Backward_compatibility" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Backward_compatibility</a></p><p>冻结文件: <a href="sources/bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d" target="_blank">sources/bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d</a></p><p>内容 SHA-256: <code>bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_console_generation_history_scope"><header><h3>assert_console_generation_history_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;technology-cycle labels commonly around five years but with viable long tails, overlap, and no consistently exact delineation&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for video-game console generation labels&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_console_generation_history_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_market_history_not_fixed_performance_multiplier_or_obsolescence_date&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;technology-cycle labels commonly around five years but with viable long tails, overlap, and no consistently exact delineation&quot;,
+  &quot;predicate&quot;: &quot;are_approximate_overlapping_long_tailed_cycles&quot;,
+  &quot;subject&quot;: &quot;video-game console generation labels&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_console_generation_history_scope_1</code> | bytes [1861, 1972) | <code>ac7bdb236cbeb663eb79465b9dec8030fd96e5ff4e2300bd5d651c92c6f16e9d</code></div><pre class="context"><span>ht-emitting diodes (LED) as visual indicators. Handheld electronic games had replaced the mechanical controls with electronic and digital components, and with the introduction of Liquid-crystal display (LCD) to create video-like screens with programmable pixels, systems like the Microvision and the Game &amp; Watch became the first handheld video game consoles. </span><mark>Since then, home game consoles have progressed through technology cycles typically referred to as generations .</mark><span> Each generation has lasted approximately five years, during which the major console manufacturers have released console with broadly similar specifications. Handheld consoles have seen similar advances, and are usually grouped into the same generations as home consoles. While early generations were led by manufacturers like Atari and Sega , the modern home </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_game_consoles" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_game_consoles</a></p><p>冻结文件: <a href="sources/a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330" target="_blank">sources/a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330</a></p><p>内容 SHA-256: <code>a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_decade_ps4_owner_scope"><header><h3>assert_decade_ps4_owner_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an incredible decade-long run of games followed by a dying-console framing and personal backward-compatibility beliefs&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one community author with an unspecified PS4&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_decade_ps4_owner_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_person_unnamed_revision_not_failure_rate_current_policy_or_teen_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an incredible decade-long run of games followed by a dying-console framing and personal backward-compatibility beliefs&quot;,
+  &quot;predicate&quot;: &quot;reports_a_decade_of_use_and_personal_library_concerns&quot;,
+  &quot;subject&quot;: &quot;one community author with an unspecified PS4&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_decade_ps4_owner_scope_1</code> | bytes [0, 74) | <code>3286ed630461272379ed565e4257ef54e276863f3a37ce71c473d35b41a38b62</code></div><pre class="context"><span></span><mark>Can you help me decide on a console? My PS4 is dying. Xbox Series X vs PS5</mark><span>
+
+Long story short, I have had my PS4 for a decade and it was an incredible run of phenomenal games. I played all the exclusives and enjoyed most of them, but I am now torn on which one to get. Xbox has backwards compatibility which is really important to me since I loved my 360 and still have a lot of older games. I am not interested in PSVR at all, but I k</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/81981/can-you-help-me-decide-on-a-console-my-ps4-is-dying-xbox" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/81981/can-you-help-me-decide-on-a-console-my-ps4-is-dying-xbox</a></p><p>冻结文件: <a href="sources/8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea" target="_blank">sources/8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea</a></p><p>内容 SHA-256: <code>8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_next_gen_killer_app_opinion_scope"><header><h3>assert_next_gen_killer_app_opinion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;that every killer app for PS5 was also still coming to PS4 and the same applied to Xbox&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one next-generation console commenter&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_next_gen_killer_app_opinion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_broad_opinion_not_complete_dated_catalog_per_game_result_or_current_policy&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;that every killer app for PS5 was also still coming to PS4 and the same applied to Xbox&quot;,
+  &quot;predicate&quot;: &quot;states_a_broad_cross_generation_game_opinion&quot;,
+  &quot;subject&quot;: &quot;one next-generation console commenter&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_next_gen_killer_app_opinion_scope_1</code> | bytes [41, 194) | <code>61810eb1bd508b4918ad4022fc32c41662146407d53d7b8b08b5609f3e1c7dd5</code></div><pre class="context"><span>why is anyone buying next Gen consoles?
+
+</span><mark>Honestly, no fanboy shit Every &#x27;killer app&#x27; for ps5 is also still coming out on ps4 Same goes with xbox And yet people are still dying for the consoles 2</mark><span></span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/gaming/40385/why-is-anyone-buying-next-gen-consoles" target="_blank" rel="noreferrer">http://localhost:9999/f/gaming/40385/why-is-anyone-buying-next-gen-consoles</a></p><p>冻结文件: <a href="sources/572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a" target="_blank">sources/572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a</a></p><p>内容 SHA-256: <code>572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_playstation_spec_table_scope"><header><h3>assert_playstation_spec_table_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;PlayStation 4 Pro and PlayStation 5 family columns with different storage bandwidth, CPU clock, GPU core and clock, ray-tracing, and memory fields&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen flattened PlayStation console comparison table&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_playstation_spec_table_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;hardware_table_not_per_game_frame_rate_quality_loading_scalar_jump_or_current_offer&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;PlayStation 4 Pro and PlayStation 5 family columns with different storage bandwidth, CPU clock, GPU core and clock, ray-tracing, and memory fields&quot;,
+  &quot;predicate&quot;: &quot;separates_models_and_hardware_fields&quot;,
+  &quot;subject&quot;: &quot;frozen flattened PlayStation console comparison table&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_playstation_spec_table_scope_1</code> | bytes [18, 138) | <code>0c8bbadb8b48d6b1ce15c13a715672ddfb7cc5a3d60c8bd7b2d03efd62e9efa7</code></div><pre class="context"><span>2013âpresent </span><mark>Model PlayStation 4 PlayStation 4 Slim PlayStation 4 Pro PlayStation Classic PlayStation 5 PlayStation 5 Digital Edition</mark><span> Image Key dates First released November 2013 September 2016 November 2016 December 2018 November 2020 Discontinued September 2016 In production January 2021 In production Dimensions (WxHxD) 275 mm Ã 53 mm Ã 305 mm (10.8 in Ã 2.1 in Ã 12.0 in) 265 mm Ã 39 mm Ã 288 mm (10.4 in Ã 1.5 in Ã 11.3 in) 295 mm Ã 55 m</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Comparison_of_PlayStation_consoles" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Comparison_of_PlayStation_consoles</a></p><p>冻结文件: <a href="sources/1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42" target="_blank">sources/1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42</a></p><p>内容 SHA-256: <code>1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ps4_controller_listing_snapshot"><header><h3>assert_ps4_controller_listing_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a seller-titled wireless controller for PlayStation 4, Slim, and Pro in black and white at 29.99 dollars with an 80-percent-of-100 aggregate over three reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen PS4-compatible controller listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ps4_controller_listing_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_sony_oem_independent_compatibility_durability_or_ps5_support&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a seller-titled wireless controller for PlayStation 4, Slim, and Pro in black and white at 29.99 dollars with an 80-percent-of-100 aggregate over three reviews&quot;,
+  &quot;predicate&quot;: &quot;makes_seller_compatibility_and_offer_claim&quot;,
+  &quot;subject&quot;: &quot;frozen PS4-compatible controller listing&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ps4_controller_listing_snapshot_1</code> | bytes [0, 132) | <code>3eaf9694dadb0eb6cd1535a23d6bfed46cc9c6ebcc4d0750e14a2fdcdf866ece</code></div><pre class="context"><span></span><mark>PS4 Controller Dualshock 4 Wireless Controller for Gaming Controller Compatible with PlayStation 4/Slim/Pro Console（Black+White）</mark><span>
+
+In stock SKU B09KLJ6ZLH Rating: 80 % of 100 3 Reviews Add Your Review $29.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Younux is a professional game controller manufacturer and provides all customers with products of high quality. Our vision is to satisfy every customer. The Controller is specially designed for PlayStatio</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/ps4-controller-dualshock-4-wireless-controller-for-gaming-controller-compatible-with-playstation-4-slim-pro-console-black-white.html" target="_blank" rel="noreferrer">http://localhost:7770/ps4-controller-dualshock-4-wireless-controller-for-gaming-controller-compatible-with-playstation-4-slim-pro-console-black-white.html</a></p><p>冻结文件: <a href="sources/225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64" target="_blank">sources/225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64</a></p><p>内容 SHA-256: <code>225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ps4_pro_bundle_listing_snapshot"><header><h3>assert_ps4_pro_bundle_listing_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a title marked discontinued while the body says in stock with SKU B07HHWJMGF, a 62-percent-of-100 aggregate over twelve reviews, and a 44.96-dollar price&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen PS4 Pro Red Dead Redemption 2 bundle listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ps4_pro_bundle_listing_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;anomalous_seller_snapshot_not_condition_contents_authenticity_return_terms_or_market_value&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a title marked discontinued while the body says in stock with SKU B07HHWJMGF, a 62-percent-of-100 aggregate over twelve reviews, and a 44.96-dollar price&quot;,
+  &quot;predicate&quot;: &quot;shows_internally_unresolved_offer_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen PS4 Pro Red Dead Redemption 2 bundle listing&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ps4_pro_bundle_listing_snapshot_1</code> | bytes [0, 75) | <code>913f9b1b957f0fd6bb28a10bee820f67db3c7ffe93283d7084c2fecc731093df</code></div><pre class="context"><span></span><mark>PlayStation 4 Pro 1TB Console - Red Dead Redemption 2 Bundle [Discontinued]</mark><span>
+
+In stock SKU B07HHWJMGF Rating: 62 % of 100 12 Reviews Add Your Review $44.96 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer 0:00 0:00 This video is not intended for all audiences. What date were you born? January February March April May June July August September October November December 1 2 3 4 5 6 7 8 9 10 11 12 13 14 1</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/playstation-4-pro-1tb-console-red-dead-redemption-2-bundle-discontinued.html" target="_blank" rel="noreferrer">http://localhost:7770/playstation-4-pro-1tb-console-red-dead-redemption-2-bundle-discontinued.html</a></p><p>冻结文件: <a href="sources/e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1" target="_blank">sources/e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1</a></p><p>内容 SHA-256: <code>e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_psn_service_snapshot_scope"><header><h3>assert_psn_service_snapshot_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;store and subscription functions, tier catalog counts, and an example of a collection being removed&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen PlayStation Network and PlayStation Plus page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_psn_service_snapshot_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_history_not_current_official_pricing_catalog_online_access_or_child_account_policy&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;object&quot;: &quot;store and subscription functions, tier catalog counts, and an example of a collection being removed&quot;,
+  &quot;predicate&quot;: &quot;records_a_historical_service_and_catalog_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation Network and PlayStation Plus page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_psn_service_snapshot_scope_1</code> | bytes [1125, 1474) | <code>68f87928e85a7c65b71f2b1778e2e47859202b7739616f8b3d21c918cc839311</code></div><pre class="context"><span>tainment . Launched in November 2006, PSN was originally conceived for the PlayStation video game consoles, but soon extended to encompass smartphones, tablets, Blu-ray players and high-definition televisions. It succeeded Sony Entertainment Network in 2015 and this service is the account for PlayStation consoles, accounts can store games and other content. </span><mark>PlayStation Network&#x27;s services are dedicated to an online marketplace ( PlayStation Store ), a premium subscription service for enhanced gaming and social features ( PlayStation Plus ), music streaming (PlayStation Music, based on Spotify ), and formerly a cloud gaming service ( PlayStation Now ; folded into PlayStation Plus Premium in June 2022).</mark><span> The service is available in 73 countries and territories. [ 2 ] History Launched in the year 2000, Sony&#x27;s second home console, the PlayStation 2 , had rudimentary online features in select games via its online networks . It required a network adaptor , which was available as an add-on for original models and integrated into the hardware on slimline models. </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Network" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Network</a></p><p>冻结文件: <a href="sources/6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4" target="_blank">sources/6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4</a></p><p>内容 SHA-256: <code>6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_backward_compatibility_scope"><header><h3>prop_backward_compatibility_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;interoperability with older systems or inputs that can preserve software and fill launch libraries but costs money to support&quot;,
+  &quot;predicate&quot;: &quot;is_a_general_interoperability_feature_with_benefits_and_costs&quot;,
+  &quot;subject&quot;: &quot;backward compatibility&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_backward_compatibility_scope_1</code> | bytes [0, 278) | <code>71a357a3fd99cb37a1c5f858e36ca11395f732a2a686caec3f9f1dffb0bb84cf</code></div><pre class="context"><span></span><mark>In telecommunications and computing , backward compatibility (or backwards compatibility ) is a property of an operating system , software, real-world product, or technology that allows for interoperability with an older legacy system , or with input designed for such a system.</mark><span> Modifying a system in a way that does not allow backward compatibility is sometimes called &quot; breaking &quot; backward compatibility. [ 1 ] Such breaking usually incurs various types of costs, such as switching cost . A complementary concept is forward compatibility ; a design that is forward-compatible usually has a roadmap for compatibility with future standard</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_backward_compatibility_scope_2</code> | bytes [4610, 4801) | <code>7a6bfbb23dcbf9e06839136c2f56905d7f205c73d8a615197e1fa93ba12a3004</code></div><pre class="context"><span>games is a large part of their continued success, and some believe ignoring backward compatibility would cause these titles to disappear. [ 10 ] Backward compatibility can also act as a selling point for newly-introduced hardware, as the existing user install base for the preceding hardware can more affordably upgrade to subsequent generations of a console. </span><mark>This can also help make up for the lack of titles at the launch of new systems, as users can pull from the previous console&#x27;s library of games while developers transition to the new hardware.</mark><span> [ 11 ] For example, the PlayStation 2 &#x27;s backward compatibility with the original PlayStation (PS) software discs and peripherals is considered to have been one of the key selling points for the console during its early months on the market. [ 12 ] [ 13 ] Moreover, studies in the mid-1990s found that even consumers who never play older games after purchasin</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_backward_compatibility_scope_3</code> | bytes [6101, 6229) | <code>4bb1d2f0372fa90237d727122936acf5481d07136f8a8b5ba42b25817cc6ba11</code></div><pre class="context"><span>owerful and similar enough to legacy systems that older titles can be broken down and re-configured to run on the Xbox One. [ 15 ] This program has proven incredibly popular with Xbox players and goes against the recent trend of studio-made remasters of classic titles, creating what some believe to be an important shift in console makers&#x27; strategies. [ 14 ] </span><mark>The current generation of consoles such as the PlayStation 5 (PS5) [ 16 ] and Xbox Series X/S also support this feature as well.</mark><span> Costs The monetary costs of supporting old software is considered to be a large drawback to the usage of backward compatibility. [ 11 ] [ 13 ] The associated costs of backward compatibility are a larger bill of materials if hardware is required to support the legacy systems; increased complexity of the product that may lead to longer time to market , techno</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_backward_compatibility_scope_4</code> | bytes [6236, 6358) | <code>4d6550afb8908f0304d092fa4b626ea5902080ceec7d852e047630880846c140</code></div><pre class="context"><span> program has proven incredibly popular with Xbox players and goes against the recent trend of studio-made remasters of classic titles, creating what some believe to be an important shift in console makers&#x27; strategies. [ 14 ] The current generation of consoles such as the PlayStation 5 (PS5) [ 16 ] and Xbox Series X/S also support this feature as well. Costs </span><mark>The monetary costs of supporting old software is considered to be a large drawback to the usage of backward compatibility.</mark><span> [ 11 ] [ 13 ] The associated costs of backward compatibility are a larger bill of materials if hardware is required to support the legacy systems; increased complexity of the product that may lead to longer time to market , technological hindrances, and slowing innovation; and increased expectations from users in terms of compatibility. [ 1 ] For video game</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Backward_compatibility" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Backward_compatibility</a></p><p>冻结文件: <a href="sources/bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d" target="_blank">sources/bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d</a></p><p>内容 SHA-256: <code>bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_feature_not_exact_game_save_dlc_account_disc_controller_or_revision_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The captured concept page defines backward compatibility as interoperability with an older system or its input, describes software-preservation and launch-library benefits and support costs, and broadly says current consoles such as PlayStation 5 support the feature; it does not guarantee an exact game, version, save, DLC, account, disc, controller, accessory, or console revision.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_console_generation_history_scope"><header><h3>prop_console_generation_history_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;technology-cycle labels commonly around five years but with viable long tails, overlap, and no consistently exact delineation&quot;,
+  &quot;predicate&quot;: &quot;are_approximate_overlapping_long_tailed_cycles&quot;,
+  &quot;subject&quot;: &quot;video-game console generation labels&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_console_generation_history_scope_1</code> | bytes [1861, 1972) | <code>ac7bdb236cbeb663eb79465b9dec8030fd96e5ff4e2300bd5d651c92c6f16e9d</code></div><pre class="context"><span>ht-emitting diodes (LED) as visual indicators. Handheld electronic games had replaced the mechanical controls with electronic and digital components, and with the introduction of Liquid-crystal display (LCD) to create video-like screens with programmable pixels, systems like the Microvision and the Game &amp; Watch became the first handheld video game consoles. </span><mark>Since then, home game consoles have progressed through technology cycles typically referred to as generations .</mark><span> Each generation has lasted approximately five years, during which the major console manufacturers have released console with broadly similar specifications. Handheld consoles have seen similar advances, and are usually grouped into the same generations as home consoles. While early generations were led by manufacturers like Atari and Sega , the modern home </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_console_generation_history_scope_2</code> | bytes [8122, 8287) | <code>28053401efca3a5754cb0a96d7d99937b561dc2f81f6a2d40c6a781ae2b4e05f</code></div><pre class="context"><span>y the same time period, with their consoles typically offering similar processing power and capabilities as their competitors. This systematic market has created the nature of console generations, categorizing the primary consoles into these segmented time periods that represent consoles with similar capabilities and which shared the same competitive space. </span><mark>Like consoles, these generations typically start five years after its prior one, though may have long tails as popular consoles remain viable well beyond five years.</mark><span> [ 27 ] [ 28 ] The use of the generation label came after the start of the 21st century as console technology started to mature, with the terminology applied retroactively to earlier consoles. However, no exact definition and delineation of console generations was consistently developed in the industry or academic literature since that point. Some schemes ha</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_console_generation_history_scope_3</code> | bytes [8480, 8631) | <code>c44ab5215c57770045e2adaf6f0f57ae1e728889c0e4c3856e6ff4f017381473</code></div><pre class="context"><span>. Like consoles, these generations typically start five years after its prior one, though may have long tails as popular consoles remain viable well beyond five years. [ 27 ] [ 28 ] The use of the generation label came after the start of the 21st century as console technology started to mature, with the terminology applied retroactively to earlier consoles. </span><mark>However, no exact definition and delineation of console generations was consistently developed in the industry or academic literature since that point.</mark><span> Some schemes have been based on direct market data (including a seminal work published in an IEEE journal in 2002), [ 29 ] while others are based on technology shifts. The online encyclopedia Wikipedia has been noted for creating its own version of console generation definitions that differ from some academic sources; the definitions from Wikipedia have bee</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_console_generation_history_scope_4</code> | bytes [10864, 10939) | <code>d9f267ec12f19af07a796f56b58654934456131aca21c7e6525ba99821569a12</code></div><pre class="context"><span>37 ] [ 38 ] In this approach the generation &quot;starts&quot; with the release of the first console considered to have those features, and considered to end with the known last discontinuation of a console in that generation. For example, the third generation is considered to end in 2003 with the formal discontinuation of the Nintendo Entertainment System that year. </span><mark>This can create years with overlaps between multiple generations, as shown.</mark><span> This approach uses the concepts of &quot;bits&quot; , or the size of individual word length handled by the processors on the console, for the earlier console generations. Longer word lengths generally led to improved gameplay concepts, graphics, and audio capabilities than shorter ones. [ 39 ] The use of bits to market consoles to consumers started with the TurboGraf</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_game_consoles" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_game_consoles</a></p><p>冻结文件: <a href="sources/a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330" target="_blank">sources/a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330</a></p><p>内容 SHA-256: <code>a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;generic_market_history_not_fixed_performance_multiplier_or_obsolescence_date&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The captured history page describes console generations as technology-cycle labels commonly separated by about five years while allowing viable long tails and overlapping generations, and says no exact delineation is consistently developed; this is not a fixed performance multiplier or an obsolescence date for an exact console.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_decade_ps4_owner_scope"><header><h3>prop_decade_ps4_owner_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an incredible decade-long run of games followed by a dying-console framing and personal backward-compatibility beliefs&quot;,
+  &quot;predicate&quot;: &quot;reports_a_decade_of_use_and_personal_library_concerns&quot;,
+  &quot;subject&quot;: &quot;one community author with an unspecified PS4&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_decade_ps4_owner_scope_1</code> | bytes [0, 74) | <code>3286ed630461272379ed565e4257ef54e276863f3a37ce71c473d35b41a38b62</code></div><pre class="context"><span></span><mark>Can you help me decide on a console? My PS4 is dying. Xbox Series X vs PS5</mark><span>
+
+Long story short, I have had my PS4 for a decade and it was an incredible run of phenomenal games. I played all the exclusives and enjoyed most of them, but I am now torn on which one to get. Xbox has backwards compatibility which is really important to me since I loved my 360 and still have a lot of older games. I am not interested in PSVR at all, but I k</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_decade_ps4_owner_scope_2</code> | bytes [76, 174) | <code>235bfbccef20f32e602998ae48762d4b020810e5d7ae0ba2e13d5d6cb1584b35</code></div><pre class="context"><span>Can you help me decide on a console? My PS4 is dying. Xbox Series X vs PS5
+
+</span><mark>Long story short, I have had my PS4 for a decade and it was an incredible run of phenomenal games.</mark><span> I played all the exclusives and enjoyed most of them, but I am now torn on which one to get. Xbox has backwards compatibility which is really important to me since I loved my 360 and still have a lot of older games. I am not interested in PSVR at all, but I know playstation will have some incredible exclusives down the line. I have no online friends since I</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_decade_ps4_owner_scope_3</code> | bytes [268, 390) | <code>e14606c05a0f945b9ab822d55b33b9131577aba494d012b6be420379505d7dce</code></div><pre class="context"><span>Can you help me decide on a console? My PS4 is dying. Xbox Series X vs PS5
+
+Long story short, I have had my PS4 for a decade and it was an incredible run of phenomenal games. I played all the exclusives and enjoyed most of them, but I am now torn on which one to get. </span><mark>Xbox has backwards compatibility which is really important to me since I loved my 360 and still have a lot of older games.</mark><span> I am not interested in PSVR at all, but I know playstation will have some incredible exclusives down the line. I have no online friends since I turned 32 today and no one I know games anymore. Which one do you suggest? If the PS5 had backwards compatibility it would be a no brainer but unfortunately it doesn’t have that. Thanks 12
+
+The Xbox backwards comp</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_decade_ps4_owner_scope_4</code> | bytes [584, 715) | <code>1e4c8398fb42edc789ca4c103569e0273482c83d09f2fa5bfae87799f74c33bb</code></div><pre class="context"><span>hem, but I am now torn on which one to get. Xbox has backwards compatibility which is really important to me since I loved my 360 and still have a lot of older games. I am not interested in PSVR at all, but I know playstation will have some incredible exclusives down the line. I have no online friends since I turned 32 today and no one I know games anymore. </span><mark>Which one do you suggest? If the PS5 had backwards compatibility it would be a no brainer but unfortunately it doesn’t have that.</mark><span> Thanks 12
+
+The Xbox backwards compatibility is misleading. Make sure you look up the list of games that are backwards compatible to see if the ones you want to play are included. It&#x27;s only a portion of the library but people make it sound like you can pop any Xbox or Xbox 360 disc in and it will work. This is not true. It only plays about 60 original xbox g</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/consoles/81981/can-you-help-me-decide-on-a-console-my-ps4-is-dying-xbox" target="_blank" rel="noreferrer">http://localhost:9999/f/consoles/81981/can-you-help-me-decide-on-a-console-my-ps4-is-dying-xbox</a></p><p>冻结文件: <a href="sources/8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea" target="_blank">sources/8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea</a></p><p>内容 SHA-256: <code>8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_person_unnamed_revision_not_failure_rate_current_policy_or_teen_outcome&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One community author frames an unspecified PS4 as dying after a decade, calls the run of games incredible, and gives personal backward-compatibility beliefs; one unnamed revision and one person do not establish a failure rate, current compatibility policy, or an outcome for the frozen offer or a teenager.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_next_gen_killer_app_opinion_scope"><header><h3>prop_next_gen_killer_app_opinion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;that every killer app for PS5 was also still coming to PS4 and the same applied to Xbox&quot;,
+  &quot;predicate&quot;: &quot;states_a_broad_cross_generation_game_opinion&quot;,
+  &quot;subject&quot;: &quot;one next-generation console commenter&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_next_gen_killer_app_opinion_scope_1</code> | bytes [41, 194) | <code>61810eb1bd508b4918ad4022fc32c41662146407d53d7b8b08b5609f3e1c7dd5</code></div><pre class="context"><span>why is anyone buying next Gen consoles?
+
+</span><mark>Honestly, no fanboy shit Every &#x27;killer app&#x27; for ps5 is also still coming out on ps4 Same goes with xbox And yet people are still dying for the consoles 2</mark><span></span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/gaming/40385/why-is-anyone-buying-next-gen-consoles" target="_blank" rel="noreferrer">http://localhost:9999/f/gaming/40385/why-is-anyone-buying-next-gen-consoles</a></p><p>冻结文件: <a href="sources/572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a" target="_blank">sources/572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a</a></p><p>内容 SHA-256: <code>572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;individual_broad_opinion_not_complete_dated_catalog_per_game_result_or_current_policy&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One author broadly says that every killer app for PS5 was also still coming to PS4 and makes the same claim about Xbox; this individual opinion is not a complete dated game catalog, per-game comparison, current ecosystem policy, or population result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_playstation_spec_table_scope"><header><h3>prop_playstation_spec_table_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;PlayStation 4 Pro and PlayStation 5 family columns with different storage bandwidth, CPU clock, GPU core and clock, ray-tracing, and memory fields&quot;,
+  &quot;predicate&quot;: &quot;separates_models_and_hardware_fields&quot;,
+  &quot;subject&quot;: &quot;frozen flattened PlayStation console comparison table&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_playstation_spec_table_scope_1</code> | bytes [18, 138) | <code>0c8bbadb8b48d6b1ce15c13a715672ddfb7cc5a3d60c8bd7b2d03efd62e9efa7</code></div><pre class="context"><span>2013âpresent </span><mark>Model PlayStation 4 PlayStation 4 Slim PlayStation 4 Pro PlayStation Classic PlayStation 5 PlayStation 5 Digital Edition</mark><span> Image Key dates First released November 2013 September 2016 November 2016 December 2018 November 2020 Discontinued September 2016 In production January 2021 In production Dimensions (WxHxD) 275 mm Ã 53 mm Ã 305 mm (10.8 in Ã 2.1 in Ã 12.0 in) 265 mm Ã 39 mm Ã 288 mm (10.4 in Ã 1.5 in Ã 11.3 in) 295 mm Ã 55 m</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_playstation_spec_table_scope_2</code> | bytes [946, 1315) | <code>d2a52d092875a88a110cd6fbd777fc17e78048696a7d99728d874ded94486d88</code></div><pre class="context"><span>mm (5.9 in Ã 1.3 in Ã 4.1 in) 390 mm Ã 104 mm Ã 260 mm (15.4 in Ã 4.1 in Ã 10.2 in) 390 mm Ã 92 mm Ã 260 mm (15.4 in Ã 3.6 in Ã 10.2 in) Weight 2.5â2.8 kg (5.5â6.2 lb) 2.1 kg (4.6 lb) 3.3 kg (7.3 lb) 170 g (6.0 oz) 3.9â4.5 kg (8.6â9.9 lb) 3.4â3.9 kg (7.5â8.6 lb) </span><mark>Storage Capacity 500 GB or 1 TB 1 TB 1 TB or 2 TB 16 GB 825 GB Type HDD eMMC Flash SSD Bandwidth 50-100 MB /s 132 MB/s 5.5 GB/s Optical drive Yes No Yes No CPU Cores 8 4 8 Threads 8 4 16 Clock speed 1.6 GHz 2.1 GHz 1.5 GHz 3.5 GHz GPU Cores 18 36 2 36 Threads ? ? ? Clock speed 800 MHz 911 MHz 660 MHz 2.23 GHz Ray tracing No Yes Memory 8 GB GDDR5 1 GB DDR3 16 GB GDDR6</mark><span> Ports 1x AUX 2x Front USB 3.0 1x HDMI 2.0a 1x AUX 2x USB 3.1 1x HDMI 2.0a 1x AUX 3x USB 3.1 1x HDMI 2.0b 1x HDMI 1x Front USB 2.0 1x Front USB-C 2x Back USB 3.1 1x HDMI 2.1 Power supply 165 W 310 W 5 W 350 W 340 W Network Ethernet Gigabit Ethernet No Gigabit Ethernet Wi-Fi 4 (802.11n) 5 (802.11ac) No 6 (802.11ax) Bluetooth 2.1 4.0 No 5.1 Storage expansion U</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Comparison_of_PlayStation_consoles" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Comparison_of_PlayStation_consoles</a></p><p>冻结文件: <a href="sources/1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42" target="_blank">sources/1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42</a></p><p>内容 SHA-256: <code>1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;hardware_table_not_per_game_frame_rate_quality_loading_scalar_jump_or_current_offer&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen flattened comparison table names PlayStation 4 Pro, PlayStation 5, and PlayStation 5 Digital Edition and presents model-column hardware fields for storage type and bandwidth, CPU clock, GPU core and clock values, ray tracing, and memory; it is not a per-game frame-rate, image-quality, loading-time, scalar-generation-jump, or current-offer measurement.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ps4_controller_listing_snapshot"><header><h3>prop_ps4_controller_listing_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a seller-titled wireless controller for PlayStation 4, Slim, and Pro in black and white at 29.99 dollars with an 80-percent-of-100 aggregate over three reviews&quot;,
+  &quot;predicate&quot;: &quot;makes_seller_compatibility_and_offer_claim&quot;,
+  &quot;subject&quot;: &quot;frozen PS4-compatible controller listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ps4_controller_listing_snapshot_1</code> | bytes [0, 132) | <code>3eaf9694dadb0eb6cd1535a23d6bfed46cc9c6ebcc4d0750e14a2fdcdf866ece</code></div><pre class="context"><span></span><mark>PS4 Controller Dualshock 4 Wireless Controller for Gaming Controller Compatible with PlayStation 4/Slim/Pro Console（Black+White）</mark><span>
+
+In stock SKU B09KLJ6ZLH Rating: 80 % of 100 3 Reviews Add Your Review $29.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Younux is a professional game controller manufacturer and provides all customers with products of high quality. Our vision is to satisfy every customer. The Controller is specially designed for PlayStatio</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps4_controller_listing_snapshot_2</code> | bytes [134, 258) | <code>247743821f9577446bb0693fcf5da6b34cf5fcfee97cfd79fe67f94b95847487</code></div><pre class="context"><span>PS4 Controller Dualshock 4 Wireless Controller for Gaming Controller Compatible with PlayStation 4/Slim/Pro Console（Black+White）
+
+</span><mark>In stock SKU B09KLJ6ZLH Rating: 80 % of 100 3 Reviews Add Your Review $29.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Description Younux is a professional game controller manufacturer and provides all customers with products of high quality. Our vision is to satisfy every customer. The Controller is specially designed for PlayStation 4 console, allows for the most customizable gaming experience for your PlayStation 4 console. Controller was designed with a</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps4_controller_listing_snapshot_3</code> | bytes [288, 399) | <code>a158a70ffcba47d1d6918d8102c3e3c09c2256f744269abad2ef2448774ad062</code></div><pre class="context"><span>PS4 Controller Dualshock 4 Wireless Controller for Gaming Controller Compatible with PlayStation 4/Slim/Pro Console（Black+White）
+
+In stock SKU B09KLJ6ZLH Rating: 80 % of 100 3 Reviews Add Your Review $29.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description </span><mark>Younux is a professional game controller manufacturer and provides all customers with products of high quality.</mark><span> Our vision is to satisfy every customer. The Controller is specially designed for PlayStation 4 console, allows for the most customizable gaming experience for your PlayStation 4 console. Controller was designed with a rubbermaterial for a better grip for gamers. Revolutionary features like the new multi-touch and clickable touch pad, integrated light bar, </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/ps4-controller-dualshock-4-wireless-controller-for-gaming-controller-compatible-with-playstation-4-slim-pro-console-black-white.html" target="_blank" rel="noreferrer">http://localhost:7770/ps4-controller-dualshock-4-wireless-controller-for-gaming-controller-compatible-with-playstation-4-slim-pro-console-black-white.html</a></p><p>冻结文件: <a href="sources/225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64" target="_blank">sources/225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64</a></p><p>内容 SHA-256: <code>225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_claim_not_sony_oem_independent_compatibility_durability_or_ps5_support&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen controller page has a seller title claiming wireless-controller compatibility with PlayStation 4, Slim, and Pro in black and white, names Younux in its description, and shows SKU B09KLJ6ZLH at 29.99 dollars with an 80-percent-of-100 aggregate over three reviews; it does not prove Sony OEM identity, independent compatibility, durability, or PlayStation 5 support.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ps4_pro_bundle_listing_snapshot"><header><h3>prop_ps4_pro_bundle_listing_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a title marked discontinued while the body says in stock with SKU B07HHWJMGF, a 62-percent-of-100 aggregate over twelve reviews, and a 44.96-dollar price&quot;,
+  &quot;predicate&quot;: &quot;shows_internally_unresolved_offer_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen PS4 Pro Red Dead Redemption 2 bundle listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ps4_pro_bundle_listing_snapshot_1</code> | bytes [0, 75) | <code>913f9b1b957f0fd6bb28a10bee820f67db3c7ffe93283d7084c2fecc731093df</code></div><pre class="context"><span></span><mark>PlayStation 4 Pro 1TB Console - Red Dead Redemption 2 Bundle [Discontinued]</mark><span>
+
+In stock SKU B07HHWJMGF Rating: 62 % of 100 12 Reviews Add Your Review $44.96 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer 0:00 0:00 This video is not intended for all audiences. What date were you born? January February March April May June July August September October November December 1 2 3 4 5 6 7 8 9 10 11 12 13 14 1</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ps4_pro_bundle_listing_snapshot_2</code> | bytes [77, 202) | <code>02fa028617eb4758d67eb3d78643355d671379d999947239716b7295f30fa91d</code></div><pre class="context"><span>PlayStation 4 Pro 1TB Console - Red Dead Redemption 2 Bundle [Discontinued]
+
+</span><mark>In stock SKU B07HHWJMGF Rating: 62 % of 100 12 Reviews Add Your Review $44.96 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the manufacturer 0:00 0:00 This video is not intended for all audiences. What date were you born? January February March April May June July August September October November December 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 2023 2022 2021 2020 2019 2018 2017 2016 2015 2014 2013 2012 2011 2010 2009 20</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/playstation-4-pro-1tb-console-red-dead-redemption-2-bundle-discontinued.html" target="_blank" rel="noreferrer">http://localhost:7770/playstation-4-pro-1tb-console-red-dead-redemption-2-bundle-discontinued.html</a></p><p>冻结文件: <a href="sources/e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1" target="_blank">sources/e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1</a></p><p>内容 SHA-256: <code>e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;anomalous_seller_snapshot_not_condition_contents_authenticity_return_terms_or_market_value&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen PS4 Pro listing title identifies a 1 TB Red Dead Redemption 2 bundle and says Discontinued while its offer line says In stock, SKU B07HHWJMGF, Rating: 62 % of 100, 12 Reviews, and 44.96 dollars; this unresolved seller snapshot does not establish condition, contents, authenticity, warranty, return terms, or normal market value.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_psn_service_snapshot_scope"><header><h3>prop_psn_service_snapshot_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;store and subscription functions, tier catalog counts, and an example of a collection being removed&quot;,
+  &quot;predicate&quot;: &quot;records_a_historical_service_and_catalog_snapshot&quot;,
+  &quot;subject&quot;: &quot;frozen PlayStation Network and PlayStation Plus page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_psn_service_snapshot_scope_1</code> | bytes [1125, 1474) | <code>68f87928e85a7c65b71f2b1778e2e47859202b7739616f8b3d21c918cc839311</code></div><pre class="context"><span>tainment . Launched in November 2006, PSN was originally conceived for the PlayStation video game consoles, but soon extended to encompass smartphones, tablets, Blu-ray players and high-definition televisions. It succeeded Sony Entertainment Network in 2015 and this service is the account for PlayStation consoles, accounts can store games and other content. </span><mark>PlayStation Network&#x27;s services are dedicated to an online marketplace ( PlayStation Store ), a premium subscription service for enhanced gaming and social features ( PlayStation Plus ), music streaming (PlayStation Music, based on Spotify ), and formerly a cloud gaming service ( PlayStation Now ; folded into PlayStation Plus Premium in June 2022).</mark><span> The service is available in 73 countries and territories. [ 2 ] History Launched in the year 2000, Sony&#x27;s second home console, the PlayStation 2 , had rudimentary online features in select games via its online networks . It required a network adaptor , which was available as an add-on for original models and integrated into the hardware on slimline models. </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_psn_service_snapshot_scope_2</code> | bytes [16156, 16453) | <code>b085da3acf5c26e76a09967c69d3ea204ee8c9d31eeae558b4b47361dd1aacb9</code></div><pre class="context"><span>service with a three-tier subscription model was officially confirmed by Sony in March 2022 as launching in June 2022; the new service launched first in Asian territories excluding Japan on May 23, 2022, in Japan on June 1, 2022, in North America on June 13, 2022, and in Europe on June 22, 2022. [ 51 ] The existing service became PlayStation Plus Essential, </span><mark>PlayStation Plus Extra additionally gives the user access up to 400 PS4 and PS5 games as downloadable titles, and PlayStation Plus Premium further adds access to up to 340 games from the PlayStation, PS2, PS3, and PSP, streaming of all games mentioned above, and download of all but the PS3 games.</mark><span> For markets without cloud streaming, Sony offers an alternate version of Premium called PlayStation Plus Deluxe that includes the benefits of Premium at a discounted rate without cloud streaming or PS3 games. [ 52 ] PlayStation Store Main article: PlayStation Store The PlayStation Store is a digital media shop that offers a range of downloadable content bot</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_psn_service_snapshot_scope_3</code> | bytes [14448, 14488) | <code>8b66b4da42bf056ed26987ce95fbce747fbc44147738bec727dbe1783d9cf1ec</code></div><pre class="context"><span>s capacity of accessible games from two to three for its 10th anniversary. [ 45 ] PlayStation Plus Collection In September 2020, Sony announced during its next-generation showcase that PlayStation Plus members who purchase a PlayStation 5 would also get access to a collection of &quot;games that defined the generation&quot; games from the PlayStation 4. [ 46 ] [ 47 ] </span><mark>In May 2023, the collection was removed.</mark><span> [ 48 ] The PlayStation Plus collection included: Batman: Arkham Knight Battlefield 1 Bloodborne Call of Duty: Black Ops III â Zombies Chronicles Edition Crash Bandicoot N. Sane Trilogy Detroit: Become Human Days Gone Fallout 4 Final Fantasy XV Royal Edition God of War Infamous Second Son The Last Guardian The Last of Us Remastered Monster Hunter: World</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Network" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Network</a></p><p>冻结文件: <a href="sources/6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4" target="_blank">sources/6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4</a></p><p>内容 SHA-256: <code>6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_history_not_current_official_pricing_catalog_online_access_or_child_account_policy&quot;,
+    &quot;topic_cluster&quot;: &quot;console_generation_value_and_ecosystem_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen PlayStation Network page records store and subscription functions, historical PlayStation Plus tier catalog counts, and an example of a collection being removed; it is not current authoritative evidence for price, catalog membership, online access, account-region rules, or child and family policy.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_console_generation_0035</td><td>case_spec</td><td><a href="sources/6f12430f4d78df3516efa6e9cfae11a403cd70403fdae12cc0adfbc9a49630f6">6f12430f4d78df3516efa6e9cfae11a403cd70403fdae12cc0adfbc9a49630f6</a></td><td><a href="http://case-spec.local/dra_v3_formal_gaming_0035" target="_blank" rel="noreferrer">来源 URL</a></td><td>9074</td></tr><tr><td>reg_magento_ps4_compatible_controller</td><td>magento</td><td><a href="sources/225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64">225b82f481f3cb552b7602c89251d07df55110904fe569ce8e99cd7a0bdf2a64</a></td><td><a href="http://localhost:7770/ps4-controller-dualshock-4-wireless-controller-for-gaming-controller-compatible-with-playstation-4-slim-pro-console-black-white.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4978</td></tr><tr><td>reg_magento_ps4_pro_rdr2_bundle</td><td>magento</td><td><a href="sources/e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1">e17882ff81fcd1a5f1aba617086ca8c39c7da49f341529af685aaa07f57134d1</a></td><td><a href="http://localhost:7770/playstation-4-pro-1tb-console-red-dead-redemption-2-bundle-discontinued.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4194</td></tr><tr><td>reg_postmill_decade_ps4_owner</td><td>postmill</td><td><a href="sources/8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea">8818e6b2d051e95f21278aef439e118fed1fff6b1266371cc3ccaf1b05db16ea</a></td><td><a href="http://localhost:9999/f/consoles/81981/can-you-help-me-decide-on-a-console-my-ps4-is-dying-xbox" target="_blank" rel="noreferrer">来源 URL</a></td><td>6669</td></tr><tr><td>reg_postmill_next_gen_killer_app_opinion</td><td>postmill</td><td><a href="sources/572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a">572ddb3d4ea30e0583700cbdb907609a89f148aac09d3dd5df02d4e095da933a</a></td><td><a href="http://localhost:9999/f/gaming/40385/why-is-anyone-buying-next-gen-consoles" target="_blank" rel="noreferrer">来源 URL</a></td><td>194</td></tr><tr><td>reg_search_backward_compatibility</td><td>search_result</td><td><a href="sources/5c811657e99b101212a29bb6b1f07b2958ee7f573fa5ebada5cfb616666d7d40">5c811657e99b101212a29bb6b1f07b2958ee7f573fa5ebada5cfb616666d7d40</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=677fd0a1-f96d-4f28-96a1-50458c67bb1f" target="_blank" rel="noreferrer">来源 URL</a></td><td>49605</td></tr><tr><td>reg_search_decade_ps4_owner</td><td>search_result</td><td><a href="sources/e1a90b7774c0a727ac5dcc1755aa87a98ed4306527711e29e54433801c8b425a">e1a90b7774c0a727ac5dcc1755aa87a98ed4306527711e29e54433801c8b425a</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=9b5af98d-7a0b-4fdf-a6bf-9911f3564bfd" target="_blank" rel="noreferrer">来源 URL</a></td><td>57619</td></tr><tr><td>reg_search_generation_history</td><td>search_result</td><td><a href="sources/8db0d4b70aa7c076d046470c18c24400c3bc274899e90a6a3df42d8781c3dd73">8db0d4b70aa7c076d046470c18c24400c3bc274899e90a6a3df42d8781c3dd73</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=0a1ac6c6-45f7-4ff1-bc4c-e92223ad81bb" target="_blank" rel="noreferrer">来源 URL</a></td><td>10505</td></tr><tr><td>reg_search_killer_app_opinion</td><td>search_result</td><td><a href="sources/bd550df2582fe1a0c47a5739e406edeea9ca19c0791d27517c8f182cb4c60a4e">bd550df2582fe1a0c47a5739e406edeea9ca19c0791d27517c8f182cb4c60a4e</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=09f99764-60ed-4e59-a0b2-370edcde4b0d" target="_blank" rel="noreferrer">来源 URL</a></td><td>60477</td></tr><tr><td>reg_search_playstation_comparison</td><td>search_result</td><td><a href="sources/82c894f1aaedf9159619c159a97c14f1d9a3b589b6edd240bd3b5eef8726c1d4">82c894f1aaedf9159619c159a97c14f1d9a3b589b6edd240bd3b5eef8726c1d4</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=77ee4f38-d849-4dd0-a3b1-d2eb0ce216f4" target="_blank" rel="noreferrer">来源 URL</a></td><td>5220</td></tr><tr><td>reg_search_ps4_controller</td><td>search_result</td><td><a href="sources/920d191dcfb2ab56aac2153cb2d8d4e44ea4d1fc0fb8bfba93b7483494cb80d4">920d191dcfb2ab56aac2153cb2d8d4e44ea4d1fc0fb8bfba93b7483494cb80d4</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=c744c493-5abb-456e-9752-c1d7e30a4d8a" target="_blank" rel="noreferrer">来源 URL</a></td><td>7951</td></tr><tr><td>reg_search_ps4_pro_bundle</td><td>search_result</td><td><a href="sources/5a95252c3a959e2de0cba54f03fb02ae9ff93fd760e0fc7bcfd89cfa25d73a1d">5a95252c3a959e2de0cba54f03fb02ae9ff93fd760e0fc7bcfd89cfa25d73a1d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=a99ede05-2829-4e57-b0c9-86d3fc7d4543" target="_blank" rel="noreferrer">来源 URL</a></td><td>5499</td></tr><tr><td>reg_search_psn_service</td><td>search_result</td><td><a href="sources/541320bd8547eba99d0bab5f4bae9a7d1d999c36c9fc4c074f5abb42a37aa8ca">541320bd8547eba99d0bab5f4bae9a7d1d999c36c9fc4c074f5abb42a37aa8ca</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-gaming-0035-console-generation-value-boundary-20260716-r1&amp;request_id=4f7e7caf-ea21-4d60-a452-09a03552dbdd" target="_blank" rel="noreferrer">来源 URL</a></td><td>6282</td></tr><tr><td>reg_wiki_backward_compatibility</td><td>wikipedia</td><td><a href="sources/bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d">bf1d8f70b19158229ba7deac4c0065417f0b557c0b2e037be5c5250f61700f4d</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Backward_compatibility" target="_blank" rel="noreferrer">来源 URL</a></td><td>13520</td></tr><tr><td>reg_wiki_console_generation_history</td><td>wikipedia</td><td><a href="sources/a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330">a8bee381753f9e3ff2218d1bfc723e8f10813d766150449c14b0b9221b2d6330</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/History_of_video_game_consoles" target="_blank" rel="noreferrer">来源 URL</a></td><td>20220</td></tr><tr><td>reg_wiki_playstation_console_comparison</td><td>wikipedia</td><td><a href="sources/1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42">1100b7ef68b7f7e210072588f9a0e7b1f363ba2f40054ffd5b3af4fca8f58a42</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Comparison_of_PlayStation_consoles" target="_blank" rel="noreferrer">来源 URL</a></td><td>8839</td></tr><tr><td>reg_wiki_playstation_network_service</td><td>wikipedia</td><td><a href="sources/6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4">6c344347e8563f735a3d759a609666e454bd0e63ae58dd67d4e38f2cad2cb6d4</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/PlayStation_Network" target="_blank" rel="noreferrer">来源 URL</a></td><td>20035</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-gaming-0035-console-generation-value-boundary-20260716-r1";
+const graphHash = "cbe05d451bbcf3d08488ceba0032b11272a48498638c78cace8ea6588ce65849";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

@@ -1,0 +1,276 @@
+{
+  "schema_version": "query_rubric_v1",
+  "scoring_semantics": "grounded_requirements_v1",
+  "task_id": "dr_cross_deep_0005",
+  "task_version": 2,
+  "query": "Shopping for a portable speaker for our balcony and every listing screams the same stuff: 40 watts, 360-degree sound, IPX7 waterproof, deep bass from a passive radiator, hi-res audio over Bluetooth. I got burned before by a speaker that distorted the moment I turned it up, so I flat out don't trust the boxes anymore. Which of these claims mean something physically real in a speaker this size, and which are marketing? And do owners who actually took theirs to the pool or beach back any of it up? Point me at a speaker whose claims actually hold.",
+  "query_sha256": "7260d01fb230cb2ba7a1cd862723fc269b44ae1ddcbdd8fa2c5f0f80b495c9b7",
+  "cluster": "",
+  "archetype": "",
+  "status": "draft",
+  "atoms": [
+    {
+      "atom_id": "R1_speaker_claims",
+      "atom_type": "dimension",
+      "description": "Evaluate the physical meaning and marketing limits of the listed portable-speaker claims, including high-volume distortion.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "40 watts",
+            "40W",
+            "watt"
+          ],
+          [
+            "360",
+            "360-degree"
+          ],
+          [
+            "IPX7",
+            "waterproof"
+          ],
+          [
+            "passive radiator",
+            "bass"
+          ],
+          [
+            "hi-res",
+            "Bluetooth"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "physical",
+            "real",
+            "meaningful",
+            "marketing"
+          ],
+          [
+            "watt",
+            "360",
+            "IPX7",
+            "passive radiator",
+            "hi-res"
+          ],
+          [
+            "distortion",
+            "distort",
+            "volume"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "speaker",
+              "portable speaker"
+            ],
+            [
+              "watt",
+              "360",
+              "IPX7",
+              "passive radiator",
+              "hi-res",
+              "distortion"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: Which of these claims mean something physically real ... which are marketing?; distorted when turned up. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R2_pool_beach_owners",
+      "atom_type": "source_role",
+      "description": "Assess whether owners who used speakers at pools or beaches corroborate the claims.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "owner",
+            "owners",
+            "user",
+            "users"
+          ],
+          [
+            "pool",
+            "beach"
+          ],
+          [
+            "claim",
+            "waterproof",
+            "bass",
+            "performance"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "owner",
+            "owners",
+            "user",
+            "users"
+          ],
+          [
+            "pool",
+            "beach"
+          ],
+          [
+            "confirm",
+            "support",
+            "hold up",
+            "failed",
+            "experience"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [
+          "forums"
+        ],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "pool",
+              "beach",
+              "water"
+            ],
+            [
+              "owner",
+              "user",
+              "experience"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: do owners who actually took theirs to the pool or beach back any of it up?. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R3_speaker_recommendation",
+      "atom_type": "synthesis",
+      "description": "Recommend a portable speaker whose relevant claims hold in practice.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "recommend",
+            "pick",
+            "buy",
+            "choice"
+          ],
+          [
+            "speaker"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "recommend",
+            "pick",
+            "buy",
+            "choice"
+          ],
+          [
+            "speaker"
+          ],
+          [
+            "claim",
+            "performance",
+            "holds",
+            "reliable"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "speaker"
+            ],
+            [
+              "performance",
+              "waterproof",
+              "distortion",
+              "bass"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: Point me at a speaker whose claims actually hold. Evidence answerability not assessed."
+    }
+  ],
+  "authoring": {
+    "source": "public_query_only",
+    "generator": "human_interviewed_unresolved_plus_ai_compilation",
+    "reviewers": [],
+    "notes": "Necessary but not sufficient breadth obligations; no unique route or URL is required.",
+    "annotation_mode": "human_interviewed_unresolved_plus_ai_compilation",
+    "annotator_id": "刘弈博",
+    "evidence_answerability": "not_assessed",
+    "formal_calibration_eligible": false
+  },
+  "rubric_sha256": "e85bb1d37a884d2799604f5a550f441070222c0774f9bac9d4a22f461e6d822a"
+}

@@ -15,16 +15,20 @@ def test_previous_report_and_meta_are_archived_not_reused(tmp_path):
     report = tmp_path / "a__t.md"
     meta = tmp_path / "a__t.meta.json"
     provenance = report.with_suffix(".provenance.json")
+    storm_map = report.with_suffix(".storm-url-to-info.json")
     report.write_text("old weak but real")
     meta.write_text(json.dumps({"attempts": 3, "status": "pass"}))
     provenance.write_text("{}")
+    storm_map.write_text('{"url_to_unified_index": {}}')
 
     attempts, archive = rdt._archive_previous_outputs(report, meta)
     assert attempts == 3 and archive
     assert not report.exists() and not meta.exists() and not provenance.exists()
+    assert not storm_map.exists()
     archived = Path(archive)
     assert (archived / report.name).read_text() == "old weak but real"
     assert (archived / meta.name).is_file()
+    assert (archived / storm_map.name).is_file()
 
 
 def test_model_probe_uses_the_real_lane_door(monkeypatch):

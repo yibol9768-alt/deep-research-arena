@@ -1,0 +1,516 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_mechanical_keyboards_0025",
+  "cluster_id": "mechanical_keyboards",
+  "difficulty": {
+    "proof_depth": 3,
+    "branching_factor": 3,
+    "distractor_density": 0.3,
+    "contradiction_count": 1
+  },
+  "rule_definitions": {
+    "chatter_diagnosis_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Contact bounce, also called chatter, is a general mechanical-contact phenomenon in which springy contacts can bounce after striking and create rapidly pulsed current that fast logic may misread as a data stream. Filtering, repeated sampling for a steady state, latches, and Schmitt triggers are general debouncing methods. This makes duplicate electrical inputs physically plausible, but it does not diagnose the RK71 or turn an Fn-layer Escape behavior or a software-detection failure into switch chatter. First separate layout behavior, wireless versus wired connection, software recognition, whole-board failure, and repeatable key-specific duplicate events. The evidence does not establish that this model is hot-swappable, user-repairable, or suffering a switch fault."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "rk71_offer_and_claim_audit_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The exact RK71 seller page displays SKU B07VVVC143, a price of $49.99, and a 75-percent aggregate score across 12 reviews. It advertises Bluetooth and detachable-USB wired modes, connection to as many as five devices, an Fn-plus-Space five-second factory reset, and a compact 71-key layout without a numpad. The page first uses the heading RGB Backlight but later explicitly says there is no multicolored RGB and only single-LED backlighting with 17 dynamic modes, so the narrower explicit description should control and the wording conflict should be flagged. The price, score, review count, and seller durability or comfort language are marketplace observations rather than a longitudinal failure rate or independent work-use test."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "rk71_same_model_use_reports_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "One same-model hobbyist reports using the RK71 as a cheap wireless projector keyboard but would not recommend it because Escape requires Fn, defaults to tilde, and cannot be reprogrammed; another participant suggests AutoHotkey as a workaround. A second RK71 thread reports difficult software connection and includes a buyer two days into ownership who could not connect the software even in wired mode and saw two device PIDs. Support or replacement is suggested, but no confirmed diagnosis or outcome is recorded. These reports identify concrete layout and software-detection risks to test, not population prevalence, months-later chatter, switch death, lifespan, or warranty performance."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "rk71_writer_purchase_protocol_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Before keeping an RK71 for full-time writing or coding, verify the exact variant, current seller, return deadline, and warranty rather than assuming them from the observed page. Decide whether a 71-key board without a numpad, Fn-dependent Escape behavior, and single-color rather than multicolored backlighting are acceptable. During the return window, test every key and shortcut in a key-event viewer, Escape and tilde in the actual editor and terminal, software recognition in wired mode, Bluetooth switching on each intended device, wake and reconnect behavior, and a sustained typing sample. Record the state before using the documented Fn-plus-Space reset and repeat the tests afterward. Reproduce duplicate-key symptoms across applications, devices, and wired or wireless modes before treating contact bounce as a candidate. An unresolved software-detection, connection, or repeat-input problem should trigger support or return rather than an unsupported repair claim. Keep the board only if it passes the predeclared work-critical checks and the residual durability uncertainty is acceptable."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_rk71_reliability_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The evidence supports neither a declaration that the RK71 is proven reliable for years nor a declaration that it commonly chatters or dies after months. The seller page supplies an exact low-cost offer and aggregate score but no longitudinal failure denominator. The same-model threads expose an Escape-layer limitation and an unresolved two-day software-detection problem, not months-later duplicate inputs. The switch reference explains a possible general mechanism but cannot diagnose this model. Treat the RK71 as a conditional, returnable trial if its compact layout and single-color lighting fit the buyer and the unit passes predeclared work-use checks; otherwise defer or choose another board. Report the result as this unit's bounded outcome, not a model-wide failure rate."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "treat_the_rk71_as_a_conditional_trial_with_model_specific_checks": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Treat the RK71 as a conditional return-window trial, not a proven long-term reliability bet: keep this unit only if its exact layout and lighting fit the writer and it passes the model-specific work-use checks, otherwise return or defer.",
+            "A bounded trial with a predeclared return protocol is admissible; automatic purchase from the aggregate score, model-wide rejection from two threads, and a chatter diagnosis from a general mechanism are not."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "treat_the_rk71_as_a_conditional_trial_with_model_specific_checks",
+          "when": "the_exact_offer_and_same_model_risks_are_known_but_long_term_model_reliability_and_repairability_are_not_established",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The observed offer and same-model reports support concrete pre-keep checks, while the evidence does not establish a longitudinal RK71 failure rate, months-later chatter prevalence, lifespan, repairability, or warranty quality."
+            ],
+            "normalizers": [
+              "casefold",
+              "whitespace",
+              "punctuation",
+              "hyphen"
+            ]
+          },
+          "tradeoff_matchers": {
+            "aggregate_score_does_not_establish_long_term_reliability": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "A 75-percent seller-page aggregate across 12 reviews is not a months-later failure denominator or proof of long-term reliability."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "same_model_reports_are_specific_not_prevalence": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The two RK71 threads identify an Fn-Escape layout limitation and an unresolved early software-detection problem, but two experiences do not establish model-wide prevalence or months-later switch failure."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "general_chatter_mechanism_is_not_model_diagnosis": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Contact bounce explains how duplicate electrical inputs can occur in general, but it does not diagnose either reported RK71 problem or establish this model's repairability."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "layout_and_returnability_gate_the_trial": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The trial is sensible only if the compact Fn-dependent layout is acceptable, return terms are verified, and this unit passes the predeclared wired, wireless, software, shortcut, reset, and sustained-typing checks."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_aggregate_score_proves_long_term_reliability",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The 75-percent score across 12 seller reviews proves that the RK71 will remain reliable for years."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_listing_guarantees_multicolor_rgb",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The RK71 listing unambiguously guarantees multicolored RGB lighting."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_two_threads_prove_common_failure",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Two hobbyist threads prove that RK71 keyboards commonly fail or chatter after several months."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_software_detection_proves_switch_chatter",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A two-day software-detection problem, even in wired mode, proves mechanical switch chatter."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_general_bounce_reference_diagnoses_rk71",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A general explanation of contact bounce diagnoses the reported RK71 layout and software problems as switch faults."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_rk71_is_proven_hot_swappable_or_repairable",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The evidence proves that this RK71 is hot-swappable and that the buyer can repair a failed switch."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_frozen_page_supplies_current_return_and_warranty_terms",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The observed product page is enough to assume the buyer's current seller, return deadline, and warranty terms."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_buy_or_reject_without_unit_testing",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Buy or reject the RK71 solely from the seller score or two forum reports without verifying layout fit, returnability, and the individual unit."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Audit the exact RK71 offer, operating modes, reset procedure, layout, and conflicting backlight language while separating seller observations from long-term reliability evidence.",
+      "critical": true,
+      "requires": [
+        "E4",
+        "E5",
+        "E6",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Reconstruct the two same-model hobbyist reports and determine which concrete layout and software risks they support without converting anecdotes into prevalence or a months-later failure claim.",
+      "critical": true,
+      "requires": [
+        "E3",
+        "E7",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Explain contact bounce and debouncing, then test whether that general mechanism can diagnose the RK71 observations after separating layout, connection, software-recognition, and repeat-input failure modes.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E5",
+        "E7",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Turn the offer audit, same-model risks, and diagnostic boundary into a reproducible return-window protocol for a full-time writer or coder.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E3",
+        "E4",
+        "E5",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Make the evidence-bounded purchase decision and state which long-term reliability, prevalence, repairability, return, and warranty conclusions remain unsupported.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Verify the exact RK71 offer, wired and wireless modes, reset procedure, compact layout, and backlight wording, and distinguish seller-page observations from evidence of long-term reliability.",
+      "slot_ids": [
+        "E4",
+        "E5",
+        "E6",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Compare both same-model owner threads, preserve their exact scope and unresolved outcomes, and identify practical layout and software-detection risks without treating the reports as population prevalence.",
+      "slot_ids": [
+        "E3",
+        "E7",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Explain contact bounce and debouncing, distinguish a general mechanism from a model diagnosis, and separate layout, wired or wireless connection, software recognition, and repeat-input failure modes.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E5",
+        "E7",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Give an operational return-window test protocol covering exact variant and terms, layout fit, key events, Escape and tilde, software recognition, Bluetooth switching, wake and reconnect, reset, sustained typing, symptom reproduction, escalation, and the keep-or-return threshold.",
+      "slot_ids": [
+        "E1",
+        "E3",
+        "E4",
+        "E5",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Conclude whether the RK71 is a sensible purchase for this writer or coder, state the conditional decision rule, and identify why the evidence cannot establish months-later failure frequency, lifespan, repairability, warranty quality, or a model-wide verdict.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "treat_the_rk71_as_a_conditional_trial_with_model_specific_checks",
+      "when": "the_exact_offer_and_same_model_risks_are_known_but_long_term_model_reliability_and_repairability_are_not_established",
+      "required_tradeoffs": [
+        "aggregate_score_does_not_establish_long_term_reliability",
+        "same_model_reports_are_specific_not_prevalence",
+        "general_chatter_mechanism_is_not_model_diagnosis",
+        "layout_and_returnability_gate_the_trial"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 25,
+    "minimum_required_evidence_nodes": 7,
+    "minimum_reasoning_depth": 3
+  }
+}

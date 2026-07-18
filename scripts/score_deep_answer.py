@@ -20,6 +20,8 @@ import os
 import re
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,9 +34,6 @@ from src.verifiers.claim_nli_verifier import ClaimNLIVerifier  # noqa: E402
 from src.verifiers.judge_client import call_judge, judge_identity     # noqa: E402
 
 
-_MD_LINK_RE = re.compile(r"\[[^\]]*\]\([^)]+\)")
-
-
 def _word_count(md: str) -> int:
     text = re.sub(r"\[([^\]]*)\]\([^)]+\)", r"\1", md)
     text = re.sub(r"`[^`]*`", " ", text)
@@ -43,16 +42,36 @@ def _word_count(md: str) -> int:
 
 
 def _citation_count(md: str) -> int:
-    return len(_MD_LINK_RE.findall(md))
+    # Use the same six-style parser as every grounding verifier.  Native
+    # frameworks commonly emit numbered references or bare source URLs; the
+    # old markdown-only counter marked those reports as having zero citations
+    # even while url_coverage and proof-of-fetch correctly resolved them.
+    from src.verifiers.citation_format import extract_citations
+
+    return len(extract_citations(md, sandbox_only=False))
 
 
 def _paragraph_count(md: str) -> int:
     return len([p for p in re.split(r"\n\s*\n", md) if len(p.strip()) > 30])
 
 
-def _markdown_spec_score(md: str, spec: dict) -> dict:
+def _markdown_spec_score(
+    md: str,
+    spec: dict,
+    *,
+    citation_md: str | None = None,
+) -> dict:
+    """Score body shape from the sealed report and citations from its bundle.
+
+    Most lanes deliver one Markdown file, so ``citation_md`` is normally the
+    same string as ``md``.  STORM natively delivers two files: the article has
+    inline ``[N]`` anchors and ``url_to_info.json`` contains the corresponding
+    URL table.  The scorer resolves that verified native table in memory.  Its
+    deterministic reference definitions must count as citations, but must not
+    inflate the report's word or paragraph counts.
+    """
     wc = _word_count(md)
-    cc = _citation_count(md)
+    cc = _citation_count(citation_md if citation_md is not None else md)
     pc = _paragraph_count(md)
     return {
         "word_count":      wc,
@@ -91,10 +110,350 @@ def _criterion_requires_grounding(criterion_text: str) -> bool:
     the gpt-researcher 0009 failure mode (judge says PASS on text that's
     well-written but cites 93 fabricated URLs).
     """
-    return bool(_GROUNDING_KEYWORDS_RE.search(criterion_text or ""))
+    return bool(_GROUNDING_KEYWORDS_RE.search(str(criterion_text or "")))
 
 
-def _judge_checklist(
+def _load_checklist(path: Path, task_id: str) -> list[str | dict[str, Any]]:
+    """Load both legacy ``{task_id: [...]}`` and v2 ``{task_id, items}`` files.
+
+    The v2 generator emits structured item objects.  Keep those objects intact:
+    their type and params are what make deterministic scoring possible.  The
+    old scorer both missed the top-level schema and then discarded this data,
+    reducing typed unit tests to permissive prose questions for an LLM judge.
+    """
+    try:
+        document = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+
+    raw_items: object = []
+    if isinstance(document, dict):
+        legacy = document.get(task_id)
+        if isinstance(legacy, list):
+            raw_items = legacy
+        elif document.get("task_id") == task_id and isinstance(document.get("items"), list):
+            raw_items = document["items"]
+    elif isinstance(document, list):
+        raw_items = document
+
+    result: list[str | dict[str, Any]] = []
+    for item in raw_items if isinstance(raw_items, list) else []:
+        if isinstance(item, str):
+            text = item.strip()
+            if text:
+                result.append(text)
+        elif isinstance(item, dict):
+            text = str(item.get("description") or item.get("text") or "").strip()
+            if text:
+                clean = dict(item)
+                clean["description"] = text
+                result.append(clean)
+        else:
+            text = ""
+    return result
+
+
+def _checklist_text(item: str | dict[str, Any]) -> str:
+    if isinstance(item, dict):
+        return str(item.get("description") or item.get("text") or "").strip()
+    return str(item or "").strip()
+
+
+def _structured_checklist(checklist: list[str | dict[str, Any]]) -> bool:
+    return bool(checklist) and all(
+        isinstance(item, dict) and item.get("type") and isinstance(item.get("params"), dict)
+        for item in checklist
+    )
+
+
+def _load_answer_key(task_config: dict[str, Any] | None):
+    """Load the v2 key used to derive a structured checklist, if available."""
+    if not task_config:
+        return None
+    rel = ((task_config.get("golden") or {}).get("answer_key_path")
+           or (task_config.get("url_coverage") or {}).get("golden_pool_path"))
+    if not rel:
+        return None
+    path = Path(rel)
+    if not path.is_absolute():
+        path = ROOT / path
+    try:
+        from src.eval.answer_key import AnswerKey
+        return AnswerKey.load(path)
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return None
+
+
+def _typed_item_nugget(item: dict[str, Any]):
+    """Convert checklist params to the scorer's canonical Nugget shape."""
+    from src.eval.answer_key import Nugget
+
+    p = item.get("params") or {}
+    return Nugget(
+        text=_checklist_text(item),
+        subject=str(p.get("subject") or ""),
+        predicate=str(p.get("predicate") or ""),
+        object=str(p.get("object") or ""),
+        source_url=str(p.get("source_url") or ""),
+        importance="vital",
+        relevant=True,
+    )
+
+
+def _subject_explicitly_named(visible: str, nugget: Any, tokens: list[str]) -> bool:
+    """Require a real product identity, not a collision on generic features."""
+    from src.eval import decidable_scorer as ds
+
+    if nugget.predicate == "concept_coverage":
+        return ds._subject_discussed(visible, tokens)
+    if ds._exact_subject_spans(visible, nugget.subject):
+        return True
+
+    generic_features = {
+        "active", "audio", "black", "bluetooth", "built", "canceling",
+        "cancelling", "charging", "compact", "earbuds", "earphone",
+        "earphones", "flight", "foldable", "headphone", "headphones",
+        "headset", "headsets", "hours", "microphone", "noise", "over",
+        "playtime", "silver", "smart", "sports", "true", "wireless",
+    }
+    anchors = [t for t in tokens if t not in generic_features]
+    present = [t for t in anchors if ds._word_token_pattern(t).search(visible)]
+    if not present:
+        return False
+
+    # A model token is a decisive identity (660NC, WH1000XM3, X20).  A long
+    # non-generic token is normally a brand (Harphonic, NyPots, Lenovo).  Short
+    # or ordinary names need two nearby anchors.  This keeps a report about a
+    # Sony XM5 from being scored as though it claimed facts about the gold Sony
+    # XM3 merely because both paragraphs also say "noise cancelling".
+    if any(any(c.isdigit() for c in t) for t in present):
+        return True
+    if any(len(t) >= 5 and t not in {"house", "first", "small"} for t in present):
+        return True
+    if len(present) < 2:
+        return False
+    spans = ds._token_spans(visible, present)
+    return any(abs(a - b) <= 120 for i, (a, _) in enumerate(spans)
+               for b, _ in spans[i + 1:])
+
+
+def _typed_value_state(text: str, nugget: Any, generic: set[str]) -> tuple[bool, bool, str]:
+    """Return (subject discussed, correct value present, value claim present).
+
+    This deliberately reuses the closed-world scorer's subject binding and
+    typed-value rules.  URL slugs are excluded by callers, so a citation alone
+    cannot manufacture the subject or the value.
+    """
+    from src.eval import decidable_scorer as ds
+
+    visible = ds._visible_prose(text or "")
+    tokens = ds._subject_tokens(nugget, generic)
+    if not _subject_explicitly_named(visible, nugget, tokens):
+        return False, False, ""
+
+    spans = ds._subject_value_spans(visible, nugget.subject, tokens)
+    masked = ds._mask_numbers_in_spans(
+        visible, ds._exact_subject_spans(visible, nugget.subject)
+    )
+    correct = False
+    claim_present = False
+    for start, end in spans:
+        win_end = end + ds.BIND_WINDOW
+        window = masked[max(0, start - ds.BIND_WINDOW):win_end]
+        tail = masked[win_end:win_end + 16]
+        if ds._typed_value_in_window(window, nugget, tail=tail):
+            correct = True
+
+        predicate = nugget.predicate
+        if predicate in {"buyer_sentiment", "rating"}:
+            guard = window + tail
+            for match in ds._LABEL_NUM_RE.finditer(window):
+                if ds._COUNT_NOUN_AFTER.match(guard, match.end()):
+                    continue
+                if ds._cue_near(window, match.start(), match.end(), ds._RATING_CUE):
+                    claim_present = True
+                    break
+        elif predicate == "price":
+            for match in ds._NUM_RE.finditer(window):
+                cue = window[max(0, match.start() - ds.PRICE_CUE_WINDOW):
+                             match.end() + ds.PRICE_CUE_WINDOW]
+                if "$" in cue or ds._PRICE_CUE.search(cue):
+                    claim_present = True
+                    break
+        elif predicate == "concept_coverage":
+            claim_present = True
+        else:
+            obj = ds.norm(str(nugget.object))
+            claim_present = bool(obj and obj in window)
+        if correct:
+            break
+    return True, correct, "typed value stated" if claim_present else ""
+
+
+def _inline_cited_prose(answer: str) -> dict[str, list[str]]:
+    """Map canonical in-text citation URL to visible prose on the same line."""
+    from src.eval import decidable_scorer as ds
+    from src.verifiers.citation_format import canonicalize_url, extract_citations
+
+    mapping: dict[str, list[str]] = {}
+    ref_spans = ds._reference_region_offsets(answer)
+    lines = list(ds._line_spans(answer))
+    for citation in extract_citations(answer, sandbox_only=False):
+        if (citation.style not in ds.POF_EVIDENCE_STYLES
+                or ds._offset_in_spans(citation.char_offset, ref_spans)):
+            continue
+        for raw_line, start, end in lines:
+            if start <= citation.char_offset <= end:
+                prose = ds._visible_prose(raw_line)
+                if prose:
+                    mapping.setdefault(canonicalize_url(citation.raw_url), []).append(prose)
+                break
+    return mapping
+
+
+def _contradiction_candidate(item: dict[str, Any], answer: str, generic: set[str]) -> bool:
+    """Cheap strict prefilter before asking an LLM about a semi-decidable item."""
+    from src.eval import decidable_scorer as ds
+
+    p = item.get("params") or {}
+    product = str(p.get("product_name") or "")
+    if not product:
+        return False
+    probe = SimpleNamespace(subject=product, predicate="catalog_product")
+    visible = ds._visible_prose(answer)
+    tokens = ds._subject_tokens(probe, generic)
+    if not ds._subject_discussed(visible, tokens):
+        return False
+    values = [str(row.get("value")) for row in p.get("values", []) if row.get("value") is not None]
+    return len(values) >= 2 and all(re.search(rf"(?<!\d){re.escape(v)}(?!\d)", visible) for v in values)
+
+
+def _score_structured_checklist(
+    checklist: list[dict[str, Any]],
+    answer: str,
+    task_id: str,
+    *,
+    task_config: dict[str, Any] | None,
+    reachability: float | None,
+    quote_match: float | None,
+) -> dict[str, Any]:
+    """Score v2 typed checklist items using their declared evaluation route."""
+    from src.eval import decidable_scorer as ds
+    from src.eval.answer_key import SpecRequirement
+    from src.verifiers.citation_format import canonicalize_url
+
+    answer_key = _load_answer_key(task_config)
+    generic = ds.build_generic_tokens(answer_key) if answer_key is not None else set()
+    cited_prose = _inline_cited_prose(answer)
+    item_results: list[dict[str, Any] | None] = [None] * len(checklist)
+    llm_indices: list[int] = []
+
+    for index, item in enumerate(checklist):
+        item_type = str(item.get("type") or "").upper()
+        params = item.get("params") or {}
+        verdict = "FAIL"
+        reason = "criterion not satisfied"
+
+        if item_type == "COVERAGE":
+            nugget = _typed_item_nugget(item)
+            source = canonicalize_url(nugget.source_url) if nugget.source_url else ""
+            candidates = cited_prose.get(source, []) if source else []
+            if not candidates:
+                reason = "required source URL not cited inline"
+            else:
+                states = [_typed_value_state(text, nugget, generic) for text in candidates]
+                if any(discussed and correct for discussed, correct, _ in states):
+                    verdict, reason = "PASS", "subject and DB value bound to source citation"
+                elif any(discussed for discussed, _, _ in states):
+                    reason = "source cited but required DB value absent or wrong"
+                else:
+                    reason = "source cited without conveying the required subject"
+
+        elif item_type == "FACT":
+            nugget = _typed_item_nugget(item)
+            discussed, correct, claim = _typed_value_state(answer, nugget, generic)
+            if not discussed or not claim:
+                verdict, reason = "NOT_APPLICABLE", "report makes no matching typed claim"
+            elif correct:
+                verdict, reason = "PASS", "stated value matches DB value"
+            else:
+                verdict, reason = "FAIL", "stated value conflicts with DB value"
+
+        elif item_type == "CONTRADICTION":
+            if _contradiction_candidate(item, answer, generic):
+                llm_indices.append(index)
+                continue
+            reason = "product and conflicting values were not both surfaced"
+
+        elif item_type == "GROUNDING":
+            metric = str(params.get("metric") or "")
+            observed = reachability if metric == "reachability" else quote_match
+            if observed is None:
+                verdict, reason = "UNCLEAR", f"{metric or 'grounding'} metric unavailable"
+            elif observed >= 0.999999:
+                verdict, reason = "PASS", f"{metric} rate is complete"
+            else:
+                verdict, reason = "FAIL", f"{metric} rate is {observed:.4f}, not complete"
+
+        elif item_type == "SPEC":
+            req = SpecRequirement(
+                id=str(item.get("id") or f"spec_{index}"),
+                kind=str(params.get("kind") or ""),
+                description=_checklist_text(item),
+                params={k: v for k, v in params.items() if k != "kind"},
+            )
+            ok = ds._check_spec(answer, req)
+            verdict = "PASS" if ok else "FAIL"
+            reason = "deterministic spec check passed" if ok else "deterministic spec check failed"
+
+        else:
+            llm_indices.append(index)
+            continue
+
+        item_results[index] = {
+            "id": item.get("id"), "type": item_type,
+            "description": _checklist_text(item),
+            "verdict": verdict, "reason": reason,
+            "scoring": "deterministic",
+        }
+
+    judge_error = None
+    if llm_indices:
+        undecidable = [_checklist_text(checklist[i]) for i in llm_indices]
+        judged = _judge_checklist_legacy(undecidable, answer, task_id)
+        judge_error = judged.get("judge_error")
+        judged_verdicts = [row[1] for row in judged.get("verdicts", [])]
+        for offset, index in enumerate(llm_indices):
+            verdict = judged_verdicts[offset] if offset < len(judged_verdicts) else "UNCLEAR"
+            item = checklist[index]
+            item_results[index] = {
+                "id": item.get("id"), "type": str(item.get("type") or "").upper(),
+                "description": _checklist_text(item),
+                "verdict": verdict,
+                "reason": "LLM judged after deterministic candidate prefilter",
+                "scoring": "llm_semidecidable",
+            }
+
+    results = [row for row in item_results if row is not None]
+    verdicts = [row["verdict"] for row in results]
+    applicable = [v for v in verdicts if v != "NOT_APPLICABLE"]
+    pass_count = sum(v == "PASS" for v in applicable)
+    denominator = len(applicable)
+    return {
+        "verdicts": [[row["description"], row["verdict"]] for row in results],
+        "item_results": results,
+        "pass_count": pass_count,
+        "fail_count": sum(v == "FAIL" for v in applicable),
+        "unclear_count": sum(v == "UNCLEAR" for v in applicable),
+        "not_applicable_count": sum(v == "NOT_APPLICABLE" for v in verdicts),
+        "applicable_count": denominator,
+        "pass_rate": round(pass_count / denominator, 4) if denominator else 0.0,
+        "judge_error": judge_error,
+        "scoring_mode": "structured_v2",
+    }
+
+
+def _judge_checklist_legacy(
     checklist: list[str],
     answer: str,
     task_id: str,
@@ -192,6 +551,34 @@ def _judge_checklist(
         "grounding_downgrades": grounding_downgrades,
         "reachability_used": reachability,
     }
+
+
+def _judge_checklist(
+    checklist: list[str | dict[str, Any]],
+    answer: str,
+    task_id: str,
+    *,
+    reachability: float | None = None,
+    quote_match: float | None = None,
+    task_config: dict[str, Any] | None = None,
+    fab_threshold: float = 0.30,
+) -> dict[str, Any]:
+    if _structured_checklist(checklist):
+        return _score_structured_checklist(
+            checklist,  # type: ignore[arg-type]
+            answer,
+            task_id,
+            task_config=task_config,
+            reachability=reachability,
+            quote_match=quote_match,
+        )
+    return _judge_checklist_legacy(
+        [_checklist_text(item) for item in checklist],
+        answer,
+        task_id,
+        reachability=reachability,
+        fab_threshold=fab_threshold,
+    )
 
 
 def _composite(
@@ -319,6 +706,259 @@ def verify_report_seal(answer_path: Path) -> dict:
     }
 
 
+def _resolve_native_citation_bundle(
+    answer_path: Path,
+    answer: str,
+    *,
+    seal_check: dict[str, Any],
+) -> tuple[str, dict[str, Any]]:
+    """Resolve a verified framework-native citation table for scoring.
+
+    Stanford STORM 1.1.1 deliberately emits a two-file result: the article
+    contains numeric anchors (``[1]``) while ``url_to_info.json`` contains the
+    native ``URL -> unified index`` table.  Treating only the article as the
+    result loses STORM's citations; appending every retrieved URL to the sealed
+    report would instead manufacture credit.
+
+    This resolver is deliberately fail-closed:
+
+    * the sealed report must verify;
+    * ``meta.json`` must declare the native artifact and its byte count/hash;
+    * the artifact filename must be a sibling basename (no path traversal);
+    * each resolved URL must occur in STORM's native ``url_to_info`` table;
+    * only indices actually cited inline are materialised; unused retrievals
+      never enter the scoring view;
+    * duplicate/ambiguous indices are left unresolved.
+
+    The returned Markdown exists only in memory.  The report on disk and its
+    seal remain byte-for-byte unchanged.
+    """
+    result: dict[str, Any] = {
+        "schema": "dra.native-citation-resolution.v1",
+        "status": "not_applicable",
+        "applied": False,
+        "report_modified": False,
+        "policy": "verified_native_bundle_inline_indices_only",
+    }
+
+    meta_path = answer_path.with_suffix(".meta.json")
+    if not meta_path.is_file():
+        result["reason"] = "no_meta_sidecar"
+        return answer, result
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        result.update(status="rejected", reason=f"meta_unreadable: {exc}")
+        return answer, result
+
+    native = meta.get("native_artifacts") or {}
+    artifact = native.get("storm_url_to_info")
+    if not isinstance(artifact, dict):
+        result["reason"] = "no_storm_native_citation_artifact"
+        return answer, result
+    result["status"] = "rejected"
+    if str(meta.get("agent") or "") != "storm":
+        result["reason"] = "artifact_declared_by_non_storm_lane"
+        return answer, result
+    if not seal_check.get("checked") or not seal_check.get("ok"):
+        result["reason"] = "report_seal_not_verified"
+        return answer, result
+
+    filename = str(artifact.get("file") or "").strip()
+    if not filename or Path(filename).name != filename:
+        result["reason"] = "invalid_artifact_filename"
+        return answer, result
+    artifact_path = answer_path.parent / filename
+    if not artifact_path.is_file():
+        result["reason"] = "declared_artifact_missing"
+        return answer, result
+    try:
+        payload_bytes = artifact_path.read_bytes()
+    except OSError as exc:
+        result["reason"] = f"artifact_unreadable: {exc}"
+        return answer, result
+
+    expected_bytes = artifact.get("bytes")
+    expected_sha = str(artifact.get("sha256") or "").lower()
+    actual_sha = hashlib.sha256(payload_bytes).hexdigest()
+    result.update(
+        artifact_file=filename,
+        expected_sha256=expected_sha or None,
+        actual_sha256=actual_sha,
+        expected_bytes=expected_bytes,
+        actual_bytes=len(payload_bytes),
+    )
+    if (
+        not isinstance(expected_bytes, int)
+        or expected_bytes != len(payload_bytes)
+        or not re.fullmatch(r"[0-9a-f]{64}", expected_sha)
+        or expected_sha != actual_sha
+    ):
+        result["reason"] = "artifact_size_or_sha_mismatch"
+        return answer, result
+
+    try:
+        payload = json.loads(payload_bytes)
+    except json.JSONDecodeError as exc:
+        result["reason"] = f"artifact_json_invalid: {exc}"
+        return answer, result
+    if not isinstance(payload, dict):
+        result["reason"] = "artifact_json_not_object"
+        return answer, result
+    url_to_index = payload.get("url_to_unified_index")
+    url_to_info = payload.get("url_to_info")
+    if not isinstance(url_to_index, dict) or not isinstance(url_to_info, dict):
+        result["reason"] = "artifact_schema_invalid"
+        return answer, result
+
+    # Build an unambiguous index -> URL table.  Requiring the URL in both
+    # native maps rejects a hand-edited index table that has no retrieved
+    # Information object behind it.
+    candidates: dict[int, list[str]] = {}
+    invalid_entries = 0
+    for raw_url, raw_index in url_to_index.items():
+        if (
+            not isinstance(raw_url, str)
+            or not raw_url.startswith(("http://", "https://"))
+            or isinstance(raw_index, bool)
+            or not isinstance(raw_index, int)
+            or not 1 <= raw_index <= 999
+            or raw_url not in url_to_info
+        ):
+            invalid_entries += 1
+            continue
+        candidates.setdefault(raw_index, []).append(raw_url)
+    index_to_url = {
+        index: urls[0]
+        for index, urls in candidates.items()
+        if len(set(urls)) == 1
+    }
+    ambiguous_indices = sorted(
+        index for index, urls in candidates.items() if len(set(urls)) != 1
+    )
+
+    # Strip existing numbered definition lines before finding inline anchors.
+    # This prevents a pre-existing References block from citing itself.
+    definition_re = re.compile(
+        r"(?m)^\s*\[(?P<index>\d{1,3})\]\s*\.?\s*(?:[-:.]\s*)?"
+        r"[^\n]*?(?P<url>https?://[^\s<>]+)[^\n]*$"
+    )
+    body_without_definitions = definition_re.sub("", answer)
+    inline_indices = sorted({
+        int(value)
+        for value in re.findall(r"\[(\d{1,3})\]", body_without_definitions)
+    })
+    from src.verifiers.citation_format import canonicalize_url, strip_url_trail
+
+    existing_records = [
+        {
+            "index": int(match.group("index")),
+            "url": strip_url_trail(match.group("url")),
+            "start": match.start(),
+            "end": match.end(),
+        }
+        for match in definition_re.finditer(answer)
+    ]
+    existing_definitions = {record["index"] for record in existing_records}
+    resolved = {
+        index: index_to_url[index]
+        for index in inline_indices
+        if index in index_to_url
+    }
+    matching_existing = {
+        record["index"]
+        for record in existing_records
+        if (
+            record["index"] in resolved
+            and canonicalize_url(record["url"])
+            == canonicalize_url(resolved[record["index"]])
+        )
+    }
+    conflicts = [
+        {
+            "index": record["index"],
+            "report_url": record["url"],
+            "native_url": resolved[record["index"]],
+        }
+        for record in existing_records
+        if (
+            record["index"] in resolved
+            and canonicalize_url(record["url"])
+            != canonicalize_url(resolved[record["index"]])
+        )
+    ]
+    additions = {
+        index: url
+        for index, url in resolved.items()
+        if index not in matching_existing
+    }
+    unresolved = sorted(set(inline_indices) - set(resolved))
+    result.update(
+        mappings_total=len(url_to_index),
+        valid_unambiguous_mappings=len(index_to_url),
+        invalid_mapping_entries=invalid_entries,
+        ambiguous_indices=ambiguous_indices,
+        inline_indices=inline_indices,
+        resolved_indices=sorted(resolved),
+        unresolved_indices=unresolved,
+        existing_reference_definitions=sorted(existing_definitions),
+        matching_reference_definitions=sorted(matching_existing),
+        conflicting_reference_definitions=conflicts,
+        appended_reference_definitions=len(additions),
+        unused_native_mappings=max(0, len(index_to_url) - len(resolved)),
+    )
+    if not inline_indices:
+        result.update(status="verified_no_inline_citations", reason="no_inline_indices")
+        return answer, result
+    if not additions:
+        # The bundle is valid but either every inline anchor was already
+        # defined in the report or none could be resolved.  In both cases the
+        # original Markdown is already the correct scoring view.
+        status = "already_resolved" if resolved and not unresolved else "verified_unresolved"
+        result.update(status=status, reason=None if resolved else "no_resolvable_indices")
+        return answer, result
+
+    # A model-written reference line can conflict with STORM's authoritative
+    # native index table.  Do not let the first (fabricated) definition hijack
+    # every inline anchor, but do not hide it either: demote its numeric marker
+    # to prose in the scoring view so the public URL remains a bare citation and
+    # still lowers reachability, then append the verified native definition.
+    conflicting_pairs = {
+        (item["index"], canonicalize_url(item["report_url"]))
+        for item in conflicts
+    }
+
+    def _demote_conflicting_definition(match: re.Match[str]) -> str:
+        index = int(match.group("index"))
+        url = strip_url_trail(match.group("url"))
+        if (index, canonicalize_url(url)) not in conflicting_pairs:
+            return match.group(0)
+        return re.sub(
+            rf"^(\s*)\[{index}\]",
+            rf"\1- Report-emitted conflicting source index {index}:",
+            match.group(0),
+            count=1,
+        )
+
+    scoring_body = definition_re.sub(_demote_conflicting_definition, answer)
+    heading = "" if re.search(
+        r"(?im)^#{1,6}\s+(?:references?|sources?|bibliography)\s*:?\s*$",
+        scoring_body,
+    ) else "## References\n\n"
+    definitions = "\n".join(f"[{index}] {url}" for index, url in additions.items())
+    scoring_answer = scoring_body.rstrip() + "\n\n" + heading + definitions + "\n"
+    result.update(
+        status="applied",
+        applied=True,
+        reason=None,
+        scoring_view_sha256=hashlib.sha256(
+            scoring_answer.encode("utf-8")
+        ).hexdigest(),
+        scoring_view_chars=len(scoring_answer),
+    )
+    return scoring_answer, result
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--task", required=True)
@@ -358,10 +998,10 @@ def main() -> int:
     if not answer_path.exists():
         print(f"answer not found: {answer_path}", file=sys.stderr)
         return 2
-    answer = answer_path.read_text(errors="ignore")
+    original_answer = answer_path.read_text(errors="ignore")
 
     print(f"=== scoring {answer_path.name} on task {args.task} ===")
-    print(f"answer chars: {len(answer)}")
+    print(f"answer chars: {len(original_answer)}")
 
     seal_check = verify_report_seal(answer_path)
     if seal_check.get("checked") and not seal_check.get("ok"):
@@ -371,6 +1011,19 @@ def main() -> int:
               file=sys.stderr)
     elif seal_check.get("checked"):
         print(f"[report_seal] verified (sha matches meta seal)")
+
+    answer, native_citation_resolution = _resolve_native_citation_bundle(
+        answer_path,
+        original_answer,
+        seal_check=seal_check,
+    )
+    if native_citation_resolution.get("status") != "not_applicable":
+        print(
+            "[native_citations] "
+            f"status={native_citation_resolution.get('status')} "
+            f"resolved={len(native_citation_resolution.get('resolved_indices') or [])} "
+            f"unresolved={len(native_citation_resolution.get('unresolved_indices') or [])}"
+        )
 
     url_v = URLCoverageVerifier()
     url_result = url_v.verify(task_config=task_cfg, answer=answer)
@@ -400,19 +1053,28 @@ def main() -> int:
         from src.verifiers.base import VerifierResult
         nli_result = VerifierResult.fail("skipped", skip_reason="SKIP_LAYER3=1")
 
-    spec_check = _markdown_spec_score(answer, task_cfg.get("markdown_spec", {}))
+    spec_check = _markdown_spec_score(
+        original_answer,
+        task_cfg.get("markdown_spec", {}),
+        citation_md=answer,
+    )
     print(f"\n[markdown_spec] {json.dumps(spec_check, ensure_ascii=False)}")
 
     checklist_path = ROOT / task_cfg.get("coverage_checklist_path", "")
     checklist = []
     if checklist_path.exists():
-        checklist = json.loads(checklist_path.read_text()).get(args.task, [])
+        checklist = _load_checklist(checklist_path, args.task)
     print(f"\n[checklist] {len(checklist)} items, judge={judge_identity()}, reach={reach_result.score:.3f}")
     # Plumb reachability so the fab-URL cross-check fires (downgrades PASS
     # to FAIL on grounding-keyword criteria when reach < 0.30). Without
     # this kwarg the guard is dead in production scoring.
     checklist_result = _judge_checklist(
-        checklist, answer, args.task, reachability=reach_result.score
+        checklist,
+        answer,
+        args.task,
+        reachability=reach_result.score,
+        quote_match=qm_result.score,
+        task_config=task_cfg,
     )
     print(f"  pass={checklist_result.get('pass_count')}/{len(checklist)} "
           f"fail={checklist_result.get('fail_count')} unclear={checklist_result.get('unclear_count')} "
@@ -463,7 +1125,17 @@ def main() -> int:
             mod = importlib.import_module(verifier_module)
             cls = getattr(mod, verifier_class)
             v_inst = cls()
-            v_result = v_inst.verify(task_config=task_cfg, answer=answer)
+            # Native reference definitions are citation metadata, not report
+            # prose.  Content-only pillars therefore see the sealed article;
+            # citation-aware pillars see the verified in-memory bundle view.
+            verifier_answer = (
+                original_answer
+                if verifier_name in {
+                    "presentation", "perspective_balance", "internal_consistency"
+                }
+                else answer
+            )
+            v_result = v_inst.verify(task_config=task_cfg, answer=verifier_answer)
             v3_scores[verifier_name] = v_result.score
             v3_details[verifier_name] = {
                 "score": v_result.score, "passed": v_result.passed,
@@ -529,8 +1201,10 @@ def main() -> int:
     out = {
         "task": args.task,
         "answer_path": str(answer_path),
-        "answer_chars": len(answer),
+        "answer_chars": len(original_answer),
+        "scoring_answer_chars": len(answer),
         "report_seal_check": seal_check,
+        "native_citation_resolution": native_citation_resolution,
         "url_coverage":     {"score": url_result.score,   "passed": url_result.passed,
                              "details": url_result.details},
         "url_reachability": {"score": reach_result.score, "passed": reach_result.passed,

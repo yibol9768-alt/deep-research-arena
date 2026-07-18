@@ -328,12 +328,15 @@ def _load_task(task_id: str) -> dict:
 # be told to hit a citation count, a word count, a search count, or a citation
 # format, because each of those steers directly at a scored axis.
 #
-# CLI lanes emit a conversational turn rather than a document by default, so the
-# output-format line below is given to every lane identically rather than to the
-# CLI lanes alone. Anything beyond it belongs in `config/lane_protocol.yaml` as
-# a declared, justified deviation.
+# CLI lanes emit a conversational turn rather than a document by default, and
+# several native lanes otherwise discard exact source URLs at their final write
+# stage. The neutral report/citation contract below is therefore given to every
+# lane identically. It specifies neither a count nor a citation syntax. Anything
+# beyond it belongs in `config/lane_protocol.yaml` as a declared deviation.
 SHARED_REPORT_FORMAT = (
-    "\n\nDeliver your answer as a single self-contained markdown report. "
+    "\n\nBase factual claims on sources retrieved during this run. "
+    "Include the exact retrieved URL for every source used in the final report. "
+    "Deliver your answer as a single self-contained markdown report. "
     "Return the report only, with no planning notes or tool transcripts."
 )
 
@@ -1781,6 +1784,7 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
     env["REPORT_MODEL"] = model
     env["II_QUERY"] = intent
     env["II_SHIM"] = shim
+    env["II_BENCHMARK_ROOT"] = str(ROOT)
     # FIX #10: Force SEARCH_PROVIDER=tavily so ii-researcher uses TavilyClient
     # (which goes through our shim) instead of the default "serpapi" (which hits
     # serpapi.com and is NOT intercepted by our monkey-patch).
@@ -1805,6 +1809,7 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
     driver.write_text(_build_intercept_preamble(shim) +
         "import os, sys, asyncio, traceback, re, json\n"
         "sys.path.insert(0, '.')\n"
+        "sys.path.insert(0, os.environ['II_BENCHMARK_ROOT'])\n"
         "shim = os.environ['II_SHIM']\n"
         "# Search-result URLs collected for DIAGNOSTICS ONLY (never written into\n"
         "# the report; see fairness audit 2026-07-06 B1)\n"
@@ -1835,8 +1840,77 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
         "try:\n"
         "    from ii_researcher.reasoning.agent import ReasoningAgent\n"
         "    from ii_researcher.reasoning.builders.report import ReportType\n"
+        "    from scripts.runners.ii_tool_compat import MAX_NATIVE_ACTIONS, api_tool_schemas, tool_call_to_native_action\n"
         "    agent = ReasoningAgent(question=os.environ['II_QUERY'], report_type=ReportType.BASIC)\n"
+        "    # II 0.1.5 exposes tools only through a textual fenced-Python\n"
+        "    # convention. Advertise those same native tools through the API's\n"
+        "    # function-tool channel and translate a selected call back into\n"
+        "    # II's existing action syntax. auto keeps tool use model-chosen.\n"
+        "    _api_tool_calls = []\n"
+        "    _action_budget_exhausted = False\n"
+        "    _ii_client = agent.client\n"
+        "    def _generate_with_api_tools(trace, instructions=None):\n"
+        "        global _action_budget_exhausted\n"
+        "        if len(_api_tool_calls) >= MAX_NATIVE_ACTIONS:\n"
+        "            _action_budget_exhausted = True\n"
+        "            print('[ii-tool-compat] native_action_budget_exhausted=' + str(MAX_NATIVE_ACTIONS), flush=True)\n"
+        "            # Native control transition: an action-free turn makes\n"
+        "            # ReasoningAgent invoke its own ReportBuilder over the\n"
+        "            # accumulated trace/tool history. No report text is added.\n"
+        "            return '</think>'\n"
+        "        _cfg = _ii_client.config.llm\n"
+        "        _response = _ii_client.client.chat.completions.create(\n"
+        "            model=_cfg.model,\n"
+        "            messages=_ii_client._get_messages(trace, instructions),\n"
+        "            temperature=_cfg.temperature,\n"
+        "            top_p=_cfg.top_p,\n"
+        "            presence_penalty=_cfg.presence_penalty,\n"
+        "            stop=_cfg.stop_sequence,\n"
+        "            tools=api_tool_schemas(),\n"
+        "            tool_choice='auto',\n"
+        "            parallel_tool_calls=False,\n"
+        "        )\n"
+        "        _message = _response.choices[0].message\n"
+        "        _calls = list(getattr(_message, 'tool_calls', None) or [])\n"
+        "        if _calls:\n"
+        "            _function = _calls[0].function\n"
+        "            _api_tool_calls.append(str(_function.name))\n"
+        "            print('[ii-tool-compat] api_tool_call=' + str(_function.name), flush=True)\n"
+        "            return tool_call_to_native_action(_function.name, _function.arguments)\n"
+        "        return str(getattr(_message, 'content', '') or '')\n"
+        "    _ii_client.generate_completion = _generate_with_api_tools\n"
         "    result = asyncio.run(agent.run(is_stream=False))\n"
+        "    # Compatibility diagnostics only: record whether ii parsed native\n"
+        "    # actions without retaining model prose or hidden reasoning. This\n"
+        "    # distinguishes an unwired provider from a model-format mismatch.\n"
+        "    _turns = list(getattr(getattr(agent, 'trace', None), 'turns', []) or [])\n"
+        "    _actions = []\n"
+        "    _first_raw = ''\n"
+        "    for _i, _turn in enumerate(_turns):\n"
+        "        _output = getattr(_turn, 'output', None)\n"
+        "        _action = getattr(_output, 'action', None)\n"
+        "        _name = getattr(_action, 'name', None)\n"
+        "        if _name:\n"
+        "            _actions.append(str(_name))\n"
+        "        if _i == 0:\n"
+        "            _first_raw = str(getattr(_output, 'raw', '') or '')\n"
+        "    _history = getattr(agent, 'tool_history', None)\n"
+        "    _searched = list(_history.get_searched_queries()) if _history and hasattr(_history, 'get_searched_queries') else []\n"
+        "    _visited = list(_history.get_visited_urls()) if _history and hasattr(_history, 'get_visited_urls') else []\n"
+        "    _diag = {\n"
+        "        'turns': len(_turns),\n"
+        "        'actions': _actions,\n"
+        "        'api_tool_calls': _api_tool_calls,\n"
+        "        'action_budget_exhausted': _action_budget_exhausted,\n"
+        "        'searched_queries': len(_searched),\n"
+        "        'visited_urls': len(_visited),\n"
+        "        'collected_urls': len(_collected_urls),\n"
+        "        'first_has_code_fence': '```' in _first_raw,\n"
+        "        'first_has_web_search': 'web_search' in _first_raw,\n"
+        "        'first_has_page_visit': 'page_visit' in _first_raw,\n"
+        "        'first_has_end_code': '<end_code>' in _first_raw,\n"
+        "    }\n"
+        "    print('[ii-diag] ' + json.dumps(_diag, sort_keys=True), flush=True)\n"
         "    if isinstance(result, dict):\n"
         "        out = result.get('final_report') or result.get('answer') or str(result)[:30000]\n"
         "    else:\n"
@@ -1887,6 +1961,13 @@ async def _run_ii_researcher(intent: str, model: str) -> str:
             f"ii-researcher exited {proc.returncode}; stderr tail:\n"
             f"{(proc.stderr or '')[-4000:]}"
         )
+    for line in (proc.stdout or "").splitlines():
+        if (
+            line.startswith("[ii-diag]")
+            or line.startswith("[ii-fix]")
+            or line.startswith("[ii-tool-compat]")
+        ):
+            print(line)
     if "===REPORT===" in proc.stdout:
         report = proc.stdout.split("===REPORT===", 1)[1].strip()
         if not is_weak_report(report, min_chars=3000, min_urls=3):
@@ -2566,7 +2647,12 @@ def _archive_previous_outputs(out_md: Path, out_meta: Path) -> tuple[int, str | 
         prior_attempts = int(json.loads(out_meta.read_text()).get("attempts", 0))
     except Exception:
         pass
-    candidates = [out_md, out_meta, out_md.with_suffix(".provenance.json")]
+    candidates = [
+        out_md,
+        out_meta,
+        out_md.with_suffix(".provenance.json"),
+        out_md.with_suffix(".storm-url-to-info.json"),
+    ]
     existing = [p for p in candidates if p.exists()]
     if not existing:
         return prior_attempts, None
@@ -2786,6 +2872,15 @@ async def main() -> int:
     def _write_meta(status: str, error, elapsed_seconds: float, report_text: str,
                     *, termination: dict | None = None) -> dict:
         audit = _post_audit_sandbox(report_text or "")
+        native_artifacts: dict[str, dict[str, object]] = {}
+        storm_map = out_md.with_suffix(".storm-url-to-info.json")
+        if storm_map.is_file():
+            artifact_bytes = storm_map.read_bytes()
+            native_artifacts["storm_url_to_info"] = {
+                "file": storm_map.name,
+                "bytes": len(artifact_bytes),
+                "sha256": hashlib.sha256(artifact_bytes).hexdigest(),
+            }
         out_meta.write_text(json.dumps({
             "agent": args.agent, "task": args.task, "backbone": args.backbone,
             "run_id": run_id,
@@ -2825,6 +2920,12 @@ async def main() -> int:
             # false-fail the verifier. Post-processing belongs in its own field,
             # never folded into the sealed bytes.
             "report_seal": _seal_report(report_text or "(empty)"),
+            # Native companion artifacts retained by an adapter. STORM's
+            # index-to-URL table belongs here rather than being grafted into
+            # the sealed report. The scorer may verify this manifest hash and
+            # resolve only the numeric indices STORM actually emitted inline;
+            # unused retrievals never receive citation credit.
+            "native_artifacts": native_artifacts,
             # Did we confirm, before this run started, that the agent could reach
             # every sandbox source? "skipped_by_env" means nobody checked.
             "source_check": dict(_SOURCE_CHECK),

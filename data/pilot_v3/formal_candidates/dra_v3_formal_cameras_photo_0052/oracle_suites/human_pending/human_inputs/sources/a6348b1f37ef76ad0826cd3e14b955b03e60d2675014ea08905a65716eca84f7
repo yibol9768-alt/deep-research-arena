@@ -1,0 +1,17 @@
+[D] Camera settings for dataset collection
+
+How much does it matter what settings (iso, f, exposure time) are used in datasets? Of course there are some specific cases, like imaging in dark conditions where the iso obviously needs to be large and the noise has to be handled. But in more general case, it seems like many datasets are acquired with auto settings. The quality assesment seems to be on the sharpness and relevancy. Is there any papers on the topic of how camera settings and lightning solutions affect the dataset quality or usability? 2
+
+It depends on the problem being addressed. Consistency can be hurt by using automatic settings since small changes in the scene will provoke dramatically different image settings by most cameras. If, for instance, one wanted to detect diseases of the skin, it would probably be helpful to establish (as best possible) uniform lighting conditions, and fixed camera settings (shutter speed, ISO, lens f-stop and any ancillary settings, such as color temperature adjustments, etc.). If, on the other hand, the goal was to identify individuals by their faces from arbitrary cameras, then a range of camera settings and image quality levels would be a more realistic representation of what the ultimate technical solution will be exposed to, during deployment.
+
+This is what I have also been thinking. It's still funny that it's so hard to find anything written on the topic.
+
+When talking about image restoration: denoising, deblurring, super-resolution... those settings matter a lot, obviously: ISO determines the noise, exposure time participates in the blur and the f-number affects the sharpness of the image. So they are very useful inputs, including in good lighting conditions by the way.
+
+Yes they are important inputs, but when considering the collection of dataset it seems like people don't really pay attention to the settings, if it's not directly related to the application.
+
+Yes. When collecting a "natural" dataset, the variety of camera settings just reflects how images are taken in the wild: sometimes in day time, sometimes in night time. In some cases, you would even want a variety of cameras as well as they handle different conditions differently. If your task is camera-agnostic, then you want to marginalize the camera settings.
+
+True, thanks for the answers. It's an interesting note to think about how different cameras determine the auto settings.
+
+I don't know if there are any papers regarding camera settings, besides the ones specifying their own settings taken for their experiments. This is highly dependant on the problem you're working with. During my last data collection I mistakenly activated auto-exposure on 5 different cameras, and no surprises the results were really shitty because of difference in illumination and some desynchronization issues, albeit having an specified frame rate. So what happened is that all this data using auto-exposure had to be thrown away, and I had to double check all setting every time to make sure I had a good trade-off for capturing high-frequency motion, because we needed to capture rapid changes in position but still try to have light in the scene.

@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>727763a0eb1edcc688ec433e4055178fa9b9c556c3d9c205e61bafd052e820c8</code></p>
+<p>待审项 32 个，其中语义项 16 个、结构化项 0 个；冻结来源 35 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_canon_elph300_offer_scope"><header><h3>assert_canon_elph300_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B004J41T7Q at 129.95 dollars with an 82-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Canon ELPH 300 HS seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_canon_elph300_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_variant_condition_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;SKU B004J41T7Q at 129.95 dollars with an 82-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Canon ELPH 300 HS seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_canon_elph300_offer_scope_1</code> | bytes [60, 202) | <code>c2585aa47b982de7accd4699ddf8aa54cf4f07fb2859d27006ddfd7668f3ed34</code></div><pre class="context"><span>Canon PowerShot ELPH 300 HS 12.1 MP Digital Camera (Black)
+
+</span><mark>In stock SKU B004J41T7Q Rating: 82 % of 100 12 Reviews Add Your Review $129.95 Color Black Red Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The Canon 5096B001 PowerShot ELPH 300 HS Black 12MP Digital Camera with 5x Zoom and 2.7 In. LCD Display has a slim profile that will not only make you stand out from the crowd, but it will also deliver incredibly brilliant still images and amazing 1080p HD videos. Once you turn on the camera, be prepared to be amazed at how much </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/canon-powershot-elph-300-hs-12-1-mp-digital-camera-black.html" target="_blank" rel="noreferrer">http://localhost:7770/canon-powershot-elph-300-hs-12-1-mp-digital-camera-black.html</a></p><p>冻结文件: <a href="sources/9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf" target="_blank">sources/9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf</a></p><p>内容 SHA-256: <code>9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_hp_m447_offer_scope"><header><h3>assert_hp_m447_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B0018N637W at 60.61 dollars with a 100-percent aggregate over four reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen HP M447 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_hp_m447_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_bundle_condition_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;SKU B0018N637W at 60.61 dollars with a 100-percent aggregate over four reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen HP M447 seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_hp_m447_offer_scope_1</code> | bytes [69, 194) | <code>32b97bcf3cc96f40a7bcecfdc0c98df3237214c9f12d14973230fca6acdaa558</code></div><pre class="context"><span>HP M447 Photosmart Compact Photo Studio Digital Camera with Printer
+
+</span><mark>In stock SKU B0018N637W Rating: 100 % of 100 4 Reviews Add Your Review $60.61 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Brand new in HP manufacture retail box. Camera TypePoint &amp; ShootDigital Zoom5xSensor Resolution 5.0 MPScreen Size2.4&quot; Optical SensorSensor Size1/2.5&quot;Sensor Type CCD Screen Size2.4&quot; Optical SensorSensor Size1/2.5&quot;Sensor Type CCD SystemMacro Focus Range10-80cmFocus Adjustment Automatic Auto Focus typeTTL contrast detectionFocal Len</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hp-m447-photosmart-compact-photo-studio-digital-camera-with-printer.html" target="_blank" rel="noreferrer">http://localhost:7770/hp-m447-photosmart-compact-photo-studio-digital-camera-with-printer.html</a></p><p>冻结文件: <a href="sources/5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d" target="_blank">sources/5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d</a></p><p>内容 SHA-256: <code>5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_image_quality_assessment_scope"><header><h3>assert_image_quality_assessment_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;subjective and objective assessments can disagree and require declared outputs&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for image quality&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_image_quality_assessment_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;assessment_framework_not_exact_camera_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;subjective and objective assessments can disagree and require declared outputs&quot;,
+  &quot;predicate&quot;: &quot;has_system_accuracy_and_perceptual_assessment_forms&quot;,
+  &quot;subject&quot;: &quot;image quality&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_image_quality_assessment_scope_1</code> | bytes [174, 305) | <code>4bb4767e1e4eeed572f4013776cb4e9e6873f4d56018796ba986939b0ee94339</code></div><pre class="context"><span>Image quality can refer to the level of accuracy with which different imaging systems capture, process, store, compress, transmit and display the signals that form an image. </span><mark>Another definition refers to image quality as &quot;the weighted combination of all of the visually significant attributes of an image&quot;.</mark><span> [ 1 ] :â598â The difference between the two definitions is that one focuses on the characteristics of signal processing in different imaging systems and the latter on the perceptual assessments that make an image pleasant for human viewers. Image quality should not be mistaken with image fidelity . Image fidelity refers to the ability of a process</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Image_quality" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Image_quality</a></p><p>冻结文件: <a href="sources/ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c" target="_blank">sources/ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c</a></p><p>内容 SHA-256: <code>ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_kodak_dx4530_offer_scope"><header><h3>assert_kodak_dx4530_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B0000APONO at 47.45 dollars with a 75-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Kodak DX4530 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_kodak_dx4530_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_condition_usability_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;SKU B0000APONO at 47.45 dollars with a 75-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Kodak DX4530 seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_kodak_dx4530_offer_scope_1</code> | bytes [62, 187) | <code>e47743fb7e9601b69e5951e4e24cac3e9f2488b18e9ae4d7caebd65e8ac63269</code></div><pre class="context"><span>Kodak EasyShare DX4530 5MP Digital Camera w/ 3x Optical Zoom
+
+</span><mark>In stock SKU B0000APONO Rating: 75 % of 100 12 Reviews Add Your Review $47.45 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The award-winning EasyShare system now offers exceptional image quality with this Kodak EasyShare 5MP Digital Camera. The 5.0 megapixel sensor creates 2588x1954 images for high-resolution prints up to poster size. Features: 3x optical zoom and 3.3x digital zoom for 10x total; 32 MB internal memory with slot for adding MMC and SD </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/kodak-easyshare-dx4530-5mp-digital-camera-w-3x-optical-zoom.html" target="_blank" rel="noreferrer">http://localhost:7770/kodak-easyshare-dx4530-5mp-digital-camera-w-3x-optical-zoom.html</a></p><p>冻结文件: <a href="sources/6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc" target="_blank">sources/6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc</a></p><p>内容 SHA-256: <code>6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_optical_aberration_scope"><header><h3>assert_optical_aberration_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;real optical systems can blur distort or fringe an image&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for optical aberration&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_optical_aberration_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_lens_mechanism_not_exact_unit_diagnosis&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;real optical systems can blur distort or fringe an image&quot;,
+  &quot;predicate&quot;: &quot;can_depart_from_ideal_image_formation&quot;,
+  &quot;subject&quot;: &quot;optical aberration&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_optical_aberration_scope_1</code> | bytes [0, 201) | <code>fffb8249f10aaab0390f5633ba3a32e9d7b2ff13e62b2c443d7c844d128c0041</code></div><pre class="context"><span></span><mark>In optics , aberration is a property of optical systems, such as lenses and mirrors , that causes the image created by the optical system to not be a faithful reproduction of the object being observed.</mark><span> Aberrations cause the image formed by a lens to be blurred, distorted in shape or have color fringing or other effects not seen in the object, with the nature of the distortion depending on the type of aberration. Aberration can be defined as a departure of the performance of an optical system from the predictions of paraxial optics . [ 1 ] In an imaging sy</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Optical_aberration" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Optical_aberration</a></p><p>冻结文件: <a href="sources/740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427" target="_blank">sources/740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427</a></p><p>内容 SHA-256: <code>740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_phone_positive_experience_scope"><header><h3>assert_phone_positive_experience_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;near-instant use, pleasing photos, easy editing and strong low-light experience for that author&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one Android switcher&#x27;s iPhone camera report&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_phone_positive_experience_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;one_author_one_phone_experience_not_compact_phone_benchmark&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;near-instant use, pleasing photos, easy editing and strong low-light experience for that author&quot;,
+  &quot;predicate&quot;: &quot;reports_fast_easy_and_pleasing_results&quot;,
+  &quot;subject&quot;: &quot;one Android switcher&#x27;s iPhone camera report&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_phone_positive_experience_scope_1</code> | bytes [3751, 4093) | <code>039a21f54a5762a1fce75cf23dab070ef5a774b0b4ac0b522e6d4f1d0611a1c6</code></div><pre class="context"><span>ps, home, gmail, photos, etc.) and even those apps seem to run just as well on my iPhone as they did on my Android. Also, Apple specific apps like the Wallet seem to be better implemented than something like Google Pay. I use the Wallet app all the time. I almost never used Google Pay. The camera. This is another universally known feature at this point too. </span><mark>The camera is excellent. It&#x27;s near instantaneous to use, the photos look fantastic, editing is quick and easy, Pro Raw is a cool feature I&#x27;m far too inexperienced to get any value out of, but I appreciate anyway, the low light performance is insanely good, video in HDR is incredible, and swapping between zoom levels is extremely smooth too.</mark><span> There&#x27;s almost nothing I can think that I don&#x27;t enjoy or like about the camera. Across the board, it&#x27;s been a great experience, and provides great quality. Face ID. Holy crap is this nice. Crazy fast, very secure, and you can use it for basically anything. Love Love Love. Fingerprints are dumb now. Now the Mid stuff (These aren&#x27;t inherently negative, just a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/41144/an-android-users-opinions-of-the-iphone-14-pro-max" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/41144/an-android-users-opinions-of-the-iphone-14-pro-max</a></p><p>冻结文件: <a href="sources/d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca" target="_blank">sources/d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca</a></p><p>内容 SHA-256: <code>d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_phone_processing_complaint_scope"><header><h3>assert_phone_processing_complaint_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;overprocessed photos, odd skin tones and a willingness to carry a DSLR for that author&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one long-time iPhone user&#x27;s processing complaint&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_phone_processing_complaint_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;one_author_one_phone_processing_report_not_phone_category_result&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;overprocessed photos, odd skin tones and a willingness to carry a DSLR for that author&quot;,
+  &quot;predicate&quot;: &quot;reports_unwanted_processing_and_preference_for_a_dslr&quot;,
+  &quot;subject&quot;: &quot;one long-time iPhone user&#x27;s processing complaint&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_phone_processing_complaint_scope_1</code> | bytes [146, 320) | <code>b78a5fcc17c670eaebf1c1be883627d010b8682012ece2ce807b097c15fea356</code></div><pre class="context"><span>iPhone 14 Pro camera driving me insane
+
+So I have been an apple fan since the iPhone 3G, and I have almost always exclusively had apple products. </span><mark>Recently, I upgraded to the iPhone 14 pro from the 12 pro. I have so much regret, my photos always look over processed, skin tones look weird, and faces become over detailed.</mark><span> Seconds after I take a photo, be it a selfie or something with the back camera, the photo looks good (plenty of dark shadows, true to life), and then something happens with the processing that makes the photo look like this HDR nightmare. I have tried ProCamera, Lightroom, and moment, to no avail. Using RAW doesn’t even seem to make a difference. I have t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106073/iphone-14-pro-camera-driving-me-insane" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106073/iphone-14-pro-camera-driving-me-insane</a></p><p>冻结文件: <a href="sources/1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018" target="_blank">sources/1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018</a></p><p>内容 SHA-256: <code>1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_phone_use_case_request_scope"><header><h3>assert_phone_use_case_request_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an older iPhone sought for Etsy product photos after dissatisfaction with one Samsung phone&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for one older-phone product-photo request&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_phone_use_case_request_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;one_request_and_task_not_controlled_phone_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;an older iPhone sought for Etsy product photos after dissatisfaction with one Samsung phone&quot;,
+  &quot;predicate&quot;: &quot;frames_camera_choice_for_a_specific_task_and_budget&quot;,
+  &quot;subject&quot;: &quot;one older-phone product-photo request&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_phone_use_case_request_scope_1</code> | bytes [40, 326) | <code>cc15e86a3ccdb7731b88a1f05185561015296a380db896441ae024eb2078c487</code></div><pre class="context"><span>Which older model has the best camera?
+
+</span><mark>So my gf recently started an Etsy shop and since her Samsung does horrible photos she needs an iPhone with a decent camera for good looking product photos. She&#x27;s not looking for a new one, more like iphone X/11. What&#x27;s the sweet spot in terms of camera for these older models? Thanks! 2</mark><span>
+
+The 11 especially since it has night mode on the main camera.
+
+Probably the best one you can afford! They are all the same megapixel count until the latest series and otherwise are incremental improvements on each other
+
+For a sweetspot of price to photo she’d Probably be well off with a budget pixel since she’s already used to android. If shes set on </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/40999/which-older-model-has-the-best-camera" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/40999/which-older-model-has-the-best-camera</a></p><p>冻结文件: <a href="sources/111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5" target="_blank">sources/111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5</a></p><p>内容 SHA-256: <code>111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_point_shoot_simple_operation_scope"><header><h3>assert_point_shoot_simple_operation_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;automatic snapshot-oriented operation for people who may not consider themselves photographers&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for point-and-shoot camera category&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_point_shoot_simple_operation_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;category_design_intent_not_exact_device_recipient_usability&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;automatic snapshot-oriented operation for people who may not consider themselves photographers&quot;,
+  &quot;predicate&quot;: &quot;is_designed_primarily_for_simple_operation&quot;,
+  &quot;subject&quot;: &quot;point-and-shoot camera category&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_point_shoot_simple_operation_scope_1</code> | bytes [0, 177) | <code>421bacb130b2c81afa8651be8899265d28fdf08c99a5d02f1795f86a4b356260</code></div><pre class="context"><span></span><mark>A point-and-shoot camera , also known as a compact camera and sometimes abbreviated to P&amp;S , is a still camera (either film or digital ) designed primarily for simple operation.</mark><span> Most use focus free lenses or autofocus for focusing , automatic systems for setting the exposure options, and have flash units built in. They are popular for vernacular photography by people who do not consider themselves photographers but want easy-to-use cameras for snapshots of vacations, parties, reunions and other events. Most compact digital cameras </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Point-and-shoot_camera" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Point-and-shoot_camera</a></p><p>冻结文件: <a href="sources/45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac" target="_blank">sources/45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac</a></p><p>内容 SHA-256: <code>45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_review_site_authorship_scope"><header><h3>assert_review_site_authorship_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;review authorship and business context can differ&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for review sites&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_review_site_authorship_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;review_authorship_boundary_not_judgment_of_specific_seller_reviews&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;review authorship and business context can differ&quot;,
+  &quot;predicate&quot;: &quot;may_gather_user_or_professional_reviews&quot;,
+  &quot;subject&quot;: &quot;review sites&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_review_site_authorship_scope_1</code> | bytes [0, 270) | <code>62720a5dd9adeb3c8bd708dccf3a0b7efa5895c26b787be482fc91b337f6d057</code></div><pre class="context"><span></span><mark>A review site is a website on which reviews can be posted about people, businesses, products, or services. These sites may use Web 2.0 techniques to gather reviews from site users or may employ professional writers to author reviews on the topic of concern for the site.</mark><span> Early examples of review sites included ConsumerDemocracy.com, Complaints.com, planetfeedback.com, [ 1 ] Epinions.com [ 2 ] and ThatGuyWithTheGlasses.com (later rebranded to Channel Awesome in 2014). [ 3 ] Business models Review sites are generally supported by advertising. Some business review sites may also allow businesses to pay for enhanced listings, w</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Review_site" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Review_site</a></p><p>冻结文件: <a href="sources/dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374" target="_blank">sources/dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374</a></p><p>内容 SHA-256: <code>dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_self_selection_bias_scope"><header><h3>assert_self_selection_bias_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;responders may differ from nonresponders for reasons tied to joining the group&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for self-selection bias&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_self_selection_bias_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;sampling_boundary_not_proof_that_any_specific_rating_is_false&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;responders may differ from nonresponders for reasons tied to joining the group&quot;,
+  &quot;predicate&quot;: &quot;can_make_a_self_selected_group_a_biased_sample&quot;,
+  &quot;subject&quot;: &quot;self-selection bias&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_self_selection_bias_scope_1</code> | bytes [95, 263) | <code>a0680570b4bf27b6985841ac4a5d6b6d236f86fd87eee729fb228ed0f69cd0cc</code></div><pre class="context"><span>&quot;Self-selection&quot; redirects here. For the economic term, see Self-selection (labor economics) . </span><mark>In statistics , self-selection bias arises in any situation in which individuals select themselves into a group , causing a biased sample with nonprobability sampling .</mark><span>  It is commonly used to describe situations where the characteristics of the people which cause them to select themselves in the group create abnormal or undesirable conditions in the group.  It is closely related to the non-response bias , describing when the group of people responding has different responses than the group of people not responding. Self-s</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Self-selection_bias" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Self-selection_bias</a></p><p>冻结文件: <a href="sources/fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232" target="_blank">sources/fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232</a></p><p>内容 SHA-256: <code>fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_shutter_lag_scope"><header><h3>assert_shutter_lag_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;including focus and metering lag and therefore relevant to timing moving subjects&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for shutter lag&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_shutter_lag_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_timing_mechanism_not_exact_model_measurement&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;including focus and metering lag and therefore relevant to timing moving subjects&quot;,
+  &quot;predicate&quot;: &quot;is_the_delay_from_trigger_to_recorded_photo&quot;,
+  &quot;subject&quot;: &quot;shutter lag&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_shutter_lag_scope_1</code> | bytes [0, 247) | <code>02097bf0433a927f0d26918c302503e6c9cf97a91485202eeb6cee6547789719</code></div><pre class="context"><span></span><mark>In photography , shutter lag is the delay between triggering the shutter and when the photograph is actually recorded, which includes all lag between when the shutter button is pressed and when the photo is taken, including metering and focus lag.</mark><span> it can be mitigated to an extent by pre-focusing and readying for action. [ 1 ] Film cameras In film cameras , the delay is caused by the mechanism inside the camera that opens the shutter , exposing the film. Because the process is mechanical, however, and relatively brief, shutter lag in film cameras is often only noticeable (and of any concern) to profes</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Shutter_lag" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Shutter_lag</a></p><p>冻结文件: <a href="sources/1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780" target="_blank">sources/1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780</a></p><p>内容 SHA-256: <code>1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_sony_dscw80_offer_scope"><header><h3>assert_sony_dscw80_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B000M4KXF6 at 49.95 dollars with a 91-percent aggregate over eleven reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Sony DSC-W80 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_sony_dscw80_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_condition_usability_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;SKU B000M4KXF6 at 49.95 dollars with a 91-percent aggregate over eleven reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Sony DSC-W80 seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_sony_dscw80_offer_scope_1</code> | bytes [108, 233) | <code>b4a89b9d22cfe61a8497215243e9346ba6be125507cc45c28464c64c9ff14b71</code></div><pre class="context"><span>Sony Cybershot DSCW80 7.2MP Digital Camera with 3x Optical Zoom and Super Steady Shot (Silver) (OLD MODEL)
+
+</span><mark>In stock SKU B000M4KXF6 Rating: 91 % of 100 11 Reviews Add Your Review $49.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The 7.2-megapixel Sony Cyber-shot DSC-W80 camera captures the magic of life with an advanced Bionz processor that powers new capabilities like Face Detection, in-camera retouching and red-eye reduction, D-Range Optimization, and 9-Point AF. The Sony Double Anti-Blur Solution combines Super SteadyShot optical image stabilization w</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/sony-cybershot-dscw80-7-2mp-digital-camera-with-3x-optical-zoom-and-super-steady-shot-silver-old-model.html" target="_blank" rel="noreferrer">http://localhost:7770/sony-cybershot-dscw80-7-2mp-digital-camera-with-3x-optical-zoom-and-super-steady-shot-silver-old-model.html</a></p><p>冻结文件: <a href="sources/15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f" target="_blank">sources/15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f</a></p><p>内容 SHA-256: <code>15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_sony_w800_offer_scope"><header><h3>assert_sony_w800_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B074DZM1J2 at 199 dollars with a 78-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Sony W800 bundle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_sony_w800_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_bundle_fields_not_current_contents_condition_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;SKU B074DZM1J2 at 199 dollars with a 78-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Sony W800 bundle seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_sony_w800_offer_scope_1</code> | bytes [90, 216) | <code>c3de9594d0c6182eacbe77fc8385ff3400cccf884ae18689ae0c9106af6fd9d9</code></div><pre class="context"><span>Sony Cyber-Shot DSC-W800 Digital Camera (Black) + Deal-Expo Essential Accessories Bundle
+
+</span><mark>In stock SKU B074DZM1J2 Rating: 78 % of 100 12 Reviews Add Your Review $199.00 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The lightweight, Black Sony DSC-W800 Digital Camera is a compact point and shoot that features 20.1 megapixels inside the 1/2.3&quot; Super HAD CCD sensor, and has a professional Sony 5x optical zoom lens with a 35mm equivalent focal length of 26-130mm. A bright 2.7&quot; Clear Photo LCD 230k-dot monitor at the back allows you to clearly v</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/sony-cyber-shot-dsc-w800-digital-camera-black-deal-expo-essential-accessories-bundle.html" target="_blank" rel="noreferrer">http://localhost:7770/sony-cyber-shot-dsc-w800-digital-camera-black-deal-expo-essential-accessories-bundle.html</a></p><p>冻结文件: <a href="sources/a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823" target="_blank">sources/a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823</a></p><p>内容 SHA-256: <code>a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_star_rating_scale_scope"><header><h3>assert_star_rating_scale_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;symbols used by reviewers to rank things rather than a standardized camera performance test&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for star ratings&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_star_rating_scale_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;rating_scale_definition_not_star_distribution_or_quality_probability&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;symbols used by reviewers to rank things rather than a standardized camera performance test&quot;,
+  &quot;predicate&quot;: &quot;are_a_rating_scale&quot;,
+  &quot;subject&quot;: &quot;star ratings&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_star_rating_scale_scope_1</code> | bytes [216, 307) | <code>357c99fb6c257a91288c31753b4fc3c52f981da9fdaaa1e3197fc9090ad87f41</code></div><pre class="context"><span>This article is about the quality rating system. For classifications of astrophysical stars, see stellar classification . &quot;Star rating&quot; redirects here. For the similar STAR rating electoral system, see STAR voting . </span><mark>Star ratings are a type of rating scale using a star symbol or similar typographical mark .</mark><span> [ a ] It is used by reviewers for ranking things such as films, TV shows, restaurants, and hotels. For example, a system of one to five stars is commonly used in hotel ratings , with five stars being the highest rating. Similar systems have been proposed for electing politicians in the form of score voting and STAR voting . Historical usage Repeated symbols</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Star_(classification)" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Star_(classification)</a></p><p>冻结文件: <a href="sources/00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52" target="_blank">sources/00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52</a></p><p>内容 SHA-256: <code>00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_usability_testing_scope"><header><h3>assert_usability_testing_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;intended users perform intended tasks rather than merely state opinions&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for usability testing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_usability_testing_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;task_observation_method_not_preexisting_camera_result&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;object&quot;: &quot;intended users perform intended tasks rather than merely state opinions&quot;,
+  &quot;predicate&quot;: &quot;evaluates_a_product_by_observing_real_users&quot;,
+  &quot;subject&quot;: &quot;usability testing&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_usability_testing_scope_1</code> | bytes [0, 119) | <code>0d8a820c1f7c70cc5eb30fb5d6d845d0365e2d631859565b57b3375ad649cc81</code></div><pre class="context"><span></span><mark>Usability testing is a technique used in user-centered interaction design to evaluate a product by testing it on users.</mark><span> This can be seen as an irreplaceable usability practice, since it gives direct input on how real users use the system. [ 1 ] It is more concerned with the design intuitiveness of the product and tested with users who have no prior exposure to it. Such testing is paramount to the success of an end product as a fully functioning application that creates confu</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Usability_testing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Usability_testing</a></p><p>冻结文件: <a href="sources/e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594" target="_blank">sources/e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594</a></p><p>内容 SHA-256: <code>e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_canon_elph300_offer_scope"><header><h3>prop_canon_elph300_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B004J41T7Q at 129.95 dollars with an 82-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Canon ELPH 300 HS seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_canon_elph300_offer_scope_1</code> | bytes [60, 202) | <code>c2585aa47b982de7accd4699ddf8aa54cf4f07fb2859d27006ddfd7668f3ed34</code></div><pre class="context"><span>Canon PowerShot ELPH 300 HS 12.1 MP Digital Camera (Black)
+
+</span><mark>In stock SKU B004J41T7Q Rating: 82 % of 100 12 Reviews Add Your Review $129.95 Color Black Red Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The Canon 5096B001 PowerShot ELPH 300 HS Black 12MP Digital Camera with 5x Zoom and 2.7 In. LCD Display has a slim profile that will not only make you stand out from the crowd, but it will also deliver incredibly brilliant still images and amazing 1080p HD videos. Once you turn on the camera, be prepared to be amazed at how much </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/canon-powershot-elph-300-hs-12-1-mp-digital-camera-black.html" target="_blank" rel="noreferrer">http://localhost:7770/canon-powershot-elph-300-hs-12-1-mp-digital-camera-black.html</a></p><p>冻结文件: <a href="sources/9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf" target="_blank">sources/9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf</a></p><p>内容 SHA-256: <code>9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_variant_condition_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Canon ELPH 300 HS page shows SKU B004J41T7Q at 129.95 dollars with an 82-percent aggregate over twelve reviews and color choices. It does not verify the selected current variant, delivered condition, reviewer tasks, recipient usability or performance.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_hp_m447_offer_scope"><header><h3>prop_hp_m447_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B0018N637W at 60.61 dollars with a 100-percent aggregate over four reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen HP M447 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_hp_m447_offer_scope_1</code> | bytes [69, 194) | <code>32b97bcf3cc96f40a7bcecfdc0c98df3237214c9f12d14973230fca6acdaa558</code></div><pre class="context"><span>HP M447 Photosmart Compact Photo Studio Digital Camera with Printer
+
+</span><mark>In stock SKU B0018N637W Rating: 100 % of 100 4 Reviews Add Your Review $60.61 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Brand new in HP manufacture retail box. Camera TypePoint &amp; ShootDigital Zoom5xSensor Resolution 5.0 MPScreen Size2.4&quot; Optical SensorSensor Size1/2.5&quot;Sensor Type CCD Screen Size2.4&quot; Optical SensorSensor Size1/2.5&quot;Sensor Type CCD SystemMacro Focus Range10-80cmFocus Adjustment Automatic Auto Focus typeTTL contrast detectionFocal Len</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hp-m447-photosmart-compact-photo-studio-digital-camera-with-printer.html" target="_blank" rel="noreferrer">http://localhost:7770/hp-m447-photosmart-compact-photo-studio-digital-camera-with-printer.html</a></p><p>冻结文件: <a href="sources/5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d" target="_blank">sources/5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d</a></p><p>内容 SHA-256: <code>5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_bundle_condition_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen HP M447 page shows SKU B0018N637W at 60.61 dollars with a 100-percent aggregate over only four reviews. It does not prove a five-star distribution, current camera-and-printer contents, delivered condition, usability or image quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_image_quality_assessment_scope"><header><h3>prop_image_quality_assessment_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;subjective and objective assessments can disagree and require declared outputs&quot;,
+  &quot;predicate&quot;: &quot;has_system_accuracy_and_perceptual_assessment_forms&quot;,
+  &quot;subject&quot;: &quot;image quality&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_image_quality_assessment_scope_1</code> | bytes [174, 305) | <code>4bb4767e1e4eeed572f4013776cb4e9e6873f4d56018796ba986939b0ee94339</code></div><pre class="context"><span>Image quality can refer to the level of accuracy with which different imaging systems capture, process, store, compress, transmit and display the signals that form an image. </span><mark>Another definition refers to image quality as &quot;the weighted combination of all of the visually significant attributes of an image&quot;.</mark><span> [ 1 ] :â598â The difference between the two definitions is that one focuses on the characteristics of signal processing in different imaging systems and the latter on the perceptual assessments that make an image pleasant for human viewers. Image quality should not be mistaken with image fidelity . Image fidelity refers to the ability of a process</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_image_quality_assessment_scope_2</code> | bytes [1027, 1101) | <code>a3b153ee3b875b97049d949bc39e1e60927b470bc59036e9036681a874428ffb</code></div><pre class="context"><span>o render a given copy in a perceptually similar way to the original (without distortion or information loss), i.e., through a digitization or conversion process from analog media to digital image. The process of determining the level of accuracy is called Image Quality Assessment (IQA). Image quality assessment is part of the quality of experience measures. </span><mark>Image quality can be assessed using two methods: subjective and objective.</mark><span> Subjective methods are based on the perceptual assessment of a human viewer about the attributes of an image or set of images, while objective methods are based on computational models that can predict perceptual image quality. [ 2 ] :âviiâ Objective and subjective methods aren&#x27;t necessarily consistent or accurate between each other: a human viewe</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_image_quality_assessment_scope_3</code> | bytes [1353, 1563) | <code>c0ff31068eb17320d5ab1cc14d84cb51e0f6db7669eb2bd4e960014f033ccf8d</code></div><pre class="context"><span>e quality of experience measures. Image quality can be assessed using two methods: subjective and objective. Subjective methods are based on the perceptual assessment of a human viewer about the attributes of an image or set of images, while objective methods are based on computational models that can predict perceptual image quality. [ 2 ] :âviiâ </span><mark>Objective and subjective methods aren&#x27;t necessarily consistent or accurate between each other: a human viewer might perceive stark differences in quality in a set of images where a computer algorithm might not.</mark><span> Subjective methods are costly, require a large number of people, and are impossible to automate in real-time. Therefore, the goal of image quality assessment research is to design algorithms for objective assessment that are also consistent with subjective assessments. [ 3 ] The development of such algorithms has a lot of potential applications. They can be</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Image_quality" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Image_quality</a></p><p>冻结文件: <a href="sources/ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c" target="_blank">sources/ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c</a></p><p>内容 SHA-256: <code>ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;assessment_framework_not_exact_camera_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Image quality can concern visually significant attributes and can be assessed subjectively or objectively, with possible disagreement. A comparison therefore needs declared screen or print output, size and task rather than an undefined universal quality label.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_kodak_dx4530_offer_scope"><header><h3>prop_kodak_dx4530_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B0000APONO at 47.45 dollars with a 75-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Kodak DX4530 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_kodak_dx4530_offer_scope_1</code> | bytes [62, 187) | <code>e47743fb7e9601b69e5951e4e24cac3e9f2488b18e9ae4d7caebd65e8ac63269</code></div><pre class="context"><span>Kodak EasyShare DX4530 5MP Digital Camera w/ 3x Optical Zoom
+
+</span><mark>In stock SKU B0000APONO Rating: 75 % of 100 12 Reviews Add Your Review $47.45 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The award-winning EasyShare system now offers exceptional image quality with this Kodak EasyShare 5MP Digital Camera. The 5.0 megapixel sensor creates 2588x1954 images for high-resolution prints up to poster size. Features: 3x optical zoom and 3.3x digital zoom for 10x total; 32 MB internal memory with slot for adding MMC and SD </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/kodak-easyshare-dx4530-5mp-digital-camera-w-3x-optical-zoom.html" target="_blank" rel="noreferrer">http://localhost:7770/kodak-easyshare-dx4530-5mp-digital-camera-w-3x-optical-zoom.html</a></p><p>冻结文件: <a href="sources/6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc" target="_blank">sources/6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc</a></p><p>内容 SHA-256: <code>6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_condition_usability_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Kodak DX4530 page shows SKU B0000APONO at 47.45 dollars with a 75-percent aggregate over twelve reviews. Those fields do not reveal current condition, star distribution, reviewer use cases, lens behavior or suitability for the mother.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_optical_aberration_scope"><header><h3>prop_optical_aberration_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;real optical systems can blur distort or fringe an image&quot;,
+  &quot;predicate&quot;: &quot;can_depart_from_ideal_image_formation&quot;,
+  &quot;subject&quot;: &quot;optical aberration&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_optical_aberration_scope_1</code> | bytes [0, 201) | <code>fffb8249f10aaab0390f5633ba3a32e9d7b2ff13e62b2c443d7c844d128c0041</code></div><pre class="context"><span></span><mark>In optics , aberration is a property of optical systems, such as lenses and mirrors , that causes the image created by the optical system to not be a faithful reproduction of the object being observed.</mark><span> Aberrations cause the image formed by a lens to be blurred, distorted in shape or have color fringing or other effects not seen in the object, with the nature of the distortion depending on the type of aberration. Aberration can be defined as a departure of the performance of an optical system from the predictions of paraxial optics . [ 1 ] In an imaging sy</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_optical_aberration_scope_2</code> | bytes [202, 415) | <code>ec8c11bb1ca4d43c20a62a11f4df849d9a3e0b475612dd6df5a0b24ed373e346</code></div><pre class="context"><span>In optics , aberration is a property of optical systems, such as lenses and mirrors , that causes the image created by the optical system to not be a faithful reproduction of the object being observed. </span><mark>Aberrations cause the image formed by a lens to be blurred, distorted in shape or have color fringing or other effects not seen in the object, with the nature of the distortion depending on the type of aberration.</mark><span> Aberration can be defined as a departure of the performance of an optical system from the predictions of paraxial optics . [ 1 ] In an imaging system, it occurs when light from one point of an object does not converge into (or does not diverge from) a single point after transmission through the system. Aberrations occur because the simple paraxial theory is</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Optical_aberration" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Optical_aberration</a></p><p>冻结文件: <a href="sources/740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427" target="_blank">sources/740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427</a></p><p>内容 SHA-256: <code>740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_lens_mechanism_not_exact_unit_diagnosis&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Optical aberrations can make a lens image blurred, distorted or color-fringed. This explains one legitimate enthusiast test dimension but cannot diagnose an exact seller unit or prove that every inexpensive compact has a soft lens.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_phone_positive_experience_scope"><header><h3>prop_phone_positive_experience_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;near-instant use, pleasing photos, easy editing and strong low-light experience for that author&quot;,
+  &quot;predicate&quot;: &quot;reports_fast_easy_and_pleasing_results&quot;,
+  &quot;subject&quot;: &quot;one Android switcher&#x27;s iPhone camera report&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_phone_positive_experience_scope_1</code> | bytes [3751, 4093) | <code>039a21f54a5762a1fce75cf23dab070ef5a774b0b4ac0b522e6d4f1d0611a1c6</code></div><pre class="context"><span>ps, home, gmail, photos, etc.) and even those apps seem to run just as well on my iPhone as they did on my Android. Also, Apple specific apps like the Wallet seem to be better implemented than something like Google Pay. I use the Wallet app all the time. I almost never used Google Pay. The camera. This is another universally known feature at this point too. </span><mark>The camera is excellent. It&#x27;s near instantaneous to use, the photos look fantastic, editing is quick and easy, Pro Raw is a cool feature I&#x27;m far too inexperienced to get any value out of, but I appreciate anyway, the low light performance is insanely good, video in HDR is incredible, and swapping between zoom levels is extremely smooth too.</mark><span> There&#x27;s almost nothing I can think that I don&#x27;t enjoy or like about the camera. Across the board, it&#x27;s been a great experience, and provides great quality. Face ID. Holy crap is this nice. Crazy fast, very secure, and you can use it for basically anything. Love Love Love. Fingerprints are dumb now. Now the Mid stuff (These aren&#x27;t inherently negative, just a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/41144/an-android-users-opinions-of-the-iphone-14-pro-max" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/41144/an-android-users-opinions-of-the-iphone-14-pro-max</a></p><p>冻结文件: <a href="sources/d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca" target="_blank">sources/d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca</a></p><p>内容 SHA-256: <code>d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;one_author_one_phone_experience_not_compact_phone_benchmark&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One experienced Android switcher describes an iPhone camera as near-instantaneous, pleasing and easy to edit. This is a scoped personal report, not a test of the mother&#x27;s phone or any captured compact.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_phone_processing_complaint_scope"><header><h3>prop_phone_processing_complaint_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;overprocessed photos, odd skin tones and a willingness to carry a DSLR for that author&quot;,
+  &quot;predicate&quot;: &quot;reports_unwanted_processing_and_preference_for_a_dslr&quot;,
+  &quot;subject&quot;: &quot;one long-time iPhone user&#x27;s processing complaint&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_phone_processing_complaint_scope_1</code> | bytes [146, 320) | <code>b78a5fcc17c670eaebf1c1be883627d010b8682012ece2ce807b097c15fea356</code></div><pre class="context"><span>iPhone 14 Pro camera driving me insane
+
+So I have been an apple fan since the iPhone 3G, and I have almost always exclusively had apple products. </span><mark>Recently, I upgraded to the iPhone 14 pro from the 12 pro. I have so much regret, my photos always look over processed, skin tones look weird, and faces become over detailed.</mark><span> Seconds after I take a photo, be it a selfie or something with the back camera, the photo looks good (plenty of dark shadows, true to life), and then something happens with the processing that makes the photo look like this HDR nightmare. I have tried ProCamera, Lightroom, and moment, to no avail. Using RAW doesn’t even seem to make a difference. I have t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_phone_processing_complaint_scope_2</code> | bytes [1359, 1435) | <code>9b243a9afdf43fc4b8d78211927f2120a013c683d39ba718a63bad39e09f1b9d</code></div><pre class="context"><span>his difficult to get a nice contrast rich photo. It’s driving me insane, and I am on the verge of switching to a pixel or downgrading to an 11 pro or 12 pro. If anyone here is dealing with this issue, mostly cause I feel crazy, please let me know. I can’t be the only one who feels like this camera update has been the worst thing apple has moved towards. </span><mark>I am to the point that I would rather lug around a DSLR than deal with this.</mark><span> 92
+
+I made the switch from a S22 to a 14 pro and I feel the same about the camera
+
+Get the s23 ultra. It’s perfect
+
+I feel the same way, it’s especially irritating how they look perfect for the first 0.5 seconds. It’s not even just photos, if I record a video on the front facing camera I end up looking like I’ve applied a heavy Instagram filter. I d</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/106073/iphone-14-pro-camera-driving-me-insane" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/106073/iphone-14-pro-camera-driving-me-insane</a></p><p>冻结文件: <a href="sources/1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018" target="_blank">sources/1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018</a></p><p>内容 SHA-256: <code>1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;one_author_one_phone_processing_report_not_phone_category_result&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One long-time iPhone user reports objectionable processing, skin tones and detail and says a DSLR would be preferable. The report is author-, device- and time-scoped and cannot establish that phones generally fail or that a cheap compact solves the complaint.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_phone_use_case_request_scope"><header><h3>prop_phone_use_case_request_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an older iPhone sought for Etsy product photos after dissatisfaction with one Samsung phone&quot;,
+  &quot;predicate&quot;: &quot;frames_camera_choice_for_a_specific_task_and_budget&quot;,
+  &quot;subject&quot;: &quot;one older-phone product-photo request&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_phone_use_case_request_scope_1</code> | bytes [40, 326) | <code>cc15e86a3ccdb7731b88a1f05185561015296a380db896441ae024eb2078c487</code></div><pre class="context"><span>Which older model has the best camera?
+
+</span><mark>So my gf recently started an Etsy shop and since her Samsung does horrible photos she needs an iPhone with a decent camera for good looking product photos. She&#x27;s not looking for a new one, more like iphone X/11. What&#x27;s the sweet spot in terms of camera for these older models? Thanks! 2</mark><span>
+
+The 11 especially since it has night mode on the main camera.
+
+Probably the best one you can afford! They are all the same megapixel count until the latest series and otherwise are incremental improvements on each other
+
+For a sweetspot of price to photo she’d Probably be well off with a budget pixel since she’s already used to android. If shes set on </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/40999/which-older-model-has-the-best-camera" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/40999/which-older-model-has-the-best-camera</a></p><p>冻结文件: <a href="sources/111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5" target="_blank">sources/111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5</a></p><p>内容 SHA-256: <code>111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;one_request_and_task_not_controlled_phone_ranking&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One author seeks an older iPhone for Etsy product photos after dissatisfaction with a Samsung phone. The request shows that camera judgments are tied to an actual device, task and budget; it is not a controlled ranking or a result for garden and grandchildren snapshots.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_point_shoot_simple_operation_scope"><header><h3>prop_point_shoot_simple_operation_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;automatic snapshot-oriented operation for people who may not consider themselves photographers&quot;,
+  &quot;predicate&quot;: &quot;is_designed_primarily_for_simple_operation&quot;,
+  &quot;subject&quot;: &quot;point-and-shoot camera category&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_point_shoot_simple_operation_scope_1</code> | bytes [0, 177) | <code>421bacb130b2c81afa8651be8899265d28fdf08c99a5d02f1795f86a4b356260</code></div><pre class="context"><span></span><mark>A point-and-shoot camera , also known as a compact camera and sometimes abbreviated to P&amp;S , is a still camera (either film or digital ) designed primarily for simple operation.</mark><span> Most use focus free lenses or autofocus for focusing , automatic systems for setting the exposure options, and have flash units built in. They are popular for vernacular photography by people who do not consider themselves photographers but want easy-to-use cameras for snapshots of vacations, parties, reunions and other events. Most compact digital cameras </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_point_shoot_simple_operation_scope_2</code> | bytes [316, 507) | <code>3ad670f379cc5135afa5326f5a9a74ebf6abe4893318213eebb5286ac580a876</code></div><pre class="context"><span>A point-and-shoot camera , also known as a compact camera and sometimes abbreviated to P&amp;S , is a still camera (either film or digital ) designed primarily for simple operation. Most use focus free lenses or autofocus for focusing , automatic systems for setting the exposure options, and have flash units built in. </span><mark>They are popular for vernacular photography by people who do not consider themselves photographers but want easy-to-use cameras for snapshots of vacations, parties, reunions and other events.</mark><span> Most compact digital cameras use small 1/2.3-type (â1/2.3-inchâ) image sensors , but since 2008, a few non-interchangeable lens compact cameras use a larger sensor such as 1.0-type (â1-inchâ), APS-C (e.g. Fujifilm X100 series), or even full frame (e.g. Sony RX1 series). [ 1 ] Most models prioritize being operated in auto mode, but some h</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Point-and-shoot_camera" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Point-and-shoot_camera</a></p><p>冻结文件: <a href="sources/45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac" target="_blank">sources/45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac</a></p><p>内容 SHA-256: <code>45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;category_design_intent_not_exact_device_recipient_usability&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The point-and-shoot category is designed primarily for simple operation and easy snapshots by non-photographers, often with automatic systems. This is design intent, not proof that an exact old or bundled unit is easy and reliable for the intended recipient.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_review_site_authorship_scope"><header><h3>prop_review_site_authorship_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;review authorship and business context can differ&quot;,
+  &quot;predicate&quot;: &quot;may_gather_user_or_professional_reviews&quot;,
+  &quot;subject&quot;: &quot;review sites&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_review_site_authorship_scope_1</code> | bytes [0, 270) | <code>62720a5dd9adeb3c8bd708dccf3a0b7efa5895c26b787be482fc91b337f6d057</code></div><pre class="context"><span></span><mark>A review site is a website on which reviews can be posted about people, businesses, products, or services. These sites may use Web 2.0 techniques to gather reviews from site users or may employ professional writers to author reviews on the topic of concern for the site.</mark><span> Early examples of review sites included ConsumerDemocracy.com, Complaints.com, planetfeedback.com, [ 1 ] Epinions.com [ 2 ] and ThatGuyWithTheGlasses.com (later rebranded to Channel Awesome in 2014). [ 3 ] Business models Review sites are generally supported by advertising. Some business review sites may also allow businesses to pay for enhanced listings, w</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Review_site" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Review_site</a></p><p>冻结文件: <a href="sources/dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374" target="_blank">sources/dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374</a></p><p>内容 SHA-256: <code>dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;review_authorship_boundary_not_judgment_of_specific_seller_reviews&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Review sites can gather reviews from site users or employ professional writers. This supports separating retailer users from professional or enthusiast evaluators and does not establish the reliability or criteria of the five exact seller aggregates.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_self_selection_bias_scope"><header><h3>prop_self_selection_bias_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;responders may differ from nonresponders for reasons tied to joining the group&quot;,
+  &quot;predicate&quot;: &quot;can_make_a_self_selected_group_a_biased_sample&quot;,
+  &quot;subject&quot;: &quot;self-selection bias&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_self_selection_bias_scope_1</code> | bytes [95, 263) | <code>a0680570b4bf27b6985841ac4a5d6b6d236f86fd87eee729fb228ed0f69cd0cc</code></div><pre class="context"><span>&quot;Self-selection&quot; redirects here. For the economic term, see Self-selection (labor economics) . </span><mark>In statistics , self-selection bias arises in any situation in which individuals select themselves into a group , causing a biased sample with nonprobability sampling .</mark><span>  It is commonly used to describe situations where the characteristics of the people which cause them to select themselves in the group create abnormal or undesirable conditions in the group.  It is closely related to the non-response bias , describing when the group of people responding has different responses than the group of people not responding. Self-s</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_self_selection_bias_scope_2</code> | bytes [456, 616) | <code>06dd28394365ae35e4368a782ae35b14e326c0ce3f59db5d97db6dcaaab9bfe9</code></div><pre class="context"><span>n statistics , self-selection bias arises in any situation in which individuals select themselves into a group , causing a biased sample with nonprobability sampling .  It is commonly used to describe situations where the characteristics of the people which cause them to select themselves in the group create abnormal or undesirable conditions in the group.  </span><mark>It is closely related to the non-response bias , describing when the group of people responding has different responses than the group of people not responding.</mark><span> Self-selection bias is a major problem in research in sociology , psychology , economics and many other social sciences . [ 1 ] In such fields, a poll suffering from such bias is termed a self-selected listener opinion poll or &quot;SLOP&quot;. [ 2 ] The term is also used in criminology to describe the process by which specific predispositions may lead an offender to</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Self-selection_bias" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Self-selection_bias</a></p><p>冻结文件: <a href="sources/fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232" target="_blank">sources/fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232</a></p><p>内容 SHA-256: <code>fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;sampling_boundary_not_proof_that_any_specific_rating_is_false&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Self-selection can make a participating group differ from nonparticipants or nonresponders. This limits transfer from page reviewers to all buyers or this mother, but it does not prove that any particular review or aggregate is false.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_shutter_lag_scope"><header><h3>prop_shutter_lag_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;including focus and metering lag and therefore relevant to timing moving subjects&quot;,
+  &quot;predicate&quot;: &quot;is_the_delay_from_trigger_to_recorded_photo&quot;,
+  &quot;subject&quot;: &quot;shutter lag&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_shutter_lag_scope_1</code> | bytes [0, 247) | <code>02097bf0433a927f0d26918c302503e6c9cf97a91485202eeb6cee6547789719</code></div><pre class="context"><span></span><mark>In photography , shutter lag is the delay between triggering the shutter and when the photograph is actually recorded, which includes all lag between when the shutter button is pressed and when the photo is taken, including metering and focus lag.</mark><span> it can be mitigated to an extent by pre-focusing and readying for action. [ 1 ] Film cameras In film cameras , the delay is caused by the mechanism inside the camera that opens the shutter , exposing the film. Because the process is mechanical, however, and relatively brief, shutter lag in film cameras is often only noticeable (and of any concern) to profes</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_shutter_lag_scope_2</code> | bytes [248, 321) | <code>4e21a342a65a356a3a009f9f597b6add6e631262b83f1a714f90117422297916</code></div><pre class="context"><span>In photography , shutter lag is the delay between triggering the shutter and when the photograph is actually recorded, which includes all lag between when the shutter button is pressed and when the photo is taken, including metering and focus lag. </span><mark>it can be mitigated to an extent by pre-focusing and readying for action.</mark><span> [ 1 ] Film cameras In film cameras , the delay is caused by the mechanism inside the camera that opens the shutter , exposing the film. Because the process is mechanical, however, and relatively brief, shutter lag in film cameras is often only noticeable (and of any concern) to professionals. SLRs have a slight additional lag due to the time it takes to mov</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Shutter_lag" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Shutter_lag</a></p><p>冻结文件: <a href="sources/1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780" target="_blank">sources/1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780</a></p><p>内容 SHA-256: <code>1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_timing_mechanism_not_exact_model_measurement&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Shutter lag is the delay between triggering and recording a photograph, including focus and metering lag, and can matter for moving grandchildren. The page provides no exact lag or failure rate for a captured unit.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_sony_dscw80_offer_scope"><header><h3>prop_sony_dscw80_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B000M4KXF6 at 49.95 dollars with a 91-percent aggregate over eleven reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Sony DSC-W80 seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_sony_dscw80_offer_scope_1</code> | bytes [108, 233) | <code>b4a89b9d22cfe61a8497215243e9346ba6be125507cc45c28464c64c9ff14b71</code></div><pre class="context"><span>Sony Cybershot DSCW80 7.2MP Digital Camera with 3x Optical Zoom and Super Steady Shot (Silver) (OLD MODEL)
+
+</span><mark>In stock SKU B000M4KXF6 Rating: 91 % of 100 11 Reviews Add Your Review $49.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The 7.2-megapixel Sony Cyber-shot DSC-W80 camera captures the magic of life with an advanced Bionz processor that powers new capabilities like Face Detection, in-camera retouching and red-eye reduction, D-Range Optimization, and 9-Point AF. The Sony Double Anti-Blur Solution combines Super SteadyShot optical image stabilization w</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/sony-cybershot-dscw80-7-2mp-digital-camera-with-3x-optical-zoom-and-super-steady-shot-silver-old-model.html" target="_blank" rel="noreferrer">http://localhost:7770/sony-cybershot-dscw80-7-2mp-digital-camera-with-3x-optical-zoom-and-super-steady-shot-silver-old-model.html</a></p><p>冻结文件: <a href="sources/15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f" target="_blank">sources/15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f</a></p><p>内容 SHA-256: <code>15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_fields_not_current_condition_usability_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Sony DSC-W80 page shows SKU B000M4KXF6 at 49.95 dollars with a 91-percent aggregate over eleven reviews. This is a page-bound seller field, not proof of current delivered condition, representative satisfaction, ease for the mother, lens quality or superiority to her phone.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_sony_w800_offer_scope"><header><h3>prop_sony_w800_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B074DZM1J2 at 199 dollars with a 78-percent aggregate over twelve reviews&quot;,
+  &quot;predicate&quot;: &quot;shows_page_bound_rating_review_count_and_price&quot;,
+  &quot;subject&quot;: &quot;frozen Sony W800 bundle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_sony_w800_offer_scope_1</code> | bytes [90, 216) | <code>c3de9594d0c6182eacbe77fc8385ff3400cccf884ae18689ae0c9106af6fd9d9</code></div><pre class="context"><span>Sony Cyber-Shot DSC-W800 Digital Camera (Black) + Deal-Expo Essential Accessories Bundle
+
+</span><mark>In stock SKU B074DZM1J2 Rating: 78 % of 100 12 Reviews Add Your Review $199.00 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The lightweight, Black Sony DSC-W800 Digital Camera is a compact point and shoot that features 20.1 megapixels inside the 1/2.3&quot; Super HAD CCD sensor, and has a professional Sony 5x optical zoom lens with a 35mm equivalent focal length of 26-130mm. A bright 2.7&quot; Clear Photo LCD 230k-dot monitor at the back allows you to clearly v</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/sony-cyber-shot-dsc-w800-digital-camera-black-deal-expo-essential-accessories-bundle.html" target="_blank" rel="noreferrer">http://localhost:7770/sony-cyber-shot-dsc-w800-digital-camera-black-deal-expo-essential-accessories-bundle.html</a></p><p>冻结文件: <a href="sources/a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823" target="_blank">sources/a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823</a></p><p>内容 SHA-256: <code>a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_bundle_fields_not_current_contents_condition_or_performance&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Sony W800 bundle page shows SKU B074DZM1J2 at 199 dollars with a 78-percent aggregate over twelve reviews. It does not verify current accessory contents, delivered condition, reviewer criteria, ease or output advantage.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_star_rating_scale_scope"><header><h3>prop_star_rating_scale_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;symbols used by reviewers to rank things rather than a standardized camera performance test&quot;,
+  &quot;predicate&quot;: &quot;are_a_rating_scale&quot;,
+  &quot;subject&quot;: &quot;star ratings&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_star_rating_scale_scope_1</code> | bytes [216, 307) | <code>357c99fb6c257a91288c31753b4fc3c52f981da9fdaaa1e3197fc9090ad87f41</code></div><pre class="context"><span>This article is about the quality rating system. For classifications of astrophysical stars, see stellar classification . &quot;Star rating&quot; redirects here. For the similar STAR rating electoral system, see STAR voting . </span><mark>Star ratings are a type of rating scale using a star symbol or similar typographical mark .</mark><span> [ a ] It is used by reviewers for ranking things such as films, TV shows, restaurants, and hotels. For example, a system of one to five stars is commonly used in hotel ratings , with five stars being the highest rating. Similar systems have been proposed for electing politicians in the form of score voting and STAR voting . Historical usage Repeated symbols</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_star_rating_scale_scope_2</code> | bytes [407, 527) | <code>07da77ab4f25a558cbe61c79cb9a1e83259d9122bb62185becd83a78ab8f3372</code></div><pre class="context"><span>. For classifications of astrophysical stars, see stellar classification . &quot;Star rating&quot; redirects here. For the similar STAR rating electoral system, see STAR voting . Star ratings are a type of rating scale using a star symbol or similar typographical mark . [ a ] It is used by reviewers for ranking things such as films, TV shows, restaurants, and hotels. </span><mark>For example, a system of one to five stars is commonly used in hotel ratings , with five stars being the highest rating.</mark><span> Similar systems have been proposed for electing politicians in the form of score voting and STAR voting . Historical usage Repeated symbols used for a ranking date to Mariana Starke &#x27;s 1820 guidebook, which used exclamation points to indicate works of art of special value: ...I have endeavored... to furnish Travellers with correct lists of the objects best </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Star_(classification)" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Star_(classification)</a></p><p>冻结文件: <a href="sources/00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52" target="_blank">sources/00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52</a></p><p>内容 SHA-256: <code>00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;rating_scale_definition_not_star_distribution_or_quality_probability&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A star rating is a rating scale used by reviewers. The definition does not turn a seller aggregate into a known five-star distribution, representative probability, optical benchmark or recipient-specific fit result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_usability_testing_scope"><header><h3>prop_usability_testing_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;intended users perform intended tasks rather than merely state opinions&quot;,
+  &quot;predicate&quot;: &quot;evaluates_a_product_by_observing_real_users&quot;,
+  &quot;subject&quot;: &quot;usability testing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_usability_testing_scope_1</code> | bytes [0, 119) | <code>0d8a820c1f7c70cc5eb30fb5d6d845d0365e2d631859565b57b3375ad649cc81</code></div><pre class="context"><span></span><mark>Usability testing is a technique used in user-centered interaction design to evaluate a product by testing it on users.</mark><span> This can be seen as an irreplaceable usability practice, since it gives direct input on how real users use the system. [ 1 ] It is more concerned with the design intuitiveness of the product and tested with users who have no prior exposure to it. Such testing is paramount to the success of an end product as a fully functioning application that creates confu</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_usability_testing_scope_2</code> | bytes [1295, 1430) | <code>60e3cf77ca6e732783d5afccca1fab68e28c7e7af08d938f2a062f9265b76469</code></div><pre class="context"><span>, and devices. Usability testing measures the usability, or ease of use, of a specific object or set of objects, whereas general humanâcomputer interaction studies attempt to formulate universal principles. [ 3 ] What it is not Simply gathering opinions on an object or a document is market research or qualitative research rather than usability testing. </span><mark>Usability testing usually involves systematic observation under controlled conditions to determine how well people can use the product.</mark><span> [ 4 ] However, often both qualitative research and usability testing are used in combination, to better understand users&#x27; motivations/perceptions, in addition to their actions. Rather than showing users a rough draft and asking, &quot;Do you understand this?&quot;, usability testing involves watching people trying to use something for its intended purpose. For exampl</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Usability_testing" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Usability_testing</a></p><p>冻结文件: <a href="sources/e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594" target="_blank">sources/e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594</a></p><p>内容 SHA-256: <code>e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;task_observation_method_not_preexisting_camera_result&quot;,
+    &quot;topic_cluster&quot;: &quot;budget_compact_retailer_rating_enthusiast_scope_user_fit&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;Usability testing evaluates a product by testing and systematically observing users performing tasks. It supports a mother-operated camera and transfer trial; it does not supply a result for any captured camera in advance.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_clean_label_snacks_0051</td><td>case_spec</td><td><a href="sources/2bc1d237257b28a28471d06e1b9c6b529b779b639551609b37a19dd1e8eeaf86">2bc1d237257b28a28471d06e1b9c6b529b779b639551609b37a19dd1e8eeaf86</a></td><td><a href="http://case-spec.local/dra_v3_formal_cameras_photo_0054" target="_blank" rel="noreferrer">来源 URL</a></td><td>11339</td></tr><tr><td>reg_magento_canon_elph300_0054</td><td>magento</td><td><a href="sources/9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf">9f000fc24e59c98a85c8884d61cf0c7b25d5b4283d6ae71cadb059b34949ecbf</a></td><td><a href="http://localhost:7770/canon-powershot-elph-300-hs-12-1-mp-digital-camera-black.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>18828</td></tr><tr><td>reg_magento_hp_m447_0054</td><td>magento</td><td><a href="sources/5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d">5be02d3388eb1d31ce0872a720b25778edc927945af5c3b1ae88ecb09902d96d</a></td><td><a href="http://localhost:7770/hp-m447-photosmart-compact-photo-studio-digital-camera-with-printer.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2616</td></tr><tr><td>reg_magento_kodak_dx4530_0054</td><td>magento</td><td><a href="sources/6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc">6e6ea638be273abb717939ab3535ae35994d47d06fb30b58a3513254036dc6cc</a></td><td><a href="http://localhost:7770/kodak-easyshare-dx4530-5mp-digital-camera-w-3x-optical-zoom.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1912</td></tr><tr><td>reg_magento_sony_dscw80_0054</td><td>magento</td><td><a href="sources/15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f">15bcdb7581cac9383cfa6c9ccd9b21cf45727459378a289b5f2fb43cabcb297f</a></td><td><a href="http://localhost:7770/sony-cybershot-dscw80-7-2mp-digital-camera-with-3x-optical-zoom-and-super-steady-shot-silver-old-model.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>6377</td></tr><tr><td>reg_magento_sony_w800_0054</td><td>magento</td><td><a href="sources/a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823">a58c9ccda397c897e914786c19d397f721fa9d6e2bf6b177562df5274a3f5823</a></td><td><a href="http://localhost:7770/sony-cyber-shot-dsc-w800-digital-camera-black-deal-expo-essential-accessories-bundle.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2018</td></tr><tr><td>reg_postmill_compact_market_0054</td><td>postmill</td><td><a href="sources/4684c1ccb6a6654f4040b9c4b644aa3ff1d61a3edaf47e560e5bd1b322dca10d">4684c1ccb6a6654f4040b9c4b644aa3ff1d61a3edaf47e560e5bd1b322dca10d</a></td><td><a href="http://localhost:9999/f/gadgets/61325/panasonic-nikon-quit-developing-low-end-compact-digital" target="_blank" rel="noreferrer">来源 URL</a></td><td>126</td></tr><tr><td>reg_postmill_phone_positive_0054</td><td>postmill</td><td><a href="sources/d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca">d79d0e673c74ca538112506da4e8af7a79756f12d194b4dfda3abab2600ca2ca</a></td><td><a href="http://localhost:9999/f/iphone/41144/an-android-users-opinions-of-the-iphone-14-pro-max" target="_blank" rel="noreferrer">来源 URL</a></td><td>20046</td></tr><tr><td>reg_postmill_phone_processing_0054</td><td>postmill</td><td><a href="sources/1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018">1e5dbdd4ed587e367acf61cdf69c50aef5644850845ad2cf9dad23bf63963018</a></td><td><a href="http://localhost:9999/f/iphone/106073/iphone-14-pro-camera-driving-me-insane" target="_blank" rel="noreferrer">来源 URL</a></td><td>13045</td></tr><tr><td>reg_postmill_use_case_phone_0054</td><td>postmill</td><td><a href="sources/111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5">111499c78ca450f61c4fd313276f7cb87b0851bc124cef1ccc9f33ac063df2c5</a></td><td><a href="http://localhost:9999/f/iphone/40999/which-older-model-has-the-best-camera" target="_blank" rel="noreferrer">来源 URL</a></td><td>1618</td></tr><tr><td>reg_search_canon_elph300</td><td>search_result</td><td><a href="sources/3e4b1c7d88359c9c6edd7e17b3de9b1638c56d4608ac6153f6fd797af63877d5">3e4b1c7d88359c9c6edd7e17b3de9b1638c56d4608ac6153f6fd797af63877d5</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=5384d308-bf1d-4779-8209-42b142948653" target="_blank" rel="noreferrer">来源 URL</a></td><td>5945</td></tr><tr><td>reg_search_compact_market</td><td>search_result</td><td><a href="sources/552e97dc06e2b71e6c6dd0fd57ccd8f75bf41bf9f396b9372805c252f36e324d">552e97dc06e2b71e6c6dd0fd57ccd8f75bf41bf9f396b9372805c252f36e324d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=7b9b25cc-9682-4b77-bc35-0c782dc8f41e" target="_blank" rel="noreferrer">来源 URL</a></td><td>55799</td></tr><tr><td>reg_search_hp_m447</td><td>search_result</td><td><a href="sources/d4080d992cd3e25896d57f2aefb9d1803374a602386c3b61efc7f5bb140d42e3">d4080d992cd3e25896d57f2aefb9d1803374a602386c3b61efc7f5bb140d42e3</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=28504e30-c47f-4a20-8e56-9028a3bb1cdb" target="_blank" rel="noreferrer">来源 URL</a></td><td>5506</td></tr><tr><td>reg_search_image_quality</td><td>search_result</td><td><a href="sources/6d37cb307f21b4b300d629c80d8e3b9628fa11ae63f04d7b2deebecef5971e28">6d37cb307f21b4b300d629c80d8e3b9628fa11ae63f04d7b2deebecef5971e28</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=dd56cadd-53ae-4e73-9902-b16b30488e63" target="_blank" rel="noreferrer">来源 URL</a></td><td>62248</td></tr><tr><td>reg_search_kodak_dx4530</td><td>search_result</td><td><a href="sources/b749fee3679588f62525920ed6f67a79ab5d0f32354866643a114a5ffa0982db">b749fee3679588f62525920ed6f67a79ab5d0f32354866643a114a5ffa0982db</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=616534b9-6a93-44b9-8aa3-10b5c0b185f6" target="_blank" rel="noreferrer">来源 URL</a></td><td>4771</td></tr><tr><td>reg_search_optical_aberration</td><td>search_result</td><td><a href="sources/2b5c6f493cb62dcf464f6f05f3f7cfdc181ccdb95a632def9543fe7acfd3609b">2b5c6f493cb62dcf464f6f05f3f7cfdc181ccdb95a632def9543fe7acfd3609b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=3ab03517-b620-4b11-863c-32280d3fb09b" target="_blank" rel="noreferrer">来源 URL</a></td><td>61656</td></tr><tr><td>reg_search_phone_positive</td><td>search_result</td><td><a href="sources/e7d5a3ae98253ff52deff8e13473fd29f907c5ecc4bd8fa9e1605bf4bc7ed01f">e7d5a3ae98253ff52deff8e13473fd29f907c5ecc4bd8fa9e1605bf4bc7ed01f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=7e6709e9-860c-4360-9b70-9cbfc0226522" target="_blank" rel="noreferrer">来源 URL</a></td><td>49507</td></tr><tr><td>reg_search_phone_processing</td><td>search_result</td><td><a href="sources/4bc0a18be3ce0eeac835b281c2bcbf4c090630416a828c7892ef0ff4b3228dc8">4bc0a18be3ce0eeac835b281c2bcbf4c090630416a828c7892ef0ff4b3228dc8</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=197f52f2-c7ab-4001-83e6-7df616da9ab6" target="_blank" rel="noreferrer">来源 URL</a></td><td>50049</td></tr><tr><td>reg_search_phone_use_case</td><td>search_result</td><td><a href="sources/11b719941e1ad48fee443811df8dd174606d919ada03883e861e8e85303dee84">11b719941e1ad48fee443811df8dd174606d919ada03883e861e8e85303dee84</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=400baea2-2e03-42bf-b8cf-1e23a288cec2" target="_blank" rel="noreferrer">来源 URL</a></td><td>67775</td></tr><tr><td>reg_search_point_shoot</td><td>search_result</td><td><a href="sources/aa7c9c32d553e444f257f54a9c49a8f9224408ae0cd0e1fca2ea1984ce5e1eea">aa7c9c32d553e444f257f54a9c49a8f9224408ae0cd0e1fca2ea1984ce5e1eea</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=a3994684-1dd6-4ff3-90c2-4b91076328c8" target="_blank" rel="noreferrer">来源 URL</a></td><td>60993</td></tr><tr><td>reg_search_review_site</td><td>search_result</td><td><a href="sources/9e0d765d431270f116b8b521a0cee5a5b5ba594eeef069e5b4ff7a2c12f13556">9e0d765d431270f116b8b521a0cee5a5b5ba594eeef069e5b4ff7a2c12f13556</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=3256a696-74a6-4b42-954d-35689392eb76" target="_blank" rel="noreferrer">来源 URL</a></td><td>61093</td></tr><tr><td>reg_search_self_selection</td><td>search_result</td><td><a href="sources/5f6ab01612dc4048515e7a1d1e4a0c173f6170a0c7a4fe9a46e7047159f8e90b">5f6ab01612dc4048515e7a1d1e4a0c173f6170a0c7a4fe9a46e7047159f8e90b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=d2e7faf1-7ac6-47f0-ae73-b00ef850dffe" target="_blank" rel="noreferrer">来源 URL</a></td><td>60801</td></tr><tr><td>reg_search_shutter_lag</td><td>search_result</td><td><a href="sources/15c37d9c4cb22fef8a8f9d5debe603efb6e050a78e2695de71c14768c3b96a08">15c37d9c4cb22fef8a8f9d5debe603efb6e050a78e2695de71c14768c3b96a08</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=ad0c4c09-736d-4e20-b9c7-4989b26f9625" target="_blank" rel="noreferrer">来源 URL</a></td><td>60821</td></tr><tr><td>reg_search_sony_dscw80</td><td>search_result</td><td><a href="sources/93af6060fb9a655d76f014c1e62c11facf2ab7f197ec98b2bfe1c7a7a124a605">93af6060fb9a655d76f014c1e62c11facf2ab7f197ec98b2bfe1c7a7a124a605</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=b98f2891-0058-49bf-9c05-1bf0dff24061" target="_blank" rel="noreferrer">来源 URL</a></td><td>5547</td></tr><tr><td>reg_search_sony_w800</td><td>search_result</td><td><a href="sources/b4a9010f5cf55280eb1ce75c276daf764b3442019104595d70188b95148bb808">b4a9010f5cf55280eb1ce75c276daf764b3442019104595d70188b95148bb808</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=2b72c00a-0c5a-4871-acdc-fb544e24d252" target="_blank" rel="noreferrer">来源 URL</a></td><td>6700</td></tr><tr><td>reg_search_star_rating</td><td>search_result</td><td><a href="sources/1ec2c3db0eddff2e59a0de15ef78788227101262cc882337e1816aaef1e055b7">1ec2c3db0eddff2e59a0de15ef78788227101262cc882337e1816aaef1e055b7</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=fc353175-65c6-4df8-b047-ed4d0069bf8c" target="_blank" rel="noreferrer">来源 URL</a></td><td>60882</td></tr><tr><td>reg_search_usability</td><td>search_result</td><td><a href="sources/42fd0c35e2e81988655a67c83b3ee8950786b52a17493f8c132cddbd8e0849e8">42fd0c35e2e81988655a67c83b3ee8950786b52a17493f8c132cddbd8e0849e8</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1&amp;request_id=a67b1418-9619-4669-a2a2-8bd5bf60d314" target="_blank" rel="noreferrer">来源 URL</a></td><td>61218</td></tr><tr><td>reg_wikipedia_image_quality_0054</td><td>wikipedia</td><td><a href="sources/ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c">ab90eaaa010b8d88a17f95892a167c9c17978a077f22a6d48b27e3b51ea5231c</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Image_quality" target="_blank" rel="noreferrer">来源 URL</a></td><td>13037</td></tr><tr><td>reg_wikipedia_optical_aberration_0054</td><td>wikipedia</td><td><a href="sources/740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427">740f813baf43f5dccedddf3414e5b62e201ac7c49a8fb3df2646cd5b907e2427</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Optical_aberration" target="_blank" rel="noreferrer">来源 URL</a></td><td>20300</td></tr><tr><td>reg_wikipedia_point_shoot_0054</td><td>wikipedia</td><td><a href="sources/45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac">45a68ffef06da0584567a6133b29a62f01d47c4361544803b90a0ac98cec5aac</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Point-and-shoot_camera" target="_blank" rel="noreferrer">来源 URL</a></td><td>8903</td></tr><tr><td>reg_wikipedia_review_site_0054</td><td>wikipedia</td><td><a href="sources/dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374">dd3d61229fa7d18917ed724946b10ad436b97fce06dc2d2b41893ec495553374</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Review_site" target="_blank" rel="noreferrer">来源 URL</a></td><td>12393</td></tr><tr><td>reg_wikipedia_self_selection_0054</td><td>wikipedia</td><td><a href="sources/fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232">fa197425910a4d967cfb8a5f3904a577f645b646b55dc82a6171bbf55bb02232</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Self-selection_bias" target="_blank" rel="noreferrer">来源 URL</a></td><td>5476</td></tr><tr><td>reg_wikipedia_shutter_lag_0054</td><td>wikipedia</td><td><a href="sources/1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780">1ba4f6fe616b774d962bfbfaec370b363073a08b1c4f765c8adc5bcceaf35780</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Shutter_lag" target="_blank" rel="noreferrer">来源 URL</a></td><td>9094</td></tr><tr><td>reg_wikipedia_star_rating_0054</td><td>wikipedia</td><td><a href="sources/00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52">00bee8ed8ee178547866eb0ba4c5f388570aeda1f79ad4c3f2aa94d4e77fcd52</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Star_(classification)" target="_blank" rel="noreferrer">来源 URL</a></td><td>18724</td></tr><tr><td>reg_wikipedia_usability_testing_0054</td><td>wikipedia</td><td><a href="sources/e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594">e118839f450aee18b526a96c7934c2ec14593876aa681723f9b9e58c0ab42594</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Usability_testing" target="_blank" rel="noreferrer">来源 URL</a></td><td>20015</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-cameras-photo-0054-retailer-rating-user-fit-boundary-20260716-r1";
+const graphHash = "727763a0eb1edcc688ec433e4055178fa9b9c556c3d9c205e61bafd052e820c8";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

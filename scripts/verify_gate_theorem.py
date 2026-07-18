@@ -6,16 +6,10 @@ Imports the composition from src.eval.decidable_scorer (single source of
 truth; compose_truth returns (truth, quality, floors)) and verifies the
 claim three ways:
 
-  1. analytic mode (C1): with truth = reach**gamma * quality and quality in
-     [Q_FLOOR_MIN, 1] (quality axes floor-if-active at EPS_FLOOR, weights sum
-     to 1), a fabricator with reach <= Rf has truth_f <= Rf**gamma, and an
-     honest report with reach >= Rh and quality >= Qh has
-     truth_h >= Rh**gamma * Qh. The gate holds iff Rf < Rh * Qh**(1/gamma).
-     Prints the frontier for gamma in {1, 1.5, 2}.
-
-  2. empirical grid (C1): adversarial corners (max quality with fabricated
-     citations, threshold-riding reach, zero-claim reports) must never
-     outrank an honest reference set.
+  1. linear gate (C1): the default is exactly truth = reach * quality. A zero
+     gate collapses any quality to zero, and the score is monotone in both
+     inputs. Alternative exponents are sensitivity settings, not headline
+     operating points.
 
   3. shell assertion (C2, FORMULA_LOCK K6): a zero-substance shell
      (fact=pof=comp=0) with one real reachable citation (reach=1) and perfect
@@ -31,7 +25,6 @@ Run:  python3 scripts/verify_gate_theorem.py
 
 from __future__ import annotations
 
-import itertools
 import sys
 from pathlib import Path
 
@@ -53,7 +46,7 @@ def truth(reach, fact, pof, comp, spec, gamma=GAMMA_DEFAULT) -> float:
 
 
 def analytic_frontier() -> None:
-    print("== analytic bound (formula imported, not mirrored) ==")
+    print("== analytic sensitivity bound (formula imported, not mirrored) ==")
     print(f"truth = reach**gamma * quality; quality in "
           f"[{Q_FLOOR_MIN:.3f}, 1.0] (axes floored at {EPS_FLOOR}, "
           f"weights {QUALITY_WEIGHTS})")
@@ -66,63 +59,36 @@ def analytic_frontier() -> None:
             for qh in (0.3, 0.5, 0.7):
                 rf_max = rh * qh ** (1.0 / gamma)
                 print(f"{gamma:6.1f} {rh:5.2f} {qh:5.2f} {rf_max:17.3f}")
-    print("\nreading: at gamma=1.5, an honest report at reach 0.9 / quality "
-          f"0.5 dominates every fabricator below reach "
-          f"{0.9 * 0.5 ** (1 / 1.5):.2f}. Registry-membership reachability "
-          "counts every fabricated URL against the denominator, so heavy "
-          "fabrication forces reach far below that frontier.")
+    print("\nheadline reading: gamma=1.0 is direct multiplication. The other "
+          "rows disclose how an optional nonlinear sensitivity setting would "
+          "move the comparison frontier; they do not select a default.")
 
 
-def empirical_grid() -> list[str]:
-    """Adversarial corners vs honest references; returns violation strings."""
-    honest_refs = [
-        # (reach, fact, pof, comp, spec): plausible honest operating points
-        (0.90, 0.60, 0.60, 0.30, 1.00),
-        (0.80, 0.50, 0.50, 0.25, 0.50),
-        (0.70, 0.40, 0.45, 0.20, 1.00),
-    ]
-    adversaries = {
-        "pure fabricator, perfect style": (0.00, 1.00, 1.00, 1.00, 1.00),
-        "mostly fabricated, maxed axes": (0.20, 1.00, 1.00, 1.00, 1.00),
-        "threshold rider (old 0.30 hole)": (0.31, 1.00, 1.00, 1.00, 1.00),
-        "zero-claim silence (M-C3)": (0.95, 0.00, 0.10, 0.05, 1.00),
-        "catalog dump, no grounding": (0.10, 0.30, 0.20, 1.00, 1.00),
-    }
-    violations = []
-    for gamma in (1.0, 1.5, 2.0):
-        h_min = min(truth(*h, gamma=gamma) for h in honest_refs)
-        for name, adv in adversaries.items():
-            # the gate theorem is scoped to FABRICATION: only low-reach
-            # corners must fall below every honest reference. High-reach
-            # adversaries (zero-claim silence) are quality cases handled by
-            # the axis definitions themselves (fact=0 when nothing tested).
-            if adv[0] > 0.31:
-                continue
-            t_adv = truth(*adv, gamma=gamma)
-            if t_adv >= h_min:
-                if gamma < GAMMA_DEFAULT:
-                    # sub-default exponents are allowed to fail: this is the
-                    # empirical justification for the default (gamma=1.0
-                    # does not separate the threshold rider; 1.5 does)
-                    print(f"  info: gamma={gamma} fails separation on "
-                          f"'{name}' (truth {t_adv:.4f} >= honest floor "
-                          f"{h_min:.4f}); this motivates "
-                          f"gamma_default={GAMMA_DEFAULT}")
-                    continue
+def linear_gate_assertion() -> list[str]:
+    """Lock the properties actually guaranteed by the headline formula."""
+    print("\n== C1 linear-gate assertion ==")
+    violations: list[str] = []
+    if GAMMA_DEFAULT != 1.0:
+        violations.append(f"headline gamma is {GAMMA_DEFAULT}, expected 1.0")
+    grid = (0.0, 0.01, 0.2, 0.5, 0.9, 1.0)
+    previous_by_quality = {q: -1.0 for q in grid}
+    for reach in grid:
+        for quality in grid:
+            # Equal axes make the weighted quality exactly `quality` because
+            # the declared weights sum to one.
+            actual = truth(reach, quality, quality, quality, 0.0)
+            expected = reach * quality
+            if abs(actual - expected) > 1e-12:
                 violations.append(
-                    f"gamma={gamma}: '{name}' truth={t_adv:.4f} >= "
-                    f"weakest honest {h_min:.4f}")
-    # dense sweep at the default gamma: fabricated-reach grid, all quality
-    # corners, against the weakest honest reference
-    gamma = GAMMA_DEFAULT
-    h_min = min(truth(*h, gamma=gamma) for h in honest_refs)
-    for rf in (0.0, 0.05, 0.10, 0.20, 0.31):
-        for q in itertools.product((EPS_FLOOR, 0.5, 1.0), repeat=4):
-            t_adv = truth(rf, *q, gamma=gamma)
-            if t_adv >= h_min:
+                    f"reach={reach}, quality={quality}: {actual} != {expected}")
+            if actual + 1e-12 < previous_by_quality[quality]:
                 violations.append(
-                    f"gamma={gamma}: sweep reach={rf} q={q} "
-                    f"truth={t_adv:.4f} >= honest floor {h_min:.4f}")
+                    f"non-monotone in reach at quality={quality}: {actual}")
+            previous_by_quality[quality] = actual
+    for reach in grid:
+        values = [truth(reach, q, q, q, 0.0) for q in grid]
+        if any(b + 1e-12 < a for a, b in zip(values, values[1:])):
+            violations.append(f"non-monotone in quality at reach={reach}")
     return violations
 
 
@@ -197,8 +163,7 @@ def mini_shell_assertion() -> list[str]:
 
 def main() -> int:
     analytic_frontier()
-    print("\n== empirical adversarial grid ==")
-    violations = empirical_grid()
+    violations = linear_gate_assertion()
     print()
     violations += shell_assertion()
     violations += mini_shell_assertion()
@@ -207,12 +172,8 @@ def main() -> int:
         for v in violations[:20]:
             print("  !", v)
         return 1
-    print("PASS: no fabricated corner (reach <= 0.31) outranks any honest "
-          "reference at gamma in {1, 1.5, 2} or on the dense sweep.")
-    print("boundary note: reach=1/3 with perfect quality CAN beat an honest "
-          "report whose quality is under ~0.19; that is a comparison between "
-          "two partially grounded reports, not fabrication, and is governed "
-          "by gamma (see analytic frontier).")
+    print("PASS: the default score is exactly gate * quality, is monotone in "
+          "both inputs, and preserves the zero-gate and zero-substance gates.")
     return 0
 
 

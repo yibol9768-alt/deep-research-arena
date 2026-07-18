@@ -288,9 +288,20 @@ def store_blob(body: bytes) -> str:
         d.mkdir(parents=True, exist_ok=True)
         target = d / digest
         if not target.exists():
-            tmp = target.with_suffix(".part")
-            tmp.write_bytes(body)
-            tmp.replace(target)
+            # Concurrent full-content searches often return the same page to
+            # several summarizers. A digest-wide ``.part`` name lets those
+            # writers race: the first rename removes the shared temporary file
+            # and every later rename is counted as ``blob_error``. Give each
+            # request thread its own temporary file; replacing an identical
+            # content-addressed target is safe and atomic.
+            tmp = d / (
+                f".{digest}.{os.getpid()}.{threading.get_ident()}.part"
+            )
+            try:
+                tmp.write_bytes(body)
+                tmp.replace(target)
+            finally:
+                tmp.unlink(missing_ok=True)
     except Exception:
         _bump("blob_error")
     return digest

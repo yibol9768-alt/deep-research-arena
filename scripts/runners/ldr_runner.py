@@ -1,7 +1,8 @@
 """LDR (local-deep-research) runner for the deep-research benchmark.
 
 Runs LDR as a subprocess using its own .venv-ldr312 venv and LDR's native
-programmatic API (``detailed_research()`` with ``create_settings_snapshot``).
+programmatic report API (``generate_report()`` with
+``create_settings_snapshot``).
 
 NO monkey-patching of LDR internals.  All configuration uses LDR's
 supported mechanisms:
@@ -10,10 +11,11 @@ supported mechanisms:
      provider, model, search tool, temperature, etc.
   2. Environment variables ``LDR_LLM_PROVIDER``, ``LDR_LLM_MODEL``, etc.
      which LDR's InMemorySettingsManager reads via ``check_env_setting()``.
-  3. HTTP transport-layer intercept (requests/httpx/aiohttp) to redirect
-     ``api.tavily.com`` -> sandbox shim.  This is the same approach used
-     for every other runner (DeerFlow, ii-researcher, etc.) and patches
-     the HTTP libraries, not LDR itself.
+  3. LDR's documented ``retrievers={name: BaseRetriever}`` API to register a
+     sandbox-search retriever.  This is required in the formal worker: LDR's
+     built-in Tavily engine DNS-validates ``api.tavily.com`` before an HTTP
+     transport rewrite can run, while the worker intentionally has no public
+     DNS/default route.
   4. Localhost-masking at the httpx transport layer: replaces
      ``localhost:PORT`` with ``.internal`` domains in LLM API calls so
      DeepSeek V4 flash doesn't trigger its safety filter.
@@ -27,7 +29,10 @@ Pipeline:
     (keyed on the model / ``LDR_INTENT_MASK`` env), so the masking never acts
     as a silent reverse handicap under qwen/glm.
   - Launch subprocess in .venv-ldr312 with a generated driver script.
-  - Driver calls ``detailed_research()`` with a settings snapshot.
+  - Driver calls ``generate_report()`` with a settings snapshot.  This matters:
+    ``detailed_research()`` returns only the intermediate ``current_knowledge``
+    summary while ``generate_report()`` performs the native report-writing stage
+    and adds LDR's own ``## Sources`` URL mapping.
   - Report is emitted between sentinels and extracted by the parent.
 """
 from __future__ import annotations
@@ -66,14 +71,13 @@ DEFAULT_TIMEOUT_S = DEFAULT_NATIVE_TIMEOUT_S
 _REPORT_START = "===LDR_REPORT_START==="
 _REPORT_END = "===LDR_REPORT_END==="
 
-# LDR's detailed_research() returns the narrative body in `summary`
-# (current_knowledge) which cites sources by bracketed [N] index only. The
-# actual source URL table LDR retrieved and threaded lives in the sibling
-# `sources` field (all_links_of_system). The driver emits that list as JSON
-# between these sentinels so the parent can re-attach it to the report; the
-# old capture read only `summary` and dropped every localhost URL.
+# The driver emits URLs already present in LDR's native report as a diagnostic
+# between these sentinels.  Nothing is appended to the scored report by the
+# harness: ``generate_report()`` itself owns the ``## Sources`` section.
 _SOURCES_START = "===LDR_SOURCES_START==="
 _SOURCES_END = "===LDR_SOURCES_END==="
+_DIAGNOSTICS_START = "===LDR_DIAGNOSTICS_START==="
+_DIAGNOSTICS_END = "===LDR_DIAGNOSTICS_END==="
 
 # ---------------------------------------------------------------------------
 # Localhost URL -> neutral description mapping for intent sanitization.
@@ -284,7 +288,7 @@ def _build_driver_script(
        domains in LLM API request bodies (chat/completions), and reverses
        the replacement in responses.  Prevents DeepSeek V4 safety refusal.
 
-    3. LDR's ``create_settings_snapshot`` + ``detailed_research`` API --
+    3. LDR's ``create_settings_snapshot`` + ``generate_report`` API --
        the official programmatic interface.  Passes provider, model,
        temperature, search tool, iterations, etc. as settings overrides.
     """
@@ -535,12 +539,156 @@ def _build_driver_script(
         print(f'[ldr-intercept] Transport intercept installed (shim={{SHIM}})')
 
         # === Layer 3: LDR programmatic API ===
-        # Use LDR's official create_settings_snapshot + detailed_research interface.
-        from local_deep_research.api import create_settings_snapshot, detailed_research
+        # Use LDR's official settings + custom-retriever + report interfaces.
+        from local_deep_research.api import create_settings_snapshot, generate_report
+        from langchain_core.documents import Document
+        from langchain_core.retrievers import BaseRetriever
+        from pydantic import PrivateAttr
 
         SEARCH_ITERATIONS = int(os.environ.get('LDR_SEARCH_ITERATIONS', '3') or '3')
         QUESTIONS_PER_ITERATION = int(os.environ.get('LDR_QUESTIONS_PER_ITERATION', '1') or '1')
         SEARCH_MAX_RESULTS = int(os.environ.get('LDR_SEARCH_MAX_RESULTS', '50') or '50')
+        RETRIEVER_NAME = 'dra_sandbox'
+
+        BASE_QUERY = '{intent_escaped}'
+
+        class DraSandboxRetriever(BaseRetriever):
+            \"\"\"LDR-supported retriever backed by the benchmark search shim.
+
+            The retriever only translates LDR's own search query to the shim's
+            Tavily-compatible /search response and returns LangChain Documents.
+            It performs no pre-search, source injection, or report rewriting.
+            \"\"\"
+
+            shim_url: str
+            max_results: int = 50
+            _calls: int = PrivateAttr(default=0)
+            _results: int = PrivateAttr(default=0)
+            _errors: int = PrivateAttr(default=0)
+            _last_error: str = PrivateAttr(default='')
+            _rejected_results: int = PrivateAttr(default=0)
+            _external_urls_omitted: int = PrivateAttr(default=0)
+
+            @staticmethod
+            def _is_sandbox_source_url(value):
+                \"\"\"Accept only canonical corpus-page URLs returned by shim.
+
+                A sandbox Reddit document can legitimately quote the original
+                post's public outbound links in its body.  Those links are
+                content, not retriever source identities, and LDR's section
+                writer otherwise mistakes them for citations.  The canonical
+                source remains the shim result's localhost URL.
+                \"\"\"
+                try:
+                    parsed = urlparse(str(value))
+                    return (
+                        parsed.scheme in ('http', 'https')
+                        and (parsed.hostname or '').lower()
+                        in ('localhost', '127.0.0.1')
+                        and parsed.port in (7770, 8090, 9999)
+                    )
+                except (TypeError, ValueError):
+                    return False
+
+            @classmethod
+            def _sanitize_snippet(cls, value):
+                \"\"\"Remove embedded public URL tokens, preserving all prose.
+
+                This runs before the Document enters LDR.  It does not edit the
+                generated report and it leaves canonical sandbox URLs intact.
+                \"\"\"
+                omitted = 0
+
+                def _replace(match):
+                    nonlocal omitted
+                    candidate = match.group(0)
+                    check = candidate.rstrip('.,;:!?')
+                    if cls._is_sandbox_source_url(check):
+                        return candidate
+                    omitted += 1
+                    return '[external URL omitted]'
+
+                text = re.sub(
+                    r'''https?://[^\s<>()\[\]"']+''',
+                    _replace,
+                    str(value or ''),
+                )
+                return text, omitted
+
+            def _get_relevant_documents(self, query, *, run_manager=None):
+                self._calls += 1
+                try:
+                    response = _rq.post(
+                        self.shim_url.rstrip('/') + '/search',
+                        json={{
+                            'query': str(query)[:400],
+                            'max_results': self.max_results,
+                        }},
+                        timeout=60,
+                    )
+                    response.raise_for_status()
+                    payload = response.json()
+                    documents = []
+                    for item in (payload.get('results') or [])[:self.max_results]:
+                        if not isinstance(item, dict):
+                            continue
+                        url = str(item.get('url') or '').strip()
+                        if not url:
+                            continue
+                        if not self._is_sandbox_source_url(url):
+                            self._rejected_results += 1
+                            continue
+                        content = str(
+                            item.get('raw_content')
+                            or item.get('content')
+                            or ''
+                        )
+                        content, omitted = self._sanitize_snippet(content)
+                        self._external_urls_omitted += omitted
+                        documents.append(Document(
+                            page_content=content,
+                            metadata={{
+                                'title': str(item.get('title') or ''),
+                                'source': url,
+                                'url': url,
+                                'score': item.get('score', 1.0),
+                            }},
+                        ))
+                    self._results += len(documents)
+                    return documents
+                except Exception as exc:
+                    self._errors += 1
+                    self._last_error = f'{{type(exc).__name__}}: {{exc}}'[:500]
+                    print(f'[ldr-retriever] ERROR {{self._last_error}}')
+                    return []
+
+        _retriever = DraSandboxRetriever(
+            shim_url=SHIM,
+            max_results=SEARCH_MAX_RESULTS,
+        )
+        _native_diag = {{
+            'retriever': RETRIEVER_NAME,
+            'health_ok': False,
+            'calls': 0,
+            'results': 0,
+            'errors': 0,
+            'last_error': '',
+            'rejected_results': 0,
+            'external_urls_omitted': 0,
+        }}
+
+        # Connectivity-only preflight: no task search and no source is retained.
+        # This fails fast if the formal worker cannot reach its owned shim,
+        # instead of spending a full report run on an empty search backend.
+        try:
+            _health = _rq.get(SHIM.rstrip('/') + '/healthz', timeout=15)
+            _health.raise_for_status()
+            _native_diag['health_ok'] = True
+            print(f'[ldr-preflight] retriever={{RETRIEVER_NAME}} health=ok')
+        except Exception as exc:
+            raise RuntimeError(
+                f'LDR sandbox retriever preflight failed: {{type(exc).__name__}}: {{exc}}'
+            ) from exc
 
         settings = create_settings_snapshot(overrides={{
             "llm.provider": "openai_endpoint",
@@ -548,14 +696,20 @@ def _build_driver_script(
             "llm.temperature": 0.2,
             "llm.openai_endpoint.url": PROXY,
             "llm.openai_endpoint.api_key": os.environ.get("OPENAI_API_KEY", "anything"),
-            "search.tool": "tavily",
+            "search.tool": RETRIEVER_NAME,
             "search.iterations": SEARCH_ITERATIONS,
             "search.questions_per_iteration": QUESTIONS_PER_ITERATION,
             "search.max_results": SEARCH_MAX_RESULTS,
             "search.snippets_only": True,
+            # SourceBasedSearchStrategy normally drops the original query when
+            # it exceeds app.max_user_query_length (default: 300 chars).  The
+            # shared benchmark task plus neutral report contract is longer than
+            # that.  If the old question parser also rejects the model's format,
+            # no search happens at all.  Keep the public API's
+            # search_original_query=True contract by admitting exactly this
+            # task's length; this supplies no source or scorer information.
+            "app.max_user_query_length": max(300, len(BASE_QUERY)),
         }})
-
-        BASE_QUERY = '{intent_escaped}'
 
         # FAIRNESS: no lane-specific seed injection. Earlier revisions ran an
         # extra sandbox search here and pasted the top hits (source URLs plus
@@ -567,10 +721,11 @@ def _build_driver_script(
         QUERY = BASE_QUERY
 
         try:
-            result = detailed_research(
+            result = generate_report(
                 query=QUERY,
+                retrievers={{RETRIEVER_NAME: _retriever}},
                 settings_snapshot=settings,
-                search_tool="tavily",
+                search_tool=RETRIEVER_NAME,
                 search_strategy="source-based",
                 iterations=SEARCH_ITERATIONS,
                 questions_per_iteration=QUESTIONS_PER_ITERATION,
@@ -583,19 +738,20 @@ def _build_driver_script(
             _sources = []
             if isinstance(result, dict):
                 report = (
-                    result.get("final_report")
+                    result.get("content")
+                    or result.get("final_report")
                     or result.get("report")
                     or result.get("summary")
                     or str(result)[:30000]
                 )
-                # LDR returns the retrieved source URL table in the sibling
-                # `sources` field (all_links_of_system), NOT inline in `summary`.
-                # Emit it so the parent can resolve the report's bracketed [N]
-                # citations to the localhost URLs LDR actually fetched. No
-                # fabrication: these are LDR's own collected links.
-                _s = result.get("sources")
-                if isinstance(_s, list):
-                    _sources = _s
+                # `generate_report()` writes LDR's native URL table into the
+                # report itself.  Mirror only URLs already present there into a
+                # diagnostic payload; never graft them into the scored text.
+                _seen_urls = set()
+                for _url in re.findall(r'https?://[^\\s)>\\]]+', str(report)):
+                    if _url not in _seen_urls:
+                        _seen_urls.add(_url)
+                        _sources.append({{"url": _url}})
             else:
                 report = str(result)
 
@@ -604,10 +760,28 @@ def _build_driver_script(
             # re-grounded report here would hide a real model/framework weakness
             # and manufacture grounding the model never produced.
             report = _unmask_localhost(report)
+            _native_diag.update({{
+                'calls': _retriever._calls,
+                'results': _retriever._results,
+                'errors': _retriever._errors,
+                'last_error': _retriever._last_error,
+                'rejected_results': _retriever._rejected_results,
+                'external_urls_omitted': _retriever._external_urls_omitted,
+                'report_urls': len(_sources),
+            }})
 
         except Exception as e:
             report = f"(local-deep-research error: {{type(e).__name__}}: {{e}})"
             _sources = []
+            _native_diag.update({{
+                'calls': _retriever._calls,
+                'results': _retriever._results,
+                'errors': _retriever._errors,
+                'last_error': _retriever._last_error,
+                'rejected_results': _retriever._rejected_results,
+                'external_urls_omitted': _retriever._external_urls_omitted,
+                'report_urls': 0,
+            }})
             traceback.print_exc()
 
         print('{_REPORT_START}')
@@ -620,6 +794,9 @@ def _build_driver_script(
         print('{_SOURCES_START}')
         print(_sources_json)
         print('{_SOURCES_END}')
+        print('{_DIAGNOSTICS_START}')
+        print(json.dumps(_native_diag, sort_keys=True, default=str))
+        print('{_DIAGNOSTICS_END}')
     """)
 
 
@@ -633,10 +810,9 @@ def _build_env(proxy_url: str, model: str, shim_url: str) -> dict:
     env["LDR_LLM_OPENAI_ENDPOINT_URL"] = proxy_url
     env["LDR_LLM_OPENAI_ENDPOINT_API_KEY"] = env.get("OPENAI_API_KEY", "anything")
 
-    # Search configuration
-    env["LDR_SEARCH_TOOL"] = "tavily"
-    env["LDR_SEARCH_ENGINE_WEB_TAVILY_API_KEY"] = "tvly-shim-fake"
-    env["TAVILY_API_KEY"] = "tvly-shim-fake"
+    # Search configuration. The driver registers this name through LDR's
+    # official custom-retriever API; no public-search credential is involved.
+    env["LDR_SEARCH_TOOL"] = "dra_sandbox"
 
     # OpenAI-compatible env vars (langchain_openai reads these)
     env["OPENAI_BASE_URL"] = proxy_url
@@ -752,15 +928,32 @@ async def run(
             logger.warning("No report extracted from LDR output")
             return _degrade("native", "no report extracted from LDR output")
 
-        # LDR's retrieved link table (all_links_of_system) is captured as a
-        # diagnostic, NOT appended to the report. See sources_diagnostic() for
-        # the measurement that killed the old `_attach_sources` behaviour: the
-        # lane's entire reach came from the harness-written block, and its own
-        # prose cited no sandbox URL on any task. The saved report is now
-        # exactly what LDR wrote.
+        # URLs already present in LDR's native report are mirrored as a
+        # diagnostic, NOT appended by the harness. See sources_diagnostic() for
+        # the measurement that killed the old `_attach_sources` behaviour. The
+        # saved report is exactly what LDR's generate_report() API wrote,
+        # including the native API's own Sources section.
         _diag = sources_diagnostic(_extract_sources(stdout))
-        logger.info("ldr retrieved %d sources (diagnostic only, not scored)",
-                    _diag["n_sources_retrieved"])
+        _native_diag = _extract_diagnostics(stdout)
+        print(
+            "[ldr-diagnostic] "
+            f"health_ok={_native_diag.get('health_ok')} "
+            f"calls={_native_diag.get('calls')} "
+            f"results={_native_diag.get('results')} "
+            f"errors={_native_diag.get('errors')} "
+            f"rejected_results={_native_diag.get('rejected_results')} "
+            f"external_urls_omitted={_native_diag.get('external_urls_omitted')} "
+            f"report_urls={_diag['n_sources_retrieved']}"
+        )
+        if _native_diag and (
+            int(_native_diag.get("calls") or 0) < 1
+            or int(_native_diag.get("results") or 0) < 1
+        ):
+            return _degrade(
+                "search",
+                "native sandbox retriever returned no search results "
+                f"({_native_diag.get('last_error') or 'no native error'})",
+            )
 
         # Round-trip only: undo the masks this harness applied before the call.
         # With masking off (the default) this is a no-op, so a model-emitted
@@ -818,10 +1011,11 @@ def _extract_report(stdout: str) -> str:
 
 
 def _extract_sources(stdout: str) -> list:
-    """Extract LDR's retrieved source list (all_links_of_system) from stdout.
+    """Extract URLs mirrored from LDR's native report from stdout.
 
-    Returns the list of ``{"title", "link"/"url", "index"}`` dicts the driver
-    serialized between the sources sentinels, or ``[]`` if absent/unparseable.
+    Returns the list of ``{"url": ...}`` diagnostics serialized between the
+    sources sentinels, or ``[]`` if absent/unparseable. These do not modify the
+    report and do not create scorer-visible citations.
     """
     import json as _json
 
@@ -837,6 +1031,24 @@ def _extract_sources(stdout: str) -> list:
     except Exception:
         return []
     return data if isinstance(data, list) else []
+
+
+def _extract_diagnostics(stdout: str) -> dict:
+    """Extract bounded, non-reasoning native retriever counters."""
+    import json as _json
+
+    start_idx = stdout.find(_DIAGNOSTICS_START)
+    end_idx = stdout.find(_DIAGNOSTICS_END)
+    if start_idx == -1 or end_idx == -1 or end_idx <= start_idx:
+        return {}
+    blob = stdout[start_idx + len(_DIAGNOSTICS_START):end_idx].strip()
+    if not blob:
+        return {}
+    try:
+        data = _json.loads(blob)
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def sources_diagnostic(sources: list) -> dict:

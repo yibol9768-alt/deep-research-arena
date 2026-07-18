@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>cand_formal_0032_from_0028</code></p>
+<p>语料快照: <code>dra-v3-formal-smartphones-0032-rating-longevity-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>d1e9d4a3deb2badafd6c49ab93a142f39201c0c66bd23b78db056f02793b12d4</code></p>
+<p>待审项 8 个，其中语义项 4 个、结构化项 0 个；冻结来源 9 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_general_smartphone_battery_wear"><header><h3>assert_general_smartphone_battery_wear</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;general capacity and output-power loss path&quot;,
+  &quot;predicate&quot;: &quot;states_mechanism&quot;,
+  &quot;subject&quot;: &quot;smartphone battery reference&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_general_smartphone_battery_wear</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_possible_battery_wear_path&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;object&quot;: &quot;energy capacity and output power through repeated charging and discharging, with possible processing-speed loss and eventual outages&quot;,
+  &quot;predicate&quot;: &quot;can_reduce&quot;,
+  &quot;subject&quot;: &quot;smartphone battery wear&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_general_battery_wear</code> | bytes [17355, 17686) | <code>a1a4a25e0c7abb77610f6a7bf25783a9cc95362a721d682902460b566071d3c3</code></div><pre class="context"><span>e 7 . An adapter reserving the charging port can retrofit the plug. Battery-powered, wireless Bluetooth headphones are an alternative. Those tend to be costlier however due to their need for internal hardware such as a Bluetooth transceiver and a battery with a charging controller, and a Bluetooth coupling is required ahead of each operation. [ 52 ] Battery </span><mark>Smartphones typically feature lithium-ion or lithium-polymer batteries due to their high energy densities . Batteries chemically wear down as a result of repeated charging and discharging throughout ordinary usage, losing both energy capacity and output power, which results in loss of processing speeds followed by system outages.</mark><span> [ 53 ] Battery capacity may be reduced to 80% after few hundred recharges, and the drop in performance accelerates with time. [ 54 ] [ 55 ] Some mobile phones are designed with batteries that can be interchanged upon expiration by the end user, usually by opening the back cover. While such a design had initially been used in most mobile phones, including th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Smartphone" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Smartphone</a></p><p>冻结文件: <a href="sources/a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0" target="_blank">sources/a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0</a></p><p>内容 SHA-256: <code>a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_iphone_xr_thirteen_month_battery"><header><h3>assert_iphone_xr_thirteen_month_battery</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author&#x27;s thirteen-month reported battery-health value and its measurement uncertainty&quot;,
+  &quot;predicate&quot;: &quot;states_experience&quot;,
+  &quot;subject&quot;: &quot;iPhone XR battery-health thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_iphone_xr_thirteen_month_battery</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_person_different_exact_model_battery_report&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;object&quot;: &quot;the author&#x27;s iPhone XR bought new showed 89 percent battery health after thirteen months, with replies questioning how the percentage was calculated&quot;,
+  &quot;predicate&quot;: &quot;reports_after_duration&quot;,
+  &quot;subject&quot;: &quot;one iPhone XR author&#x27;s battery-health report&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_iphone_xr_builtin_report</code> | bytes [2120, 2227) | <code>d78229fc9834ece1c0f8ad0e8e5c95b03c90425991fe05a84c476fb7a53b89c5</code></div><pre class="context"><span>han you plan on keeping it.
+
+you are right, i know, my goal is only trying limit the wear in order to ensure longer on my device since i didn&#x27;t want to pay for a battery replacement, i want to keep a good battery health until i will change the phone, that&#x27;s all :(
+
+Battery replacement at the Apple Store is literally $69.
+
+[removed]
+
+You are on 85% actually
+
+</span><mark>but the built-in feature in ios says that i&#x27;m at 89%, it&#x27;s strange, maybe it requires time to calculate it?</mark><span>
+
+Yes, the ios one gets stuck a lot of times, and then suddenly drops to the real %
+
+so it&#x27;s as i thinked, thanks
+
+[deleted]
+
+How are those cycles obtained? 🤔
+
+in some analytics logs, and you can will be helped by this shortcut.
+
+How can you do it?
+
+with a shortcut that uses iphone&#x27;s analytics logs</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_iphone_xr_duration_health</code> | bytes [26, 348) | <code>3a8782bb3fd86e17f98fca307c39c0cb934199d8b12bbc228fb4eef299ef1446</code></div><pre class="context"><span>battery health iphone xr
+
+</span><mark>hi everyone, i&#x27;ve bought my ip xr in october 2021 as new, now, after 13 months my battery health is decreased to 89%.. i&#x27;ve always kept the battery level between 20-80%, except for some rare days when i charged to 100 and discharged to almost 0...i&#x27;ll share some screenshots of a shortcut, it is normal a wear like this? 0</mark><span>
+
+Does this shortcut still work on iOS 16.2? Thought the log files are no longer there?
+
+Nope, for 16.2 try this one: https://www.icloud.com/shortcuts/753a688e9dca4957a95319fc7801f231
+
+Thanks which files hold this info though? All I see are jetsam, app wake files and applewatch related logs
+
+https://preview.redd.it/8ja5adri2o8a1.jpeg?width=1170&amp;format=pjpg&amp;a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62266/battery-health-iphone-xr" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62266/battery-health-iphone-xr</a></p><p>冻结文件: <a href="sources/0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232" target="_blank">sources/0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232</a></p><p>内容 SHA-256: <code>0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_tcl_a30_listing_snapshot"><header><h3>assert_tcl_a30_listing_snapshot</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU, raw aggregate display, review count, price, and configuration fields&quot;,
+  &quot;predicate&quot;: &quot;states_snapshot&quot;,
+  &quot;subject&quot;: &quot;TCL A30 seller listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_tcl_a30_listing_snapshot</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_aggregate_and_configuration_snapshot&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B09B79YT3S, Rating: 87 % of 100, 12 Reviews, a 109.99-dollar price, and the listed 32GB plus 3GB RAM, 3000mAh, and Android 11 configuration&quot;,
+  &quot;predicate&quot;: &quot;displays&quot;,
+  &quot;subject&quot;: &quot;frozen TCL A30 seller listing&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_tcl_a30_offer</code> | bytes [124, 250) | <code>96f5bd6be1dfcd00657b08d987065c612a33e904bdb496f494df1da75191f3b8</code></div><pre class="context"><span>TCL A30 Unlocked Smartphone with 5.5&quot; HD+ Display, 8MP Rear Camera, 32GB+3GB RAM, 3000mAh Battery, Android 11, Prime Black
+
+</span><mark>In stock SKU B09B79YT3S Rating: 87 % of 100 12 Reviews Add Your Review $109.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the manufacturer Adaptive HD+ Display Enjoy vibrant visuals on the 5.5” HD+ display that intelligently optimizes the brightness level according to the environment light Previous page Smooth Multitasking A powerful Octa-core processor provides a smooth multitasking experience. Efficient Performance The large 3000 mAh battery with Smart Manage</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_tcl_a30_title</code> | bytes [0, 122) | <code>600281ba5514f04d9b8dc149a40518d3b871c84fb62ad903540501f38bd0c4d3</code></div><pre class="context"><span></span><mark>TCL A30 Unlocked Smartphone with 5.5&quot; HD+ Display, 8MP Rear Camera, 32GB+3GB RAM, 3000mAh Battery, Android 11, Prime Black</mark><span>
+
+In stock SKU B09B79YT3S Rating: 87 % of 100 12 Reviews Add Your Review $109.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Adaptive HD+ Display Enjoy vibrant visuals on the 5.5” HD+ display that intelligently optimizes the brightness level according to the environment light Previous page Smooth Multitasking A powerful O</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/tcl-a30-unlocked-smartphone-with-5-5-hd-display-8mp-rear-camera-32gb-3gb-ram-3000mah-battery-android-11-prime-black.html" target="_blank" rel="noreferrer">http://localhost:7770/tcl-a30-unlocked-smartphone-with-5-5-hd-display-8mp-rear-camera-32gb-3gb-ram-3000mah-battery-android-11-prime-black.html</a></p><p>冻结文件: <a href="sources/d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337" target="_blank">sources/d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337</a></p><p>内容 SHA-256: <code>d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_unnamed_budget_phone_duration"><header><h3>assert_unnamed_budget_phone_duration</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one-to-two-year outcome for unnamed earlier phones&quot;,
+  &quot;predicate&quot;: &quot;states_experience&quot;,
+  &quot;subject&quot;: &quot;low-budget-phone duration post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_unnamed_budget_phone_duration</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_person_unnamed_prior_phone_duration&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;object&quot;: &quot;became poor after a year or two before the author bought an iPhone 14 Pro, without naming the earlier phone models or configurations&quot;,
+  &quot;predicate&quot;: &quot;reports_duration_outcome&quot;,
+  &quot;subject&quot;: &quot;one author&#x27;s unnamed low-budget phones&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_unnamed_budget_duration</code> | bytes [82, 203) | <code>a9e2179a191e6c812f9f053d957fc61678204fd58801318def5104877036a983</code></div><pre class="context"><span>how long do iPhones last
+
+Hi I&#x27;m a new Apple user and I bought the iPhone 14 pro. </span><mark>I have used low budget phones for all those years that got shitty after a year or two, so I thought this time I&#x27;d invest.</mark><span> Also I finally have the money to buy some nice shit. But I was wondering. How long did your iPhone&#x27;s last until you had to buy a new phone? Google says 3 years. I&#x27;m really curious what your experience is. And how long youd expect the iPhone 14 pro to last with your expertise? Thanks in advance, have a cookie 🍪 2</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62443/how-long-do-iphones-last" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62443/how-long-do-iphones-last</a></p><p>冻结文件: <a href="sources/c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546" target="_blank">sources/c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546</a></p><p>内容 SHA-256: <code>c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_general_smartphone_battery_wear"><header><h3>prop_general_smartphone_battery_wear</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;energy capacity and output power through repeated charging and discharging, with possible processing-speed loss and eventual outages&quot;,
+  &quot;predicate&quot;: &quot;can_reduce&quot;,
+  &quot;subject&quot;: &quot;smartphone battery wear&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_general_battery_wear</code> | bytes [17355, 17686) | <code>a1a4a25e0c7abb77610f6a7bf25783a9cc95362a721d682902460b566071d3c3</code></div><pre class="context"><span>e 7 . An adapter reserving the charging port can retrofit the plug. Battery-powered, wireless Bluetooth headphones are an alternative. Those tend to be costlier however due to their need for internal hardware such as a Bluetooth transceiver and a battery with a charging controller, and a Bluetooth coupling is required ahead of each operation. [ 52 ] Battery </span><mark>Smartphones typically feature lithium-ion or lithium-polymer batteries due to their high energy densities . Batteries chemically wear down as a result of repeated charging and discharging throughout ordinary usage, losing both energy capacity and output power, which results in loss of processing speeds followed by system outages.</mark><span> [ 53 ] Battery capacity may be reduced to 80% after few hundred recharges, and the drop in performance accelerates with time. [ 54 ] [ 55 ] Some mobile phones are designed with batteries that can be interchanged upon expiration by the end user, usually by opening the back cover. While such a design had initially been used in most mobile phones, including th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Smartphone" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Smartphone</a></p><p>冻结文件: <a href="sources/a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0" target="_blank">sources/a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0</a></p><p>内容 SHA-256: <code>a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_possible_battery_wear_path&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The general smartphone reference says repeated charging and discharging chemically wears common smartphone batteries, reducing capacity and output power and describing possible processing-speed loss and outages; it does not establish a TCL A30 rate, timing, or outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_iphone_xr_thirteen_month_battery"><header><h3>prop_iphone_xr_thirteen_month_battery</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the author&#x27;s iPhone XR bought new showed 89 percent battery health after thirteen months, with replies questioning how the percentage was calculated&quot;,
+  &quot;predicate&quot;: &quot;reports_after_duration&quot;,
+  &quot;subject&quot;: &quot;one iPhone XR author&#x27;s battery-health report&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_iphone_xr_builtin_report</code> | bytes [2120, 2227) | <code>d78229fc9834ece1c0f8ad0e8e5c95b03c90425991fe05a84c476fb7a53b89c5</code></div><pre class="context"><span>han you plan on keeping it.
+
+you are right, i know, my goal is only trying limit the wear in order to ensure longer on my device since i didn&#x27;t want to pay for a battery replacement, i want to keep a good battery health until i will change the phone, that&#x27;s all :(
+
+Battery replacement at the Apple Store is literally $69.
+
+[removed]
+
+You are on 85% actually
+
+</span><mark>but the built-in feature in ios says that i&#x27;m at 89%, it&#x27;s strange, maybe it requires time to calculate it?</mark><span>
+
+Yes, the ios one gets stuck a lot of times, and then suddenly drops to the real %
+
+so it&#x27;s as i thinked, thanks
+
+[deleted]
+
+How are those cycles obtained? 🤔
+
+in some analytics logs, and you can will be helped by this shortcut.
+
+How can you do it?
+
+with a shortcut that uses iphone&#x27;s analytics logs</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_iphone_xr_duration_health</code> | bytes [26, 348) | <code>3a8782bb3fd86e17f98fca307c39c0cb934199d8b12bbc228fb4eef299ef1446</code></div><pre class="context"><span>battery health iphone xr
+
+</span><mark>hi everyone, i&#x27;ve bought my ip xr in october 2021 as new, now, after 13 months my battery health is decreased to 89%.. i&#x27;ve always kept the battery level between 20-80%, except for some rare days when i charged to 100 and discharged to almost 0...i&#x27;ll share some screenshots of a shortcut, it is normal a wear like this? 0</mark><span>
+
+Does this shortcut still work on iOS 16.2? Thought the log files are no longer there?
+
+Nope, for 16.2 try this one: https://www.icloud.com/shortcuts/753a688e9dca4957a95319fc7801f231
+
+Thanks which files hold this info though? All I see are jetsam, app wake files and applewatch related logs
+
+https://preview.redd.it/8ja5adri2o8a1.jpeg?width=1170&amp;format=pjpg&amp;a</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62266/battery-health-iphone-xr" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62266/battery-health-iphone-xr</a></p><p>冻结文件: <a href="sources/0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232" target="_blank">sources/0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232</a></p><p>内容 SHA-256: <code>0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_person_different_exact_model_battery_report&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One author reports that an iPhone XR bought new showed 89-percent battery health after thirteen months; this is a different person and model, replies question the calculation, and it is not a TCL A30 or task-usability result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_tcl_a30_listing_snapshot"><header><h3>prop_tcl_a30_listing_snapshot</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B09B79YT3S, Rating: 87 % of 100, 12 Reviews, a 109.99-dollar price, and the listed 32GB plus 3GB RAM, 3000mAh, and Android 11 configuration&quot;,
+  &quot;predicate&quot;: &quot;displays&quot;,
+  &quot;subject&quot;: &quot;frozen TCL A30 seller listing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_tcl_a30_offer</code> | bytes [124, 250) | <code>96f5bd6be1dfcd00657b08d987065c612a33e904bdb496f494df1da75191f3b8</code></div><pre class="context"><span>TCL A30 Unlocked Smartphone with 5.5&quot; HD+ Display, 8MP Rear Camera, 32GB+3GB RAM, 3000mAh Battery, Android 11, Prime Black
+
+</span><mark>In stock SKU B09B79YT3S Rating: 87 % of 100 12 Reviews Add Your Review $109.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the manufacturer Adaptive HD+ Display Enjoy vibrant visuals on the 5.5” HD+ display that intelligently optimizes the brightness level according to the environment light Previous page Smooth Multitasking A powerful Octa-core processor provides a smooth multitasking experience. Efficient Performance The large 3000 mAh battery with Smart Manage</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_tcl_a30_title</code> | bytes [0, 122) | <code>600281ba5514f04d9b8dc149a40518d3b871c84fb62ad903540501f38bd0c4d3</code></div><pre class="context"><span></span><mark>TCL A30 Unlocked Smartphone with 5.5&quot; HD+ Display, 8MP Rear Camera, 32GB+3GB RAM, 3000mAh Battery, Android 11, Prime Black</mark><span>
+
+In stock SKU B09B79YT3S Rating: 87 % of 100 12 Reviews Add Your Review $109.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Adaptive HD+ Display Enjoy vibrant visuals on the 5.5” HD+ display that intelligently optimizes the brightness level according to the environment light Previous page Smooth Multitasking A powerful O</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/tcl-a30-unlocked-smartphone-with-5-5-hd-display-8mp-rear-camera-32gb-3gb-ram-3000mah-battery-android-11-prime-black.html" target="_blank" rel="noreferrer">http://localhost:7770/tcl-a30-unlocked-smartphone-with-5-5-hd-display-8mp-rear-camera-32gb-3gb-ram-3000mah-battery-android-11-prime-black.html</a></p><p>冻结文件: <a href="sources/d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337" target="_blank">sources/d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337</a></p><p>内容 SHA-256: <code>d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_aggregate_and_configuration_snapshot&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen TCL A30 seller page displays SKU B09B79YT3S, Rating: 87 % of 100, 12 Reviews, a price of $109.99, and a title identifying 32GB plus 3GB RAM, a 3000mAh battery, and Android 11; these are listing observations, not a converted star rating or a longitudinal result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_unnamed_budget_phone_duration"><header><h3>prop_unnamed_budget_phone_duration</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;became poor after a year or two before the author bought an iPhone 14 Pro, without naming the earlier phone models or configurations&quot;,
+  &quot;predicate&quot;: &quot;reports_duration_outcome&quot;,
+  &quot;subject&quot;: &quot;one author&#x27;s unnamed low-budget phones&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_unnamed_budget_duration</code> | bytes [82, 203) | <code>a9e2179a191e6c812f9f053d957fc61678204fd58801318def5104877036a983</code></div><pre class="context"><span>how long do iPhones last
+
+Hi I&#x27;m a new Apple user and I bought the iPhone 14 pro. </span><mark>I have used low budget phones for all those years that got shitty after a year or two, so I thought this time I&#x27;d invest.</mark><span> Also I finally have the money to buy some nice shit. But I was wondering. How long did your iPhone&#x27;s last until you had to buy a new phone? Google says 3 years. I&#x27;m really curious what your experience is. And how long youd expect the iPhone 14 pro to last with your expertise? Thanks in advance, have a cookie 🍪 2</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/iphone/62443/how-long-do-iphones-last" target="_blank" rel="noreferrer">http://localhost:9999/f/iphone/62443/how-long-do-iphones-last</a></p><p>冻结文件: <a href="sources/c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546" target="_blank">sources/c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546</a></p><p>内容 SHA-256: <code>c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_person_unnamed_prior_phone_duration&quot;,
+    &quot;topic_cluster&quot;: &quot;smartphone_rating_longevity_transfer_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One forum author reports that the author&#x27;s unnamed low-budget phones became poor after a year or two; the post does not identify those phones and cannot be transferred to the TCL A30 or treated as prevalence.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_smartphone_longevity_boundary</td><td>case_spec</td><td><a href="sources/61bf1f0bff4e4b60fa2daee8e8c27952f6670d55800c7679f42b61926c25eb5b">61bf1f0bff4e4b60fa2daee8e8c27952f6670d55800c7679f42b61926c25eb5b</a></td><td><a href="http://case-spec.local/dra_v3_formal_smartphones_0032" target="_blank" rel="noreferrer">来源 URL</a></td><td>8693</td></tr><tr><td>reg_magento_tcl_a30_rating_snapshot</td><td>magento</td><td><a href="sources/d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337">d5de2faa7dfdb99b2965cd96c6cd0fb9ab7cc50499690bad738f603aa5600337</a></td><td><a href="http://localhost:7770/tcl-a30-unlocked-smartphone-with-5-5-hd-display-8mp-rear-camera-32gb-3gb-ram-3000mah-battery-android-11-prime-black.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4684</td></tr><tr><td>reg_postmill_iphone_xr_thirteen_month_battery</td><td>postmill</td><td><a href="sources/0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232">0e439e341dabe74d1ed7fe9ecba00529b42923823d3cc82c2d20dd5a23a0e232</a></td><td><a href="http://localhost:9999/f/iphone/62266/battery-health-iphone-xr" target="_blank" rel="noreferrer">来源 URL</a></td><td>2529</td></tr><tr><td>reg_postmill_unnamed_budget_phones_duration</td><td>postmill</td><td><a href="sources/c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546">c97e9344c5144312de4de1ee725c0140f47fd5fb3ed95ad14a9ae73d374e2546</a></td><td><a href="http://localhost:9999/f/iphone/62443/how-long-do-iphones-last" target="_blank" rel="noreferrer">来源 URL</a></td><td>520</td></tr><tr><td>reg_search_iphone_xr_battery</td><td>search_result</td><td><a href="sources/123aefc65fd2582b273b3f67e19bec2eff3a8c267e036e272959b3738361fbc9">123aefc65fd2582b273b3f67e19bec2eff3a8c267e036e272959b3738361fbc9</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0032-rating-longevity-boundary-20260716-r1&amp;request_id=bd13bb39-d648-499a-bb65-02c27a06134d" target="_blank" rel="noreferrer">来源 URL</a></td><td>49483</td></tr><tr><td>reg_search_smartphone_battery_path</td><td>search_result</td><td><a href="sources/ccbb3190f97d0545703d59787014bbc9ac60bd3c414c5620d6649d83ab61a72f">ccbb3190f97d0545703d59787014bbc9ac60bd3c414c5620d6649d83ab61a72f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0032-rating-longevity-boundary-20260716-r1&amp;request_id=e22bce20-fa91-4df8-871b-55378bf8ca25" target="_blank" rel="noreferrer">来源 URL</a></td><td>3340</td></tr><tr><td>reg_search_tcl_a30_snapshot</td><td>search_result</td><td><a href="sources/dd687ff53c7047058085f9f3dffaae26039cf19380049ba90266f97238afcd9b">dd687ff53c7047058085f9f3dffaae26039cf19380049ba90266f97238afcd9b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0032-rating-longevity-boundary-20260716-r1&amp;request_id=09fe72fc-8842-48c9-93ea-40261bbeb4f9" target="_blank" rel="noreferrer">来源 URL</a></td><td>7168</td></tr><tr><td>reg_search_unnamed_budget_duration</td><td>search_result</td><td><a href="sources/3b04074a0b36de3ef3084e198bc8b8dc686486df6eeee323fc818df0c95c4a16">3b04074a0b36de3ef3084e198bc8b8dc686486df6eeee323fc818df0c95c4a16</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-smartphones-0032-rating-longevity-boundary-20260716-r1&amp;request_id=8af30e8c-a45c-44d4-89af-41e2a0e7870a" target="_blank" rel="noreferrer">来源 URL</a></td><td>66270</td></tr><tr><td>reg_wiki_smartphone_battery_wear</td><td>wikipedia</td><td><a href="sources/a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0">a45f7925537b8c6ae18724e3f49036cb94ab97b7cf4794e78efe495fcfdca0b0</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Smartphone" target="_blank" rel="noreferrer">来源 URL</a></td><td>20037</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "cand_formal_0032_from_0028";
+const corpusSnapshot = "dra-v3-formal-smartphones-0032-rating-longevity-boundary-20260716-r1";
+const graphHash = "d1e9d4a3deb2badafd6c49ab93a142f39201c0c66bd23b78db056f02793b12d4";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

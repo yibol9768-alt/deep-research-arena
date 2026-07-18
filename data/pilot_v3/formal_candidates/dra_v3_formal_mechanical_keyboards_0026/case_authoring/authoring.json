@@ -1,0 +1,157 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_mechanical_keyboards_0026",
+  "cluster_id": "mechanical_keyboard_value_typing_evidence_boundary",
+  "difficulty": {
+    "proof_depth": 3,
+    "branching_factor": 3,
+    "distractor_density": 0.2,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "daily_use_and_build_tradeoffs_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Separate daily-use criteria instead of treating price, switch label, or sound as one quality score. The Matias discussion reports one model at 70, 160, and 170 dollar price points, quiet office use, and a participant's heavy-use durability concern, so price channel and ownership reports remain scoped rather than stable market or failure-rate facts. The silent-switch discussion reports the cheapest tested option as quietest, a different option as best-feeling, and plate material and case as affecting residual sound. The Gamakay reviewer reports quiet daily use and adequate factory lube together with cheaper-feeling housing, flimsy pins, and installation difficulty. The NiZ author lists switches, lubricant, stabilizers, plates, and foam among prior modification work before preferring one out-of-box typing and sound result. The typing-style discussion adds participant reports that board, plate, keycaps, chassis, noise, and fatigue can change preference. These community pages motivate hands-on checks for quietness, tactile feel, stabilized keys, installation, modification time, quality control, and sustained comfort; they do not establish a universal ranking or population rate."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "layout_posture_and_construction_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Treat layout, posture, and construction as separate fit checks. The computer-keyboard source says different types target different needs and describes tenkeyless designs as omitting the number pad for compactness or preference. The ergonomic source identifies forearms parallel to the ground and straight wrists as a relaxed posture and says compact layouts can free mouse space and reduce outward arm rotation. The Model M source links one specific design's heavy steel backplate and strong plastic frame with surviving units and its buckling springs with a distinctive feel and sound. Therefore check needed keys, mouse reach, height, slope, material and repair evidence, and actual feel; do not infer that every compact, heavy, metal, or expensive board is ergonomic or durable for every person."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "observed_price_feature_ladder_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The catalog snapshots show different feature bundles rather than one scalar quality ladder. The 39.99 dollar example advertises 81 keys, wireless and wired modes, blue switches, hot-swap, and RGB. The 55.50 dollar Keychron C2 advertises a full-size wired hot-swap layout, Gateron G Pro Blue switches, and ABS keycaps. The 84.99 dollar Keychron K10 advertises full-size Bluetooth and wired modes with Gateron Brown switches. At 149.99 dollars, the Durgod advertises a compact aluminium-chassis board with PBT keycaps, NKRO, and a Gateron Silent Brown option, while the Apex Pro advertises adjustable actuation, an OLED display, RGB, an aluminum-alloy frame, and a wrist rest. Spend can therefore go to layout, connectivity, hot-swap, materials, actuation, display, software, or accessories. These seller pages do not supply a controlled typing, acoustic, reliability, or longevity ordering, and the catalog sample stops at 149.99 dollars."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "person_specific_purchase_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Set a personal purchase boundary by first naming non-negotiables: required keys and layout, desk and mouse reach, connection mode, noise limit, switch force and feel, keyboard height and slope, hot-swap or repair needs, and acceptable modification time. Compare complete boards against those requirements, then test a switch sample or the actual board during sustained typing. Check stabilized keys and off-center presses, sound in the real room, connection and firmware behavior, wrist posture, and service or return options. Spend above the least expensive passing option only for a named benefit that is verified in the intended use. The sample cannot supply one universal cutoff because its catalog ladder ends at 149.99 dollars, its 160 and 170 dollar figures are a community report about one board and price channel, and it contains no controlled cross-tier trial."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "evidence_bounded_keyboard_value_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Report the observed feature allocation without converting price into a quality score. Explain why a broad switch label cannot specify the complete board, keep daily typing fit, quietness, tactile feel, construction, serviceability, and hobby sound as separate criteria, and choose the least expensive complete board that passes a named sustained-use checklist. If no tested option passes or exact model evidence is missing, state that the material cannot select one board. Because the catalog sample stops at 149.99 dollars and lacks a controlled cross-tier trial, do not claim a universal 150 to 200 dollar cutoff or an objectively best board at that cutoff."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "choose_the_least_expensive_board_that_passes_named_daily_use_checks_or_state_that_no_board_or_universal_cutoff_is_supported": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Choose the least expensive complete keyboard that passes the buyer's named layout, posture, noise, feel, connection, serviceability, and sustained-use checks; if those checks cannot be completed, state that no specific board or universal price cutoff is supported.",
+            "Use a least-expensive-passing-option rule with hands-on verification, not a switch-color shortcut, a sound clip, or a universal 150 to 200 dollar cutoff."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "choose_the_least_expensive_board_that_passes_named_daily_use_checks_or_state_that_no_board_or_universal_cutoff_is_supported",
+          "when": "the_material_supports_feature_and_tradeoff_analysis_but_lacks_a_controlled_cross_tier_trial_and_complete_150_to_200_dollar_catalog_coverage",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The available material supports an observed 39.99 to 149.99 dollar feature ladder and scoped community and concept evidence, but it lacks a controlled head-to-head trial, complete 150 to 200 dollar catalog coverage, the buyer's exact physical fit, and sustained testing of the exact candidate boards."
+            ],
+            "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+          },
+          "tradeoff_matchers": {
+            "price_is_feature_bundle_not_quality_score": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The observed prices buy different combinations of layout, connectivity, hot-swap, materials, actuation controls, display, software, and accessories, not a guaranteed scalar improvement in typing, sound, or lifetime."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "daily_use_criteria_are_separate_from_sound": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Quietness, tactile feel, fatigue, posture, stabilized-key behavior, durability, serviceability, modification time, and close-up sound preference are distinct criteria and can favor different choices."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "cutoff_requires_hands_on_and_may_remain_unresolved": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "A defensible boundary requires sustained hands-on or return-window verification of the exact board, and the available material cannot identify one universal cutoff or objectively best board when those checks and cross-tier evidence are absent."
+              ],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {"claim_id":"wrong_higher_price_guarantees_better_board","contradicts_slot_id":"B3","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["A higher keyboard price guarantees better typing feel, sound, durability, and reliability."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_switch_color_fixes_whole_board","contradicts_slot_id":"B1","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["Two keyboards with the same broad blue or brown switch label have the same feel, sound, construction, and daily-use quality."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_catalog_pages_are_controlled_tests","contradicts_slot_id":"B3","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["The seller listings prove a controlled ranking of typing comfort, acoustics, reliability, and longevity across the price tiers."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_forum_reports_are_population_rates","contradicts_slot_id":"B1","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["The forum posts establish population-wide preference, failure rates, and price-to-quality effects."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_sound_video_settles_daily_typing","contradicts_slot_id":"B1","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["A close-up keyboard sound clip is sufficient to choose the best board for six hours of daily typing."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_metal_weight_guarantees_durability","contradicts_slot_id":"B2","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["Any heavy metal keyboard is automatically more ergonomic, durable, and comfortable than a lighter board."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_universal_150_200_cutoff","contradicts_slot_id":"D1","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["The available material proves that every buyer should stop spending at one universal price between 150 and 200 dollars."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_name_best_board_without_testing","contradicts_slot_id":"D1","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["Select one objectively best keyboard from the listings without testing the buyer's layout, posture, noise, feel, connection, stabilized keys, firmware, or service needs."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}},
+    {"claim_id":"wrong_matias_prices_are_stable_market_prices","contradicts_slot_id":"B1","critical":true,"rejected_matcher":{"matcher":"normalized_text","accepted_phrases":["The 70, 160, and 170 dollar Matias figures are stable market prices and prove a general premium markup."],"normalizers":["casefold","whitespace","punctuation","hyphen"]}}
+  ],
+  "research_subgoals": [
+    {"subgoal_id":"G1","description":"Compare the five catalog snapshots and identify which different features are bundled at 39.99, 55.50, 84.99, and 149.99 dollars without treating price as a quality score.","critical":true,"requires":["E1","E2","E3","E4","E5","B3"],"local_conclusion_slot_id":"B3"},
+    {"subgoal_id":"G2","description":"Separate quietness, tactile feel, fatigue, board acoustics, quality control, modification effort, serviceability, price channel, and sustained-use reports while preserving community scope.","critical":true,"requires":["E7","E9","E11","E12","E13","B1"],"local_conclusion_slot_id":"B1"},
+    {"subgoal_id":"G3","description":"Turn layout, mouse reach, posture, height, slope, construction, durability evidence, and actual feel into person-specific fit checks.","critical":true,"requires":["E6","E8","E10","B2"],"local_conclusion_slot_id":"B2"},
+    {"subgoal_id":"G4","description":"Combine the observed ladder, daily-use tradeoffs, and fit checks into a least-expensive-passing-option rule, then state why no universal cutoff or objectively best board is supported.","critical":true,"requires":["E1","E2","E3","E4","E5","E6","E7","E8","E9","E10","E11","E12","E13","B1","B2","B3","B4","D1"],"local_conclusion_slot_id":"D1"}
+  ],
+  "query_requirements": [
+    {"requirement_id":"Q1","text":"Compare the observed price and feature ladder, showing where spend can go across layout, connectivity, hot-swap, keycaps, case material, actuation controls, display, software, and accessories without turning seller pages into a performance ranking.","slot_ids":["E1","E2","E3","E4","E5","B3"],"subgoal_ids":["G1"],"required":true},
+    {"requirement_id":"Q2","text":"Explain why a broad switch label does not specify a complete board, and separate daily typing fit, quietness, tactile feel, fatigue, quality control, modification effort, stabilized-key behavior, and serviceability from close-up sound preference while keeping community reports anecdotal.","slot_ids":["E7","E9","E11","E12","E13","B1"],"subgoal_ids":["G2"],"required":true},
+    {"requirement_id":"Q3","text":"Use the layout, posture, mouse-reach, and construction material to build checks for needed keys, desk fit, wrist position, keyboard height and slope, durability evidence, and repairability without claiming that compactness, metal, weight, or price is universally better.","slot_ids":["E6","E8","E10","B2"],"subgoal_ids":["G3"],"required":true},
+    {"requirement_id":"Q4","text":"End with a least-expensive-passing-option decision rule and a short sustained typing or return-window test. State that the catalog sample stops at 149.99 dollars, the 160 and 170 dollar figures are a community price report, and the material cannot establish one universal 150 to 200 dollar cutoff or objectively best board.","slot_ids":["E1","E2","E3","E4","E5","E6","E7","E8","E9","E10","E11","E12","E13","B1","B2","B3","B4","D1"],"subgoal_ids":["G4"],"required":true}
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "choose_the_least_expensive_board_that_passes_named_daily_use_checks_or_state_that_no_board_or_universal_cutoff_is_supported",
+      "when": "the_material_supports_feature_and_tradeoff_analysis_but_lacks_a_controlled_cross_tier_trial_and_complete_150_to_200_dollar_catalog_coverage",
+      "required_tradeoffs": [
+        "price_is_feature_bundle_not_quality_score",
+        "daily_use_criteria_are_separate_from_sound",
+        "cutoff_requires_hands_on_and_may_remain_unresolved"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": ["E1","E2","E3","E4","E5","E6","E7","E8","E9","E10","E11","E12","E13","B1","B2","B3","B4","D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1":{"outcome":"decision_unresolved"},
+      "E2":{"outcome":"decision_unresolved"},
+      "E3":{"outcome":"decision_unresolved"},
+      "E4":{"outcome":"decision_unresolved"},
+      "E5":{"outcome":"decision_unresolved"},
+      "E6":{"outcome":"decision_unresolved"},
+      "E7":{"outcome":"decision_unresolved"},
+      "E8":{"outcome":"decision_unresolved"},
+      "E9":{"outcome":"decision_unresolved"},
+      "E10":{"outcome":"decision_unresolved"},
+      "E11":{"outcome":"decision_unresolved"},
+      "E12":{"outcome":"decision_unresolved"},
+      "E13":{"outcome":"decision_unresolved"}
+    },
+    "human_solve_minutes": 40,
+    "minimum_required_evidence_nodes": 13,
+    "minimum_reasoning_depth": 3
+  }
+}

@@ -62,3 +62,39 @@ def test_zero_result_and_query_relaxes_without_accepting_off_topic_rows(monkeypa
     assert len(hits) == 2
     assert {h.url.split("/f/", 1)[1].split("/", 1)[0] for h in hits} \
         == {"food", "BuyItForLife"}
+
+
+def test_partial_index_results_are_not_padded_from_recent_feeds(monkeypatch):
+    one_row = HTML.split('<article class="submission submission--expanded">', 2)
+    one_row_html = (
+        '<article class="submission submission--expanded">'
+        + one_row[1]
+        + "</html>"
+    )
+    calls = []
+
+    def get_source(source, base, public, path, **kwargs):
+        calls.append(path)
+        assert path == "/search", "a valid partial result must not trigger feed padding"
+        return SimpleNamespace(text=one_row_html, status_code=200)
+
+    monkeypatch.setattr(backend, "_get_source", get_source)
+    hits = backend._search_reddit("coffee grinder burr", 8)
+
+    assert len(hits) == 1
+    assert calls and set(calls) == {"/search"}
+
+
+def test_empty_index_recent_feed_fallback_is_bounded(monkeypatch):
+    feed_paths = []
+
+    def get_source(source, base, public, path, **kwargs):
+        if path != "/search":
+            feed_paths.append(path)
+        return SimpleNamespace(text="<html><body>No results</body></html>", status_code=200)
+
+    monkeypatch.setattr(backend, "_get_source", get_source)
+    assert backend._search_reddit("Bluetooth speaker battery", 10) == []
+
+    assert len(feed_paths) == backend.REDDIT_FEED_FALLBACK_LIMIT
+    assert all(path.endswith("/new.atom") for path in feed_paths)

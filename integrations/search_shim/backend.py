@@ -10,7 +10,10 @@ import os
 import re
 import time
 import urllib.parse
+from collections import Counter
 from dataclasses import dataclass
+from dataclasses import replace as dataclass_replace
+from math import log
 from typing import Iterable
 
 import requests
@@ -21,6 +24,27 @@ SHOPPING = os.environ.get("SHOPPING", "http://localhost:7770").rstrip("/")
 REDDIT = os.environ.get("REDDIT", "http://localhost:9999").rstrip("/")
 KIWIX = os.environ.get("KIWIX", "http://localhost:8090").rstrip("/")
 KIWIX_BOOK = os.environ.get("KIWIX_BOOK", "wikipedia_en_all_nopic")
+# Kiwix's first full-text lookup after an idle period is measurably slower than
+# the other corpus services.  On my5090 a healthy cold query took 15.75s on the
+# host; the same lookup crossed the old 20s deadline when launched by the
+# trusted formal-run supervisor.  Give this source explicit cold-start
+# headroom while keeping the timeout bounded and operator-configurable.
+KIWIX_SEARCH_TIMEOUT_S = max(
+    1, int(os.environ.get("KIWIX_SEARCH_TIMEOUT_S", "45") or "45")
+)
+KIWIX_RESULTS_PER_CONCEPT = max(
+    1, int(os.environ.get("KIWIX_RESULTS_PER_CONCEPT", "1") or "1")
+)
+REDDIT_FEED_TIMEOUT_S = max(
+    1, int(os.environ.get("REDDIT_FEED_TIMEOUT_S", "5") or "5")
+)
+REDDIT_FEED_FALLBACK_LIMIT = max(
+    1, int(os.environ.get("REDDIT_FEED_FALLBACK_LIMIT", "4") or "4")
+)
+SEARCH_MIN_RELATIVE_SCORE = min(
+    1.0,
+    max(0.0, float(os.environ.get("SEARCH_MIN_RELATIVE_SCORE", "0.08") or "0.08")),
+)
 
 # Where we dial a source is not who that source thinks it is.
 #
@@ -211,8 +235,8 @@ class SearchHit:
     url: str
     title: str
     content: str  # short snippet shown in search results
-    score: float  # 0-1, naive; used for ordering
-    source: str  # "shopping" | "reddit"
+    score: float  # 0-1 lexical relevance after source-local reranking
+    source: str  # "shopping" | "reddit" | "wiki"
     raw_content: str | None = None  # full markdown, if requested
 
 
@@ -331,9 +355,12 @@ def _search_shopping(query: str, max_results: int) -> list[SearchHit]:
         return []
     soup = BeautifulSoup(r.text, "html.parser")
     hits: list[SearchHit] = []
-    for i, el in enumerate(
-        soup.select("li.item.product.product-item, .products-grid .product-item")[: max_results * 3]
-    ):
+    # Magento's own rank is only a candidate generator. Pull a wider window and
+    # apply the same exact-token/IDF gate used for forum and wiki results.
+    candidate_cap = max(max_results * 5, 20)
+    for el in soup.select(
+        "li.item.product.product-item, .products-grid .product-item"
+    )[:candidate_cap]:
         a = el.select_one("a.product-item-link, .product-item-name a")
         if not a:
             continue
@@ -362,12 +389,30 @@ def _search_shopping(query: str, max_results: int) -> list[SearchHit]:
         snippet = f"{title}. " + " · ".join(parts) if parts else title
         hits.append(SearchHit(
             url=href, title=title, content=snippet,
-            score=max(0.0, 1.0 - i / max_results),
+            score=0.0,
             source="shopping",
         ))
-        if len(hits) >= max_results:
-            break
-    return hits
+    ranked = _rerank_hits(query, hits, max_results)
+    if ranked:
+        return ranked
+
+    # A store can match a category through fields that are absent from the
+    # rendered grid.  For example, `headphones` legitimately returns
+    # "Sony WH-1000XM4", whose card never repeats the category name.  Trust
+    # Magento's candidate order only for one unambiguous topic term; multi-term
+    # research queries must still pass the absolute relevance gate so an
+    # accidental `battery` match cannot admit an unrelated phone product.
+    profile = _query_profile(query)
+    if len(profile.terms) == 1 and len(profile.anchors) == 1:
+        denominator = max(1, min(len(hits), max_results))
+        return [
+            dataclass_replace(
+                hit,
+                score=round(max(0.01, 1.0 - index / denominator), 6),
+            )
+            for index, hit in enumerate(hits[:max_results])
+        ]
+    return []
 
 
 # ---------------------------------------------------------------------------
@@ -387,13 +432,371 @@ def _strip_html(s: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", s or "")).strip()
 
 
-def _score_reddit(query: str, title: str, summary: str) -> float:
-    tokens = [t.lower() for t in re.findall(r"[A-Za-z0-9]{3,}", query)]
-    if not tokens:
+_LEXICAL_TOKEN_RE = re.compile(r"[A-Za-z0-9]+")
+
+# These words are useful instructions to a search engine, but poor evidence
+# that a returned document is about the user's subject.  Treating them like
+# product/model terms is what admitted baby-budget, iPhone-battery and machine-
+# learning-comparison pages into audio queries.
+_STOP_TERMS = frozenset({
+    "a", "an", "and", "are", "as", "at", "be", "been", "before", "but",
+    "by", "can", "could", "did", "do", "does", "for", "from", "give",
+    "has", "have", "how", "i", "in", "into", "is", "it", "its", "me",
+    "my", "of", "on", "or", "our", "please", "should", "that", "the",
+    "their", "them", "then", "there", "these", "they", "this", "to",
+    "under", "use", "using", "was", "we", "what", "when", "where",
+    "whether", "which", "who", "why", "will", "with", "would", "you",
+    "your",
+})
+
+_WEAK_QUERY_TERMS = frozenset({
+    "amazon", "best", "budget", "buy", "cheap", "compare", "comparison",
+    "current", "detail", "find", "full", "good", "latest", "listing",
+    "model", "new", "official", "page", "price", "problem", "product",
+    "quality", "recommendation", "review", "shop", "spec", "specification",
+    "technical", "test", "website",
+})
+
+_BROAD_DOMAIN_TERMS = frozenset({
+    "audio", "battery", "bluetooth", "device", "driver", "headphone",
+    "portable", "sound", "speaker", "waterproof", "wireless",
+})
+
+# Capitalisation is a useful model/brand signal in agent-generated queries, but
+# publisher and search-site names must not become mandatory document identity.
+_IDENTITY_EXCLUSIONS = frozenset({
+    "aac", "amazon", "aptx", "cnet", "eq", "google", "ldac", "manual",
+    "official", "pdf", "reddit", "rms", "rtings", "sbc", "soundguys",
+    "thd", "usb", "website", "wikipedia", "wirecutter", "youtube",
+})
+
+_COMPARISON_CUES = frozenset({
+    "compare", "compared", "comparing", "comparison", "versus", "vs",
+})
+_COMPARISON_SEPARATORS = frozenset({
+    "against", "and", "compare", "compared", "comparing", "comparison", "or",
+    "versus", "vs", "with",
+})
+
+_TERM_ALIASES = {
+    "batteries": "battery",
+    "codecs": "codec",
+    "degrees": "degree",
+    "drivers": "driver",
+    "headphones": "headphone",
+    "radiators": "radiator",
+    "reviews": "review",
+    "speakers": "speaker",
+    "specifications": "specification",
+    "specs": "specification",
+    "wattage": "watt",
+    "watts": "watt",
+}
+
+
+def _normalise_term(raw: str) -> str:
+    term = raw.casefold()
+    if term in _TERM_ALIASES:
+        return _TERM_ALIASES[term]
+    if len(term) > 4 and term.endswith("ies"):
+        return term[:-3] + "y"
+    if (len(term) > 4 and term.endswith("s")
+            and not term.endswith(("is", "ss", "us"))):
+        return term[:-1]
+    return term
+
+
+def _lexical_tokens(text: str) -> list[str]:
+    """Boundary-aware terms; never let ``anc`` match ``performance``."""
+    return [
+        _normalise_term(raw)
+        for raw in _LEXICAL_TOKEN_RE.findall(text or "")
+        if raw
+    ]
+
+
+def _unique_in_order(items: Iterable[str]) -> tuple[str, ...]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in items:
+        if not item or item in seen:
+            continue
+        seen.add(item)
+        out.append(item)
+    return tuple(out)
+
+
+def _term_weight(term: str) -> float:
+    if term in _STOP_TERMS:
         return 0.0
-    hay = (title + " " + summary).lower()
-    hits = sum(1 for t in tokens if t in hay)
-    return hits / len(tokens)
+    if term.isdigit():
+        return 0.20
+    if term in _WEAK_QUERY_TERMS:
+        return 0.25
+    if term in _BROAD_DOMAIN_TERMS:
+        return 0.65
+    if any(ch.isdigit() for ch in term):
+        return 1.60
+    return min(1.40, 1.0 + max(0, len(term) - 6) * 0.05)
+
+
+@dataclass(frozen=True)
+class _QueryProfile:
+    terms: tuple[str, ...]
+    weights: dict[str, float]
+    anchors: tuple[str, ...]
+    named_identity: tuple[str, ...]
+    coded_identity: tuple[str, ...]
+    identity_groups: tuple[tuple[str, ...], ...]
+    phrases: tuple[tuple[str, ...], ...]
+
+
+def _query_profile(query: str) -> _QueryProfile:
+    raw_terms = _LEXICAL_TOKEN_RE.findall(query or "")
+    normalised = [_normalise_term(raw) for raw in raw_terms]
+    terms = _unique_in_order(
+        term for term in normalised if _term_weight(term) > 0.0
+    )
+    weights = {term: _term_weight(term) for term in terms}
+    anchors = tuple(
+        term for term in terms
+        if term not in _WEAK_QUERY_TERMS and not term.isdigit()
+    )
+
+    def identity_term(raw: str, term: str) -> str | None:
+        if (term in _STOP_TERMS or term in _WEAK_QUERY_TERMS
+                or term in _BROAD_DOMAIN_TERMS
+                or term in _IDENTITY_EXCLUSIONS):
+            return None
+        has_alpha = any(ch.isalpha() for ch in term)
+        has_digit = any(ch.isdigit() for ch in term)
+        # IP ratings are technical requirements, not product/model identity.
+        # Keep watt/model/ASIN tokens such as 40W, X30 and B08KCX841R.
+        if (has_alpha and has_digit and len(term) >= 3
+                and not re.fullmatch(r"ipx\d+", term)):
+            return term
+        if len(raw) >= 3 and (raw.isupper() or raw[:1].isupper()):
+            return term
+        return None
+
+    comparison_mode = any(term in _COMPARISON_CUES for term in normalised)
+    # "A or B" is also a genuine alternate-product query when both sides carry
+    # identity. It is intentionally narrower than treating every "with" as a
+    # comparison, which would split normal feature phrases.
+    comparison_mode = comparison_mode or "or" in normalised
+    raw_segments: list[list[tuple[str, str]]] = [[]]
+    for raw, term in zip(raw_terms, normalised):
+        if comparison_mode and term in _COMPARISON_SEPARATORS:
+            if raw_segments[-1]:
+                raw_segments.append([])
+            continue
+        raw_segments[-1].append((raw, term))
+
+    identity_groups: list[tuple[str, ...]] = []
+    for segment in raw_segments:
+        group = _unique_in_order(
+            identity
+            for raw, term in segment
+            if (identity := identity_term(raw, term)) is not None
+        )
+        if group:
+            identity_groups.append(group)
+
+    all_identity = _unique_in_order(
+        identity for group in identity_groups for identity in group
+    )
+    named = tuple(
+        term for term in all_identity
+        if not (any(ch.isalpha() for ch in term)
+                and any(ch.isdigit() for ch in term))
+    )
+    coded = tuple(term for term in all_identity if term not in named)
+
+    phrases: list[tuple[str, ...]] = []
+    for size in (3, 2):
+        for start in range(0, max(0, len(normalised) - size + 1)):
+            phrase = tuple(normalised[start:start + size])
+            if any(t in _STOP_TERMS for t in phrase):
+                continue
+            if all(t in _WEAK_QUERY_TERMS or t.isdigit() for t in phrase):
+                continue
+            if sum(_term_weight(t) for t in phrase) < 1.3:
+                continue
+            phrases.append(phrase)
+
+    return _QueryProfile(
+        terms=terms,
+        weights=weights,
+        anchors=_unique_in_order(anchors),
+        named_identity=named,
+        coded_identity=coded,
+        identity_groups=tuple(identity_groups),
+        phrases=tuple(dict.fromkeys(phrases)),
+    )
+
+
+def _contains_phrase(tokens: list[str], phrase: tuple[str, ...]) -> bool:
+    size = len(phrase)
+    return any(tuple(tokens[i:i + size]) == phrase
+               for i in range(0, len(tokens) - size + 1))
+
+
+def _passes_relevance_gate(profile: _QueryProfile, document_terms: set[str]) -> bool:
+    """Reject rows admitted solely by a generic term.
+
+    Identity-bearing queries are strict about the named model/brand. Otherwise
+    two topic anchors (three for a very broad task sentence) are required. A
+    genuinely one-word query still works; the shim cannot infer missing context.
+    """
+    if not profile.terms:
+        return False
+    named_identity = set(profile.named_identity)
+    coded_identity = set(profile.coded_identity)
+
+    def group_matches(group: tuple[str, ...]) -> bool:
+        named = [term for term in group if term in named_identity]
+        coded = [term for term in group if term in coded_identity]
+        named_hits = sum(term in document_terms for term in named)
+        coded_hits = sum(term in document_terms for term in coded)
+        if len(named) >= 2:
+            # Full multi-token product identity, e.g. Soundcore Flare or
+            # Anker Soundcore Flare. Property/model codes may be absent from a
+            # compact result card once this identity is exact.
+            return named_hits == len(named)
+        if len(named) == 1:
+            # A brand alone is not enough when the query supplies a model/value
+            # discriminator such as Ortizan 40W or Ortizan B08KCX841R.
+            return named_hits == 1 and (not coded or coded_hits >= 1)
+        return bool(coded) and coded_hits >= 1
+
+    if profile.identity_groups:
+        if not any(group_matches(group) for group in profile.identity_groups):
+            return False
+    elif profile.anchors:
+        if len(profile.anchors) == 1:
+            required = 1
+        elif len(profile.anchors) <= 5:
+            required = 2
+        else:
+            required = 3
+        anchor_hits = sum(term in document_terms for term in profile.anchors)
+        if anchor_hits < required:
+            return False
+
+    matched_weight = sum(
+        weight for term, weight in profile.weights.items()
+        if term in document_terms
+    )
+    total_weight = sum(profile.weights.values()) or 1.0
+    # Exact model identity is already a strong gate. Non-identity queries need
+    # enough of their weighted meaning present, not one accidental generic hit.
+    floor = 0.08 if (profile.named_identity or profile.coded_identity) else 0.18
+    return matched_weight / total_weight >= floor
+
+
+def _score_relevance_single(query: str, title: str, body: str) -> float:
+    profile = _query_profile(query)
+    title_terms = _lexical_tokens(title)
+    body_terms = _lexical_tokens(body)
+    doc_terms = set(title_terms) | set(body_terms)
+    if not _passes_relevance_gate(profile, doc_terms):
+        return 0.0
+    total_weight = sum(profile.weights.values()) or 1.0
+    covered = sum(
+        weight for term, weight in profile.weights.items()
+        if term in doc_terms
+    ) / total_weight
+    title_covered = sum(
+        weight for term, weight in profile.weights.items()
+        if term in set(title_terms)
+    ) / total_weight
+    phrase_hits = sum(
+        _contains_phrase(title_terms, phrase)
+        or _contains_phrase(body_terms, phrase)
+        for phrase in profile.phrases
+    )
+    phrase_bonus = min(0.20, phrase_hits * 0.05)
+    return min(1.0, 0.72 * covered + 0.28 * title_covered + phrase_bonus)
+
+
+def _search_hit_title_for_ranking(hit: SearchHit) -> str:
+    # A forum label is metadata, not evidence that the post discusses a query.
+    # Otherwise every random row from r/headphones matches "headphones".
+    return re.sub(r"^r/[^:]+:\s*", "", hit.title or "", flags=re.I)
+
+
+def _rerank_hits(query: str, hits: Iterable[SearchHit], max_results: int) -> list[SearchHit]:
+    """BM25/IDF-style source-local reranking with an absolute relevance gate."""
+    candidates = list(hits)
+    if max_results <= 0 or not candidates:
+        return []
+    profile = _query_profile(query)
+    prepared: list[tuple[int, SearchHit, list[str], list[str]]] = []
+    for index, hit in enumerate(candidates):
+        title_terms = _lexical_tokens(_search_hit_title_for_ranking(hit))
+        body_terms = _lexical_tokens(hit.content or hit.raw_content or "")
+        if not _passes_relevance_gate(profile, set(title_terms) | set(body_terms)):
+            continue
+        prepared.append((index, hit, title_terms, body_terms))
+    if not prepared:
+        return []
+
+    n_docs = len(prepared)
+    document_frequency = {
+        term: sum(term in (set(title) | set(body))
+                  for _idx, _hit, title, body in prepared)
+        for term in profile.terms
+    }
+    lengths = [len(title) * 2 + len(body) for _i, _h, title, body in prepared]
+    avg_len = sum(lengths) / len(lengths) if lengths else 1.0
+    raw_rows: list[tuple[float, int, SearchHit]] = []
+    for (index, hit, title_terms, body_terms), doc_len in zip(prepared, lengths):
+        title_counts = Counter(title_terms)
+        body_counts = Counter(body_terms)
+        raw_score = 0.0
+        for term, query_weight in profile.weights.items():
+            tf = 2.4 * title_counts.get(term, 0) + body_counts.get(term, 0)
+            if tf <= 0:
+                continue
+            df = document_frequency.get(term, 0)
+            idf = log(1.0 + (n_docs - df + 0.5) / (df + 0.5))
+            norm = tf + 1.2 * (1.0 - 0.75 + 0.75 * doc_len / max(avg_len, 1.0))
+            raw_score += query_weight * idf * ((tf * 2.2) / norm)
+
+        for phrase in profile.phrases:
+            if _contains_phrase(title_terms, phrase):
+                raw_score += 0.70 * len(phrase)
+            elif _contains_phrase(body_terms, phrase):
+                raw_score += 0.30 * len(phrase)
+
+        # The canonical concept/product page should beat a derivative page
+        # that merely repeats the same word more often in its snippet.
+        if tuple(title_terms) == profile.terms:
+            raw_score += 2.50
+
+        identity_terms = set(profile.named_identity) | set(profile.coded_identity)
+        identity_hits = len(identity_terms & (set(title_terms) | set(body_terms)))
+        raw_score += 0.35 * identity_hits
+        # Stable, small source-rank prior only breaks near ties; it cannot make
+        # an irrelevant row pass the gate.
+        raw_score += 0.01 / (index + 1)
+        raw_rows.append((raw_score, index, hit))
+
+    raw_rows.sort(key=lambda row: (-row[0], row[1], row[2].url))
+    ceiling = raw_rows[0][0] or 1.0
+    out: list[SearchHit] = []
+    for raw, _index, hit in raw_rows:
+        relative_score = min(1.0, raw / ceiling)
+        if relative_score < SEARCH_MIN_RELATIVE_SCORE:
+            continue
+        out.append(dataclass_replace(hit, score=round(relative_score, 6)))
+        if len(out) >= max_results:
+            break
+    return out
+
+
+def _score_reddit(query: str, title: str, summary: str) -> float:
+    return _score_relevance_single(query, title, summary)
 
 
 _QUERY_FORUM_HINTS = {
@@ -522,13 +925,23 @@ _QUERY_FORUM_HINTS = {
 
 
 def _forums_hinted_by_query(query: str) -> list[str]:
-    q = query.lower()
+    query_terms = _lexical_tokens(query)
+    query_set = set(query_terms)
     out: list[str] = []
     for kw, forums in _QUERY_FORUM_HINTS.items():
-        if kw in q:
-            for f in forums:
-                if f not in out:
-                    out.append(f)
+        kw_terms = tuple(_lexical_tokens(kw))
+        matched = (
+            bool(kw_terms)
+            and (
+                (len(kw_terms) == 1 and kw_terms[0] in query_set)
+                or (len(kw_terms) > 1 and _contains_phrase(query_terms, kw_terms))
+            )
+        )
+        if not matched:
+            continue
+        for f in forums:
+            if f not in out:
+                out.append(f)
     return out
 
 
@@ -615,8 +1028,8 @@ def _search_reddit_index(query: str, max_results: int) -> list[SearchHit]:
             if public_url in seen_urls:
                 continue
             seen_urls.add(public_url)
-            bonus = 0.1 if forum.casefold() in hinted else 0.0
-            score = min(1.0, 0.55 + 0.45 * tok_score + bonus)
+            bonus = 0.03 if forum.casefold() in hinted else 0.0
+            score = min(1.0, tok_score + bonus)
             hits.append(SearchHit(
                 url=public_url,
                 title=f"r/{forum}: {title or 'Discussion'}",
@@ -625,8 +1038,7 @@ def _search_reddit_index(query: str, max_results: int) -> list[SearchHit]:
                 source="reddit",
                 raw_content=(body or title),
             ))
-    hits.sort(key=lambda h: -h.score)
-    return hits[:max_results]
+    return _rerank_hits(query, hits, max_results)
 
 
 def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
@@ -636,7 +1048,7 @@ def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
 
     def _iter_forum(forum: str, bonus: float) -> None:
         r = _get_source("forum", REDDIT, REDDIT_PUBLIC,
-                        f"/f/{forum}/new.atom", timeout=15)
+                        f"/f/{forum}/new.atom", timeout=REDDIT_FEED_TIMEOUT_S)
         if r is None:
             return
         for entry_m in _ATOM_ENTRY_RE.finditer(r.text):
@@ -651,7 +1063,9 @@ def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
             url = _public_link(link.group(1) if link else "", REDDIT_PUBLIC)
             summary = _grab("summary")[:600]
             tok_score = _score_reddit(query, title, summary)
-            score = min(1.0, tok_score + bonus)
+            # Forum selection is only a tiny tie-breaker. It must never turn a
+            # generic battery/budget hit into a relevant result by itself.
+            score = min(1.0, tok_score + min(bonus, 0.03))
             # Require GENUINE topical overlap. A hinted-forum bonus alone must
             # not inject zero-overlap off-topic posts (e.g. r/headphones threads
             # surfacing for a coffee query). The bonus only re-ranks posts that
@@ -667,20 +1081,22 @@ def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
                 source="reddit",
             ))
 
-    # Only consult feeds when the full index returned fewer rows than requested.
-    if len(hits) < max_results:
-        for forum in hinted:
-            _iter_forum(forum, bonus=0.5)
-        for forum in _DEFAULT_REDDIT_FORUMS:
-            forum = forum.strip()
-            if not forum or forum in hinted:
-                continue
-            _iter_forum(forum, bonus=0.0)
+    # Do not scan every recent feed merely to fill Top-K. The full index has
+    # already returned the relevant rows it can find, and padding those rows
+    # was both the slowest path in the shim and the main way unrelated recent
+    # posts entered otherwise focused searches. Use a small, query-routed feed
+    # fallback only when the full index is completely empty.
+    if not hits:
+        fallback_forums = hinted or [
+            forum.strip() for forum in _DEFAULT_REDDIT_FORUMS if forum.strip()
+        ]
+        for forum in fallback_forums[:REDDIT_FEED_FALLBACK_LIMIT]:
+            _iter_forum(forum, bonus=0.03 if forum in hinted else 0.0)
 
     # Dedupe by URL (hinted iteration may overlap)
     seen: set[str] = set()
     out: list[SearchHit] = []
-    for h in sorted(hits, key=lambda h: -h.score):
+    for h in _rerank_hits(query, hits, max(len(hits), max_results)):
         if h.url in seen:
             continue
         seen.add(h.url)
@@ -700,31 +1116,173 @@ def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
 # Wikipedia (kiwix) search
 # ---------------------------------------------------------------------------
 
+def _kiwix_query_variants(query: str) -> tuple[str, ...]:
+    """Turn explicit technical cues into short Kiwix concept lookups.
+
+    This is deliberately not an LLM planner: it cannot invent a subgoal that
+    the agent never asked about. It only prevents an already-present concept
+    such as IPX7 or passive radiator from being buried inside a product-length
+    query that Kiwix cannot retrieve well.
+    """
+    terms = set(_lexical_tokens(query))
+    variants: list[str] = []
+
+    def add(value: str, condition: bool) -> None:
+        if condition and value not in variants:
+            variants.append(value)
+
+    add("IP code", "ipx7" in terms or {"ingress", "protection"} <= terms)
+    add("Passive radiator (speaker)", {"passive", "radiator"} <= terms)
+    add("Total harmonic distortion", bool({"distortion", "thd"} & terms))
+    add("Audio power", bool({"watt", "rms"} & terms)
+        and bool({"speaker", "audio", "amplifier"} & terms))
+    speaker_context = (
+        "speaker" in terms
+        or (
+            "sound" in terms
+            and bool({"driver", "radiator"} & terms)
+        )
+    )
+    add("Loudspeaker acoustics", (
+        speaker_context
+        and bool({"360", "dispersion", "radiation", "soundstage"} & terms)
+    ))
+    add("LDAC (codec)", "ldac" in terms)
+    add("High-resolution audio", (
+        "audio" in terms
+        and (
+            {"high", "resolution"} <= terms
+            or {"hi", "res"} <= terms
+        )
+    ))
+    add("Bluetooth", "bluetooth" in terms and "codec" in terms)
+
+    if variants:
+        return tuple(variants[:4])
+    return (query,)
+
+
 def _search_kiwix(query: str, max_results: int) -> list[SearchHit]:
-    """Kiwix returns HTML for /search; parse result list."""
-    params = {"pattern": query, "books.name": KIWIX_BOOK, "pageLength": max_results}
-    r = _get_source("wiki", KIWIX, KIWIX_PUBLIC, "/search", params=params)
-    if r is None:
-        return []
-    soup = BeautifulSoup(r.text, "html.parser")
-    hits: list[SearchHit] = []
-    # Result items are <li>..<a href="..."><cite>..snippet</cite></a>..</li>
-    for i, li in enumerate(soup.select("ul.results li, .results li")):
-        a = li.select_one("a[href]")
-        if not a:
+    """Kiwix candidate retrieval followed by short-query lexical reranking."""
+    per_variant: list[list[SearchHit]] = []
+    candidate_k = max(max_results * 4, 12)
+    for retrieval_query in _kiwix_query_variants(query):
+        params = {
+            "pattern": retrieval_query,
+            "books.name": KIWIX_BOOK,
+            "pageLength": candidate_k,
+        }
+        r = _get_source(
+            "wiki",
+            KIWIX,
+            KIWIX_PUBLIC,
+            "/search",
+            params=params,
+            timeout=KIWIX_SEARCH_TIMEOUT_S,
+        )
+        if r is None:
             continue
-        title = a.get_text(strip=True)
-        href = _public_link(a.get("href") or "", KIWIX_PUBLIC)
-        snippet_el = li.select_one("cite") or li.select_one("p")
-        snippet = snippet_el.get_text(" ", strip=True) if snippet_el else title
-        hits.append(SearchHit(
-            url=href, title=title, content=snippet[:400],
-            score=max(0.0, 1.0 - i / max_results),
-            source="wiki",
-        ))
-        if len(hits) >= max_results:
-            break
-    return hits
+        soup = BeautifulSoup(r.text, "html.parser")
+        candidates: list[SearchHit] = []
+        # Result items are <li>..<a href="..."><cite>..snippet</cite></a>..</li>
+        for li in soup.select("ul.results li, .results li")[:candidate_k]:
+            a = li.select_one("a[href]")
+            if not a:
+                continue
+            title = a.get_text(" ", strip=True)
+            href = _public_link(a.get("href") or "", KIWIX_PUBLIC)
+            snippet_el = li.select_one("cite") or li.select_one("p")
+            snippet = snippet_el.get_text(" ", strip=True) if snippet_el else title
+            candidates.append(SearchHit(
+                url=href,
+                title=title,
+                content=snippet[:400],
+                score=0.0,
+                source="wiki",
+            ))
+        ranked = _rerank_hits(
+            retrieval_query,
+            candidates,
+            min(max_results, KIWIX_RESULTS_PER_CONCEPT),
+        )
+        if ranked:
+            per_variant.append(ranked)
+
+    # One result per explicit concept before taking a second from any concept.
+    # This is a within-source quota, not an invitation to pad with weak pages.
+    out: list[SearchHit] = []
+    seen: set[str] = set()
+    depth = 0
+    while len(out) < max_results and any(depth < len(rows) for rows in per_variant):
+        for rows in per_variant:
+            if depth >= len(rows):
+                continue
+            hit = rows[depth]
+            if hit.url in seen:
+                continue
+            seen.add(hit.url)
+            out.append(hit)
+            if len(out) >= max_results:
+                break
+        depth += 1
+    return out
+
+
+def _source_priority(query: str, available: Iterable[str]) -> list[str]:
+    terms = set(_lexical_tokens(query))
+    base_order = {"shopping": 0, "reddit": 1, "wiki": 2}
+    scores = {source: 0 for source in available}
+    for cue in {"amazon", "buy", "listing", "model", "price", "product",
+                "shop", "spec", "specification"} & terms:
+        if "shopping" in scores:
+            scores["shopping"] += 1
+    for cue in {"community", "complaint", "experience", "forum", "owner",
+                "reddit", "review", "user"} & terms:
+        if "reddit" in scores:
+            scores["reddit"] += 1
+    for cue in {"codec", "concept", "definition", "dispersion", "distortion",
+                "ipx7", "ldac", "mechanism", "radiator", "rms", "standard",
+                "thd", "watt"} & terms:
+        if "wiki" in scores:
+            scores["wiki"] += 1
+    return sorted(
+        scores,
+        key=lambda source: (-scores[source], base_order.get(source, 99), source),
+    )
+
+
+def _merge_source_hits(
+    query: str,
+    groups: dict[str, list[SearchHit]],
+    max_results: int,
+) -> list[SearchHit]:
+    """Quota merge already-filtered sources instead of comparing fake scores.
+
+    Source-local BM25 numbers have no shared denominator. Round-robin preserves
+    at least one result from every non-empty requested source before any source
+    gets a second slot, while `_rerank_hits` ensures weak rows cannot enter just
+    to satisfy a quota.
+    """
+    if max_results <= 0:
+        return []
+    order = _source_priority(query, (s for s, rows in groups.items() if rows))
+    out: list[SearchHit] = []
+    seen: set[str] = set()
+    depth = 0
+    while len(out) < max_results and any(depth < len(groups[s]) for s in order):
+        for source in order:
+            rows = groups[source]
+            if depth >= len(rows):
+                continue
+            hit = rows[depth]
+            if hit.url in seen:
+                continue
+            seen.add(hit.url)
+            out.append(hit)
+            if len(out) >= max_results:
+                break
+        depth += 1
+    return out
 
 
 def search(
@@ -737,7 +1295,7 @@ def search(
     include = {d.lower() for d in include_domains}
     exclude = {d.lower() for d in exclude_domains}
 
-    results: list[SearchHit] = []
+    groups: dict[str, list[SearchHit]] = {}
 
     want_shopping = (not include) or any(d in {"shopping", "localhost:7770", "magento"} for d in include)
     want_reddit = (not include) or any(d in {"reddit", "localhost:9999", "postmill", "reddit.com"} for d in include)
@@ -750,37 +1308,33 @@ def search(
             _set_diag("shopping", len(hits))
         elif "shopping" not in last_source_diag():
             _set_diag("shopping", 0, None)   # queried, genuinely no match
-        results.extend(hits)
+        groups["shopping"] = hits
     if want_reddit:
         hits = _search_reddit(query, max_results)
         # Keep the first transport error if one was recorded: a forum that
         # refused the connection is a different fact from a forum with no match.
         prev = last_source_diag().get("forum", {})
         _set_diag("forum", len(hits), prev.get("error"))
-        results.extend(hits)
+        groups["reddit"] = hits
     if want_wiki:
         hits = _search_kiwix(query, max_results)
         if hits:
             _set_diag("wiki", len(hits))
         elif "wiki" not in last_source_diag():
             _set_diag("wiki", 0, None)
-        results.extend(hits)
+        groups["wiki"] = hits
 
     # Exclude filter
     if exclude:
-        results = [h for h in results if not any(d in h.url.lower() for d in exclude)]
+        groups = {
+            source: [
+                hit for hit in hits
+                if not any(domain in hit.url.lower() for domain in exclude)
+            ]
+            for source, hits in groups.items()
+        }
 
-    # Dedupe by URL
-    seen: set[str] = set()
-    out: list[SearchHit] = []
-    for h in sorted(results, key=lambda h: -h.score):
-        if h.url in seen:
-            continue
-        seen.add(h.url)
-        out.append(h)
-        if len(out) >= max_results:
-            break
-    return out
+    return _merge_source_hits(query, groups, max_results)
 
 
 def _navigable_links(node, page_url: str, *, cap: int = 300) -> list[str]:
@@ -811,9 +1365,71 @@ def _navigable_links(node, page_url: str, *, cap: int = 300) -> list[str]:
     return out
 
 
-def extract(urls: Iterable[str], *, strict: bool | None = None) -> list[dict]:
+def _navigable_links_many(nodes: Iterable, page_url: str, *, cap: int = 300) -> list[str]:
+    """Merge links from several served content nodes without changing order."""
+    out: list[str] = []
+    seen: set[str] = set()
+    for node in nodes:
+        for url in _navigable_links(node, page_url, cap=cap):
+            if url in seen:
+                continue
+            seen.add(url)
+            out.append(url)
+            if len(out) >= cap:
+                return out
+    return out
+
+
+def _advanced_content_nodes(soup, source: str, fallback) -> list:
+    """Return all evidence-bearing nodes for the opt-in v3 extraction path.
+
+    The legacy/basic extractor intentionally selects one node. Magento splits
+    identity and price from description/specifications, while Postmill keeps
+    the submission and comments in sibling nodes. Advanced extraction exposes
+    those source-specific sections together so the served snapshot contains
+    the evidence that is visibly present on the page.
+    """
+    if source == "shopping":
+        nodes = list(soup.select(".product-info-main, .product.info.detailed"))
+    elif source == "reddit":
+        nodes = []
+        submission = soup.select_one(".submission")
+        if submission is not None:
+            nodes.append(submission)
+        nodes.extend(soup.select(".comment__body"))
+    else:
+        nodes = []
+    if not nodes and fallback is not None:
+        nodes.append(fallback)
+    return nodes
+
+
+def _joined_node_text(title: str, nodes: Iterable, *, cap: int = 20000) -> str:
+    """Join non-empty, non-duplicate visible sections in source order."""
+    sections: list[str] = []
+    seen: set[str] = set()
+    raw_sections = [title, *(node.get_text(" ", strip=True) for node in nodes)]
+    for raw_text in raw_sections:
+        text = re.sub(r"\s+", " ", raw_text).strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        sections.append(text)
+    return "\n\n".join(sections)[:cap]
+
+
+def extract(
+    urls: Iterable[str],
+    *,
+    strict: bool | None = None,
+    extract_depth: str = "basic",
+) -> list[dict]:
     """Fetch full page content for `urls`. Returns list of
     {url, raw_content, title, source, status}.
+
+    ``extract_depth=basic`` preserves the legacy single-node response.
+    ``extract_depth=advanced`` is an opt-in v3 path that combines the distinct
+    evidence-bearing sections of Magento and Postmill pages.
 
     In strict mode (``strict=True``, or ``strict=None`` with
     ``SHIM_MODE=strict``) redirects are NOT followed and the final response
@@ -824,6 +1440,8 @@ def extract(urls: Iterable[str], *, strict: bool | None = None) -> list[dict]:
     reported as a failed row (status preserved, error set, no raw_content) so
     no off-allowlist content is ever returned.
     """
+    if extract_depth not in {"basic", "advanced"}:
+        raise ValueError("extract_depth must be 'basic' or 'advanced'")
     if strict is None:
         strict = _shim_strict_mode()
     out = []
@@ -853,6 +1471,11 @@ def extract(urls: Iterable[str], *, strict: bool | None = None) -> list[dict]:
                     out.append(entry)
                     continue
             soup = BeautifulSoup(r.text, "html.parser")
+            advanced_title = ""
+            if extract_depth == "advanced":
+                title_node = soup.select_one("h1") or soup.select_one("title")
+                if title_node is not None:
+                    advanced_title = title_node.get_text(" ", strip=True)
             # Strip noisy nodes
             for sel in soup.select("script, style, nav, header, footer"):
                 sel.decompose()
@@ -873,18 +1496,32 @@ def extract(urls: Iterable[str], *, strict: bool | None = None) -> list[dict]:
             # returned to the agent; nav/header/footer were decomposed and are
             # not part of what it could navigate from this extract. See
             # FETCH_PATH_AUDIT_2026-07-08.md.
-            entry["links"] = _navigable_links(main, url) if main else []
-            text = main.get_text(" ", strip=True) if main else ""
-            entry["raw_content"] = text[:20000]
+            source = routed_source or (
+                "shopping" if "localhost:7770" in url or "magento" in url else (
+                    "reddit" if "localhost:9999" in url or "reddit" in url else (
+                        "wiki" if "localhost:8090" in url or "wikipedia" in url else "other")
+                )
+            )
+            use_multi_section = (
+                extract_depth == "advanced" and source in {"shopping", "reddit"}
+            )
+            if use_multi_section:
+                content_nodes = _advanced_content_nodes(soup, source, main)
+                entry["links"] = _navigable_links_many(content_nodes, url)
+                entry["raw_content"] = _joined_node_text(
+                    advanced_title,
+                    content_nodes,
+                )
+            else:
+                entry["links"] = _navigable_links(main, url) if main else []
+                text = main.get_text(" ", strip=True) if main else ""
+                entry["raw_content"] = text[:20000]
             h1 = soup.select_one("h1")
             if h1:
                 entry["title"] = h1.get_text(strip=True)
-            entry["source"] = routed_source or (
-                "shopping" if "localhost:7770" in url or "magento" in url else (
-                    "reddit" if "localhost:9999" in url or "reddit" in url else (
-                    "wiki" if "localhost:8090" in url or "wikipedia" in url else "other")
-                )
-            )
+            elif use_multi_section:
+                entry["title"] = advanced_title
+            entry["source"] = source
             entry["elapsed_ms"] = int((time.time() - t0) * 1000)
         except Exception as e:
             entry["error"] = f"{type(e).__name__}: {e}"

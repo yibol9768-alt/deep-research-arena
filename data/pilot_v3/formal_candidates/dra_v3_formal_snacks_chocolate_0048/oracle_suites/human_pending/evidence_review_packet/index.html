@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1</code></p>
+<p>证据图哈希: <code>e51d1df1a2a285592cb3562437721283658e2e84aae1277b26a33b3bca07ef51</code></p>
+<p>待审项 30 个，其中语义项 15 个、结构化项 0 个；冻结来源 31 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_aldi_value_anecdote_scope"><header><h3>assert_aldi_value_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one Pittsburgh author lists products liked for price and quality and mentions chocolate-flavored ice cream rather than dark bars&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Aldi price-and-quality post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_aldi_value_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_local_list_not_dark_bar_price_quality_curve&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;one Pittsburgh author lists products liked for price and quality and mentions chocolate-flavored ice cream rather than dark bars&quot;,
+  &quot;predicate&quot;: &quot;lists_one_authors_favorites&quot;,
+  &quot;subject&quot;: &quot;Aldi price-and-quality post&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_aldi_value_anecdote_scope_1</code> | bytes [24, 128) | <code>1d429af526cb1ecdbf4f13eb23cddcfd36f98385c71b5fa33e9d59789efd8385</code></div><pre class="context"><span>God Tier Aldi Products
+
+</span><mark>I have been thinking about the things that I love from Aldi — both because of their price and quality.</mark><span> Things I don’t have on this list are products I buy for a discount, but are not unique to Aldi (mini diet cokes , orange juice, frozen fruit, etc). My list: Emporium white cheddar cheese Sourdough round (fuck the sourdough loaf) Specialty coffee or chocolate flavored ice cream Clancy’s pub style pretzels hash brown sleeve (20 pack 😳) honeycrisp apple</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/pittsburgh/25456/god-tier-aldi-products" target="_blank" rel="noreferrer">http://localhost:9999/f/pittsburgh/25456/god-tier-aldi-products</a></p><p>冻结文件: <a href="sources/d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf" target="_blank">sources/d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf</a></p><p>内容 SHA-256: <code>d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_bean_to_bar_process_scope"><header><h3>assert_bean_to_bar_process_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a manufacturer controls the process from bean procurement to finished chocolate and processes whole cocoa beans rather than remelting an existing base&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for bean-to-bar model&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_bean_to_bar_process_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_process_definition_not_exact_claim_audit_or_quality_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;a manufacturer controls the process from bean procurement to finished chocolate and processes whole cocoa beans rather than remelting an existing base&quot;,
+  &quot;predicate&quot;: &quot;defines_control_and_whole_bean_processing&quot;,
+  &quot;subject&quot;: &quot;bean-to-bar model&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_bean_to_bar_process_scope_1</code> | bytes [0, 191) | <code>12540c0920df2283af896e50507faf0008198b44122f1cc6fbb269b09982e73d</code></div><pre class="context"><span></span><mark>Bean-to-bar is a business model [ 1 ] in which a chocolate manufacturer controls the entire manufacturing process from procuring cocoa beans to creating the end product of consumer chocolate.</mark><span> [ 2 ] [ 3 ] History Starting in the 1970s and 1980s, some chocolate makers engaged in bean-to-bar manufacturing. They often used single-origin flavor cocoa and vintage equipment. [ 4 ] Introduction to bean-to-bar The term &quot;bean-to-bar&quot; emerged from the artisan and craft chocolate movement around 2010. It is sometimes used interchangeably with the terms &quot;sma</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Bean-to-bar" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Bean-to-bar</a></p><p>冻结文件: <a href="sources/1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25" target="_blank">sources/1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25</a></p><p>内容 SHA-256: <code>1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_blinding_bias_scope"><header><h3>assert_blinding_bias_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;brand package price and other cues can be masked and the report should say who was blinded to what and whether blinding succeeded&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for blinded experiment&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_blinding_bias_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_bias_control_not_automatic_success_or_exact_bar_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;brand package price and other cues can be masked and the report should say who was blinded to what and whether blinding succeeded&quot;,
+  &quot;predicate&quot;: &quot;withholds_influential_information_to_reduce_bias&quot;,
+  &quot;subject&quot;: &quot;blinded experiment&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_blinding_bias_scope_1</code> | bytes [0, 144) | <code>8b4724526985e7b3b8c2b81ed867ee0d7f31026361499993d9f942b8f7837666</code></div><pre class="context"><span></span><mark>In a blind or blinded experiment , information that could influence participants or investigators is withheld until the experiment is completed.</mark><span> Blinding is used to reduce or eliminate potential sources of bias , such as participantsâ expectations, the observer-expectancy effect , observer bias , confirmation bias , and other cognitive or procedural influences. [ 1 ] Blinding can be applied to different participants in an experiment, including study subjects, researchers, technicians, data anal</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Blinded_experiment" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Blinded_experiment</a></p><p>冻结文件: <a href="sources/8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc" target="_blank">sources/8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc</a></p><p>内容 SHA-256: <code>8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_bulk_cocoa_subjective_scope"><header><h3>assert_bulk_cocoa_subjective_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;bulk cocoa is contrasted with flavor cocoa through a subjective definition involving undesirable flavor drying or fermentation and can vary in quality&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for bulk cocoa classification&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_bulk_cocoa_subjective_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_classification_not_grade_for_any_captured_bar&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;bulk cocoa is contrasted with flavor cocoa through a subjective definition involving undesirable flavor drying or fermentation and can vary in quality&quot;,
+  &quot;predicate&quot;: &quot;uses_a_partly_subjective_processing_sensitive_boundary&quot;,
+  &quot;subject&quot;: &quot;bulk cocoa classification&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_bulk_cocoa_subjective_scope_1</code> | bytes [0, 75) | <code>2f63ea6ff4da9efed41d49028b3e24991ed49f1a76fde094a7469336d8a8119a</code></div><pre class="context"><span></span><mark>Bulk cocoa is a class of cocoa beans . It is contrasted with flavor cocoa .</mark><span> They generally grow in West Africa . History Chocolate makers prioritizing bulk cocoa caused a loss of agrobiodiversity. [ 1 ] Description Bulk cocoa generally comes from Forastero -type cacao trees . [ 2 ] Bulk cocoa is distinguished from flavor cocoa using the subjective definition of containing undesirable or poor flavor, drying or fermentation. [ 3 ] Bu</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Bulk_cocoa" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Bulk_cocoa</a></p><p>冻结文件: <a href="sources/22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac" target="_blank">sources/22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac</a></p><p>内容 SHA-256: <code>22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cocoa_solids_definition_scope"><header><h3>assert_cocoa_solids_definition_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;dry cocoa solids remain after cocoa butter extraction while some legal definitions include cocoa mass powder and butter&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for cocoa-solids terminology&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cocoa_solids_definition_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_composition_definition_not_exact_bar_formula_or_health_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;dry cocoa solids remain after cocoa butter extraction while some legal definitions include cocoa mass powder and butter&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_dry_solids_from_broader_legal_usage&quot;,
+  &quot;subject&quot;: &quot;cocoa-solids terminology&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cocoa_solids_definition_scope_1</code> | bytes [73, 287) | <code>0fa7fa9d05b76ed9820a5cc525ad1639e457d6e1af660874a299a3728d5d14f7</code></div><pre class="context"><span>&quot;Cocoa powder&quot; redirects here. For the beverage mix, see Hot chocolate . </span><mark>Dry cocoa solids are the components of cocoa beans remaining after cocoa butter , the fatty component of the bean, is extracted from chocolate liquor , roasted cocoa beans that have been ground into a liquid state.</mark><span> Cocoa butter is 46% to 57% of the weight of cocoa beans and gives chocolate its characteristic melting properties. Cocoa powder is the powdered form of the dry solids with a small remaining amount of cocoa butter. Untreated cocoa powder is bitter and acidic. Dutch process cocoa has been treated with an alkali to neutralize the acid. Cocoa powder contains fl</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_solids" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_solids</a></p><p>冻结文件: <a href="sources/e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa" target="_blank">sources/e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa</a></p><p>内容 SHA-256: <code>e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_daily_habit_anecdote_scope"><header><h3>assert_daily_habit_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one 21-year-old author reports a bar or two per day and a desire to cut down&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for daily chocolate-habit post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_daily_habit_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_self_report_not_population_intake_or_dark_bar_value_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;one 21-year-old author reports a bar or two per day and a desire to cut down&quot;,
+  &quot;predicate&quot;: &quot;reports_one_authors_frequency_and_goal&quot;,
+  &quot;subject&quot;: &quot;daily chocolate-habit post&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_daily_habit_anecdote_scope_1</code> | bytes [275, 304) | <code>6e8e0442605144723487e401916e4960823ecd311522eb9b183f51c404831a12</code></div><pre class="context"><span>LPT request: How do I stop myself from eating chocolates?
+
+I&#x27;ve been trying to lose weight. I&#x27;ve already lost around 23 kgs. (I was around 117 kgs, and now I weigh 95kgs. It&#x27;s a work in progress. I&#x27;m 21 years old, M) But, I can&#x27;t seem to stop myself from having a chocolate. </span><mark>I eat a bar or two every day.</mark><span> I just can&#x27;t stop myself. They are addicting. I just find myself I do not drink, I do not smoke. But chocolates I can&#x27;t seem to stop myself from. I understand that being healthy is a lifestyle, and not a goal. And I wanna cut down on chocolates. But, I don&#x27;t know how. I&#x27;d love some advice. 0</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/120364/lpt-request-how-do-i-stop-myself-from-eating-chocolates" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/120364/lpt-request-how-do-i-stop-myself-from-eating-chocolates</a></p><p>冻结文件: <a href="sources/cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4" target="_blank">sources/cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4</a></p><p>内容 SHA-256: <code>cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_dove_pack_price_scope"><header><h3>assert_dove_pack_price_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07L9TTQN6 at 25.45 dollars with no reviews shown and a nominal twelve times 3.30-ounce pack&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen DOVE seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_dove_pack_price_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_not_current_delivered_price_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07L9TTQN6 at 25.45 dollars with no reviews shown and a nominal twelve times 3.30-ounce pack&quot;,
+  &quot;predicate&quot;: &quot;shows_a_twelve_bar_offer&quot;,
+  &quot;subject&quot;: &quot;frozen DOVE seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_dove_pack_price_scope_1</code> | bytes [0, 53) | <code>405d4bb0aa62ee7a2f470d15b047b2288ba32815c0bc2c1eb6e6407859a8b476</code></div><pre class="context"><span></span><mark>DOVE Dark Chocolate Bars, 3.30-Ounce Bar (Pack of 12)</mark><span>
+
+In stock SKU B07L9TTQN6 Be the first to review this product $25.45 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Read more Chocolate Bars for Every Occasion For You This is the chocolate bar for you: the fun-seeking, joy-riding, pleasure-grabbing woman of today. Make any moment incredible with dynamically bold fla</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/dove-dark-chocolate-bars-3-30-ounce-bar-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/dove-dark-chocolate-bars-3-30-ounce-bar-pack-of-12.html</a></p><p>冻结文件: <a href="sources/9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3" target="_blank">sources/9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3</a></p><p>内容 SHA-256: <code>9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_fairtrade_price_support_scope"><header><h3>assert_fairtrade_price_support_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the scheme is designed to support sustainable farmer income and may be signaled by a Fairtrade mark&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Fairtrade cocoa&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_fairtrade_price_support_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_certification_definition_not_exact_payment_taste_or_total_ethics_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;the scheme is designed to support sustainable farmer income and may be signaled by a Fairtrade mark&quot;,
+  &quot;predicate&quot;: &quot;defines_a_certified_price_support_scheme&quot;,
+  &quot;subject&quot;: &quot;Fairtrade cocoa&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_fairtrade_price_support_scope_1</code> | bytes [0, 258) | <code>6bfb39f25babad7639f1cb61830fb1e3b728a4256eacdd6284a63255dc404382</code></div><pre class="context"><span></span><mark>Fair trade cocoa is an agricultural product harvested from a cocoa tree under a Fairtrade certified price support scheme used by cocoa farmers, buyers, and chocolate manufacturers, and is designed to create sustainable incomes for farmers and their families.</mark><span> [ 1 ] [ 2 ] Food manufacturers that use fair trade certified cocoa in their products often display the Fairtrade symbol to indicate that they are contributing to social, economic, and environmental sustainability in agriculture. Background In the 1990s, exactly 1 percent of the world&#x27;s cocoa was produced on small, family managed farms, primarily in West Afr</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Fair_trade_cocoa" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Fair_trade_cocoa</a></p><p>冻结文件: <a href="sources/b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429" target="_blank">sources/b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429</a></p><p>内容 SHA-256: <code>b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_green_black_pack_price_scope"><header><h3>assert_green_black_pack_price_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B008FRKKV4 at 21.99 dollars with no reviews shown for three 100-gram 70-percent bars carrying organic Fairtrade and Trinitario claims&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Green and Black seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_green_black_pack_price_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_and_claims_not_verified_label_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;SKU B008FRKKV4 at 21.99 dollars with no reviews shown for three 100-gram 70-percent bars carrying organic Fairtrade and Trinitario claims&quot;,
+  &quot;predicate&quot;: &quot;shows_a_three_bar_seventy_percent_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Green and Black seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_green_black_pack_price_scope_1</code> | bytes [0, 57) | <code>0deb518a21c818df809866d31554910d0cd7f82df9030b7962eff4a69cc48a4b</code></div><pre class="context"><span></span><mark>Green &amp; Black Organic 70% Dark Chocolate 100G (Pack Of 3)</mark><span>
+
+In stock SKU B008FRKKV4 Be the first to review this product $21.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Made with the finest Trinitario cocoa beans for an intense taste. 70% cocoa. Organic. Fairtrade. Suitable for vegetarians. Our dark 70% chocolate is made from fine Trinitario cocoa beans. The cocoa solids are a comb</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/green-black-organic-70-dark-chocolate-100g-pack-of-3.html" target="_blank" rel="noreferrer">http://localhost:7770/green-black-organic-70-dark-chocolate-100g-pack-of-3.html</a></p><p>冻结文件: <a href="sources/750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72" target="_blank">sources/750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72</a></p><p>内容 SHA-256: <code>750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_hedonic_liking_scale_scope"><header><h3>assert_hedonic_liking_scale_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a common nine-level scale ranges from dislike extremely to like extremely&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for hedonic scale&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_hedonic_liking_scale_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_liking_instrument_not_exact_preference_or_willingness_to_pay_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;a common nine-level scale ranges from dislike extremely to like extremely&quot;,
+  &quot;predicate&quot;: &quot;measures_degree_of_liking&quot;,
+  &quot;subject&quot;: &quot;hedonic scale&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_hedonic_liking_scale_scope_1</code> | bytes [0, 120) | <code>8f5ff6f79e29ab1245d2d89d9cb6a257da8cd93cec8e9366ac5e370c2e8600d1</code></div><pre class="context"><span></span><mark>The hedonic scale is a sensory evaluation tool used to measure the degree of pleasure or liking of a product or service.</mark><span> The scale usually consists of 9 levels ranging from 1 to 9, or  &quot;dislike extremely&quot; to &quot;like extremely&quot;. [ 1 ] The hedonic scale is widely used for consumer acceptance testing . [ 2 ] [ 3 ] Overview The main characteristics of the scale are that each category is associated with a verbal descriptor from âDislike extremelyâ to âLike extremelyâ</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Hedonic_scale" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Hedonic_scale</a></p><p>冻结文件: <a href="sources/c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a" target="_blank">sources/c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a</a></p><p>内容 SHA-256: <code>c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lindt_pack_price_scope"><header><h3>assert_lindt_pack_price_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B000H26J7E at 30 dollars rated 67 percent over twelve reviews with twelve 3.5-ounce 70-percent bars&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Lindt seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lindt_pack_price_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_and_marketing_not_independent_quality_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;SKU B000H26J7E at 30 dollars rated 67 percent over twelve reviews with twelve 3.5-ounce 70-percent bars&quot;,
+  &quot;predicate&quot;: &quot;shows_a_seventy_percent_twelve_bar_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lindt_pack_price_scope_1</code> | bytes [0, 117) | <code>90134aa478d52fc9d0f7a5abf0abdf5e5909aba7ed5bfcafe851c7d32c59a8c6</code></div><pre class="context"><span></span><mark>Lindt Excellence Bar, 70% Cocoa Smooth Dark Chocolate, Gluten Free, Great for Holiday Gifting, 3.5 Ounce (Pack of 12)</mark><span>
+
+In stock SKU B000H26J7E Rating: 67 % of 100 12 Reviews Add Your Review $30.00 Flavor Name 70% Cocoa Dark 78% Cocoa Dark 85% Cocoa 90% Cocoa Dark 95% Cocoa Caramel with Sea Salt Chili Dark Dark Coconut Extra Creamy Hazelnut Dark Intense Mint Dark Orange Dark Sea Salt Dark White Coconut Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufa</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lindt-excellence-bar-70-cocoa-smooth-dark-chocolate-gluten-free-great-for-holiday-gifting-3-5-ounce-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/lindt-excellence-bar-70-cocoa-smooth-dark-chocolate-gluten-free-great-for-holiday-gifting-3-5-ounce-pack-of-12.html</a></p><p>冻结文件: <a href="sources/5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf" target="_blank">sources/5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf</a></p><p>内容 SHA-256: <code>5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_raaka_pack_identity_conflict_scope"><header><h3>assert_raaka_pack_identity_conflict_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07811Q1PR at 14.95 dollars rated 58 percent over twelve reviews with a selected 60-percent coconut-milk 1.8-ounce three-pack and a Product Dimensions field of only 1.8 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Raaka seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_raaka_pack_identity_conflict_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_flavored_offer_with_unresolved_total_mass_not_plain_bar_or_taste_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07811Q1PR at 14.95 dollars rated 58 percent over twelve reviews with a selected 60-percent coconut-milk 1.8-ounce three-pack and a Product Dimensions field of only 1.8 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_coconut_recipe_three_pack_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Raaka seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_raaka_pack_identity_conflict_scope_1</code> | bytes [0, 184) | <code>e4b61d0eb734a3daf80d3dd1f3a2d37dc76a8972d0102b72005ca71c2f7b3592</code></div><pre class="context"><span></span><mark>Raaka Chocolate Coconut Milk 60% Cacao Dark Chocolate | Gourmet Dark Chocolate Gift| Organic, Vegan, Dairy Free, Fair Trade, Soy Free, Non GMO, Gluten Free, Kosher | 1.8oz Bars, 3-Pack</mark><span>
+
+In stock SKU B07811Q1PR Rating: 58 % of 100 12 Reviews Add Your Review $14.95 Flavor Name 100% Cacao Bananas Foster Best Sellers Trio Bourbon Cask Aged Coconut Milk Dairy Free Bundle Ginger Snap Green Tea Crunch Maple and Nibs Oat Milk Pink Sea Salt Pure Cacao &amp; Strawberry &amp; Coconut Refined Sugar Free Bundle Rose Cardamom Sugar Free Bundle Qty Add to Cart </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/raaka-chocolate-coconut-milk-60-cacao-dark-chocolate-gourmet-dark-chocolate-gift-organic-vegan-dairy-free-fair-trade-soy-free-non-gmo-gluten-free-kosher-1-8oz-bars-3-pack.html" target="_blank" rel="noreferrer">http://localhost:7770/raaka-chocolate-coconut-milk-60-cacao-dark-chocolate-gourmet-dark-chocolate-gift-organic-vegan-dairy-free-fair-trade-soy-free-non-gmo-gluten-free-kosher-1-8oz-bars-3-pack.html</a></p><p>冻结文件: <a href="sources/12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211" target="_blank">sources/12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211</a></p><p>内容 SHA-256: <code>12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ritter_single_price_scope"><header><h3>assert_ritter_single_price_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07PTSPCVS at 8.99 dollars with no reviews shown for one 100-gram or 3.52-ounce 74-percent bar carrying three-ingredient single-origin and sustainability claims&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Ritter Sport seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ritter_single_price_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_and_claims_not_verified_composition_origin_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07PTSPCVS at 8.99 dollars with no reviews shown for one 100-gram or 3.52-ounce 74-percent bar carrying three-ingredient single-origin and sustainability claims&quot;,
+  &quot;predicate&quot;: &quot;shows_one_seventy_four_percent_bar_and_source_claims&quot;,
+  &quot;subject&quot;: &quot;frozen Ritter Sport seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ritter_single_price_scope_1</code> | bytes [0, 87) | <code>c519f02e4bfda90474c064974136fa3226ebfa9d1878fbae268e2815b24ca975</code></div><pre class="context"><span></span><mark>Ritter Sport 74% Intense Dark Chocolate Bar Candy Original German Chocolate 100g/3.52oz</mark><span>
+
+In stock SKU B07PTSPCVS Be the first to review this product $8.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Focus on sustainability Read more Small changes in product size &amp; weight lead to lower carbon emissions. We created Compact by Design to identify products that, while they may not always look very different, have a more efficient desig</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/ritter-sport-74-intense-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html" target="_blank" rel="noreferrer">http://localhost:7770/ritter-sport-74-intense-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html</a></p><p>冻结文件: <a href="sources/3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e" target="_blank">sources/3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e</a></p><p>内容 SHA-256: <code>3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_sensory_difference_liking_scope"><header><h3>assert_sensory_difference_liking_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;analytical testing addresses product facts such as detectable difference while affective testing addresses subjective preference and acceptance&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for sensory analysis&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_sensory_difference_liking_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_method_boundary_not_result_for_the_five_bars&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;analytical testing addresses product facts such as detectable difference while affective testing addresses subjective preference and acceptance&quot;,
+  &quot;predicate&quot;: &quot;separates_analytical_difference_from_affective_acceptance&quot;,
+  &quot;subject&quot;: &quot;sensory analysis&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_sensory_difference_liking_scope_1</code> | bytes [693, 969) | <code>54a9968b148d6c0e1657eb0321f326416e6e0a45994aaa38a0dc585d6801b13a</code></div><pre class="context"><span>arketing and advertising phase. The discipline requires panels of human assessors, on whom the products are tested, and recording their responses. By applying statistical techniques to the results it is possible to make inferences and insights about the products under test. Most large consumer goods companies have departments dedicated to sensory analysis. 
+</span><mark>Sensory analysis can mainly be broken down into three sub-sections: [ 2 ] Analytical testing (dealing with objective facts about products) Affective testing (dealing with subjective facts such as preferences) Perception (the biochemical and psychological aspects of sensation)</mark><span> Sensory analysis is a core component of organoleptic testing, dating back to the famous treatise De architectura by Vitruvius . Analytical testing This type of testing is concerned with obtaining objective facts about products. This could range from basic discrimination testing (e.g. Do two or more products differ from each other?) to descriptive analysis (</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Sensory_analysis" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Sensory_analysis</a></p><p>冻结文件: <a href="sources/872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1" target="_blank">sources/872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1</a></p><p>内容 SHA-256: <code>872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_variety_gift_anecdote_scope"><header><h3>assert_variety_gift_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author sent six dark bars of various types at about three ounces each before an unrelated pet-ingestion event&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for dark-bar gift incident&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_variety_gift_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_gift_incident_not_controlled_variety_trial_or_product_safety_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;object&quot;: &quot;one author sent six dark bars of various types at about three ounces each before an unrelated pet-ingestion event&quot;,
+  &quot;predicate&quot;: &quot;reports_six_varied_roughly_three_ounce_bars&quot;,
+  &quot;subject&quot;: &quot;dark-bar gift incident&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_variety_gift_anecdote_scope_1</code> | bytes [226, 315) | <code>8513360536298560f9b5cf654ba24c7bd358abc7f783bc70802febf2a0ec18f0</code></div><pre class="context"><span>TIFU by sending my parents chocolate for Christmas
+
+I sent some bars of dark chocolate via Amazon to my parents as stocking stuffers for Christmas. They usually send me stuff every year and I thought I would return the favor. </span><mark>So I got them six dark chocolate bars of various types. They are about three ounces each.</mark><span> Unfortunately my gifts were all mixed together with other gifts and they didn&#x27;t want to open anything until Christmas. So they stuck everything under the Christmas tree. They have two large dogs, and the dogs smelled the chocolate and sometime today decided to eat the chocolate. Thankfully we figured that the larger dog ate it, and that he only ate two of t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/71318/tifu-by-sending-my-parents-chocolate-for-christmas" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/71318/tifu-by-sending-my-parents-chocolate-for-christmas</a></p><p>冻结文件: <a href="sources/f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e" target="_blank">sources/f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e</a></p><p>内容 SHA-256: <code>f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_aldi_value_anecdote_scope"><header><h3>prop_aldi_value_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one Pittsburgh author lists products liked for price and quality and mentions chocolate-flavored ice cream rather than dark bars&quot;,
+  &quot;predicate&quot;: &quot;lists_one_authors_favorites&quot;,
+  &quot;subject&quot;: &quot;Aldi price-and-quality post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_aldi_value_anecdote_scope_1</code> | bytes [24, 128) | <code>1d429af526cb1ecdbf4f13eb23cddcfd36f98385c71b5fa33e9d59789efd8385</code></div><pre class="context"><span>God Tier Aldi Products
+
+</span><mark>I have been thinking about the things that I love from Aldi — both because of their price and quality.</mark><span> Things I don’t have on this list are products I buy for a discount, but are not unique to Aldi (mini diet cokes , orange juice, frozen fruit, etc). My list: Emporium white cheddar cheese Sourdough round (fuck the sourdough loaf) Specialty coffee or chocolate flavored ice cream Clancy’s pub style pretzels hash brown sleeve (20 pack 😳) honeycrisp apple</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_aldi_value_anecdote_scope_2</code> | bytes [360, 408) | <code>9239e1c61d068f14a3769d6071886889c8d138a6ccb0a84f022eec4e6eafaf5d</code></div><pre class="context"><span>God Tier Aldi Products
+
+I have been thinking about the things that I love from Aldi — both because of their price and quality. Things I don’t have on this list are products I buy for a discount, but are not unique to Aldi (mini diet cokes , orange juice, frozen fruit, etc). My list: Emporium white cheddar cheese Sourdough round (fuck the sourdough loaf) </span><mark>Specialty coffee or chocolate flavored ice cream</mark><span> Clancy’s pub style pretzels hash brown sleeve (20 pack 😳) honeycrisp apples (for the price, ik this doesn’t really belong on the list) -Gfree sweet chili brown rice chips What else is on your Aldi God tier? 4</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/pittsburgh/25456/god-tier-aldi-products" target="_blank" rel="noreferrer">http://localhost:9999/f/pittsburgh/25456/god-tier-aldi-products</a></p><p>冻结文件: <a href="sources/d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf" target="_blank">sources/d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf</a></p><p>内容 SHA-256: <code>d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_local_list_not_dark_bar_price_quality_curve&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One Pittsburgh author lists Aldi products liked for price and quality and mentions chocolate-flavored ice cream, not a controlled dark-bar comparison. This supports keeping price and perceived quality as separate axes but supplies no exact bar price, blind preference, current availability or universal price-quality cutoff.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_bean_to_bar_process_scope"><header><h3>prop_bean_to_bar_process_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a manufacturer controls the process from bean procurement to finished chocolate and processes whole cocoa beans rather than remelting an existing base&quot;,
+  &quot;predicate&quot;: &quot;defines_control_and_whole_bean_processing&quot;,
+  &quot;subject&quot;: &quot;bean-to-bar model&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_bean_to_bar_process_scope_1</code> | bytes [0, 191) | <code>12540c0920df2283af896e50507faf0008198b44122f1cc6fbb269b09982e73d</code></div><pre class="context"><span></span><mark>Bean-to-bar is a business model [ 1 ] in which a chocolate manufacturer controls the entire manufacturing process from procuring cocoa beans to creating the end product of consumer chocolate.</mark><span> [ 2 ] [ 3 ] History Starting in the 1970s and 1980s, some chocolate makers engaged in bean-to-bar manufacturing. They often used single-origin flavor cocoa and vintage equipment. [ 4 ] Introduction to bean-to-bar The term &quot;bean-to-bar&quot; emerged from the artisan and craft chocolate movement around 2010. It is sometimes used interchangeably with the terms &quot;sma</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bean_to_bar_process_scope_2</code> | bytes [1364, 1624) | <code>19812780fe7ffcba4b2a4aaf97f51bcc262223af8f1a9ea7627b93892d911a52</code></div><pre class="context"><span>e managed to gain access to control the fermentation process. Over 2,500 bean-to-bar manufacturers have emerged around the world in less than 20 years. Entrepreneurs from  Australia, Canada, Europe, the United Kingdom [ 8 ] and the United States [ 9 ] with aptitudes for culinary arts, science, technology have all proven to be successful as chocolate makers. </span><mark>All bean-to-bar chocolate makers process whole cocoa beans into a final product versus melting chocolate or starting with ground cocoa mass for use as a base, coating, filling or for mixing and molding into truffles, pralines, or other chocolate confectionery.</mark><span> [ 10 ] One of the largest startups, the Mast Brothers , which was &quot;widely credited for introducing artisanal chocolate to mainstream American culture&quot; actually employed commercially produced chocolate from a third-party, making them better known as the creators of fake bean-to-bar chocolate in 2015. [ 11 ] Big Chocolate has also been using the term to compe</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Bean-to-bar" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Bean-to-bar</a></p><p>冻结文件: <a href="sources/1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25" target="_blank">sources/1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25</a></p><p>内容 SHA-256: <code>1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_process_definition_not_exact_claim_audit_or_quality_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The bean-to-bar page defines a business model in which a manufacturer controls production from procuring beans to finished consumer chocolate and processes whole beans instead of remelting an existing base. This is process context, not proof that Raaka&#x27;s exact claim is true or that bean-to-bar universally tastes better, costs more ethically, or delivers a health benefit.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_blinding_bias_scope"><header><h3>prop_blinding_bias_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;brand package price and other cues can be masked and the report should say who was blinded to what and whether blinding succeeded&quot;,
+  &quot;predicate&quot;: &quot;withholds_influential_information_to_reduce_bias&quot;,
+  &quot;subject&quot;: &quot;blinded experiment&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_blinding_bias_scope_1</code> | bytes [0, 144) | <code>8b4724526985e7b3b8c2b81ed867ee0d7f31026361499993d9f942b8f7837666</code></div><pre class="context"><span></span><mark>In a blind or blinded experiment , information that could influence participants or investigators is withheld until the experiment is completed.</mark><span> Blinding is used to reduce or eliminate potential sources of bias , such as participantsâ expectations, the observer-expectancy effect , observer bias , confirmation bias , and other cognitive or procedural influences. [ 1 ] Blinding can be applied to different participants in an experiment, including study subjects, researchers, technicians, data anal</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_blinding_bias_scope_2</code> | bytes [145, 368) | <code>ae6ee25ad10c04a4cb1601cefe29ad1770c5217a8ec2c1f2065b0d1ec115431b</code></div><pre class="context"><span>In a blind or blinded experiment , information that could influence participants or investigators is withheld until the experiment is completed. </span><mark>Blinding is used to reduce or eliminate potential sources of bias , such as participantsâ expectations, the observer-expectancy effect , observer bias , confirmation bias , and other cognitive or procedural influences.</mark><span> [ 1 ] Blinding can be applied to different participants in an experiment, including study subjects, researchers, technicians, data analysts, and outcome assessors. When multiple groups are blinded simultaneously (for example, both participants and researchers), the design is referred to as a double-blind study . [ 2 ] In some cases, blinding is desirable bu</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_blinding_bias_scope_3</code> | bytes [5453, 5593) | <code>eced076eeb979ec76507aa9391fb2d1df718c3e3241c9ca75a32bc578b122eb7</code></div><pre class="context"><span>ble-blind&quot; may mean that the data analysts and patients were blinded; the patients and outcome assessors were blinded; or the patients and those administering the intervention were blinded. The terms also fail to convey the information that was masked and the extent of unblinding. It is not sufficient to specify the number of parties that have been blinded. </span><mark>To describe an experiment&#x27;s blinding, it is necessary to report who has been blinded to what information, and how well each blind succeeded.</mark><span> [ 17 ] Unblinding &quot;Unblinding&quot; occurs in a blinded experiment when information is revealed to someone to whom it has been masked. In clinical studies, unblinding may occur unintentionally when a patient deduces their treatment group. Unblinding that occurs before the conclusion of an experiment is a source of bias . Some degree of premature unblinding is co</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Blinded_experiment" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Blinded_experiment</a></p><p>冻结文件: <a href="sources/8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc" target="_blank">sources/8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc</a></p><p>内容 SHA-256: <code>8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_bias_control_not_automatic_success_or_exact_bar_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The blinded-experiment page says influential information is withheld to reduce expectation and observer biases and says reports should identify who was blinded to what and how well the blind succeeded. Hiding brand, package, price and marketing cues is useful, but perceptible recipes can unblind the buyer and no captured page proves a successful blind comparison.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_bulk_cocoa_subjective_scope"><header><h3>prop_bulk_cocoa_subjective_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;bulk cocoa is contrasted with flavor cocoa through a subjective definition involving undesirable flavor drying or fermentation and can vary in quality&quot;,
+  &quot;predicate&quot;: &quot;uses_a_partly_subjective_processing_sensitive_boundary&quot;,
+  &quot;subject&quot;: &quot;bulk cocoa classification&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_bulk_cocoa_subjective_scope_1</code> | bytes [0, 75) | <code>2f63ea6ff4da9efed41d49028b3e24991ed49f1a76fde094a7469336d8a8119a</code></div><pre class="context"><span></span><mark>Bulk cocoa is a class of cocoa beans . It is contrasted with flavor cocoa .</mark><span> They generally grow in West Africa . History Chocolate makers prioritizing bulk cocoa caused a loss of agrobiodiversity. [ 1 ] Description Bulk cocoa generally comes from Forastero -type cacao trees . [ 2 ] Bulk cocoa is distinguished from flavor cocoa using the subjective definition of containing undesirable or poor flavor, drying or fermentation. [ 3 ] Bu</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bulk_cocoa_subjective_scope_2</code> | bytes [283, 426) | <code>f81f78578b9e698c5dd8a0d1ac1c741f231e6806a8e014820a5c99754368635d</code></div><pre class="context"><span>Bulk cocoa is a class of cocoa beans . It is contrasted with flavor cocoa . They generally grow in West Africa . History Chocolate makers prioritizing bulk cocoa caused a loss of agrobiodiversity. [ 1 ] Description Bulk cocoa generally comes from Forastero -type cacao trees . [ 2 ] </span><mark>Bulk cocoa is distinguished from flavor cocoa using the subjective definition of containing undesirable or poor flavor, drying or fermentation.</mark><span> [ 3 ] Bulk cocoas have a strong inherent flavor. [ 4 ] They are regulated by quality requirements, which allow manufacturers to ensure homogeneity for what they add to blends, maintaining brand flavors. [ 5 ] Over 95% of the world&#x27;s cocoa production was classified as bulk as of 2017. [ 2 ] Producers Most bulk cocoa is produced in West Africa. [ 6 ] Ghana pr</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bulk_cocoa_subjective_scope_3</code> | bytes [1180, 1230) | <code>8cc26b698ec32479448aa958657097dc2014e22499ec1fe2668f79f266a4f5eb</code></div><pre class="context"><span>ans, [ 2 ] as Cadbury has maintained its reputation based on using beans from Ghana, as Ghana has retained a high degree of structural control over its cocoa industry. Cocoa in Ghana is cultivated for a consistent flavor, which is understood in European and American markets as the flavor of chocolate. This has been supported by the Ghana Cocoa Board . [ 6 ] </span><mark>Indonesia produces bulk cocoa of variable quality.</mark><span> [ 7 ] Most Indonesian cocoa is unfermented, and is used as bulk filler. [ 8 ] Markets Bulk beans are traded as a commodity , where distinctions are made between bulk grades in futures trading . [ 9 ] See also Cocoa production in Ghana Cocoa production in Ivory Coast References ^ Martin &amp; Sampeck (2015) , p. 52. ^ a b c Fowler &amp; Coutel (2017) , p. 43. ^ Fo</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Bulk_cocoa" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Bulk_cocoa</a></p><p>冻结文件: <a href="sources/22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac" target="_blank">sources/22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac</a></p><p>内容 SHA-256: <code>22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_classification_not_grade_for_any_captured_bar&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The bulk-cocoa page contrasts bulk with flavor cocoa using a subjective definition involving flavor, drying or fermentation and notes variable quality in one origin. It supports treating bean class and processing as variables, but it neither grades any captured bar nor proves that origin, price or a craft label maps monotonically to quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cocoa_solids_definition_scope"><header><h3>prop_cocoa_solids_definition_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;dry cocoa solids remain after cocoa butter extraction while some legal definitions include cocoa mass powder and butter&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_dry_solids_from_broader_legal_usage&quot;,
+  &quot;subject&quot;: &quot;cocoa-solids terminology&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_cocoa_solids_definition_scope_1</code> | bytes [73, 287) | <code>0fa7fa9d05b76ed9820a5cc525ad1639e457d6e1af660874a299a3728d5d14f7</code></div><pre class="context"><span>&quot;Cocoa powder&quot; redirects here. For the beverage mix, see Hot chocolate . </span><mark>Dry cocoa solids are the components of cocoa beans remaining after cocoa butter , the fatty component of the bean, is extracted from chocolate liquor , roasted cocoa beans that have been ground into a liquid state.</mark><span> Cocoa butter is 46% to 57% of the weight of cocoa beans and gives chocolate its characteristic melting properties. Cocoa powder is the powdered form of the dry solids with a small remaining amount of cocoa butter. Untreated cocoa powder is bitter and acidic. Dutch process cocoa has been treated with an alkali to neutralize the acid. Cocoa powder contains fl</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_solids_definition_scope_2</code> | bytes [749, 881) | <code>9c076fd463d79fe57874bd4c54b5406edb8de471a29300b6359b0ae3696fb39a</code></div><pre class="context"><span>g properties. Cocoa powder is the powdered form of the dry solids with a small remaining amount of cocoa butter. Untreated cocoa powder is bitter and acidic. Dutch process cocoa has been treated with an alkali to neutralize the acid. Cocoa powder contains flavanols , amounts of which are reduced if the cocoa is subjected to acid-reducing alkalization. [ 1 ] </span><mark>Other definitions of cocoa solids, especially legal ones, include all cocoa ingredients (cocoa mass, cocoa powder and cocoa butter).</mark><span> In this case, cocoa solids without cocoa butter are specified as non-fat cocoa solids . [ 2 ] Production Cocoa solids are what remains after cocoa butter is pressed from chocolate liquor . The liquor manufacturers often choose to press acidic beans they consider lower quality. [ 3 ] Physical properties Natural cocoa Natural cocoa powder is extracted with th</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_solids" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_solids</a></p><p>冻结文件: <a href="sources/e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa" target="_blank">sources/e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa</a></p><p>内容 SHA-256: <code>e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_composition_definition_not_exact_bar_formula_or_health_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The cocoa-solids page distinguishes dry solids left after cocoa-butter extraction from broader legal definitions that include cocoa mass, powder and butter. Therefore a cocoa percentage alone does not disclose the exact balance of non-fat solids, cocoa butter, sugar and other ingredients or establish a taste, quality or health ranking for the five bars.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_daily_habit_anecdote_scope"><header><h3>prop_daily_habit_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one 21-year-old author reports a bar or two per day and a desire to cut down&quot;,
+  &quot;predicate&quot;: &quot;reports_one_authors_frequency_and_goal&quot;,
+  &quot;subject&quot;: &quot;daily chocolate-habit post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_daily_habit_anecdote_scope_1</code> | bytes [275, 304) | <code>6e8e0442605144723487e401916e4960823ecd311522eb9b183f51c404831a12</code></div><pre class="context"><span>LPT request: How do I stop myself from eating chocolates?
+
+I&#x27;ve been trying to lose weight. I&#x27;ve already lost around 23 kgs. (I was around 117 kgs, and now I weigh 95kgs. It&#x27;s a work in progress. I&#x27;m 21 years old, M) But, I can&#x27;t seem to stop myself from having a chocolate. </span><mark>I eat a bar or two every day.</mark><span> I just can&#x27;t stop myself. They are addicting. I just find myself I do not drink, I do not smoke. But chocolates I can&#x27;t seem to stop myself from. I understand that being healthy is a lifestyle, and not a goal. And I wanna cut down on chocolates. But, I don&#x27;t know how. I&#x27;d love some advice. 0</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_daily_habit_anecdote_scope_2</code> | bytes [515, 550) | <code>c142e996d49263b45967ed01c18e1cf2e3c6e6b68e71916bc4cc06c7a41d0d40</code></div><pre class="context"><span> I weigh 95kgs. It&#x27;s a work in progress. I&#x27;m 21 years old, M) But, I can&#x27;t seem to stop myself from having a chocolate. I eat a bar or two every day. I just can&#x27;t stop myself. They are addicting. I just find myself I do not drink, I do not smoke. But chocolates I can&#x27;t seem to stop myself from. I understand that being healthy is a lifestyle, and not a goal. </span><mark>And I wanna cut down on chocolates.</mark><span> But, I don&#x27;t know how. I&#x27;d love some advice. 0</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/120364/lpt-request-how-do-i-stop-myself-from-eating-chocolates" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/120364/lpt-request-how-do-i-stop-myself-from-eating-chocolates</a></p><p>冻结文件: <a href="sources/cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4" target="_blank">sources/cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4</a></p><p>内容 SHA-256: <code>cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_self_report_not_population_intake_or_dark_bar_value_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One forum author reports eating a bar or two every day and wanting to cut down. This self-report can motivate recording use frequency and total recurring cost, but it is not evidence about the current buyer&#x27;s intake, dark-chocolate health effects, any exact product, or a safe or optimal daily amount.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_dove_pack_price_scope"><header><h3>prop_dove_pack_price_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07L9TTQN6 at 25.45 dollars with no reviews shown and a nominal twelve times 3.30-ounce pack&quot;,
+  &quot;predicate&quot;: &quot;shows_a_twelve_bar_offer&quot;,
+  &quot;subject&quot;: &quot;frozen DOVE seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_dove_pack_price_scope_1</code> | bytes [0, 53) | <code>405d4bb0aa62ee7a2f470d15b047b2288ba32815c0bc2c1eb6e6407859a8b476</code></div><pre class="context"><span></span><mark>DOVE Dark Chocolate Bars, 3.30-Ounce Bar (Pack of 12)</mark><span>
+
+In stock SKU B07L9TTQN6 Be the first to review this product $25.45 Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Read more Chocolate Bars for Every Occasion For You This is the chocolate bar for you: the fun-seeking, joy-riding, pleasure-grabbing woman of today. Make any moment incredible with dynamically bold fla</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_dove_pack_price_scope_2</code> | bytes [55, 121) | <code>ac9879d198f558581217b991a1225f288062f45a4788640e8faf0da4c7303dac</code></div><pre class="context"><span>DOVE Dark Chocolate Bars, 3.30-Ounce Bar (Pack of 12)
+
+</span><mark>In stock SKU B07L9TTQN6 Be the first to review this product $25.45</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more Read more Chocolate Bars for Every Occasion For You This is the chocolate bar for you: the fun-seeking, joy-riding, pleasure-grabbing woman of today. Make any moment incredible with dynamically bold flavor from Dove Chocolate. For Us Here’s to those who get more pleas</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_dove_pack_price_scope_3</code> | bytes [1839, 1907) | <code>4006850c9d2e4c352c7c3186c270fc37dca8f053d23a9abecfc4b172c51cb1f6</code></div><pre class="context"><span>olate bars are the perfect way to celebrate wins big and small. Available in six dynamically bold flavors--milk chocolate, milk chocolate almond brittle, dark chocolate, bourbon vanilla, raspberry rosé and salted caramel blonde--these oversized chocolate bars make delicious gifts for every chocolate-lover in your life. DOVE Chocolate: Choose MORE Pleasure. </span><mark>Contains twelve (12) 3.30-ounce extra-large DOVE Dark Chocolate Bars</mark><span> Made with silky smooth DOVE Dark Chocolate Choose more pleasure when you enjoy a DOVE Chocolate Bar Individually wrapped, extra-large candy bars can easily be broken into pieces and shared Great for stocking stuffers, birthday gits, Easter treats, Valentine&#x27;s Day delights and more Package Dimensions ‏ ‎ 7.8 x 5.9 x 4.2 inches; 2.48 Pounds Item model num</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/dove-dark-chocolate-bars-3-30-ounce-bar-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/dove-dark-chocolate-bars-3-30-ounce-bar-pack-of-12.html</a></p><p>冻结文件: <a href="sources/9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3" target="_blank">sources/9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3</a></p><p>内容 SHA-256: <code>9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_not_current_delivered_price_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen DOVE page shows SKU B07L9TTQN6 at 25.45 dollars with no reviews shown and describes twelve 3.30-ounce dark bars. Conditional title arithmetic is about 2.12 dollars per nominal bar and 0.64 dollars per nominal ounce, but this is neither a verified current delivered price nor a blind taste or health result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_fairtrade_price_support_scope"><header><h3>prop_fairtrade_price_support_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the scheme is designed to support sustainable farmer income and may be signaled by a Fairtrade mark&quot;,
+  &quot;predicate&quot;: &quot;defines_a_certified_price_support_scheme&quot;,
+  &quot;subject&quot;: &quot;Fairtrade cocoa&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_fairtrade_price_support_scope_1</code> | bytes [0, 258) | <code>6bfb39f25babad7639f1cb61830fb1e3b728a4256eacdd6284a63255dc404382</code></div><pre class="context"><span></span><mark>Fair trade cocoa is an agricultural product harvested from a cocoa tree under a Fairtrade certified price support scheme used by cocoa farmers, buyers, and chocolate manufacturers, and is designed to create sustainable incomes for farmers and their families.</mark><span> [ 1 ] [ 2 ] Food manufacturers that use fair trade certified cocoa in their products often display the Fairtrade symbol to indicate that they are contributing to social, economic, and environmental sustainability in agriculture. Background In the 1990s, exactly 1 percent of the world&#x27;s cocoa was produced on small, family managed farms, primarily in West Afr</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_fairtrade_price_support_scope_2</code> | bytes [271, 487) | <code>72d3dcd09139dc01599be948f6b3aa5bf5af453273edc87bbec2d2ae96d9c1f6</code></div><pre class="context"><span>Fair trade cocoa is an agricultural product harvested from a cocoa tree under a Fairtrade certified price support scheme used by cocoa farmers, buyers, and chocolate manufacturers, and is designed to create sustainable incomes for farmers and their families. [ 1 ] [ 2 ] </span><mark>Food manufacturers that use fair trade certified cocoa in their products often display the Fairtrade symbol to indicate that they are contributing to social, economic, and environmental sustainability in agriculture.</mark><span> Background In the 1990s, exactly 1 percent of the world&#x27;s cocoa was produced on small, family managed farms, primarily in West Africa and Latin America. Local collectors and intermediaries purchase and transport the cocoa to exporters and processors. Many farmers are unaware of the final destination and value of their cocoa. [ 3 ] Low prices and increasing </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Fair_trade_cocoa" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Fair_trade_cocoa</a></p><p>冻结文件: <a href="sources/b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429" target="_blank">sources/b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429</a></p><p>内容 SHA-256: <code>b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_certification_definition_not_exact_payment_taste_or_total_ethics_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Fairtrade-cocoa page defines a certified price-support scheme designed to support sustainable farmer income and describes use of a Fairtrade symbol. It does not verify the exact seller labels, payments, supply chain, complete ethical outcome, taste superiority or value of any captured bar.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_green_black_pack_price_scope"><header><h3>prop_green_black_pack_price_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B008FRKKV4 at 21.99 dollars with no reviews shown for three 100-gram 70-percent bars carrying organic Fairtrade and Trinitario claims&quot;,
+  &quot;predicate&quot;: &quot;shows_a_three_bar_seventy_percent_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Green and Black seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_green_black_pack_price_scope_1</code> | bytes [0, 57) | <code>0deb518a21c818df809866d31554910d0cd7f82df9030b7962eff4a69cc48a4b</code></div><pre class="context"><span></span><mark>Green &amp; Black Organic 70% Dark Chocolate 100G (Pack Of 3)</mark><span>
+
+In stock SKU B008FRKKV4 Be the first to review this product $21.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Made with the finest Trinitario cocoa beans for an intense taste. 70% cocoa. Organic. Fairtrade. Suitable for vegetarians. Our dark 70% chocolate is made from fine Trinitario cocoa beans. The cocoa solids are a comb</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_green_black_pack_price_scope_2</code> | bytes [59, 125) | <code>c6f299f03de8ae92f20190e58895c67240c28b856518235d4790cfaf3b23a48d</code></div><pre class="context"><span>Green &amp; Black Organic 70% Dark Chocolate 100G (Pack Of 3)
+
+</span><mark>In stock SKU B008FRKKV4 Be the first to review this product $21.99</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Made with the finest Trinitario cocoa beans for an intense taste. 70% cocoa. Organic. Fairtrade. Suitable for vegetarians. Our dark 70% chocolate is made from fine Trinitario cocoa beans. The cocoa solids are a combination of cocoa mass and cocoa butter. The cocoa mass provides the </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_green_black_pack_price_scope_3</code> | bytes [268, 324) | <code>fbb4d6c55b9425c2b5033167df52c0640eaf1ec94624b010292fd407b5e0a47d</code></div><pre class="context"><span>Green &amp; Black Organic 70% Dark Chocolate 100G (Pack Of 3)
+
+In stock SKU B008FRKKV4 Be the first to review this product $21.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Made with the finest Trinitario cocoa beans for an intense taste. </span><mark>70% cocoa. Organic. Fairtrade. Suitable for vegetarians.</mark><span> Our dark 70% chocolate is made from fine Trinitario cocoa beans. The cocoa solids are a combination of cocoa mass and cocoa butter. The cocoa mass provides the complex fruity notes while the cocoa butter allows the chocolate to melt beautifully and cleanly in the mouth, revealing intense bittersweet chocolate aromas. We select the finest organic ingredients</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_green_black_pack_price_scope_4</code> | bytes [390, 456) | <code>7192d526d4adbc3b73f49eda9fb1c275695e027d12c3a608542800dc4f315fab</code></div><pre class="context"><span> Chocolate 100G (Pack Of 3)
+
+In stock SKU B008FRKKV4 Be the first to review this product $21.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Made with the finest Trinitario cocoa beans for an intense taste. 70% cocoa. Organic. Fairtrade. Suitable for vegetarians. Our dark 70% chocolate is made from fine Trinitario cocoa beans. </span><mark>The cocoa solids are a combination of cocoa mass and cocoa butter.</mark><span> The cocoa mass provides the complex fruity notes while the cocoa butter allows the chocolate to melt beautifully and cleanly in the mouth, revealing intense bittersweet chocolate aromas. We select the finest organic ingredients and take extra care to bring out the distinct flavour that has become our trademark. Please always read the labels, warning and dir</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/green-black-organic-70-dark-chocolate-100g-pack-of-3.html" target="_blank" rel="noreferrer">http://localhost:7770/green-black-organic-70-dark-chocolate-100g-pack-of-3.html</a></p><p>冻结文件: <a href="sources/750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72" target="_blank">sources/750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72</a></p><p>内容 SHA-256: <code>750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_and_claims_not_verified_label_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Green and Black page shows SKU B008FRKKV4 at 21.99 dollars with no reviews shown for three 100-gram 70-percent bars and carries organic, Fairtrade, Trinitario and flavor statements. Conditional title arithmetic is 7.33 dollars per nominal 100-gram bar; the claims and price do not independently establish the current label, certification, bean quality or blind preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_hedonic_liking_scale_scope"><header><h3>prop_hedonic_liking_scale_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a common nine-level scale ranges from dislike extremely to like extremely&quot;,
+  &quot;predicate&quot;: &quot;measures_degree_of_liking&quot;,
+  &quot;subject&quot;: &quot;hedonic scale&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_hedonic_liking_scale_scope_1</code> | bytes [0, 120) | <code>8f5ff6f79e29ab1245d2d89d9cb6a257da8cd93cec8e9366ac5e370c2e8600d1</code></div><pre class="context"><span></span><mark>The hedonic scale is a sensory evaluation tool used to measure the degree of pleasure or liking of a product or service.</mark><span> The scale usually consists of 9 levels ranging from 1 to 9, or  &quot;dislike extremely&quot; to &quot;like extremely&quot;. [ 1 ] The hedonic scale is widely used for consumer acceptance testing . [ 2 ] [ 3 ] Overview The main characteristics of the scale are that each category is associated with a verbal descriptor from âDislike extremelyâ to âLike extremelyâ</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_hedonic_liking_scale_scope_2</code> | bytes [121, 225) | <code>c4eba0d3a2ccaa441253b78a237f626def2fa35ec5e7c3177c51bf65a7fba547</code></div><pre class="context"><span>The hedonic scale is a sensory evaluation tool used to measure the degree of pleasure or liking of a product or service. </span><mark>The scale usually consists of 9 levels ranging from 1 to 9, or  &quot;dislike extremely&quot; to &quot;like extremely&quot;.</mark><span> [ 1 ] The hedonic scale is widely used for consumer acceptance testing . [ 2 ] [ 3 ] Overview The main characteristics of the scale are that each category is associated with a verbal descriptor from âDislike extremelyâ to âLike extremelyâ and that the scale has a neutral category , âNeither Like nor Dislikeâ. [ 4 ] The scale of</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Hedonic_scale" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Hedonic_scale</a></p><p>冻结文件: <a href="sources/c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a" target="_blank">sources/c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a</a></p><p>内容 SHA-256: <code>c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_liking_instrument_not_exact_preference_or_willingness_to_pay_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The hedonic-scale page describes a sensory tool for degree of liking, commonly from one to nine between dislike extremely and like extremely. A rating can record this buyer&#x27;s declared liking under test conditions but does not by itself establish detectable difference, population preference, value or willingness to pay.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lindt_pack_price_scope"><header><h3>prop_lindt_pack_price_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B000H26J7E at 30 dollars rated 67 percent over twelve reviews with twelve 3.5-ounce 70-percent bars&quot;,
+  &quot;predicate&quot;: &quot;shows_a_seventy_percent_twelve_bar_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lindt_pack_price_scope_1</code> | bytes [0, 117) | <code>90134aa478d52fc9d0f7a5abf0abdf5e5909aba7ed5bfcafe851c7d32c59a8c6</code></div><pre class="context"><span></span><mark>Lindt Excellence Bar, 70% Cocoa Smooth Dark Chocolate, Gluten Free, Great for Holiday Gifting, 3.5 Ounce (Pack of 12)</mark><span>
+
+In stock SKU B000H26J7E Rating: 67 % of 100 12 Reviews Add Your Review $30.00 Flavor Name 70% Cocoa Dark 78% Cocoa Dark 85% Cocoa 90% Cocoa Dark 95% Cocoa Caramel with Sea Salt Chili Dark Dark Coconut Extra Creamy Hazelnut Dark Intense Mint Dark Orange Dark Sea Salt Dark White Coconut Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufa</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lindt_pack_price_scope_2</code> | bytes [119, 196) | <code>aa7c1b692cdba261b2bb85fc7657eba0b47302241fb3b68296c52e34b6813e30</code></div><pre class="context"><span>Lindt Excellence Bar, 70% Cocoa Smooth Dark Chocolate, Gluten Free, Great for Holiday Gifting, 3.5 Ounce (Pack of 12)
+
+</span><mark>In stock SKU B000H26J7E Rating: 67 % of 100 12 Reviews Add Your Review $30.00</mark><span> Flavor Name 70% Cocoa Dark 78% Cocoa Dark 85% Cocoa 90% Cocoa Dark 95% Cocoa Caramel with Sea Salt Chili Dark Dark Coconut Extra Creamy Hazelnut Dark Intense Mint Dark Orange Dark Sea Salt Dark White Coconut Qty Add to Cart Add to Wish List Add to Compare
+
+Details From the manufacturer Read more The Finest Dark Chocolate Discover the Rich, Balanced Flavors </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lindt_pack_price_scope_3</code> | bytes [3133, 3252) | <code>ea1ceeff8ac450bf225eb4499437d8e903d35395f7c7f5c1175b0dc11132d996</code></div><pre class="context"><span>vested French sea salt) Cocoa % 90% 85% 70% 47% 47% Product Quick Look This Lindt 70% Cocoa Intense Dark Chocolate Excellence Bar contains a full-bodied dark chocolate with intense flavors of cocoa beans. Lindt delivers a unique chocolate experience with a distinctly smooth and rich, gourmet taste. Indulge in this irresistible, luscious chocolate bar today! </span><mark>Contains 12 individually wrapped 70% cocoa dark chocolate bars, perfect for gifting, baking, or savoring piece by piece</mark><span> A full-bodied dark chocolate; masterfully balanced to be neither bitter nor overpowering Lindt chocolate is expertly crafted with the finest ingredients; experience the intense flavors and rich aromas of cocoa beans in this fine chocolate bar Stock up on these dark chocolate bars to share at the office, enjoy at a dinner party, or bake with at home; the per</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lindt-excellence-bar-70-cocoa-smooth-dark-chocolate-gluten-free-great-for-holiday-gifting-3-5-ounce-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/lindt-excellence-bar-70-cocoa-smooth-dark-chocolate-gluten-free-great-for-holiday-gifting-3-5-ounce-pack-of-12.html</a></p><p>冻结文件: <a href="sources/5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf" target="_blank">sources/5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf</a></p><p>内容 SHA-256: <code>5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_and_marketing_not_independent_quality_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Lindt page shows SKU B000H26J7E at 30 dollars, rated 67 percent over twelve reviews, and describes twelve individually wrapped 3.5-ounce 70-percent bars. Conditional title arithmetic is 2.50 dollars per nominal bar and about 0.71 dollars per nominal ounce; rating, premium wording and this arithmetic do not establish blind preference or current delivered value.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_raaka_pack_identity_conflict_scope"><header><h3>prop_raaka_pack_identity_conflict_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07811Q1PR at 14.95 dollars rated 58 percent over twelve reviews with a selected 60-percent coconut-milk 1.8-ounce three-pack and a Product Dimensions field of only 1.8 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_coconut_recipe_three_pack_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Raaka seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_raaka_pack_identity_conflict_scope_1</code> | bytes [0, 184) | <code>e4b61d0eb734a3daf80d3dd1f3a2d37dc76a8972d0102b72005ca71c2f7b3592</code></div><pre class="context"><span></span><mark>Raaka Chocolate Coconut Milk 60% Cacao Dark Chocolate | Gourmet Dark Chocolate Gift| Organic, Vegan, Dairy Free, Fair Trade, Soy Free, Non GMO, Gluten Free, Kosher | 1.8oz Bars, 3-Pack</mark><span>
+
+In stock SKU B07811Q1PR Rating: 58 % of 100 12 Reviews Add Your Review $14.95 Flavor Name 100% Cacao Bananas Foster Best Sellers Trio Bourbon Cask Aged Coconut Milk Dairy Free Bundle Ginger Snap Green Tea Crunch Maple and Nibs Oat Milk Pink Sea Salt Pure Cacao &amp; Strawberry &amp; Coconut Refined Sugar Free Bundle Rose Cardamom Sugar Free Bundle Qty Add to Cart </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_raaka_pack_identity_conflict_scope_2</code> | bytes [186, 263) | <code>65b58b578b224b57ea8a181e15dfb80d6e54e398f639c8e1c0b510323ddd0152</code></div><pre class="context"><span>Raaka Chocolate Coconut Milk 60% Cacao Dark Chocolate | Gourmet Dark Chocolate Gift| Organic, Vegan, Dairy Free, Fair Trade, Soy Free, Non GMO, Gluten Free, Kosher | 1.8oz Bars, 3-Pack
+
+</span><mark>In stock SKU B07811Q1PR Rating: 58 % of 100 12 Reviews Add Your Review $14.95</mark><span> Flavor Name 100% Cacao Bananas Foster Best Sellers Trio Bourbon Cask Aged Coconut Milk Dairy Free Bundle Ginger Snap Green Tea Crunch Maple and Nibs Oat Milk Pink Sea Salt Pure Cacao &amp; Strawberry &amp; Coconut Refined Sugar Free Bundle Rose Cardamom Sugar Free Bundle Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description UNROASTED: We make</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_raaka_pack_identity_conflict_scope_3</code> | bytes [725, 810) | <code>d2312826bbdcf2837cdf461022c72ed7d96d73b3b54de25fa5e8227ead69d985</code></div><pre class="context"><span>dle Ginger Snap Green Tea Crunch Maple and Nibs Oat Milk Pink Sea Salt Pure Cacao &amp; Strawberry &amp; Coconut Refined Sugar Free Bundle Rose Cardamom Sugar Free Bundle Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description UNROASTED: We make our chocolate with unroasted cacao beans so you can taste this the naturally fruity flavor of cacao. </span><mark>BEAN-TO-BAR: We make our chocolate from scratch, starting with unroasted cacao beans.</mark><span> TRANSPARENT TRADE: We source our cacao directly from single estate farms, farmer owned cooperatives, and grower centered organizations. Read more SMALL BATCH: We make our bars in small batches, ensuring quality and traceability from beginning to end. SINGLE ORIGIN: We work with cacao beans from unique origins and craft bars to highlight the unique flavors f</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_raaka_pack_identity_conflict_scope_4</code> | bytes [1297, 1373) | <code>43585dd691ebada0cf6054919e2f82cf99ead6c2670732119d0f2322e560b2a1</code></div><pre class="context"><span>izations. Read more SMALL BATCH: We make our bars in small batches, ensuring quality and traceability from beginning to end. SINGLE ORIGIN: We work with cacao beans from unique origins and craft bars to highlight the unique flavors found at each. ORGANIC: All of our chocolate is USDA organic, non-GMO, and free of gluten and soy. Read more Product Quick Look </span><mark>Raaka Chocolate Coconut Milk Dark Chocolate 60% Cacao, (1.8oz Bar - 3 Pack).</mark><span> Single origin craft chocolate made from bean-to-bar in Brooklyn, New York. Flavor/Source: All your memories of traditional milk chocolate will melt away with this silky, smooth, dairy-free dream blend of Dominican cacao, pure shredded coconut, and cane sugar. We source cacao from Zorzal Cacao, producers of sustainable, fine flavor gourmet cacao inside Reser</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_raaka_pack_identity_conflict_scope_5</code> | bytes [3134, 3195) | <code>18fa61ecd04ef4410ebc40af2689e6ce276f85be19c341edf3cd9c21ab5a7fa5</code></div><pre class="context"><span>n or in a basket of assorted presents. Need a holiday gift? Chocolate is the answer. Our chocolate makes a great gift for the holidays: Christmas, Valentine’s Day, Easter, chocolate lovers, girlfriends, boyfriends, and spouses alike. We make premium dark chocolate with the world’s best ingredients, and it’s sure to please lovers of artisan, fine food. </span><mark>Package Dimensions ‏ ‎ 5.5 x 2.4 x 1.3 inches; 1.8 Ounces</mark><span> UPC ‏ ‎ 826636209903 ASIN ‏ ‎ B07811Q1PR #92 in Candy &amp; Chocolate Bars Reviews 12 Write Your Own Review You&#x27;re reviewing: Raaka Chocolate Coconut Milk 60% Cacao Dark Chocolate | Gourmet Dark Chocolate Gift| Organic, Vegan, Dairy Free, Fair Trade, Soy Free, Non GMO, Gluten Free, Kosher | 1.8oz Bars, 3-Pack Your Rating Rating 1 star 2 stars 3 stars 4 </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/raaka-chocolate-coconut-milk-60-cacao-dark-chocolate-gourmet-dark-chocolate-gift-organic-vegan-dairy-free-fair-trade-soy-free-non-gmo-gluten-free-kosher-1-8oz-bars-3-pack.html" target="_blank" rel="noreferrer">http://localhost:7770/raaka-chocolate-coconut-milk-60-cacao-dark-chocolate-gourmet-dark-chocolate-gift-organic-vegan-dairy-free-fair-trade-soy-free-non-gmo-gluten-free-kosher-1-8oz-bars-3-pack.html</a></p><p>冻结文件: <a href="sources/12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211" target="_blank">sources/12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211</a></p><p>内容 SHA-256: <code>12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_flavored_offer_with_unresolved_total_mass_not_plain_bar_or_taste_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Raaka page shows SKU B07811Q1PR at 14.95 dollars, rated 58 percent over twelve reviews, for a selected coconut-milk 60-percent 1.8-ounce three-pack and carries bean-to-bar and unroasted claims, while Product Dimensions reports only 1.8 ounces. Conditional title arithmetic is about 4.98 dollars per bar and 2.77 dollars per ounce, but total delivered mass remains unresolved and this flavored recipe cannot be treated as a plain-bar taste control.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ritter_single_price_scope"><header><h3>prop_ritter_single_price_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07PTSPCVS at 8.99 dollars with no reviews shown for one 100-gram or 3.52-ounce 74-percent bar carrying three-ingredient single-origin and sustainability claims&quot;,
+  &quot;predicate&quot;: &quot;shows_one_seventy_four_percent_bar_and_source_claims&quot;,
+  &quot;subject&quot;: &quot;frozen Ritter Sport seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ritter_single_price_scope_1</code> | bytes [0, 87) | <code>c519f02e4bfda90474c064974136fa3226ebfa9d1878fbae268e2815b24ca975</code></div><pre class="context"><span></span><mark>Ritter Sport 74% Intense Dark Chocolate Bar Candy Original German Chocolate 100g/3.52oz</mark><span>
+
+In stock SKU B07PTSPCVS Be the first to review this product $8.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Focus on sustainability Read more Small changes in product size &amp; weight lead to lower carbon emissions. We created Compact by Design to identify products that, while they may not always look very different, have a more efficient desig</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ritter_single_price_scope_2</code> | bytes [89, 154) | <code>0e9422f0db309a1a83d975ac52d330155d46065e5922ed9d8cb2e6034095877e</code></div><pre class="context"><span>Ritter Sport 74% Intense Dark Chocolate Bar Candy Original German Chocolate 100g/3.52oz
+
+</span><mark>In stock SKU B07PTSPCVS Be the first to review this product $8.99</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Focus on sustainability Read more Small changes in product size &amp; weight lead to lower carbon emissions. We created Compact by Design to identify products that, while they may not always look very different, have a more efficient design. With the removal of excess air and water, products require less </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ritter_single_price_scope_3</code> | bytes [852, 1042) | <code>c465a3be31e9bb42a34f4a43c0d74fa31718a44fa1828a8c9cb855f9c59c5b40</code></div><pre class="context"><span>products require less packaging and become more efficient to ship. At scale, these small differences in product size and weight lead to significant carbon emission reductions. Here are a few of the many ways products can qualify: Read more Product Quick Look Intense Dark Chocolate Experience the new dark with our intensely delicious 74% Cocoa Selection bar. </span><mark>Made with only three ingredients and single origin certified sustainable sourced Peruvian cocoa, the fine, fruity and slightly spicy taste is perfect for all who just love intense chocolate.</mark><span> RITTER SPORT chocolate is one of the best chocolate bars in the world. The secret to every chocolate. The term “chocolate mass” refers to the combination of all the basic ingredients required to manufacture chocolate after the conching process, i.e. a blend of cocoa liquor, sugar, milk powder, cocoa butter, lecithin and natural flavourings. The most wel</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/ritter-sport-74-intense-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html" target="_blank" rel="noreferrer">http://localhost:7770/ritter-sport-74-intense-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html</a></p><p>冻结文件: <a href="sources/3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e" target="_blank">sources/3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e</a></p><p>内容 SHA-256: <code>3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_seller_offer_and_claims_not_verified_composition_origin_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Ritter Sport page shows SKU B07PTSPCVS at 8.99 dollars with no reviews shown for one 74-percent 100-gram or 3.52-ounce bar and makes three-ingredient, single-origin, sustainable-source and flavor claims. Those remain exact seller assertions rather than an ingredient-panel audit, origin verification, blind taste result or proof that 8.99 dollars crosses a quality threshold.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_sensory_difference_liking_scope"><header><h3>prop_sensory_difference_liking_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;analytical testing addresses product facts such as detectable difference while affective testing addresses subjective preference and acceptance&quot;,
+  &quot;predicate&quot;: &quot;separates_analytical_difference_from_affective_acceptance&quot;,
+  &quot;subject&quot;: &quot;sensory analysis&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_sensory_difference_liking_scope_1</code> | bytes [693, 969) | <code>54a9968b148d6c0e1657eb0321f326416e6e0a45994aaa38a0dc585d6801b13a</code></div><pre class="context"><span>arketing and advertising phase. The discipline requires panels of human assessors, on whom the products are tested, and recording their responses. By applying statistical techniques to the results it is possible to make inferences and insights about the products under test. Most large consumer goods companies have departments dedicated to sensory analysis. 
+</span><mark>Sensory analysis can mainly be broken down into three sub-sections: [ 2 ] Analytical testing (dealing with objective facts about products) Affective testing (dealing with subjective facts such as preferences) Perception (the biochemical and psychological aspects of sensation)</mark><span> Sensory analysis is a core component of organoleptic testing, dating back to the famous treatise De architectura by Vitruvius . Analytical testing This type of testing is concerned with obtaining objective facts about products. This could range from basic discrimination testing (e.g. Do two or more products differ from each other?) to descriptive analysis (</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_sensory_difference_liking_scope_2</code> | bytes [1198, 1389) | <code>cd27618147762c2f003b7dbfba1de5db8d3cd058596ccede3aff06c6039c4b37</code></div><pre class="context"><span>ive testing (dealing with subjective facts such as preferences) Perception (the biochemical and psychological aspects of sensation) Sensory analysis is a core component of organoleptic testing, dating back to the famous treatise De architectura by Vitruvius . Analytical testing This type of testing is concerned with obtaining objective facts about products. </span><mark>This could range from basic discrimination testing (e.g. Do two or more products differ from each other?) to descriptive analysis (e.g. What are the characteristics of two or more products?).</mark><span> The type of panel required for this type of testing would normally be a trained panel. There are several types of sensory tests. The most classic is the sensory profile. In this test, each assessor describes each product by means of a questionnaire. The questionnaire includes a list of descriptors (e.g., bitterness, acidity, etc.). The assessor rates each d</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_sensory_difference_liking_scope_3</code> | bytes [2129, 2284) | <code>a26e28da4640510cabee7252a81a2885467b08ed99568f1c9feb51f7b6fb15fc</code></div><pre class="context"><span>roduct depending on the intensity of the descriptor he perceives in the product (e.g., 0 = very weak to 10 = very strong). In the method of Free choice profiling , each taster builds his own questionnaire. Another family of methods is known as holistic as they focus on the product&#x27;s overall appearance. This is the case of the categorization and the napping. </span><mark>Affective testing Also known as consumer testing , this type of testing concerns obtaining subjective data, or how well products are likely to be accepted.</mark><span> Usually, large (50 or more) panels of untrained personnel are recruited for this type of testing, although smaller focus groups can be utilized to gain insights into products. The range of testing can vary from simple comparative testing (e.g. Which do you prefer, A or B?) to structured questioning regarding the magnitude of acceptance of individual charact</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Sensory_analysis" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Sensory_analysis</a></p><p>冻结文件: <a href="sources/872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1" target="_blank">sources/872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1</a></p><p>内容 SHA-256: <code>872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_method_boundary_not_result_for_the_five_bars&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The sensory-analysis page separates analytical tests of product difference from affective tests of subjective preference and acceptance. Detecting that two bars differ is not the same as preferring the expensive one or judging the gain worth its price, and the page provides no result for the captured bars.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_variety_gift_anecdote_scope"><header><h3>prop_variety_gift_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author sent six dark bars of various types at about three ounces each before an unrelated pet-ingestion event&quot;,
+  &quot;predicate&quot;: &quot;reports_six_varied_roughly_three_ounce_bars&quot;,
+  &quot;subject&quot;: &quot;dark-bar gift incident&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_variety_gift_anecdote_scope_1</code> | bytes [226, 315) | <code>8513360536298560f9b5cf654ba24c7bd358abc7f783bc70802febf2a0ec18f0</code></div><pre class="context"><span>TIFU by sending my parents chocolate for Christmas
+
+I sent some bars of dark chocolate via Amazon to my parents as stocking stuffers for Christmas. They usually send me stuff every year and I thought I would return the favor. </span><mark>So I got them six dark chocolate bars of various types. They are about three ounces each.</mark><span> Unfortunately my gifts were all mixed together with other gifts and they didn&#x27;t want to open anything until Christmas. So they stuck everything under the Christmas tree. They have two large dogs, and the dogs smelled the chocolate and sometime today decided to eat the chocolate. Thankfully we figured that the larger dog ate it, and that he only ate two of t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_variety_gift_anecdote_scope_2</code> | bytes [316, 434) | <code>f238a07f7ff560a4dde5eadd8cb0f5f949f5e8a519ee7f3154e814b187aa348f</code></div><pre class="context"><span>TIFU by sending my parents chocolate for Christmas
+
+I sent some bars of dark chocolate via Amazon to my parents as stocking stuffers for Christmas. They usually send me stuff every year and I thought I would return the favor. So I got them six dark chocolate bars of various types. They are about three ounces each. </span><mark>Unfortunately my gifts were all mixed together with other gifts and they didn&#x27;t want to open anything until Christmas.</mark><span> So they stuck everything under the Christmas tree. They have two large dogs, and the dogs smelled the chocolate and sometime today decided to eat the chocolate. Thankfully we figured that the larger dog ate it, and that he only ate two of the bars because the shipments where in different packages. They induced vomiting and he seems like he will be alright. </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/tifu/71318/tifu-by-sending-my-parents-chocolate-for-christmas" target="_blank" rel="noreferrer">http://localhost:9999/f/tifu/71318/tifu-by-sending-my-parents-chocolate-for-christmas</a></p><p>冻结文件: <a href="sources/f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e" target="_blank">sources/f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e</a></p><p>内容 SHA-256: <code>f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_gift_incident_not_controlled_variety_trial_or_product_safety_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_price_ladder_personal_sensory_cutoff&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One author reports sending six dark bars of various types at about three ounces each before an unrelated dog-ingestion incident. The post can motivate a small varied purchase and safe storage, but it is not a controlled taste ladder, does not identify the five exact offers and provides no human consumption or product-ranking evidence.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_chocolate_price_0048</td><td>case_spec</td><td><a href="sources/7a195209092c6eb25ff6611ed62c32bc0ca8959e93147b5847734e911e33aea5">7a195209092c6eb25ff6611ed62c32bc0ca8959e93147b5847734e911e33aea5</a></td><td><a href="http://case-spec.local/dra_v3_formal_snacks_chocolate_0048" target="_blank" rel="noreferrer">来源 URL</a></td><td>12775</td></tr><tr><td>reg_magento_dove_dark_0048</td><td>magento</td><td><a href="sources/9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3">9c0e5eb94717ec70d63959fc75d5f2765dac1a00a90e0916c70ed997bd7dd9b3</a></td><td><a href="http://localhost:7770/dove-dark-chocolate-bars-3-30-ounce-bar-pack-of-12.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2895</td></tr><tr><td>reg_magento_green_black_seventy_0048</td><td>magento</td><td><a href="sources/750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72">750ac3d1e36ad67b5338a7cec7d1d9cbde811db5671665a81b75af9003a31d72</a></td><td><a href="http://localhost:7770/green-black-organic-70-dark-chocolate-100g-pack-of-3.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1231</td></tr><tr><td>reg_magento_lindt_seventy_0048</td><td>magento</td><td><a href="sources/5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf">5e9fc48a1dcfa56f38fe0ef7914118abcedbca6bd13970b74add24ad2e17bddf</a></td><td><a href="http://localhost:7770/lindt-excellence-bar-70-cocoa-smooth-dark-chocolate-gluten-free-great-for-holiday-gifting-3-5-ounce-pack-of-12.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>4557</td></tr><tr><td>reg_magento_raaka_coconut_0048</td><td>magento</td><td><a href="sources/12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211">12e35fd5f8746f78b399999148a25b2d03df2247c030ec83cd2db60e097e4211</a></td><td><a href="http://localhost:7770/raaka-chocolate-coconut-milk-60-cacao-dark-chocolate-gourmet-dark-chocolate-gift-organic-vegan-dairy-free-fair-trade-soy-free-non-gmo-gluten-free-kosher-1-8oz-bars-3-pack.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3606</td></tr><tr><td>reg_magento_ritter_seventy_four_0048</td><td>magento</td><td><a href="sources/3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e">3521cbd392b827b51c37d768d5ae8980889b532d48fb38f681696628d98e628e</a></td><td><a href="http://localhost:7770/ritter-sport-74-intense-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3830</td></tr><tr><td>reg_postmill_aldi_value_0048</td><td>postmill</td><td><a href="sources/d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf">d867f1c53935340835352d58a45985fd299db42dad42b082b02d8b58da01edbf</a></td><td><a href="http://localhost:9999/f/pittsburgh/25456/god-tier-aldi-products" target="_blank" rel="noreferrer">来源 URL</a></td><td>624</td></tr><tr><td>reg_postmill_daily_habit_0048</td><td>postmill</td><td><a href="sources/cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4">cb94e06927274549fe9b48fd412f075a7b15770765e078f8e2200be37f75dfd4</a></td><td><a href="http://localhost:9999/f/LifeProTips/120364/lpt-request-how-do-i-stop-myself-from-eating-chocolates" target="_blank" rel="noreferrer">来源 URL</a></td><td>597</td></tr><tr><td>reg_postmill_variety_gift_0048</td><td>postmill</td><td><a href="sources/f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e">f9c0d70c7c31b404d363ac2bd9c9153936a03035e8cfe73d57dbc9e79a5bc80e</a></td><td><a href="http://localhost:9999/f/tifu/71318/tifu-by-sending-my-parents-chocolate-for-christmas" target="_blank" rel="noreferrer">来源 URL</a></td><td>2275</td></tr><tr><td>reg_search_aldi_value</td><td>search_result</td><td><a href="sources/02748447ca3b7d5b9a4da3de459dfbbde8b041cdaca0c855dd893c9e5c22c7af">02748447ca3b7d5b9a4da3de459dfbbde8b041cdaca0c855dd893c9e5c22c7af</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=ee4484fc-cdd5-4681-be81-10990270e9b5" target="_blank" rel="noreferrer">来源 URL</a></td><td>52040</td></tr><tr><td>reg_search_bean_to_bar</td><td>search_result</td><td><a href="sources/af249dccba8e900e4f0c08ac6e72c3b10dd5a43661af621bdb215abbc004f479">af249dccba8e900e4f0c08ac6e72c3b10dd5a43661af621bdb215abbc004f479</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=83fa8cfd-0708-4149-b139-fb2c6693502f" target="_blank" rel="noreferrer">来源 URL</a></td><td>60843</td></tr><tr><td>reg_search_blinding</td><td>search_result</td><td><a href="sources/fb30211d3bfea8baa10fe8a21ae11b34ed8abc3ebc1ef2ba2b34fec87e0ce488">fb30211d3bfea8baa10fe8a21ae11b34ed8abc3ebc1ef2ba2b34fec87e0ce488</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=9bd16c13-68cb-4337-abdc-95cd22b3fced" target="_blank" rel="noreferrer">来源 URL</a></td><td>61410</td></tr><tr><td>reg_search_bulk_cocoa</td><td>search_result</td><td><a href="sources/073378ebbfada030e185acaf63a6bafba86015627d17ae3679637e88014c8680">073378ebbfada030e185acaf63a6bafba86015627d17ae3679637e88014c8680</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=3def2f78-9fa8-438d-aceb-21ae1df80bce" target="_blank" rel="noreferrer">来源 URL</a></td><td>6188</td></tr><tr><td>reg_search_cocoa_solids</td><td>search_result</td><td><a href="sources/34dbb57f93ca4a94023b6e6ac85bbc844f813ddb512a3595ed24496ff938ed11">34dbb57f93ca4a94023b6e6ac85bbc844f813ddb512a3595ed24496ff938ed11</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=1616b142-71b4-40ec-8cbe-eac6495a8a4b" target="_blank" rel="noreferrer">来源 URL</a></td><td>61231</td></tr><tr><td>reg_search_daily_habit</td><td>search_result</td><td><a href="sources/b79482046d3152060c0db3bda5efb0eedd3d400e77b0a2f65bd2bdd780aeed68">b79482046d3152060c0db3bda5efb0eedd3d400e77b0a2f65bd2bdd780aeed68</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=e7168a2e-e6be-42a9-a00e-bd8c6f4107e8" target="_blank" rel="noreferrer">来源 URL</a></td><td>52395</td></tr><tr><td>reg_search_dove</td><td>search_result</td><td><a href="sources/7179d93cf28f8b51a460042ddab0832b848ea93bcb91266488c4088823671c4f">7179d93cf28f8b51a460042ddab0832b848ea93bcb91266488c4088823671c4f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=462b1b2d-a7f9-4107-ba5d-58b937cae3b2" target="_blank" rel="noreferrer">来源 URL</a></td><td>5110</td></tr><tr><td>reg_search_fair_trade</td><td>search_result</td><td><a href="sources/76fefe9dbb78feec33eec2ab817e07caaecc612419cf41ef5afcdb9f164238cd">76fefe9dbb78feec33eec2ab817e07caaecc612419cf41ef5afcdb9f164238cd</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=0671d640-58e1-4fdc-b38b-2c8a2aae5a77" target="_blank" rel="noreferrer">来源 URL</a></td><td>24067</td></tr><tr><td>reg_search_green_black</td><td>search_result</td><td><a href="sources/a747e2997abb7318e416a4df9bb9cadf2835a7979180c9505b0d291c8172c471">a747e2997abb7318e416a4df9bb9cadf2835a7979180c9505b0d291c8172c471</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=dd39bfc8-dba0-46e5-9738-4e920e9c728b" target="_blank" rel="noreferrer">来源 URL</a></td><td>5755</td></tr><tr><td>reg_search_hedonic</td><td>search_result</td><td><a href="sources/5341089085146585d3d749979fd85c244871acf86a64b5d8e737aa58e691b078">5341089085146585d3d749979fd85c244871acf86a64b5d8e737aa58e691b078</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=897e73fc-2536-4454-9ca7-1300f30ea87a" target="_blank" rel="noreferrer">来源 URL</a></td><td>28557</td></tr><tr><td>reg_search_lindt</td><td>search_result</td><td><a href="sources/e71170e58147442b6a3f8f28bdf6231429236c8cf47acd77a86d8fd006e86605">e71170e58147442b6a3f8f28bdf6231429236c8cf47acd77a86d8fd006e86605</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=917b28c4-409e-43d6-8a2b-0adb9d4b74d9" target="_blank" rel="noreferrer">来源 URL</a></td><td>4691</td></tr><tr><td>reg_search_raaka</td><td>search_result</td><td><a href="sources/7392ca77988a462bba3ecab06dae66c107e638e63b03e411b8f6936cde08e3ac">7392ca77988a462bba3ecab06dae66c107e638e63b03e411b8f6936cde08e3ac</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=9425e9f6-6268-4063-bca5-0bb515c87d8d" target="_blank" rel="noreferrer">来源 URL</a></td><td>6789</td></tr><tr><td>reg_search_ritter</td><td>search_result</td><td><a href="sources/d6f81edcf5df8fe87d594dec1192e60dc06e52d608f75763d0c08ea884572acb">d6f81edcf5df8fe87d594dec1192e60dc06e52d608f75763d0c08ea884572acb</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=a0c7a56e-29c7-4b80-bd1a-09533f6537ce" target="_blank" rel="noreferrer">来源 URL</a></td><td>5026</td></tr><tr><td>reg_search_sensory</td><td>search_result</td><td><a href="sources/4afdacfbaf85f8ca2099edd44429d2f8d95a6a4f8f86f95f963e5787004120cb">4afdacfbaf85f8ca2099edd44429d2f8d95a6a4f8f86f95f963e5787004120cb</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=75a65d84-d064-46da-b0ab-7ff50b8451af" target="_blank" rel="noreferrer">来源 URL</a></td><td>61122</td></tr><tr><td>reg_search_variety_gift</td><td>search_result</td><td><a href="sources/ee2f9ff471ff40082258a2cde66ad17ca1cb37a463510bbce84793cbd2810ee6">ee2f9ff471ff40082258a2cde66ad17ca1cb37a463510bbce84793cbd2810ee6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1&amp;request_id=dab7400b-6133-4de8-ad38-e4e73faf587a" target="_blank" rel="noreferrer">来源 URL</a></td><td>53430</td></tr><tr><td>reg_wikipedia_bean_to_bar_0048</td><td>wikipedia</td><td><a href="sources/1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25">1387afe3c7fd01e51e66d4bf8e7a12f81352909433f43dac840b93cb215b2e25</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Bean-to-bar" target="_blank" rel="noreferrer">来源 URL</a></td><td>9796</td></tr><tr><td>reg_wikipedia_blind_experiment_0048</td><td>wikipedia</td><td><a href="sources/8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc">8b6150c61e700cda73adfb55de01aba6b6a2a71500171c1f2c665f83321d48bc</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Blinded_experiment" target="_blank" rel="noreferrer">来源 URL</a></td><td>20081</td></tr><tr><td>reg_wikipedia_bulk_cocoa_0048</td><td>wikipedia</td><td><a href="sources/22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac">22a59368df273db4dc5cf80f339ba0aa08723a728def573140eecc560863efac</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Bulk_cocoa" target="_blank" rel="noreferrer">来源 URL</a></td><td>4277</td></tr><tr><td>reg_wikipedia_cocoa_solids_0048</td><td>wikipedia</td><td><a href="sources/e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa">e4ae15952cec3a22e1cfba84466b37fd2182442177ca72832fd78e916aee3cfa</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_solids" target="_blank" rel="noreferrer">来源 URL</a></td><td>10046</td></tr><tr><td>reg_wikipedia_fair_trade_cocoa_0048</td><td>wikipedia</td><td><a href="sources/b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429">b85fbfd5264c36a2d11df43669de0610eebb0d464e331af01963d52707270429</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Fair_trade_cocoa" target="_blank" rel="noreferrer">来源 URL</a></td><td>20037</td></tr><tr><td>reg_wikipedia_hedonic_scale_0048</td><td>wikipedia</td><td><a href="sources/c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a">c4860ac2015c565f948c90933c70238563ef4b71323f0943564bbeba50ca457a</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Hedonic_scale" target="_blank" rel="noreferrer">来源 URL</a></td><td>12098</td></tr><tr><td>reg_wikipedia_sensory_analysis_0048</td><td>wikipedia</td><td><a href="sources/872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1">872ef0589b3db40872f3d451deffd12d32be81ccf473ac78eac82500ba5e6ee1</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Sensory_analysis" target="_blank" rel="noreferrer">来源 URL</a></td><td>10415</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-snacks-chocolate-0048-price-ladder-sensory-cutoff-20260716-r1";
+const graphHash = "e51d1df1a2a285592cb3562437721283658e2e84aae1277b26a33b3bca07ef51";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

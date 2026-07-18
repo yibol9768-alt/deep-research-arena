@@ -1,0 +1,75 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0014
+query_sha256: "a1c622a45c7cb50f1379a0ff3a2a9ae301d9297ec44b9255e3f5986ea22c0fb9"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 关于新键盘的购买决策。
+
+  Q2: 必须覆盖不同键盘产品，时效性近期。
+
+  Q3: 验证键盘的故障原因和原理。
+
+  Q4: 必须持久耐用、故障率低。
+
+  Q5: 最好有专家或真实购买者的经验。
+
+  Q6: [由访谈助手完成] 轴体寿命验证、各部件谁先坏、过往故障分析、长期用户经验、买断推荐、时效性。
+
+  Q7: [由访谈助手完成] "50/100 million keystroke ratings"实验室vs现实、"real desks-and-coffee life"恶劣程度、"years of daily abuse"时间强度、"buy-it-for-life"年限。
+
+initial_requirements:
+  - 验证轴体宣传寿命在真实使用中是否有意义
+  - 分析键盘各部件谁最先坏
+  - 分析用户过往故障原因
+  - 包含长期拥有者经验
+  - 推荐一把买一次用一辈子的键盘
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 分析键盘各部件的真实寿命和典型先发故障点（轴体宣传的5000万/1亿次击键寿命在日常环境中是否有实际意义，键帽/平衡杆/电路板/线材在实际使用中谁最先出问题），结合厂商参数和长期拥有者的真实使用经验
+    necessity_reason: |-
+      Query 核心困惑是"whether that number means anything in real desks-and-coffee life, or whether it's actually the keycaps, stabilizers, or circuit board that give out first"，
+      且用户过去三把键盘各有不同故障（卡键/线材/键帽磨损），
+      缺少此分析则用户无法区分厂商宣传和真实寿命，也无法避免重蹈覆辙。
+    query_basis: |-
+      "whether that number means anything in real desks-and-coffee life"
+      "whether it's actually the keycaps, stabilizers, or circuit board that give out first"
+      "one from a stuck key, one from a flaky cable, one from letters wearing blank"
+    output_form: verify
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 明确要求"long-term owners say"来验证各部件在"years of daily abuse"后的实际表现，厂商参数必须由真实用户经验检验
+
+  - local_id: R2
+    requirement: 基于 R1 对耐用性和故障点的分析，推荐一款真正的"买一次用一辈子"的键盘，必须是近期在售的
+    necessity_reason: |-
+      Query 明确要求"what would you pick as the genuine buy-it-for-life option"，
+      用户连续三把键盘两年内报废，"buy once and be done for a decade"是最终目标；
+      有分析无推荐或推荐不基于分析均不完整。
+    query_basis: "what would you pick as the genuine buy-it-for-life option?" + "buy once and be done for a decade"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "50 or 100 million keystroke ratings"
+    note: 实验室测试环境 vs 真实咖啡桌面环境差异大，不同标注者对宣传数字的信任度可能不同
+  - phrase: "real desks-and-coffee life"
+    note: 真实使用环境的恶劣程度因人而异（有防尘罩 vs 敞开放置）
+  - phrase: "years of daily abuse"
+    note: "多年日常糟蹋"的年限和强度标准主观
+  - phrase: "buy-it-for-life"
+    note: "一辈子"的期望年限不统一——10年、20年还是一生？
+  - phrase: "give out first"
+    note: "最先坏"的标准不明确——功能完全失效还是体验明显劣化？
+
+unresolved: []
+
+evidence_answerability: not_assessed

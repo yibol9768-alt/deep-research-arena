@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-mechanical-keyboards-0025-20260716-r1</code></p>
+<p>证据图哈希: <code>45a1a308ae37e0cbdd8ab3055fe27103428173c4bb514c162f2d707a71fd1eae</code></p>
+<p>待审项 14 个，其中语义项 7 个、结构化项 0 个；冻结来源 8 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_contact_bounce_mechanism"><header><h3>assert_contact_bounce_mechanism</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;contact motion and pulsed-current mechanism&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;mechanical contact bounce&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_contact_bounce_mechanism</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_mechanism_not_rk71_diagnosis&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;object&quot;: &quot;rapidly pulsed current that fast logic may misread as a data stream&quot;,
+  &quot;predicate&quot;: &quot;can_create&quot;,
+  &quot;subject&quot;: &quot;mechanical contact bounce&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_contact_bounce_definition</code> | bytes [10908, 11112) | <code>856ddf9ad39f174883787984a4cbe1d4c09804efaa52ec50524eec2dc91121f4</code></div><pre class="context"><span>rolled by a single mechanism. Switches with larger numbers of poles or throws can be described by replacing the &quot;S&quot; or &quot;D&quot; with a number (e.g. 3PST, SP4T, etc.) or in some cases the letter &quot;T&quot; (for &quot;triple&quot;) or &quot;Q&quot; (for &quot;quadruple&quot;). In the rest of this article the terms SPST , SPDT and intermediate will be used to avoid the ambiguity. Contact bounce Bounce </span><mark>Contact bounce (also called chatter ) is a common problem with mechanical switches, relays and battery contacts , which arises as the result of electrical contact resistance (ECR) phenomena at interfaces.</mark><span> Switch and relay contacts are usually made of springy metals. When the contacts strike together, their momentum and elasticity act together to cause them to bounce apart one or more times before making steady contact. The result is a rapidly pulsed electric current instead of a clean transition from zero to full current. The effect is usually unimportant in</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_contact_bounce_motion</code> | bytes [11113, 11330) | <code>d86486c50c0d626e8dda1f7e71473d98d77889ea546bbcb159bbeb83f1a8d3e4</code></div><pre class="context"><span>&quot;) or &quot;Q&quot; (for &quot;quadruple&quot;). In the rest of this article the terms SPST , SPDT and intermediate will be used to avoid the ambiguity. Contact bounce Bounce Contact bounce (also called chatter ) is a common problem with mechanical switches, relays and battery contacts , which arises as the result of electrical contact resistance (ECR) phenomena at interfaces. </span><mark>Switch and relay contacts are usually made of springy metals. When the contacts strike together, their momentum and elasticity act together to cause them to bounce apart one or more times before making steady contact.</mark><span> The result is a rapidly pulsed electric current instead of a clean transition from zero to full current. The effect is usually unimportant in power circuits, but causes problems in some analogue and logic circuits that respond fast enough to misinterpret the onâoff pulses as a data stream. [ 6 ] In the design of micro-contacts, controlling surface stru</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_contact_bounce_pulses</code> | bytes [11331, 11435) | <code>109074771731aacbed788d3af861c67b243434d1a6709c06e06c1bbaf6015815</code></div><pre class="context"><span>mechanical switches, relays and battery contacts , which arises as the result of electrical contact resistance (ECR) phenomena at interfaces. Switch and relay contacts are usually made of springy metals. When the contacts strike together, their momentum and elasticity act together to cause them to bounce apart one or more times before making steady contact. </span><mark>The result is a rapidly pulsed electric current instead of a clean transition from zero to full current.</mark><span> The effect is usually unimportant in power circuits, but causes problems in some analogue and logic circuits that respond fast enough to misinterpret the onâoff pulses as a data stream. [ 6 ] In the design of micro-contacts, controlling surface structure ( surface roughness ) and minimizing the formation of passivated layers on metallic surfaces are in</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Switch" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Switch</a></p><p>冻结文件: <a href="sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5" target="_blank">sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</a></p><p>内容 SHA-256: <code>2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_debounce_scope"><header><h3>assert_debounce_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;steady-state sampling, latch, and Schmitt-trigger methods&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;contact debouncing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_debounce_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_debounce_methods_not_model_repair_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;object&quot;: &quot;steady-state sampling, filtering, latches, or Schmitt triggers rather than proving a user-repair path for a specific keyboard&quot;,
+  &quot;predicate&quot;: &quot;uses_design_methods&quot;,
+  &quot;subject&quot;: &quot;contact debouncing&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_debounce_latch</code> | bytes [12690, 12829) | <code>08be91d7a07eac02e55c5c68cf1c595ac26a45668927b8e000b650fca148d48c</code></div><pre class="context"><span>ontact circuit voltages can be low-pass filtered to reduce or eliminate multiple pulses from appearing. In digital systems, multiple samples of the contact state can be taken at a low rate and examined for a steady sequence, so that contacts can settle before the contact level is considered reliable and acted upon. See Keyboard technology Â§ Debouncing . </span><mark>Bounce in SPDT (&quot;single-pole, double-throw&quot;) switch contacts signals can be filtered out using an SR flip-flop (latch) or Schmitt trigger .</mark><span> All of these methods are referred to as &#x27;debouncing&#x27;. Arcs and quenching When the power being switched is sufficiently large, the electron flow across opening switch contacts is sufficient to ionize the air molecules across the tiny gap between the contacts as the switch is opened, forming a gas plasma , also known as an electric arc . The plasma is of low </span></pre></section><section class="span"><div class="span-meta"><code>span_assert_debounce_sampling</code> | bytes [12434, 12646) | <code>bd0626987faf95da5699bd9239ed3717ca0a1a042a184166aff2612d4f2eb3a9</code></div><pre class="context"><span> electronic organs have a switchable replica of this sound effect. [ 7 ] Debouncing The effects of contact bounce can be eliminated by: Use of mercury-wetted contacts , but these are now infrequently used because of the hazards of mercury. Alternatively, contact circuit voltages can be low-pass filtered to reduce or eliminate multiple pulses from appearing. </span><mark>In digital systems, multiple samples of the contact state can be taken at a low rate and examined for a steady sequence, so that contacts can settle before the contact level is considered reliable and acted upon.</mark><span> See Keyboard technology Â§ Debouncing . Bounce in SPDT (&quot;single-pole, double-throw&quot;) switch contacts signals can be filtered out using an SR flip-flop (latch) or Schmitt trigger . All of these methods are referred to as &#x27;debouncing&#x27;. Arcs and quenching When the power being switched is sufficiently large, the electron flow across opening switch contacts i</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Switch" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Switch</a></p><p>冻结文件: <a href="sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5" target="_blank">sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</a></p><p>内容 SHA-256: <code>2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_rk71_escape_report"><header><h3>assert_rk71_escape_report</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;projector use, Escape limitation, and workaround suggestion&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;same-model RK71 owner report&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_rk71_escape_report</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;same_model_layout_experience_not_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;object&quot;: &quot;Escape requires Fn, defaults to tilde, and was described as not reprogrammable; AutoHotkey was suggested as a workaround&quot;,
+  &quot;predicate&quot;: &quot;reports_layout_limitation&quot;,
+  &quot;subject&quot;: &quot;same-model RK71 owner report&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_rk71_autohotkey</code> | bytes [524, 571) | <code>e7fc3c471cad97ced9084ce7ba17f90fa4181cdc8a8294c11272be1bc09eaeb3</code></div><pre class="context"><span> as possible - stock switches and stabilizers, and bottom casing since I wanted to keep the factory angle to go off off. Honestly would not recommend this keyboard because the escape key needs to have fn pressed, it’s default is tilde and you can’t reprogram it lol. Would not recommend this kb at all but it was a fun project https://imgur.com/a/7OkOwvg
+
+</span><mark>Use AutoHotkey to get around the tilde problem.</mark><span>
+
+Visually, this is like something out of my daydreams when I first saw GMK birch. It’s incredible. But bummer to hear about the Esc key, that’s a drag.
+
+Nice work 🌳🪵
+
+Beautiful build!!!
+
+It is an absolute beauty I could put up with the Esc key¡
+
+At least it has cursor keys! I recently bought the RK61 and for me it&#x27;s unusable! (I don&#x27;t think I&#x27;ve </span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_escape_limitation</code> | bytes [285, 434) | <code>83e4a1027170c4ba5bb416eff90255f218573dda663e721203f29ba3d5cf657c</code></div><pre class="context"><span>GMK Birch in Birch on Birch - RK71 Mod
+
+182
+
+Modded my royal kludge RK71 that I just use as a cheap wireless keyboard for my projector setup. Kept everything as OEM as possible - stock switches and stabilizers, and bottom casing since I wanted to keep the factory angle to go off off. </span><mark>Honestly would not recommend this keyboard because the escape key needs to have fn pressed, it’s default is tilde and you can’t reprogram it lol.</mark><span> Would not recommend this kb at all but it was a fun project https://imgur.com/a/7OkOwvg
+
+Use AutoHotkey to get around the tilde problem.
+
+Visually, this is like something out of my daydreams when I first saw GMK birch. It’s incredible. But bummer to hear about the Esc key, that’s a drag.
+
+Nice work 🌳🪵
+
+Beautiful build!!!
+
+It is an absolute beauty </span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_projector_use</code> | bytes [45, 141) | <code>ec008d48e1c82af4019c6a0454e5aa9259f8341b38394477a86814ed53505e4b</code></div><pre class="context"><span>GMK Birch in Birch on Birch - RK71 Mod
+
+182
+
+</span><mark>Modded my royal kludge RK71 that I just use as a cheap wireless keyboard for my projector setup.</mark><span> Kept everything as OEM as possible - stock switches and stabilizers, and bottom casing since I wanted to keep the factory angle to go off off. Honestly would not recommend this keyboard because the escape key needs to have fn pressed, it’s default is tilde and you can’t reprogram it lol. Would not recommend this kb at all but it was a fun project https:</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/35132/gmk-birch-in-birch-on-birch-rk71-mod" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/35132/gmk-birch-in-birch-on-birch-rk71-mod</a></p><p>冻结文件: <a href="sources/b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21" target="_blank">sources/b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21</a></p><p>内容 SHA-256: <code>b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_rk71_layout_and_backlight"><header><h3>assert_rk71_layout_and_backlight</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;71-key no-numpad layout and conflicting lighting descriptions&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;RK71 layout and lighting language&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_rk71_layout_and_backlight</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;layout_and_internal_seller_wording_conflict&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;object&quot;: &quot;a compact 71-key no-numpad layout and a conflict between an RGB heading and the explicit single-LED-only description&quot;,
+  &quot;predicate&quot;: &quot;contains_tradeoffs&quot;,
+  &quot;subject&quot;: &quot;RK71 layout and lighting language&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_rk71_layout</code> | bytes [744, 868) | <code>2a405f92e5c779df437edae2aa8cad31378f1cedec7254098d6102a1a84e04dc</code></div><pre class="context"><span> Cart Add to Wish List Add to Compare
+
+Details Product Description if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset. Read more Read more Read more Read more RGB Backlight Want a stylish wireless keyboard? RK71 will be your best choice. 9 sets Sidelight effect cycle switching,support off. </span><mark>70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using.</mark><span> Portable design, easy to bring to any places you need. PACKING DETAILS: Keyboard *1PCS Type-C data line *1PCS, used for wire connection and charging. Instruction *1PCS Read more Product Quick Look 【BLUETOOTH AND USB CABLE DUAL-CONNECTION MODE】RK71 mechanical keyboard can connect up to Fives devices simultaneously and can switch among them easily. This k</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_no_numpad</code> | bytes [1682, 1809) | <code>a52a78046782c13279567b541a6577fa6de2e5d3beea53acb9dbd79d7829ce63</code></div><pre class="context"><span>OS, Linux and Android.Also, comes with a detachable USB cable, you can easily charge the keyboard while shifting to the wired mode. 【71 KEYS RED SWITCH】Ambidextrous Shape with Maneuverable Simplicity: Compact minimalistic layout with 71 keys makes you a neat desktop, even folks have nothing to do with Minimalist will dive into its tiny practical design. </span><mark>Tips you might want to know is that keyboard without numpad is most FPS gamers’ choice, more spaces left for mouse movements.</mark><span> 【MACOS AND WINDOWS DESIGN】Function Keys and Shortcut Keys are design for both MacOS and Windows, such as applications switch, brightness adjust and so on. 【COOL BACKLIGHT DESIGN】Even if RK71 Backlight has no multicolored RGB but only single LED backlit, the 17 dynamic backlit modes keep the plain effect away. Use FN + HOME to choose your ideal mode,</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_rgb_heading</code> | bytes [612, 659) | <code>399e3bdd2123d28eeaac35a1d81534480dad91f785e621e7d7ebe463052e5b84</code></div><pre class="context"><span>s Add Your Review $49.99 Color Blue Switch Blue Switch-White Brown Switch Brown Switch-,White Red Switch Red Switch-White Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset. Read more Read more Read more Read more </span><mark>RGB Backlight Want a stylish wireless keyboard?</mark><span> RK71 will be your best choice. 9 sets Sidelight effect cycle switching,support off. 70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using. Portable design, easy to bring to any places you need. PACKING DETAILS: Keyboard *1PCS Type-C data line *1PCS, used for wire connection and charging. </span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_single_led</code> | bytes [1969, 2128) | <code>e52ff9521765fdb71f0dfb731e1ef557a145c7de338e4ad187912da323cb329c</code></div><pre class="context"><span> nothing to do with Minimalist will dive into its tiny practical design. Tips you might want to know is that keyboard without numpad is most FPS gamers’ choice, more spaces left for mouse movements. 【MACOS AND WINDOWS DESIGN】Function Keys and Shortcut Keys are design for both MacOS and Windows, such as applications switch, brightness adjust and so on. </span><mark>【COOL BACKLIGHT DESIGN】Even if RK71 Backlight has no multicolored RGB but only single LED backlit, the 17 dynamic backlit modes keep the plain effect away.</mark><span> Use FN + HOME to choose your ideal mode, adjust the brightness and glowing speed freely. Get some lights on to take your blues away and make your day. 【ERGONOMIC DESIGN】RK71 Mechanical Keyboard is your good choose in office or home even if in game. Not only it is over-engineered and built to take a beating, it also has great ergonomics and a space savin</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html" target="_blank" rel="noreferrer">http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html</a></p><p>冻结文件: <a href="sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa" target="_blank">sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</a></p><p>内容 SHA-256: <code>061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_rk71_modes_and_reset"><header><h3>assert_rk71_modes_and_reset</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;dual modes, device count, and reset gesture&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;RK71 connection and reset claims&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_rk71_modes_and_reset</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;model_specific_modes_and_documented_reset&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;object&quot;: &quot;Bluetooth and detachable-USB wired modes, up to five paired devices, and an Fn-plus-Space five-second factory reset&quot;,
+  &quot;predicate&quot;: &quot;advertises&quot;,
+  &quot;subject&quot;: &quot;RK71 connection and reset claims&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_rk71_dual_connection</code> | bytes [1066, 1221) | <code>bd0b6d2c398719deb3479b6c9fa608dd8d4ab9d4a1ecac25825d5d956c2f7ce0</code></div><pre class="context"><span>t effect cycle switching,support off. 70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using. Portable design, easy to bring to any places you need. PACKING DETAILS: Keyboard *1PCS Type-C data line *1PCS, used for wire connection and charging. Instruction *1PCS Read more Product Quick Look </span><mark>【BLUETOOTH AND USB CABLE DUAL-CONNECTION MODE】RK71 mechanical keyboard can connect up to Fives devices simultaneously and can switch among them easily.</mark><span> This keyboard is Compatible with most operating systems, including Windows XP/Vista/7/8/10, iOS, MacOS, Linux and Android.Also, comes with a detachable USB cable, you can easily charge the keyboard while shifting to the wired mode. 【71 KEYS RED SWITCH】Ambidextrous Shape with Maneuverable Simplicity: Compact minimalistic layout with 71 keys makes you a n</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_factory_reset</code> | bytes [451, 571) | <code>6e9072e4ebd4cb436e7516d567e11347e45f2a6aaf6379935cfd0afe8ad2d27b</code></div><pre class="context"><span>USB Wired/Wireless Portable Gaming/Office with Stand-Alone Arrow Keys for Windows MacOS (Red Switch-White)
+
+In stock SKU B07VVVC143 Rating: 75 % of 100 12 Reviews Add Your Review $49.99 Color Blue Switch Blue Switch-White Brown Switch Brown Switch-,White Red Switch Red Switch-White Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description </span><mark>if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset.</mark><span> Read more Read more Read more Read more RGB Backlight Want a stylish wireless keyboard? RK71 will be your best choice. 9 sets Sidelight effect cycle switching,support off. 70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using. Portable design, easy to bring to any places you need. PACKING</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html" target="_blank" rel="noreferrer">http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html</a></p><p>冻结文件: <a href="sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa" target="_blank">sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</a></p><p>内容 SHA-256: <code>061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_rk71_offer_scope"><header><h3>assert_rk71_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU, price, aggregate score, and review count&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;frozen RK71 offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_rk71_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_small_aggregate_not_failure_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07VVVC143, a 49.99-dollar price, and a 75-percent aggregate score across 12 reviews&quot;,
+  &quot;predicate&quot;: &quot;displays&quot;,
+  &quot;subject&quot;: &quot;frozen RK71 offer&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_rk71_offer_scope</code> | bytes [199, 276) | <code>69830895979b2baa7950f95b9698f7c4680b1a18e137b1b6e9a37afad8a4649b</code></div><pre class="context"><span>RK ROYAL KLUDGE RK71 Mechanical Keyboard 70% Compact Bluetooth Keyboard 71 Keys,Tenkeyless USB Wired/Wireless Portable Gaming/Office with Stand-Alone Arrow Keys for Windows MacOS (Red Switch-White)
+
+</span><mark>In stock SKU B07VVVC143 Rating: 75 % of 100 12 Reviews Add Your Review $49.99</mark><span> Color Blue Switch Blue Switch-White Brown Switch Brown Switch-,White Red Switch Red Switch-White Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset. Read more Read more Read more Read more RGB Backlight Want a sty</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html" target="_blank" rel="noreferrer">http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html</a></p><p>冻结文件: <a href="sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa" target="_blank">sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</a></p><p>内容 SHA-256: <code>061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_rk71_software_report"><header><h3>assert_rk71_software_report</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;two-day software problem, wired test, PIDs, and support suggestion&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;same-model RK71 software thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_rk71_software_report</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;same_model_software_detection_anecdote_not_longitudinal_failure&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;object&quot;: &quot;a two-day-old unit did not connect to software even in wired mode, exposed two PIDs, and received only a support-or-replacement suggestion&quot;,
+  &quot;predicate&quot;: &quot;reports_unresolved_detection_problem&quot;,
+  &quot;subject&quot;: &quot;same-model RK71 software thread&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_rk71_support_replacement</code> | bytes [621, 842) | <code>832b40ecef71596c1c672f8f290ae4cd1bd171cbe6df71b5a8bec995af3ff3ff</code></div><pre class="context"><span>you able to connect it in its software?
+
+Yes it was tricky though
+
+Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.
+
+did you do it in wired mode? With wireless it will not work.
+
+I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.
+
+</span><mark>idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the time in Amazon atleast). good luck</mark><span>
+
+Thanks man. Will try.</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_two_day_software</code> | bytes [328, 448) | <code>4aa453dba366e9b3dd48886f788f9ee41a321b1eb7862d8760551336714bd0c2</code></div><pre class="context"><span>My first mechanical kb 😬 gateron yellow switch matcha kaycaps royal kludge rk71 no mods
+
+13
+
+Beautiful keyboard! I&#x27;ve been eyeing up the matcha set for a little while now as the colours are stunning.
+
+Thankyou
+
+I have that set too, I love them.
+
+Hello, were you able to connect it in its software?
+
+Yes it was tricky though
+
+</span><mark>Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.</mark><span>
+
+did you do it in wired mode? With wireless it will not work.
+
+I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.
+
+idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the </span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_two_pids</code> | bytes [512, 619) | <code>bd9c13f488142dd1f7af35043da7b78e467ddc6222f1e1d8d5faf6ed8c35de30</code></div><pre class="context"><span>or a little while now as the colours are stunning.
+
+Thankyou
+
+I have that set too, I love them.
+
+Hello, were you able to connect it in its software?
+
+Yes it was tricky though
+
+Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.
+
+did you do it in wired mode? With wireless it will not work.
+
+</span><mark>I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.</mark><span>
+
+idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the time in Amazon atleast). good luck
+
+Thanks man. Will try.</span></pre></section><section class="span"><div class="span-meta"><code>span_assert_rk71_wired_required</code> | bytes [450, 510) | <code>4b80fd10d3b5413546bea0e1f7a10b5bb511e9832f3e44a424acfbc78eed97ac</code></div><pre class="context"><span>
+
+13
+
+Beautiful keyboard! I&#x27;ve been eyeing up the matcha set for a little while now as the colours are stunning.
+
+Thankyou
+
+I have that set too, I love them.
+
+Hello, were you able to connect it in its software?
+
+Yes it was tricky though
+
+Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.
+
+</span><mark>did you do it in wired mode? With wireless it will not work.</mark><span>
+
+I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.
+
+idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the time in Amazon atleast). good luck
+
+Thanks man. Will try.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/35184/my-first-mechanical-kb-gateron-yellow-switch-matcha-kaycaps" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/35184/my-first-mechanical-kb-gateron-yellow-switch-matcha-kaycaps</a></p><p>冻结文件: <a href="sources/ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449" target="_blank">sources/ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449</a></p><p>内容 SHA-256: <code>ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_contact_bounce_mechanism"><header><h3>prop_contact_bounce_mechanism</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;rapidly pulsed current that fast logic may misread as a data stream&quot;,
+  &quot;predicate&quot;: &quot;can_create&quot;,
+  &quot;subject&quot;: &quot;mechanical contact bounce&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_contact_bounce_definition</code> | bytes [10908, 11112) | <code>856ddf9ad39f174883787984a4cbe1d4c09804efaa52ec50524eec2dc91121f4</code></div><pre class="context"><span>rolled by a single mechanism. Switches with larger numbers of poles or throws can be described by replacing the &quot;S&quot; or &quot;D&quot; with a number (e.g. 3PST, SP4T, etc.) or in some cases the letter &quot;T&quot; (for &quot;triple&quot;) or &quot;Q&quot; (for &quot;quadruple&quot;). In the rest of this article the terms SPST , SPDT and intermediate will be used to avoid the ambiguity. Contact bounce Bounce </span><mark>Contact bounce (also called chatter ) is a common problem with mechanical switches, relays and battery contacts , which arises as the result of electrical contact resistance (ECR) phenomena at interfaces.</mark><span> Switch and relay contacts are usually made of springy metals. When the contacts strike together, their momentum and elasticity act together to cause them to bounce apart one or more times before making steady contact. The result is a rapidly pulsed electric current instead of a clean transition from zero to full current. The effect is usually unimportant in</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_contact_bounce_motion</code> | bytes [11113, 11330) | <code>d86486c50c0d626e8dda1f7e71473d98d77889ea546bbcb159bbeb83f1a8d3e4</code></div><pre class="context"><span>&quot;) or &quot;Q&quot; (for &quot;quadruple&quot;). In the rest of this article the terms SPST , SPDT and intermediate will be used to avoid the ambiguity. Contact bounce Bounce Contact bounce (also called chatter ) is a common problem with mechanical switches, relays and battery contacts , which arises as the result of electrical contact resistance (ECR) phenomena at interfaces. </span><mark>Switch and relay contacts are usually made of springy metals. When the contacts strike together, their momentum and elasticity act together to cause them to bounce apart one or more times before making steady contact.</mark><span> The result is a rapidly pulsed electric current instead of a clean transition from zero to full current. The effect is usually unimportant in power circuits, but causes problems in some analogue and logic circuits that respond fast enough to misinterpret the onâoff pulses as a data stream. [ 6 ] In the design of micro-contacts, controlling surface stru</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_contact_bounce_pulses</code> | bytes [11331, 11435) | <code>109074771731aacbed788d3af861c67b243434d1a6709c06e06c1bbaf6015815</code></div><pre class="context"><span>mechanical switches, relays and battery contacts , which arises as the result of electrical contact resistance (ECR) phenomena at interfaces. Switch and relay contacts are usually made of springy metals. When the contacts strike together, their momentum and elasticity act together to cause them to bounce apart one or more times before making steady contact. </span><mark>The result is a rapidly pulsed electric current instead of a clean transition from zero to full current.</mark><span> The effect is usually unimportant in power circuits, but causes problems in some analogue and logic circuits that respond fast enough to misinterpret the onâoff pulses as a data stream. [ 6 ] In the design of micro-contacts, controlling surface structure ( surface roughness ) and minimizing the formation of passivated layers on metallic surfaces are in</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Switch" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Switch</a></p><p>冻结文件: <a href="sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5" target="_blank">sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</a></p><p>内容 SHA-256: <code>2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_mechanism_not_rk71_diagnosis&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The switch reference describes contact bounce, also called chatter, as a general mechanical-contact phenomenon in which springy contacts bounce before settling and produce rapidly pulsed current that responsive logic may misread as multiple events.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_debounce_scope"><header><h3>prop_debounce_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;steady-state sampling, filtering, latches, or Schmitt triggers rather than proving a user-repair path for a specific keyboard&quot;,
+  &quot;predicate&quot;: &quot;uses_design_methods&quot;,
+  &quot;subject&quot;: &quot;contact debouncing&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_debounce_latch</code> | bytes [12690, 12829) | <code>08be91d7a07eac02e55c5c68cf1c595ac26a45668927b8e000b650fca148d48c</code></div><pre class="context"><span>ontact circuit voltages can be low-pass filtered to reduce or eliminate multiple pulses from appearing. In digital systems, multiple samples of the contact state can be taken at a low rate and examined for a steady sequence, so that contacts can settle before the contact level is considered reliable and acted upon. See Keyboard technology Â§ Debouncing . </span><mark>Bounce in SPDT (&quot;single-pole, double-throw&quot;) switch contacts signals can be filtered out using an SR flip-flop (latch) or Schmitt trigger .</mark><span> All of these methods are referred to as &#x27;debouncing&#x27;. Arcs and quenching When the power being switched is sufficiently large, the electron flow across opening switch contacts is sufficient to ionize the air molecules across the tiny gap between the contacts as the switch is opened, forming a gas plasma , also known as an electric arc . The plasma is of low </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_debounce_sampling</code> | bytes [12434, 12646) | <code>bd0626987faf95da5699bd9239ed3717ca0a1a042a184166aff2612d4f2eb3a9</code></div><pre class="context"><span> electronic organs have a switchable replica of this sound effect. [ 7 ] Debouncing The effects of contact bounce can be eliminated by: Use of mercury-wetted contacts , but these are now infrequently used because of the hazards of mercury. Alternatively, contact circuit voltages can be low-pass filtered to reduce or eliminate multiple pulses from appearing. </span><mark>In digital systems, multiple samples of the contact state can be taken at a low rate and examined for a steady sequence, so that contacts can settle before the contact level is considered reliable and acted upon.</mark><span> See Keyboard technology Â§ Debouncing . Bounce in SPDT (&quot;single-pole, double-throw&quot;) switch contacts signals can be filtered out using an SR flip-flop (latch) or Schmitt trigger . All of these methods are referred to as &#x27;debouncing&#x27;. Arcs and quenching When the power being switched is sufficiently large, the electron flow across opening switch contacts i</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Switch" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Switch</a></p><p>冻结文件: <a href="sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5" target="_blank">sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</a></p><p>内容 SHA-256: <code>2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_debounce_methods_not_model_repair_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The switch reference describes debouncing through filtering, repeated steady-state sampling, latches, or Schmitt triggers; these are general design methods and do not establish that the RK71 is hot-swappable, user-repairable, or affected by chatter.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_rk71_escape_report"><header><h3>prop_rk71_escape_report</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Escape requires Fn, defaults to tilde, and was described as not reprogrammable; AutoHotkey was suggested as a workaround&quot;,
+  &quot;predicate&quot;: &quot;reports_layout_limitation&quot;,
+  &quot;subject&quot;: &quot;same-model RK71 owner report&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_rk71_autohotkey</code> | bytes [524, 571) | <code>e7fc3c471cad97ced9084ce7ba17f90fa4181cdc8a8294c11272be1bc09eaeb3</code></div><pre class="context"><span> as possible - stock switches and stabilizers, and bottom casing since I wanted to keep the factory angle to go off off. Honestly would not recommend this keyboard because the escape key needs to have fn pressed, it’s default is tilde and you can’t reprogram it lol. Would not recommend this kb at all but it was a fun project https://imgur.com/a/7OkOwvg
+
+</span><mark>Use AutoHotkey to get around the tilde problem.</mark><span>
+
+Visually, this is like something out of my daydreams when I first saw GMK birch. It’s incredible. But bummer to hear about the Esc key, that’s a drag.
+
+Nice work 🌳🪵
+
+Beautiful build!!!
+
+It is an absolute beauty I could put up with the Esc key¡
+
+At least it has cursor keys! I recently bought the RK61 and for me it&#x27;s unusable! (I don&#x27;t think I&#x27;ve </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_escape_limitation</code> | bytes [285, 434) | <code>83e4a1027170c4ba5bb416eff90255f218573dda663e721203f29ba3d5cf657c</code></div><pre class="context"><span>GMK Birch in Birch on Birch - RK71 Mod
+
+182
+
+Modded my royal kludge RK71 that I just use as a cheap wireless keyboard for my projector setup. Kept everything as OEM as possible - stock switches and stabilizers, and bottom casing since I wanted to keep the factory angle to go off off. </span><mark>Honestly would not recommend this keyboard because the escape key needs to have fn pressed, it’s default is tilde and you can’t reprogram it lol.</mark><span> Would not recommend this kb at all but it was a fun project https://imgur.com/a/7OkOwvg
+
+Use AutoHotkey to get around the tilde problem.
+
+Visually, this is like something out of my daydreams when I first saw GMK birch. It’s incredible. But bummer to hear about the Esc key, that’s a drag.
+
+Nice work 🌳🪵
+
+Beautiful build!!!
+
+It is an absolute beauty </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_projector_use</code> | bytes [45, 141) | <code>ec008d48e1c82af4019c6a0454e5aa9259f8341b38394477a86814ed53505e4b</code></div><pre class="context"><span>GMK Birch in Birch on Birch - RK71 Mod
+
+182
+
+</span><mark>Modded my royal kludge RK71 that I just use as a cheap wireless keyboard for my projector setup.</mark><span> Kept everything as OEM as possible - stock switches and stabilizers, and bottom casing since I wanted to keep the factory angle to go off off. Honestly would not recommend this keyboard because the escape key needs to have fn pressed, it’s default is tilde and you can’t reprogram it lol. Would not recommend this kb at all but it was a fun project https:</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/35132/gmk-birch-in-birch-on-birch-rk71-mod" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/35132/gmk-birch-in-birch-on-birch-rk71-mod</a></p><p>冻结文件: <a href="sources/b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21" target="_blank">sources/b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21</a></p><p>内容 SHA-256: <code>b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;same_model_layout_experience_not_prevalence&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One same-model owner describes the RK71 as a cheap wireless projector keyboard but does not recommend it because Escape requires Fn, defaults to tilde, and could not be reprogrammed; a commenter suggests AutoHotkey, which is a scoped workaround rather than a model-wide reliability result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_rk71_layout_and_backlight"><header><h3>prop_rk71_layout_and_backlight</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a compact 71-key no-numpad layout and a conflict between an RGB heading and the explicit single-LED-only description&quot;,
+  &quot;predicate&quot;: &quot;contains_tradeoffs&quot;,
+  &quot;subject&quot;: &quot;RK71 layout and lighting language&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_rk71_layout</code> | bytes [744, 868) | <code>2a405f92e5c779df437edae2aa8cad31378f1cedec7254098d6102a1a84e04dc</code></div><pre class="context"><span> Cart Add to Wish List Add to Compare
+
+Details Product Description if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset. Read more Read more Read more Read more RGB Backlight Want a stylish wireless keyboard? RK71 will be your best choice. 9 sets Sidelight effect cycle switching,support off. </span><mark>70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using.</mark><span> Portable design, easy to bring to any places you need. PACKING DETAILS: Keyboard *1PCS Type-C data line *1PCS, used for wire connection and charging. Instruction *1PCS Read more Product Quick Look 【BLUETOOTH AND USB CABLE DUAL-CONNECTION MODE】RK71 mechanical keyboard can connect up to Fives devices simultaneously and can switch among them easily. This k</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_no_numpad</code> | bytes [1682, 1809) | <code>a52a78046782c13279567b541a6577fa6de2e5d3beea53acb9dbd79d7829ce63</code></div><pre class="context"><span>OS, Linux and Android.Also, comes with a detachable USB cable, you can easily charge the keyboard while shifting to the wired mode. 【71 KEYS RED SWITCH】Ambidextrous Shape with Maneuverable Simplicity: Compact minimalistic layout with 71 keys makes you a neat desktop, even folks have nothing to do with Minimalist will dive into its tiny practical design. </span><mark>Tips you might want to know is that keyboard without numpad is most FPS gamers’ choice, more spaces left for mouse movements.</mark><span> 【MACOS AND WINDOWS DESIGN】Function Keys and Shortcut Keys are design for both MacOS and Windows, such as applications switch, brightness adjust and so on. 【COOL BACKLIGHT DESIGN】Even if RK71 Backlight has no multicolored RGB but only single LED backlit, the 17 dynamic backlit modes keep the plain effect away. Use FN + HOME to choose your ideal mode,</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_rgb_heading</code> | bytes [612, 659) | <code>399e3bdd2123d28eeaac35a1d81534480dad91f785e621e7d7ebe463052e5b84</code></div><pre class="context"><span>s Add Your Review $49.99 Color Blue Switch Blue Switch-White Brown Switch Brown Switch-,White Red Switch Red Switch-White Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset. Read more Read more Read more Read more </span><mark>RGB Backlight Want a stylish wireless keyboard?</mark><span> RK71 will be your best choice. 9 sets Sidelight effect cycle switching,support off. 70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using. Portable design, easy to bring to any places you need. PACKING DETAILS: Keyboard *1PCS Type-C data line *1PCS, used for wire connection and charging. </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_single_led</code> | bytes [1969, 2128) | <code>e52ff9521765fdb71f0dfb731e1ef557a145c7de338e4ad187912da323cb329c</code></div><pre class="context"><span> nothing to do with Minimalist will dive into its tiny practical design. Tips you might want to know is that keyboard without numpad is most FPS gamers’ choice, more spaces left for mouse movements. 【MACOS AND WINDOWS DESIGN】Function Keys and Shortcut Keys are design for both MacOS and Windows, such as applications switch, brightness adjust and so on. </span><mark>【COOL BACKLIGHT DESIGN】Even if RK71 Backlight has no multicolored RGB but only single LED backlit, the 17 dynamic backlit modes keep the plain effect away.</mark><span> Use FN + HOME to choose your ideal mode, adjust the brightness and glowing speed freely. Get some lights on to take your blues away and make your day. 【ERGONOMIC DESIGN】RK71 Mechanical Keyboard is your good choose in office or home even if in game. Not only it is over-engineered and built to take a beating, it also has great ergonomics and a space savin</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html" target="_blank" rel="noreferrer">http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html</a></p><p>冻结文件: <a href="sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa" target="_blank">sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</a></p><p>内容 SHA-256: <code>061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;layout_and_internal_seller_wording_conflict&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The listing describes a compact 71-key board without a numpad and contains an RGB heading but explicitly says the backlight is not multicolored RGB and is only single-LED, so the narrower lighting description governs the evidence-bounded comparison.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_rk71_modes_and_reset"><header><h3>prop_rk71_modes_and_reset</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Bluetooth and detachable-USB wired modes, up to five paired devices, and an Fn-plus-Space five-second factory reset&quot;,
+  &quot;predicate&quot;: &quot;advertises&quot;,
+  &quot;subject&quot;: &quot;RK71 connection and reset claims&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_rk71_dual_connection</code> | bytes [1066, 1221) | <code>bd0b6d2c398719deb3479b6c9fa608dd8d4ab9d4a1ecac25825d5d956c2f7ce0</code></div><pre class="context"><span>t effect cycle switching,support off. 70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using. Portable design, easy to bring to any places you need. PACKING DETAILS: Keyboard *1PCS Type-C data line *1PCS, used for wire connection and charging. Instruction *1PCS Read more Product Quick Look </span><mark>【BLUETOOTH AND USB CABLE DUAL-CONNECTION MODE】RK71 mechanical keyboard can connect up to Fives devices simultaneously and can switch among them easily.</mark><span> This keyboard is Compatible with most operating systems, including Windows XP/Vista/7/8/10, iOS, MacOS, Linux and Android.Also, comes with a detachable USB cable, you can easily charge the keyboard while shifting to the wired mode. 【71 KEYS RED SWITCH】Ambidextrous Shape with Maneuverable Simplicity: Compact minimalistic layout with 71 keys makes you a n</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_factory_reset</code> | bytes [451, 571) | <code>6e9072e4ebd4cb436e7516d567e11347e45f2a6aaf6379935cfd0afe8ad2d27b</code></div><pre class="context"><span>USB Wired/Wireless Portable Gaming/Office with Stand-Alone Arrow Keys for Windows MacOS (Red Switch-White)
+
+In stock SKU B07VVVC143 Rating: 75 % of 100 12 Reviews Add Your Review $49.99 Color Blue Switch Blue Switch-White Brown Switch Brown Switch-,White Red Switch Red Switch-White Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description </span><mark>if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset.</mark><span> Read more Read more Read more Read more RGB Backlight Want a stylish wireless keyboard? RK71 will be your best choice. 9 sets Sidelight effect cycle switching,support off. 70% layout (71-key) Design Tiny Size Ultra Compact Mechanical Keyboard with 71 keys and it&#x27;s good for Office and Home using. Portable design, easy to bring to any places you need. PACKING</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html" target="_blank" rel="noreferrer">http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html</a></p><p>冻结文件: <a href="sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa" target="_blank">sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</a></p><p>内容 SHA-256: <code>061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;model_specific_modes_and_documented_reset&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The RK71 listing advertises Bluetooth and detachable-USB wired modes, connection to as many as five devices, and an Fn-plus-Space five-second factory reset for issues.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_rk71_offer_scope"><header><h3>prop_rk71_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07VVVC143, a 49.99-dollar price, and a 75-percent aggregate score across 12 reviews&quot;,
+  &quot;predicate&quot;: &quot;displays&quot;,
+  &quot;subject&quot;: &quot;frozen RK71 offer&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_rk71_offer_scope</code> | bytes [199, 276) | <code>69830895979b2baa7950f95b9698f7c4680b1a18e137b1b6e9a37afad8a4649b</code></div><pre class="context"><span>RK ROYAL KLUDGE RK71 Mechanical Keyboard 70% Compact Bluetooth Keyboard 71 Keys,Tenkeyless USB Wired/Wireless Portable Gaming/Office with Stand-Alone Arrow Keys for Windows MacOS (Red Switch-White)
+
+</span><mark>In stock SKU B07VVVC143 Rating: 75 % of 100 12 Reviews Add Your Review $49.99</mark><span> Color Blue Switch Blue Switch-White Brown Switch Brown Switch-,White Red Switch Red Switch-White Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description if you meet any issue while using the keyboard, please press key &quot;Fn&quot;+&quot;space&quot; for 5 seconds to proess the factory reset. Read more Read more Read more Read more RGB Backlight Want a sty</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html" target="_blank" rel="noreferrer">http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html</a></p><p>冻结文件: <a href="sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa" target="_blank">sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</a></p><p>内容 SHA-256: <code>061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_small_aggregate_not_failure_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen RK71 listing displays SKU B07VVVC143, a price of $49.99, and a 75-percent aggregate score across 12 reviews; those are seller-page observations, not a longitudinal failure rate.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_rk71_software_report"><header><h3>prop_rk71_software_report</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a two-day-old unit did not connect to software even in wired mode, exposed two PIDs, and received only a support-or-replacement suggestion&quot;,
+  &quot;predicate&quot;: &quot;reports_unresolved_detection_problem&quot;,
+  &quot;subject&quot;: &quot;same-model RK71 software thread&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_rk71_support_replacement</code> | bytes [621, 842) | <code>832b40ecef71596c1c672f8f290ae4cd1bd171cbe6df71b5a8bec995af3ff3ff</code></div><pre class="context"><span>you able to connect it in its software?
+
+Yes it was tricky though
+
+Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.
+
+did you do it in wired mode? With wireless it will not work.
+
+I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.
+
+</span><mark>idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the time in Amazon atleast). good luck</mark><span>
+
+Thanks man. Will try.</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_two_day_software</code> | bytes [328, 448) | <code>4aa453dba366e9b3dd48886f788f9ee41a321b1eb7862d8760551336714bd0c2</code></div><pre class="context"><span>My first mechanical kb 😬 gateron yellow switch matcha kaycaps royal kludge rk71 no mods
+
+13
+
+Beautiful keyboard! I&#x27;ve been eyeing up the matcha set for a little while now as the colours are stunning.
+
+Thankyou
+
+I have that set too, I love them.
+
+Hello, were you able to connect it in its software?
+
+Yes it was tricky though
+
+</span><mark>Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.</mark><span>
+
+did you do it in wired mode? With wireless it will not work.
+
+I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.
+
+idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_two_pids</code> | bytes [512, 619) | <code>bd9c13f488142dd1f7af35043da7b78e467ddc6222f1e1d8d5faf6ed8c35de30</code></div><pre class="context"><span>or a little while now as the colours are stunning.
+
+Thankyou
+
+I have that set too, I love them.
+
+Hello, were you able to connect it in its software?
+
+Yes it was tricky though
+
+Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.
+
+did you do it in wired mode? With wireless it will not work.
+
+</span><mark>I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.</mark><span>
+
+idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the time in Amazon atleast). good luck
+
+Thanks man. Will try.</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rk71_wired_required</code> | bytes [450, 510) | <code>4b80fd10d3b5413546bea0e1f7a10b5bb511e9832f3e44a424acfbc78eed97ac</code></div><pre class="context"><span>
+
+13
+
+Beautiful keyboard! I&#x27;ve been eyeing up the matcha set for a little while now as the colours are stunning.
+
+Thankyou
+
+I have that set too, I love them.
+
+Hello, were you able to connect it in its software?
+
+Yes it was tricky though
+
+Do you remember how did you do it? I just bought this keyboard 2 days ago and I cant connect to the software ever since.
+
+</span><mark>did you do it in wired mode? With wireless it will not work.</mark><span>
+
+I did and unfortunately it doesnt work. Checking it via device manager, I am seeing two PID. FA70 and 00A5.
+
+idk brother maybe try contacting their support, and if it does turn out to be a faulty keeb you just bought it pretty recently so they should send you a replacement for free (most of the time in Amazon atleast). good luck
+
+Thanks man. Will try.</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/MechanicalKeyboards/35184/my-first-mechanical-kb-gateron-yellow-switch-matcha-kaycaps" target="_blank" rel="noreferrer">http://localhost:9999/f/MechanicalKeyboards/35184/my-first-mechanical-kb-gateron-yellow-switch-matcha-kaycaps</a></p><p>冻结文件: <a href="sources/ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449" target="_blank">sources/ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449</a></p><p>内容 SHA-256: <code>ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;same_model_software_detection_anecdote_not_longitudinal_failure&quot;,
+    &quot;topic_cluster&quot;: &quot;mechanical_keyboards&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;A same-model thread records a buyer two days into ownership who could not connect the RK71 software even in wired mode and saw two device PIDs; another user suggested support or replacement if faulty, but the thread does not confirm a diagnosis, resolution, or warranty outcome.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_dra_v3_formal_mechanical_keyboards_0025</td><td>case_spec</td><td><a href="sources/634348ad72c919d411d4234cef32050d4de2522dfb266fc8dd04f8b6095da3f1">634348ad72c919d411d4234cef32050d4de2522dfb266fc8dd04f8b6095da3f1</a></td><td><a href="http://case-spec.local/dra_v3_formal_mechanical_keyboards_0025" target="_blank" rel="noreferrer">来源 URL</a></td><td>6848</td></tr><tr><td>reg_magento_rk71_product</td><td>magento</td><td><a href="sources/061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa">061b2c08ff40fb827ee70243642cc7292a537997959c6f6cba93625fc8964cfa</a></td><td><a href="http://localhost:7770/rk-royal-kludge-rk71-mechanical-keyboard-70-compact-bluetooth-keyboard-71-keys-tenkeyless-usb-wired-wireless-portable-gaming-office-with-stand-alone-arrow-keys-for-windows-macos-red-switch-white.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>3186</td></tr><tr><td>reg_postmill_rk71_mod_owner</td><td>postmill</td><td><a href="sources/b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21">b29b9c14510552c807d8fb641a2b51fd0e1e37b725d6cb58f7f9d2cbb5f0de21</a></td><td><a href="http://localhost:9999/f/MechanicalKeyboards/35132/gmk-birch-in-birch-on-birch-rk71-mod" target="_blank" rel="noreferrer">来源 URL</a></td><td>1311</td></tr><tr><td>reg_postmill_rk71_software_setup</td><td>postmill</td><td><a href="sources/ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449">ff887d66990a61cbfbf64177af031c58e06798f124a00e4e883823a543ed8449</a></td><td><a href="http://localhost:9999/f/MechanicalKeyboards/35184/my-first-mechanical-kb-gateron-yellow-switch-matcha-kaycaps" target="_blank" rel="noreferrer">来源 URL</a></td><td>865</td></tr><tr><td>reg_search_magento_rk71</td><td>search_result</td><td><a href="sources/2e6dcb3aab50121049dd459b884ae21ec4849aeff19ce27c1919ecd516e09657">2e6dcb3aab50121049dd459b884ae21ec4849aeff19ce27c1919ecd516e09657</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0025-20260716-r1&amp;request_id=b47f6105-d3db-426b-9581-1d5b62b91a28" target="_blank" rel="noreferrer">来源 URL</a></td><td>8747</td></tr><tr><td>reg_search_postmill_rk71</td><td>search_result</td><td><a href="sources/6caa4778576a735d6d2c839f65c06418ce3bd6f979e00ba2914c34dde829f4a6">6caa4778576a735d6d2c839f65c06418ce3bd6f979e00ba2914c34dde829f4a6</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0025-20260716-r1&amp;request_id=ee5adbc6-2741-437f-82bc-e6818fb7dcdd" target="_blank" rel="noreferrer">来源 URL</a></td><td>887</td></tr><tr><td>reg_search_wiki_switch</td><td>search_result</td><td><a href="sources/21bb8ef21e86ff4ebf05c49387ee02d378b0385f68a4f3bb792ccdc2b43d82b8">21bb8ef21e86ff4ebf05c49387ee02d378b0385f68a4f3bb792ccdc2b43d82b8</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-mechanical-keyboards-0025-20260716-r1&amp;request_id=0064cd9e-f444-4bc3-ace7-1f44ea1800c0" target="_blank" rel="noreferrer">来源 URL</a></td><td>796</td></tr><tr><td>reg_wiki_switch</td><td>wikipedia</td><td><a href="sources/2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5">2c299a4da9f2babc75baf7d7d0f7ded807dea0470d4b7eec170c639f298bcfe5</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Switch" target="_blank" rel="noreferrer">来源 URL</a></td><td>20016</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-mechanical-keyboards-0025-20260716-r1";
+const graphHash = "45a1a308ae37e0cbdd8ab3055fe27103428173c4bb514c162f2d707a71fd1eae";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

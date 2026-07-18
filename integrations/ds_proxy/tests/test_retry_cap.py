@@ -70,7 +70,7 @@ class _FakeClient:
 
 @pytest.fixture(autouse=True)
 def _no_sleep(monkeypatch):
-    async def _fast_pause(reason, attempt, delay, model):
+    async def _fast_pause(reason, attempt, delay, model, *, run_ctx=None):
         return 0.0
     monkeypatch.setattr(dsapp, "_retry_pause", _fast_pause)
     monkeypatch.setattr(dsapp, "RETRY_MAX_ATTEMPTS", 4)
@@ -108,3 +108,50 @@ def test_default_cap_is_eight():
     import integrations.ds_proxy.app as fresh
     importlib.reload(fresh)
     assert fresh.RETRY_MAX_ATTEMPTS == 8
+
+
+def test_deactivated_workspace_402_is_retryable():
+    body = json.dumps({"detail": {"code": "deactivated_workspace"}}).encode()
+    assert dsapp._retryable_payload(402, body) == (
+        True,
+        "deactivated_workspace",
+    )
+
+
+def test_unrelated_402_is_not_retried():
+    body = json.dumps({"error": {"code": "payment_required"}}).encode()
+    assert dsapp._retryable_payload(402, body) == (False, "")
+
+
+def test_deactivated_workspace_retries_then_recovers(monkeypatch):
+    class _RecoveringClient(_FakeClient):
+        calls = 0
+
+        async def post(self, *a, **k):
+            type(self).calls += 1
+            if type(self).calls == 1:
+                return _FakeResp(
+                    status_code=402,
+                    body={"detail": {"code": "deactivated_workspace"}},
+                )
+            return _FakeResp(
+                status_code=200,
+                body={
+                    "choices": [{"message": {"content": "recovered"}}],
+                    "usage": {
+                        "prompt_tokens": 1,
+                        "completion_tokens": 1,
+                        "total_tokens": 2,
+                    },
+                },
+            )
+
+    monkeypatch.setattr(dsapp.httpx, "AsyncClient", _RecoveringClient)
+    client = TestClient(dsapp.app)
+    response = client.post(
+        "/v1/chat/completions",
+        json={"model": "gpt-5.6-luna", "messages": []},
+    )
+    assert response.status_code == 200
+    assert response.json()["choices"][0]["message"]["content"] == "recovered"
+    assert _RecoveringClient.calls == 2

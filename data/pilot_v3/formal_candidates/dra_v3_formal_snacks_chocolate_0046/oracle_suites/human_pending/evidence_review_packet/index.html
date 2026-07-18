@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>c1ae51a1f3e2370a88c84456ec0e3ced8fc9bfc174e509f556eb9f9f9d4e27a1</code></p>
+<p>待审项 22 个，其中语义项 11 个、结构化项 0 个；冻结来源 23 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_bifl_quality_decline_anecdote_scope"><header><h3>assert_bifl_quality_decline_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author describes non-chocolate examples of ownership or manufacturing changes followed by lower perceived quality&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for BuyItForLife quality-decline discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_bifl_quality_decline_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_category_product_and_time_specific_anecdote_not_chocolate_formula_history&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one author describes non-chocolate examples of ownership or manufacturing changes followed by lower perceived quality&quot;,
+  &quot;predicate&quot;: &quot;reports_unrelated_products_and_manufacturing_change_concerns&quot;,
+  &quot;subject&quot;: &quot;BuyItForLife quality-decline discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_bifl_quality_decline_anecdote_scope_1</code> | bytes [202, 321) | <code>320b1ec0f87e4e8455a75bd834ea9cd6f939b08e370d1df27af3bda0250c49f7</code></div><pre class="context"><span>BIFL products that are at their peak right now?
+
+Hey fellow BIFLers. When doing research on a product, I&#x27;m too often faced with the revelation that the product I want is either: No longer in production </span><mark>Company has been bought out and manufacturing methods have changed for the worse Quality is lowered, cost has increased</mark><span> My most recent experience with this happened when shopping for a latex pillow. A brand/pillow that sounded perfect for me (Dunlopilo) went into administration, has been bought out by Relyon and old customers of Dunlopilo are reporting that the quality and comfort is no longer the same. Another recent example are Sorel boots that I was researching for my par</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/118455/bifl-products-that-are-at-their-peak-right-now" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/118455/bifl-products-that-are-at-their-peak-right-now</a></p><p>冻结文件: <a href="sources/53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78" target="_blank">sources/53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78</a></p><p>内容 SHA-256: <code>53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_chocolate_type_jurisdiction_scope"><header><h3>assert_chocolate_type_jurisdiction_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;compound chocolate replaces cocoa butter with other vegetable fats while Canada and the EU are described with different naming and permitted-fat rules&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for chocolate types and fat-substitution rules&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_chocolate_type_jurisdiction_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_frozen_jurisdiction_summary_not_current_legal_advice_or_exact_sku_classification&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;compound chocolate replaces cocoa butter with other vegetable fats while Canada and the EU are described with different naming and permitted-fat rules&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_compound_chocolate_and_market_specific_rules&quot;,
+  &quot;subject&quot;: &quot;chocolate types and fat-substitution rules&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_chocolate_type_jurisdiction_scope_1</code> | bytes [7360, 7530) | <code>091de81ddb5420618da22f5b314f46abba99960d01fff2b4d2e3be6aeda3e6f8</code></div><pre class="context"><span>e of cocoa butter than other chocolate which is precisely tempered . Couverture chocolate is used by professionals for dipping, coating, molding and garnishing (&#x27;couverture&#x27; means &#x27;covering&#x27; in French). Popular brands of couverture chocolate used by pastry chefs include: Valrhona , Lindt &amp; SprÃ¼ngli , Scharffen Berger , Callebaut , and Guittard . Compound </span><mark>Compound chocolate is the name for a confection combining cocoa with other vegetable fats , usually tropical fats or hydrogenated fats, as a replacement for cocoa butter.</mark><span> It is often used for candy bar coatings. In many countries it can not legally be called &quot;chocolate&quot;. Modeling Modeling chocolate is a chocolate paste made by melting chocolate and combining it with corn syrup , glucose syrup , or golden syrup . It is primarily used by cakemakers and pÃ¢tisseries to add decoration to cakes and pastries . By country During </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_chocolate</a></p><p>冻结文件: <a href="sources/788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df" target="_blank">sources/788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df</a></p><p>内容 SHA-256: <code>788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_couverture_jurisdiction_scope"><header><h3>assert_couverture_jurisdiction_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;couverture is described as cocoa-butter-rich, distinct from compound chocolate, EU-regulated and not US-regulated as a term&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for couverture composition and terminology&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_couverture_jurisdiction_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_frozen_term_boundary_not_exact_product_recipe_quality_or_current_legal_advice&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;couverture is described as cocoa-butter-rich, distinct from compound chocolate, EU-regulated and not US-regulated as a term&quot;,
+  &quot;predicate&quot;: &quot;is_a_distinct_cocoa_butter_rich_term_with_different_regulatory_scope&quot;,
+  &quot;subject&quot;: &quot;couverture composition and terminology&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_couverture_jurisdiction_scope_1</code> | bytes [344, 495) | <code>cd217dc6e0b750e3319ef240d2cc0546d438092d54a93316985fe8ea1b4b9d79</code></div><pre class="context"><span>Couverture chocolate Warmed couverture chocolate for baking Type Chocolate Main ingredients Cocoa solids , cocoa butter , sugar Media: Couverture chocolate Couverture chocolate ( / Ë k uË . v Ér . tÊ ÊÉr / ) is a chocolate that contains a higher percentage of cocoa butter (32â39%) than baking or eating chocolate. [ 1 ] </span><mark>This additional cocoa butter, combined with proper tempering , gives the chocolate more sheen, a firmer &quot;snap&quot; when broken, and a creamy mellow flavor.</mark><span> Definition and term The total &quot;percentage&quot; cited on many brands of chocolate is based on some combination of cocoa butter in relation to cocoa solids (cacao). In order to be properly labeled as &quot;couverture&quot;, the dark chocolate product must contain not less than 35% total dry cocoa solids, including not less than 31% cocoa butter and not less than 2.5% of dr</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Couverture_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Couverture_chocolate</a></p><p>冻结文件: <a href="sources/ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854" target="_blank">sources/ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854</a></p><p>内容 SHA-256: <code>ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_food_labeling_field_scope"><header><h3>assert_food_labeling_field_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;food labels are generally regulated by jurisdiction and may require clear product names, ingredient listings, manufacturer identity and net quantity&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for food-label regulation and identity fields&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_food_labeling_field_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_regulatory_and_field_context_not_exact_current_label_or_recipe_history&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;food labels are generally regulated by jurisdiction and may require clear product names, ingredient listings, manufacturer identity and net quantity&quot;,
+  &quot;predicate&quot;: &quot;varies_by_jurisdiction_and_includes_identity_ingredient_and_quantity_context&quot;,
+  &quot;subject&quot;: &quot;food-label regulation and identity fields&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_food_labeling_field_scope_1</code> | bytes [44, 296) | <code>57e3b073e3b46589472bed4460374cbe819c156455676442bb89c55aca848d57</code></div><pre class="context"><span>For other uses, see Nutrition facts label . </span><mark>The packaging and labeling of food is subject to regulation in most regions/jurisdictions, to prevent false advertising and to promote food safety , and increasingly to provide greater information to consumers relating to quality or lifestyle concerns.</mark><span> The regulation of food labels has evolved alongside the industrialization of food production and the growth of global mass food markets. In many countries, early food laws focused on preventing adulteration and fraud , often by mandating clear product names and ingredient listings. Over time, governments developed more detailed regulatory frameworks to mana</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/List_of_food_labeling_regulations" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/List_of_food_labeling_regulations</a></p><p>冻结文件: <a href="sources/a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b" target="_blank">sources/a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b</a></p><p>内容 SHA-256: <code>a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_godiva_candy_cabin_offer_scope"><header><h3>assert_godiva_candy_cabin_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 36.95-dollar SKU rated 100 percent over one review with six cartons of eight minis across three flavors and a Candy Cabin manufacturer field&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Godiva-branded Candy Cabin seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_godiva_candy_cabin_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_and_packer_copy_with_mass_ambiguity_not_official_formula_history_or_office_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 36.95-dollar SKU rated 100 percent over one review with six cartons of eight minis across three flavors and a Candy Cabin manufacturer field&quot;,
+  &quot;predicate&quot;: &quot;shows_a_perfect_one_review_rating_and_ambiguous_mini_bar_set&quot;,
+  &quot;subject&quot;: &quot;frozen Godiva-branded Candy Cabin seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_godiva_candy_cabin_offer_scope_1</code> | bytes [168, 292) | <code>c56ecfa8b8ef27312b87e1fc1178878df7b2c63c1624b7f342d9bb0e2a2d979a</code></div><pre class="context"><span>GODIVA Chocolatier Signature Mini Bars, Set of 6, 8pc Each, Variety Pack- (Roasted Almond Dark Chocolate, 72% Cacao Dark,Salted Caramel Milk Chocolate) By CANDY CABIN
+
+</span><mark>In stock SKU B08SFJWJK2 Rating: 100 % of 100 1 Review Add Your Review $36.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look GODIVA Chocolatier Signature Chocolate Mini Bars, 8pc Each, Variety Pack- (Roasted Almond Dark, 72% Cacao Dark, Salted Caramel Milk) 3.1 Ounce, 6 Pack By CANDY CABIN Contains 2 Bars of each flavor with eight individually wrapped mini bars in each bar, there&#x27;s enough delicious chocolate to share with all of your favorite people! T</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/godiva-chocolatier-signature-mini-bars-set-of-6-8pc-each-variety-pack-roasted-almond-dark-chocolate-72-cacao-dark-salted-caramel-milk-chocolate-by-candy-cabin.html" target="_blank" rel="noreferrer">http://localhost:7770/godiva-chocolatier-signature-mini-bars-set-of-6-8pc-each-variety-pack-roasted-almond-dark-chocolate-72-cacao-dark-salted-caramel-milk-chocolate-by-candy-cabin.html</a></p><p>冻结文件: <a href="sources/a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb" target="_blank">sources/a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb</a></p><p>内容 SHA-256: <code>a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_goldenberg_offer_reputation_scope"><header><h3>assert_goldenberg_offer_reputation_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 14.99-dollar two-pound SKU rated 95 percent over twelve reviews whose seller repeats same-quality-and-taste wording and an Emporium Candy repacking warning&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Goldenberg peanut-chew seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_goldenberg_offer_reputation_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_repacker_and_reputation_copy_not_dated_formula_or_taste_continuity&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 14.99-dollar two-pound SKU rated 95 percent over twelve reviews whose seller repeats same-quality-and-taste wording and an Emporium Candy repacking warning&quot;,
+  &quot;predicate&quot;: &quot;shows_the_largest_review_count_and_an_unverified_continuity_claim&quot;,
+  &quot;subject&quot;: &quot;frozen Goldenberg peanut-chew seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_goldenberg_offer_reputation_scope_1</code> | bytes [127, 252) | <code>4320ef6c61994df4f77604761bf8e63e3ee972ba567ba034998b37f90bd8943a</code></div><pre class="context"><span>Goldenberg&#x27;s Dark Chocolate Peanut Chews - 2 lbs of Fresh Delicious Assorted Bulk Mini Bars of Candy with Refrigerator Magnet
+
+</span><mark>In stock SKU B07YST76HH Rating: 95 % of 100 12 Reviews Add Your Review $14.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Goldenberg&#x27;s Dark Chocolate Peanut Chews - Delicious, fresh, and great flavor! - 2 lbs of Mini Bars. Buy in bulk to get more bang for your buck! - The same quality and taste you have always known. Perfect to refill your candy dishes. Buy in bulk to get more bang for your buck! - The same quality and taste you have always known. P</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/goldenberg-s-dark-chocolate-peanut-chews-2-lbs-of-fresh-delicious-assorted-bulk-mini-bars-of-candy-with-refrigerator-magnet.html" target="_blank" rel="noreferrer">http://localhost:7770/goldenberg-s-dark-chocolate-peanut-chews-2-lbs-of-fresh-delicious-assorted-bulk-mini-bars-of-candy-with-refrigerator-magnet.html</a></p><p>冻结文件: <a href="sources/ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1" target="_blank">sources/ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1</a></p><p>内容 SHA-256: <code>ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_hershey_offer_rating_scope"><header><h3>assert_hershey_offer_rating_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 22-dollar SKU rated 100 percent over two reviews and described as twelve individually wrapped 1.55-ounce milk-chocolate bars&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen personalized Hershey seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_hershey_offer_rating_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_copy_not_ingredient_formula_history_shrinkflation_or_office_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 22-dollar SKU rated 100 percent over two reviews and described as twelve individually wrapped 1.55-ounce milk-chocolate bars&quot;,
+  &quot;predicate&quot;: &quot;shows_a_perfect_displayed_rating_over_two_reviews_and_twelve_bars&quot;,
+  &quot;subject&quot;: &quot;frozen personalized Hershey seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_hershey_offer_rating_scope_1</code> | bytes [144, 269) | <code>85349a4c0d2929bd17bb179addffdf86101ae0b10bfd815d65a655e65855a7c9</code></div><pre class="context"><span>Hershey&#x27;s Personalized Milk Chocolate Bars, Classic Hershey Bars Pastel Spring Colors, Prime Idea for Mothers Day Gift, 1.55 ounce, Pack of 12
+
+</span><mark>In stock SKU B084Q44G26 Rating: 100 % of 100 2 Reviews Add Your Review $22.00 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The classic Hershey&#x27;s milk chocolate all dressed up in spring colors! Perfect 1.55 ounces. Ideal for sharing &amp; gifting. The classic Hershey&#x27;s milk chocolate bar, all ready for gifting! Personalized gifting! Add that personal touch with the imprinted name tag on each individual wrapped bar. The pastel shades are perfect sweet addi</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hershey-s-personalized-milk-chocolate-bars-classic-hershey-bars-pastel-spring-colors-prime-idea-for-mothers-day-gift-1-55-ounce-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/hershey-s-personalized-milk-chocolate-bars-classic-hershey-bars-pastel-spring-colors-prime-idea-for-mothers-day-gift-1-55-ounce-pack-of-12.html</a></p><p>冻结文件: <a href="sources/6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4" target="_blank">sources/6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4</a></p><p>内容 SHA-256: <code>6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_kinder_offer_rating_scope"><header><h3>assert_kinder_offer_rating_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 9.99-dollar SKU rated 98 percent over eight reviews and described as five 1.5-ounce packs with two wrapped bars per pack&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Kinder Bueno seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_kinder_offer_rating_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_copy_not_ingredient_formula_history_shrinkflation_or_office_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 9.99-dollar SKU rated 98 percent over eight reviews and described as five 1.5-ounce packs with two wrapped bars per pack&quot;,
+  &quot;predicate&quot;: &quot;shows_a_high_displayed_rating_and_five_pack_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Kinder Bueno seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_kinder_offer_rating_scope_1</code> | bytes [155, 278) | <code>f4148312eef1cd99024aa93f6a46690010317d06e76e4c2a89a636b1afeb75c0</code></div><pre class="context"><span>(Pack of 5) Kinder Bueno Crispy Creamy Chocolate Bar-Crispy Wafer with Creamy Nut Filling in Milk Chocolate- 2 bars per pack 1.5oz- Totoal 5 packs/ 7.5oz
+
+</span><mark>In stock SKU B08ZHJY8NY Rating: 98 % of 100 8 Reviews Add Your Review $9.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look (Pack of 5) Kinder Bueno Crispy Creamy Chocolate Bar-Crispy Wafer with Creamy Nut Filling in Milk Chocolate- 2 bars per pack 1.5oz- Totoal 5 packs/ 7.5oz ✔️ Great Value Pack: Total 5 (1.5oz) packs. ✔️Each pack contains TWO individually wrapped Kinder bars. ✔️Kinder Bueno is a unique chocolate bar with a taste experien</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/pack-of-5-kinder-bueno-crispy-creamy-chocolate-bar-crispy-wafer-with-creamy-nut-filling-in-milk-chocolate-2-bars-per-pack-1-5oz-totoal-5-packs-7-5oz.html" target="_blank" rel="noreferrer">http://localhost:7770/pack-of-5-kinder-bueno-crispy-creamy-chocolate-bar-crispy-wafer-with-creamy-nut-filling-in-milk-chocolate-2-bars-per-pack-1-5oz-totoal-5-packs-7-5oz.html</a></p><p>冻结文件: <a href="sources/149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e" target="_blank">sources/149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e</a></p><p>内容 SHA-256: <code>149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_rating_disagreement_anecdote_scope"><header><h3>assert_rating_disagreement_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a books author reports rating popular high-average works one or two stars&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for popular-rating disagreement discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_rating_disagreement_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_cross_domain_preference_not_product_rating_validity_or_office_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a books author reports rating popular high-average works one or two stars&quot;,
+  &quot;predicate&quot;: &quot;shows_one_person_disagreeing_with_high_averages_in_another_domain&quot;,
+  &quot;subject&quot;: &quot;popular-rating disagreement discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_rating_disagreement_anecdote_scope_1</code> | bytes [53, 202) | <code>cd930cd247343387d314cb33b2cab0596f7f558b63db955c9d894f449eb8c771</code></div><pre class="context"><span>what popular books have you rated one or two stars?
+
+</span><mark>i always feel like i’m reading a completely different book when i give a normally highly rated book two stars… or maybe some people are too nice.</mark><span> for example: i recently finished “The Kiss of Deception” and gave it 2 stars. it was actually terrible but is highly popular on TikTok… i might be at fault here other books i’ve rated two stars: • Twisted Love (awful) • Survive the Night (don’t know how this got approved) • Verity (explanatory) • Animal Farm (controversial i know) what boo</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/books/103302/what-popular-books-have-you-rated-one-or-two-stars" target="_blank" rel="noreferrer">http://localhost:9999/f/books/103302/what-popular-books-have-you-rated-one-or-two-stars</a></p><p>冻结文件: <a href="sources/5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe" target="_blank">sources/5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe</a></p><p>内容 SHA-256: <code>5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_snack_temperature_anecdote_scope"><header><h3>assert_snack_temperature_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one construction worker prefers chilled chips and invites readers to test a favorite brand after refrigeration&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for snack serving-temperature discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_snack_temperature_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_snack_brand_temperature_and_time_specific_anecdote_not_chocolate_trial_result&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one construction worker prefers chilled chips and invites readers to test a favorite brand after refrigeration&quot;,
+  &quot;predicate&quot;: &quot;reports_a_temperature_linked_taste_difference&quot;,
+  &quot;subject&quot;: &quot;snack serving-temperature discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_snack_temperature_anecdote_scope_1</code> | bytes [153, 217) | <code>13d4e02bde1a0a90c7d397b4c9bdccb99e63a96164d2b8be75428b6711b0d69c</code></div><pre class="context"><span>LPT : Fridge your chips/snacks for a more satisfying, refreshing taste
+
+I work in construction, and have been bringing snacks/chips to work in a cooler. </span><mark>Anytime I eat it after it&#x27;s freshly cold it just hits different.</mark><span> It tastes so good, so satisfying, makes me want to fridge everything lol. Just thought I&#x27;d let others know in case someone hasn&#x27;t tried it! Test it for yourself! Pick your favorite brand chips, (Mine is Doritos) and fridge a zip lock bag full of em. Try it in like an hour or two and boom, you&#x27;ll never want to go back to room temp pantry chips 5
+
+Trying this</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/120115/lpt-fridge-your-chips-snacks-for-a-more-satisfying" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/120115/lpt-fridge-your-chips-snacks-for-a-more-satisfying</a></p><p>冻结文件: <a href="sources/3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197" target="_blank">sources/3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197</a></p><p>内容 SHA-256: <code>3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_unit_price_comparable_scope"><header><h3>assert_unit_price_comparable_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;price per common weight or volume supports package comparison only after variants and product forms are normalized&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for unit-price comparison across packages&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_unit_price_comparable_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_comparison_method_not_historical_price_or_shrinkflation_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;object&quot;: &quot;price per common weight or volume supports package comparison only after variants and product forms are normalized&quot;,
+  &quot;predicate&quot;: &quot;requires_comparable_units_across_sizes_forms_and_configurations&quot;,
+  &quot;subject&quot;: &quot;unit-price comparison across packages&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_unit_price_comparable_scope_1</code> | bytes [147, 247) | <code>94c8e9bfe32f4c01ad2f488a39e9f458a17e1f0c205240ac4386a1cf730ce005</code></div><pre class="context"><span>Not to be confused with Unit cost . A product&#x27;s average price is the result of dividing the product&#x27;s total sales revenue by the total units sold. </span><mark>When one product is sold in variants, such as bottle sizes, managers must define &quot;comparable&quot; units.</mark><span> Average prices can be calculated by weighting different unit selling prices by the percentage of unit sales (mix) for each product variant. If we use a standard, rather than an actual mix of sizes and product varieties, the result is price per statistical unit. Statistical units are also called equivalent units. Average price per unit and prices per statist</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Unit_price" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Unit_price</a></p><p>冻结文件: <a href="sources/f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297" target="_blank">sources/f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297</a></p><p>内容 SHA-256: <code>f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_bifl_quality_decline_anecdote_scope"><header><h3>prop_bifl_quality_decline_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author describes non-chocolate examples of ownership or manufacturing changes followed by lower perceived quality&quot;,
+  &quot;predicate&quot;: &quot;reports_unrelated_products_and_manufacturing_change_concerns&quot;,
+  &quot;subject&quot;: &quot;BuyItForLife quality-decline discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_bifl_quality_decline_anecdote_scope_1</code> | bytes [202, 321) | <code>320b1ec0f87e4e8455a75bd834ea9cd6f939b08e370d1df27af3bda0250c49f7</code></div><pre class="context"><span>BIFL products that are at their peak right now?
+
+Hey fellow BIFLers. When doing research on a product, I&#x27;m too often faced with the revelation that the product I want is either: No longer in production </span><mark>Company has been bought out and manufacturing methods have changed for the worse Quality is lowered, cost has increased</mark><span> My most recent experience with this happened when shopping for a latex pillow. A brand/pillow that sounded perfect for me (Dunlopilo) went into administration, has been bought out by Relyon and old customers of Dunlopilo are reporting that the quality and comfort is no longer the same. Another recent example are Sorel boots that I was researching for my par</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_bifl_quality_decline_anecdote_scope_2</code> | bytes [401, 608) | <code>0d3d1e38c7bbabbac769f32b8c888b3956d1ae18708494c07137863fa1ad0466</code></div><pre class="context"><span>t now?
+
+Hey fellow BIFLers. When doing research on a product, I&#x27;m too often faced with the revelation that the product I want is either: No longer in production Company has been bought out and manufacturing methods have changed for the worse Quality is lowered, cost has increased My most recent experience with this happened when shopping for a latex pillow. </span><mark>A brand/pillow that sounded perfect for me (Dunlopilo) went into administration, has been bought out by Relyon and old customers of Dunlopilo are reporting that the quality and comfort is no longer the same.</mark><span> Another recent example are Sorel boots that I was researching for my partner. New quality is inferior etc. There are way, way too many more examples of this that I can&#x27;t even remember them all right now. With that in mind, what products that you know of seem to be at their peak of quality/performance/price right now? I will try to offer one suggestion altho</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/BuyItForLife/118455/bifl-products-that-are-at-their-peak-right-now" target="_blank" rel="noreferrer">http://localhost:9999/f/BuyItForLife/118455/bifl-products-that-are-at-their-peak-right-now</a></p><p>冻结文件: <a href="sources/53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78" target="_blank">sources/53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78</a></p><p>内容 SHA-256: <code>53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_category_product_and_time_specific_anecdote_not_chocolate_formula_history&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The BuyItForLife author reports non-chocolate examples in which ownership or manufacturing allegedly changed and users perceived lower quality; this motivates version and date checks but cannot transfer to Kinder, Hershey, Godiva or Goldenberg, establish a formula change, prove shrinkflation, or measure office preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_chocolate_type_jurisdiction_scope"><header><h3>prop_chocolate_type_jurisdiction_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;compound chocolate replaces cocoa butter with other vegetable fats while Canada and the EU are described with different naming and permitted-fat rules&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_compound_chocolate_and_market_specific_rules&quot;,
+  &quot;subject&quot;: &quot;chocolate types and fat-substitution rules&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_chocolate_type_jurisdiction_scope_1</code> | bytes [7360, 7530) | <code>091de81ddb5420618da22f5b314f46abba99960d01fff2b4d2e3be6aeda3e6f8</code></div><pre class="context"><span>e of cocoa butter than other chocolate which is precisely tempered . Couverture chocolate is used by professionals for dipping, coating, molding and garnishing (&#x27;couverture&#x27; means &#x27;covering&#x27; in French). Popular brands of couverture chocolate used by pastry chefs include: Valrhona , Lindt &amp; SprÃ¼ngli , Scharffen Berger , Callebaut , and Guittard . Compound </span><mark>Compound chocolate is the name for a confection combining cocoa with other vegetable fats , usually tropical fats or hydrogenated fats, as a replacement for cocoa butter.</mark><span> It is often used for candy bar coatings. In many countries it can not legally be called &quot;chocolate&quot;. Modeling Modeling chocolate is a chocolate paste made by melting chocolate and combining it with corn syrup , glucose syrup , or golden syrup . It is primarily used by cakemakers and pÃ¢tisseries to add decoration to cakes and pastries . By country During </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_type_jurisdiction_scope_2</code> | bytes [9218, 9281) | <code>8afaaef5c10d05267016033ff2107493fed8c215b338ac87867ba28ef45f3ed9</code></div><pre class="context"><span>t Cocoa butter Milk solids Milk fat Fat-free cocoa solids Cocoa solids Milk chocolate â¥ 15% â¥ 12% â¥ 3.39% â¥ 2.5% â¥ 25% Sweet chocolate â¥ 18% &lt; 12% â¥ 12% â¥ 30% Chocolate, bittersweet chocolate, semi-sweet chocolate or dark chocolate â¥ 18% &lt; 5% â¥ 14% â¥ 35% White chocolate â¥ 20% â¥ 14% â¥ 3.5% </span><mark>The use of cocoa butter substitutes in Canada is not permitted.</mark><span> Chocolate sold in Canada cannot contain vegetable fats or oils. [ 33 ] The only sweetening agents permitted in chocolate in Canada are listed in Division 18 of the Food and Drug Regulations. [ 34 ] Artificial sweeteners such as aspartame , sucralose , acesulfame potassium , and sugar alcohols (sorbitol, maltitol, etc.) are not permitted. Products manufactur</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_type_jurisdiction_scope_3</code> | bytes [10076, 10291) | <code>9a1748ef155bf8e6f19b131c160a695c09e69e18e47f1820a0b67ce0c6cead75</code></div><pre class="context"><span>e fats or oils, artificial sweeteners) cannot legally be called &quot;chocolate&quot; when sold in Canada. A non-standardized name such as &quot;candy&quot; must be used. [ 33 ] European Union and United Kingdom There has been disagreement in the EU about the definition of chocolate; this dispute covers several issues, including the types of fat and the quantity of cocoa used. </span><mark>In 1999, however, the EU resolved the fat issue by allowing up to 5% of chocolate&#x27;s content to be one of six alternatives to cocoa butter: illipe oil, palm oil , sal, shea butter , kokum gurgi , or mango kernel oil.</mark><span> [ 35 ] Products labelled as &quot;family milk chocolate&quot; elsewhere in the European Union are permitted to be labelled as simply &quot;milk chocolate&quot; in Malta , the UK and the Republic of Ireland . [ 36 ] [ 2 ] Chocolate requirements in the European Union and United Kingdom Product Total dry cocoa solids Cocoa butter Non-fat cocoa solids Total fat [ a ] Milk fat Milk</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_chocolate</a></p><p>冻结文件: <a href="sources/788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df" target="_blank">sources/788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df</a></p><p>内容 SHA-256: <code>788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_frozen_jurisdiction_summary_not_current_legal_advice_or_exact_sku_classification&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen types page describes compound chocolate as cocoa combined with other vegetable fats in place of cocoa butter, says Canada does not permit cocoa-butter substitutes in products sold as chocolate, and describes the EU as allowing up to five percent of six named alternative fats; these are jurisdiction-scoped general statements, not current legal advice, an exact SKU classification, or proof that any captured product changed its fat source.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_couverture_jurisdiction_scope"><header><h3>prop_couverture_jurisdiction_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;couverture is described as cocoa-butter-rich, distinct from compound chocolate, EU-regulated and not US-regulated as a term&quot;,
+  &quot;predicate&quot;: &quot;is_a_distinct_cocoa_butter_rich_term_with_different_regulatory_scope&quot;,
+  &quot;subject&quot;: &quot;couverture composition and terminology&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_couverture_jurisdiction_scope_1</code> | bytes [344, 495) | <code>cd217dc6e0b750e3319ef240d2cc0546d438092d54a93316985fe8ea1b4b9d79</code></div><pre class="context"><span>Couverture chocolate Warmed couverture chocolate for baking Type Chocolate Main ingredients Cocoa solids , cocoa butter , sugar Media: Couverture chocolate Couverture chocolate ( / Ë k uË . v Ér . tÊ ÊÉr / ) is a chocolate that contains a higher percentage of cocoa butter (32â39%) than baking or eating chocolate. [ 1 ] </span><mark>This additional cocoa butter, combined with proper tempering , gives the chocolate more sheen, a firmer &quot;snap&quot; when broken, and a creamy mellow flavor.</mark><span> Definition and term The total &quot;percentage&quot; cited on many brands of chocolate is based on some combination of cocoa butter in relation to cocoa solids (cacao). In order to be properly labeled as &quot;couverture&quot;, the dark chocolate product must contain not less than 35% total dry cocoa solids, including not less than 31% cocoa butter and not less than 2.5% of dr</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_couverture_jurisdiction_scope_2</code> | bytes [1007, 1041) | <code>c0c2134defbd1cff66815685ca404ce6c44308e85a62fbe4aff14ca45aaa2dae</code></div><pre class="context"><span>cacao). In order to be properly labeled as &quot;couverture&quot;, the dark chocolate product must contain not less than 35% total dry cocoa solids, including not less than 31% cocoa butter and not less than 2.5% of dry non-fat cocoa solids, milk chocolate couverture must contain not less than 25% dry cocoa solids. [ 2 ] The term translates from French as &quot;covering&quot;. </span><mark>It is legally regulated in the EU.</mark><span> Dark couverture chocolate almost always exceeds the minimum legally required cocoa content, and despite the law permitting 5% vegetable fat, its inclusion is very rare. It is not a regulated term in the US. [ 3 ] Couverture is used by professionals for dipping, coating, molding and garnishing. The term &quot;couverture chocolate&quot; is distinct from compound chocol</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_couverture_jurisdiction_scope_3</code> | bytes [1211, 1248) | <code>0b33d7ce97db2423570c171fab93bd0eb3716b54e7d9dde828021bfaf66f059e</code></div><pre class="context"><span>f dry non-fat cocoa solids, milk chocolate couverture must contain not less than 25% dry cocoa solids. [ 2 ] The term translates from French as &quot;covering&quot;. It is legally regulated in the EU. Dark couverture chocolate almost always exceeds the minimum legally required cocoa content, and despite the law permitting 5% vegetable fat, its inclusion is very rare. </span><mark>It is not a regulated term in the US.</mark><span> [ 3 ] Couverture is used by professionals for dipping, coating, molding and garnishing. The term &quot;couverture chocolate&quot; is distinct from compound chocolate . Products that contain compound chocolate have a lower percentage of solids and contain non-cocoa fats. Some brands of couverture chocolate are packaged tempered, and others are packaged untempered. Sub</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_couverture_jurisdiction_scope_4</code> | bytes [1337, 1406) | <code>d2f9636d661e27027cbf88fd1e257ae3bd57c172d9e0d3ea987aac74769e6ef7</code></div><pre class="context"><span>es from French as &quot;covering&quot;. It is legally regulated in the EU. Dark couverture chocolate almost always exceeds the minimum legally required cocoa content, and despite the law permitting 5% vegetable fat, its inclusion is very rare. It is not a regulated term in the US. [ 3 ] Couverture is used by professionals for dipping, coating, molding and garnishing. </span><mark>The term &quot;couverture chocolate&quot; is distinct from compound chocolate .</mark><span> Products that contain compound chocolate have a lower percentage of solids and contain non-cocoa fats. Some brands of couverture chocolate are packaged tempered, and others are packaged untempered. Subsequent tempering may or may not be required, depending on the usage and the desired characteristics of the final product. History A mid-19th century French t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Couverture_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Couverture_chocolate</a></p><p>冻结文件: <a href="sources/ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854" target="_blank">sources/ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854</a></p><p>内容 SHA-256: <code>ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_frozen_term_boundary_not_exact_product_recipe_quality_or_current_legal_advice&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen couverture page describes additional cocoa butter, states that the term is legally regulated in the EU but not in the US, and distinguishes couverture from compound chocolate; it does not prove that any captured offer is couverture or compound, identify its current fat source, establish a recipe change, or rank office taste.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_food_labeling_field_scope"><header><h3>prop_food_labeling_field_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;food labels are generally regulated by jurisdiction and may require clear product names, ingredient listings, manufacturer identity and net quantity&quot;,
+  &quot;predicate&quot;: &quot;varies_by_jurisdiction_and_includes_identity_ingredient_and_quantity_context&quot;,
+  &quot;subject&quot;: &quot;food-label regulation and identity fields&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_food_labeling_field_scope_1</code> | bytes [44, 296) | <code>57e3b073e3b46589472bed4460374cbe819c156455676442bb89c55aca848d57</code></div><pre class="context"><span>For other uses, see Nutrition facts label . </span><mark>The packaging and labeling of food is subject to regulation in most regions/jurisdictions, to prevent false advertising and to promote food safety , and increasingly to provide greater information to consumers relating to quality or lifestyle concerns.</mark><span> The regulation of food labels has evolved alongside the industrialization of food production and the growth of global mass food markets. In many countries, early food laws focused on preventing adulteration and fraud , often by mandating clear product names and ingredient listings. Over time, governments developed more detailed regulatory frameworks to mana</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_labeling_field_scope_2</code> | bytes [434, 579) | <code>2978f6f65cfa653b9e998f5ee9ef07630670477c39951ce8927bfeacf97160d4</code></div><pre class="context"><span>food is subject to regulation in most regions/jurisdictions, to prevent false advertising and to promote food safety , and increasingly to provide greater information to consumers relating to quality or lifestyle concerns. The regulation of food labels has evolved alongside the industrialization of food production and the growth of global mass food markets. </span><mark>In many countries, early food laws focused on preventing adulteration and fraud , often by mandating clear product names and ingredient listings.</mark><span> Over time, governments developed more detailed regulatory frameworks to manage food quality and public health through standardized labeling. [ 1 ] Scholars have noted that as food systems scaled up and grew more impersonal, regulators across regionsâfrom Europe and North America to East Asiaâbegan using labels to simulate the trust once derived fr</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_food_labeling_field_scope_3</code> | bytes [4606, 4735) | <code>c016ddc14ed7004b9766da33338c0bb41f3b7b05f6686816781a17b292796fa4</code></div><pre class="context"><span> States Main articles: Early history of food regulation in the United States and Regulation of food and dietary supplements by the U.S. Food and Drug Administration Acceptable Market Name Adulteration of Coffee Act 1718 American Agricultural Law Association Dietary exposure assessments in the United States Dietary Supplement Health and Education Act of 1994 </span><mark>Fair Packaging and Labeling Act (US) â enacted in 1966, requiring product identity, manufacturer, and net quantity labeling.</mark><span> [ 13 ] Nutrition Labeling and Education Act of 1990 â mandated standardized nutrition labeling and regulated health claims on food packages. [ 14 ] FDA Food Safety Modernization Act Federal Food, Drug, and Cosmetic Act Federal Meat Inspection Act Food and Drug Administration Amendments Act of 2007 Food and Drug Administration Modernization Act of 1997 </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/List_of_food_labeling_regulations" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/List_of_food_labeling_regulations</a></p><p>冻结文件: <a href="sources/a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b" target="_blank">sources/a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b</a></p><p>内容 SHA-256: <code>a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_regulatory_and_field_context_not_exact_current_label_or_recipe_history&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The labeling page says food packaging and labeling are regulated in most jurisdictions, describes clear product names and ingredient listings as recurring controls, and lists product identity, manufacturer and net quantity for a US packaging law; this is general field context, not the physical current label, applicable law, formula version or historical change record for any exact offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_godiva_candy_cabin_offer_scope"><header><h3>prop_godiva_candy_cabin_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 36.95-dollar SKU rated 100 percent over one review with six cartons of eight minis across three flavors and a Candy Cabin manufacturer field&quot;,
+  &quot;predicate&quot;: &quot;shows_a_perfect_one_review_rating_and_ambiguous_mini_bar_set&quot;,
+  &quot;subject&quot;: &quot;frozen Godiva-branded Candy Cabin seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_godiva_candy_cabin_offer_scope_1</code> | bytes [168, 292) | <code>c56ecfa8b8ef27312b87e1fc1178878df7b2c63c1624b7f342d9bb0e2a2d979a</code></div><pre class="context"><span>GODIVA Chocolatier Signature Mini Bars, Set of 6, 8pc Each, Variety Pack- (Roasted Almond Dark Chocolate, 72% Cacao Dark,Salted Caramel Milk Chocolate) By CANDY CABIN
+
+</span><mark>In stock SKU B08SFJWJK2 Rating: 100 % of 100 1 Review Add Your Review $36.95 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look GODIVA Chocolatier Signature Chocolate Mini Bars, 8pc Each, Variety Pack- (Roasted Almond Dark, 72% Cacao Dark, Salted Caramel Milk) 3.1 Ounce, 6 Pack By CANDY CABIN Contains 2 Bars of each flavor with eight individually wrapped mini bars in each bar, there&#x27;s enough delicious chocolate to share with all of your favorite people! T</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_godiva_candy_cabin_offer_scope_2</code> | bytes [1024, 1112) | <code>9338625b7adfb84dca1e23318abc2c46f6730526ef9a2c91ef2de75eda9edace</code></div><pre class="context"><span>rs in your bag for enjoying over coffee with a friend or add a box to a birthday present as a delicious gift idea. These anywhere, anytime chocolate treats are an easy way to enjoy gourmet chocolate when you need a decadent moment in your day. GODIVA Chocolatier Signature Mini Bars, 8pc Each, Roasted Almond Dark Chocolate, 3.1 Ounce, 6 Packed By CANDY CABIN </span><mark>Contains 2 Bars of Each Flavor: Roasted Almond Dark, 72% Cacao Dark, Salted Caramel Milk</mark><span> GOURMET CHOCOLATE: Each resealable carton in this indulgent 6-piece set includes eight, individually wrapped chocolate bars. LUXURY TREAT: Small enough to slip into a pocket or purse, these miniature chocolate bars are made to be enjoyed anytime and anywhere; Treat yours Package Dimensions ‏ ‎ 16 x 12 x 1 inches; 3.1 Ounces Manufacturer ‏ ‎ CANDY CA</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_godiva_candy_cabin_offer_scope_3</code> | bytes [1443, 1475) | <code>2dc36d0a9878e8018d90a638307496e1503bb363fedd28a0b3a9ac29588dd137</code></div><pre class="context"><span>cao Dark, Salted Caramel Milk GOURMET CHOCOLATE: Each resealable carton in this indulgent 6-piece set includes eight, individually wrapped chocolate bars. LUXURY TREAT: Small enough to slip into a pocket or purse, these miniature chocolate bars are made to be enjoyed anytime and anywhere; Treat yours Package Dimensions ‏ ‎ 16 x 12 x 1 inches; 3.1 Ounces </span><mark>Manufacturer ‏ ‎ CANDY CABIN</mark><span> ASIN ‏ ‎ B08SFJWJK2 #2,900 in Candy &amp; Chocolate Bars Reviews 1 Write Your Own Review You&#x27;re reviewing: GODIVA Chocolatier Signature Mini Bars, Set of 6, 8pc Each, Variety Pack- (Roasted Almond Dark Chocolate, 72% Cacao Dark,Salted Caramel Milk Chocolate) By CANDY CABIN Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Sub</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/godiva-chocolatier-signature-mini-bars-set-of-6-8pc-each-variety-pack-roasted-almond-dark-chocolate-72-cacao-dark-salted-caramel-milk-chocolate-by-candy-cabin.html" target="_blank" rel="noreferrer">http://localhost:7770/godiva-chocolatier-signature-mini-bars-set-of-6-8pc-each-variety-pack-roasted-almond-dark-chocolate-72-cacao-dark-salted-caramel-milk-chocolate-by-candy-cabin.html</a></p><p>冻结文件: <a href="sources/a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb" target="_blank">sources/a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb</a></p><p>内容 SHA-256: <code>a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_and_packer_copy_with_mass_ambiguity_not_official_formula_history_or_office_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Godiva-branded Candy Cabin page shows SKU B08SFJWJK2 at 36.95 dollars, rated 100 percent over one review, and describes a six-carton, eight-mini-per-carton variety across roasted-almond dark, 72-percent cacao dark and salted-caramel milk flavors while listing Candy Cabin as manufacturer; its 3.1-ounce wording and exact brand-packer relationship remain ambiguous and it does not prove current ingredients, formula history, shrinkage or office preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_goldenberg_offer_reputation_scope"><header><h3>prop_goldenberg_offer_reputation_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 14.99-dollar two-pound SKU rated 95 percent over twelve reviews whose seller repeats same-quality-and-taste wording and an Emporium Candy repacking warning&quot;,
+  &quot;predicate&quot;: &quot;shows_the_largest_review_count_and_an_unverified_continuity_claim&quot;,
+  &quot;subject&quot;: &quot;frozen Goldenberg peanut-chew seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_goldenberg_offer_reputation_scope_1</code> | bytes [127, 252) | <code>4320ef6c61994df4f77604761bf8e63e3ee972ba567ba034998b37f90bd8943a</code></div><pre class="context"><span>Goldenberg&#x27;s Dark Chocolate Peanut Chews - 2 lbs of Fresh Delicious Assorted Bulk Mini Bars of Candy with Refrigerator Magnet
+
+</span><mark>In stock SKU B07YST76HH Rating: 95 % of 100 12 Reviews Add Your Review $14.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Goldenberg&#x27;s Dark Chocolate Peanut Chews - Delicious, fresh, and great flavor! - 2 lbs of Mini Bars. Buy in bulk to get more bang for your buck! - The same quality and taste you have always known. Perfect to refill your candy dishes. Buy in bulk to get more bang for your buck! - The same quality and taste you have always known. P</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_goldenberg_offer_reputation_scope_2</code> | bytes [382, 477) | <code>52101600b8fa696dcf7ceebf4dd3f15ab9742536ebc9d52c5835c5a10f9f9b2d</code></div><pre class="context"><span>olate Peanut Chews - 2 lbs of Fresh Delicious Assorted Bulk Mini Bars of Candy with Refrigerator Magnet
+
+In stock SKU B07YST76HH Rating: 95 % of 100 12 Reviews Add Your Review $14.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Goldenberg&#x27;s Dark Chocolate Peanut Chews - Delicious, fresh, and great flavor! - 2 lbs of Mini Bars. </span><mark>Buy in bulk to get more bang for your buck! - The same quality and taste you have always known.</mark><span> Perfect to refill your candy dishes. Buy in bulk to get more bang for your buck! - The same quality and taste you have always known. Perfect to refill your candy dishes. Small on the go packaging. Perfect for snacks in lunchboxes, pockets, goodie bags, and birthday parties, Refill your dispensers or simply unwrap and eat. Items are repackaged in a facility </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_goldenberg_offer_reputation_scope_3</code> | bytes [802, 921) | <code>42dc2a6dcd683d940e8b2282dbd3196424ec347bb8d05d80ac16c4cd32889837</code></div><pre class="context"><span>ty and taste you have always known. Perfect to refill your candy dishes. Buy in bulk to get more bang for your buck! - The same quality and taste you have always known. Perfect to refill your candy dishes. Small on the go packaging. Perfect for snacks in lunchboxes, pockets, goodie bags, and birthday parties, Refill your dispensers or simply unwrap and eat. </span><mark>Items are repackaged in a facility that may contain milk, soy, peanuts, tree nuts, eggs, wheat and all other allergens.</mark><span> Each item comes with a small refrigerator magnet with our Emporium Candy Logo Package Dimensions ‏ ‎ 9.61 x 8.15 x 2.56 inches; 2 Pounds UPC ‏ ‎ 713091946781 Manufacturer ‏ ‎ Emporium Candy ASIN ‏ ‎ B07YST76HH #198 in Candy &amp; Chocolate Assortments &amp; Samplers Reviews 12 Write Your Own Review You&#x27;re reviewing: Goldenberg&#x27;s Dark Chocolate Peanu</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/goldenberg-s-dark-chocolate-peanut-chews-2-lbs-of-fresh-delicious-assorted-bulk-mini-bars-of-candy-with-refrigerator-magnet.html" target="_blank" rel="noreferrer">http://localhost:7770/goldenberg-s-dark-chocolate-peanut-chews-2-lbs-of-fresh-delicious-assorted-bulk-mini-bars-of-candy-with-refrigerator-magnet.html</a></p><p>冻结文件: <a href="sources/ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1" target="_blank">sources/ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1</a></p><p>内容 SHA-256: <code>ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_repacker_and_reputation_copy_not_dated_formula_or_taste_continuity&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Goldenberg page shows SKU B07YST76HH at 14.99 dollars, rated 95 percent over twelve reviews, and describes two pounds of mini peanut chews repackaged in a broad-allergen facility; its claim of the same quality and taste always known is seller copy without a dated ingredient, weight or sensory baseline and cannot prove recipe continuity, lack of shrinkflation, office safety or preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_hershey_offer_rating_scope"><header><h3>prop_hershey_offer_rating_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 22-dollar SKU rated 100 percent over two reviews and described as twelve individually wrapped 1.55-ounce milk-chocolate bars&quot;,
+  &quot;predicate&quot;: &quot;shows_a_perfect_displayed_rating_over_two_reviews_and_twelve_bars&quot;,
+  &quot;subject&quot;: &quot;frozen personalized Hershey seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_hershey_offer_rating_scope_1</code> | bytes [144, 269) | <code>85349a4c0d2929bd17bb179addffdf86101ae0b10bfd815d65a655e65855a7c9</code></div><pre class="context"><span>Hershey&#x27;s Personalized Milk Chocolate Bars, Classic Hershey Bars Pastel Spring Colors, Prime Idea for Mothers Day Gift, 1.55 ounce, Pack of 12
+
+</span><mark>In stock SKU B084Q44G26 Rating: 100 % of 100 2 Reviews Add Your Review $22.00 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look The classic Hershey&#x27;s milk chocolate all dressed up in spring colors! Perfect 1.55 ounces. Ideal for sharing &amp; gifting. The classic Hershey&#x27;s milk chocolate bar, all ready for gifting! Personalized gifting! Add that personal touch with the imprinted name tag on each individual wrapped bar. The pastel shades are perfect sweet addi</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_hershey_offer_rating_scope_2</code> | bytes [705, 770) | <code>0619fbfb5ffdad8f436f7b02224ff3a86b1ca71e52e90d27bbb27b02dd5063de</code></div><pre class="context"><span>d up in spring colors! Perfect 1.55 ounces. Ideal for sharing &amp; gifting. The classic Hershey&#x27;s milk chocolate bar, all ready for gifting! Personalized gifting! Add that personal touch with the imprinted name tag on each individual wrapped bar. The pastel shades are perfect sweet addition to you mother&#x27;s day gift, springtime party favor, birthday party gifts </span><mark>Each chocolate bar is individually wrapped and ideal for sharing.</mark><span> 1.55 ounces Each bar is 1.55 ounces. 12 Bars in total Package Dimensions ‏ ‎ 7.24 x 6.81 x 1.57 inches; 1.23 Pounds UPC ‏ ‎ 034000290253 Manufacturer ‏ ‎ Hershey&#x27;s ASIN ‏ ‎ B084Q44G26 #7,151 in Candy &amp; Chocolate Bars Reviews 2 Write Your Own Review You&#x27;re reviewing: Hershey&#x27;s Personalized Milk Chocolate Bars, Classic Hershey Bars Pastel Spri</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_hershey_offer_rating_scope_3</code> | bytes [783, 824) | <code>9b5f174916968ca8148daadfff17acea42af2fdcb151c78fcdac979982acef2a</code></div><pre class="context"><span>lassic Hershey&#x27;s milk chocolate bar, all ready for gifting! Personalized gifting! Add that personal touch with the imprinted name tag on each individual wrapped bar. The pastel shades are perfect sweet addition to you mother&#x27;s day gift, springtime party favor, birthday party gifts Each chocolate bar is individually wrapped and ideal for sharing. 1.55 ounces </span><mark>Each bar is 1.55 ounces. 12 Bars in total</mark><span> Package Dimensions ‏ ‎ 7.24 x 6.81 x 1.57 inches; 1.23 Pounds UPC ‏ ‎ 034000290253 Manufacturer ‏ ‎ Hershey&#x27;s ASIN ‏ ‎ B084Q44G26 #7,151 in Candy &amp; Chocolate Bars Reviews 2 Write Your Own Review You&#x27;re reviewing: Hershey&#x27;s Personalized Milk Chocolate Bars, Classic Hershey Bars Pastel Spring Colors, Prime Idea for Mothers Day Gift, 1.55 ounce</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/hershey-s-personalized-milk-chocolate-bars-classic-hershey-bars-pastel-spring-colors-prime-idea-for-mothers-day-gift-1-55-ounce-pack-of-12.html" target="_blank" rel="noreferrer">http://localhost:7770/hershey-s-personalized-milk-chocolate-bars-classic-hershey-bars-pastel-spring-colors-prime-idea-for-mothers-day-gift-1-55-ounce-pack-of-12.html</a></p><p>冻结文件: <a href="sources/6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4" target="_blank">sources/6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4</a></p><p>内容 SHA-256: <code>6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_copy_not_ingredient_formula_history_shrinkflation_or_office_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Hershey page shows SKU B084Q44G26 at 22.00 dollars, rated 100 percent over two reviews, and describes twelve individually wrapped 1.55-ounce milk-chocolate bars; the page does not establish a complete current ingredient panel, a manufacturer-confirmed recipe history, a dated old-versus-new net-weight pair, current delivered cost, or office acceptance.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_kinder_offer_rating_scope"><header><h3>prop_kinder_offer_rating_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 9.99-dollar SKU rated 98 percent over eight reviews and described as five 1.5-ounce packs with two wrapped bars per pack&quot;,
+  &quot;predicate&quot;: &quot;shows_a_high_displayed_rating_and_five_pack_offer&quot;,
+  &quot;subject&quot;: &quot;frozen Kinder Bueno seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_kinder_offer_rating_scope_1</code> | bytes [155, 278) | <code>f4148312eef1cd99024aa93f6a46690010317d06e76e4c2a89a636b1afeb75c0</code></div><pre class="context"><span>(Pack of 5) Kinder Bueno Crispy Creamy Chocolate Bar-Crispy Wafer with Creamy Nut Filling in Milk Chocolate- 2 bars per pack 1.5oz- Totoal 5 packs/ 7.5oz
+
+</span><mark>In stock SKU B08ZHJY8NY Rating: 98 % of 100 8 Reviews Add Your Review $9.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look (Pack of 5) Kinder Bueno Crispy Creamy Chocolate Bar-Crispy Wafer with Creamy Nut Filling in Milk Chocolate- 2 bars per pack 1.5oz- Totoal 5 packs/ 7.5oz ✔️ Great Value Pack: Total 5 (1.5oz) packs. ✔️Each pack contains TWO individually wrapped Kinder bars. ✔️Kinder Bueno is a unique chocolate bar with a taste experien</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_kinder_offer_rating_scope_2</code> | bytes [461, 508) | <code>4274039a885dcec4b9ef9867dbc92724240af98ff7232b585b086143aea97ac7</code></div><pre class="context"><span>colate- 2 bars per pack 1.5oz- Totoal 5 packs/ 7.5oz
+
+In stock SKU B08ZHJY8NY Rating: 98 % of 100 8 Reviews Add Your Review $9.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look (Pack of 5) Kinder Bueno Crispy Creamy Chocolate Bar-Crispy Wafer with Creamy Nut Filling in Milk Chocolate- 2 bars per pack 1.5oz- Totoal 5 packs/ 7.5oz </span><mark>✔️ Great Value Pack: Total 5 (1.5oz) packs.</mark><span> ✔️Each pack contains TWO individually wrapped Kinder bars. ✔️Kinder Bueno is a unique chocolate bar with a taste experience that defies expectation. Package Dimensions ‏ ‎ 6.3 x 6.3 x 2.76 inches; 1.5 Ounces UPC ‏ ‎ 745682927930 ASIN ‏ ‎ B08ZHJY8NY #761 in Candy &amp; Chocolate Bars Reviews 8 Write Your Own Review You&#x27;re reviewing: (Pack of </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_kinder_offer_rating_scope_3</code> | bytes [509, 571) | <code>79f6034be9d7f5ade2ff56c763907a638c23500975326b49c0003364dd96a027</code></div><pre class="context"><span>.5oz
+
+In stock SKU B08ZHJY8NY Rating: 98 % of 100 8 Reviews Add Your Review $9.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look (Pack of 5) Kinder Bueno Crispy Creamy Chocolate Bar-Crispy Wafer with Creamy Nut Filling in Milk Chocolate- 2 bars per pack 1.5oz- Totoal 5 packs/ 7.5oz ✔️ Great Value Pack: Total 5 (1.5oz) packs. </span><mark>✔️Each pack contains TWO individually wrapped Kinder bars.</mark><span> ✔️Kinder Bueno is a unique chocolate bar with a taste experience that defies expectation. Package Dimensions ‏ ‎ 6.3 x 6.3 x 2.76 inches; 1.5 Ounces UPC ‏ ‎ 745682927930 ASIN ‏ ‎ B08ZHJY8NY #761 in Candy &amp; Chocolate Bars Reviews 8 Write Your Own Review You&#x27;re reviewing: (Pack of 5) Kinder Bueno Crispy Creamy Chocolate Bar-Crispy Wafer with C</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/pack-of-5-kinder-bueno-crispy-creamy-chocolate-bar-crispy-wafer-with-creamy-nut-filling-in-milk-chocolate-2-bars-per-pack-1-5oz-totoal-5-packs-7-5oz.html" target="_blank" rel="noreferrer">http://localhost:7770/pack-of-5-kinder-bueno-crispy-creamy-chocolate-bar-crispy-wafer-with-creamy-nut-filling-in-milk-chocolate-2-bars-per-pack-1-5oz-totoal-5-packs-7-5oz.html</a></p><p>冻结文件: <a href="sources/149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e" target="_blank">sources/149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e</a></p><p>内容 SHA-256: <code>149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;current_seller_offer_copy_not_ingredient_formula_history_shrinkflation_or_office_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Kinder Bueno page shows SKU B08ZHJY8NY at 9.99 dollars, rated 98 percent over eight reviews, and describes five 1.5-ounce packs with two individually wrapped bars per pack; it does not provide a complete current ingredient panel, manufacturer-confirmed formula version, dated historical package pair, shrinkflation comparison, current delivered cost, or office preference result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_rating_disagreement_anecdote_scope"><header><h3>prop_rating_disagreement_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a books author reports rating popular high-average works one or two stars&quot;,
+  &quot;predicate&quot;: &quot;shows_one_person_disagreeing_with_high_averages_in_another_domain&quot;,
+  &quot;subject&quot;: &quot;popular-rating disagreement discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_rating_disagreement_anecdote_scope_1</code> | bytes [53, 202) | <code>cd930cd247343387d314cb33b2cab0596f7f558b63db955c9d894f449eb8c771</code></div><pre class="context"><span>what popular books have you rated one or two stars?
+
+</span><mark>i always feel like i’m reading a completely different book when i give a normally highly rated book two stars… or maybe some people are too nice.</mark><span> for example: i recently finished “The Kiss of Deception” and gave it 2 stars. it was actually terrible but is highly popular on TikTok… i might be at fault here other books i’ve rated two stars: • Twisted Love (awful) • Survive the Night (don’t know how this got approved) • Verity (explanatory) • Animal Farm (controversial i know) what boo</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_rating_disagreement_anecdote_scope_2</code> | bytes [554, 632) | <code>83ae1512256270d220ce15f64ea6331e6f01acbb44dcc284fa787585e275d7e8</code></div><pre class="context"><span>oo nice. for example: i recently finished “The Kiss of Deception” and gave it 2 stars. it was actually terrible but is highly popular on TikTok… i might be at fault here other books i’ve rated two stars: • Twisted Love (awful) • Survive the Night (don’t know how this got approved) • Verity (explanatory) • Animal Farm (controversial i know) </span><mark>what book with an average rating of 4 or more have you rated one or two stars?</mark><span> 0</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/books/103302/what-popular-books-have-you-rated-one-or-two-stars" target="_blank" rel="noreferrer">http://localhost:9999/f/books/103302/what-popular-books-have-you-rated-one-or-two-stars</a></p><p>冻结文件: <a href="sources/5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe" target="_blank">sources/5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe</a></p><p>内容 SHA-256: <code>5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;single_author_cross_domain_preference_not_product_rating_validity_or_office_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One books author reports personally rating popular works with high averages much lower; this illustrates possible individual-versus-aggregate disagreement in another domain but says nothing about the provenance, representativeness or validity of the four seller ratings and does not predict office chocolate preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_snack_temperature_anecdote_scope"><header><h3>prop_snack_temperature_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one construction worker prefers chilled chips and invites readers to test a favorite brand after refrigeration&quot;,
+  &quot;predicate&quot;: &quot;reports_a_temperature_linked_taste_difference&quot;,
+  &quot;subject&quot;: &quot;snack serving-temperature discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_snack_temperature_anecdote_scope_1</code> | bytes [153, 217) | <code>13d4e02bde1a0a90c7d397b4c9bdccb99e63a96164d2b8be75428b6711b0d69c</code></div><pre class="context"><span>LPT : Fridge your chips/snacks for a more satisfying, refreshing taste
+
+I work in construction, and have been bringing snacks/chips to work in a cooler. </span><mark>Anytime I eat it after it&#x27;s freshly cold it just hits different.</mark><span> It tastes so good, so satisfying, makes me want to fridge everything lol. Just thought I&#x27;d let others know in case someone hasn&#x27;t tried it! Test it for yourself! Pick your favorite brand chips, (Mine is Doritos) and fridge a zip lock bag full of em. Try it in like an hour or two and boom, you&#x27;ll never want to go back to room temp pantry chips 5
+
+Trying this</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_snack_temperature_anecdote_scope_2</code> | bytes [358, 467) | <code>eacbd9d0f13a9edd666686ae5bb5e7020ede89f1089cce08aa37fa0ba7ad5844</code></div><pre class="context"><span>LPT : Fridge your chips/snacks for a more satisfying, refreshing taste
+
+I work in construction, and have been bringing snacks/chips to work in a cooler. Anytime I eat it after it&#x27;s freshly cold it just hits different. It tastes so good, so satisfying, makes me want to fridge everything lol. Just thought I&#x27;d let others know in case someone hasn&#x27;t tried it! </span><mark>Test it for yourself! Pick your favorite brand chips, (Mine is Doritos) and fridge a zip lock bag full of em.</mark><span> Try it in like an hour or two and boom, you&#x27;ll never want to go back to room temp pantry chips 5
+
+Trying this this evening - will report back…
+
+8/10 - would recommend
+
+Please do :) I&#x27;m curious what others think
+
+Refrigerant lobby loves this one simple trick!
+
+Hello and welcome to r/LifeProTips! Please help us decide if this post is a good fit for the subr</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_snack_temperature_anecdote_scope_3</code> | bytes [614, 636) | <code>53b19b755a6d36e293fb6750abd200cf589c18deabfde9114d0ddef21eacc8a9</code></div><pre class="context"><span>kes me want to fridge everything lol. Just thought I&#x27;d let others know in case someone hasn&#x27;t tried it! Test it for yourself! Pick your favorite brand chips, (Mine is Doritos) and fridge a zip lock bag full of em. Try it in like an hour or two and boom, you&#x27;ll never want to go back to room temp pantry chips 5
+
+Trying this this evening - will report back…
+
+</span><mark>8/10 - would recommend</mark><span>
+
+Please do :) I&#x27;m curious what others think
+
+Refrigerant lobby loves this one simple trick!
+
+Hello and welcome to r/LifeProTips! Please help us decide if this post is a good fit for the subreddit by up or downvoting this comment. If you think that this is great advice to improve your life, please upvote. If you think this doesn&#x27;t help you in any way, please</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/120115/lpt-fridge-your-chips-snacks-for-a-more-satisfying" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/120115/lpt-fridge-your-chips-snacks-for-a-more-satisfying</a></p><p>冻结文件: <a href="sources/3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197" target="_blank">sources/3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197</a></p><p>内容 SHA-256: <code>3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_snack_brand_temperature_and_time_specific_anecdote_not_chocolate_trial_result&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The snack thread contains one author&#x27;s preference for freshly chilled chips, an invitation to test a favorite brand after refrigeration, and one 8-out-of-10 reply; it motivates matching serving temperature but does not establish a universal temperature effect, a chocolate result, recipe continuity, shrinkflation or office preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_unit_price_comparable_scope"><header><h3>prop_unit_price_comparable_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;price per common weight or volume supports package comparison only after variants and product forms are normalized&quot;,
+  &quot;predicate&quot;: &quot;requires_comparable_units_across_sizes_forms_and_configurations&quot;,
+  &quot;subject&quot;: &quot;unit-price comparison across packages&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_unit_price_comparable_scope_1</code> | bytes [147, 247) | <code>94c8e9bfe32f4c01ad2f488a39e9f458a17e1f0c205240ac4386a1cf730ce005</code></div><pre class="context"><span>Not to be confused with Unit cost . A product&#x27;s average price is the result of dividing the product&#x27;s total sales revenue by the total units sold. </span><mark>When one product is sold in variants, such as bottle sizes, managers must define &quot;comparable&quot; units.</mark><span> Average prices can be calculated by weighting different unit selling prices by the percentage of unit sales (mix) for each product variant. If we use a standard, rather than an actual mix of sizes and product varieties, the result is price per statistical unit. Statistical units are also called equivalent units. Average price per unit and prices per statist</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_unit_price_comparable_scope_2</code> | bytes [562, 755) | <code>44b20f6086a0c9ea10511ea80ddc75a8a0ddceb127465ecc67747358177dd142</code></div><pre class="context"><span>zes, managers must define &quot;comparable&quot; units. Average prices can be calculated by weighting different unit selling prices by the percentage of unit sales (mix) for each product variant. If we use a standard, rather than an actual mix of sizes and product varieties, the result is price per statistical unit. Statistical units are also called equivalent units. </span><mark>Average price per unit and prices per statistical unit are needed by marketers who sell the same product in different packages, sizes, forms, or configurations at a variety of different prices.</mark><span> As in analyses of different channels, these product and price variations must be reflected accurately in overall average prices. If they are not, marketers may lose sight of what is happening to prices and why. If the price of each product variant remained unchanged, for example, but there was a shift in the mix of volume sold, then the average price per un</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_unit_price_comparable_scope_3</code> | bytes [1623, 1735) | <code>4a284bc98b46f084510574adc79fd9a9d87fa40e3ac77b3e4a685f2d69605ca4</code></div><pre class="context"><span>ly 200 senior marketing managers, 51 percent responded that they found the &quot;average price per unit&quot; metric very useful in managing and monitoring their businesses, while only 16% found &quot;price per statistical unit&quot; very useful. [ 1 ] In retail , unit price is the price for a single unit of measure of a product sold in more or less than the single unit. [ 2 ] </span><mark>The &quot;unit price&quot; tells the buyer the cost per pound, quart, or other unit of weight or volume of a food package.</mark><span> It is usually posted on the shelf below the food. The shelf tag shows the total price (item price) and price per unit (unit price) for the food item. Research suggests that unit price information in supermarkets can lead shoppers to save around 17-18% when they are educated on how to use it, but that this figure drops off over time. [ 3 ] Unit price is also</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Unit_price" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Unit_price</a></p><p>冻结文件: <a href="sources/f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297" target="_blank">sources/f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297</a></p><p>内容 SHA-256: <code>f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_comparison_method_not_historical_price_or_shrinkflation_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;office_candy_rating_recipe_and_shrinkflation_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The unit-price page says variants need comparable units, that package size, form and configuration differences must be reflected, and that food unit price can be expressed per common weight or volume; it supplies a comparison method but no historical price, matched old package, exact current delivered total or shrinkflation proof for the four offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_rating_recipe_shrinkflation_0046</td><td>case_spec</td><td><a href="sources/f0d8c20720815a0693a707490fde0e446548eafb4dde9fc5132f4d00613600eb">f0d8c20720815a0693a707490fde0e446548eafb4dde9fc5132f4d00613600eb</a></td><td><a href="http://case-spec.local/dra_v3_formal_snacks_chocolate_0046" target="_blank" rel="noreferrer">来源 URL</a></td><td>10410</td></tr><tr><td>reg_magento_godiva_mini_bars_0046</td><td>magento</td><td><a href="sources/a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb">a3830331715d4ab06d9c64d9b65b72967b179522875d878599d52c6f73d7d9bb</a></td><td><a href="http://localhost:7770/godiva-chocolatier-signature-mini-bars-set-of-6-8pc-each-variety-pack-roasted-almond-dark-chocolate-72-cacao-dark-salted-caramel-milk-chocolate-by-candy-cabin.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1845</td></tr><tr><td>reg_magento_goldenberg_peanut_chews_0046</td><td>magento</td><td><a href="sources/ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1">ccbc4ed0ced29a4d5b6706f6c7c7e55e74706b15f812ce6cb789aa6b13ff4ab1</a></td><td><a href="http://localhost:7770/goldenberg-s-dark-chocolate-peanut-chews-2-lbs-of-fresh-delicious-assorted-bulk-mini-bars-of-candy-with-refrigerator-magnet.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1469</td></tr><tr><td>reg_magento_hershey_personalized_0046</td><td>magento</td><td><a href="sources/6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4">6299bd08e706672feee8417ad9b5e9fb9f5e1f66da6c293d0dfa3f7638465dc4</a></td><td><a href="http://localhost:7770/hershey-s-personalized-milk-chocolate-bars-classic-hershey-bars-pastel-spring-colors-prime-idea-for-mothers-day-gift-1-55-ounce-pack-of-12.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1292</td></tr><tr><td>reg_magento_kinder_bueno_0046</td><td>magento</td><td><a href="sources/149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e">149e0bfaf53a55cacbaf89bcfd683c3a654c6fd10ceaa18e682a24aea4ebef3e</a></td><td><a href="http://localhost:7770/pack-of-5-kinder-bueno-crispy-creamy-chocolate-bar-crispy-wafer-with-creamy-nut-filling-in-milk-chocolate-2-bars-per-pack-1-5oz-totoal-5-packs-7-5oz.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1108</td></tr><tr><td>reg_postmill_bifl_quality_decline_0046</td><td>postmill</td><td><a href="sources/53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78">53d5599084462700029ef3016b05cc1e617184be28a618bfd8756688cb092b78</a></td><td><a href="http://localhost:9999/f/BuyItForLife/118455/bifl-products-that-are-at-their-peak-right-now" target="_blank" rel="noreferrer">来源 URL</a></td><td>1959</td></tr><tr><td>reg_postmill_books_rating_disagreement_0046</td><td>postmill</td><td><a href="sources/5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe">5baae3f6d6db3a18ab6e201b650ee16031f72b8f0623a22cb222cd60f5523dbe</a></td><td><a href="http://localhost:9999/f/books/103302/what-popular-books-have-you-rated-one-or-two-stars" target="_blank" rel="noreferrer">来源 URL</a></td><td>634</td></tr><tr><td>reg_postmill_snack_temperature_0046</td><td>postmill</td><td><a href="sources/3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197">3bf12ab2346b5f3061b32245377122f44097c435c4b3ff72a87ec7ee97d2c197</a></td><td><a href="http://localhost:9999/f/LifeProTips/120115/lpt-fridge-your-chips-snacks-for-a-more-satisfying" target="_blank" rel="noreferrer">来源 URL</a></td><td>1238</td></tr><tr><td>reg_search_bifl_quality_decline</td><td>search_result</td><td><a href="sources/457dd60c3ebf1797523583639a70a1a082b43483d225fde03fd19bc7c1d2ab2d">457dd60c3ebf1797523583639a70a1a082b43483d225fde03fd19bc7c1d2ab2d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=de7e6be1-4a22-4da9-9b31-6cc4e1b2e8ab" target="_blank" rel="noreferrer">来源 URL</a></td><td>58490</td></tr><tr><td>reg_search_couverture</td><td>search_result</td><td><a href="sources/f9f17ef85e60f0322988448a7e34da568347262e5b13f86f5bdc21c8e851c814">f9f17ef85e60f0322988448a7e34da568347262e5b13f86f5bdc21c8e851c814</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=6965e37b-650b-41cd-8fc0-5ab3edafbc67" target="_blank" rel="noreferrer">来源 URL</a></td><td>3876</td></tr><tr><td>reg_search_food_labeling</td><td>search_result</td><td><a href="sources/3d1fb4d163a391b045b769083876eb469365e86ae7b6fbca5aadc21a7f9c1cbd">3d1fb4d163a391b045b769083876eb469365e86ae7b6fbca5aadc21a7f9c1cbd</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=f5b96e77-7ea5-45ed-a7fd-d991aee48a09" target="_blank" rel="noreferrer">来源 URL</a></td><td>61719</td></tr><tr><td>reg_search_godiva_mini_bars</td><td>search_result</td><td><a href="sources/c6c3858f9f99a37332428f90e32b39f9f23c380912d52eeeb5e897ba00e709be">c6c3858f9f99a37332428f90e32b39f9f23c380912d52eeeb5e897ba00e709be</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=997512dc-9251-4167-8790-36b7ce43b296" target="_blank" rel="noreferrer">来源 URL</a></td><td>7189</td></tr><tr><td>reg_search_goldenberg_peanut_chews</td><td>search_result</td><td><a href="sources/383b901f3694c2e8fddd4e5d500c3288ba85cb80faed2453eed1cc5ca53eb5df">383b901f3694c2e8fddd4e5d500c3288ba85cb80faed2453eed1cc5ca53eb5df</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=5fbb4c78-6be1-436a-b54d-6d441d4ca833" target="_blank" rel="noreferrer">来源 URL</a></td><td>5840</td></tr><tr><td>reg_search_hershey_personalized</td><td>search_result</td><td><a href="sources/377e96ab473ff7e193cc6961ff6b437ae7abb5675e2da20041d68e520aedcf1e">377e96ab473ff7e193cc6961ff6b437ae7abb5675e2da20041d68e520aedcf1e</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=c273907c-a391-4ea0-bebd-aaf0bd96f14c" target="_blank" rel="noreferrer">来源 URL</a></td><td>5993</td></tr><tr><td>reg_search_kinder_bueno</td><td>search_result</td><td><a href="sources/bdb7f5c1f0ce6a7f233275ebac8cd0669adc3dd4b1be7341f945ff15a63c7c7c">bdb7f5c1f0ce6a7f233275ebac8cd0669adc3dd4b1be7341f945ff15a63c7c7c</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=a5db7b3f-b864-4d03-b516-7b3c7b0f5d8a" target="_blank" rel="noreferrer">来源 URL</a></td><td>5621</td></tr><tr><td>reg_search_rating_disagreement</td><td>search_result</td><td><a href="sources/75c9bbf1d174121b511209a4b49ceded26aa58a4c3287dc296736a573cc2e42f">75c9bbf1d174121b511209a4b49ceded26aa58a4c3287dc296736a573cc2e42f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=604b79ab-ae42-4e91-bc22-a1c7d1713f63" target="_blank" rel="noreferrer">来源 URL</a></td><td>61695</td></tr><tr><td>reg_search_snack_temperature</td><td>search_result</td><td><a href="sources/12e3c18a32877bfb101e0234daae06038d5dc5ba9f068a06c2d6c88bb38ee5af">12e3c18a32877bfb101e0234daae06038d5dc5ba9f068a06c2d6c88bb38ee5af</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=e1086404-f7ea-4763-b435-c7b0b644e30c" target="_blank" rel="noreferrer">来源 URL</a></td><td>51808</td></tr><tr><td>reg_search_types_chocolate</td><td>search_result</td><td><a href="sources/16f5168df12a96f511eb32f251fd80aab13b028871bedd7d0a89cc436658507e">16f5168df12a96f511eb32f251fd80aab13b028871bedd7d0a89cc436658507e</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=68c32040-4959-4079-8499-aa9ce334c1b3" target="_blank" rel="noreferrer">来源 URL</a></td><td>7589</td></tr><tr><td>reg_search_unit_price</td><td>search_result</td><td><a href="sources/d1cc3a0c4ae0a4e5d55c0d7a022151ebb85525907c4f82080a2fef77c879ee42">d1cc3a0c4ae0a4e5d55c0d7a022151ebb85525907c4f82080a2fef77c879ee42</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1&amp;request_id=cc659de5-1346-4dfa-a79a-11fda6b59c7e" target="_blank" rel="noreferrer">来源 URL</a></td><td>61061</td></tr><tr><td>reg_wikipedia_couverture_0046</td><td>wikipedia</td><td><a href="sources/ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854">ff2cb58c74abf6cab2c0be57110c3b695c3efd4542a0814e6f9f1ae43cf0f854</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Couverture_chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>5784</td></tr><tr><td>reg_wikipedia_food_labeling_regulations_0046</td><td>wikipedia</td><td><a href="sources/a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b">a98a1efce9803f532d6cafdb7f4797478bb1225420f9c71e78bd19c2b3a5046b</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/List_of_food_labeling_regulations" target="_blank" rel="noreferrer">来源 URL</a></td><td>17906</td></tr><tr><td>reg_wikipedia_types_chocolate_0046</td><td>wikipedia</td><td><a href="sources/788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df">788d21e0ef277efb1112160ff1e251fec600de1a8c901ea083873b6bc60c65df</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>20763</td></tr><tr><td>reg_wikipedia_unit_price_0046</td><td>wikipedia</td><td><a href="sources/f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297">f1d3c72e54c8f7c393206e4a79d279707df1786877fcb5e690dc0996e0217297</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Unit_price" target="_blank" rel="noreferrer">来源 URL</a></td><td>8921</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-snacks-chocolate-0046-rating-recipe-shrinkflation-boundary-20260716-r1";
+const graphHash = "c1ae51a1f3e2370a88c84456ec0e3ced8fc9bfc174e509f556eb9f9f9d4e27a1";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

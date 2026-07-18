@@ -9,6 +9,8 @@ returned as-is rather than replaced by a synthesized/templated stand-in.
 from __future__ import annotations
 
 import ast
+import re
+from urllib.parse import urlparse
 
 from scripts.runners import ldr_runner as ldr
 from scripts.runners.registry import discover
@@ -65,6 +67,83 @@ def test_build_driver_script_is_valid_python() -> None:
     assert ldr._REPORT_END in drv
 
 
+def test_driver_registers_supported_sandbox_retriever() -> None:
+    """Use LDR's public custom-retriever API inside the no-DNS worker.
+
+    The built-in Tavily engine resolves/validates api.tavily.com before an HTTP
+    rewrite runs, so it silently produces no results in the formal namespace.
+    The registered retriever must relay only LDR's own queries to shim /search.
+    """
+    drv = ldr._build_driver_script(
+        "task", "http://localhost:8081", "http://localhost:8088/v1", "qwen3-8b"
+    )
+    assert "class DraSandboxRetriever(BaseRetriever):" in drv
+    assert '"search.tool": RETRIEVER_NAME' in drv
+    assert "retrievers={RETRIEVER_NAME: _retriever}" in drv
+    assert "search_tool=RETRIEVER_NAME" in drv
+    assert "self.shim_url.rstrip('/') + '/search'" in drv
+    assert '"search.engine.web.tavily.api_key"' not in drv
+
+
+def test_driver_keeps_only_canonical_sandbox_source_urls() -> None:
+    """Embedded links in a sandbox post are content, not source identities.
+
+    LDR's section writer promotes URL-looking text from Document bodies into
+    citations.  The adapter must therefore retain localhost corpus URLs while
+    omitting public outbound URL tokens before the Document enters LDR.
+    """
+    drv = ldr._build_driver_script(
+        "task", "http://localhost:8081", "http://localhost:8088/v1", "qwen3-8b"
+    )
+    tree = ast.parse(drv)
+    klass = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.ClassDef) and node.name == "DraSandboxRetriever"
+    )
+    methods = [
+        node
+        for node in klass.body
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name in {"_is_sandbox_source_url", "_sanitize_snippet"}
+    ]
+    test_class = ast.ClassDef(
+        name="RetrieverForTest",
+        bases=[],
+        keywords=[],
+        body=methods,
+        decorator_list=[],
+    )
+    namespace = {"re": re, "urlparse": urlparse}
+    ast.fix_missing_locations(test_class)
+    exec(compile(ast.Module(body=[test_class], type_ignores=[]), "<ldr-test>", "exec"), namespace)
+    cls = namespace["RetrieverForTest"]
+
+    text, omitted = cls._sanitize_snippet(
+        "Quoted public link https://example.com/review plus canonical "
+        "http://localhost:9999/f/headphones/1 and "
+        "http://127.0.0.1:7770/product.html."
+    )
+    assert omitted == 1
+    assert "example.com" not in text
+    assert "[external URL omitted]" in text
+    assert "http://localhost:9999/f/headphones/1" in text
+    assert "http://127.0.0.1:7770/product.html" in text
+    assert cls._is_sandbox_source_url("https://soundguys.com/review") is False
+
+
+def test_driver_connectivity_preflight_retains_no_sources() -> None:
+    drv = ldr._build_driver_script(
+        "task", "http://localhost:8081", "http://localhost:8088/v1", "qwen3-8b"
+    )
+    assert "SHIM.rstrip('/') + '/healthz'" in drv
+    # The preflight is health-only; task search happens solely in the retriever.
+    preflight = drv.split("# Connectivity-only preflight:", 1)[1].split(
+        "settings = create_settings_snapshot", 1
+    )[0]
+    assert "'/search'" not in preflight
+
+
 def test_build_driver_script_does_not_hardcode_context_length() -> None:
     """The lane must stay correct across the planned vLLM 65536/YaRN move and
     glm-4.7-flash@200k -- no context/window constant baked into the driver.
@@ -90,17 +169,16 @@ def test_extract_report_missing_sentinels_returns_empty() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Source-capture fix: LDR returns its retrieved URL table in the sibling
-# `sources` field (all_links_of_system); the narrative in `summary` cites those
-# sources by bracketed [N] only. The old capture read just `summary`, dropping
-# every localhost URL regardless of backbone. The driver now also emits the
-# sources list, and the parent re-attaches it -- faithful capture, not
-# fabricated grounding.
+# Source-capture fix: LDR's ``detailed_research()`` API returns an intermediate
+# summary whose bracketed citations have no inline URL table.  Its native
+# ``generate_report()`` API performs the actual report stage and appends LDR's
+# own ``## Sources`` mapping.  The harness must capture that native report,
+# never synthesize or append a source block itself.
 # ---------------------------------------------------------------------------
 
 def test_driver_emits_sources_block() -> None:
-    """The generated driver must serialize LDR's `sources` field between the
-    sources sentinels so the parent can resolve [N] citations to real URLs.
+    """The generated driver mirrors URLs already in the native report between
+    diagnostic sentinels without modifying the scored report.
     """
     drv = ldr._build_driver_script(
         "task", "http://localhost:8081", "http://localhost:8088/v1", "qwen3-8b"
@@ -109,8 +187,26 @@ def test_driver_emits_sources_block() -> None:
     _ast.parse(drv)
     assert ldr._SOURCES_START in drv
     assert ldr._SOURCES_END in drv
-    # It must read LDR's own sources field, not synthesize links.
-    assert 'result.get("sources")' in drv
+    assert "generate_report(" in drv
+    assert 'result.get("content")' in drv
+    assert "detailed_research(" not in drv
+    assert "_sources.append({\"url\": _url})" in drv
+
+
+def test_driver_keeps_shared_long_query_searchable() -> None:
+    """The shared task/report prompt is longer than LDR's 300-char default.
+
+    Preserve the native ``search_original_query=True`` behavior for exactly the
+    supplied task length, so a formatting miss in the old follow-up-question
+    parser cannot silently turn the run into zero searches.
+    """
+    drv = ldr._build_driver_script(
+        "x" * 900,
+        "http://localhost:8081",
+        "http://localhost:8088/v1",
+        "qwen3-8b",
+    )
+    assert '"app.max_user_query_length": max(300, len(BASE_QUERY))' in drv
 
 
 def test_extract_sources_roundtrip() -> None:
@@ -130,6 +226,30 @@ def test_extract_sources_missing_or_bad_returns_empty() -> None:
     assert ldr._extract_sources("no sentinels") == []
     bad = f"{ldr._SOURCES_START}\nnot json\n{ldr._SOURCES_END}"
     assert ldr._extract_sources(bad) == []
+
+
+def test_extract_diagnostics_roundtrip() -> None:
+    import json
+
+    payload = {
+        "retriever": "dra_sandbox",
+        "health_ok": True,
+        "calls": 4,
+        "results": 27,
+        "errors": 0,
+        "report_urls": 9,
+    }
+    stdout = (
+        f"{ldr._DIAGNOSTICS_START}\n{json.dumps(payload)}\n"
+        f"{ldr._DIAGNOSTICS_END}\n"
+    )
+    assert ldr._extract_diagnostics(stdout) == payload
+
+
+def test_extract_diagnostics_missing_or_bad_returns_empty() -> None:
+    assert ldr._extract_diagnostics("no sentinels") == {}
+    bad = f"{ldr._DIAGNOSTICS_START}\nnot json\n{ldr._DIAGNOSTICS_END}"
+    assert ldr._extract_diagnostics(bad) == {}
 
 
 def test_sources_diagnostic_collects_urls_without_touching_the_report() -> None:

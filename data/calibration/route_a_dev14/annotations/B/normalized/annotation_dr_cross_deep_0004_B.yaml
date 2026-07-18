@@ -1,0 +1,70 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0004
+query_sha256: "ccbfd0c8c7321686c1d769974a95a1bca776e36ecb55a374bba9d245582e9899"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 产出具体的购买建议。
+
+  Q2: 包含三种购买方式（新微单+镜头、二手单反套装、其他方案）的对比，时间段要近期有时效性。
+
+  Q3: 没有明确要求解释原理或事实性主张，主要是偏主观的购买建议。
+
+  Q4: 用户是初学者，必须考虑这个定位。
+
+  Q5: 没有明确要求，但需要真正的摄影师的经验。
+
+  Q6: 不可省略：具体购买建议、三种方案对比、初学者适配性分析、$800预算约束、摄影师经验建议、时效性。
+
+  Q7: 没有特别模糊的内容。
+
+initial_requirements:
+  - 对比三种方案（新微单、二手单反、其他方案）
+  - 基于$800预算给出购买建议
+  - 评估初学者适配性
+  - 包含摄影师给初学者的经验
+  - 确保时效性
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 对比分析三种方案（新微单+镜头、二手单反套装、其他方案）在$800预算内的可选项和优劣势，给出具体购买建议，且推荐产品必须是近期在售可行的
+    necessity_reason: |-
+      Query 明确要求"what would you do with $800" 和 "lay out the trade-offs"，
+      省略此条则用户既得不到方案对比也落不了地。
+      时效性确保建议可执行，隐含在"setup"和"buy"的实用性要求中。
+    query_basis: "what would you do with $800? Lay out the trade-offs for me"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 评估每种方案对初学者的适配性，确保不会"三个月就不够用"或买错，并包含真正摄影师给初学者的经验建议
+    necessity_reason: |-
+      Query 明确要求"what do actual photographers tell beginners"，
+      且用户明确担心"outgrow it in three months"和"blow the budget"，
+      缺乏初学者视角和摄影师经验则回答缺乏可信度和个性化适配。
+    query_basis: "\"what do actual photographers tell beginners\" + \"I really don't want to outgrow it in three months\""
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 明确要求"what actual photographers tell beginners"，论坛/社区中摄影师的真实经验在此不可替代
+
+optional_items: []
+
+ambiguities:
+  - phrase: "around $800"
+    note: 浮动范围不明确（$700-$900？$750-$850？）
+  - phrase: "a lens or two"
+    note: 具体焦段/类型不明确（套头、定焦、变焦？）
+  - phrase: "something else entirely"
+    note: "\"完全另辟蹊径\"边界开放，不同标注者可能理解不同"
+  - phrase: "outgrow it in three months"
+    note: "\"不够用\"的标准不明确（画质、功能、操控性？）"
+
+unresolved: []
+
+evidence_answerability: not_assessed

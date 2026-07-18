@@ -1,0 +1,296 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_console_0014",
+  "cluster_id": "console_specs_claim_chain",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.5,
+    "contradiction_count": 2
+  },
+  "rule_definitions": {
+    "complete_console_and_listing_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The frozen marketplace title claims a PS5 disc console with an eight-core Zen CPU, RDNA 2 graphics, 16 GB GDDR6, an 825 GB SSD, one controller, and a skin, but the complete body is $52.47, has no review yet, identifies the brand as Hubxcel, and says the hardware platform is PlayStation 4. It is not a trustworthy verified PS5 offer. The PlayStation 5 page describes a custom SSD, an AMD GPU capable of 4K display at up to 120 frames per second, hardware-accelerated ray tracing, and an HDMI 2.1 output. Those are device capabilities, not a promise that every game combines native 4K, 120 FPS, and ray tracing. The Xbox page says Series X was designed to nominally render 2160p at 60 FPS, while Series S was designed for nominal 1440p at 60 FPS with 4K upscaling and ray tracing; it separately says Series S can go as high as 120 FPS at that resolution and that selected games can output native 4K. The frozen evidence does not establish current street prices or a universal winner for unfrozen games."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "game_mode_and_marketing_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "A console ceiling, a 4K label, and a ray-tracing capability must be checked against a named game and patch mode. The frozen Rift Apart page provides the decisive concrete counterexample: after a launch-day patch it offers a 4K-resolution fidelity mode at 30 FPS and two 60 FPS modes, Performance and Performance Ray-Tracing, at a lower base resolution. Its platform list is PlayStation 5 and Windows, so this one representative game supports a conditional PS5 route, but only for that workload. The ray-tracing concept page says ray-tracing techniques are generally slower and higher fidelity than scanline rendering and historically less suited to real time because every frame has a deadline. The 4K page says 4K is a generic horizontal-resolution family and that 4K and Ultra HD are widely used in marketing. The community thread correctly raises finite compute and quality/performance trade-offs, but its anonymous explanations are not measurements of either console or an authority for other games."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "display_hdmi_refresh_chain_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "FPS is the rate at which a system such as a GPU generates frames, while refresh rate is the rate at which a display shows completed frames. The refresh-rate page says refresh rate is independent from frame rate and determines the highest frame rate that can be displayed. Therefore the scenario's reported 60 Hz television cannot display 120 distinct frames per second in that mode even if the console and game can generate or output them. The HDMI page says source devices read a display's E-EDID to learn which audio and video formats it accepts, reinforcing that the sink matters. The VRR page says a supporting display has a specific VRR range and matches its refresh to the incoming frame rate within that range. A console's HDMI 2.1 output or VRR support does not prove that the intended television port, cable, input setting, and supported range complete the chain. Preflight the exact port, cable, TV input mode, accepted 3840 by 2160 refresh modes, HDR mode, and VRR range, then confirm the console's detected-output screen and the chosen game's mode."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "storage_and_loading_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "An SSD is technically meaningful but does not erase software and workload boundaries. The generic SSD page says SSDs have no moving parts and provide faster data access and reduced latency relative to hard disks. The PS5 page says reducing loading time was an important design goal. The Xbox page says both models have SSDs to reduce loading times. Rift Apart ties its custom SSD and greater processing power to more objects and effects and says its design aims to significantly reduce loading times when jumping between worlds. None of these exact statements says every loading screen in every game is eliminated, and no frozen page measures the buyer's complete game library. Audit per-game load behavior, installation location, patch, and transitions rather than converting an SSD label into a universal zero-load claim."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "evidence_bounded_console_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Do not purchase the $52.47 marketplace listing from its headline, and do not choose a console from 4K120, ray tracing, teraflops, SSD, or HDMI 2.1 stickers alone. On the one frozen game-specific workload, PlayStation 5 is the only conditionally supported console route because Rift Apart is listed for PS5 and provides explicit 4K/30 and lower-base-resolution/60 modes, including Performance Ray-Tracing. That does not prove simultaneous native 4K, 120 FPS, and ray tracing, nor does the scenario's 60 Hz display expose a 120 FPS benefit. If Rift Apart is truly the buyer's priority, choose a verified real PS5 listing only after the exact game mode and display-chain preflight. If the buyer instead needs a cross-platform or Xbox title comparison, defer: the frozen corpus does not contain matched game-mode measurements, current prices, or library preferences that justify a PS5-versus-Series-X winner. Series S must be described as nominal 1440p/60 with 4K upscaling and selected exceptions, not as a universal native-4K substitute."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "choose_playstation_5_after_real_listing_game_mode_and_display_chain_preflight": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Choose a verified real PlayStation 5 after the Rift Apart game-mode and complete display-chain preflight, not from the frozen marketplace headline.",
+            "For Rift Apart as the priority workload, conditionally choose PS5 only after verifying a real listing, the intended game mode, and the full television chain."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        },
+        "defer_console_purchase_pending_target_game_mode_display_chain_and_real_listing_evidence": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Defer the console purchase until matched target-game modes, the complete display chain, current prices, and a real listing are verified.",
+            "If Rift Apart is not the deciding workload, defer because the frozen corpus cannot choose PS5 versus Series X for unfrozen games or current prices."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "choose_playstation_5_after_real_listing_game_mode_and_display_chain_preflight",
+          "when": "rift_apart_is_the_priority_and_real_listing_and_display_preflight_pass",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": ["Rift Apart is the priority workload, a real PS5 listing is verified, and the intended television chain supports the chosen game mode."],
+            "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+          },
+          "tradeoff_matchers": {
+            "game_specific_support_not_universal_winner": {
+              "matcher": "normalized_text",
+              "accepted_phrases": ["The PS5 route is supported for the frozen Rift Apart workload, not as a universal winner for every game."],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "mode_tradeoff": {
+              "matcher": "normalized_text",
+              "accepted_phrases": ["Rift Apart trades 4K fidelity at 30 FPS against 60 FPS modes at lower base resolution, including Performance Ray-Tracing."],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "display_and_listing_preflight": {
+              "matcher": "normalized_text",
+              "accepted_phrases": ["Verify a real console listing and the exact TV port, cable, input mode, accepted resolution and refresh, HDR, and VRR range before purchase."],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            }
+          }
+        },
+        {
+          "answer": "defer_console_purchase_pending_target_game_mode_display_chain_and_real_listing_evidence",
+          "when": "cross_platform_or_xbox_games_or_current_price_are_decisive",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": ["Cross-platform or Xbox games, current price, or an unverified display chain are decisive instead of the one frozen Rift Apart workload."],
+            "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+          },
+          "tradeoff_matchers": {
+            "matched_modes_missing": {
+              "matcher": "normalized_text",
+              "accepted_phrases": ["The frozen corpus lacks matched PS5 and Series X mode measurements for the buyer's other target games."],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "current_prices_missing": {
+              "matcher": "normalized_text",
+              "accepted_phrases": ["The frozen evidence does not establish current street prices or a trustworthy checkout listing."],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            },
+            "preflight_preserves_options": {
+              "matcher": "normalized_text",
+              "accepted_phrases": ["Deferral preserves both console options while the target games, display chain, and real listings are verified."],
+              "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_ps5_ceiling_is_every_game_mode",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["PlayStation 5 runs every game at simultaneous native 4K, 120 FPS, and ray tracing because the device page lists all three capabilities."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_marketplace_headline_is_verified_console",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The $52.47 marketplace headline proves the listing is a genuine reviewed PS5 console despite the Hubxcel and PlayStation 4 body fields."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_series_s_is_universal_native_4k",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["Xbox Series S universally renders every game at native 4K and 120 FPS."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_rift_60_modes_are_4k_fidelity_mode",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["Rift Apart's 60 FPS Performance and Performance Ray-Tracing modes are the same 4K-resolution fidelity mode with no resolution trade-off."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_sixty_hz_displays_120_frames",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The television can display 120 distinct frames per second while operating in its reported 60 Hz mode."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_hdmi_output_proves_complete_chain",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["A console HDMI 2.1 output proves that every television port, cable, input setting, and refresh range supports every advertised mode."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_ssd_eliminates_every_loading_screen",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["An SSD label guarantees that every loading screen in every game and transition disappears."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_forum_is_console_benchmark",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The anonymous community explanations are controlled benchmark measurements of PS5 and Xbox Series X."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_current_prices_are_frozen",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The frozen pages establish trustworthy current street prices for a real PS5, Series X, and Series S checkout."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_unconditional_console_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["One console is the unconditional winner from the spec headlines without checking target-game modes, display chain, real listing, or current price."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build the complete seller, PlayStation 5, Series X, and Series S claim matrix while preserving title-versus-body identity, device maxima, nominal targets, upscaling, selected exceptions, and missing current-price evidence.",
+      "critical": true,
+      "requires": ["E1", "E2", "E4", "B1"],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Test console ceilings against the frozen Rift Apart patch modes and the 4K, ray-tracing, and community-scope boundaries instead of concatenating marketing labels.",
+      "critical": true,
+      "requires": ["E1", "E3", "E4", "E5", "E6", "E9", "B3"],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Trace game-generated FPS through console output, HDMI sink negotiation, display refresh and resolution, HDR, and the supported VRR range; state why the reported 60 Hz mode cannot display 120 distinct FPS.",
+      "critical": true,
+      "requires": ["E1", "E4", "E6", "E7", "E8", "E10", "E12", "B2"],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Separate faster SSD access and game-specific loading reduction from a universal zero-loading-screen claim across the buyer's library.",
+      "critical": true,
+      "requires": ["E1", "E3", "E4", "E11", "B4"],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Make a conditional PS5 recommendation for the representative Rift Apart workload or defer for other workloads, preserving every listing, mode, display, loading, community, and missing-price boundary.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "B1", "B2", "B3", "B4", "D1"],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit the complete frozen seller body and the PlayStation 5, Series X, and Series S profiles; preserve the title/body mismatch, device ceilings, nominal targets, upscaling, selected exceptions, and absence of trustworthy current prices.",
+      "slot_ids": ["E1", "E2", "E4", "B1"],
+      "subgoal_ids": ["G1"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Use the named Rift Apart patch modes to decide what 4K, 60 FPS, 120 FPS, and ray tracing can actually mean; separate native render, upscale, output, and marketing, and scope the anonymous thread as non-benchmark evidence.",
+      "slot_ids": ["E1", "E3", "E4", "E5", "E6", "E9", "B3"],
+      "subgoal_ids": ["G2"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Trace the whole game-to-screen chain and specify checks for the exact HDMI port, cable, input mode, accepted 3840-by-2160 refresh modes, HDR, VRR range, console detected output, and selected game mode; explain the 60 Hz ceiling.",
+      "slot_ids": ["E1", "E4", "E6", "E7", "E8", "E10", "E12", "B2"],
+      "subgoal_ids": ["G3"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Explain what the generic SSD mechanism and the PS5, Xbox, and Rift Apart loading statements establish and why they do not prove zero loading screens for every game, installation path, patch, and transition.",
+      "slot_ids": ["E1", "E3", "E4", "E11", "B4"],
+      "subgoal_ids": ["G4"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Recommend a verified real PS5 conditionally when Rift Apart is the deciding workload, or defer when other games or current prices decide; reject the marketplace headline and preserve every resolution, FPS, ray-tracing, display, SSD, seller, community, and missing-evidence boundary.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "B1", "B2", "B3", "B4", "D1"],
+      "subgoal_ids": ["G5"],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "choose_playstation_5_after_real_listing_game_mode_and_display_chain_preflight",
+      "when": "rift_apart_is_the_priority_and_real_listing_and_display_preflight_pass",
+      "required_tradeoffs": ["game_specific_support_not_universal_winner", "mode_tradeoff", "display_and_listing_preflight"]
+    },
+    {
+      "answer": "defer_console_purchase_pending_target_game_mode_display_chain_and_real_listing_evidence",
+      "when": "cross_platform_or_xbox_games_or_current_price_are_decisive",
+      "required_tradeoffs": ["matched_modes_missing", "current_prices_missing", "preflight_preserves_options"]
+    }
+  ],
+  "oracle": {
+    "proof": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "E12", "B1", "B2", "B3", "B4", "D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"},
+      "E8": {"outcome": "decision_unresolved"},
+      "E9": {"outcome": "decision_unresolved"},
+      "E10": {"outcome": "decision_unresolved"},
+      "E11": {"outcome": "decision_unresolved"},
+      "E12": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 35,
+    "minimum_required_evidence_nodes": 12,
+    "minimum_reasoning_depth": 2
+  }
+}

@@ -1,0 +1,90 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0013
+query_sha256: "8a93f4dd445ea9b8a370e4e550390067977948b7c5bcc4f8bd41a973921dd4ee"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 便宜的键盘是否会有性能问题或更高故障率。
+
+  Q2: 必须覆盖不同价位产品、时效性（便宜键盘也在进步）。
+
+  Q3: 故障率与价格之间的关系。
+
+  Q4: 约束不同价位，重点观察故障率。
+
+  Q5: 非常需要经验。
+
+  Q6: [由访谈助手完成] 评分真假判断、双击原因分析、可修复性评估、故障率-价格关系、长期用户经验、专业打字员推荐、时效性。
+
+  Q7: [由访谈助手完成] "honeymoon-period"时长、"pure snobbery"边界、"after a few months"时间范围、"type for a living"强度标准。
+
+initial_requirements:
+  - 验证廉价键盘评分是蜜月期还是真实问题
+  - 解释按键双击原因和是否可修复
+  - 分析故障率与价格的关系
+  - 包含长期拥有者经验
+  - 推荐适合专业打字员的产品
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 评估廉价键盘的长期可靠性——分析五星好评是蜜月期印象还是真实的长期表现，爱好者的差评是真实故障还是装腔作势，以及故障率与价格之间的关系（需考虑用户高强度打字的使用场景）
+    necessity_reason: |-
+      Query 核心矛盾在于"近五星好评"与"爱好者抱怨双击"之间的冲突，
+      以及"type for a living"的约束——高强度使用下可靠性更加关键。
+      省略此条则用户无法判断廉价键盘是否值得信任。
+    query_basis: |-
+      "Are those star ratings just honeymoon-period impressions... or is the hate pure snobbery?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 解释按键双击/连击的根本原因（物理磨损、焊点虚焊、轴体进水等）以及是否可修复
+    necessity_reason: Query 明确问"I'd love to know what actually causes that double-typing, whether it's fixable"，且用户靠打字为生，双击直接造成经济损失，省略则技术疑问未解答
+    query_basis: "what actually causes that double-typing, whether it's fixable"
+    output_form: explain
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 包含长期拥有者的真实使用经验（非蜜月期评价），覆盖不同价位的键盘，聚焦长期使用后的故障率和维修体验
+    necessity_reason: |-
+      Query 质疑五星好评是否来自"never had a keyboard fail yet"的用户，
+      需要真正长期使用者的经验来验证评分反映的是否是长期可靠性。
+    query_basis: "Are those star ratings just honeymoon-period impressions from people who never had a keyboard fail yet?"
+    output_form: experience
+    intrinsic_source_roles:
+      - forums
+    source_role_reason: query 质疑评分是否来自未经历故障的用户，区分蜜月期评价和长期真实体验离不开论坛中长周期拥有者的反馈
+
+  - local_id: R4
+    requirement: 基于 R1-R3 的综合分析和用户经验，推荐一款适合高强度打字员使用的键盘（如果低廉键盘的担忧成立则推荐替代品）
+    necessity_reason: |-
+      Query 结尾明确要求"what I should buy if the fears are founded"，
+      且用户"type for a living"——推荐必须在验证故障风险之后给出。
+    query_basis: "\"what I should buy if the fears are founded\" + \"I type for a living\""
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "honeymoon-period impressions"
+    note: "\"蜜月期\"时长不明确——使用多久后的评价才算非蜜月期？"
+  - phrase: "pure snobbery"
+    note: "\"装腔作势\"的判断标准主观"
+  - phrase: "after a few months"
+    note: "\"几个月\"不精确（2个月？6个月？）"
+  - phrase: "double-typing"
+    note: 特定按键连击还是整体故障率？不同标注者可能不同理解
+  - phrase: "type for a living"
+    note: 高强度打字的量化标准不一（日均击键数/字数）
+
+unresolved: []
+
+evidence_answerability: not_assessed

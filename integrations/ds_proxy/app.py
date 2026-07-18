@@ -317,6 +317,38 @@ def _usage_write(record: dict, *, run_ctx: dict[str, Any] | None = None) -> None
         pass
 
 
+def _usage_record(model: Any, stream: bool, usage: dict[str, Any]) -> dict[str, Any]:
+    """Normalize billable usage without discarding provider cache counters.
+
+    DeepSeek prices cache-hit and cache-miss prompt tokens differently.  The
+    old ledger retained only aggregate prompt tokens, which made exact money
+    accounting impossible even though the upstream response supplied the
+    split.  Keep both the DeepSeek top-level fields and the OpenAI-compatible
+    ``prompt_tokens_details.cached_tokens`` fallback.
+    """
+    prompt_tokens = usage.get("prompt_tokens")
+    cache_hit = usage.get("prompt_cache_hit_tokens")
+    cache_miss = usage.get("prompt_cache_miss_tokens")
+    details = usage.get("prompt_tokens_details")
+    if cache_hit is None and isinstance(details, dict):
+        cache_hit = details.get("cached_tokens")
+    if cache_miss is None and cache_hit is not None and prompt_tokens is not None:
+        cache_miss = max(int(prompt_tokens) - int(cache_hit), 0)
+
+    record: dict[str, Any] = {
+        "model": model,
+        "stream": stream,
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": usage.get("completion_tokens"),
+        "total_tokens": usage.get("total_tokens"),
+    }
+    if cache_hit is not None:
+        record["prompt_cache_hit_tokens"] = int(cache_hit)
+    if cache_miss is not None:
+        record["prompt_cache_miss_tokens"] = int(cache_miss)
+    return record
+
+
 async def _shared_slot_acquire(
     *,
     run_ctx: dict[str, Any] | None = None,
@@ -475,11 +507,21 @@ def _retryable_payload(status_code: int, content: bytes | None) -> tuple[bool, s
         return True, "http_429"
     if status_code in (502, 503, 504):
         return True, f"http_{status_code}"
+    data = None
     if content:
         try:
             data = json.loads(content)
         except Exception:
-            data = None
+            pass
+        # CLIProxyAPI/OpenAI can return ``deactivated_workspace`` for one
+        # routed attempt and then serve the same credential/session normally
+        # on the next attempt.  We observed both outcomes seconds apart on the
+        # formal GPT-5.6 Luna path, so treating this exact payload as a terminal
+        # payment/account error aborts an otherwise healthy harness run.  Retry
+        # only this machine-readable code; unrelated HTTP 402 responses still
+        # pass through immediately.
+        if status_code == 402 and _contains_code(data, "deactivated_workspace"):
+            return True, "deactivated_workspace"
         if _contains_code(data, "1305"):
             return True, "code_1305"
         if _contains_code(data, "1234"):
@@ -806,13 +848,10 @@ async def _forward(path: str, request: Request) -> Any:
                     usage = _scan_sse_usage(sse_lines)
                     if usage:
                         _budget_record_tokens(usage)
-                        _usage_write({
-                            "model": req_model,
-                            "stream": True,
-                            "prompt_tokens": usage.get("prompt_tokens"),
-                            "completion_tokens": usage.get("completion_tokens"),
-                            "total_tokens": usage.get("total_tokens"),
-                        }, run_ctx=request_run_ctx)
+                        _usage_write(
+                            _usage_record(req_model, True, usage),
+                            run_ctx=request_run_ctx,
+                        )
                     else:
                         _usage_write({"model": req_model, "stream": True,
                                       "usage_missing": True},
@@ -882,13 +921,10 @@ async def _forward(path: str, request: Request) -> Any:
             _u = data.get("usage") if isinstance(data, dict) else None
             if _u:
                 _budget_record_tokens(_u)
-                _usage_write({
-                    "model": body.get("model"),
-                    "stream": False,
-                    "prompt_tokens": _u.get("prompt_tokens"),
-                    "completion_tokens": _u.get("completion_tokens"),
-                    "total_tokens": _u.get("total_tokens"),
-                }, run_ctx=request_run_ctx)
+                _usage_write(
+                    _usage_record(body.get("model"), False, _u),
+                    run_ctx=request_run_ctx,
+                )
             # Strip <think>...</think> from reasoning-model output so client
             # frameworks see a clean answer. Preserve the original (with
             # thinking) in `reasoning_content` so judge_client._call_openai

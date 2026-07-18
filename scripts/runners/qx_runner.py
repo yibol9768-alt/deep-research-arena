@@ -218,6 +218,9 @@ def _build_driver_script(
         # GET-to-SITE is rewritten: the SerperAdapter host (search) and the LLM
         # proxy are left untouched, so there is no self-loop.
         _SHIM_FETCH_URL = {shim_url!r}.rstrip('/') + '/fetch'
+        _QX_SEARCH_ADAPTER_URL = {adapter_url!r}.rstrip('/')
+        _QX_SUCCESSFUL_FETCH_URLS = set()
+        _QX_SOURCE_MANIFEST_MARKER = '<QX_SUCCESSFUL_FETCH_URL_MANIFEST>'
         _QX_FETCH_SITE_HOSTS = {{
             'localhost:7770','localhost:17770','localhost:8090','localhost:9999',
             '127.0.0.1:7770','127.0.0.1:17770','127.0.0.1:8090','127.0.0.1:9999',
@@ -225,6 +228,7 @@ def _build_driver_script(
         try:
             import aiohttp as _qah
             from urllib.parse import urlparse as _qup, quote as _qquote
+            _QX_SEARCH_ADAPTER_HOST = _qup(_QX_SEARCH_ADAPTER_URL).netloc.lower()
             _qah_orig_init = _qah.ClientSession.__init__
             def _qx_session_init(self, *a, **kw):
                 if os.environ.get('DRA_EGRESS_PROXY', '').strip():
@@ -239,10 +243,26 @@ def _build_driver_script(
                     _hp = (_p.hostname or '').lower() + ':' + str(_p.port)
                 except Exception:
                     _hp = ''
+                if _hp == _QX_SEARCH_ADAPTER_HOST:
+                    # SearchXNG talks to qx's own loopback adapter. The
+                    # process-wide egress proxy cannot reach that namespace-
+                    # local listener, so route only this exact internal hop
+                    # directly. All sandbox page reads and public drift retain
+                    # the recording proxy policy below.
+                    _old_trust_env = getattr(self, '_trust_env', False)
+                    self._trust_env = False
+                    try:
+                        return await _qah_orig_request(self, method, str_or_url, **kw)
+                    finally:
+                        self._trust_env = _old_trust_env
                 if str(method).upper() == 'GET' and _hp in _QX_FETCH_SITE_HOSTS:
-                    _u = _SHIM_FETCH_URL + '?url=' + _qquote(_u, safe='')
+                    _site_url = _u
+                    _u = _SHIM_FETCH_URL + '?url=' + _qquote(_site_url, safe='')
                     print('[qx-fetch] site GET -> shim /fetch (%s)' % _hp, file=sys.stderr)
-                    return await _qah_orig_request(self, method, _u, **kw)
+                    _response = await _qah_orig_request(self, method, _u, **kw)
+                    if getattr(_response, 'status', None) == 200:
+                        _QX_SUCCESSFUL_FETCH_URLS.add(_site_url)
+                    return _response
                 return await _qah_orig_request(self, method, str_or_url, **kw)
             _qah.ClientSession._request = _qx_fetch_via_shim
             print('[qx-fetch] aiohttp _request patched -> ' + _SHIM_FETCH_URL, file=sys.stderr)
@@ -287,6 +307,29 @@ def _build_driver_script(
                 kwargs['max_turns'] = _MAX_T
                 current_args = list(args)
                 current_kwargs = dict(kwargs)
+                _agent = current_args[0] if current_args else current_kwargs.get('starting_agent')
+                _agent_name = str(getattr(_agent, 'name', ''))
+                if _agent_name in ('WriterAgent', 'LongWriterAgent'):
+                    _source_urls = sorted(_QX_SUCCESSFUL_FETCH_URLS)
+                    _source_manifest = (
+                        '\\n\\n' + _QX_SOURCE_MANIFEST_MARKER + '\\n'
+                        'The following closed list contains every exact source URL '
+                        'whose full page was successfully retrieved with HTTP 200 '
+                        'during this run. Only URLs copied verbatim from this list '
+                        'are eligible as factual sources; do not change their scheme, '
+                        'host, port, path, query, or spelling. If this list does not '
+                        'support a detail, state that the retrieved evidence was '
+                        'insufficient.\\n'
+                        + ('\\n'.join('- ' + url for url in _source_urls)
+                           if _source_urls else '- (no successful full-page reads)')
+                        + '\\n</QX_SUCCESSFUL_FETCH_URL_MANIFEST>'
+                    )
+                    if len(current_args) > 1 and isinstance(current_args[1], str):
+                        if _QX_SOURCE_MANIFEST_MARKER not in current_args[1]:
+                            current_args[1] += _source_manifest
+                    elif isinstance(current_kwargs.get('input'), str):
+                        if _QX_SOURCE_MANIFEST_MARKER not in current_kwargs['input']:
+                            current_kwargs['input'] += _source_manifest
                 for _schema_attempt in range(2):
                     try:
                         return await _orig_bc_run.__func__(
@@ -332,6 +375,59 @@ def _build_driver_script(
 
         __ROBUST_PARSER_HOOK__
 
+        # ----------------------------------------------------------------
+        # 2a. Preserve the closed-world source contract through qx's native
+        #     multi-stage writers, and keep every native tool sandbox-backed.
+        # ----------------------------------------------------------------
+        # The shared benchmark intent already says that factual claims must be
+        # based on sources retrieved in this run.  qx then delegates to several
+        # agents whose own system instructions previously weakened that rule:
+        # the section writer and LongWriter accepted reconstructed URLs, while
+        # SiteCrawlerAgent attempted an entity's public website directly.  In a
+        # closed-world worker those public requests correctly receive 403, but
+        # their failed URLs were later promoted into the bibliography.
+        #
+        # This is capability delivery, not report post-processing: the native
+        # report remains byte-for-byte qx output.  It adds no citation count,
+        # citation syntax, source mix, or topical hint.
+        _QX_SOURCE_INTEGRITY = r'''
+
+        SOURCE INTEGRITY:
+        - Treat URLs contained in successful tool results as a closed source set.
+        - Use a source only when its exact URL appears in a successful tool result supplied to you.
+        - A URL mentioned only in a research request, entity field, error message, failed fetch, or prior model knowledge was not retrieved and must not be cited.
+        - Never infer, reconstruct, or guess a source URL from a title, domain, product name, or memory.
+        - When the retrieved sources do not support a factual detail, state that the evidence was unavailable instead of filling the gap from general knowledge.
+        '''
+        import deep_researcher.agents.writer_agent as _qx_writer_module
+        import deep_researcher.agents.long_writer_agent as _qx_long_writer_module
+        import deep_researcher.agents.tool_agents.search_agent as _qx_search_module
+        for _qx_instruction_module in (
+            _qx_writer_module,
+            _qx_long_writer_module,
+            _qx_search_module,
+        ):
+            if _QX_SOURCE_INTEGRITY not in _qx_instruction_module.INSTRUCTIONS:
+                _qx_instruction_module.INSTRUCTIONS = (
+                    _qx_instruction_module.INSTRUCTIONS.rstrip()
+                    + _QX_SOURCE_INTEGRITY
+                )
+
+        # qx's SiteCrawlerAgent takes an arbitrary entity_website and performs
+        # a direct public crawl.  The benchmark grants one sandbox search and
+        # one sandbox page-read affordance, not public web access.  Preserve the
+        # native agent name/selection flow, but give both native tool-agent keys
+        # the same SearchXNG-backed implementation.  Its result URLs are then
+        # fetched through the recorded shim by the aiohttp patch above.
+        import deep_researcher.iterative_research as _qx_research_module
+        def _qx_init_sandbox_tool_agents(_config):
+            _search_agent = _qx_search_module.init_search_agent(_config)
+            return {{
+                'WebSearchAgent': _search_agent,
+                'SiteCrawlerAgent': _search_agent,
+            }}
+        _qx_research_module.init_tool_agents = _qx_init_sandbox_tool_agents
+
         config = LLMConfig(
             search_provider='searchxng',
             reasoning_model_provider='local',
@@ -340,6 +436,70 @@ def _build_driver_script(
             main_model='{model}',
             fast_model_provider='local',
             fast_model='{model}',
+        )
+
+        # ----------------------------------------------------------------
+        # 2b. Fail-closed native tool-registration preflight
+        # ----------------------------------------------------------------
+        # This creates qx's own WebSearchAgent and inspects the tool it will
+        # receive. It performs no search and no model call, so it cannot inject
+        # evidence or spend scored API budget. A provider/env regression now
+        # fails before the expensive research loop instead of producing a long
+        # ungrounded report.
+        from deep_researcher.agents.tool_agents.search_agent import init_search_agent
+        _expected_search_host = {adapter_url!r}.rstrip('/') + '/search'
+        _actual_search_host = os.environ.get('SEARCHXNG_HOST', '').rstrip('/')
+        if config.search_provider != 'searchxng':
+            raise RuntimeError(
+                'qx preflight: configured provider is ' + repr(config.search_provider)
+                + ', expected searchxng'
+            )
+        if _actual_search_host != _expected_search_host:
+            raise RuntimeError(
+                'qx preflight: SEARCHXNG_HOST=' + repr(_actual_search_host)
+                + ', expected ' + repr(_expected_search_host)
+            )
+        _preflight_agent = init_search_agent(config)
+        _preflight_tools = list(getattr(_preflight_agent, 'tools', []) or [])
+        _preflight_names = [str(getattr(t, 'name', '')) for t in _preflight_tools]
+        _web_tools = [
+            t for t in _preflight_tools
+            if getattr(t, 'name', None) == 'web_search'
+        ]
+        if len(_web_tools) != 1 or getattr(_web_tools[0], 'on_invoke_tool', None) is None:
+            raise RuntimeError(
+                'qx preflight: native WebSearchAgent tools=' + repr(_preflight_names)
+                + '; expected one invokable web_search tool'
+            )
+        _preflight_native_tools = _qx_init_sandbox_tool_agents(config)
+        if (
+            _preflight_native_tools.get('SiteCrawlerAgent')
+            is not _preflight_native_tools.get('WebSearchAgent')
+        ):
+            raise RuntimeError(
+                'qx preflight: SiteCrawlerAgent is not mapped to the '
+                'sandbox SearchXNG agent'
+            )
+        async def _preflight_adapter_route():
+            _timeout = _qah.ClientTimeout(total=5)
+            async with _qah.ClientSession(timeout=_timeout) as _session:
+                async with _session.get(
+                    _QX_SEARCH_ADAPTER_URL + '/healthz'
+                ) as _response:
+                    if _response.status != 200:
+                        raise RuntimeError(
+                            'qx preflight: search adapter health returned '
+                            + str(_response.status)
+                        )
+                    return _response.status
+        _adapter_status = asyncio.run(_preflight_adapter_route())
+        print(
+            '[qx-preflight] provider=searchxng tool=web_search '
+            'registered=1 host=' + _actual_search_host
+            + ' adapter_status=' + str(_adapter_status)
+            + ' site_crawler=searchxng-remap source_contract=closed-set'
+            + ' source_manifest=http-200-fetches',
+            flush=True,
         )
 
         # ----------------------------------------------------------------
@@ -537,6 +697,10 @@ async def run(
 
         stdout = proc.stdout or ""
         stderr = proc.stderr or ""
+
+        for line in stdout.splitlines():
+            if line.startswith("[qx-preflight]"):
+                print(line, flush=True)
 
         if proc.returncode != 0:
             diagnostic_dir = _persist_native_diagnostics(stdout, stderr)

@@ -1,0 +1,304 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_audio_0003",
+  "cluster_id": "audio_ten_year",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 3,
+    "distractor_density": 0.3,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "battery_degradation_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Rechargeable-battery capacity can decline at a condition-dependent rate, so it does not establish a fixed headphone failure year; the Srhythm has a wired fallback but no declared replaceable battery, and one different wireless model reportedly lasted eight years."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "owner_evidence_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The community reports show that components can fail or be replaced across time spans from under a year to more than two decades, but their different models and handling make them serviceability context rather than proof that a candidate will survive to 2036."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "product_serviceability_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "All three frozen listings are within $80; the DT 990 PRO is wired and uniquely claims that all parts are replaceable, the Srhythm is wireless with replacement pads and a wired fallback, and the wired AKG describes a simple self-adjusting design without the same all-parts-replaceable declaration."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "ten_year_serviceability_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Because serviceability and avoiding an irreplaceable battery dependency come before wireless convenience, I recommend the wired DT 990 PRO while retaining its open-back, 250-ohm, long-cable, seller-claim, and unproven-2036-lifetime caveats."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "dt990_pro_wired": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "I recommend the wired DT 990 PRO.",
+            "The DT 990 PRO wired route is the recommendation."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_single_rating_proves_decade_durability",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Srhythm's one 100 percent rating proves that it will remain durable through 2036."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_capacity_fade_fixed_two_year_death",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Capacity fade means every wireless headphone dies exactly after two years."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_other_models_prove_dt990_lifetime",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Logitech, Sennheiser, Grado, Fostex, and other-model anecdotes prove that the DT 990 PRO will last through 2036."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Compare the three frozen listings under the budget, desk-use, impedance, and serviceability constraints.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Explain condition-dependent battery capacity loss without inventing a fixed failure date, and assess the wireless candidate's fallback and dependency.",
+      "critical": true,
+      "requires": [
+        "E3",
+        "E5",
+        "E6",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Use the long-use, repair, and cable reports only within their model and owner scope when judging serviceability.",
+      "critical": true,
+      "requires": [
+        "E2",
+        "E4",
+        "E6",
+        "E7",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Apply all verified branches to one recommendation while stating the seller-evidence and lifetime-uncertainty caveats.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Compare all three frozen product listings on price, wired or wireless operation, stated replacement claims, and the desk-use constraints.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain what rechargeable-battery capacity loss does and does not establish, including the wireless candidate's wired fallback and undeclared battery replaceability.",
+      "slot_ids": [
+        "E3",
+        "E5",
+        "E6",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Separate general long-use, component-replacement, and cable reports from same-model lifetime proof.",
+      "slot_ids": [
+        "E2",
+        "E4",
+        "E6",
+        "E7",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Give one serviceability-first recommendation that depends on every necessary branch and preserves the open-back, impedance, cable, seller-evidence, and lifetime caveats.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "dt990_pro_wired"
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "B1",
+      "B2",
+      "B3",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 18,
+    "minimum_required_evidence_nodes": 7,
+    "minimum_reasoning_depth": 2
+  }
+}

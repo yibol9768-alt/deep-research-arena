@@ -1,0 +1,218 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_phone_0010",
+  "cluster_id": "phone_charger_safety_evidence_boundary",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.5,
+    "contradiction_count": 9
+  },
+  "rule_definitions": {
+    "compatibility_and_preflight_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "USB-C designates connector form and does not by itself guarantee USB Power Delivery, a cable's current capability, or any specific performance. The generic and Anker bricks require a separately obtained USB-C-to-Lightning cable for the iPhone 13; the UGREEN bundle includes a USB-C-to-USB-C cable, while its own body says an iPhone requires a USB-C-to-Lightning cable that is not included. Two spare locations therefore require two actual bricks and two suitable cables, not one bundle or a headline unit price. Before use, verify the exact charger model, plug and jurisdiction marking, manufacturer certification record, device and cable compatibility, output profiles, seller identity and return path. Inspect each unit and cable for damage, loose parts, discoloration, odor or abnormal heat. Stop using and isolate any unit that is damaged, melting, smoking, sparking or repeatedly overheating; a visual inspection is a preflight gate, not a substitute for electrical testing."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "complete_charger_listing_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Audit the complete frozen product bodies and preserve seller attribution. The generic listing displays $5.99, 88/100 over 10 reviews, SKU B09HRXLY9N, one 20 W USB-C PD 3.0 port, 5 V 3 A, 9 V 2 A and 12 V 1.5 A outputs, no cable, and a 12-month support claim. It says the phone and cable must support the fast-charge protocol and claims built-in current, heat, overcharge, over-voltage and related safeguards. The Anker listing displays $15.99, 65/100 over 12 reviews, PowerPort III model A2632, one 20 W USB-C PD port, 5 V 3 A or 9 V 2.22 A output, no cable, and an 18-month warranty. It claims MultiProtect, over-voltage protection, temperature control and current regulation. The UGREEN listing displays $22.99, 86/100 over 17 reviews, model 70150, one 65 W USB-C PD 3.0 port, a six-foot USB-C-to-USB-C cable described as 100 W and 5 A capable, and seller-claimed over-current, over-voltage and short-circuit protection. None of the three complete bodies supplies an independent certification record, laboratory report, teardown, failure-rate study, or model-bound electrical safety test."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "electrical_safety_evidence_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Generic electrical evidence explains what model-bound proof would need to address without proving that any listed charger implements it correctly. AC-adapter evidence describes transformer isolation and notes that product safety regulations and certification vary across jurisdictions. Fuse evidence explains overcurrent interruption and says fuse designs have application-specific current, voltage, breaking-capacity and response-time properties. Electrical-overheating evidence identifies short circuit, overvoltage, poor heat dissipation, design and manufacture as possible causes and lists circuit interruption, heat dissipation, sensing, material ratings and spacing as protections. Electrical-safety-testing evidence lists dielectric withstand, insulation resistance, earth continuity and leakage-current tests, plus visual inspection for damaged insulation and incorrect installation. Seller phrases such as MultiProtect or safer overnight charging name claimed protections but are not the certification records, test methods, thresholds, results, lot identity or independent verification needed to establish implementation for an exact model."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "ratings_brand_and_incident_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Do not rank electrical safety from the three small storefront rating displays, price, brand familiarity, warranties, or repeated anonymous recommendations. The generic product has the highest displayed score and lowest price while the Anker product has the lowest displayed score and a higher price; the frozen bodies do not reveal sampling, review authenticity, return denominators, failure counts, or comparable test conditions. The charger-safety thread contains anonymous recommendations, individual use reports, and unsupported technical explanations rather than a controlled model comparison. The melted-charger story concerns an already broken magnetic-contact charger for a different device that melted and smoked after plug-in. It is a valid stop-use warning for damaged or smoking hardware but cannot estimate failure prevalence or transfer causality to any of the three phone-charger models."
+      ],
+      "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+    },
+    "evidence_bounded_spare_charger_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "No frozen source proves a model-specific electrical-safety winner among the generic 20 W, Anker 20 W and UGREEN 65 W options. The evidence-bounded action is to keep using the known, undamaged charger and defer buying two spares until exact-model certification and test evidence, the correct jurisdiction, and the complete iPhone 13 charger-cable profiles are verified. Higher wattage is not a safety score, a higher storefront rating is not a failure-rate estimate, brand and warranty are not laboratory results, and seller protection lists are not verified implementation. If later evidence clears more than one model, choose only among cleared models while accounting for two bricks and the required USB-C-to-Lightning cables; otherwise the deferral remains admissible. Any damaged, melted, smoking, sparking or abnormally hot hardware is excluded immediately regardless of brand or rating."
+        ],
+        "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+      },
+      "conclusion_matchers": {
+        "keep_known_undamaged_charger_and_defer_spares_pending_model_bound_evidence": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Keep the known undamaged charger and defer both spare purchases until exact-model certification, electrical tests, jurisdiction, and iPhone 13 cable compatibility are verified.",
+            "Defer the spare-charger purchase because no frozen source establishes a model-specific safety winner."
+          ],
+          "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_highest_rating_is_safest",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The generic brick is the safest because its 88/100 storefront rating is the highest."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_brand_and_price_are_safety_tests",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The Anker brick is independently proven safest because the brand is familiar and its price exceeds the generic brick's price."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_seller_protection_is_verified",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["A listing's MultiProtect, safeguard, intelligent-chip, or safer-overnight wording proves that the exact charger passed independent electrical safety tests."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_incident_transfers_to_candidates",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The melted magnetic-contact charger story proves that one of the three captured phone-charger models will melt or establishes its failure rate."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_usb_c_proves_profile",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["A USB-C label alone proves Power Delivery, cable current capability, and iPhone 13 compatibility."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_ugreen_includes_iphone_cable",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The UGREEN bundle includes the USB-C-to-Lightning cable required by the iPhone 13."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_one_unit_covers_two_locations",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["Buying one charger or one UGREEN bundle fully equips both the bedroom and travel-bag locations."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_visual_inspection_replaces_testing",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["A clean visual inspection is equivalent to dielectric, insulation-resistance, earth-continuity, and leakage-current testing."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    },
+    {
+      "claim_id": "wrong_wattage_is_safety_score",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {"matcher": "normalized_text", "accepted_phrases": ["The UGREEN charger is safest because its 65 W headline is larger than 20 W."], "normalizers": ["casefold", "whitespace", "punctuation", "hyphen"]}
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Build the complete generic, Anker, and UGREEN matrix with exact price and rating displays, model identity, ports, output profiles, included and missing cables, seller protection and warranty wording, and every absent certification, test and failure-rate measurement.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "B2"],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Scope storefront ratings, price, brand, warranty, anonymous recommendations, owner reports, and the different-device melted-charger incident without converting them into model-specific safety rankings or prevalence estimates.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E5", "E7", "B4"],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Use the adapter, fuse, overheating, standards, and safety-testing sources to define the model-bound certification and test evidence needed, while keeping generic mechanisms and seller claims distinct from verified product implementation.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E6", "E8", "E9", "E10", "B3"],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Define a complete two-location compatibility and preflight gate covering exact model and jurisdiction, certification record, iPhone 13 charger-cable profiles, two-unit and two-cable counts, visual condition, abnormal heat, and immediate stop-use conditions.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E7", "E8", "E10", "E11", "B1"],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Select a charger only if the frozen evidence establishes an exact-model safety and compatibility winner; otherwise keep the known undamaged charger and defer both spare purchases, preserving all evidence gaps and stop-use gates.",
+      "critical": true,
+      "requires": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "B1", "B2", "B3", "B4", "D1"],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Audit all three complete frozen product bodies for exact price and rating displays, SKU or model, output profiles, ports, included and missing cables, phone compatibility conditions, seller safety and warranty claims, and missing independent certification, electrical tests, failure denominators, and comparable conditions.",
+      "slot_ids": ["E1", "E2", "E3", "B2"],
+      "subgoal_ids": ["G1"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain what the small storefront ratings, price, brand recommendations, owner reports, and melted different-device charger incident can and cannot establish about exact-model safety, prevalence, causality, and stop-use behavior.",
+      "slot_ids": ["E1", "E2", "E3", "E5", "E7", "B4"],
+      "subgoal_ids": ["G2"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Use isolation, fuse, overheating, jurisdictional-standard, and electrical-safety-testing evidence to specify the certification records, model identity, methods, thresholds, results, and independent verification needed, without treating mechanisms or seller wording as proof of implementation.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E6", "E8", "E9", "E10", "B3"],
+      "subgoal_ids": ["G3"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Specify a two-location compatibility and preflight plan including two bricks, two suitable USB-C-to-Lightning cables, exact iPhone 13 profiles, USB-C capability limits, jurisdiction marking, certification lookup, seller and return path, visual condition, abnormal heat, and immediate stop-use gates.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E7", "E8", "E10", "E11", "B1"],
+      "subgoal_ids": ["G4"],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Recommend buying two units of one cleared model, choosing among multiple cleared models, or keeping the known undamaged charger and deferring both spares. Preserve every rating, brand, incident, cable, jurisdiction, testing, and missing-evidence boundary and state what new evidence would change the decision.",
+      "slot_ids": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "B1", "B2", "B3", "B4", "D1"],
+      "subgoal_ids": ["G5"],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "keep_known_undamaged_charger_and_defer_spares_pending_model_bound_evidence"
+  ],
+  "oracle": {
+    "proof": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "E10", "E11", "B1", "B2", "B3", "B4", "D1"],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"},
+      "E8": {"outcome": "decision_unresolved"},
+      "E9": {"outcome": "decision_unresolved"},
+      "E10": {"outcome": "decision_unresolved"},
+      "E11": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 30,
+    "minimum_required_evidence_nodes": 11,
+    "minimum_reasoning_depth": 2
+  }
+}

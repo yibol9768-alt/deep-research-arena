@@ -1,0 +1,438 @@
+{
+  "schema_version": "query_rubric_v1",
+  "scoring_semantics": "grounded_requirements_v1",
+  "task_id": "dr_cross_deep_0008",
+  "task_version": 2,
+  "query": "My brother uses $30 earbuds and swears they sound the same as my friend's $280 pair, and honestly on the bus I couldn't tell them apart either. Before I upgrade mine I want to know where the money actually stops buying sound in true wireless earbuds. Is there a real cutoff price, and does stuff like aptX or other fancy Bluetooth codecs shift it, or is that only audible on gear I'll never own? Owners of both cheap and flagship buds must have opinions here. Tell me the price you'd stop at and the pair to get there.",
+  "query_sha256": "a74f808ead73173c6756d5290ea684ec06c4f982526575180676c1f776f02d0c",
+  "cluster": "",
+  "archetype": "",
+  "status": "draft",
+  "atoms": [
+    {
+      "atom_id": "R1_price_cutoff",
+      "atom_type": "dimension",
+      "description": "Identify and justify the price region where true-wireless sound-quality gains materially diminish.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "price",
+            "$",
+            "cost"
+          ],
+          [
+            "sound",
+            "audio quality"
+          ],
+          [
+            "cutoff",
+            "diminishing",
+            "stop",
+            "plateau"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "price",
+            "$",
+            "cost"
+          ],
+          [
+            "sound",
+            "audio quality"
+          ],
+          [
+            "cutoff",
+            "diminishing return",
+            "plateau",
+            "stop"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "earbud",
+              "true wireless",
+              "TWS"
+            ],
+            [
+              "price",
+              "cost"
+            ],
+            [
+              "sound",
+              "audio quality"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: where the money actually stops buying sound; Is there a real cutoff price?. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R2_codec_cutoff",
+      "atom_type": "dimension",
+      "description": "Judge whether aptX or other advanced codecs shift the practical cutoff and under what listening conditions.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "aptX",
+            "codec",
+            "codecs"
+          ],
+          [
+            "cutoff",
+            "price",
+            "audible",
+            "hear",
+            "difference"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "aptX",
+            "codec"
+          ],
+          [
+            "audible",
+            "hear",
+            "difference",
+            "benefit"
+          ],
+          [
+            "gear",
+            "device",
+            "condition",
+            "environment",
+            "bus"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "aptX",
+              "codec",
+              "Bluetooth"
+            ],
+            [
+              "audio",
+              "sound",
+              "quality",
+              "audible"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: does stuff like aptX ... shift it, or is that only audible on gear I'll never own?. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R3_cross_price_owners",
+      "atom_type": "source_role",
+      "description": "Report experience from owners who have used both cheap and flagship earbuds.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "owner",
+            "owners",
+            "user",
+            "users"
+          ],
+          [
+            "cheap",
+            "$30",
+            "budget"
+          ],
+          [
+            "flagship",
+            "$280",
+            "premium",
+            "expensive"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "owner",
+            "owners",
+            "user",
+            "users"
+          ],
+          [
+            "cheap",
+            "budget"
+          ],
+          [
+            "flagship",
+            "premium",
+            "expensive"
+          ],
+          [
+            "compare",
+            "difference",
+            "same",
+            "better"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [
+          "forums"
+        ],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "owner",
+              "user"
+            ],
+            [
+              "cheap",
+              "budget"
+            ],
+            [
+              "flagship",
+              "premium"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: Owners of both cheap and flagship buds must have opinions here. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R4_stop_price",
+      "atom_type": "synthesis",
+      "description": "State the price at which this buyer should stop spending more.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "price",
+            "$",
+            "budget"
+          ],
+          [
+            "stop",
+            "cap",
+            "limit",
+            "maximum"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "price",
+            "$",
+            "budget"
+          ],
+          [
+            "stop",
+            "cap",
+            "limit",
+            "maximum",
+            "spend"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "earbud",
+              "earbuds"
+            ],
+            [
+              "price",
+              "$",
+              "cost"
+            ],
+            [
+              "performance",
+              "sound",
+              "value"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: Tell me the price you'd stop at. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R5_pair_at_budget",
+      "atom_type": "synthesis",
+      "description": "Recommend a true-wireless earbud near the stated stopping price.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "recommend",
+            "pair",
+            "pick",
+            "buy"
+          ],
+          [
+            "earbud",
+            "earbuds",
+            "true wireless"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "recommend",
+            "pair",
+            "pick",
+            "buy"
+          ],
+          [
+            "earbud",
+            "earbuds"
+          ],
+          [
+            "price",
+            "$",
+            "budget",
+            "value"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "earbud",
+              "earbuds"
+            ],
+            [
+              "price",
+              "$",
+              "value",
+              "sound"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: the pair to get there. Evidence answerability not assessed."
+    }
+  ],
+  "authoring": {
+    "source": "public_query_only",
+    "generator": "ai_led_draft",
+    "reviewers": [],
+    "notes": "Necessary but not sufficient breadth obligations; no unique route or URL is required.",
+    "annotation_mode": "ai_led_draft",
+    "annotator_id": null,
+    "evidence_answerability": "not_assessed",
+    "formal_calibration_eligible": false
+  },
+  "rubric_sha256": "e3e8888854f8e4b81f4712816953235d81c0eaf6debe09aa1fd919f0357f663e"
+}

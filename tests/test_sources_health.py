@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import pathlib
 import sys
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -118,6 +119,21 @@ def test_health_probe_does_not_write_into_the_open_run(client, monkeypatch):
     ev = load_run_evidence(log)
     assert not ev.searches, "the health probe was recorded as the agent's search"
     assert not ev.search_returned, "probe URLs entered the pof denominator"
+
+
+def test_kiwix_search_has_bounded_cold_start_headroom(monkeypatch):
+    """A healthy cold Kiwix query can exceed the generic 20-second deadline."""
+    seen = {}
+
+    def fake_get_source(source, base, public, path, *, params=None, timeout=20):
+        seen.update(source=source, path=path, timeout=timeout, params=params)
+        return SimpleNamespace(text='<ul class="results"></ul>')
+
+    monkeypatch.setattr(backend, "_get_source", fake_get_source)
+    assert backend._search_kiwix("headphones", 5) == []
+    assert seen["source"] == "wiki" and seen["path"] == "/search"
+    assert seen["timeout"] == backend.KIWIX_SEARCH_TIMEOUT_S
+    assert seen["timeout"] >= 45
 
 
 # --- the run-time gate, not just preflight ---------------------------------

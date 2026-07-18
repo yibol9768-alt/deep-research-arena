@@ -1,6 +1,6 @@
 # Running experiments on Deep Research Arena
 
-Status: **2026-07-09**. The scoring stack described here is implemented and tested.
+Status: **2026-07-15**. The scoring stack described here is implemented and tested.
 One enforcement step is not yet in place; §7 says exactly what it is and which
 lanes it affects. Read §7 before you trust a `proof_of_fetch` number.
 
@@ -16,8 +16,12 @@ every fact worth grading is in a golden answer key.
 The headline score is
 
 ```
-truth = reach^1.5 * (0.39 * fact + 0.28 * pof + 0.33 * completeness)
+truth = gate * (0.39 * fact + 0.28 * pof + 0.33 * completeness)
 ```
+
+For observable `transport_v2` runs, `gate = provenance`. For legacy `text_v1`
+runs without transport evidence, `gate = reach`. The default exponent is 1.0;
+nonlinear exponents are sensitivity analyses, not the headline formula.
 
 Read `board.protocols` in any board JSON for the exact gamma, weights, and
 version stamps that produced it. **Boards with different `formula_version` or

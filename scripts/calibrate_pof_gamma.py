@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Calibrate the proof-of-fetch pass threshold and the reach-gate exponent
-gamma of the decidable scorer, retiring their provisional status (G-F1 / M-H3).
+"""Calibrate the proof-of-fetch pass threshold and analyze reach-gate exponent
+sensitivity for the decidable scorer (G-F1 / M-H3).
 
 Deterministic: fixed seed, no network, no wall-clock. It reads the frozen
 sandbox page cache (a gunzipped snapshot of real status-200 pages) and the
@@ -22,12 +22,14 @@ Proof-of-fetch calibration:
   chosen_threshold = grid point maximising TPR subject to FPR <= 1% on BOTH
   negative classes.
 
-Gamma stress test:
+Gamma sensitivity stress test:
   The 10 largest deerflow reports are grounded (their citations rewritten to
   real reachable sandbox URLs, reach = 1.0) then diluted with fabricated
   sandbox URLs (nonexistent forum ids) at 0/10/25/50% of the citation count.
   Only reach changes across the series, so truth = reach**gamma * quality must
-  fall monotonically; larger gamma separates clean from fabricated harder.
+  fall monotonically; larger gamma mechanically separates clean from fabricated
+  harder. This sweep does not identify a uniquely justified exponent, so the
+  headline default remains the interpretable gamma=1.0.
 """
 
 from __future__ import annotations
@@ -469,20 +471,7 @@ def calibrate_gamma(cache: dict) -> dict:
         }
     assert all_monotonic, "truth is not monotonic in injection rate for some gamma"
 
-    # gamma is dominated only if another value has BOTH stronger separation AND
-    # stronger monotonicity; monotonicity holds for all, so separation alone
-    # cannot dominate 1.5 (nothing beats it on both).
-    kept = 1.5
-    dominated = False
-    for g in GAMMAS:
-        if g == kept:
-            continue
-        stronger_sep = (per_gamma[str(g)]["mean_separation_clean_vs_50pct"]
-                        > per_gamma[str(kept)]["mean_separation_clean_vs_50pct"])
-        stronger_mono = (per_gamma[str(g)]["monotonic_nonincreasing"]
-                         and not per_gamma[str(kept)]["monotonic_nonincreasing"])
-        if stronger_sep and stronger_mono:
-            dominated = True
+    kept = ds.GAMMA_DEFAULT
     return {
         "gammas": GAMMAS,
         "injection_rates": INJECT_RATES,
@@ -496,7 +485,12 @@ def calibrate_gamma(cache: dict) -> dict:
         "all_monotonic": all_monotonic,
         "per_gamma": per_gamma,
         "gamma_default_kept": kept,
-        "gamma_default_dominated": dominated,
+        "gamma_default_dominated": None,
+        "gamma_selection_basis": (
+            "policy: gamma=1 is the directly interpretable product. The sweep "
+            "is sensitivity-only because stronger separation rises "
+            "mechanically with gamma and supplies no neutral selection loss."
+        ),
     }
 
 

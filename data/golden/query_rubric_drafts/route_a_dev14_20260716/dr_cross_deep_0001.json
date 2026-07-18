@@ -1,0 +1,323 @@
+{
+  "schema_version": "query_rubric_v1",
+  "scoring_semantics": "grounded_requirements_v1",
+  "task_id": "dr_cross_deep_0001",
+  "task_version": 2,
+  "query": "My headphones just died and I need new ones, but every time I look it's a wall of brands and buzzwords and I have no clue what's actually worth it. I'm on the bus a lot and work in a noisy office, so blocking out sound matters to me. Is the expensive stuff genuinely better or am I just paying for the logo? And do things like active noise cancelling and the fancy Bluetooth codecs really do what the ads say? Honestly I'd just love a few solid picks at different prices and the reasons behind them.",
+  "query_sha256": "439f6a0cd3da5b2aa611e5142452bd76b10a9c4231347ed662442b27fbd9398d",
+  "cluster": "",
+  "archetype": "",
+  "status": "draft",
+  "atoms": [
+    {
+      "atom_id": "R1_price_value",
+      "atom_type": "dimension",
+      "description": "Judge whether higher-priced headphones provide meaningful value beyond brand premium.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "expensive",
+            "premium",
+            "price"
+          ],
+          [
+            "brand",
+            "logo",
+            "value"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "better",
+            "worth",
+            "value",
+            "premium"
+          ],
+          [
+            "brand",
+            "logo",
+            "price"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "price",
+              "premium",
+              "expensive"
+            ],
+            [
+              "performance",
+              "quality",
+              "value"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: Is the expensive stuff genuinely better or am I just paying for the logo?. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R2_anc_claim",
+      "atom_type": "dimension",
+      "description": "Judge whether active noise cancellation delivers a meaningful real-world benefit.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "active noise cancellation",
+            "active noise cancelling",
+            "ANC"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "active noise cancellation",
+            "active noise cancelling",
+            "ANC"
+          ],
+          [
+            "effective",
+            "works",
+            "benefit",
+            "performance"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "active noise cancellation",
+              "active noise cancelling",
+              "ANC"
+            ],
+            [
+              "noise",
+              "sound"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: do things like active noise cancelling ... really do what the ads say?. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R3_codec_claim",
+      "atom_type": "dimension",
+      "description": "Judge whether advanced Bluetooth codecs provide a meaningful practical benefit.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "Bluetooth codec",
+            "Bluetooth codecs",
+            "aptX",
+            "LDAC",
+            "codec"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "codec",
+            "aptX",
+            "LDAC"
+          ],
+          [
+            "audible",
+            "benefit",
+            "difference",
+            "effective"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "Bluetooth",
+              "codec",
+              "aptX",
+              "LDAC"
+            ],
+            [
+              "audio",
+              "sound",
+              "quality"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: the fancy Bluetooth codecs really do what the ads say?. Evidence answerability not assessed."
+    },
+    {
+      "atom_id": "R4_recommendations",
+      "atom_type": "synthesis",
+      "description": "Recommend several headphones at different prices and justify them for bus and noisy-office use.",
+      "required": true,
+      "mention": {
+        "all_term_groups": [
+          [
+            "recommend",
+            "pick",
+            "choice",
+            "buy"
+          ],
+          [
+            "price",
+            "budget",
+            "$"
+          ],
+          [
+            "bus",
+            "office",
+            "commute",
+            "noisy"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "response_contract": {
+        "all_term_groups": [
+          [
+            "recommend",
+            "pick",
+            "buy",
+            "choice"
+          ],
+          [
+            "because",
+            "reason",
+            "suit",
+            "fit"
+          ],
+          [
+            "bus",
+            "office",
+            "commute",
+            "noise"
+          ]
+        ],
+        "accepted_phrases": [],
+        "accepted_regex": []
+      },
+      "evidence": {
+        "acceptable_source_roles": [
+          "shopping",
+          "forums",
+          "wiki"
+        ],
+        "required_source_roles": [],
+        "acceptable_source_urls": [],
+        "minimum_distinct_sources": 1,
+        "observation_mode": "body",
+        "track_discovery": true,
+        "citation_binding_window_chars": 500,
+        "evidence_window_chars": 1500,
+        "relevance_contract": {
+          "all_term_groups": [
+            [
+              "headphone",
+              "headphones",
+              "earbuds"
+            ],
+            [
+              "noise",
+              "ANC",
+              "isolation"
+            ],
+            [
+              "price",
+              "$",
+              "cost"
+            ]
+          ],
+          "accepted_phrases": [],
+          "accepted_regex": []
+        },
+        "known_support": []
+      },
+      "approved": false,
+      "review_note": "Necessary-but-not-sufficient draft. Query basis: a few solid picks at different prices and the reasons behind them; bus and noisy office. Evidence answerability not assessed."
+    }
+  ],
+  "authoring": {
+    "source": "public_query_only",
+    "generator": "human_interviewed_unresolved_plus_ai_compilation",
+    "reviewers": [],
+    "notes": "Necessary but not sufficient breadth obligations; no unique route or URL is required.",
+    "annotation_mode": "human_interviewed_unresolved_plus_ai_compilation",
+    "annotator_id": "刘弈博",
+    "evidence_answerability": "not_assessed",
+    "formal_calibration_eligible": false
+  },
+  "rubric_sha256": "d753f8359623f895c7d0fb057ef215e0c6dc9fa8b5da90f978e89d6709ad7f25"
+}

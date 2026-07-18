@@ -1,0 +1,1568 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_cameras_photo_0056",
+  "cluster_id": "kit_lens_premium_glass_task_output_value_boundary",
+  "difficulty": {
+    "proof_depth": 5,
+    "branching_factor": 20,
+    "distractor_density": 0.4,
+    "contradiction_count": 2
+  },
+  "rule_definitions": {
+    "community_image_workflow_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Keep each community image scoped to its camera, lens, subject, environment, exposure, tracker, stacking, processing, crop and output, and treat missing metadata as unresolved rather than lens evidence."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "mount_focal_task_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Bind EF or EF-S mount, sensor format, focal length, crop field of view, aperture, autofocus and stabilization to the actual 4000D body and intended scene rather than ranking unmatched lenses by one specification."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "optical_design_mechanism_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Explain coating, photographic design, chromatic aberration and spherical aberration as mechanisms and tradeoffs that require exact-lens tests rather than premium-label or price conclusions."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "seller_lens_offer_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Audit the six exact frozen seller pages and keep price, rating, review count, condition, bundle, warranty and performance language bound to its exact page without turning marketing or category labels into controlled optical results."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "output_artifact_measurement_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Measure vignetting, flare, scale-dependent contrast transfer and diffraction under declared aperture, focus, frame position, lighting, processing and final web or print output conditions."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "matched_lens_trial_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Verify exact identity, condition and compatibility, then run a reversible same-body task-matched and output-normalized trial with separate focus, keeper, artifact, workflow and preference measurements."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "lens_value_decision_preparation_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Predeclare meaningful-improvement, compatibility, condition, workflow, intended-output and total-cost gates so price, rating, aperture, one crop or one community image cannot compensate for a failed hard gate."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_lens_purchase_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Choose only the lowest-total-cost exact lens that passes every gate and meaningfully improves the declared outputs over the actual kit baseline; otherwise keep the kit, rent for a special task, save for another need, rerun a corrected trial or defer."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "verify_exact_candidates_run_an_output_normalized_task_matched_trial_and_choose_the_lowest_total_cost_passing_lens_only_if_it_meaningfully_beats_the_kit_otherwise_keep_rent_save_rerun_or_defer": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "The packet proves no universal lens-value cutoff. Verify exact candidates, run a same-body task-matched and output-normalized trial, and choose only the lowest-total-cost exact lens that passes every gate and meaningfully improves the declared outputs over the actual kit; otherwise keep the kit, rent, save, rerun or defer.",
+            "Select the lowest-cost exact passing lens only after a controlled comparison shows a meaningful benefit over the kit baseline, or use a reversible fallback."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "verify_exact_candidates_run_an_output_normalized_task_matched_trial_and_choose_the_lowest_total_cost_passing_lens_only_if_it_meaningfully_beats_the_kit_otherwise_keep_rent_save_rerun_or_defer",
+          "when": "the_packet_lacks_a_same_body_task_matched_output_normalized_comparison",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The packet contains frozen seller pages, bounded lens-family and optical-mechanism context, and three scoped community images, but lacks verified current samples and a same-body, same-scene, task-matched and output-normalized comparison of the exact lenses."
+            ],
+            "normalizers": [
+              "casefold",
+              "whitespace",
+              "punctuation",
+              "hyphen"
+            ]
+          },
+          "tradeoff_matchers": {
+            "seller_fields_are_scoped": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Keep every SKU, price, aggregate, review count, bundle, import, renewed, white-box, bulk, warranty, coating, sharpness, stabilization and sealing phrase bound to its exact frozen page."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "bundle_and_lens_prices_differ": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Treat the existing 4000D and EF-S 18-55mm III as the baseline and do not compare a whole camera bundle price with a lens-only price as equivalent contents or condition."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "mount_format_and_field_are_required": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Verify EF versus EF-S fit, APS-C field of view, focal length, autofocus, aperture, stabilization, filters, hoods and body compatibility for every exact candidate."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "prime_zoom_labels_are_tendencies": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Prime and zoom category tendencies do not establish that one exact prime is sharper, lighter or better for every declared task."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "aperture_is_not_a_quality_guarantee": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Maximum aperture affects exposure and depth of field but does not guarantee sharpness, autofocus success or preferred output."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "coating_is_a_scoped_mechanism": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Anti-reflective coating can affect reflection, transmission and contrast, with wavelength and angle dependence, but a premium label does not prove exact-lens performance."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "aberrations_are_separate": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Measure chromatic aberration, spherical aberration, vignetting and flare separately under relevant aperture, focus, frame-position and lighting conditions."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "otf_mtf_is_scale_dependent": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Treat OTF or MTF as scale-dependent contrast transfer tied to sensor, focus, processing, display and print output rather than one context-free sharpness score."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "diffraction_has_an_aperture_tradeoff": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Stopping down can reduce some aberrations but diffraction can eventually reduce detail, so the intended final output must govern aperture comparisons."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "community_images_are_scoped": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Keep the Andromeda, macro and moon images tied to their author, camera, lens, subject, distance, tracker, stack, processing, crop, output and missing metadata."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "exact_sample_checks_are_required": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Verify exact identity, serial, condition, optics, decentering, focus, aperture, contacts, mount, accessories, warranty, returns, shipping and delivered cost."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "matched_trial_is_required": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Use the same body and operator for task-matched trials of indoor family, moving children, portraits, travel, landscape and backlight with field of view, perspective, framing, focus, exposure and output controlled."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "outcomes_are_separate": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Record focus and keeper success, center and corner detail, contrast, color fringing, vignetting, flare, depth of field, stabilization, autofocus, carrying, editing and output preference separately."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "gates_are_predeclared": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Predeclare meaningful-improvement, compatibility, condition, workflow, output and total-cost gates and mark each pass, fail or unresolved before unblinding."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "lowest_cost_or_reversible_fallback": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Choose only the lowest-total-cost exact passing lens that meaningfully improves the declared outputs; otherwise keep the kit, rent, save, rerun or defer."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "result_scope_is_local": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Scope any result to the tested body, lens samples, tasks, settings, processing and web or small-print outputs rather than a universal price-to-quality rule."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_kit_bundle_lens_price",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The 4000D bundle price is the standalone market price of the EF-S 18-55mm III lens."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_frozen_stock_current",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An in-stock field in the frozen packet proves current availability and delivered condition."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_rating_optical_score",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A store aggregate is a standardized optical-quality score across the six exact offers."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_l_series_guarantee",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An L-series label and high frozen price guarantee visibly sharper small prints."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_art_guarantee",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Art label and renewed testing guarantee that the exact Sigma sample is centered and superior."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_import_warranty",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Import-model wording and a seller warranty prove regional manufacturer coverage."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_white_box_support",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "White-box bulk packaging proves normal retail contents, support and return rights."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_discontinued_no_issue",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Manufacturer-discontinued wording has no relevance to current support, return or sample verification."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_ef_efs_same",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "EF and EF-S identify identical mount and sensor-format behavior on every Canon body."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_50mm_normal_aps_c",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A 50mm lens has the same normal field of view on Canon APS-C as on full frame."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_zoom_range_task_fit",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A broader zoom range automatically outweighs field of view, aperture, carry and task fit."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_any_lens_compatible",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Every captured lens can be mounted and fully operated on the 4000D without exact compatibility checks."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_prime_always_sharper",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Every prime lens is necessarily sharper than every zoom at every aperture and output size."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_wide_aperture_universal",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The widest maximum aperture makes one lens the universal best value for all tasks."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_stabilization_freezes_child",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Image stabilization by itself freezes a moving child and guarantees keeper success."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_coating_premium_winner",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An anti-reflective coating claim proves the premium lens has the best contrast in every scene."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_coating_angle_free",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Coating performance is independent of wavelength and incident angle."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_fast_lens_no_aberration",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A fast f/1.4 lens cannot exhibit spherical or chromatic aberration."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_price_corrects_aberrations",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Higher price proves that chromatic and spherical aberration are absent from the exact sample."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_design_only_resolution",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Photographic lens design optimizes only maximum resolution and ignores cost, weight and mechanical constraints."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_vignetting_always_failure",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Any peripheral brightness reduction proves a defective lens regardless of aperture, filter, hood or intended effect."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_flare_fixed_property",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One flare result is a context-free property independent of light position, hood and framing."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_mtf_single_number",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One MTF number is a universal sharpness score independent of spatial scale, sensor and final output."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_stop_down_always",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Stopping every lens down as far as possible always improves final detail."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_diffraction_irrelevant",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Diffraction never matters for web or small-print comparisons and may be ignored."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_one_center_crop",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One unmatched center crop is enough to rank center, corner, flare and output performance."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_andromeda_lens_only",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Andromeda image proves that its lens alone caused the result regardless of tracker, stacking and processing."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_macro_upgrade_value",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One first picture with a new macro lens proves its upgrade value for a Canon APS-C beginner."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_moon_metadata_complete",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The moon post is a controlled lens test even though camera and composite details remain unresolved."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_community_cutoff",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Three attractive community images establish a universal price threshold above which lenses pay off."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_skip_decentering",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Brand reputation allows the buyer to skip sample identity, condition and decentering checks."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_unmatched_fov",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Lenses may be compared from different camera positions and fields of view without affecting the result."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_different_outputs",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An enlarged pixel crop and a small print can be ranked directly without matching final output size."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_one_task_all_tasks",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A portrait result is sufficient to establish value for moving children, travel, landscape and backlight."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_price_unmasked",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Knowing price and lens identity before preference scoring cannot influence the comparison."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_one_lucky_frame",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One sharp frame is enough to establish reliable autofocus and keeper performance."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_unresolved_pass",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An unresolved compatibility, condition, workflow or return field may be treated as a pass."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_rating_overrides_gate",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A high store aggregate may override failed compatibility or output gates."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_aperture_overrides_workflow",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A wider aperture may override failed carrying, editing or intended-output gates."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_posthoc_threshold",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Meaningful improvement may be defined after seeing which lens appears to win."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_immediate_kit_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet proves that the kit lens is always sufficient for every small print and web post."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_immediate_50mm_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet proves that the Canon 50mm f/1.8 is the unconditional universal-value winner."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_immediate_40mm_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet proves that the Canon 40mm f/2.8 is the best normal-use lens because of its aggregate."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_immediate_sigma_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet proves that the renewed Sigma 35mm Art is the unconditional best purchase."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_immediate_35l_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet proves that the Canon 35mm L must deliver a visible advantage because it costs the most."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_immediate_zoom_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet proves that the Canon 24-70mm f/4L is the unconditional best fit."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_must_buy",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The buyer must purchase one captured lens even when no candidate meaningfully beats the kit."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_universal_cutoff",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One local comparison establishes a universal price-to-optical-quality cutoff for all cameras and outputs."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Audit the six exact frozen offers and separate page-bound price, aggregate, condition, bundle, warranty and label claims from current sample quality and output performance.",
+      "critical": true,
+      "requires": [
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E9",
+        "E18",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Map EF or EF-S compatibility, APS-C field of view, focal length, aperture, autofocus and stabilization to the actual 4000D and each intended task without a prime-or-zoom shortcut.",
+      "critical": true,
+      "requires": [
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E17",
+        "E18",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Explain coatings, design, chromatic and spherical aberration, vignetting, flare, scale-dependent OTF or MTF and diffraction, and translate each into declared output-specific measurements.",
+      "critical": true,
+      "requires": [
+        "E2",
+        "E10",
+        "E11",
+        "E12",
+        "E15",
+        "E16",
+        "E19",
+        "E20",
+        "B3",
+        "B5"
+      ],
+      "local_conclusion_slot_id": "B5"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Keep the Andromeda, macro and moon images at their actual capture, processing and missing-metadata scope rather than treating them as lens-only value evidence.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E13",
+        "E14",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Verify exact samples and design a reversible same-body, same-operator, task-matched and output-normalized trial with separate optical, focus, workflow and preference outcomes.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "E16",
+        "E17",
+        "E18",
+        "E19",
+        "E20",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6"
+      ],
+      "local_conclusion_slot_id": "B6"
+    },
+    {
+      "subgoal_id": "G6",
+      "description": "Mark every meaningful-improvement, compatibility, condition, workflow, output and total-cost gate pass, fail or unresolved and choose the lowest-cost exact passing lens or a reversible fallback.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "E16",
+        "E17",
+        "E18",
+        "E19",
+        "E20",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Build an exact-offer table separating frozen seller claims, whole-bundle versus lens-only prices, condition, warranty, labels and unresolved sample fields.",
+      "slot_ids": [
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E9",
+        "E18",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Map mount, sensor format, crop field of view, aperture, autofocus, stabilization and task fit to the actual 4000D baseline.",
+      "slot_ids": [
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E17",
+        "E18",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Explain and separately measure coating, aberration, vignetting, flare, contrast-transfer and diffraction effects for declared apertures and final outputs.",
+      "slot_ids": [
+        "E2",
+        "E10",
+        "E11",
+        "E12",
+        "E15",
+        "E16",
+        "E19",
+        "E20",
+        "B3",
+        "B5"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Audit each community image at its camera, lens, scene, capture, tracker, stack, processing, crop, output and missing-metadata scope.",
+      "slot_ids": [
+        "E1",
+        "E13",
+        "E14",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Specify exact sample checks and the smallest reversible same-body task-matched trial with normalized framing and web or small-print outputs and separate outcome records.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "E16",
+        "E17",
+        "E18",
+        "E19",
+        "E20",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q6",
+      "text": "Give a pass, fail or unresolved value matrix and a conditional lowest-cost purchase, keep-kit, rental, saving, corrected-rerun or deferral outcome scoped to the tested samples and tasks.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "E16",
+        "E17",
+        "E18",
+        "E19",
+        "E20",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G6"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "verify_exact_candidates_run_an_output_normalized_task_matched_trial_and_choose_the_lowest_total_cost_passing_lens_only_if_it_meaningfully_beats_the_kit_otherwise_keep_rent_save_rerun_or_defer",
+      "when": "the_packet_lacks_a_same_body_task_matched_output_normalized_comparison",
+      "required_tradeoffs": [
+        "seller_fields_are_scoped",
+        "bundle_and_lens_prices_differ",
+        "mount_format_and_field_are_required",
+        "prime_zoom_labels_are_tendencies",
+        "aperture_is_not_a_quality_guarantee",
+        "coating_is_a_scoped_mechanism",
+        "aberrations_are_separate",
+        "otf_mtf_is_scale_dependent",
+        "diffraction_has_an_aperture_tradeoff",
+        "community_images_are_scoped",
+        "exact_sample_checks_are_required",
+        "matched_trial_is_required",
+        "outcomes_are_separate",
+        "gates_are_predeclared",
+        "lowest_cost_or_reversible_fallback",
+        "result_scope_is_local"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9",
+      "E10",
+      "E11",
+      "E12",
+      "E13",
+      "E14",
+      "E15",
+      "E16",
+      "E17",
+      "E18",
+      "E19",
+      "E20",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      },
+      "E8": {
+        "outcome": "decision_unresolved"
+      },
+      "E9": {
+        "outcome": "decision_unresolved"
+      },
+      "E10": {
+        "outcome": "decision_unresolved"
+      },
+      "E11": {
+        "outcome": "decision_unresolved"
+      },
+      "E12": {
+        "outcome": "decision_unresolved"
+      },
+      "E13": {
+        "outcome": "decision_unresolved"
+      },
+      "E14": {
+        "outcome": "decision_unresolved"
+      },
+      "E15": {
+        "outcome": "decision_unresolved"
+      },
+      "E16": {
+        "outcome": "decision_unresolved"
+      },
+      "E17": {
+        "outcome": "decision_unresolved"
+      },
+      "E18": {
+        "outcome": "decision_unresolved"
+      },
+      "E19": {
+        "outcome": "decision_unresolved"
+      },
+      "E20": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 65,
+    "minimum_required_evidence_nodes": 20,
+    "minimum_reasoning_depth": 5
+  }
+}

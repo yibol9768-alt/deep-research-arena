@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>a5afbd4ba8de7a8feff64c2a4660d371780eb216fb983903a229589d4f96fa2c</code></p>
+<p>待审项 26 个，其中语义项 13 个、结构化项 0 个；冻结来源 27 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_chocolate_truffle_structure_scope"><header><h3>assert_chocolate_truffle_structure_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a traditional ganache-centered coated confection whose varieties may contain dairy butter dark or milk chocolate liqueur buttercream nuts or other fats&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for chocolate-truffle structure and varieties&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_chocolate_truffle_structure_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_truffle_structure_not_exact_box_piece_recipe_dark_share_allergen_or_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a traditional ganache-centered coated confection whose varieties may contain dairy butter dark or milk chocolate liqueur buttercream nuts or other fats&quot;,
+  &quot;predicate&quot;: &quot;uses_fillings_coatings_and_multiple_recipe_styles&quot;,
+  &quot;subject&quot;: &quot;chocolate-truffle structure and varieties&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_chocolate_truffle_structure_scope_1</code> | bytes [217, 384) | <code>3402e2a78a6951a0bf06df51afd8d72f4ba11a4974485a6f19544f60fd4153d8</code></div><pre class="context"><span>Not to be confused with truffle mushrooms . Chocolate truffle Type Confection Place of origin France Main ingredients Chocolate ganache , chocolate or cocoa powder Cookbook: Chocolate truffle Media: Chocolate truffle </span><mark>A chocolate truffle is a French chocolate confectionery [ 1 ] traditionally made with a chocolate ganache center and coated in cocoa powder, coconut , or chopped nuts.</mark><span> A chocolate truffle is handrolled into a spherical or ball shape. [ 2 ] The name derives from the chocolate truffle&#x27;s similarity in appearance to truffles , a tuber fungus . [ 2 ] Varieties Over the years, many varieties appeared under different names: The French truffle, made with fresh cream and chocolate, and then rolled in cocoa or nut powder. [ 3 ] The Swiss truffle, made by combining melted chocolate into a boiling mixture of dairy cream and butter, which is poured into molds to set before sprinkling with cocoa powder. Like the French truffles, these have a very short shelf life and mus</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_truffle" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_truffle</a></p><p>冻结文件: <a href="sources/cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea" target="_blank">sources/cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea</a></p><p>内容 SHA-256: <code>cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cocoa_fermentation_flavor_scope"><header><h3>assert_cocoa_fermentation_flavor_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;microbes break down pulp and develop precursors expressed during roasting while fermentation conditions can also create off-flavor&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for cocoa-bean fermentation mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cocoa_fermentation_flavor_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_processing_mechanism_not_exact_bar_fermentation_history_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;microbes break down pulp and develop precursors expressed during roasting while fermentation conditions can also create off-flavor&quot;,
+  &quot;predicate&quot;: &quot;develops_flavor_precursors_and_reduces_bitterness&quot;,
+  &quot;subject&quot;: &quot;cocoa-bean fermentation mechanism&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cocoa_fermentation_flavor_scope_1</code> | bytes [179, 364) | <code>3f128cf266e3c6b8ea699af4486de4585be11dde027d112a91b4f57d76ca533c</code></div><pre class="context"><span>Fermentation is an important step in processing cocoa beans to make chocolate . In fermentation, beans that have been removed from their pods are put together in close proximity. </span><mark>Yeasts , lactic acid bacteria and acetic acid bacteria break down pulp surrounding the beans and develop flavor precursors within the bean that create chocolate flavors during roasting.</mark><span> The process also reduces bitterness and gives beans a more brown hue. Fermentation is divided between on-farm and centralized processing, with the former more common in West Africa and the latter more common in the Americas and parts of the Asia Pacific. In on-farm processing, which is how most fermentation has historically been undertaken, farmers wrap beans in leaves for around five days or move them between wooden boxes daily. In some countries such as Indonesia, cocoa beans undergo minimal fermentation and are sold as bulk filler. Process Background Theobroma cacao is a small tree which g</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean_fermentation" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean_fermentation</a></p><p>冻结文件: <a href="sources/6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d" target="_blank">sources/6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d</a></p><p>内容 SHA-256: <code>6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cocoa_variety_marketing_scope"><header><h3>assert_cocoa_variety_marketing_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Forastero Criollo and Trinitario remain used in marketing but recent classification does not treat the traditional categories as botanically grounded&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for traditional cocoa-variety terminology&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cocoa_variety_marketing_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_taxonomy_marketing_boundary_not_exact_product_genotype_or_flavor&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;Forastero Criollo and Trinitario remain used in marketing but recent classification does not treat the traditional categories as botanically grounded&quot;,
+  &quot;predicate&quot;: &quot;remains_marketing_language_without_current_botanical_basis&quot;,
+  &quot;subject&quot;: &quot;traditional cocoa-variety terminology&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cocoa_variety_marketing_scope_1</code> | bytes [48, 204) | <code>b18aebae7739f8e1d717e986a0de62ad728ec04a58eb582d5471080e737794f2</code></div><pre class="context"><span>There are different categories of cocoa beans . </span><mark>The traditional varieties of Forastero, Criollo and Trinitario, while still used in marketing materials, are no longer considered to have a botanical basis.</mark><span> The categories bulk and flavor cocoa are used to distinguish quality of beans. As of 2017, 95% of cocoa produced was bulk cocoa. Traditional varieties Cocoa beans are traditionally classified into three main varieties : Forastero, Criollo and Trinitario. Use of these terms has changed across different contexts and times, and recent genetic research has found that the categories of Forastero and Triniario are better understood as geohistorical inventions rather than as having a botanical basis. They are still used frequently in marketing material. [ 1 ] Criollo Criollo has traditionally been t</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_cocoa_beans" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_cocoa_beans</a></p><p>冻结文件: <a href="sources/bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821" target="_blank">sources/bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821</a></p><p>内容 SHA-256: <code>bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cravings_assorted_flavor_scope"><header><h3>assert_cravings_assorted_flavor_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 24.95-dollar 7.5-ounce sixteen-piece box rated 92 percent over 12 reviews with milk, dark and white shells and multiple named fillings&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Cravings by Zoe assorted-truffle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cravings_assorted_flavor_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_box_flavors_rating_and_gift_copy_not_dark_share_percentage_allergen_alcohol_or_recipient_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 24.95-dollar 7.5-ounce sixteen-piece box rated 92 percent over 12 reviews with milk, dark and white shells and multiple named fillings&quot;,
+  &quot;predicate&quot;: &quot;shows_sixteen_mixed_shells_and_flavored_fillings&quot;,
+  &quot;subject&quot;: &quot;frozen Cravings by Zoe assorted-truffle seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cravings_assorted_flavor_scope_1</code> | bytes [224, 301) | <code>9c88954e6221369ed7916a22a128e1bfd38b72b7a1ba39f0f44063aa7f9f77c2</code></div><pre class="context"><span>CRAVINGS BY ZOE Valentine’s Day Chocolate Truffles | Assorted Chocolate Gift Box Red | Gourmet Chocolate | Delicious Milk Chocolate, Dark Chocolate and White Chocolate Flavors with 16 Assorted Toppings - 7.5 oz, 16 Count
+
+</span><mark>In stock SKU B09LM3H2F5 Rating: 92 % of 100 12 Reviews Add Your Review $24.95</mark><span> Style Happy Birthday Truffle Chocolate Holiday Truffle Chocolate Truffle Collection Chocolate Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Product Quick Look MOUTHWATERING ASSORTMENT - This irresistible chocolate gift box comes complete with a rich mixture of 16 savory gourmet chocolates in a lovely 7.5 ounce chocolate gift box. The assortment includes milk chocolate, dark chocolate and white chocolate shells with 16 delicious flavors. GIFTING MADE EASY: Perfect for Valentines Day, Mother&#x27;s Day or any occasion! Surprise someone special with this sweet Chocolate</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/cravings-by-zoe-valentine-s-day-chocolate-truffles-assorted-chocolate-gift-box-red-gourmet-chocolate-delicious-milk-chocolate-dark-chocolate-and-white-chocolate-flavors-with-16-assorted-toppings-7-5-oz-16-count.html" target="_blank" rel="noreferrer">http://localhost:7770/cravings-by-zoe-valentine-s-day-chocolate-truffles-assorted-chocolate-gift-box-red-gourmet-chocolate-delicious-milk-chocolate-dark-chocolate-and-white-chocolate-flavors-with-16-assorted-toppings-7-5-oz-16-count.html</a></p><p>冻结文件: <a href="sources/f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c" target="_blank">sources/f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c</a></p><p>内容 SHA-256: <code>f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_dark_chocolate_percentage_scope"><header><h3>assert_dark_chocolate_percentage_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;cocoa percentage combines chocolate liquor and cocoa butter while identical percentages can hide different compositions and lower percentages can have preferable flavor&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for dark-chocolate percentage and composition&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_dark_chocolate_percentage_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_composition_and_flavor_boundary_not_exact_product_recipe_quality_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;cocoa percentage combines chocolate liquor and cocoa butter while identical percentages can hide different compositions and lower percentages can have preferable flavor&quot;,
+  &quot;predicate&quot;: &quot;makes_percentage_meaningful_but_non_ranking_metadata&quot;,
+  &quot;subject&quot;: &quot;dark-chocolate percentage and composition&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_dark_chocolate_percentage_scope_1</code> | bytes [13197, 13397) | <code>13ffdf53d80da1c2535ca80c6048d2e25d51c73ab46e3a9c8b48e087ca9759d0</code></div><pre class="context"><span>nufacturing Ingredients Dark chocolate is mainly a combination of chocolate liquor , cocoa butter and sugar . [ 66 ] Milk fats are often added to dark chocolate to delay the formation of chocolate bloom ; dark chocolate containing 1â2% milk fat experiences a delay in blooming. [ 67 ] Milk fats are also added by some manufacturers to slightly soften dark chocolate and allow for more flavor to be released. [ 68 ] During the final step of standardizing, emulsifiers such as lecithin or PGPR are added to improve texture. [ 69 ] Some manufacturers add vanilla or vanillin as a flavoring. [ 70 ] </span><mark>Many dark chocolate products sold label the cocoa percentage. This percentage refers to the percent of the chocolate that is chocolate liquor and cocoa butter, with almost all of the rest being sugar.</mark><span> As what part is chocolate liquor and what part is cocoa butter is not identified, chocolates with an identical cocoa percentage can have vastly different compositions and characteristics. Chocolates containing more chocolate liquor are more intensely flavored and more viscous . [ 71 ] Variability in the quality of cocoa beans mean chocolates with lower cocoa percentages can have more desirable flavors than those with higher percentages. [ 72 ] Process The basic process of making dark chocolate involves mixing, refining, conching and standardizing. [ 73 ] With its relatively low viscosity, dar</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Dark_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Dark_chocolate</a></p><p>冻结文件: <a href="sources/b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c" target="_blank">sources/b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c</a></p><p>内容 SHA-256: <code>b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_flavor_cocoa_origin_process_scope"><header><h3>assert_flavor_cocoa_origin_process_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;premium cocoa may be scoped by region crop variety harvesting or fermentation and assessed through both objective and subjective criteria&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for flavor-cocoa origin, process and assessment&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_flavor_cocoa_origin_process_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_origin_process_and_assessment_boundary_not_exact_label_traceability_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;premium cocoa may be scoped by region crop variety harvesting or fermentation and assessed through both objective and subjective criteria&quot;,
+  &quot;predicate&quot;: &quot;links_flavor_to_multiple_geographic_genetic_and_processing_axes&quot;,
+  &quot;subject&quot;: &quot;flavor-cocoa origin, process and assessment&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_flavor_cocoa_origin_process_scope_1</code> | bytes [112, 280) | <code>c2b27d0d2c8aee612fefa8e53f386bd54d9607177d4257771320330e45ccdf5f</code></div><pre class="context"><span>Flavor cocoa or fine cocoa are cocoa beans that are sold at a premium, contrasted with bulk cocoa . Description </span><mark>The beans are not traded as commodities , and may be from specific geographical regions, crops or varieties, or may be harvested or fermented using specific techniques.</mark><span> [ 1 ] If a crop does not meet standards regarding drying, fermentation or the flavor is unacceptable, they are sold as bulk. [ 2 ] Prices for flavor cocoa generally begin at a 20% premium, rising to up to treble the price. [ 2 ] It was defined by the United Nations Conference on Trade and Development: [ 3 ] Fine flavour cocoa is cocoa characterized by a complex sensory profile, composed of well-balanced basic attributes with aromatic and flavour notes; the complementary attributes can be clearly perceived and identified in the expression of its aromas and flavours; it results from the interac</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Flavor_cocoa" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Flavor_cocoa</a></p><p>冻结文件: <a href="sources/a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057" target="_blank">sources/a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057</a></p><p>内容 SHA-256: <code>a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_jersey_city_gift_discussion_scope"><header><h3>assert_jersey_city_gift_discussion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a local shipped-gift question plus one commenter saying boxes of a business&#x27;s truffles went over pretty well&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Jersey City handmade chocolate-gift discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_jersey_city_gift_discussion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_business_and_recipient_specific_gift_impression_not_exact_offer_test_or_market_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a local shipped-gift question plus one commenter saying boxes of a business&#x27;s truffles went over pretty well&quot;,
+  &quot;predicate&quot;: &quot;asks_for_a_shipped_birthday_gift_and_reports_one_truffle_gift_impression&quot;,
+  &quot;subject&quot;: &quot;Jersey City handmade chocolate-gift discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_jersey_city_gift_discussion_scope_1</code> | bytes [17, 132) | <code>81d302a0136af9f7022e7e778b6943e8e4450afcac1c853dc0693c900cd5aaaa</code></div><pre class="context"><span>Chocolate gifts
+
+</span><mark>Looking for a local place that does handmade chocolates that can ship to VA for a friend’s birthday. Any recs? 10</mark><span>
+
+If you&#x27;re looking specifically made in JC, that would be either L&#x27;Atelier du Chocolat (downtown) or Lee Sims (McGinley Sq)
+
+Both fantastic!! Lee Sims is an old school shop, L&#x27;Atelier is gourmet/French.
+
+Lee Sims
+
+Lee Sims for sure
+
+Lee Sims!
+
+Also Klado maybe? For homemade Brazilian chocolate truffles
+
+No they didn&#x27;t shutter- they moved. They are in a space above the Hamilton Park Montessori now- just the building next door- and you can order for pick up and delivery. I&#x27;ve gotten boxes of their truffles as gifts before and they went over pretty well
+
+Is that a retail shop or just an office?
+</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/jerseycity/20726/chocolate-gifts" target="_blank" rel="noreferrer">http://localhost:9999/f/jerseycity/20726/chocolate-gifts</a></p><p>冻结文件: <a href="sources/dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55" target="_blank">sources/dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55</a></p><p>内容 SHA-256: <code>dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lindt_assorted_truffle_scope"><header><h3>assert_lindt_assorted_truffle_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 19.99-dollar no-review 15.2-ounce box described as about 36 milk, dark, white, 60-percent extra-dark, fudge-swirl and sea-salt truffles&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Lindt assorted-truffle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lindt_assorted_truffle_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_box_count_flavors_and_gift_copy_not_dark_share_recipe_allergen_or_recipient_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 19.99-dollar no-review 15.2-ounce box described as about 36 milk, dark, white, 60-percent extra-dark, fudge-swirl and sea-salt truffles&quot;,
+  &quot;predicate&quot;: &quot;shows_large_mixed_truffle_box_and_gift_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt assorted-truffle seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lindt_assorted_truffle_scope_1</code> | bytes [83, 197) | <code>edda27d4eed27f9dbbaa7e67535312c248a3d19e9407c0c42bedf8622f9239af</code></div><pre class="context"><span>Lindt LINDOR Holiday Deluxe Assorted Chocolate Truffles Gift Box, 15.2 oz. (2021)
+
+</span><mark>In stock SKU B08H2TSBPX Be the first to review this product $19.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the manufacturer Read more Lindt Gourmet Chocolate: Perfect for Making Any Moment Special Crafted with premium chocolate, the Lindt Holiday Collection offers high-quality flavor unmatched by traditional holiday chocolate for an exceptional experience. Beautifully wrapped gold bunnies, festively wrapped Christmas chocolate, and elegant heart-shaped boxes are just a few of the delightful holiday treats Lindt offers. Embodying the passion of Swiss Master Chocolatiers, Lindt’s Holiday Collection is the most charming expression of the finest Lindt chocolate. Read more Spooky Hallow</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lindt-lindor-holiday-deluxe-assorted-chocolate-truffles-gift-box-15-2-oz-2021.html" target="_blank" rel="noreferrer">http://localhost:7770/lindt-lindor-holiday-deluxe-assorted-chocolate-truffles-gift-box-15-2-oz-2021.html</a></p><p>冻结文件: <a href="sources/8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22" target="_blank">sources/8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22</a></p><p>内容 SHA-256: <code>8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lpt_price_taste_discussion_scope"><header><h3>assert_lpt_price_taste_discussion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one price-per-ounce substitution claim plus replies about higher prices, semisweet preference and disputed mass-market quality&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for LifeProTips chocolate price and taste discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lpt_price_taste_discussion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_product_time_and_preference_specific_statements_not_current_market_rate_or_exact_offer_test&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one price-per-ounce substitution claim plus replies about higher prices, semisweet preference and disputed mass-market quality&quot;,
+  &quot;predicate&quot;: &quot;contains_scoped_cost_substitution_and_conflicting_taste_statements&quot;,
+  &quot;subject&quot;: &quot;LifeProTips chocolate price and taste discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lpt_price_taste_discussion_scope_1</code> | bytes [365, 544) | <code>08faba910185faf39752472f20bb6f968a88fb119477b0287c9baf5a2a742733</code></div><pre class="context"><span>LPT: Chocolate chips are candy.
+
+Distressed over the price of your favorite chocolate candy? Head to the baking aisle. Chocolate chips come in all sorts of flavors and some are made by higher quality mass market chocolatiers like Ghirardelli. Sometimes, especially around the holidays, the baking aisle will also have mini peanut butter cups or Twix chips as well. </span><mark>Comparing a 10.5 oz bag of M&amp;Ms and an 11 oz bag of milk chocolate chips, the store brand pure milk chocolate chips are about half the price of the M&amp;Ms per ounce and taste great.</mark><span> Just think of them as mini Hershey&#x27;s kisses. 25
+
+All chocolate prices have risen, including baking chocolate.
+
+I think a better tip would be that now that chocolate candy is unaffordable it&#x27;s a great opportunity to wean yourself off of candy dependency.
+
+I will certainly take your suggestion under consideration.
+
+And then promptly ignore it? Me too!
+
+Should I take this person’s holier-than-thou advice on what I should and should not put in my mouth? Hmmmm…. username checks out….
+
+I&#x27;m a single guy, not very good at cooking, but when I was down on money the last few years I started buying</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/99418/lpt-chocolate-chips-are-candy" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/99418/lpt-chocolate-chips-are-candy</a></p><p>冻结文件: <a href="sources/769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042" target="_blank">sources/769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042</a></p><p>内容 SHA-256: <code>769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_pennsylvania_flavor_box_discussion_scope"><header><h3>assert_pennsylvania_flavor_box_discussion_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a memory of many interesting flavors selected into a clear rectangular box followed by guesses that do not identify the company&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for Pennsylvania flavor-variety box discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_pennsylvania_flavor_box_discussion_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_memory_and_unresolved_identity_not_exact_product_recipe_availability_or_preference_test&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a memory of many interesting flavors selected into a clear rectangular box followed by guesses that do not identify the company&quot;,
+  &quot;predicate&quot;: &quot;recalls_custom_flavor_choice_but_leaves_company_unresolved&quot;,
+  &quot;subject&quot;: &quot;Pennsylvania flavor-variety box discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_pennsylvania_flavor_box_discussion_scope_1</code> | bytes [167, 281) | <code>80c25159c7e7859dbaa378827bb221b37456d236a459c67b9eaf6f21f4afd132</code></div><pre class="context"><span>Please help! Looking for a chocolate company that used to set up tables in the Chadds Ford Wegmans pre-pandemic.
+
+I remember seeing them a few times around Christmas. </span><mark>I recall that they had a huge variety in flavors, and you could choose what flavors they’d put in a box for you.</mark><span> The box was clear and rectangular, and the chocolates were shaped like single kit-kat pieces. The flavors were all really interesting. I think the company’s name had something to do with a moon? Any help you can give would be awesome! Thank you in advance! 4
+
+Not sure if it&#x27;s different there than here, but pre-pandemic what you&#x27;re describing sounds like the booth Wegman&#x27;s set up on their own, not a private company. Yours could be different for sure. I haven&#x27;t seen the booth in years, but can still get the chocolates in the fancy-pants section alongside olives and cheeses and macaroons.
+
+Hi!</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/Pennsylvania/79206/please-help-looking-for-a-chocolate-company-that-used-to-set" target="_blank" rel="noreferrer">http://localhost:9999/f/Pennsylvania/79206/please-help-looking-for-a-chocolate-company-that-used-to-set</a></p><p>冻结文件: <a href="sources/1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220" target="_blank">sources/1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220</a></p><p>内容 SHA-256: <code>1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_pump_street_ecuador_dark_milk_scope"><header><h3>assert_pump_street_ecuador_dark_milk_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 12.99-dollar 70-gram Ecuador dark-milk 60-percent bar rated 100 percent over one review and described with balanced cacao and creamy milk notes&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Pump Street Ecuador dark-milk seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_pump_street_ecuador_dark_milk_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_dark_milk_copy_not_plain_85_percent_equivalence_or_independent_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 12.99-dollar 70-gram Ecuador dark-milk 60-percent bar rated 100 percent over one review and described with balanced cacao and creamy milk notes&quot;,
+  &quot;predicate&quot;: &quot;shows_dark_milk_percentage_mass_and_flavor_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Pump Street Ecuador dark-milk seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_pump_street_ecuador_dark_milk_scope_1</code> | bytes [0, 43) | <code>c4b227e439effafab95d0121ea5bc1e26b55e94d10ff66053b72ddeeeefeed6e</code></div><pre class="context"><span></span><mark>Pump Street Chocolate Ecuador Dark Milk 60%</mark><span>
+
+In stock SKU B00VAR0GHY Rating: 100 % of 100 1 Review Add Your Review $12.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Pump Street Bakery, known for their passionate attention to detail with bread and pastry, has shifted this same passion and dedication to small batch, handmade chocolate. Using only family farms and cooperatives across the world, Pump Street selects only the finest, high-quality beans and tailors each batch of chocolate to offer the most delicious and satisfying chocolate experience. By maintaining small batches and customizing the chocolate</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/pump-street-chocolate-ecuador-dark-milk-60.html" target="_blank" rel="noreferrer">http://localhost:7770/pump-street-chocolate-ecuador-dark-milk-60.html</a></p><p>冻结文件: <a href="sources/7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf" target="_blank">sources/7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf</a></p><p>内容 SHA-256: <code>7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_quma_peru_quinoa_label_scope"><header><h3>assert_quma_peru_quinoa_label_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 9.99-dollar no-review offer marketed as 70-percent dark chocolate with puffed quinoa, made in Peru, minimally processed, and retaining fruity Criollo aromas&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Quma quinoa dark-chocolate seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_quma_peru_quinoa_label_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_origin_variety_process_and_flavor_copy_not_exact_mass_traceability_genotype_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 9.99-dollar no-review offer marketed as 70-percent dark chocolate with puffed quinoa, made in Peru, minimally processed, and retaining fruity Criollo aromas&quot;,
+  &quot;predicate&quot;: &quot;shows_peru_percentage_recipe_and_criollo_marketing&quot;,
+  &quot;subject&quot;: &quot;frozen Quma quinoa dark-chocolate seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_quma_peru_quinoa_label_scope_1</code> | bytes [99, 212) | <code>0be30a050a415841f20f7a415fb2aa4f73bba10f60fdfc22519c66ae12ac8750</code></div><pre class="context"><span>Quma Quinoa 70% Cacao Dark Chocolate | Organic | Bean to Bar | Born and Made in Peru | Fair Trade
+
+</span><mark>In stock SKU B09PMD2B73 Be the first to review this product $9.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Q’uma comes from the word Q’umara, which means “healthy” in the native language of the people from the Peruvian rainforest. So, Q’uma describes perfectly our commitment to only use the finest, wholesome, organic and delicious ingredients for all of our chocolates. We believe that the best flavors come from maintaining the original taste of the beans, by minimal processing, we keep the fruity aromas of the Criollo varietal cacao beans in our chocolates. All of our bars have only four main organic and natural ingredients, we do not use any type of artificia</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/quma-quinoa-70-cacao-dark-chocolate-organic-bean-to-bar-born-and-made-in-peru-fair-trade.html" target="_blank" rel="noreferrer">http://localhost:7770/quma-quinoa-70-cacao-dark-chocolate-organic-bean-to-bar-born-and-made-in-peru-fair-trade.html</a></p><p>冻结文件: <a href="sources/47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b" target="_blank">sources/47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b</a></p><p>内容 SHA-256: <code>47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_valrhona_manjari_label_scope"><header><h3>assert_valrhona_manjari_label_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 7.89-dollar 70-gram offer rated 100 percent over two reviews whose title and quick look say 65 percent and single-origin Madagascar while the same page also lists Manjari as 64 percent&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Valrhona Manjari seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_valrhona_manjari_label_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_internal_64_65_conflict_not_independent_composition_origin_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a 7.89-dollar 70-gram offer rated 100 percent over two reviews whose title and quick look say 65 percent and single-origin Madagascar while the same page also lists Manjari as 64 percent&quot;,
+  &quot;predicate&quot;: &quot;shows_conflicting_percentage_labels_and_origin_flavor_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Valrhona Manjari seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_valrhona_manjari_label_scope_1</code> | bytes [0, 191) | <code>7e3cc2b117279a662541f32715dc214d73f35fffafc06f62f53583c11ebad215</code></div><pre class="context"><span></span><mark>Valrhona Dark Chocolate MANJARI, 65% Cacao Baking Bars - Gourmet French Chocolate, Tangy and Fruity Notes. Single Origin Madagascar. Premium Couverture, The Perfect Baking Bar 70g (Pack of 1)</mark><span>
+
+In stock SKU B09LMGQFTL Rating: 100 % of 100 2 Reviews Add Your Review $7.89 Flavor Name ABINAO DARK 85% ARAGUANI DARK 100% CARAIBE DARK 66% GUANAJA DARK 70% MANJARI DARK 64% ORIADO DARK 60% TULAKALUM DARK 75% Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more THE CHOCOLATE OF CHEFS Premium French Chocolate Premium milk, blond, and dark from France formulated to produce outrageous baked goods. Couvertures Designed for Tempering Artisan quality chocolate with complex, balanced and consistent flavors. Inspiration Flavors Bringing you a range of unique and re</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/valrhona-dark-chocolate-manjari-65-cacao-baking-bars-gourmet-french-chocolate-tangy-and-fruity-notes-single-origin-madagascar-premium-couverture-the-perfect-baking-bar-70g-pack-of-1.html" target="_blank" rel="noreferrer">http://localhost:7770/valrhona-dark-chocolate-manjari-65-cacao-baking-bars-gourmet-french-chocolate-tangy-and-fruity-notes-single-origin-madagascar-premium-couverture-the-perfect-baking-bar-70g-pack-of-1.html</a></p><p>冻结文件: <a href="sources/e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e" target="_blank">sources/e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e</a></p><p>内容 SHA-256: <code>e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_chocolate_truffle_structure_scope"><header><h3>prop_chocolate_truffle_structure_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a traditional ganache-centered coated confection whose varieties may contain dairy butter dark or milk chocolate liqueur buttercream nuts or other fats&quot;,
+  &quot;predicate&quot;: &quot;uses_fillings_coatings_and_multiple_recipe_styles&quot;,
+  &quot;subject&quot;: &quot;chocolate-truffle structure and varieties&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_chocolate_truffle_structure_scope_1</code> | bytes [217, 384) | <code>3402e2a78a6951a0bf06df51afd8d72f4ba11a4974485a6f19544f60fd4153d8</code></div><pre class="context"><span>Not to be confused with truffle mushrooms . Chocolate truffle Type Confection Place of origin France Main ingredients Chocolate ganache , chocolate or cocoa powder Cookbook: Chocolate truffle Media: Chocolate truffle </span><mark>A chocolate truffle is a French chocolate confectionery [ 1 ] traditionally made with a chocolate ganache center and coated in cocoa powder, coconut , or chopped nuts.</mark><span> A chocolate truffle is handrolled into a spherical or ball shape. [ 2 ] The name derives from the chocolate truffle&#x27;s similarity in appearance to truffles , a tuber fungus . [ 2 ] Varieties Over the years, many varieties appeared under different names: The French truffle, made with fresh cream and chocolate, and then rolled in cocoa or nut powder. [ 3 ] The Swiss truffle, made by combining melted chocolate into a boiling mixture of dairy cream and butter, which is poured into molds to set before sprinkling with cocoa powder. Like the French truffles, these have a very short shelf life and mus</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_truffle_structure_scope_2</code> | bytes [1033, 1156) | <code>376ba6fec63dafc287b96aaad85955ed2433508290b33e8edf20d0d76789b105</code></div><pre class="context"><span>al or ball shape. [ 2 ] The name derives from the chocolate truffle&#x27;s similarity in appearance to truffles , a tuber fungus . [ 2 ] Varieties Over the years, many varieties appeared under different names: The French truffle, made with fresh cream and chocolate, and then rolled in cocoa or nut powder. [ 3 ] The Swiss truffle, made by combining melted chocolate into a boiling mixture of dairy cream and butter, which is poured into molds to set before sprinkling with cocoa powder. Like the French truffles, these have a very short shelf life and must be consumed within a few days of making. [ 4 ] </span><mark>The Spanish truffle, prepared with dark chocolate, condensed milk, rum (or any preferred liqueur), and chocolate sprinkles.</mark><span> [ 5 ] The typical European truffle, made with syrup and a base of cocoa powder, milk powder, fats, and other such ingredients to create an oil-in-water type of emulsion . [ 6 ] The American truffle, a half-oval-shaped, chocolate-coated truffle, a mixture of dark or milk chocolates with butterfat, and in some cases, hardened coconut oil. Joseph Schmidt, a San Francisco chocolatier and founder of Joseph Schmidt Confections , is credited with its creation in the mid-1980s. [ 7 ] [ 8 ] Other styles include: The Belgian truffle or praline , made with dark or milk chocolate filled with ganache, but</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_truffle_structure_scope_3</code> | bytes [1666, 1780) | <code>2639710512dfccca68284adb8f97b55ffb38442a159072128a28a2e4da1ef9e9</code></div><pre class="context"><span>h dark chocolate, condensed milk, rum (or any preferred liqueur), and chocolate sprinkles. [ 5 ] The typical European truffle, made with syrup and a base of cocoa powder, milk powder, fats, and other such ingredients to create an oil-in-water type of emulsion . [ 6 ] The American truffle, a half-oval-shaped, chocolate-coated truffle, a mixture of dark or milk chocolates with butterfat, and in some cases, hardened coconut oil. Joseph Schmidt, a San Francisco chocolatier and founder of Joseph Schmidt Confections , is credited with its creation in the mid-1980s. [ 7 ] [ 8 ] Other styles include: </span><mark>The Belgian truffle or praline , made with dark or milk chocolate filled with ganache, buttercream, or nut pastes.</mark><span> [ 9 ] The Californian truffle, a larger, lumpier version of the French truffle, first made by Alice Medrich in 1973 after she tasted truffles in France. She sold these larger truffles in a charcuterie in the Gourmet Ghetto neighborhood of Berkeley ; then, in 1977, she began selling them in her own store, Cocolat, which soon expanded into a chain. Medrich is largely credited for starting the American craze for truffles. [ 10 ] History Chocolate truffles were created in the city of ChambÃ©ry by the pastry chef Louis Dufour on Christmas Day in 1895. [ 11 ] [ 12 ] In the 1980s, demand for choco</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_truffle" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_truffle</a></p><p>冻结文件: <a href="sources/cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea" target="_blank">sources/cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea</a></p><p>内容 SHA-256: <code>cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_truffle_structure_not_exact_box_piece_recipe_dark_share_allergen_or_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The chocolate-truffle page describes a traditional ganache center with a coating and varieties using cream, butter, dark or milk chocolate, condensed milk, liqueur, buttercream or nut paste; total box mass or count therefore cannot reveal the recipient-acceptable dark share, and the exact box still requires piece, recipe, ingredient, allergen and alcohol verification.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cocoa_fermentation_flavor_scope"><header><h3>prop_cocoa_fermentation_flavor_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;microbes break down pulp and develop precursors expressed during roasting while fermentation conditions can also create off-flavor&quot;,
+  &quot;predicate&quot;: &quot;develops_flavor_precursors_and_reduces_bitterness&quot;,
+  &quot;subject&quot;: &quot;cocoa-bean fermentation mechanism&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_cocoa_fermentation_flavor_scope_1</code> | bytes [179, 364) | <code>3f128cf266e3c6b8ea699af4486de4585be11dde027d112a91b4f57d76ca533c</code></div><pre class="context"><span>Fermentation is an important step in processing cocoa beans to make chocolate . In fermentation, beans that have been removed from their pods are put together in close proximity. </span><mark>Yeasts , lactic acid bacteria and acetic acid bacteria break down pulp surrounding the beans and develop flavor precursors within the bean that create chocolate flavors during roasting.</mark><span> The process also reduces bitterness and gives beans a more brown hue. Fermentation is divided between on-farm and centralized processing, with the former more common in West Africa and the latter more common in the Americas and parts of the Asia Pacific. In on-farm processing, which is how most fermentation has historically been undertaken, farmers wrap beans in leaves for around five days or move them between wooden boxes daily. In some countries such as Indonesia, cocoa beans undergo minimal fermentation and are sold as bulk filler. Process Background Theobroma cacao is a small tree which g</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_fermentation_flavor_scope_2</code> | bytes [365, 434) | <code>aacba6bb369535d5d35b24917cb86893c830f71cd3a4d5e5ccc8e98d2443ebbf</code></div><pre class="context"><span>Fermentation is an important step in processing cocoa beans to make chocolate . In fermentation, beans that have been removed from their pods are put together in close proximity. Yeasts , lactic acid bacteria and acetic acid bacteria break down pulp surrounding the beans and develop flavor precursors within the bean that create chocolate flavors during roasting. </span><mark>The process also reduces bitterness and gives beans a more brown hue.</mark><span> Fermentation is divided between on-farm and centralized processing, with the former more common in West Africa and the latter more common in the Americas and parts of the Asia Pacific. In on-farm processing, which is how most fermentation has historically been undertaken, farmers wrap beans in leaves for around five days or move them between wooden boxes daily. In some countries such as Indonesia, cocoa beans undergo minimal fermentation and are sold as bulk filler. Process Background Theobroma cacao is a small tree which grows within 20Â° of each side of the equator. Its fruits, cocoa pods</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_fermentation_flavor_scope_3</code> | bytes [2864, 2990) | <code>19bd88a2085dbcfa73dad40f77616d0108f0137cdeac897c10019ca2e9b313ac</code></div><pre class="context"><span>s. Some of these are outfitted with openings to permit airflow and to allow the pulp to drain. [ 4 ] During a typical ferment, beans are moved daily between boxes to facilitate airflow and standardise output. This practice of agitating beans during a ferment occurs to a lesser extent, and with less frequency, among beans being fermented in piles. While ferments generally take around five days, the end point for smallholders is ultimately determined by their experience. Plantations are more likely to ferment for longer than five days, with some extending the process to six or seven days. [ 7 ] </span><mark>In determining how long to ferment, producers try to avoid overfermention, which causes beans to take on a &quot;hammy&quot; off-flavor.</mark><span> [ 8 ] The level of fermentation is assessed using a generally subjective and unreliable method called the &quot;cut test&quot;, wherein a set of beans are bifurcated and quantities of different colors are counted. [ 9 ] Microbiology Cocoa beans in increasing stages of fermentation During fermentation, the bean embryo is killed by heat and acidity generated by microbes, [ 10 ] [ 11 ] providing for an environment where flavor precursors can develop. When beans are removed from their pods, they are naturally exposed to these microbes from the environment, most importantly anaerobic yeasts, lactic acid bac</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean_fermentation" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean_fermentation</a></p><p>冻结文件: <a href="sources/6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d" target="_blank">sources/6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d</a></p><p>内容 SHA-256: <code>6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_processing_mechanism_not_exact_bar_fermentation_history_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The cocoa-fermentation page says yeasts and bacteria break down pulp and develop flavor precursors that create chocolate flavors during roasting, fermentation reduces bitterness, and excessive fermentation can cause an off-flavor; this establishes processing as a plausible flavor axis but not the fermentation history, defect status or sensory outcome of any exact captured product.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cocoa_variety_marketing_scope"><header><h3>prop_cocoa_variety_marketing_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;Forastero Criollo and Trinitario remain used in marketing but recent classification does not treat the traditional categories as botanically grounded&quot;,
+  &quot;predicate&quot;: &quot;remains_marketing_language_without_current_botanical_basis&quot;,
+  &quot;subject&quot;: &quot;traditional cocoa-variety terminology&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_cocoa_variety_marketing_scope_1</code> | bytes [48, 204) | <code>b18aebae7739f8e1d717e986a0de62ad728ec04a58eb582d5471080e737794f2</code></div><pre class="context"><span>There are different categories of cocoa beans . </span><mark>The traditional varieties of Forastero, Criollo and Trinitario, while still used in marketing materials, are no longer considered to have a botanical basis.</mark><span> The categories bulk and flavor cocoa are used to distinguish quality of beans. As of 2017, 95% of cocoa produced was bulk cocoa. Traditional varieties Cocoa beans are traditionally classified into three main varieties : Forastero, Criollo and Trinitario. Use of these terms has changed across different contexts and times, and recent genetic research has found that the categories of Forastero and Triniario are better understood as geohistorical inventions rather than as having a botanical basis. They are still used frequently in marketing material. [ 1 ] Criollo Criollo has traditionally been t</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_variety_marketing_scope_2</code> | bytes [460, 703) | <code>a19e51020c4eaa55c1831d0641eeee4217cf097a8c2fc26e1e67d2b66a8a167f</code></div><pre class="context"><span>There are different categories of cocoa beans . The traditional varieties of Forastero, Criollo and Trinitario, while still used in marketing materials, are no longer considered to have a botanical basis. The categories bulk and flavor cocoa are used to distinguish quality of beans. As of 2017, 95% of cocoa produced was bulk cocoa. Traditional varieties Cocoa beans are traditionally classified into three main varieties : Forastero, Criollo and Trinitario. </span><mark>Use of these terms has changed across different contexts and times, and recent genetic research has found that the categories of Forastero and Triniario are better understood as geohistorical inventions rather than as having a botanical basis.</mark><span> They are still used frequently in marketing material. [ 1 ] Criollo Criollo has traditionally been the most prized variety. Criollo trees are presumed to be native to South America. Over time, they became grown in Mesoamerica, where they were encountered by the Spanish conquistadors. [ 2 ] The word Criollo is derived from Creole, meaning native, authentic, and indigenous. The Spanish called cocoa trees planted in Venezuela Criollo; but they actually came from neighboring Mexico and Guatemala. Forastero After European colonialization, population decline and disease led to the Spanish and Portu</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_variety_marketing_scope_3</code> | bytes [704, 757) | <code>7987d1396cdd480bccc6edb1412b19b13aaf06db8761942da2a290689637bc17</code></div><pre class="context"><span>itario, while still used in marketing materials, are no longer considered to have a botanical basis. The categories bulk and flavor cocoa are used to distinguish quality of beans. As of 2017, 95% of cocoa produced was bulk cocoa. Traditional varieties Cocoa beans are traditionally classified into three main varieties : Forastero, Criollo and Trinitario. Use of these terms has changed across different contexts and times, and recent genetic research has found that the categories of Forastero and Triniario are better understood as geohistorical inventions rather than as having a botanical basis. </span><mark>They are still used frequently in marketing material.</mark><span> [ 1 ] Criollo Criollo has traditionally been the most prized variety. Criollo trees are presumed to be native to South America. Over time, they became grown in Mesoamerica, where they were encountered by the Spanish conquistadors. [ 2 ] The word Criollo is derived from Creole, meaning native, authentic, and indigenous. The Spanish called cocoa trees planted in Venezuela Criollo; but they actually came from neighboring Mexico and Guatemala. Forastero After European colonialization, population decline and disease led to the Spanish and Portuguese replacing cacao crops with new varieties found i</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_cocoa_beans" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_cocoa_beans</a></p><p>冻结文件: <a href="sources/bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821" target="_blank">sources/bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821</a></p><p>内容 SHA-256: <code>bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_taxonomy_marketing_boundary_not_exact_product_genotype_or_flavor&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The cocoa-types page says the traditional Forastero, Criollo and Trinitario categories remain used in marketing but are no longer considered to have a botanical basis and are better understood in geohistorical context; a seller&#x27;s Criollo wording must therefore remain marketing evidence rather than proof of the exact bar&#x27;s botanical genotype or flavor quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cravings_assorted_flavor_scope"><header><h3>prop_cravings_assorted_flavor_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 24.95-dollar 7.5-ounce sixteen-piece box rated 92 percent over 12 reviews with milk, dark and white shells and multiple named fillings&quot;,
+  &quot;predicate&quot;: &quot;shows_sixteen_mixed_shells_and_flavored_fillings&quot;,
+  &quot;subject&quot;: &quot;frozen Cravings by Zoe assorted-truffle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_cravings_assorted_flavor_scope_1</code> | bytes [224, 301) | <code>9c88954e6221369ed7916a22a128e1bfd38b72b7a1ba39f0f44063aa7f9f77c2</code></div><pre class="context"><span>CRAVINGS BY ZOE Valentine’s Day Chocolate Truffles | Assorted Chocolate Gift Box Red | Gourmet Chocolate | Delicious Milk Chocolate, Dark Chocolate and White Chocolate Flavors with 16 Assorted Toppings - 7.5 oz, 16 Count
+
+</span><mark>In stock SKU B09LM3H2F5 Rating: 92 % of 100 12 Reviews Add Your Review $24.95</mark><span> Style Happy Birthday Truffle Chocolate Holiday Truffle Chocolate Truffle Collection Chocolate Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Product Quick Look MOUTHWATERING ASSORTMENT - This irresistible chocolate gift box comes complete with a rich mixture of 16 savory gourmet chocolates in a lovely 7.5 ounce chocolate gift box. The assortment includes milk chocolate, dark chocolate and white chocolate shells with 16 delicious flavors. GIFTING MADE EASY: Perfect for Valentines Day, Mother&#x27;s Day or any occasion! Surprise someone special with this sweet Chocolate</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cravings_assorted_flavor_scope_2</code> | bytes [492, 773) | <code>c0bd5a9ff99ffca82758ff7e8b3eeb5fe82837f8f96ea8132fc0253105cc57e1</code></div><pre class="context"><span>CRAVINGS BY ZOE Valentine’s Day Chocolate Truffles | Assorted Chocolate Gift Box Red | Gourmet Chocolate | Delicious Milk Chocolate, Dark Chocolate and White Chocolate Flavors with 16 Assorted Toppings - 7.5 oz, 16 Count
+
+In stock SKU B09LM3H2F5 Rating: 92 % of 100 12 Reviews Add Your Review $24.95 Style Happy Birthday Truffle Chocolate Holiday Truffle Chocolate Truffle Collection Chocolate Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Product Quick Look </span><mark>MOUTHWATERING ASSORTMENT - This irresistible chocolate gift box comes complete with a rich mixture of 16 savory gourmet chocolates in a lovely 7.5 ounce chocolate gift box. The assortment includes milk chocolate, dark chocolate and white chocolate shells with 16 delicious flavors.</mark><span> GIFTING MADE EASY: Perfect for Valentines Day, Mother&#x27;s Day or any occasion! Surprise someone special with this sweet Chocolate Truffles Gift Set presented in an impressive red and gold chocolate gift box. DELICIOUS FILLINGS: Every last gourmet chocolate in the bunch is a mouthwatering treat that is filled with premium ingredients and flavors you can only dream of; including including Amaretto, Caramel, Champagne, Coffee, Hazelnut, Irish Cream, Raspberry, Sea Salt Caramel, and Tiramisu. HAND-CRAFTED WITH LOVE IN THE USA: Our Craving&#x27;s By Zoe chocolate truffles are hand crafted by our chocolat</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cravings_assorted_flavor_scope_3</code> | bytes [980, 1265) | <code>ff278c3693dc737ebad232ae4d7723297daa979c15351d81e7ee96bc84f159bf</code></div><pre class="context"><span>ction Chocolate Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Product Quick Look MOUTHWATERING ASSORTMENT - This irresistible chocolate gift box comes complete with a rich mixture of 16 savory gourmet chocolates in a lovely 7.5 ounce chocolate gift box. The assortment includes milk chocolate, dark chocolate and white chocolate shells with 16 delicious flavors. GIFTING MADE EASY: Perfect for Valentines Day, Mother&#x27;s Day or any occasion! Surprise someone special with this sweet Chocolate Truffles Gift Set presented in an impressive red and gold chocolate gift box. </span><mark>DELICIOUS FILLINGS: Every last gourmet chocolate in the bunch is a mouthwatering treat that is filled with premium ingredients and flavors you can only dream of; including including Amaretto, Caramel, Champagne, Coffee, Hazelnut, Irish Cream, Raspberry, Sea Salt Caramel, and Tiramisu.</mark><span> HAND-CRAFTED WITH LOVE IN THE USA: Our Craving&#x27;s By Zoe chocolate truffles are hand crafted by our chocolatier in New Jersey, USA. Each bite is made with a velvety and rich chocolate using our family recipe. ZOE&#x27;S PROMISE: Our customer&#x27;s satisfaction is of utmost importance to us, that&#x27;s why every piece is made with the finest ingredients and is carefully packaged and sealed in a luxury chocolate gift box. If you are not happy with your order, contact us and we&#x27;ll make it right! Package Dimensions ‏ ‎ 10.79 x 5.2 x 1.34 inches; 12.31 Ounces UPC ‏ ‎ 860007436369 ASIN ‏ ‎ B09LM3H2F5</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/cravings-by-zoe-valentine-s-day-chocolate-truffles-assorted-chocolate-gift-box-red-gourmet-chocolate-delicious-milk-chocolate-dark-chocolate-and-white-chocolate-flavors-with-16-assorted-toppings-7-5-oz-16-count.html" target="_blank" rel="noreferrer">http://localhost:7770/cravings-by-zoe-valentine-s-day-chocolate-truffles-assorted-chocolate-gift-box-red-gourmet-chocolate-delicious-milk-chocolate-dark-chocolate-and-white-chocolate-flavors-with-16-assorted-toppings-7-5-oz-16-count.html</a></p><p>冻结文件: <a href="sources/f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c" target="_blank">sources/f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c</a></p><p>内容 SHA-256: <code>f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_box_flavors_rating_and_gift_copy_not_dark_share_percentage_allergen_alcohol_or_recipient_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Cravings by Zoe page shows SKU B09LM3H2F5 at 24.95 dollars, rated 92 percent over 12 reviews, and describes a 7.5-ounce box of 16 milk-, dark- and white-chocolate shells with fillings including Amaretto, Caramel, Champagne, Coffee, Hazelnut, Irish Cream, Raspberry, Sea Salt Caramel and Tiramisu; it does not give a dark-piece allocation, cacao percentage for each shell, complete per-piece allergen and alcohol status, recipient fit, current delivered cost, or an independent taste comparison.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_dark_chocolate_percentage_scope"><header><h3>prop_dark_chocolate_percentage_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;cocoa percentage combines chocolate liquor and cocoa butter while identical percentages can hide different compositions and lower percentages can have preferable flavor&quot;,
+  &quot;predicate&quot;: &quot;makes_percentage_meaningful_but_non_ranking_metadata&quot;,
+  &quot;subject&quot;: &quot;dark-chocolate percentage and composition&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_dark_chocolate_percentage_scope_1</code> | bytes [13197, 13397) | <code>13ffdf53d80da1c2535ca80c6048d2e25d51c73ab46e3a9c8b48e087ca9759d0</code></div><pre class="context"><span>nufacturing Ingredients Dark chocolate is mainly a combination of chocolate liquor , cocoa butter and sugar . [ 66 ] Milk fats are often added to dark chocolate to delay the formation of chocolate bloom ; dark chocolate containing 1â2% milk fat experiences a delay in blooming. [ 67 ] Milk fats are also added by some manufacturers to slightly soften dark chocolate and allow for more flavor to be released. [ 68 ] During the final step of standardizing, emulsifiers such as lecithin or PGPR are added to improve texture. [ 69 ] Some manufacturers add vanilla or vanillin as a flavoring. [ 70 ] </span><mark>Many dark chocolate products sold label the cocoa percentage. This percentage refers to the percent of the chocolate that is chocolate liquor and cocoa butter, with almost all of the rest being sugar.</mark><span> As what part is chocolate liquor and what part is cocoa butter is not identified, chocolates with an identical cocoa percentage can have vastly different compositions and characteristics. Chocolates containing more chocolate liquor are more intensely flavored and more viscous . [ 71 ] Variability in the quality of cocoa beans mean chocolates with lower cocoa percentages can have more desirable flavors than those with higher percentages. [ 72 ] Process The basic process of making dark chocolate involves mixing, refining, conching and standardizing. [ 73 ] With its relatively low viscosity, dar</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_dark_chocolate_percentage_scope_2</code> | bytes [13398, 13585) | <code>42649065f8b1fb5bb1bbaf006d4d176ca27172c600c0493938df79a8b0c998f0</code></div><pre class="context"><span>m ; dark chocolate containing 1â2% milk fat experiences a delay in blooming. [ 67 ] Milk fats are also added by some manufacturers to slightly soften dark chocolate and allow for more flavor to be released. [ 68 ] During the final step of standardizing, emulsifiers such as lecithin or PGPR are added to improve texture. [ 69 ] Some manufacturers add vanilla or vanillin as a flavoring. [ 70 ] Many dark chocolate products sold label the cocoa percentage. This percentage refers to the percent of the chocolate that is chocolate liquor and cocoa butter, with almost all of the rest being sugar. </span><mark>As what part is chocolate liquor and what part is cocoa butter is not identified, chocolates with an identical cocoa percentage can have vastly different compositions and characteristics.</mark><span> Chocolates containing more chocolate liquor are more intensely flavored and more viscous . [ 71 ] Variability in the quality of cocoa beans mean chocolates with lower cocoa percentages can have more desirable flavors than those with higher percentages. [ 72 ] Process The basic process of making dark chocolate involves mixing, refining, conching and standardizing. [ 73 ] With its relatively low viscosity, dark chocolate is the easiest chocolate to handle in manufacturing. [ 74 ] In the mixing stage, chocolate liquor is combined in a melanger with sugar and some cocoa butter, mixing until a pas</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_dark_chocolate_percentage_scope_3</code> | bytes [13684, 13838) | <code>c1b1aa40ac9a49d4d122e6f980403bc6f69f2b141f2402531a7fcf9faecb91ca</code></div><pre class="context"><span>n or PGPR are added to improve texture. [ 69 ] Some manufacturers add vanilla or vanillin as a flavoring. [ 70 ] Many dark chocolate products sold label the cocoa percentage. This percentage refers to the percent of the chocolate that is chocolate liquor and cocoa butter, with almost all of the rest being sugar. As what part is chocolate liquor and what part is cocoa butter is not identified, chocolates with an identical cocoa percentage can have vastly different compositions and characteristics. Chocolates containing more chocolate liquor are more intensely flavored and more viscous . [ 71 ] </span><mark>Variability in the quality of cocoa beans mean chocolates with lower cocoa percentages can have more desirable flavors than those with higher percentages.</mark><span> [ 72 ] Process The basic process of making dark chocolate involves mixing, refining, conching and standardizing. [ 73 ] With its relatively low viscosity, dark chocolate is the easiest chocolate to handle in manufacturing. [ 74 ] In the mixing stage, chocolate liquor is combined in a melanger with sugar and some cocoa butter, mixing until a paste is formed. [ 75 ] As long as the cocoa mass has been correctly milled , the refining process for dark chocolate is primarily about grinding down sugar. [ 76 ] Refining involves putting chocolate through a refiner machine, which carries the cocoa mass</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Dark_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Dark_chocolate</a></p><p>冻结文件: <a href="sources/b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c" target="_blank">sources/b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c</a></p><p>内容 SHA-256: <code>b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_composition_and_flavor_boundary_not_exact_product_recipe_quality_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The dark-chocolate page says cocoa percentage combines chocolate liquor and cocoa butter, does not reveal their split, and therefore can mask very different compositions and characteristics at the same percentage; it also says bean-quality variation can make lower-percentage chocolate more desirable than higher-percentage chocolate, so percentage is useful composition metadata rather than a direct quality or recipient-preference rank.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_flavor_cocoa_origin_process_scope"><header><h3>prop_flavor_cocoa_origin_process_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;premium cocoa may be scoped by region crop variety harvesting or fermentation and assessed through both objective and subjective criteria&quot;,
+  &quot;predicate&quot;: &quot;links_flavor_to_multiple_geographic_genetic_and_processing_axes&quot;,
+  &quot;subject&quot;: &quot;flavor-cocoa origin, process and assessment&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_flavor_cocoa_origin_process_scope_1</code> | bytes [112, 280) | <code>c2b27d0d2c8aee612fefa8e53f386bd54d9607177d4257771320330e45ccdf5f</code></div><pre class="context"><span>Flavor cocoa or fine cocoa are cocoa beans that are sold at a premium, contrasted with bulk cocoa . Description </span><mark>The beans are not traded as commodities , and may be from specific geographical regions, crops or varieties, or may be harvested or fermented using specific techniques.</mark><span> [ 1 ] If a crop does not meet standards regarding drying, fermentation or the flavor is unacceptable, they are sold as bulk. [ 2 ] Prices for flavor cocoa generally begin at a 20% premium, rising to up to treble the price. [ 2 ] It was defined by the United Nations Conference on Trade and Development: [ 3 ] Fine flavour cocoa is cocoa characterized by a complex sensory profile, composed of well-balanced basic attributes with aromatic and flavour notes; the complementary attributes can be clearly perceived and identified in the expression of its aromas and flavours; it results from the interac</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_flavor_cocoa_origin_process_scope_2</code> | bytes [2702, 2880) | <code>b8c39938eba94c1c45d3ff9d494e315647c662723749c54ebee252fbdb47a19b</code></div><pre class="context"><span>ce they are only obliged to increase or diminish the Proportion of Sugar, according as the Bitterness of the Kernels require it. With the mass consumption of chocolate brought about by the Industrial Revolution , the place of origin of cocoa stopped being referenced. As producers emphasized a consistent flavor to create a brand identity, the natural variety in cocoa was de-emphasized, through blending beans of different origins and types. [ 5 ] The International Cocoa Organization has estimated that in the early 20th century, flavor beans constituted 40â50% of all beans. [ 8 ] Assessment </span><mark>Flavor beans are assessed according to various criteria, including genetic material, acidity, fermentation and drying levels, color, harm from disease and pests, mold and flavor.</mark><span> [ 9 ] Assessments are objective and subjective; while a bean can be assessed as having, for example, floral tasting notes, whether this is desirable is determined by the taster. [ 9 ] 2015 ICCO Ad Hoc Panel on Fine or Flavour Cocoa In 2015, the International Cocoa Organization (ICCO) recommended that all cocoa exports from Bolivia, Costa Rica, Dominica, Grenada, Madagascar, Mexico, Nicaragua and Saint Lucia be classified as flavor beans. 90â95% of cocoa exports from Colombia, Venezuela, Jamaica and Papua New Guinea were recommended to be classified as flavor. The influence of large choco</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_flavor_cocoa_origin_process_scope_3</code> | bytes [2887, 3058) | <code>cdaf7a48208d19187611b9dbc6f4bdfeaeff3563bc75bccc954083ca46594eb2</code></div><pre class="context"><span>the Industrial Revolution , the place of origin of cocoa stopped being referenced. As producers emphasized a consistent flavor to create a brand identity, the natural variety in cocoa was de-emphasized, through blending beans of different origins and types. [ 5 ] The International Cocoa Organization has estimated that in the early 20th century, flavor beans constituted 40â50% of all beans. [ 8 ] Assessment Flavor beans are assessed according to various criteria, including genetic material, acidity, fermentation and drying levels, color, harm from disease and pests, mold and flavor. [ 9 ] </span><mark>Assessments are objective and subjective; while a bean can be assessed as having, for example, floral tasting notes, whether this is desirable is determined by the taster.</mark><span> [ 9 ] 2015 ICCO Ad Hoc Panel on Fine or Flavour Cocoa In 2015, the International Cocoa Organization (ICCO) recommended that all cocoa exports from Bolivia, Costa Rica, Dominica, Grenada, Madagascar, Mexico, Nicaragua and Saint Lucia be classified as flavor beans. 90â95% of cocoa exports from Colombia, Venezuela, Jamaica and Papua New Guinea were recommended to be classified as flavor. The influence of large chocolate makers and cocoa traders, such as NestlÃ© and Valrhona , and Olam and Daarnhouwer, and the absence of West African countries was criticized by academic Kristy Leissle. [ 9</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Flavor_cocoa" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Flavor_cocoa</a></p><p>冻结文件: <a href="sources/a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057" target="_blank">sources/a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057</a></p><p>内容 SHA-256: <code>a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_origin_process_and_assessment_boundary_not_exact_label_traceability_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The flavor-cocoa page says premium beans may be associated with specific regions, crops, varieties, harvesting or fermentation techniques and are assessed using genetics, acidity, fermentation, drying, color, damage, mold and flavor; assessment has objective and subjective parts, so an origin label can identify a real scope but cannot by itself prove traceability, genotype, exact flavor or this recipient&#x27;s preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_jersey_city_gift_discussion_scope"><header><h3>prop_jersey_city_gift_discussion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a local shipped-gift question plus one commenter saying boxes of a business&#x27;s truffles went over pretty well&quot;,
+  &quot;predicate&quot;: &quot;asks_for_a_shipped_birthday_gift_and_reports_one_truffle_gift_impression&quot;,
+  &quot;subject&quot;: &quot;Jersey City handmade chocolate-gift discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_jersey_city_gift_discussion_scope_1</code> | bytes [17, 132) | <code>81d302a0136af9f7022e7e778b6943e8e4450afcac1c853dc0693c900cd5aaaa</code></div><pre class="context"><span>Chocolate gifts
+
+</span><mark>Looking for a local place that does handmade chocolates that can ship to VA for a friend’s birthday. Any recs? 10</mark><span>
+
+If you&#x27;re looking specifically made in JC, that would be either L&#x27;Atelier du Chocolat (downtown) or Lee Sims (McGinley Sq)
+
+Both fantastic!! Lee Sims is an old school shop, L&#x27;Atelier is gourmet/French.
+
+Lee Sims
+
+Lee Sims for sure
+
+Lee Sims!
+
+Also Klado maybe? For homemade Brazilian chocolate truffles
+
+No they didn&#x27;t shutter- they moved. They are in a space above the Hamilton Park Montessori now- just the building next door- and you can order for pick up and delivery. I&#x27;ve gotten boxes of their truffles as gifts before and they went over pretty well
+
+Is that a retail shop or just an office?
+</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_jersey_city_gift_discussion_scope_2</code> | bytes [607, 689) | <code>8dff18e93040b4621b9347751b2c8861f28f933fae67d7bc3c43bab260ff50df</code></div><pre class="context"><span>te gifts
+
+Looking for a local place that does handmade chocolates that can ship to VA for a friend’s birthday. Any recs? 10
+
+If you&#x27;re looking specifically made in JC, that would be either L&#x27;Atelier du Chocolat (downtown) or Lee Sims (McGinley Sq)
+
+Both fantastic!! Lee Sims is an old school shop, L&#x27;Atelier is gourmet/French.
+
+Lee Sims
+
+Lee Sims for sure
+
+Lee Sims!
+
+Also Klado maybe? For homemade Brazilian chocolate truffles
+
+No they didn&#x27;t shutter- they moved. They are in a space above the Hamilton Park Montessori now- just the building next door- and you can order for pick up and delivery. </span><mark>I&#x27;ve gotten boxes of their truffles as gifts before and they went over pretty well</mark><span>
+
+Is that a retail shop or just an office?
+
+Oh nice, I was bummed I never got to try it
+
+It shuttered already... they&#x27;re opening a waffle place there soon
+
+Al Richards in Bayonne is good also</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/jerseycity/20726/chocolate-gifts" target="_blank" rel="noreferrer">http://localhost:9999/f/jerseycity/20726/chocolate-gifts</a></p><p>冻结文件: <a href="sources/dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55" target="_blank">sources/dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55</a></p><p>内容 SHA-256: <code>dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_business_and_recipient_specific_gift_impression_not_exact_offer_test_or_market_rate&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Jersey City thread asks for handmade chocolates shipped to Virginia for a friend&#x27;s birthday and one commenter says boxes of one business&#x27;s truffles went over pretty well; this is an author-, recipient- and business-scoped gift impression, not a controlled test, market rate, exact-offer comparison, or proof that either captured box fits an 85-percent dark-chocolate recipient.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lindt_assorted_truffle_scope"><header><h3>prop_lindt_assorted_truffle_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 19.99-dollar no-review 15.2-ounce box described as about 36 milk, dark, white, 60-percent extra-dark, fudge-swirl and sea-salt truffles&quot;,
+  &quot;predicate&quot;: &quot;shows_large_mixed_truffle_box_and_gift_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt assorted-truffle seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lindt_assorted_truffle_scope_1</code> | bytes [83, 197) | <code>edda27d4eed27f9dbbaa7e67535312c248a3d19e9407c0c42bedf8622f9239af</code></div><pre class="context"><span>Lindt LINDOR Holiday Deluxe Assorted Chocolate Truffles Gift Box, 15.2 oz. (2021)
+
+</span><mark>In stock SKU B08H2TSBPX Be the first to review this product $19.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details From the manufacturer Read more Lindt Gourmet Chocolate: Perfect for Making Any Moment Special Crafted with premium chocolate, the Lindt Holiday Collection offers high-quality flavor unmatched by traditional holiday chocolate for an exceptional experience. Beautifully wrapped gold bunnies, festively wrapped Christmas chocolate, and elegant heart-shaped boxes are just a few of the delightful holiday treats Lindt offers. Embodying the passion of Swiss Master Chocolatiers, Lindt’s Holiday Collection is the most charming expression of the finest Lindt chocolate. Read more Spooky Hallow</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lindt_assorted_truffle_scope_2</code> | bytes [4198, 4412) | <code>09e64dc4c73aaf06a16d69b6a9e9b3226d3f4abd9b2b96834b192040f3e3add4</code></div><pre class="context"><span> perfect as a gift or to bring to a holiday party. This impressive ready-to-give box holds approximately 36 truffles that deliver a unique chocolate experience and offer a distinctly smooth and rich, gourmet taste. Our Master Chocolatiers have passionately created a range of limited edition holiday chocolates with the highest-quality ingredients from around the world especially for these festive occasions. With over 165 years of experience, our unmatched passion and commitment to mastering the art of chocolate can be tasted in every bite. Give the gift of bliss with their favorite chocolates! </span><mark>15.2 oz. holiday gift box of approximately 36 individually wrapped Milk, Dark, White, 60% Extra Dark, Fudge Swirl, and Sea Salt Chocolate Truffles - perfect for Christmas gifting, sharing, or savoring one at a time</mark><span> Our seasonal limited-edition LINDOR Deluxe Gift Box features an assortment of six, individually-wrapped truffle flavors; assortment includes: Milk, Dark, White, 60% Extra Dark, Fudge Swirl, and Sea Salt Chocolate Truffles Perfect as a gift or to bring to a holiday party, this impressive ready to give gift box holds approximately 36 pieces, or 15.2 oz, of assorted Chocolate Truffles Lindt delivers a unique chocolate experience offering a distinctly smooth and rich, gourmet taste Lindt chocolate embodies the passion and expert craftsmanship of its Lindt Master Chocolatiers Package Dimensions 14</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lindt_assorted_truffle_scope_3</code> | bytes [4413, 4634) | <code>d073097c4cc35db7a4e5e1f7e17de266d321a34d990052879fa6b144e691d65e</code></div><pre class="context"><span>Our Master Chocolatiers have passionately created a range of limited edition holiday chocolates with the highest-quality ingredients from around the world especially for these festive occasions. With over 165 years of experience, our unmatched passion and commitment to mastering the art of chocolate can be tasted in every bite. Give the gift of bliss with their favorite chocolates! 15.2 oz. holiday gift box of approximately 36 individually wrapped Milk, Dark, White, 60% Extra Dark, Fudge Swirl, and Sea Salt Chocolate Truffles - perfect for Christmas gifting, sharing, or savoring one at a time </span><mark>Our seasonal limited-edition LINDOR Deluxe Gift Box features an assortment of six, individually-wrapped truffle flavors; assortment includes: Milk, Dark, White, 60% Extra Dark, Fudge Swirl, and Sea Salt Chocolate Truffles</mark><span> Perfect as a gift or to bring to a holiday party, this impressive ready to give gift box holds approximately 36 pieces, or 15.2 oz, of assorted Chocolate Truffles Lindt delivers a unique chocolate experience offering a distinctly smooth and rich, gourmet taste Lindt chocolate embodies the passion and expert craftsmanship of its Lindt Master Chocolatiers Package Dimensions 14.96 x 10.28 x 1.97 inches Item Weight 1 ounces Manufacturer AmazonUs/LINHH Country of Origin USA Date First Available October 1, 2020 Reviews Write Your Own Review You&#x27;re reviewing: Lindt LINDOR Holiday Deluxe Assorted Cho</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lindt-lindor-holiday-deluxe-assorted-chocolate-truffles-gift-box-15-2-oz-2021.html" target="_blank" rel="noreferrer">http://localhost:7770/lindt-lindor-holiday-deluxe-assorted-chocolate-truffles-gift-box-15-2-oz-2021.html</a></p><p>冻结文件: <a href="sources/8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22" target="_blank">sources/8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22</a></p><p>内容 SHA-256: <code>8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_box_count_flavors_and_gift_copy_not_dark_share_recipe_allergen_or_recipient_fit&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Lindt page shows SKU B08H2TSBPX at 19.99 dollars with no reviews shown and describes a 15.2-ounce gift box of approximately 36 milk, dark, white, 60-percent extra-dark, fudge-swirl and sea-salt truffles; it does not establish the exact dark-piece allocation, percentage and recipe of every piece, complete ingredients and allergens, recipient preference, current stock and delivered cost, or a controlled comparison with the bars.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lpt_price_taste_discussion_scope"><header><h3>prop_lpt_price_taste_discussion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one price-per-ounce substitution claim plus replies about higher prices, semisweet preference and disputed mass-market quality&quot;,
+  &quot;predicate&quot;: &quot;contains_scoped_cost_substitution_and_conflicting_taste_statements&quot;,
+  &quot;subject&quot;: &quot;LifeProTips chocolate price and taste discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lpt_price_taste_discussion_scope_1</code> | bytes [365, 544) | <code>08faba910185faf39752472f20bb6f968a88fb119477b0287c9baf5a2a742733</code></div><pre class="context"><span>LPT: Chocolate chips are candy.
+
+Distressed over the price of your favorite chocolate candy? Head to the baking aisle. Chocolate chips come in all sorts of flavors and some are made by higher quality mass market chocolatiers like Ghirardelli. Sometimes, especially around the holidays, the baking aisle will also have mini peanut butter cups or Twix chips as well. </span><mark>Comparing a 10.5 oz bag of M&amp;Ms and an 11 oz bag of milk chocolate chips, the store brand pure milk chocolate chips are about half the price of the M&amp;Ms per ounce and taste great.</mark><span> Just think of them as mini Hershey&#x27;s kisses. 25
+
+All chocolate prices have risen, including baking chocolate.
+
+I think a better tip would be that now that chocolate candy is unaffordable it&#x27;s a great opportunity to wean yourself off of candy dependency.
+
+I will certainly take your suggestion under consideration.
+
+And then promptly ignore it? Me too!
+
+Should I take this person’s holier-than-thou advice on what I should and should not put in my mouth? Hmmmm…. username checks out….
+
+I&#x27;m a single guy, not very good at cooking, but when I was down on money the last few years I started buying</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lpt_price_taste_discussion_scope_2</code> | bytes [594, 654) | <code>d757ff7bda9adfbdb41c891961a9d1ac9d481b0c0133f38f10c5ec0c948fb03f</code></div><pre class="context"><span>LPT: Chocolate chips are candy.
+
+Distressed over the price of your favorite chocolate candy? Head to the baking aisle. Chocolate chips come in all sorts of flavors and some are made by higher quality mass market chocolatiers like Ghirardelli. Sometimes, especially around the holidays, the baking aisle will also have mini peanut butter cups or Twix chips as well. Comparing a 10.5 oz bag of M&amp;Ms and an 11 oz bag of milk chocolate chips, the store brand pure milk chocolate chips are about half the price of the M&amp;Ms per ounce and taste great. Just think of them as mini Hershey&#x27;s kisses. 25
+
+</span><mark>All chocolate prices have risen, including baking chocolate.</mark><span>
+
+I think a better tip would be that now that chocolate candy is unaffordable it&#x27;s a great opportunity to wean yourself off of candy dependency.
+
+I will certainly take your suggestion under consideration.
+
+And then promptly ignore it? Me too!
+
+Should I take this person’s holier-than-thou advice on what I should and should not put in my mouth? Hmmmm…. username checks out….
+
+I&#x27;m a single guy, not very good at cooking, but when I was down on money the last few years I started buying weird random things to see what they were like in case it was something I enjoyed and could save money on. Ju</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lpt_price_taste_discussion_scope_3</code> | bytes [4283, 4375) | <code>1b1ada746729e92765a1c37e07757ece24562a0aff2e9ff3f695fb77132f991f</code></div><pre class="context"><span>er!
+
+Im glad you learned something new today.
+
+Hello and welcome to r/LifeProTips! Please help us decide if this post is a good fit for the subreddit by up or downvoting this comment. If you think that this is great advice to improve your life, please upvote. If you think this doesn&#x27;t help you in any way, please downvote. If you don&#x27;t care, leave it for the others to decide.
+
+Really? I thought they were a vegetable.
+
+No, they are candy.
+
+Nah, they&#x27;re definitely veggies.
+
+They have no seeds.
+
+Neither does corn, but it&#x27;s a veggie.
+
+No it’s even better? Chocolate chips are semisweet chocolate! </span><mark>Semisweet is the perfect ratio; milk chocolate is to sweet, and dark chocolate is too sharp.</mark><span> I have searched and searched and never really found a good semisweet chocolate bar.
+
+LPT: the saturated fat in chocolate is deleterious to your cardiovascular health, despite all these claims that chocolate is a health food. Skip the calories and saturated fat and go for cocoa powder instead.
+
+I personally would not consider Ghirardelli high quality considering their chocolate typically contains high fructose corn syrup. But I guess you did say mass market. I do sneak a caramel filled chocolate of theirs every now and then.
+
+Soda is liquid candy.
+
+Yes, because when I want peanut m&amp;ms, chocola</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/LifeProTips/99418/lpt-chocolate-chips-are-candy" target="_blank" rel="noreferrer">http://localhost:9999/f/LifeProTips/99418/lpt-chocolate-chips-are-candy</a></p><p>冻结文件: <a href="sources/769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042" target="_blank">sources/769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042</a></p><p>内容 SHA-256: <code>769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_product_time_and_preference_specific_statements_not_current_market_rate_or_exact_offer_test&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The LifeProTips thread contains one price-per-ounce comparison between milk-chocolate chips and M&amp;Ms, a reply that all chocolate prices have risen, and one person&#x27;s preference for semisweet over milk or dark; these are product-, time-, author- and preference-scoped statements rather than a current market rate, an exact-offer test, a universal sweetness ranking, or evidence about the sister&#x27;s preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_pennsylvania_flavor_box_discussion_scope"><header><h3>prop_pennsylvania_flavor_box_discussion_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a memory of many interesting flavors selected into a clear rectangular box followed by guesses that do not identify the company&quot;,
+  &quot;predicate&quot;: &quot;recalls_custom_flavor_choice_but_leaves_company_unresolved&quot;,
+  &quot;subject&quot;: &quot;Pennsylvania flavor-variety box discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_pennsylvania_flavor_box_discussion_scope_1</code> | bytes [167, 281) | <code>80c25159c7e7859dbaa378827bb221b37456d236a459c67b9eaf6f21f4afd132</code></div><pre class="context"><span>Please help! Looking for a chocolate company that used to set up tables in the Chadds Ford Wegmans pre-pandemic.
+
+I remember seeing them a few times around Christmas. </span><mark>I recall that they had a huge variety in flavors, and you could choose what flavors they’d put in a box for you.</mark><span> The box was clear and rectangular, and the chocolates were shaped like single kit-kat pieces. The flavors were all really interesting. I think the company’s name had something to do with a moon? Any help you can give would be awesome! Thank you in advance! 4
+
+Not sure if it&#x27;s different there than here, but pre-pandemic what you&#x27;re describing sounds like the booth Wegman&#x27;s set up on their own, not a private company. Yours could be different for sure. I haven&#x27;t seen the booth in years, but can still get the chocolates in the fancy-pants section alongside olives and cheeses and macaroons.
+
+Hi!</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_pennsylvania_flavor_box_discussion_scope_2</code> | bytes [282, 416) | <code>86dfb3d325f5715bac81ff5534ae5b2925612f1cdce1c919b413acd804c9c8d8</code></div><pre class="context"><span>Please help! Looking for a chocolate company that used to set up tables in the Chadds Ford Wegmans pre-pandemic.
+
+I remember seeing them a few times around Christmas. I recall that they had a huge variety in flavors, and you could choose what flavors they’d put in a box for you. </span><mark>The box was clear and rectangular, and the chocolates were shaped like single kit-kat pieces. The flavors were all really interesting.</mark><span> I think the company’s name had something to do with a moon? Any help you can give would be awesome! Thank you in advance! 4
+
+Not sure if it&#x27;s different there than here, but pre-pandemic what you&#x27;re describing sounds like the booth Wegman&#x27;s set up on their own, not a private company. Yours could be different for sure. I haven&#x27;t seen the booth in years, but can still get the chocolates in the fancy-pants section alongside olives and cheeses and macaroons.
+
+Hi! I’m fairly certain it was a private company, because I haven’t been able to find these chocolates in the store otherwise. It may b</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_pennsylvania_flavor_box_discussion_scope_3</code> | bytes [1548, 1596) | <code>65b0e5cf4a929dfce3e2d800e6f053cea8a02aa41552160205b02b94b5703d95</code></div><pre class="context"><span> been able to find these chocolates in the store otherwise. It may be different depending on the area though, like you said.
+
+I remember a company setting up in Downingtown and Malvern Wegmans during the holidays, prepandemic. I wouldn&#x27;t be surprised if they were all the same company. They were a separate company from Wegmans. I&#x27;ll look at the &#x27;fancy pants&#x27; section (hahaha) for the chocolates next time I&#x27;m in the store.
+
+Yes! I’m sure it was the same company - so glad you remember them too. Please let me know if you find anything!
+
+[removed]
+
+Why don&#x27;t you just ask the Chadds Ford Wegmans?
+
+</span><mark>I did, they weren’t able to give me an answer.</mark><span> I think a lot of the staff are post-pandemic hires, so I’m not super surprised that they’re not sure.
+
+Don’t know for sure but here’s a guess…There’s a fancy brand they sell in the gift shop at Longwood. Based in West Chester Éclat Chocolate
+
+Definitely not Éclat - I love them haha
+
+Gertrude Hawk?
+
+No, I don’t think so, but good suggestion. It was definitely a brand I hadn’t seen outside of this set-up</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/Pennsylvania/79206/please-help-looking-for-a-chocolate-company-that-used-to-set" target="_blank" rel="noreferrer">http://localhost:9999/f/Pennsylvania/79206/please-help-looking-for-a-chocolate-company-that-used-to-set</a></p><p>冻结文件: <a href="sources/1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220" target="_blank">sources/1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220</a></p><p>内容 SHA-256: <code>1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;author_memory_and_unresolved_identity_not_exact_product_recipe_availability_or_preference_test&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The Pennsylvania thread recalls a company with a large variety of interesting flavors chosen into a clear rectangular box, but the author and commenters do not resolve its identity; this is a memory and unresolved sourcing discussion, not evidence about either exact box&#x27;s recipe, availability, dark share, quality or recipient fit.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_pump_street_ecuador_dark_milk_scope"><header><h3>prop_pump_street_ecuador_dark_milk_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 12.99-dollar 70-gram Ecuador dark-milk 60-percent bar rated 100 percent over one review and described with balanced cacao and creamy milk notes&quot;,
+  &quot;predicate&quot;: &quot;shows_dark_milk_percentage_mass_and_flavor_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Pump Street Ecuador dark-milk seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_pump_street_ecuador_dark_milk_scope_1</code> | bytes [0, 43) | <code>c4b227e439effafab95d0121ea5bc1e26b55e94d10ff66053b72ddeeeefeed6e</code></div><pre class="context"><span></span><mark>Pump Street Chocolate Ecuador Dark Milk 60%</mark><span>
+
+In stock SKU B00VAR0GHY Rating: 100 % of 100 1 Review Add Your Review $12.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Pump Street Bakery, known for their passionate attention to detail with bread and pastry, has shifted this same passion and dedication to small batch, handmade chocolate. Using only family farms and cooperatives across the world, Pump Street selects only the finest, high-quality beans and tailors each batch of chocolate to offer the most delicious and satisfying chocolate experience. By maintaining small batches and customizing the chocolate</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_pump_street_ecuador_dark_milk_scope_2</code> | bytes [45, 169) | <code>e45dfd1d395f5602631f555ca81baf60729fab36464eb625d9c859d1a9822290</code></div><pre class="context"><span>Pump Street Chocolate Ecuador Dark Milk 60%
+
+</span><mark>In stock SKU B00VAR0GHY Rating: 100 % of 100 1 Review Add Your Review $12.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Pump Street Bakery, known for their passionate attention to detail with bread and pastry, has shifted this same passion and dedication to small batch, handmade chocolate. Using only family farms and cooperatives across the world, Pump Street selects only the finest, high-quality beans and tailors each batch of chocolate to offer the most delicious and satisfying chocolate experience. By maintaining small batches and customizing the chocolate making process to each batch, the results are truly outstanding. Choose from single origin bars from across the globe and bar</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_pump_street_ecuador_dark_milk_scope_3</code> | bytes [915, 1042) | <code>b0979a11f405dce8681f4798b4bde1bf8b732d159615a7f6549214dc7ffe6925</code></div><pre class="context"><span>on and dedication to small batch, handmade chocolate. Using only family farms and cooperatives across the world, Pump Street selects only the finest, high-quality beans and tailors each batch of chocolate to offer the most delicious and satisfying chocolate experience. By maintaining small batches and customizing the chocolate making process to each batch, the results are truly outstanding. Choose from single origin bars from across the globe and bars with added ingredients that are both unexpected and transcendent. Keep an eye on this brand, the quality of these bars are going to make waves. </span><mark>60% Dark milk chocolate 70 grams balanced cacao notes with the addition of creamy milk Handmade from bean to bar in Suffolk, UK</mark><span> Product Dimensions ‏ ‎ 393.7 x 393.7 x 393.7 inches; 2.47 Ounces ASIN ‏ ‎ B00VAR0GHY #9,606 in Candy &amp; Chocolate Bars Reviews 1 Write Your Own Review You&#x27;re reviewing: Pump Street Chocolate Ecuador Dark Milk 60% Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Submit Review</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/pump-street-chocolate-ecuador-dark-milk-60.html" target="_blank" rel="noreferrer">http://localhost:7770/pump-street-chocolate-ecuador-dark-milk-60.html</a></p><p>冻结文件: <a href="sources/7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf" target="_blank">sources/7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf</a></p><p>内容 SHA-256: <code>7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_dark_milk_copy_not_plain_85_percent_equivalence_or_independent_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Pump Street page shows SKU B00VAR0GHY at 12.99 dollars, rated 100 percent over one review, and describes a 70-gram Ecuador dark-milk 60-percent bar with balanced cacao and creamy milk notes; a dark-milk bar is not equivalent to the recipient&#x27;s usual plain 85-percent bar and the seller fields do not independently prove origin, sensory fit, ingredients, allergens, or current delivered cost.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_quma_peru_quinoa_label_scope"><header><h3>prop_quma_peru_quinoa_label_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 9.99-dollar no-review offer marketed as 70-percent dark chocolate with puffed quinoa, made in Peru, minimally processed, and retaining fruity Criollo aromas&quot;,
+  &quot;predicate&quot;: &quot;shows_peru_percentage_recipe_and_criollo_marketing&quot;,
+  &quot;subject&quot;: &quot;frozen Quma quinoa dark-chocolate seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_quma_peru_quinoa_label_scope_1</code> | bytes [99, 212) | <code>0be30a050a415841f20f7a415fb2aa4f73bba10f60fdfc22519c66ae12ac8750</code></div><pre class="context"><span>Quma Quinoa 70% Cacao Dark Chocolate | Organic | Bean to Bar | Born and Made in Peru | Fair Trade
+
+</span><mark>In stock SKU B09PMD2B73 Be the first to review this product $9.99 Qty Add to Cart Add to Wish List Add to Compare</mark><span>
+
+Details Product Quick Look Q’uma comes from the word Q’umara, which means “healthy” in the native language of the people from the Peruvian rainforest. So, Q’uma describes perfectly our commitment to only use the finest, wholesome, organic and delicious ingredients for all of our chocolates. We believe that the best flavors come from maintaining the original taste of the beans, by minimal processing, we keep the fruity aromas of the Criollo varietal cacao beans in our chocolates. All of our bars have only four main organic and natural ingredients, we do not use any type of artificia</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_quma_peru_quinoa_label_scope_2</code> | bytes [1381, 1503) | <code>8dab39586c7c10233fb19f8455e6a6db6f1de09ac9c924899f03b95ad19ee231</code></div><pre class="context"><span>o not use any type of artificial flavors or emulsifiers. We care about your health so we have a policy for NON-GMO, soy free and gluten free ingredients. We are located in Peru, which makes us one of the few chocolatiers who produce their chocolates entirely in the country of origin of the cacao. We know that the best chocolate is born in the field, and being a few miles away from the crops, allows us to participate in the process of making good cacao and work directly with the Peruvian cacao farmers and their families. They are part of our community and we invite you to know more about them. </span><mark>QUINOA 70% CACAO: We pair our 70% dark chocolate with puffed quinoa from the Peruvian Andes for a delicious crunchy taste.</mark><span> HEALTHY: All of our bars have only four main organic and natural ingredients, we do not use any type of artificial flavors or emulsifiers. We care about your health so we have a policy for NON-GMO, soy free and gluten free ingredients. We believe that the best flavors come from maintaining the original taste of the beans, by minimal processing, we keep the fruity aromas of the Criollo varietal cacao beans in our chocolates. AWARDS RECIPIENT: Q´uma Chocolates is a bean to bar craft chocolate recipient of multiple medals at International Chocolate Awards competitions. BORN AND MADE IN PERU: We</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_quma_peru_quinoa_label_scope_3</code> | bytes [516, 707) | <code>82932cf15178c45fda78edb1af00216f45d59ae791ea7afa0e6d9e42a500dc14</code></div><pre class="context"><span>Quma Quinoa 70% Cacao Dark Chocolate | Organic | Bean to Bar | Born and Made in Peru | Fair Trade
+
+In stock SKU B09PMD2B73 Be the first to review this product $9.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Q’uma comes from the word Q’umara, which means “healthy” in the native language of the people from the Peruvian rainforest. So, Q’uma describes perfectly our commitment to only use the finest, wholesome, organic and delicious ingredients for all of our chocolates. </span><mark>We believe that the best flavors come from maintaining the original taste of the beans, by minimal processing, we keep the fruity aromas of the Criollo varietal cacao beans in our chocolates.</mark><span> All of our bars have only four main organic and natural ingredients, we do not use any type of artificial flavors or emulsifiers. We care about your health so we have a policy for NON-GMO, soy free and gluten free ingredients. We are located in Peru, which makes us one of the few chocolatiers who produce their chocolates entirely in the country of origin of the cacao. We know that the best chocolate is born in the field, and being a few miles away from the crops, allows us to participate in the process of making good cacao and work directly with the Peruvian cacao farmers and their families. </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/quma-quinoa-70-cacao-dark-chocolate-organic-bean-to-bar-born-and-made-in-peru-fair-trade.html" target="_blank" rel="noreferrer">http://localhost:7770/quma-quinoa-70-cacao-dark-chocolate-organic-bean-to-bar-born-and-made-in-peru-fair-trade.html</a></p><p>冻结文件: <a href="sources/47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b" target="_blank">sources/47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b</a></p><p>内容 SHA-256: <code>47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_origin_variety_process_and_flavor_copy_not_exact_mass_traceability_genotype_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Quma page shows SKU B09PMD2B73 at 9.99 dollars with no reviews shown and markets 70-percent dark chocolate with puffed quinoa, production in Peru, minimal processing, and fruity Criollo aromas; it does not establish an exact bar mass, independent origin traceability, botanical genotype, controlled flavor result, recipient preference, complete allergen status, or current delivered cost.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_valrhona_manjari_label_scope"><header><h3>prop_valrhona_manjari_label_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a 7.89-dollar 70-gram offer rated 100 percent over two reviews whose title and quick look say 65 percent and single-origin Madagascar while the same page also lists Manjari as 64 percent&quot;,
+  &quot;predicate&quot;: &quot;shows_conflicting_percentage_labels_and_origin_flavor_copy&quot;,
+  &quot;subject&quot;: &quot;frozen Valrhona Manjari seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_valrhona_manjari_label_scope_1</code> | bytes [0, 191) | <code>7e3cc2b117279a662541f32715dc214d73f35fffafc06f62f53583c11ebad215</code></div><pre class="context"><span></span><mark>Valrhona Dark Chocolate MANJARI, 65% Cacao Baking Bars - Gourmet French Chocolate, Tangy and Fruity Notes. Single Origin Madagascar. Premium Couverture, The Perfect Baking Bar 70g (Pack of 1)</mark><span>
+
+In stock SKU B09LMGQFTL Rating: 100 % of 100 2 Reviews Add Your Review $7.89 Flavor Name ABINAO DARK 85% ARAGUANI DARK 100% CARAIBE DARK 66% GUANAJA DARK 70% MANJARI DARK 64% ORIADO DARK 60% TULAKALUM DARK 75% Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more THE CHOCOLATE OF CHEFS Premium French Chocolate Premium milk, blond, and dark from France formulated to produce outrageous baked goods. Couvertures Designed for Tempering Artisan quality chocolate with complex, balanced and consistent flavors. Inspiration Flavors Bringing you a range of unique and re</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_valrhona_manjari_label_scope_2</code> | bytes [193, 402) | <code>3306177ab1203f920a17827a939c6fea4b760aea4b277afcd0614101c4b53238</code></div><pre class="context"><span>Valrhona Dark Chocolate MANJARI, 65% Cacao Baking Bars - Gourmet French Chocolate, Tangy and Fruity Notes. Single Origin Madagascar. Premium Couverture, The Perfect Baking Bar 70g (Pack of 1)
+
+</span><mark>In stock SKU B09LMGQFTL Rating: 100 % of 100 2 Reviews Add Your Review $7.89 Flavor Name ABINAO DARK 85% ARAGUANI DARK 100% CARAIBE DARK 66% GUANAJA DARK 70% MANJARI DARK 64% ORIADO DARK 60% TULAKALUM DARK 75%</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Description Read more THE CHOCOLATE OF CHEFS Premium French Chocolate Premium milk, blond, and dark from France formulated to produce outrageous baked goods. Couvertures Designed for Tempering Artisan quality chocolate with complex, balanced and consistent flavors. Inspiration Flavors Bringing you a range of unique and recognizable aromatic profiles. Now with Premium Line of Vanilla Elevated chocolate meets enlightened vanilla. A flavorful marriage. Read more ANDOA 39% Cacao Milk Chocolate Bar BAHIBE 46% Cacao Milk Chocolate Bar</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_valrhona_manjari_label_scope_3</code> | bytes [6652, 6812) | <code>033a578f9166ff84dffd297dbbf0adf01fa4ca38769d620cc61d108ccbe0fa03</code></div><pre class="context"><span>Features Valrhona’s iconic dark, milk, and blond chocolates. Each box contains 18 individually wrapped chocolate Grand Cru Squares. The ultimate gift for any chocolate lover. Add a Beautiful Glossy Touch to your Desserts, with Crispy Crunchy Chocolate Pearls. Cakes, Brownies, Chocolate Mousses, Ice-Creams. Product Quick Look PREMIUM DARK CHOCOLATE baking and tasting bars from France formulated to produce outrageous baked goods. This dark chocolate bar is also the best on-the-go snack. PERFECT FOR ALL DESERT BAKING but really shines in frostings, icings, truffles, fudge, and flourless cakes. </span><mark>MANJARI 65% IS THE MOST VERSATILE CHOCOLATE. INCREDIBLE TANGY AND FRUITY chocolate with a great 65% cacao content. Single Origin Bar with beans from Madagascar.</mark><span> GOURMET CHOCOLATE can also be chopped coarsely for folding into cookies, brownies, and ice creams. CHEF&#x27;S CHOICE the preferred chocolate of chefs and 5 star restaurants worldwide and the ultimate snacking bar. Product Dimensions ‏ ‎ 0.4 x 2.63 x 6.38 inches; 2.4 Ounces UPC ‏ ‎ 726120846723 Manufacturer ‏ ‎ VALRHONA ASIN ‏ ‎ B09LMGQFTL Country of Origin ‏ ‎ France #1,788 in Candy &amp; Chocolate Bars Reviews 2 Write Your Own Review You&#x27;re reviewing: Valrhona Dark Chocolate MANJARI, 65% Cacao Baking Bars - Gourmet French Chocolate, Tangy and Fruity Notes. Single Origin Madagasca</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/valrhona-dark-chocolate-manjari-65-cacao-baking-bars-gourmet-french-chocolate-tangy-and-fruity-notes-single-origin-madagascar-premium-couverture-the-perfect-baking-bar-70g-pack-of-1.html" target="_blank" rel="noreferrer">http://localhost:7770/valrhona-dark-chocolate-manjari-65-cacao-baking-bars-gourmet-french-chocolate-tangy-and-fruity-notes-single-origin-madagascar-premium-couverture-the-perfect-baking-bar-70g-pack-of-1.html</a></p><p>冻结文件: <a href="sources/e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e" target="_blank">sources/e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e</a></p><p>内容 SHA-256: <code>e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;seller_offer_and_internal_64_65_conflict_not_independent_composition_origin_or_taste_result&quot;,
+    &quot;topic_cluster&quot;: &quot;dark_chocolate_origin_percentage_gift_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Valrhona page shows SKU B09LMGQFTL at 7.89 dollars, rated 100 percent over two reviews, with a title describing a 70-gram 65-percent single-origin Madagascar bar and tangy and fruity notes, while the same page also lists Manjari as 64 percent; the 64-versus-65-percent seller inconsistency remains unresolved and none of these fields independently proves exact composition, origin traceability, sensory preference, ingredients, allergens, or current delivered cost.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_dark_chocolate_gift_0044</td><td>case_spec</td><td><a href="sources/d8074a92ce072f8068a69f105787cf2511ec42149175bfdd53ea0f865075f408">d8074a92ce072f8068a69f105787cf2511ec42149175bfdd53ea0f865075f408</a></td><td><a href="http://case-spec.local/dra_v3_formal_snacks_chocolate_0044" target="_blank" rel="noreferrer">来源 URL</a></td><td>12214</td></tr><tr><td>reg_magento_cravings_zoe_0044</td><td>magento</td><td><a href="sources/f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c">f8a90192bf7c93ce329c9286d504a1704680e39d33f7eae752f7e972d42c8d9c</a></td><td><a href="http://localhost:7770/cravings-by-zoe-valentine-s-day-chocolate-truffles-assorted-chocolate-gift-box-red-gourmet-chocolate-delicious-milk-chocolate-dark-chocolate-and-white-chocolate-flavors-with-16-assorted-toppings-7-5-oz-16-count.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2266</td></tr><tr><td>reg_magento_lindt_holiday_truffles_0044</td><td>magento</td><td><a href="sources/8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22">8449246931f5364a9a033a7a24c7a905718b940c8d7037d848adec35b3dc0b22</a></td><td><a href="http://localhost:7770/lindt-lindor-holiday-deluxe-assorted-chocolate-truffles-gift-box-15-2-oz-2021.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>5371</td></tr><tr><td>reg_magento_pump_street_0044</td><td>magento</td><td><a href="sources/7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf">7f31729991edc6ec68d701d7df822ba7fe439f418e9e87f7654a620633a2c3cf</a></td><td><a href="http://localhost:7770/pump-street-chocolate-ecuador-dark-milk-60.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1358</td></tr><tr><td>reg_magento_quma_quinoa_0044</td><td>magento</td><td><a href="sources/47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b">47280e72065af89bda33e7fa7574e7b15266031330a4ce0cd75a94b7e55d465b</a></td><td><a href="http://localhost:7770/quma-quinoa-70-cacao-dark-chocolate-organic-bean-to-bar-born-and-made-in-peru-fair-trade.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2897</td></tr><tr><td>reg_magento_valrhona_manjari_0044</td><td>magento</td><td><a href="sources/e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e">e2354c6fdeed23b6620087b3498224fa7c6af428e470ccae52c718c1e215029e</a></td><td><a href="http://localhost:7770/valrhona-dark-chocolate-manjari-65-cacao-baking-bars-gourmet-french-chocolate-tangy-and-fruity-notes-single-origin-madagascar-premium-couverture-the-perfect-baking-bar-70g-pack-of-1.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>7569</td></tr><tr><td>reg_postmill_jersey_city_gifts_0044</td><td>postmill</td><td><a href="sources/dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55">dba9057365011381e699b4a2251d0822f717814e3c15ef05734992b057f05d55</a></td><td><a href="http://localhost:9999/f/jerseycity/20726/chocolate-gifts" target="_blank" rel="noreferrer">来源 URL</a></td><td>880</td></tr><tr><td>reg_postmill_lpt_chocolate_price_0044</td><td>postmill</td><td><a href="sources/769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042">769f307cee8bde6ee0efc7405ae1d32ceba03a549ec35908389694a177ec4042</a></td><td><a href="http://localhost:9999/f/LifeProTips/99418/lpt-chocolate-chips-are-candy" target="_blank" rel="noreferrer">来源 URL</a></td><td>5025</td></tr><tr><td>reg_postmill_pennsylvania_flavor_box_0044</td><td>postmill</td><td><a href="sources/1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220">1fb5c36825f6b41ec102ed121ff189ef6e3f8ef239bc5f5a51e186e873af0220</a></td><td><a href="http://localhost:9999/f/Pennsylvania/79206/please-help-looking-for-a-chocolate-company-that-used-to-set" target="_blank" rel="noreferrer">来源 URL</a></td><td>2020</td></tr><tr><td>reg_search_chocolate_truffle</td><td>search_result</td><td><a href="sources/b68c487d114136db6611d96a322865aa0125d26ed9526c34f70bd98265942315">b68c487d114136db6611d96a322865aa0125d26ed9526c34f70bd98265942315</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=a05883ba-b037-4113-bed5-260827fe515e" target="_blank" rel="noreferrer">来源 URL</a></td><td>21675</td></tr><tr><td>reg_search_cocoa_fermentation</td><td>search_result</td><td><a href="sources/671784e60e3e5bb333545ea81d07e280dab5e014887e38450eb4faf95329639b">671784e60e3e5bb333545ea81d07e280dab5e014887e38450eb4faf95329639b</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=48ff9e38-a1c5-4b9c-a570-244ca198bbc1" target="_blank" rel="noreferrer">来源 URL</a></td><td>2599</td></tr><tr><td>reg_search_cocoa_varieties</td><td>search_result</td><td><a href="sources/1beac13d75ae6cc0039f952b8b70a79139363acd2a7cb58a85364b6aae135006">1beac13d75ae6cc0039f952b8b70a79139363acd2a7cb58a85364b6aae135006</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=77b41521-bee1-452f-acbd-767febcd366c" target="_blank" rel="noreferrer">来源 URL</a></td><td>5646</td></tr><tr><td>reg_search_cravings_assorted_truffles</td><td>search_result</td><td><a href="sources/9cadf36646ad5fb5d9e2432108d655e590e862ab6ed4def872fa1a44a64c25bd">9cadf36646ad5fb5d9e2432108d655e590e862ab6ed4def872fa1a44a64c25bd</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=1db0c0a0-413e-4d0c-892e-1e888db170e8" target="_blank" rel="noreferrer">来源 URL</a></td><td>7115</td></tr><tr><td>reg_search_dark_chocolate</td><td>search_result</td><td><a href="sources/8e0c0e214e4f733e582c992cbba68b53c33ef76bed2b0f9ec7855742f896f009">8e0c0e214e4f733e582c992cbba68b53c33ef76bed2b0f9ec7855742f896f009</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=de750da9-ec36-48b9-9007-77c2d825da01" target="_blank" rel="noreferrer">来源 URL</a></td><td>18906</td></tr><tr><td>reg_search_flavor_cocoa</td><td>search_result</td><td><a href="sources/52214afea061cd8bce46691f57432892fe1bbfaba0ae303b92dfe86d002afecc">52214afea061cd8bce46691f57432892fe1bbfaba0ae303b92dfe86d002afecc</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=5211b97d-acc1-4346-be41-ed3f14461edc" target="_blank" rel="noreferrer">来源 URL</a></td><td>19413</td></tr><tr><td>reg_search_jersey_city_gifts</td><td>search_result</td><td><a href="sources/4d557c6790d0db4244b3c170b2a6494686c69b865f29a2ac0d4f35c0cde75b8d">4d557c6790d0db4244b3c170b2a6494686c69b865f29a2ac0d4f35c0cde75b8d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=0097facb-b4c5-43f4-b8a3-76908f60199d" target="_blank" rel="noreferrer">来源 URL</a></td><td>49807</td></tr><tr><td>reg_search_lindt_assorted_truffles</td><td>search_result</td><td><a href="sources/de772790009013ca4dd373610d7c7b5d3644689a79313d8895cc65b4b3c1088f">de772790009013ca4dd373610d7c7b5d3644689a79313d8895cc65b4b3c1088f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=169ec77d-daf0-47d2-9a5b-6c35e4c091b7" target="_blank" rel="noreferrer">来源 URL</a></td><td>5340</td></tr><tr><td>reg_search_lpt_price_taste</td><td>search_result</td><td><a href="sources/99b72dcb01fb98f4987227e50ad30b6eda11374b15118a689b10d817161dea99">99b72dcb01fb98f4987227e50ad30b6eda11374b15118a689b10d817161dea99</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=a361df28-b677-4b54-9efe-1b59c246c258" target="_blank" rel="noreferrer">来源 URL</a></td><td>44937</td></tr><tr><td>reg_search_pennsylvania_flavor_box</td><td>search_result</td><td><a href="sources/77154cbb065d78ca4220a8ec96be98a5bc61d1697ab2ff8e656a340346c8b3fb">77154cbb065d78ca4220a8ec96be98a5bc61d1697ab2ff8e656a340346c8b3fb</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=dded09be-241f-42d6-8565-321690f46834" target="_blank" rel="noreferrer">来源 URL</a></td><td>46259</td></tr><tr><td>reg_search_pump_street_dark_milk</td><td>search_result</td><td><a href="sources/72764526a631d4e1332a221978d8f33bcdd087aa86760ebc9d44c35882f02f8c">72764526a631d4e1332a221978d8f33bcdd087aa86760ebc9d44c35882f02f8c</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=0c54d57c-35c9-40b6-aad1-327f0151bcb2" target="_blank" rel="noreferrer">来源 URL</a></td><td>6883</td></tr><tr><td>reg_search_quma_quinoa</td><td>search_result</td><td><a href="sources/5aea7fa4e4a2177d44f296766517ed654ffae937522a10b2c4a67c0d4c2ebe29">5aea7fa4e4a2177d44f296766517ed654ffae937522a10b2c4a67c0d4c2ebe29</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=37533fe0-8aa9-493e-af3f-a0042c1b9b19" target="_blank" rel="noreferrer">来源 URL</a></td><td>6996</td></tr><tr><td>reg_search_valrhona_manjari</td><td>search_result</td><td><a href="sources/fda5859883524f4c41f0667c5c72084cd0fdc18ce25606eb1ea837abb31d4d08">fda5859883524f4c41f0667c5c72084cd0fdc18ce25606eb1ea837abb31d4d08</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1&amp;request_id=02e97f24-aae7-435a-8633-25c687d2d16b" target="_blank" rel="noreferrer">来源 URL</a></td><td>6069</td></tr><tr><td>reg_wikipedia_chocolate_truffle_0044</td><td>wikipedia</td><td><a href="sources/cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea">cad09a38bdd87757345037d308d52137525ce53f70bf2aeb9852b812af8846ea</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_truffle" target="_blank" rel="noreferrer">来源 URL</a></td><td>6033</td></tr><tr><td>reg_wikipedia_cocoa_fermentation_0044</td><td>wikipedia</td><td><a href="sources/6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d">6e1f9e8059666689bfc1e9c7a621e8409d4b4657af2a53e3a832385f74cc528d</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean_fermentation" target="_blank" rel="noreferrer">来源 URL</a></td><td>17226</td></tr><tr><td>reg_wikipedia_cocoa_types_0044</td><td>wikipedia</td><td><a href="sources/bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821">bb01b4cb5ab45b7948d4fa6cd6f75eba748aaa2db64b254d57b489fc8dfd0821</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Types_of_cocoa_beans" target="_blank" rel="noreferrer">来源 URL</a></td><td>7832</td></tr><tr><td>reg_wikipedia_dark_chocolate_0044</td><td>wikipedia</td><td><a href="sources/b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c">b5ac2442e4483710cddc0ae92270666431d87ece2c75bbaa9a299f06ab400f8c</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Dark_chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>20050</td></tr><tr><td>reg_wikipedia_flavor_cocoa_0044</td><td>wikipedia</td><td><a href="sources/a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057">a450d39416e9ef365cf05bda53d5ea65f181018956940d05587f77ae971a5057</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Flavor_cocoa" target="_blank" rel="noreferrer">来源 URL</a></td><td>9495</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-snacks-chocolate-0044-origin-percentage-gift-boundary-20260716-r1";
+const graphHash = "a5afbd4ba8de7a8feff64c2a4660d371780eb216fb983903a229589d4f96fa2c";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

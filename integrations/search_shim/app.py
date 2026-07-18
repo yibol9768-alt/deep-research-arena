@@ -394,12 +394,19 @@ class TavilySearchResponse(BaseModel):
     request_id: str
 
 
-def _hit_to_tavily(h: SearchHit, include_raw: Union[bool, str]) -> TavilySearchResultItem:
+def _hit_to_tavily(
+    h: SearchHit,
+    include_raw: Union[bool, str],
+    *,
+    fetched_raw_content: Optional[str] = None,
+) -> TavilySearchResultItem:
     raw = None
     if include_raw:
-        # Defer heavy HTML fetches: extract endpoint is for that.
-        # Here we just echo the snippet as raw content.
-        raw = h.raw_content or h.content
+        # Tavily defines include_raw_content as the cleaned webpage body, not a
+        # duplicate of the search snippet.  Some official clients (notably
+        # LangChain Open Deep Research) intentionally use this one-call path
+        # instead of invoking /extract separately.
+        raw = fetched_raw_content or h.raw_content
     return TavilySearchResultItem(
         title=h.title,
         url=h.url,
@@ -427,14 +434,26 @@ def _search_recorded(query: str, *, endpoint: str, **kw) -> list[SearchHit]:
     return hits
 
 
-def _extract_recorded(urls: list[str], *, endpoint: str) -> list[dict]:
+def _extract_recorded(
+    urls: list[str],
+    *,
+    endpoint: str,
+    extract_depth: Literal["basic", "advanced"] = "basic",
+) -> list[dict]:
     """Single chokepoint for `backend.extract`. Stores the served bytes.
 
     The scorer reads these bytes (by digest) instead of re-fetching the page at
     scoring time, so `quote_support` compares the report against what the agent
     was actually shown.
     """
-    rows = extract(urls)
+    # Keep every legacy caller, including Firecrawl and one-argument test or
+    # harness adapters, on the byte-identical basic call shape. Only Tavily's
+    # explicit advanced request opts into the v3 multi-section extractor.
+    rows = (
+        extract(urls, extract_depth="advanced")
+        if extract_depth == "advanced"
+        else extract(urls)
+    )
     for row in rows:
         body = (row.get("raw_content") or "").encode("utf-8", "replace")
         # `links` were captured from the page HTML before get_text() stripped
@@ -466,9 +485,31 @@ def _tavily_search_response(
         exclude_domains=exclude_domains or [],
     )
     hits = _filter_hits_strict(hits, endpoint="/search", query=query)
+    fetched_by_url: dict[str, str] = {}
+    if include_raw_content and hits:
+        # Preserve Tavily's native one-call search+page-content contract.  The
+        # fetch still goes through the same strict sandbox extractor and is
+        # recorded independently, so raw content cannot be confused with a
+        # snippet or escape the corpus allowlist.
+        rows = _extract_recorded(
+            [hit.url for hit in hits],
+            endpoint="/search",
+        )
+        fetched_by_url = {
+            str(row.get("url")): str(row.get("raw_content"))
+            for row in rows
+            if row.get("url") and row.get("raw_content")
+        }
     return TavilySearchResponse(
         query=query,
-        results=[_hit_to_tavily(h, include_raw_content) for h in hits],
+        results=[
+            _hit_to_tavily(
+                h,
+                include_raw_content,
+                fetched_raw_content=fetched_by_url.get(h.url),
+            )
+            for h in hits
+        ],
         response_time=round(time.time() - t0, 3),
         request_id=str(uuid.uuid4()),
     )
@@ -568,7 +609,11 @@ def tavily_extract(
     # URLs the gate considers private; a single 403 is cleaner.
     for u in req.urls:
         _ensure_url_allowed(u, endpoint="/extract")
-    rows = _extract_recorded(list(req.urls), endpoint="/extract")
+    rows = _extract_recorded(
+        list(req.urls),
+        endpoint="/extract",
+        extract_depth=req.extract_depth,
+    )
     results: list[TavilyExtractResultItem] = []
     failed: list[dict] = []
     for row in rows:

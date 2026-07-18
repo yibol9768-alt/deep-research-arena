@@ -1,0 +1,1295 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_snacks_chocolate_0048",
+  "cluster_id": "dark_chocolate_price_ladder_personal_sensory_cutoff",
+  "difficulty": {
+    "proof_depth": 4,
+    "branching_factor": 15,
+    "distractor_density": 0.36,
+    "contradiction_count": 2
+  },
+  "rule_definitions": {
+    "seller_price_pack_normalization_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The five seller pages freeze offer assertions rather than current delivered prices or taste results. DOVE SKU B07L9TTQN6 is 25.45 dollars with no reviews shown and its title and quick look say twelve 3.30-ounce dark bars. Lindt SKU B000H26J7E is 30 dollars, rated 67 percent over twelve reviews, with the selected 70-percent 3.5-ounce twelve-pack. Ritter Sport SKU B07PTSPCVS is 8.99 dollars with no reviews shown for one 74-percent 100-gram or 3.52-ounce bar. Green & Black SKU B008FRKKV4 is 21.99 dollars with no reviews shown for three 70-percent 100-gram bars. Raaka SKU B07811Q1PR is 14.95 dollars, rated 58 percent over twelve reviews, with a selected coconut-milk 60-percent 1.8-ounce three-pack; its title implies 5.4 ounces while Product Dimensions reports 1.8 ounces. Conditional arithmetic from the title fields gives about 2.12, 2.50, 8.99, 7.33 and 4.98 dollars per nominal bar respectively, but only after preserving pack and mass assumptions, and none is a verified current delivered cost or taste ranking."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "comparable_form_price_ladder_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "A causal price ladder requires like-for-like products and portions. The DOVE page does not state a cocoa percentage in the captured text; Lindt and Green & Black say 70 percent, Ritter says 74 percent, and Raaka says 60 percent with coconut milk, shredded coconut and unroasted cacao. Pack count, bar mass, recipe, percentage, origin and flavor differ. Normalize transparent price fields, but first screen plain dark bars into a comparable stratum and analyze flavored or coconut-containing bars separately. A higher price per bar, per ounce or per 100 grams cannot by itself prove ingredient quality, flavor complexity, preference or health benefit."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "process_ethics_label_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Bean-to-bar describes control from procuring cocoa beans to producing the finished chocolate and can involve processing whole beans rather than remelting an existing base. Fair trade cocoa is defined as cocoa under a certified price-support scheme intended to support sustainable farmer income. Raaka's unroasted, bean-to-bar, small-batch, single-origin, organic, direct-source and beyond-fair-trade statements remain seller assertions for that exact page. Neither the general definitions nor the seller copy guarantee blind taste superiority, complete traceability, exact payments, universal ethical superiority, health benefit or value for this buyer."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "cocoa_composition_quality_boundary_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Dry cocoa solids are the components left after cocoa butter is extracted, while some legal uses of cocoa solids include cocoa mass, powder and butter; a percentage label therefore does not alone reveal the balance of non-fat solids, cocoa butter, sugar or every ingredient. Bulk cocoa is contrasted with flavor cocoa using a partly subjective definition that refers to undesirable flavor, drying or fermentation, while the same page notes grade and origin variation. Percentage, bean class, origin and processing can be variables to bind and test, but generic pages do not grade any captured bar or establish a monotonic price-to-quality curve."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "community_habit_value_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "One author reports eating a bar or two daily while trying to cut down. A second author reports sending six roughly three-ounce dark bars of various types as a gift before an unrelated dog-ingestion incident. A Pittsburgh author lists Aldi favorites because of price and quality and includes chocolate-flavored ice cream, not a controlled dark-bar comparison. These pages motivate recording use frequency, trying small varied units and separating price from personal quality, but they do not supply population consumption guidance, safety advice, brand rankings, blind preferences or a universal value threshold."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "blinded_difference_liking_protocol_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Sensory analysis separates analytical testing of whether products differ from affective testing of which product is liked. A hedonic scale records degree of liking, commonly from one to nine, while a blinded experiment withholds information that could influence participants or investigators. For the buyer's question, verify exact labels and allergens, select comparable plain bars, serve equal coded portions in randomized balanced order, repeat sessions, record whether a difference is detected separately from nine-point liking and purchase willingness, and record guesses or other unblinding. Seller identity, package and price stay hidden until scoring is locked. This single-person protocol estimates only this buyer's repeatable preference under declared conditions."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "person_specific_price_stop_rule_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Before tasting, declare the smallest liking improvement worth paying for, the maximum incremental cost per evening, the number of repeated sessions, a consistency rule and identity, allergen, package and sensory stops. After current delivered prices and portions are verified, move through comparable tiers only while the next tier produces the declared repeatable difference and liking gain without exceeding the cost ceiling. The first tier that fails that compound rule is a person-specific stopping point under the tested products and conditions, not a universal market breakpoint. If no premium clears it, keep the lower-cost bar; if fields or comparability remain unresolved, run a smaller corrected trial or defer."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "price_ladder_decision_preparation_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Build one exact-offer table with literal seller fields, transparent conditional arithmetic, comparable-form status, label and allergen completeness, process and ethics claim status, and current delivered-price verification. Then add blinded difference, nine-point liking, repeatability, incremental evening cost and willingness-to-pay results. Do not let marketing, cocoa percentage, ratings, anecdotes or an ethics priority substitute for the sensory and budget gates, and do not let a sensory win erase unresolved identity or allergen fields. Preserve an ethics preference as its own declared decision axis rather than calling it a measured taste improvement."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_price_ladder_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet proves no universal point at which dark-chocolate price stops improving quality and no immediate winner. Audit the frozen offers and their pack and mass assumptions; separate comparable plain bars from the Raaka coconut recipe; keep bean-to-bar and Fairtrade at process and ethics scope; and run the predeclared randomized blinded repeated protocol with distinct difference, liking and cost outcomes. Choose the lowest-cost exact comparable bar that clears identity, allergen, repeatable sensory and budget gates. Otherwise keep the current bar, run a smaller corrected trial or defer. Report any stopping point only for this buyer, these verified bars, prices, portions and test conditions."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "choose_the_lowest_cost_exact_comparable_bar_that_passes_identity_allergen_repeatable_sensory_and_budget_gates_otherwise_keep_the_current_bar_run_a_smaller_corrected_trial_or_defer": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "The packet proves no universal price cutoff or immediate winner. Choose the lowest-cost exact comparable bar that passes verified identity, allergens, repeatable blinded sensory and budget gates; otherwise keep the current bar, run a smaller corrected trial or defer.",
+            "Verify current exact offers and comparable forms, then select only the lowest-cost bar clearing the predeclared difference, liking and incremental-cost rule, or keep the current bar, correct the trial or defer without a universal breakpoint."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "choose_the_lowest_cost_exact_comparable_bar_that_passes_identity_allergen_repeatable_sensory_and_budget_gates_otherwise_keep_the_current_bar_run_a_smaller_corrected_trial_or_defer",
+          "when": "the_packet_lacks_current_exact_delivered_offers_and_blinded_matched_repeat_results",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The packet contains five frozen seller snapshots, bounded process, ethics, composition, sensory, hedonic and blinding context, and three scoped community anecdotes, but lacks verified current delivered labels and prices, matched comparable portions and repeated blinded difference, liking and willingness-to-pay results."
+            ],
+            "normalizers": [
+              "casefold",
+              "whitespace",
+              "punctuation",
+              "hyphen"
+            ]
+          },
+          "tradeoff_matchers": {
+            "seller_fields_are_scoped": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "All SKU, price, pack, mass, percentage, rating, process, origin, certification, flavor and quality wording remains frozen seller assertion rather than current offer or independent result."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "unit_arithmetic_is_conditional": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Show conditional price per nominal bar and mass with visible arithmetic while retaining pack assumptions and the Raaka 5.4-ounce versus 1.8-ounce conflict."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "comparable_forms_are_required": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Compare price tiers causally only among matched plain bars and keep the 60-percent coconut-milk recipe in a separate stratum or exclude it."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "budget_anchors_are_unverified": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The buyer's two-dollar and ten-to-twelve-dollar figures remain unverified anchors until current exact delivered offers match them."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "process_and_ethics_are_not_taste": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Bean-to-bar is process-control context and Fairtrade is price-support context, not guarantees of blind taste, health, exact payments, traceability or total ethics."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "percentage_is_not_complete_composition": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Cocoa percentage and cocoa-solids terminology do not reveal the complete balance of non-fat solids, cocoa butter, sugar and other ingredients."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "bean_class_is_not_an_exact_grade": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Bulk-versus-flavor cocoa is partly subjective and processing-sensitive and does not grade an exact captured bar or define a price-quality curve."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "community_evidence_is_scoped": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The daily-habit, varied-gift and Aldi posts remain author-, incident-, product-, place- and time-scoped rather than population, safety, brand or value evidence."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "difference_liking_and_value_are_separate": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Record detectable difference separately from nine-point liking and willingness to pay; none of those outcomes substitutes for the others."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "blinding_and_repeatability_are_required": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Mask brand, package, price and marketing, randomize equal coded portions, repeat sessions and report guesses or other unblinding before interpreting a preference."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "exact_identity_and_allergens_are_required": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Verify current SKU, variant, pack, net mass, price, shipping, ingredients, allergens, cocoa components, origin, certification, lot, date, storage and return terms before tasting."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "no_health_or_intake_inference": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Do not claim health benefit, a safe daily intake or medical effect from percentages, generic cocoa context, seller copy or anecdotes."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "stop_rule_is_person_specific": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Apply the predeclared minimum liking gain, repeatability and maximum incremental evening-cost rule only to this buyer, these bars, portions, prices and test conditions."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "lowest_cost_or_keep_correct_defer": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Choose the lowest-cost exact comparable passing bar; if no premium clears every gate, keep the current bar, run a smaller corrected trial or defer."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_dove_current_price",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen DOVE price is necessarily the buyer's current delivered price."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_dove_low_price_best",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "DOVE must be the best daily value because its conditional price per ounce is lowest."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_lindt_rating_taste",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Lindt 67-percent store rating proves superior taste or quality."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_ritter_price_quality",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The 8.99-dollar Ritter bar is higher quality because it costs more per bar."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_green_black_price_quality",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Green and Black three-pack price proves that each bar is better than the twelve-pack bars."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_raaka_mass_resolved",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Raaka page unambiguously establishes 5.4 delivered ounces despite its 1.8-ounce Product Dimensions field."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_budget_anchors_verified",
+      "contradicts_slot_id": "B6",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The packet verifies one exact two-dollar supermarket bar and one exact ten-to-twelve-dollar craft bar."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_homogeneous_ladder",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "All five offers form one homogeneous price ladder despite percentage, recipe, coconut content, mass and pack differences."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_raaka_plain_control",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Raaka coconut-milk 60-percent bar is a matched plain control for every 70- or 74-percent bar."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_unit_price_causes_quality",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A higher normalized price by itself causes or proves a better sensory result."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_bean_to_bar_taste",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Bean-to-bar universally guarantees superior blind taste."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_fairtrade_taste",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Fairtrade certification proves that a chocolate tastes better."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_exact_payments_known",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The generic Fairtrade definition and seller page establish every exact payment and farmer outcome in the captured supply chain."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_raaka_total_ethics",
+      "contradicts_slot_id": "B5",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Raaka's direct-source and beyond-fair-trade copy proves complete ethical superiority over every other bar."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_percentage_formula",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A cocoa percentage alone reveals the full balance of cocoa solids, cocoa butter, sugar and every ingredient."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_percentage_quality",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The 74-percent bar must be higher quality than every 70- or 60-percent bar."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_bulk_class_grade",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The generic bulk-cocoa page grades each exact seller product and establishes its taste quality."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_origin_quality",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Single-origin or Trinitario wording alone proves a monotonic flavor-quality advantage."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_daily_post_population",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One daily-habit post establishes how much chocolate the buyer or population should eat."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_gift_post_taste_trial",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Sending six varied dark bars is a controlled blind price-ladder experiment."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_aldi_dark_bar_curve",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One Aldi favorites list containing chocolate-flavored ice cream establishes the dark-bar price-quality curve."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_forum_health",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The three community pages provide medical or safe-intake evidence for a nightly dark-chocolate habit."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_difference_equals_liking",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Detecting that two bars differ proves that the expensive bar is liked more."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_hedonic_equals_detection",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A nine-point liking score by itself proves that two products are analytically distinguishable."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_one_unblinded_taste",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One taste after seeing brand and price is sufficient evidence of a measurable premium improvement."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_blind_automatically_succeeds",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Calling a test blind proves that all recipe and identity cues were successfully masked."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_unmatched_portions",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Different portion sizes, temperatures and serving orders do not affect the interpretation of the taste comparison."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_willingness_is_preference",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Willingness to pay and sensory liking are the same outcome and need only one measure."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_posthoc_cutoff",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The buyer may inspect all results and then invent a price and liking threshold that selects the preferred winner."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_universal_breakpoint",
+      "contradicts_slot_id": "B7",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A stopping tier from one person's trial is a universal market point where price stops improving quality."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_ethics_as_taste_gain",
+      "contradicts_slot_id": "B8",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "An ethics preference can be reported as a measured blind taste improvement."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_health_from_cocoa",
+      "contradicts_slot_id": "B8",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Generic cocoa information proves a health benefit or safe nightly amount for an exact bar."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_one_gate_compensates",
+      "contradicts_slot_id": "B8",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A strong liking score can compensate for unresolved identity or allergens."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_immediate_winner",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen packet already proves one unconditional product and universal price cutoff."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_buy_craft_without_trial",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The buyer should adopt the craft habit before verifying exact offers and running the predeclared trial."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Audit all five frozen offers, show conditional price-per-bar and price-per-mass arithmetic, preserve the Raaka mass conflict and separate comparable plain bars from unlike recipes.",
+      "critical": true,
+      "requires": [
+        "E7",
+        "E9",
+        "E11",
+        "E12",
+        "E13",
+        "B4",
+        "B6"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Bound bean-to-bar, Fairtrade, cocoa-solids, bean-class, origin and percentage evidence without promoting process, ethics or composition context into exact taste, health or quality guarantees.",
+      "critical": true,
+      "requires": [
+        "E2",
+        "E4",
+        "E5",
+        "E8",
+        "E9",
+        "E12",
+        "E13",
+        "B2",
+        "B5"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Keep the daily-habit, varied-gift and Aldi price-and-quality pages at their author, incident, product, place and time scopes and extract only trial-design variables.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E6",
+        "E15",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Design a matched repeated within-person protocol with verified labels and allergens, equal coded portions, randomized order, brand-price masking, unblinding records and separate difference, nine-point liking and willingness-to-pay outcomes.",
+      "critical": true,
+      "requires": [
+        "E3",
+        "E7",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "B1",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Apply a predeclared person-specific next-tier stop rule using repeatability, minimum liking gain and maximum incremental evening cost without a post-hoc or universal cutoff.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "B1",
+        "B3",
+        "B4",
+        "B6",
+        "B7",
+        "B8"
+      ],
+      "local_conclusion_slot_id": "B7"
+    },
+    {
+      "subgoal_id": "G6",
+      "description": "Choose the lowest-cost exact comparable bar passing identity, allergen, repeatable sensory and budget gates, or keep the current bar, correct the trial or defer without naming an unconditional winner.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Build the exact five-offer table, preserve frozen and conflicting fields, show conditional unit-price arithmetic and state which forms are actually comparable.",
+      "slot_ids": [
+        "E7",
+        "E9",
+        "E11",
+        "E12",
+        "E13",
+        "B4",
+        "B6"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain what bean-to-bar, Fairtrade, cocoa-solids, bulk-versus-flavor cocoa, origin and percentage can and cannot establish.",
+      "slot_ids": [
+        "E2",
+        "E4",
+        "E5",
+        "E8",
+        "E9",
+        "E12",
+        "E13",
+        "B2",
+        "B5"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Use the three community pages only as scoped anecdotes and not as population, safety, preference or price-quality evidence.",
+      "slot_ids": [
+        "E1",
+        "E6",
+        "E15",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Specify exact-offer, label and allergen checks plus a randomized blinded repeated trial that separates detectable difference, nine-point liking and willingness to pay.",
+      "slot_ids": [
+        "E3",
+        "E7",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "B1",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Predeclare and apply a person-specific minimum liking gain, repeatability and maximum incremental cost stop rule, including unblinding and safety stops.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "B1",
+        "B3",
+        "B4",
+        "B6",
+        "B7",
+        "B8"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q6",
+      "text": "Give a conditional lowest-cost purchase, keep-current-bar, corrected-trial or deferral decision without health claims or a universal product or price cutoff.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "E14",
+        "E15",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "B5",
+        "B6",
+        "B7",
+        "B8",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G6"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "choose_the_lowest_cost_exact_comparable_bar_that_passes_identity_allergen_repeatable_sensory_and_budget_gates_otherwise_keep_the_current_bar_run_a_smaller_corrected_trial_or_defer",
+      "when": "the_packet_lacks_current_exact_delivered_offers_and_blinded_matched_repeat_results",
+      "required_tradeoffs": [
+        "seller_fields_are_scoped",
+        "unit_arithmetic_is_conditional",
+        "comparable_forms_are_required",
+        "budget_anchors_are_unverified",
+        "process_and_ethics_are_not_taste",
+        "percentage_is_not_complete_composition",
+        "bean_class_is_not_an_exact_grade",
+        "community_evidence_is_scoped",
+        "difference_liking_and_value_are_separate",
+        "blinding_and_repeatability_are_required",
+        "exact_identity_and_allergens_are_required",
+        "no_health_or_intake_inference",
+        "stop_rule_is_person_specific",
+        "lowest_cost_or_keep_correct_defer"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9",
+      "E10",
+      "E11",
+      "E12",
+      "E13",
+      "E14",
+      "E15",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "B5",
+      "B6",
+      "B7",
+      "B8",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      },
+      "E8": {
+        "outcome": "decision_unresolved"
+      },
+      "E9": {
+        "outcome": "decision_unresolved"
+      },
+      "E10": {
+        "outcome": "decision_unresolved"
+      },
+      "E11": {
+        "outcome": "decision_unresolved"
+      },
+      "E12": {
+        "outcome": "decision_unresolved"
+      },
+      "E13": {
+        "outcome": "decision_unresolved"
+      },
+      "E14": {
+        "outcome": "decision_unresolved"
+      },
+      "E15": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 55,
+    "minimum_required_evidence_nodes": 15,
+    "minimum_reasoning_depth": 4
+  }
+}

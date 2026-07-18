@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRA v3 冻结证据人工审核</title>
+<style>
+:root { color-scheme: light; font-family: Inter, "Noto Sans SC", sans-serif; }
+body { margin: 0; background: #f4f6f8; color: #17212b; }
+main { max-width: 1180px; margin: 0 auto; padding: 28px; }
+h1, h2, h3 { margin-top: 0; }
+.warning { background: #fff3cd; border: 1px solid #e0b84f; padding: 16px; border-radius: 8px; }
+.translation { background: #edf7ff; border: 1px solid #8ec5ee; border-radius: 8px; padding: 14px; margin: 14px 0; }
+.translation h4 { margin: 0 0 10px; }
+.translated-span { background: white; border-left: 4px solid #3182ce; padding: 10px 12px; margin: 10px 0; }
+.original-text { color: #657587; font-size: 12px; margin-top: 5px; }
+.summary, .toolbar, .review-card, .sources { background: white; border: 1px solid #d9e0e7; border-radius: 10px; padding: 18px; margin: 16px 0; }
+.toolbar { position: sticky; top: 0; z-index: 10; box-shadow: 0 3px 12px #0002; }
+.toolbar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
+label { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+input, select, textarea, button { font: inherit; padding: 8px; }
+button { cursor: pointer; background: #155eef; color: white; border: 0; border-radius: 6px; }
+.review-card header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.review-card h3 { margin: 0 auto 0 0; }
+.badge { border: 1px solid #aab7c4; border-radius: 999px; padding: 3px 8px; font-size: 12px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f7f9fb; border: 1px solid #e1e7ed; padding: 12px; border-radius: 6px; }
+.context { line-height: 1.6; }
+mark { background: #ffe08a; padding: 2px; }
+details { margin: 12px 0; }
+summary { cursor: pointer; font-weight: 650; }
+fieldset { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; border: 1px solid #cbd5df; border-radius: 8px; }
+.note { grid-column: 1 / -1; }
+textarea { min-height: 70px; }
+.gap { margin-bottom: 14px; }
+.gap label { margin-top: 6px; }
+.muted, .span-meta { color: #536273; font-size: 13px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { border-bottom: 1px solid #e1e7ed; padding: 8px; text-align: left; overflow-wrap: anywhere; }
+.hidden { display: none; }
+</style>
+</head>
+<body><main>
+<h1>DRA v3 冻结证据人工审核</h1>
+<section class="warning"><strong>审核规则：</strong>以本页展示的英文冻结 bytes 为准。中文是理解辅助，不是独立证据。实时网页只能核对来源身份，不能覆盖冻结快照。JSON 用于记录决定，不应代替阅读原文和上下文。本页不会自动把候选题晋级。</section>
+<section class="summary">
+<h2>审核对象</h2>
+<p>候选题: <code>unassigned_candidate</code></p>
+<p>语料快照: <code>dra-v3-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1</code></p>
+<p>证据图哈希: <code>1892e77683d64d322010fda2d36fccf69a7e1fd5d6bdfbe59e840f6769a40c05</code></p>
+<p>待审项 30 个，其中语义项 15 个、结构化项 0 个；冻结来源 31 个；已知证据缺口 0 个。</p>
+<h3>已知证据缺口</h3><ol></ol>
+</section>
+<section class="toolbar">
+<div class="toolbar-grid">
+<label>标注者 ID<input id="reviewer_id" placeholder="你的名字或标注者 ID"></label>
+<label>候选题结论<select id="candidate_verdict"><option value="pending">待定（pending）</option><option value="eligible">可晋级（eligible）</option><option value="reject">淘汰（reject）</option><option value="revise_scope">缩小题目范围（revise_scope）</option></select></label>
+<label>筛选<select id="kind_filter"><option value="all">全部</option><option value="semantic">语义项</option><option value="structured">结构化项</option><option value="pending">尚未决定</option></select></label>
+<button id="export_button" type="button">导出审核 JSON</button>
+</div></section>
+<section id="review_items"><article class="review-card" data-kind="semantic" data-item-id="assert_chocolate_liquor_composition_scope"><header><h3>assert_chocolate_liquor_composition_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;fermented dried roasted skinned nibs are ground until butter release creates cocoa mass containing both solids and butter&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for chocolate liquor&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_chocolate_liquor_composition_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_liquor_definition_not_exact_percentage_or_formula_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;fermented dried roasted skinned nibs are ground until butter release creates cocoa mass containing both solids and butter&quot;,
+  &quot;predicate&quot;: &quot;defines_nonalcoholic_cocoa_mass_and_component_split&quot;,
+  &quot;subject&quot;: &quot;chocolate liquor&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_chocolate_liquor_composition_scope_1</code> | bytes [210, 315) | <code>dbcf45e5ed18f4e2e8628de432c3f92469d27a6a12abe0db328ecb858df8fcc2</code></div><pre class="context"><span>For the alcoholic drink made with chocolate, see Chocolate liqueur . Chocolate liquor Chocolate liquor wafers Alternative names Cocoa liquor, cocoa paste, cocoa mass Type Chocolate Main ingredients Cocoa beans </span><mark>Chocolate liquor , also called cocoa liquor , paste or mass , is pure cocoa in liquid or semi-solid form.</mark><span> [ 1 ] It is produced from cocoa bean nibs that have been fermented, dried, roasted, and separated from their skins. The nibs are ground to the point cocoa butter is released from the cells of the bean and melted, which turns cocoa into a paste and then into a free-flowing liquid. [ 2 ] The liquor is either separated into (non-fat) cocoa solids and cocoa but</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_liquor" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_liquor</a></p><p>冻结文件: <a href="sources/b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03" target="_blank">sources/b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03</a></p><p>内容 SHA-256: <code>b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_chocolate_process_chain_scope"><header><h3>assert_chocolate_process_chain_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;beans are fermented dried cleaned roasted and shelled before nibs are ground into chocolate liquor that can be separated into solids and butter&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for general chocolate overview&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_chocolate_process_chain_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_process_chain_not_exact_offer_history_or_quality_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;beans are fermented dried cleaned roasted and shelled before nibs are ground into chocolate liquor that can be separated into solids and butter&quot;,
+  &quot;predicate&quot;: &quot;describes_ferment_dry_roast_nib_and_liquor_stages&quot;,
+  &quot;subject&quot;: &quot;general chocolate overview&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_chocolate_process_chain_scope_1</code> | bytes [192, 350) | <code>a10a6fe5e1d93b43b8934cbf8493dde78a4799eecdfd5d2b138fa79ff6a088e4</code></div><pre class="context"><span>For other uses, see Chocolate (disambiguation) . Chocolate is a food made from roasted and ground cocoa beans that can be a liquid, solid, or paste, either by itself or to flavor other foods. </span><mark>Cocoa beans are the processed seeds of the cacao tree ( Theobroma cacao ). They are usually fermented to develop the flavor, then dried, cleaned, and roasted.</mark><span> The shell is removed to reveal nibs, which are ground to chocolate liquor (unadulterated chocolate in rough form.) The liquor can be processed to separate its two components, cocoa solids and cocoa butter , or shaped and sold as unsweetened baking chocolate . By adding sugar, sweetened chocolates are produced, which can be sold simply as dark chocolate , or</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate</a></p><p>冻结文件: <a href="sources/1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36" target="_blank">sources/1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36</a></p><p>内容 SHA-256: <code>1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_chocolove_ruby_offer_scope"><header><h3>assert_chocolove_ruby_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07SQ4JSKK at 8.99 dollars rated 78 percent over twelve reviews is titled two bars and selected as a 3.1-ounce two-pack while Product Dimensions reports 3.1 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Chocolove ruby seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_chocolove_ruby_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_offer_with_unresolved_total_mass_not_verified_ruby_formula_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07SQ4JSKK at 8.99 dollars rated 78 percent over twelve reviews is titled two bars and selected as a 3.1-ounce two-pack while Product Dimensions reports 3.1 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_two_bar_mass_ambiguity_and_ruby_claim&quot;,
+  &quot;subject&quot;: &quot;frozen Chocolove ruby seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_chocolove_ruby_offer_scope_1</code> | bytes [0, 33) | <code>0e181365b0a359357affafd98d9ea6e7e1c890873195da2f73213b6c5ab27265</code></div><pre class="context"><span></span><mark>Chocolove Ruby Cacao bar (2 BARS)</mark><span>
+
+In stock SKU B07SQ4JSKK Rating: 78 % of 100 12 Reviews Add Your Review $8.99 Size 3.1 Ounce (Pack of 12) 3.1 Ounce (Pack of 2) 4 BARS 6 BARS Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Chocolove Ruby Cacao bar 3.1 OZ From Ruby cacao beans Package Dimensions ‏ ‎ 5.94 x 4.33 x 1.1 inches; 3.1 Ounces UPC ‏ ‎ 68028316251</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/chocolove-ruby-cacao-bar-2-bars.html" target="_blank" rel="noreferrer">http://localhost:7770/chocolove-ruby-cacao-bar-2-bars.html</a></p><p>冻结文件: <a href="sources/8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e" target="_blank">sources/8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e</a></p><p>内容 SHA-256: <code>8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cocoa_bean_nib_scope"><header><h3>assert_cocoa_bean_nib_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the bean is a dried fully fermented seed yielding nonfat cocoa solids and cocoa butter and roasted nibs may be ground into liquor&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for cocoa-bean page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cocoa_bean_nib_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_bean_material_context_not_exact_origin_process_or_flavor_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;the bean is a dried fully fermented seed yielding nonfat cocoa solids and cocoa butter and roasted nibs may be ground into liquor&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_fermented_seed_nib_solids_and_butter&quot;,
+  &quot;subject&quot;: &quot;cocoa-bean page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cocoa_bean_nib_scope_1</code> | bytes [145, 313) | <code>5a2efe8ddd63bdd7140f46bbe574c0bb64f58fb4a06e78f206fcf2e3d69f1c2c</code></div><pre class="context"><span>Forms of the cocoa bean during production Pods at various stages of ripening Beans in pulp in freshly cut pod Beans: In pulp, in skin, and naked </span><mark>Roasted nibs (pieces of kernels) are generally powdered and melted into chocolate liquor , but also inserted into chocolate bars to give additional texture or &quot;crunch&quot;.</mark><span> The cocoa bean , also known as cocoa ( / Ë k oÊ . k oÊ / ) or cacao ( / k É Ë k aÊ / ), [ 1 ] is the dried and fully fermented seed of Theobroma cacao , the cacao tree, from which cocoa solids (a mixture of nonfat substances) and cocoa butter (the fat) can be extracted. Cacao trees are native to the Amazon rainforest . They are the basis o</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean</a></p><p>冻结文件: <a href="sources/464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110" target="_blank">sources/464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110</a></p><p>内容 SHA-256: <code>464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_cocoa_butter_material_scope"><header><h3>assert_cocoa_butter_material_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a pale edible fat extracted from cocoa beans is essential to chocolate and melts slightly below body temperature&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for cocoa butter&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_cocoa_butter_material_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_material_property_not_exact_bar_formula_melt_or_quality_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a pale edible fat extracted from cocoa beans is essential to chocolate and melts slightly below body temperature&quot;,
+  &quot;predicate&quot;: &quot;defines_an_edible_cocoa_fat_with_near_body_temperature_melting&quot;,
+  &quot;subject&quot;: &quot;cocoa butter&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_cocoa_butter_material_scope_1</code> | bytes [911, 1034) | <code>9fa46825689d3b98c5983e9f393a637a88a1fa8c810f77ce2c2eca6087548952</code></div><pre class="context"><span>id (0â1%) Properties Food energy per 100 g (3.5 oz) 3,699 kilojoules (884 kcal) [ 1 ] Melting point 34.1 Â°C (93.4 Â°F), 35â36.5 Â°C (95.0â97.7 Â°F) Solidity at 20 Â°C (68 Â°F) solid Refractive index 1.44556â1.44573 Iodine value 32.11â35.12, 35.575 Acid value 1.68 Saponification value 191.214, 192.88â196.29 </span><mark>Cocoa butter , also called theobroma oil , is a pale-yellow, edible fat extracted from the cocoa bean ( Theobroma  cacao ).</mark><span> It is used to make chocolate , as well as some ointments , toiletries , and pharmaceuticals . [ 2 ] Cocoa butter has a cocoa flavor and aroma . Its melting point is slightly below human body temperature. It is an essential ingredient of chocolate and related confectionary products. Cocoa butter does not contain butter or other animal products; it is vegan .</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_butter" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_butter</a></p><p>冻结文件: <a href="sources/bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2" target="_blank">sources/bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2</a></p><p>内容 SHA-256: <code>bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_conching_process_scope"><header><h3>assert_conching_process_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;agitation distributes cocoa butter and promotes flavor changes while duration depends on batch and equipment&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for conching&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_conching_process_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_process_mechanism_not_longer_is_better_or_exact_brand_history&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;agitation distributes cocoa butter and promotes flavor changes while duration depends on batch and equipment&quot;,
+  &quot;predicate&quot;: &quot;mixes_coats_and_changes_texture_and_flavor_under_equipment_dependent_conditions&quot;,
+  &quot;subject&quot;: &quot;conching&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_conching_process_scope_1</code> | bytes [71, 292) | <code>a322b278bc329eacece873f486f21848b10d64eb4ac1c503d05e46d48c460be9</code></div><pre class="context"><span>&quot;Conche&quot; redirects here. For other uses, see Conche (disambiguation) . </span><mark>Conching is a process used in the manufacture of chocolate whereby a surface scraping mixer and agitator, known as a conche , evenly distributes cocoa butter within chocolate and may act as a &quot;polisher&quot; of the particles .</mark><span> [ 1 ] It also promotes flavor development through frictional heat, release of volatiles and acids, and oxidation. The name arises from the shape of the vessels initially used which resembled conch shells . When ingredients are mixed in this way, sometimes for up to 78 hours, chocolate can be produced with a mild, rich taste. The duration of conching is high</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conching" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Conching</a></p><p>冻结文件: <a href="sources/501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053" target="_blank">sources/501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053</a></p><p>内容 SHA-256: <code>501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_eli5_flavor_cue_scope"><header><h3>assert_eli5_flavor_cue_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;lay commenters distinguish basic taste from aroma mouthfeel temperature and visual or expectation effects&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for ELI5 flavor discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_eli5_flavor_cue_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;lay_mechanism_discussion_not_authoritative_protocol_or_exact_product_result&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;lay commenters distinguish basic taste from aroma mouthfeel temperature and visual or expectation effects&quot;,
+  &quot;predicate&quot;: &quot;identifies_smell_texture_temperature_and_expectation_as_possible_cues&quot;,
+  &quot;subject&quot;: &quot;ELI5 flavor discussion&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_eli5_flavor_cue_scope_1</code> | bytes [193, 280) | <code>7eab3fb1a7865b1fedada4276ae60abb303694d94bfc48dc11b92f5f64ec4141</code></div><pre class="context"><span>ELI5: If the tongue can only taste five basic flavors (sweet, sour, bitter, salty, umami), why isn&#x27;t it possible to create any flavor by mixing those five together in precise combinations?
+
+3
+
+</span><mark>That&#x27;s because our sense of taste is really closely tied to our sense of smell as well.</mark><span> To the point that a lot of people, unless they have been specifically trained, might not even realize that the &quot;taste&quot; of something is largely from an aromatic compound they are actually smelling . That said, if you somehow perfectly got the actual flavor compounds right, and got the aromatics just right you could almost make something that at least &quot;tastes</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/104197/eli5-if-the-tongue-can-only-taste-five-basic-flavors-sweet" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/104197/eli5-if-the-tongue-can-only-taste-five-basic-flavors-sweet</a></p><p>冻结文件: <a href="sources/4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898" target="_blank">sources/4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898</a></p><p>内容 SHA-256: <code>4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_green_black_variety_offer_scope"><header><h3>assert_green_black_variety_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B08M4XT3XM at 22.98 dollars with no reviews shown describes eight 3.17-ounce bars across five category or recipe positions while Product Dimensions reports 3.17 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Green and Black seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_green_black_variety_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_mixed_offer_not_verified_total_mass_formula_or_guest_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B08M4XT3XM at 22.98 dollars with no reviews shown describes eight 3.17-ounce bars across five category or recipe positions while Product Dimensions reports 3.17 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_mixed_eight_bar_offer_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Green and Black seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_green_black_variety_offer_scope_1</code> | bytes [0, 192) | <code>ff022a9a52f4e78629fe37d096babdbf159a18f41885e4aab3a4674d935ba33d</code></div><pre class="context"><span></span><mark>Green &amp; Black’s Organic Chocolate Variety Pack, 85% Dark Chocolate, 70% Dark Chocolate, Milk Chocolate, Milk Chocolate with Almonds &amp; White Chocolate, Easter Chocolate Gift, 8 - 3.17 oz Bars</mark><span>
+
+In stock SKU B08M4XT3XM Be the first to review this product $22.98 Flavor Name 70% Cacao Dark Chocolate Chocolate Size 10 Count (Pack of 1) 8 Count (Pack of 1) Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Great Taste. Fine Ingredients. Green &amp; Black&#x27;s Organic believes great taste comes from fine ingredients. Each gourmet choc</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/green-black-s-organic-chocolate-variety-pack-85-dark-chocolate-70-dark-chocolate-milk-chocolate-milk-chocolate-with-almonds-white-chocolate-easter-chocolate-gift-8-3-17-oz-bars.html" target="_blank" rel="noreferrer">http://localhost:7770/green-black-s-organic-chocolate-variety-pack-85-dark-chocolate-70-dark-chocolate-milk-chocolate-milk-chocolate-with-almonds-white-chocolate-easter-chocolate-gift-8-3-17-oz-bars.html</a></p><p>冻结文件: <a href="sources/9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03" target="_blank">sources/9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03</a></p><p>内容 SHA-256: <code>9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lindt_milk_offer_scope"><header><h3>assert_lindt_milk_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B01N3OYUMS at 9.58 dollars with no reviews shown is titled 4.4 ounces and two pieces while Product Dimensions reports 4.4 ounces&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Lindt milk seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lindt_milk_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_offer_with_ambiguous_total_mass_not_verified_formula_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B01N3OYUMS at 9.58 dollars with no reviews shown is titled 4.4 ounces and two pieces while Product Dimensions reports 4.4 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_two_piece_mass_ambiguity&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt milk seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lindt_milk_offer_scope_1</code> | bytes [0, 56) | <code>e63db521d065d18ae2c37c3d2233eeb3793703b786d5e2d34b525694b35b333d</code></div><pre class="context"><span></span><mark>Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc</mark><span>
+
+In stock SKU B01N3OYUMS Be the first to review this product $9.58 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 9.49 x 3.62 x 1.14 inches; 4.4 Ounces ASIN ‏ ‎ B01N3OYUMS #2,877 in Candy &amp; Chocolate</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lindt-classic-recipe-milk-chocolate-bar-4-4-oz-2-pc.html" target="_blank" rel="noreferrer">http://localhost:7770/lindt-classic-recipe-milk-chocolate-bar-4-4-oz-2-pc.html</a></p><p>冻结文件: <a href="sources/0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f" target="_blank">sources/0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f</a></p><p>内容 SHA-256: <code>0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_lindt_white_offer_scope"><header><h3>assert_lindt_white_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07938SPXM at 5.39 dollars with no reviews shown and no captured mass ingredient or cocoa-component detail&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Lindt white seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_lindt_white_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_minimal_seller_offer_not_formula_category_or_taste_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07938SPXM at 5.39 dollars with no reviews shown and no captured mass ingredient or cocoa-component detail&quot;,
+  &quot;predicate&quot;: &quot;shows_one_white_bar_without_mass_or_reviews&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt white seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_lindt_white_offer_scope_1</code> | bytes [0, 92) | <code>12044ce5b96978a364414d0a1f4a14273a31687eebb537de856489e80358c947</code></div><pre class="context"><span></span><mark>Product Of Lindt , White Chocolate Bar, Count 1 - Chocolate Candy / Grab Varieties &amp; Flavors</mark><span>
+
+In stock SKU B07938SPXM Be the first to review this product $5.39 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look UPC ‏ ‎ 689139179773 ASIN ‏ ‎ B07938SPXM #10,585 in Candy &amp; Chocolate Bars Reviews Write Your Own Review You&#x27;re reviewing: Product Of Lindt , White Chocolate Bar, Count 1 - Chocolate Candy / Grab Varieties &amp; </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/product-of-lindt-white-chocolate-bar-count-1-chocolate-candy-grab-varieties-flavors.html" target="_blank" rel="noreferrer">http://localhost:7770/product-of-lindt-white-chocolate-bar-count-1-chocolate-candy-grab-varieties-flavors.html</a></p><p>冻结文件: <a href="sources/fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27" target="_blank">sources/fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27</a></p><p>内容 SHA-256: <code>fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_new_haven_cocoa_preference_scope"><header><h3>assert_new_haven_cocoa_preference_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;authors recommend local drinks and one explicitly cannot separate cold-weather satisfaction from product quality&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for New Haven hot-cocoa post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_new_haven_cocoa_preference_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;local_drink_preferences_not_bar_category_or_quality_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;authors recommend local drinks and one explicitly cannot separate cold-weather satisfaction from product quality&quot;,
+  &quot;predicate&quot;: &quot;contains_place_specific_preferences_and_a_condition_caveat&quot;,
+  &quot;subject&quot;: &quot;New Haven hot-cocoa post&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_new_haven_cocoa_preference_scope_1</code> | bytes [284, 421) | <code>e2e9485d0d50cb707d10b2453b4f30823ed448bea5000717970f19ac2b3623a8</code></div><pre class="context"><span>Small businesses with the best hot cocoa?
+
+Every day I go to the Starbucks by work for a hot chocolate, but that’s only because in Chicago (where I fairly recently moved from), I never found a small business that made cocoa that tasted anything more than hot milk w/ Hershey syrup. </span><mark>Are there any coffee shops, bakeries, etc, that have some slammin’ hot cocoa that is better than the corporate sludge I currently pump?</mark><span> 17
+
+(I don&#x27;t really drink hot cocoa but...) There are so many coffee shops downtown that you could make a fun hobby of visiting them and trying their cocoa and let us know. Willoughby&#x27;s is a block from Starbucks and I&#x27;m guessing their cocoa is delightful for instance. G Cafe is two blocks Pistachio is 4 blocks.
+
+Can confirm that Willoughby&#x27;s has good hot ch</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newhaven/86919/small-businesses-with-the-best-hot-cocoa" target="_blank" rel="noreferrer">http://localhost:9999/f/newhaven/86919/small-businesses-with-the-best-hot-cocoa</a></p><p>冻结文件: <a href="sources/ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900" target="_blank">sources/ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900</a></p><p>内容 SHA-256: <code>ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_nj_blind_test_anecdote_scope"><header><h3>assert_nj_blind_test_anecdote_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author planned a blind taste test of milk-chocolate-covered caramels from eight local shops but reported no result in the frozen page&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for New Jersey chocolate-shop post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_nj_blind_test_anecdote_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;planned_local_test_not_result_or_method_validation_for_exact_bars&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;one author planned a blind taste test of milk-chocolate-covered caramels from eight local shops but reported no result in the frozen page&quot;,
+  &quot;predicate&quot;: &quot;reports_a_planned_local_blind_caramel_comparison&quot;,
+  &quot;subject&quot;: &quot;New Jersey chocolate-shop post&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_nj_blind_test_anecdote_scope_1</code> | bytes [38, 175) | <code>e76ef30a0350beafc173f686b8159e6afd27a014ee44ec82e13ca8f94d7c7c97</code></div><pre class="context"><span>Favorite Local Chocolate/Candy Shop?
+
+</span><mark>My husband, our friend, and I are doing a blind taste test for milk chocolate covered caramels this weekend to see which one is the best.</mark><span> My favorite chocolate shop is Old Monmouth in Freehold. I want to see if it holds up in a blind challenge. We’re getting chocolate from 8 different shops in Monmouth/Ocean County. Some of these we haven’t tried before. •• Caramel Shop (Ocean) •• Criterion (Eatontown) •• Jean Louise (Spring Lake) •• Old Monmouth (Freehold) •• River St</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newjersey/43404/favorite-local-chocolate-candy-shop" target="_blank" rel="noreferrer">http://localhost:9999/f/newjersey/43404/favorite-local-chocolate-candy-shop</a></p><p>冻结文件: <a href="sources/3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4" target="_blank">sources/3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4</a></p><p>内容 SHA-256: <code>3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ritter_sixty_one_offer_scope"><header><h3>assert_ritter_sixty_one_offer_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07PRJC1KW at 7.99 dollars rated 55 percent over four reviews for one 100-gram or 3.52-ounce 61-percent bar with seller sustainability origin and flavor claims&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for frozen Ritter Sport seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ritter_sixty_one_offer_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_offer_and_marketing_not_verified_process_quality_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;SKU B07PRJC1KW at 7.99 dollars rated 55 percent over four reviews for one 100-gram or 3.52-ounce 61-percent bar with seller sustainability origin and flavor claims&quot;,
+  &quot;predicate&quot;: &quot;shows_one_sixty_one_percent_bar_and_marketing&quot;,
+  &quot;subject&quot;: &quot;frozen Ritter Sport seller page&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ritter_sixty_one_offer_scope_1</code> | bytes [0, 84) | <code>873fff5d138469f54e65d7ca403a0a54b1d12f8ae3d41583079724d70bd2a55a</code></div><pre class="context"><span></span><mark>Ritter Sport 61% Fine Dark Chocolate Bar Candy Original German Chocolate 100g/3.52oz</mark><span>
+
+In stock SKU B07PRJC1KW Rating: 55 % of 100 4 Reviews Add Your Review $7.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Focus on sustainability Read more Small changes in product size &amp; weight lead to lower carbon emissions. We created Compact by Design to identify products that, while they may not always look very different, have a more effic</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/ritter-sport-61-fine-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html" target="_blank" rel="noreferrer">http://localhost:7770/ritter-sport-61-fine-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html</a></p><p>冻结文件: <a href="sources/c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2" target="_blank">sources/c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2</a></p><p>内容 SHA-256: <code>c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_ruby_chocolate_category_scope"><header><h3>assert_ruby_chocolate_category_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a pink or purple product was introduced as distinct while experts debate whether the fourth natural type claim is technical or marketing&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for ruby chocolate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_ruby_chocolate_category_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_disputed_category_not_exact_chocolove_formula_or_naturalness_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;a pink or purple product was introduced as distinct while experts debate whether the fourth natural type claim is technical or marketing&quot;,
+  &quot;predicate&quot;: &quot;presents_a_distinct_style_with_a_disputed_fourth_type_claim&quot;,
+  &quot;subject&quot;: &quot;ruby chocolate&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_ruby_chocolate_category_scope_1</code> | bytes [206, 297) | <code>e0a1a879413c8589385b5172240e92f901f38a9b5e543458079cc618fd2d3e45</code></div><pre class="context"><span>Ruby chocolate An 80-gram bar of ruby chocolate Type Chocolate Place of origin Belgium Created by Barry Callebaut Main ingredients Cocoa butter Cocoa mass Milk Sugar Citric acid [ 1 ] Media: Ruby chocolate </span><mark>Ruby chocolate is a style or distinct variety of chocolate that is pink or purple in color.</mark><span> Barry Callebaut , a BelgianâSwiss cocoa company, introduced it as a distinct product on 5 September 2017 after beginning development of their product in 2004. [ 2 ] [ 3 ] [ 4 ] While Barry Callebaut says it is a fourth natural type of chocolate (in addition to dark , milk , and white chocolate varieties), [ 5 ] [ 6 ] industry experts have debated wheth</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Ruby_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Ruby_chocolate</a></p><p>冻结文件: <a href="sources/86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd" target="_blank">sources/86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd</a></p><p>内容 SHA-256: <code>86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="semantic" data-item-id="assert_white_chocolate_category_scope"><header><h3>assert_white_chocolate_category_scope</h3><span class="badge">semantic</span><span class="badge">assertion</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an ivory traditional chocolate type lacks nonfat cocoa solids while consumer opinions and market standards differ&quot;,
+  &quot;predicate&quot;: &quot;states&quot;,
+  &quot;subject&quot;: &quot;source for white chocolate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><div class="proposition"><code>prop_white_chocolate_category_scope</code><pre>{
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_category_and_market_boundary_not_exact_lindt_classification_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;object&quot;: &quot;an ivory traditional chocolate type lacks nonfat cocoa solids while consumer opinions and market standards differ&quot;,
+  &quot;predicate&quot;: &quot;uses_cocoa_butter_sugar_and_milk_without_nonfat_cocoa_solids&quot;,
+  &quot;subject&quot;: &quot;white chocolate&quot;
+}</pre></div></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_assert_white_chocolate_category_scope_1</code> | bytes [225, 302) | <code>6287655bacf03b43c7e9a8f0ddb8f087d66c53cf1c06793c1179b644980c6131</code></div><pre class="context"><span>For other uses, see White chocolate (disambiguation) . White chocolate Type Chocolate Place of origin Switzerland Main ingredients Cocoa butter , sugar , milk solids Ingredients generally used Vanilla Media: White chocolate </span><mark>White chocolate is chocolate made from cocoa butter , sugar and milk solids .</mark><span> It is ivory in color and lacks the dark appearance of most other types of chocolate because it does not contain the non-fat components of cocoa ( cocoa solids ). Due to this omission, as well as its sweetness and the occasional use of additives, some consumers do not consider white chocolate to be real chocolate. Of the three traditional types of chocolate </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/White_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/White_chocolate</a></p><p>冻结文件: <a href="sources/ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb" target="_blank">sources/ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb</a></p><p>内容 SHA-256: <code>ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;kind&quot;: &quot;quoted_assertion&quot;
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_chocolate_liquor_composition_scope"><header><h3>prop_chocolate_liquor_composition_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;fermented dried roasted skinned nibs are ground until butter release creates cocoa mass containing both solids and butter&quot;,
+  &quot;predicate&quot;: &quot;defines_nonalcoholic_cocoa_mass_and_component_split&quot;,
+  &quot;subject&quot;: &quot;chocolate liquor&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_chocolate_liquor_composition_scope_1</code> | bytes [210, 315) | <code>dbcf45e5ed18f4e2e8628de432c3f92469d27a6a12abe0db328ecb858df8fcc2</code></div><pre class="context"><span>For the alcoholic drink made with chocolate, see Chocolate liqueur . Chocolate liquor Chocolate liquor wafers Alternative names Cocoa liquor, cocoa paste, cocoa mass Type Chocolate Main ingredients Cocoa beans </span><mark>Chocolate liquor , also called cocoa liquor , paste or mass , is pure cocoa in liquid or semi-solid form.</mark><span> [ 1 ] It is produced from cocoa bean nibs that have been fermented, dried, roasted, and separated from their skins. The nibs are ground to the point cocoa butter is released from the cells of the bean and melted, which turns cocoa into a paste and then into a free-flowing liquid. [ 2 ] The liquor is either separated into (non-fat) cocoa solids and cocoa but</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_liquor_composition_scope_2</code> | bytes [322, 431) | <code>2aeb218c4cfc245b943f97a6f05417a9421137302e053882cab9d31bb6d262ec</code></div><pre class="context"><span>For the alcoholic drink made with chocolate, see Chocolate liqueur . Chocolate liquor Chocolate liquor wafers Alternative names Cocoa liquor, cocoa paste, cocoa mass Type Chocolate Main ingredients Cocoa beans Chocolate liquor , also called cocoa liquor , paste or mass , is pure cocoa in liquid or semi-solid form. [ 1 ] </span><mark>It is produced from cocoa bean nibs that have been fermented, dried, roasted, and separated from their skins.</mark><span> The nibs are ground to the point cocoa butter is released from the cells of the bean and melted, which turns cocoa into a paste and then into a free-flowing liquid. [ 2 ] The liquor is either separated into (non-fat) cocoa solids and cocoa butter, or cooled and molded into blocks, which can be used as unsweetened baking chocolate . Like the nibs from which </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_liquor_composition_scope_3</code> | bytes [766, 882) | <code>964fcae9c873e07936b2fff2f0a2d1202bd4bcdb68f82fc5bdc7d16855d4ca29</code></div><pre class="context"><span>parated from their skins. The nibs are ground to the point cocoa butter is released from the cells of the bean and melted, which turns cocoa into a paste and then into a free-flowing liquid. [ 2 ] The liquor is either separated into (non-fat) cocoa solids and cocoa butter, or cooled and molded into blocks, which can be used as unsweetened baking chocolate . </span><mark>Like the nibs from which it is produced, it contains both cocoa solids and cocoa butter in roughly equal proportion.</mark><span> [ 3 ] Its main use (often with additional cocoa butter) is in making chocolate . The name liquor is used not in the sense of a distilled, alcoholic substance, but rather the older meaning of the word, meaning &#x27;liquid&#x27; or &#x27;fluid&#x27;. The terms paste and mass are also commonly used. [ 4 ] According to American legislation, chocolate liquor is classified as a cho</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_liquor_composition_scope_4</code> | bytes [964, 1112) | <code>0ecacc3ec7b01ca3ff34dc084fcc0ec90fbc1b969b9bca61242567d49da59387</code></div><pre class="context"><span>he liquor is either separated into (non-fat) cocoa solids and cocoa butter, or cooled and molded into blocks, which can be used as unsweetened baking chocolate . Like the nibs from which it is produced, it contains both cocoa solids and cocoa butter in roughly equal proportion. [ 3 ] Its main use (often with additional cocoa butter) is in making chocolate . </span><mark>The name liquor is used not in the sense of a distilled, alcoholic substance, but rather the older meaning of the word, meaning &#x27;liquid&#x27; or &#x27;fluid&#x27;.</mark><span> The terms paste and mass are also commonly used. [ 4 ] According to American legislation, chocolate liquor is classified as a chocolate product. [ 5 ] According to European legislation, it strictly remains a cocoa product until sugar is added. [ 6 ] [ 7 ] Chocolate liquor contains roughly 53 percent cocoa butter (fat), about 17 percent carbohydrates , 11 pe</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_liquor" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_liquor</a></p><p>冻结文件: <a href="sources/b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03" target="_blank">sources/b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03</a></p><p>内容 SHA-256: <code>b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_liquor_definition_not_exact_percentage_or_formula_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The chocolate-liquor page defines cocoa liquor, paste or mass as nonalcoholic pure cocoa made from fermented, dried, roasted and skinned nibs and says it contains both cocoa solids and cocoa butter. This prevents confusing liquor with alcohol but does not disclose the exact component balance or percentage basis of any captured bar.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_chocolate_process_chain_scope"><header><h3>prop_chocolate_process_chain_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;beans are fermented dried cleaned roasted and shelled before nibs are ground into chocolate liquor that can be separated into solids and butter&quot;,
+  &quot;predicate&quot;: &quot;describes_ferment_dry_roast_nib_and_liquor_stages&quot;,
+  &quot;subject&quot;: &quot;general chocolate overview&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_chocolate_process_chain_scope_1</code> | bytes [192, 350) | <code>a10a6fe5e1d93b43b8934cbf8493dde78a4799eecdfd5d2b138fa79ff6a088e4</code></div><pre class="context"><span>For other uses, see Chocolate (disambiguation) . Chocolate is a food made from roasted and ground cocoa beans that can be a liquid, solid, or paste, either by itself or to flavor other foods. </span><mark>Cocoa beans are the processed seeds of the cacao tree ( Theobroma cacao ). They are usually fermented to develop the flavor, then dried, cleaned, and roasted.</mark><span> The shell is removed to reveal nibs, which are ground to chocolate liquor (unadulterated chocolate in rough form.) The liquor can be processed to separate its two components, cocoa solids and cocoa butter , or shaped and sold as unsweetened baking chocolate . By adding sugar, sweetened chocolates are produced, which can be sold simply as dark chocolate , or</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_process_chain_scope_2</code> | bytes [351, 465) | <code>0d5c72e00eea16250f9ac108d554f5226227f60bfb087479cca9b0a896c71c50</code></div><pre class="context"><span>For other uses, see Chocolate (disambiguation) . Chocolate is a food made from roasted and ground cocoa beans that can be a liquid, solid, or paste, either by itself or to flavor other foods. Cocoa beans are the processed seeds of the cacao tree ( Theobroma cacao ). They are usually fermented to develop the flavor, then dried, cleaned, and roasted. </span><mark>The shell is removed to reveal nibs, which are ground to chocolate liquor (unadulterated chocolate in rough form.)</mark><span> The liquor can be processed to separate its two components, cocoa solids and cocoa butter , or shaped and sold as unsweetened baking chocolate . By adding sugar, sweetened chocolates are produced, which can be sold simply as dark chocolate , or, with the addition of milk , can be made into milk chocolate . Making milk chocolate with cocoa butter and without</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolate_process_chain_scope_3</code> | bytes [466, 610) | <code>4e01d8f68c2ccbb135b0804373e2cb8ee44fed14b0c898376398e454a2e38e90</code></div><pre class="context"><span>ans that can be a liquid, solid, or paste, either by itself or to flavor other foods. Cocoa beans are the processed seeds of the cacao tree ( Theobroma cacao ). They are usually fermented to develop the flavor, then dried, cleaned, and roasted. The shell is removed to reveal nibs, which are ground to chocolate liquor (unadulterated chocolate in rough form.) </span><mark>The liquor can be processed to separate its two components, cocoa solids and cocoa butter , or shaped and sold as unsweetened baking chocolate .</mark><span> By adding sugar, sweetened chocolates are produced, which can be sold simply as dark chocolate , or, with the addition of milk , can be made into milk chocolate . Making milk chocolate with cocoa butter and without cocoa solids produces white chocolate . Chocolate is one of the most popular food types and flavors in the world, and many foodstuffs involving </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate</a></p><p>冻结文件: <a href="sources/1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36" target="_blank">sources/1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36</a></p><p>内容 SHA-256: <code>1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_process_chain_not_exact_offer_history_or_quality_rank&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The chocolate overview says cocoa beans are usually fermented for flavor development, then dried, cleaned and roasted; shells are removed, nibs are ground into chocolate liquor, and liquor can be separated into cocoa solids and cocoa butter. This is a general pathway, not the verified fermentation, roast, ingredient split or quality history of any exact seller offer.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_chocolove_ruby_offer_scope"><header><h3>prop_chocolove_ruby_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07SQ4JSKK at 8.99 dollars rated 78 percent over twelve reviews is titled two bars and selected as a 3.1-ounce two-pack while Product Dimensions reports 3.1 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_two_bar_mass_ambiguity_and_ruby_claim&quot;,
+  &quot;subject&quot;: &quot;frozen Chocolove ruby seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_chocolove_ruby_offer_scope_1</code> | bytes [0, 33) | <code>0e181365b0a359357affafd98d9ea6e7e1c890873195da2f73213b6c5ab27265</code></div><pre class="context"><span></span><mark>Chocolove Ruby Cacao bar (2 BARS)</mark><span>
+
+In stock SKU B07SQ4JSKK Rating: 78 % of 100 12 Reviews Add Your Review $8.99 Size 3.1 Ounce (Pack of 12) 3.1 Ounce (Pack of 2) 4 BARS 6 BARS Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Chocolove Ruby Cacao bar 3.1 OZ From Ruby cacao beans Package Dimensions ‏ ‎ 5.94 x 4.33 x 1.1 inches; 3.1 Ounces UPC ‏ ‎ 68028316251</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolove_ruby_offer_scope_2</code> | bytes [35, 175) | <code>9bd807f0a82e782e5fa2abc06c22fef22d523a77bebd5b118a958b32143eb844</code></div><pre class="context"><span>Chocolove Ruby Cacao bar (2 BARS)
+
+</span><mark>In stock SKU B07SQ4JSKK Rating: 78 % of 100 12 Reviews Add Your Review $8.99 Size 3.1 Ounce (Pack of 12) 3.1 Ounce (Pack of 2) 4 BARS 6 BARS</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Chocolove Ruby Cacao bar 3.1 OZ From Ruby cacao beans Package Dimensions ‏ ‎ 5.94 x 4.33 x 1.1 inches; 3.1 Ounces UPC ‏ ‎ 680283162512 Manufacturer ‏ ‎ AP Wholesale ASIN ‏ ‎ B07SQ4JSKK #184 in Candy &amp; Chocolate Bars Reviews 12 Write Your Own Review You&#x27;re reviewing: </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolove_ruby_offer_scope_3</code> | bytes [252, 305) | <code>90288b4c8cbe4cf45e89fb35d99071bcaeed13da91386c82337aba531511f141</code></div><pre class="context"><span>Chocolove Ruby Cacao bar (2 BARS)
+
+In stock SKU B07SQ4JSKK Rating: 78 % of 100 12 Reviews Add Your Review $8.99 Size 3.1 Ounce (Pack of 12) 3.1 Ounce (Pack of 2) 4 BARS 6 BARS Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look </span><mark>Chocolove Ruby Cacao bar 3.1 OZ From Ruby cacao beans</mark><span> Package Dimensions ‏ ‎ 5.94 x 4.33 x 1.1 inches; 3.1 Ounces UPC ‏ ‎ 680283162512 Manufacturer ‏ ‎ AP Wholesale ASIN ‏ ‎ B07SQ4JSKK #184 in Candy &amp; Chocolate Bars Reviews 12 Write Your Own Review You&#x27;re reviewing: Chocolove Ruby Cacao bar (2 BARS) Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Submit Review</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_chocolove_ruby_offer_scope_4</code> | bytes [306, 369) | <code>b3340818479fca49c31376379fecd610d016ddc7d5dfbbdd57680cf56a8e137d</code></div><pre class="context"><span>Chocolove Ruby Cacao bar (2 BARS)
+
+In stock SKU B07SQ4JSKK Rating: 78 % of 100 12 Reviews Add Your Review $8.99 Size 3.1 Ounce (Pack of 12) 3.1 Ounce (Pack of 2) 4 BARS 6 BARS Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Chocolove Ruby Cacao bar 3.1 OZ From Ruby cacao beans </span><mark>Package Dimensions ‏ ‎ 5.94 x 4.33 x 1.1 inches; 3.1 Ounces</mark><span> UPC ‏ ‎ 680283162512 Manufacturer ‏ ‎ AP Wholesale ASIN ‏ ‎ B07SQ4JSKK #184 in Candy &amp; Chocolate Bars Reviews 12 Write Your Own Review You&#x27;re reviewing: Chocolove Ruby Cacao bar (2 BARS) Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Submit Review</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/chocolove-ruby-cacao-bar-2-bars.html" target="_blank" rel="noreferrer">http://localhost:7770/chocolove-ruby-cacao-bar-2-bars.html</a></p><p>冻结文件: <a href="sources/8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e" target="_blank">sources/8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e</a></p><p>内容 SHA-256: <code>8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_offer_with_unresolved_total_mass_not_verified_ruby_formula_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Chocolove page shows SKU B07SQ4JSKK at 8.99 dollars, rated 78 percent over twelve reviews, titled two bars and selected as a 3.1-ounce two-pack while Product Dimensions reports 3.1 ounces. Conditional count arithmetic is about 4.50 dollars per nominal bar, but total mass, current formula and the seller&#x27;s ruby-cacao assertion require independent verification.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cocoa_bean_nib_scope"><header><h3>prop_cocoa_bean_nib_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;the bean is a dried fully fermented seed yielding nonfat cocoa solids and cocoa butter and roasted nibs may be ground into liquor&quot;,
+  &quot;predicate&quot;: &quot;distinguishes_fermented_seed_nib_solids_and_butter&quot;,
+  &quot;subject&quot;: &quot;cocoa-bean page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_cocoa_bean_nib_scope_1</code> | bytes [145, 313) | <code>5a2efe8ddd63bdd7140f46bbe574c0bb64f58fb4a06e78f206fcf2e3d69f1c2c</code></div><pre class="context"><span>Forms of the cocoa bean during production Pods at various stages of ripening Beans in pulp in freshly cut pod Beans: In pulp, in skin, and naked </span><mark>Roasted nibs (pieces of kernels) are generally powdered and melted into chocolate liquor , but also inserted into chocolate bars to give additional texture or &quot;crunch&quot;.</mark><span> The cocoa bean , also known as cocoa ( / Ë k oÊ . k oÊ / ) or cacao ( / k É Ë k aÊ / ), [ 1 ] is the dried and fully fermented seed of Theobroma cacao , the cacao tree, from which cocoa solids (a mixture of nonfat substances) and cocoa butter (the fat) can be extracted. Cacao trees are native to the Amazon rainforest . They are the basis o</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_bean_nib_scope_2</code> | bytes [506, 602) | <code>4e456e5a8b6015d10b364942f6f981293b87f079d23abbe17d17fbcb5b4b3999</code></div><pre class="context"><span>oasted nibs (pieces of kernels) are generally powdered and melted into chocolate liquor , but also inserted into chocolate bars to give additional texture or &quot;crunch&quot;. The cocoa bean , also known as cocoa ( / Ë k oÊ . k oÊ / ) or cacao ( / k É Ë k aÊ / ), [ 1 ] is the dried and fully fermented seed of Theobroma cacao , the cacao tree, from </span><mark>which cocoa solids (a mixture of nonfat substances) and cocoa butter (the fat) can be extracted.</mark><span> Cacao trees are native to the Amazon rainforest . They are the basis of chocolate and Mesoamerican foods including tejate , an indigenous Mexican drink. The cacao tree was first domesticated at least 5,300 years ago by the Mayo-Chinchipe culture in South America before it was introduced in Mesoamerica. [ 2 ] Cacao was consumed by pre-Hispanic cultures in sp</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean</a></p><p>冻结文件: <a href="sources/464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110" target="_blank">sources/464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110</a></p><p>内容 SHA-256: <code>464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_bean_material_context_not_exact_origin_process_or_flavor_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The cocoa-bean page describes roasted nibs being ground or melted into chocolate liquor and distinguishes extractable nonfat cocoa solids from cocoa butter fat. It supplies material context but does not verify an exact bean origin, fermentation, roast, solids-to-butter ratio or sensory result for the five offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_cocoa_butter_material_scope"><header><h3>prop_cocoa_butter_material_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a pale edible fat extracted from cocoa beans is essential to chocolate and melts slightly below body temperature&quot;,
+  &quot;predicate&quot;: &quot;defines_an_edible_cocoa_fat_with_near_body_temperature_melting&quot;,
+  &quot;subject&quot;: &quot;cocoa butter&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_cocoa_butter_material_scope_1</code> | bytes [911, 1034) | <code>9fa46825689d3b98c5983e9f393a637a88a1fa8c810f77ce2c2eca6087548952</code></div><pre class="context"><span>id (0â1%) Properties Food energy per 100 g (3.5 oz) 3,699 kilojoules (884 kcal) [ 1 ] Melting point 34.1 Â°C (93.4 Â°F), 35â36.5 Â°C (95.0â97.7 Â°F) Solidity at 20 Â°C (68 Â°F) solid Refractive index 1.44556â1.44573 Iodine value 32.11â35.12, 35.575 Acid value 1.68 Saponification value 191.214, 192.88â196.29 </span><mark>Cocoa butter , also called theobroma oil , is a pale-yellow, edible fat extracted from the cocoa bean ( Theobroma  cacao ).</mark><span> It is used to make chocolate , as well as some ointments , toiletries , and pharmaceuticals . [ 2 ] Cocoa butter has a cocoa flavor and aroma . Its melting point is slightly below human body temperature. It is an essential ingredient of chocolate and related confectionary products. Cocoa butter does not contain butter or other animal products; it is vegan .</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_butter_material_scope_2</code> | bytes [1179, 1238) | <code>f04c4fe5871ddf9514a0e349d693b2415c0120b36d66da52300d0a7720c3ddd8</code></div><pre class="context"><span>e 32.11â35.12, 35.575 Acid value 1.68 Saponification value 191.214, 192.88â196.29 Cocoa butter , also called theobroma oil , is a pale-yellow, edible fat extracted from the cocoa bean ( Theobroma  cacao ). It is used to make chocolate , as well as some ointments , toiletries , and pharmaceuticals . [ 2 ] Cocoa butter has a cocoa flavor and aroma . </span><mark>Its melting point is slightly below human body temperature.</mark><span> It is an essential ingredient of chocolate and related confectionary products. Cocoa butter does not contain butter or other animal products; it is vegan . [ 3 ] Extraction and composition For use in chocolate manufacture, the cocoa beans are first fermented and then dried. The beans are then roasted and separated from their hulls to produce cocoa nibs. [ 4</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_cocoa_butter_material_scope_3</code> | bytes [1239, 1317) | <code>6c4fbf1dcf0b6427bdb111fef1da6465f5c7d13891a1a1e11cb49cfe528d1ccb</code></div><pre class="context"><span>lue 191.214, 192.88â196.29 Cocoa butter , also called theobroma oil , is a pale-yellow, edible fat extracted from the cocoa bean ( Theobroma  cacao ). It is used to make chocolate , as well as some ointments , toiletries , and pharmaceuticals . [ 2 ] Cocoa butter has a cocoa flavor and aroma . Its melting point is slightly below human body temperature. </span><mark>It is an essential ingredient of chocolate and related confectionary products.</mark><span> Cocoa butter does not contain butter or other animal products; it is vegan . [ 3 ] Extraction and composition For use in chocolate manufacture, the cocoa beans are first fermented and then dried. The beans are then roasted and separated from their hulls to produce cocoa nibs. [ 4 ] About 54â58% of the cocoa nibs is cocoa butter. The cocoa nibs are grou</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_butter" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_butter</a></p><p>冻结文件: <a href="sources/bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2" target="_blank">sources/bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2</a></p><p>内容 SHA-256: <code>bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_material_property_not_exact_bar_formula_melt_or_quality_guarantee&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The cocoa-butter page defines a pale edible fat extracted from cocoa beans, essential to chocolate, whose melting point is slightly below body temperature. These general properties help explain melt and mouthfeel but do not establish an exact bar&#x27;s cocoa-butter share, substitutes, temper, storage history or quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_conching_process_scope"><header><h3>prop_conching_process_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;agitation distributes cocoa butter and promotes flavor changes while duration depends on batch and equipment&quot;,
+  &quot;predicate&quot;: &quot;mixes_coats_and_changes_texture_and_flavor_under_equipment_dependent_conditions&quot;,
+  &quot;subject&quot;: &quot;conching&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_conching_process_scope_1</code> | bytes [71, 292) | <code>a322b278bc329eacece873f486f21848b10d64eb4ac1c503d05e46d48c460be9</code></div><pre class="context"><span>&quot;Conche&quot; redirects here. For other uses, see Conche (disambiguation) . </span><mark>Conching is a process used in the manufacture of chocolate whereby a surface scraping mixer and agitator, known as a conche , evenly distributes cocoa butter within chocolate and may act as a &quot;polisher&quot; of the particles .</mark><span> [ 1 ] It also promotes flavor development through frictional heat, release of volatiles and acids, and oxidation. The name arises from the shape of the vessels initially used which resembled conch shells . When ingredients are mixed in this way, sometimes for up to 78 hours, chocolate can be produced with a mild, rich taste. The duration of conching is high</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_conching_process_scope_2</code> | bytes [299, 406) | <code>2133ab0c78fc3c952c556c06bab2bd4afd5937ef4a16daebfa65bffd4bd92cb2</code></div><pre class="context"><span>&quot;Conche&quot; redirects here. For other uses, see Conche (disambiguation) . Conching is a process used in the manufacture of chocolate whereby a surface scraping mixer and agitator, known as a conche , evenly distributes cocoa butter within chocolate and may act as a &quot;polisher&quot; of the particles . [ 1 ] </span><mark>It also promotes flavor development through frictional heat, release of volatiles and acids, and oxidation.</mark><span> The name arises from the shape of the vessels initially used which resembled conch shells . When ingredients are mixed in this way, sometimes for up to 78 hours, chocolate can be produced with a mild, rich taste. The duration of conching is highly dependent on batch size and the type of equipment used; modern industrial conching of multi-tonne batches can b</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_conching_process_scope_3</code> | bytes [620, 865) | <code>49c2c52ac1c21666eee0d0b229580bd6f1d6ab978a1188206749970deb4011ca</code></div><pre class="context"><span> a &quot;polisher&quot; of the particles . [ 1 ] It also promotes flavor development through frictional heat, release of volatiles and acids, and oxidation. The name arises from the shape of the vessels initially used which resembled conch shells . When ingredients are mixed in this way, sometimes for up to 78 hours, chocolate can be produced with a mild, rich taste. </span><mark>The duration of conching is highly dependent on batch size and the type of equipment used; modern industrial conching of multi-tonne batches can be completed in under 12 hours, whereas traditional methods for large batches may take several days.</mark><span> [ 2 ] [ 3 ] Since the process is so important to the final texture and flavor of chocolate, manufacturers keep the details of their conching process proprietary. The conching technique was introduced in Switzerland in the late 19th century. Conched chocolates were distinguished from ordinary chocolates with the French adjective fondant or crÃ©mant . [ 4 ]</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conching" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Conching</a></p><p>冻结文件: <a href="sources/501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053" target="_blank">sources/501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053</a></p><p>内容 SHA-256: <code>501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_process_mechanism_not_longer_is_better_or_exact_brand_history&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The conching page says mixing distributes cocoa butter, can polish particles and promotes flavor development through heat, volatile and acid release and oxidation. Duration depends on batch size and equipment, so longer is not automatically better, and no seller page verifies an exact conching time or causal taste effect.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_eli5_flavor_cue_scope"><header><h3>prop_eli5_flavor_cue_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;lay commenters distinguish basic taste from aroma mouthfeel temperature and visual or expectation effects&quot;,
+  &quot;predicate&quot;: &quot;identifies_smell_texture_temperature_and_expectation_as_possible_cues&quot;,
+  &quot;subject&quot;: &quot;ELI5 flavor discussion&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_eli5_flavor_cue_scope_1</code> | bytes [193, 280) | <code>7eab3fb1a7865b1fedada4276ae60abb303694d94bfc48dc11b92f5f64ec4141</code></div><pre class="context"><span>ELI5: If the tongue can only taste five basic flavors (sweet, sour, bitter, salty, umami), why isn&#x27;t it possible to create any flavor by mixing those five together in precise combinations?
+
+3
+
+</span><mark>That&#x27;s because our sense of taste is really closely tied to our sense of smell as well.</mark><span> To the point that a lot of people, unless they have been specifically trained, might not even realize that the &quot;taste&quot; of something is largely from an aromatic compound they are actually smelling . That said, if you somehow perfectly got the actual flavor compounds right, and got the aromatics just right you could almost make something that at least &quot;tastes</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_eli5_flavor_cue_scope_2</code> | bytes [663, 756) | <code>b74ff7103439e838c2d7ed6db0c18c0cac3ceb17d96877e50d8dcf5ddfa031b3</code></div><pre class="context"><span>t of people, unless they have been specifically trained, might not even realize that the &quot;taste&quot; of something is largely from an aromatic compound they are actually smelling . That said, if you somehow perfectly got the actual flavor compounds right, and got the aromatics just right you could almost make something that at least &quot;tastes&quot; like the real thing. </span><mark>Except then there are also things like temperature and texture/mouth feel that affect it too.</mark><span> So a gummy that tastes exactly like a big mac isn&#x27;t going to trick anyone. Because a big mac isn&#x27;t just &quot;Big Mac flavor&quot; it&#x27;s about how two all-beef patties, special sauce, lettuce, cheese, pickles and onions on a sesame seed bun feel in your mouth.
+
+A really weird and interesting thing I learned recently is that even though your nose is doing the smelling </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_eli5_flavor_cue_scope_3</code> | bytes [1431, 1523) | <code>aade16fdf34a11827359e8fa5966ac7ddc80055cfda76d330df25e6781e651f2</code></div><pre class="context"><span> even though your nose is doing the smelling when you eat, it&#x27;s different from smelling when you inhale. People feel a different response to the same compounds when they enter the olfactory center from the back of the throat than through their nostrils
+
+This blows my mind but makes perfect sense.
+
+man, product placement is getting more and more scientific.
+
+</span><mark>Add to this that the brain changes the &quot;flavor&quot; of food based on what it thinks the food is.</mark><span> There have been experiments showing people report different flavors of food/drink based on the color of the bowl/cup the food is served in. Obvious the color of the container doesn&#x27;t actually change the food flavor but the brain takes it into account.
+
+A great example of this is how food doesn&#x27;t taste the same when you have a cold.
+
+Sometimes it tastes bett</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/explainlikeimfive/104197/eli5-if-the-tongue-can-only-taste-five-basic-flavors-sweet" target="_blank" rel="noreferrer">http://localhost:9999/f/explainlikeimfive/104197/eli5-if-the-tongue-can-only-taste-five-basic-flavors-sweet</a></p><p>冻结文件: <a href="sources/4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898" target="_blank">sources/4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898</a></p><p>内容 SHA-256: <code>4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;lay_mechanism_discussion_not_authoritative_protocol_or_exact_product_result&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;An ELI5 discussion says smell, texture, mouthfeel, temperature and expectation can contribute to perceived flavor. As a lay forum discussion it can suggest variables to standardize and cues to mask, but it is not an authoritative sensory protocol and contains no observation of the five exact offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_green_black_variety_offer_scope"><header><h3>prop_green_black_variety_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B08M4XT3XM at 22.98 dollars with no reviews shown describes eight 3.17-ounce bars across five category or recipe positions while Product Dimensions reports 3.17 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_mixed_eight_bar_offer_and_mass_conflict&quot;,
+  &quot;subject&quot;: &quot;frozen Green and Black seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_green_black_variety_offer_scope_1</code> | bytes [0, 192) | <code>ff022a9a52f4e78629fe37d096babdbf159a18f41885e4aab3a4674d935ba33d</code></div><pre class="context"><span></span><mark>Green &amp; Black’s Organic Chocolate Variety Pack, 85% Dark Chocolate, 70% Dark Chocolate, Milk Chocolate, Milk Chocolate with Almonds &amp; White Chocolate, Easter Chocolate Gift, 8 - 3.17 oz Bars</mark><span>
+
+In stock SKU B08M4XT3XM Be the first to review this product $22.98 Flavor Name 70% Cacao Dark Chocolate Chocolate Size 10 Count (Pack of 1) 8 Count (Pack of 1) Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Great Taste. Fine Ingredients. Green &amp; Black&#x27;s Organic believes great taste comes from fine ingredients. Each gourmet choc</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_green_black_variety_offer_scope_2</code> | bytes [194, 260) | <code>28ce1e4272e86f1112b83e70454051213fc7550ccbfd404b79d58cbdee9e927c</code></div><pre class="context"><span>Green &amp; Black’s Organic Chocolate Variety Pack, 85% Dark Chocolate, 70% Dark Chocolate, Milk Chocolate, Milk Chocolate with Almonds &amp; White Chocolate, Easter Chocolate Gift, 8 - 3.17 oz Bars
+
+</span><mark>In stock SKU B08M4XT3XM Be the first to review this product $22.98</mark><span> Flavor Name 70% Cacao Dark Chocolate Chocolate Size 10 Count (Pack of 1) 8 Count (Pack of 1) Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Great Taste. Fine Ingredients. Green &amp; Black&#x27;s Organic believes great taste comes from fine ingredients. Each gourmet chocolate bar is made from USDA Organic, Fair Trade, and UN Certified Et</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_green_black_variety_offer_scope_3</code> | bytes [1176, 1373) | <code>ebca77e182d2b9c954be92425216fb5051972c0f1cce277ac9cba8a0cb568b29</code></div><pre class="context"><span> &amp; Black&#x27;s Organic Chocolate. These bars make a sweet addition to candy baskets, care packages, stocking stuffers, party favors, and more. Surprise a loved one, show someone you care, or simply treat yourself. Every occasion is perfect for Green &amp; Black&#x27;s Organic Chocolate. This variety package contains 8 individually wrapped 3.17 oz organic chocolate bars. </span><mark>This bulk variety package contains 8 GREEN &amp; BLACK’S Organic Chocolate Bars (2 - 85% Dark Chocolate, 2 - 70% Dark Chocolate, 2 Milk Chocolate with Almonds, 1 Milk Chocolate and 1 White Chocolate)</mark><span> Founded on sustainable and ethical cacao sourcing principles, GREEN &amp; BLACK’S gourmet chocolate bars are USDA Organic, Fair Trade, and UN Certified Ethically Sourced This British chocolate purveyor uses hand-selected cacao beans and fine ingredients to create treats like its white chocolate bar, which features 30% cacao and a hint of Madagascan vanilla Gu</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_green_black_variety_offer_scope_4</code> | bytes [2008, 2073) | <code>6953a9b6771ff2eae08f397dcbe1ecba14d7f5643adf85246ed180ccf4d26dfa</code></div><pre class="context"><span>its white chocolate bar, which features 30% cacao and a hint of Madagascan vanilla Guilt -free indulgence is just one bite of an Organic Fair Trade chocolate bar away Complete care packages and gift baskets with this tasting collection of fancy chocolate Whether for holidays, birthdays, or just because, GREEN &amp; BLACK’S Organic makes every occasion sweeter </span><mark>Package Dimensions ‏ ‎ 9.13 x 4.53 x 4.09 inches; 3.17 Ounces</mark><span> Item model number ‏ ‎ 00070221012526 Manufacturer ‏ ‎ Mondelez Global ASIN ‏ ‎ B08M4XT3XM Country of Origin ‏ ‎ Poland #288 in Candy &amp; Chocolate Bars Reviews Write Your Own Review You&#x27;re reviewing: Green &amp; Black’s Organic Chocolate Variety Pack, 85% Dark Chocolate, 70% Dark Chocolate, Milk Chocolate, Milk Chocolate with Almonds &amp; White Cho</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/green-black-s-organic-chocolate-variety-pack-85-dark-chocolate-70-dark-chocolate-milk-chocolate-milk-chocolate-with-almonds-white-chocolate-easter-chocolate-gift-8-3-17-oz-bars.html" target="_blank" rel="noreferrer">http://localhost:7770/green-black-s-organic-chocolate-variety-pack-85-dark-chocolate-70-dark-chocolate-milk-chocolate-milk-chocolate-with-almonds-white-chocolate-easter-chocolate-gift-8-3-17-oz-bars.html</a></p><p>冻结文件: <a href="sources/9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03" target="_blank">sources/9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03</a></p><p>内容 SHA-256: <code>9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_mixed_offer_not_verified_total_mass_formula_or_guest_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Green and Black page shows SKU B08M4XT3XM at 22.98 dollars with no reviews shown and describes eight 3.17-ounce bars allocated across 85-percent dark, 70-percent dark, milk with almonds, milk and white, while Product Dimensions reports only 3.17 ounces. The selected flavor field also says 70-percent cacao. These are seller assertions with an unresolved total-mass conflict, not a verified current sampler, ingredient audit or guest preference result.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lindt_milk_offer_scope"><header><h3>prop_lindt_milk_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B01N3OYUMS at 9.58 dollars with no reviews shown is titled 4.4 ounces and two pieces while Product Dimensions reports 4.4 ounces&quot;,
+  &quot;predicate&quot;: &quot;shows_a_two_piece_mass_ambiguity&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt milk seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lindt_milk_offer_scope_1</code> | bytes [0, 56) | <code>e63db521d065d18ae2c37c3d2233eeb3793703b786d5e2d34b525694b35b333d</code></div><pre class="context"><span></span><mark>Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc</mark><span>
+
+In stock SKU B01N3OYUMS Be the first to review this product $9.58 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 9.49 x 3.62 x 1.14 inches; 4.4 Ounces ASIN ‏ ‎ B01N3OYUMS #2,877 in Candy &amp; Chocolate</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lindt_milk_offer_scope_2</code> | bytes [58, 123) | <code>da1e92e7acdcd533b53ef5cb63a9e08a794d6472243d25576bdbe6d0f8d5d5ca</code></div><pre class="context"><span>Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc
+
+</span><mark>In stock SKU B01N3OYUMS Be the first to review this product $9.58</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc Is Discontinued By Manufacturer ‏ ‎ No Package Dimensions ‏ ‎ 9.49 x 3.62 x 1.14 inches; 4.4 Ounces ASIN ‏ ‎ B01N3OYUMS #2,877 in Candy &amp; Chocolate Bars Reviews Write Your Own Review You&#x27;re reviewing: Lindt Classic</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lindt_milk_offer_scope_3</code> | bytes [300, 364) | <code>74af5226a754a406ab89daa8bf39686ff13a78ebff71a1d9906c38f2288e5412</code></div><pre class="context"><span>Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc
+
+In stock SKU B01N3OYUMS Be the first to review this product $9.58 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc Is Discontinued By Manufacturer ‏ ‎ No </span><mark>Package Dimensions ‏ ‎ 9.49 x 3.62 x 1.14 inches; 4.4 Ounces</mark><span> ASIN ‏ ‎ B01N3OYUMS #2,877 in Candy &amp; Chocolate Bars Reviews Write Your Own Review You&#x27;re reviewing: Lindt Classic Recipe Milk Chocolate Bar -- 4.4 oz - 2 pc Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars Nickname Summary Review Submit Review</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/lindt-classic-recipe-milk-chocolate-bar-4-4-oz-2-pc.html" target="_blank" rel="noreferrer">http://localhost:7770/lindt-classic-recipe-milk-chocolate-bar-4-4-oz-2-pc.html</a></p><p>冻结文件: <a href="sources/0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f" target="_blank">sources/0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f</a></p><p>内容 SHA-256: <code>0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_offer_with_ambiguous_total_mass_not_verified_formula_or_taste&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Lindt milk page shows SKU B01N3OYUMS at 9.58 dollars with no reviews shown, titled 4.4 ounces and two pieces, while Product Dimensions reports 4.4 ounces. Conditional count arithmetic is 4.79 dollars per nominal piece, but total delivered mass, ingredients, cocoa components and tasting performance remain unresolved.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_lindt_white_offer_scope"><header><h3>prop_lindt_white_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07938SPXM at 5.39 dollars with no reviews shown and no captured mass ingredient or cocoa-component detail&quot;,
+  &quot;predicate&quot;: &quot;shows_one_white_bar_without_mass_or_reviews&quot;,
+  &quot;subject&quot;: &quot;frozen Lindt white seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_lindt_white_offer_scope_1</code> | bytes [0, 92) | <code>12044ce5b96978a364414d0a1f4a14273a31687eebb537de856489e80358c947</code></div><pre class="context"><span></span><mark>Product Of Lindt , White Chocolate Bar, Count 1 - Chocolate Candy / Grab Varieties &amp; Flavors</mark><span>
+
+In stock SKU B07938SPXM Be the first to review this product $5.39 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look UPC ‏ ‎ 689139179773 ASIN ‏ ‎ B07938SPXM #10,585 in Candy &amp; Chocolate Bars Reviews Write Your Own Review You&#x27;re reviewing: Product Of Lindt , White Chocolate Bar, Count 1 - Chocolate Candy / Grab Varieties &amp; </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_lindt_white_offer_scope_2</code> | bytes [94, 159) | <code>24fd7dc2ab3f647292e1501fdc0bd3ffb4cf3199304d39f401a84d6de5c97f0c</code></div><pre class="context"><span>Product Of Lindt , White Chocolate Bar, Count 1 - Chocolate Candy / Grab Varieties &amp; Flavors
+
+</span><mark>In stock SKU B07938SPXM Be the first to review this product $5.39</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Product Quick Look UPC ‏ ‎ 689139179773 ASIN ‏ ‎ B07938SPXM #10,585 in Candy &amp; Chocolate Bars Reviews Write Your Own Review You&#x27;re reviewing: Product Of Lindt , White Chocolate Bar, Count 1 - Chocolate Candy / Grab Varieties &amp; Flavors Your Rating Rating 1 star 2 stars 3 stars 4 stars 5 stars N</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/product-of-lindt-white-chocolate-bar-count-1-chocolate-candy-grab-varieties-flavors.html" target="_blank" rel="noreferrer">http://localhost:7770/product-of-lindt-white-chocolate-bar-count-1-chocolate-candy-grab-varieties-flavors.html</a></p><p>冻结文件: <a href="sources/fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27" target="_blank">sources/fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27</a></p><p>内容 SHA-256: <code>fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_minimal_seller_offer_not_formula_category_or_taste_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Lindt white page shows SKU B07938SPXM at 5.39 dollars with no reviews shown and a count of one, but it provides no captured mass, ingredient panel, cocoa-butter percentage, market identity or taste result. Its title alone cannot verify that the delivered item meets a particular white-chocolate definition or calculate price per mass.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_new_haven_cocoa_preference_scope"><header><h3>prop_new_haven_cocoa_preference_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;authors recommend local drinks and one explicitly cannot separate cold-weather satisfaction from product quality&quot;,
+  &quot;predicate&quot;: &quot;contains_place_specific_preferences_and_a_condition_caveat&quot;,
+  &quot;subject&quot;: &quot;New Haven hot-cocoa post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_new_haven_cocoa_preference_scope_1</code> | bytes [284, 421) | <code>e2e9485d0d50cb707d10b2453b4f30823ed448bea5000717970f19ac2b3623a8</code></div><pre class="context"><span>Small businesses with the best hot cocoa?
+
+Every day I go to the Starbucks by work for a hot chocolate, but that’s only because in Chicago (where I fairly recently moved from), I never found a small business that made cocoa that tasted anything more than hot milk w/ Hershey syrup. </span><mark>Are there any coffee shops, bakeries, etc, that have some slammin’ hot cocoa that is better than the corporate sludge I currently pump?</mark><span> 17
+
+(I don&#x27;t really drink hot cocoa but...) There are so many coffee shops downtown that you could make a fun hobby of visiting them and trying their cocoa and let us know. Willoughby&#x27;s is a block from Starbucks and I&#x27;m guessing their cocoa is delightful for instance. G Cafe is two blocks Pistachio is 4 blocks.
+
+Can confirm that Willoughby&#x27;s has good hot ch</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_new_haven_cocoa_preference_scope_2</code> | bytes [1218, 1307) | <code>7946bfc65ae851eaec081d9001352b135dbf03295ddc58608b01dac38b9736ac</code></div><pre class="context"><span>ecommend their Mexican hot chocolate when it&#x27;s available, they make it really well!
+
+Atticus cafe and market (two locations) makes extraordinary hot chocolate. Some of the best I’ve ever had.
+
+Their food is amazeballs too. Matt the chef is super talented
+
+I haven’t had it recently, but I had a pretty great hot cocoa from Gather on State St. last winter. </span><mark>Not sure if it was crazy satisfying because it was cold or because it was just that good.</mark><span> Either way, I’d recommend stopping by! It’s probably not near your work but it’s very cozy and worth a visit.
+
+Every reply on this sub leads to Gather
+
+Buy Ghirardelli’s and make your own Bring it to work
+
+Willoughbys
+
+Willoughby’s.
+
+Pistachio
+
+Daily Cafe
+
+Why you gotta mess with me like that man?
+
+Koffee
+
+Nope. I searched high and low for a good </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newhaven/86919/small-businesses-with-the-best-hot-cocoa" target="_blank" rel="noreferrer">http://localhost:9999/f/newhaven/86919/small-businesses-with-the-best-hot-cocoa</a></p><p>冻结文件: <a href="sources/ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900" target="_blank">sources/ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900</a></p><p>内容 SHA-256: <code>ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;local_drink_preferences_not_bar_category_or_quality_evidence&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The New Haven discussion contains place- and time-specific hot-cocoa preferences, and one commenter explicitly cannot separate cold-weather satisfaction from drink quality. It motivates controlling serving conditions but is not evidence about bar composition, the exact five offers or a universal quality ranking.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_nj_blind_test_anecdote_scope"><header><h3>prop_nj_blind_test_anecdote_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">postmill</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;one author planned a blind taste test of milk-chocolate-covered caramels from eight local shops but reported no result in the frozen page&quot;,
+  &quot;predicate&quot;: &quot;reports_a_planned_local_blind_caramel_comparison&quot;,
+  &quot;subject&quot;: &quot;New Jersey chocolate-shop post&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_nj_blind_test_anecdote_scope_1</code> | bytes [38, 175) | <code>e76ef30a0350beafc173f686b8159e6afd27a014ee44ec82e13ca8f94d7c7c97</code></div><pre class="context"><span>Favorite Local Chocolate/Candy Shop?
+
+</span><mark>My husband, our friend, and I are doing a blind taste test for milk chocolate covered caramels this weekend to see which one is the best.</mark><span> My favorite chocolate shop is Old Monmouth in Freehold. I want to see if it holds up in a blind challenge. We’re getting chocolate from 8 different shops in Monmouth/Ocean County. Some of these we haven’t tried before. •• Caramel Shop (Ocean) •• Criterion (Eatontown) •• Jean Louise (Spring Lake) •• Old Monmouth (Freehold) •• River St</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_nj_blind_test_anecdote_scope_2</code> | bytes [283, 357) | <code>c106eecf6dab23bdfcb7e6e7282ee74abd9a4e7bfa24ad6886559b4ca753eee5</code></div><pre class="context"><span>Favorite Local Chocolate/Candy Shop?
+
+My husband, our friend, and I are doing a blind taste test for milk chocolate covered caramels this weekend to see which one is the best. My favorite chocolate shop is Old Monmouth in Freehold. I want to see if it holds up in a blind challenge. </span><mark>We’re getting chocolate from 8 different shops in Monmouth/Ocean County.</mark><span> Some of these we haven’t tried before. •• Caramel Shop (Ocean) •• Criterion (Eatontown) •• Jean Louise (Spring Lake) •• Old Monmouth (Freehold) •• River Street (Asbury) •• Sweet! (Belmar) •• Third Ave (Spring Lake) •• Van Holten (Brick) What are your favorite chocolate shops? (Doesn’t have to be Monmouth/Ocean) Sorry for </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:9999/f/newjersey/43404/favorite-local-chocolate-candy-shop" target="_blank" rel="noreferrer">http://localhost:9999/f/newjersey/43404/favorite-local-chocolate-candy-shop</a></p><p>冻结文件: <a href="sources/3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4" target="_blank">sources/3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4</a></p><p>内容 SHA-256: <code>3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;community&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;planned_local_test_not_result_or_method_validation_for_exact_bars&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;One New Jersey author planned a blind test of milk-chocolate-covered caramels from eight local shops, but the frozen page reports recommendations rather than the test result. It motivates masking and local comparison while providing no result, protocol validation or evidence about the five exact bar offers.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ritter_sixty_one_offer_scope"><header><h3>prop_ritter_sixty_one_offer_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">magento</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;SKU B07PRJC1KW at 7.99 dollars rated 55 percent over four reviews for one 100-gram or 3.52-ounce 61-percent bar with seller sustainability origin and flavor claims&quot;,
+  &quot;predicate&quot;: &quot;shows_one_sixty_one_percent_bar_and_marketing&quot;,
+  &quot;subject&quot;: &quot;frozen Ritter Sport seller page&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ritter_sixty_one_offer_scope_1</code> | bytes [0, 84) | <code>873fff5d138469f54e65d7ca403a0a54b1d12f8ae3d41583079724d70bd2a55a</code></div><pre class="context"><span></span><mark>Ritter Sport 61% Fine Dark Chocolate Bar Candy Original German Chocolate 100g/3.52oz</mark><span>
+
+In stock SKU B07PRJC1KW Rating: 55 % of 100 4 Reviews Add Your Review $7.99 Qty Add to Cart Add to Wish List Add to Compare
+
+Details Focus on sustainability Read more Small changes in product size &amp; weight lead to lower carbon emissions. We created Compact by Design to identify products that, while they may not always look very different, have a more effic</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ritter_sixty_one_offer_scope_2</code> | bytes [86, 161) | <code>5e8c28870dd517ce605c495eb5415796371fd5f0618f0eba6dc4c45cb778bbd9</code></div><pre class="context"><span>Ritter Sport 61% Fine Dark Chocolate Bar Candy Original German Chocolate 100g/3.52oz
+
+</span><mark>In stock SKU B07PRJC1KW Rating: 55 % of 100 4 Reviews Add Your Review $7.99</mark><span> Qty Add to Cart Add to Wish List Add to Compare
+
+Details Focus on sustainability Read more Small changes in product size &amp; weight lead to lower carbon emissions. We created Compact by Design to identify products that, while they may not always look very different, have a more efficient design. With the removal of excess air and water, products require less </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ritter_sixty_one_offer_scope_3</code> | bytes [778, 841) | <code>0fefc02f8b0e4ab0960f7152607c3a0244788552af1be6db7442ec6f35a1982a</code></div><pre class="context"><span>fferent, have a more efficient design. With the removal of excess air and water, products require less packaging and become more efficient to ship. At scale, these small differences in product size and weight lead to significant carbon emission reductions. Here are a few of the many ways products can qualify: Read more Product Quick Look Fine dark chocolate </span><mark>Experience the new dark with our tasty 61% Cocoa Selection bar.</mark><span> Made sourcing 100% certified sustainable single origin cocoa from Nicaragua. It’s distinct flavour makes this cocoa selection bar truly one of a kind. Smooth and creamy, this delicious classic is for the dark chocolate purists. These special chocolate candy bars make a great gift for the dark chocolate lover in your life. Each bar is individually wrapped </span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:7770/ritter-sport-61-fine-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html" target="_blank" rel="noreferrer">http://localhost:7770/ritter-sport-61-fine-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html</a></p><p>冻结文件: <a href="sources/c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2" target="_blank">sources/c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2</a></p><p>内容 SHA-256: <code>c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;product&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;frozen_offer_and_marketing_not_verified_process_quality_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The frozen Ritter Sport page shows SKU B07PRJC1KW at 7.99 dollars, rated 55 percent over four reviews, for one 61-percent 100-gram or 3.52-ounce bar and makes seller origin, sustainability, freshness and flavor claims. The literal mass gives about 2.27 dollars per declared ounce, but neither percentage, aggregate rating nor copy proves exact composition, processing quality or guest preference.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_ruby_chocolate_category_scope"><header><h3>prop_ruby_chocolate_category_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;a pink or purple product was introduced as distinct while experts debate whether the fourth natural type claim is technical or marketing&quot;,
+  &quot;predicate&quot;: &quot;presents_a_distinct_style_with_a_disputed_fourth_type_claim&quot;,
+  &quot;subject&quot;: &quot;ruby chocolate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_ruby_chocolate_category_scope_1</code> | bytes [206, 297) | <code>e0a1a879413c8589385b5172240e92f901f38a9b5e543458079cc618fd2d3e45</code></div><pre class="context"><span>Ruby chocolate An 80-gram bar of ruby chocolate Type Chocolate Place of origin Belgium Created by Barry Callebaut Main ingredients Cocoa butter Cocoa mass Milk Sugar Citric acid [ 1 ] Media: Ruby chocolate </span><mark>Ruby chocolate is a style or distinct variety of chocolate that is pink or purple in color.</mark><span> Barry Callebaut , a BelgianâSwiss cocoa company, introduced it as a distinct product on 5 September 2017 after beginning development of their product in 2004. [ 2 ] [ 3 ] [ 4 ] While Barry Callebaut says it is a fourth natural type of chocolate (in addition to dark , milk , and white chocolate varieties), [ 5 ] [ 6 ] industry experts have debated wheth</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_ruby_chocolate_category_scope_2</code> | bytes [480, 694) | <code>63558dbd5f37130e557f6d9a51fe1f8d46ee937f5256f0df93f446da195f6482</code></div><pre class="context"><span>ngredients Cocoa butter Cocoa mass Milk Sugar Citric acid [ 1 ] Media: Ruby chocolate Ruby chocolate is a style or distinct variety of chocolate that is pink or purple in color. Barry Callebaut , a BelgianâSwiss cocoa company, introduced it as a distinct product on 5 September 2017 after beginning development of their product in 2004. [ 2 ] [ 3 ] [ 4 ] </span><mark>While Barry Callebaut says it is a fourth natural type of chocolate (in addition to dark , milk , and white chocolate varieties), [ 5 ] [ 6 ] industry experts have debated whether this is true or a marketing claim.</mark><span> Composition According to a temporary marketing permit granted by the Food and Drug Administration in the United States in 2019, ruby chocolate is defined as: The solid or semiplastic food prepared by mixing and grinding cacao fat with one or more of the cacao ingredients (namely, chocolate liquor, breakfast cocoa, cocoa and lowfat cocoa), citric acid, one o</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/Ruby_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/Ruby_chocolate</a></p><p>冻结文件: <a href="sources/86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd" target="_blank">sources/86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd</a></p><p>内容 SHA-256: <code>86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_disputed_category_not_exact_chocolove_formula_or_naturalness_proof&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The ruby-chocolate page describes a pink or purple style introduced as distinct and says experts debate whether the fourth natural type claim is true or marketing. This supports a disputed-category explanation, not verification of the Chocolove bar&#x27;s formula, processing, color source, legal identity or sensory quality.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article><article class="review-card" data-kind="support" data-item-id="prop_white_chocolate_category_scope"><header><h3>prop_white_chocolate_category_scope</h3><span class="badge">support</span><span class="badge">proposition</span><span class="badge">wikipedia</span></header><div class="claim"><strong>英文拟议节点（协议原文）</strong><pre>{
+  &quot;object&quot;: &quot;an ivory traditional chocolate type lacks nonfat cocoa solids while consumer opinions and market standards differ&quot;,
+  &quot;predicate&quot;: &quot;uses_cocoa_butter_sugar_and_milk_without_nonfat_cocoa_solids&quot;,
+  &quot;subject&quot;: &quot;white chocolate&quot;
+}</pre></div><details open><summary>英文拟议 proposition（协议原文）</summary><p class=muted>该节点没有 ASSERTS proposition，仅审核结构化字段与 span。</p></details><details open><summary>英文冻结原文与上下文（权威证据）</summary><section class="span"><div class="span-meta"><code>span_prop_white_chocolate_category_scope_1</code> | bytes [225, 302) | <code>6287655bacf03b43c7e9a8f0ddb8f087d66c53cf1c06793c1179b644980c6131</code></div><pre class="context"><span>For other uses, see White chocolate (disambiguation) . White chocolate Type Chocolate Place of origin Switzerland Main ingredients Cocoa butter , sugar , milk solids Ingredients generally used Vanilla Media: White chocolate </span><mark>White chocolate is chocolate made from cocoa butter , sugar and milk solids .</mark><span> It is ivory in color and lacks the dark appearance of most other types of chocolate because it does not contain the non-fat components of cocoa ( cocoa solids ). Due to this omission, as well as its sweetness and the occasional use of additives, some consumers do not consider white chocolate to be real chocolate. Of the three traditional types of chocolate </span></pre></section><section class="span"><div class="span-meta"><code>span_prop_white_chocolate_category_scope_2</code> | bytes [303, 464) | <code>dc93aa1fd53633a6e2a80c6d9c85ed96ddfa24825454209bd72a36f0d422626f</code></div><pre class="context"><span>For other uses, see White chocolate (disambiguation) . White chocolate Type Chocolate Place of origin Switzerland Main ingredients Cocoa butter , sugar , milk solids Ingredients generally used Vanilla Media: White chocolate White chocolate is chocolate made from cocoa butter , sugar and milk solids . </span><mark>It is ivory in color and lacks the dark appearance of most other types of chocolate because it does not contain the non-fat components of cocoa ( cocoa solids ).</mark><span> Due to this omission, as well as its sweetness and the occasional use of additives, some consumers do not consider white chocolate to be real chocolate. Of the three traditional types of chocolate (the others being milk and dark ), white chocolate is the least popular. Its taste and texture are divisive: admirers praise its texture as creamy, while detracto</span></pre></section><section class="span"><div class="span-meta"><code>span_prop_white_chocolate_category_scope_3</code> | bytes [465, 617) | <code>eff8888b8ec5b74573eb5afffde8abeb8b2c5122dc28382c4f73d01270ef1af5</code></div><pre class="context"><span>tzerland Main ingredients Cocoa butter , sugar , milk solids Ingredients generally used Vanilla Media: White chocolate White chocolate is chocolate made from cocoa butter , sugar and milk solids . It is ivory in color and lacks the dark appearance of most other types of chocolate because it does not contain the non-fat components of cocoa ( cocoa solids ). </span><mark>Due to this omission, as well as its sweetness and the occasional use of additives, some consumers do not consider white chocolate to be real chocolate.</mark><span> Of the three traditional types of chocolate (the others being milk and dark ), white chocolate is the least popular. Its taste and texture are divisive: admirers praise its texture as creamy, while detractors criticize its flavor as cloying and bland. White chocolate is sold in a variety of forms, including bars , chips and coatings for nuts. It is common f</span></pre></section></details><details><summary>来源身份与元数据</summary><p>URL: <a href="http://localhost:8090/content/wikipedia_en_all_nopic/White_chocolate" target="_blank" rel="noreferrer">http://localhost:8090/content/wikipedia_en_all_nopic/White_chocolate</a></p><p>冻结文件: <a href="sources/ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb" target="_blank">sources/ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb</a></p><p>内容 SHA-256: <code>ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb</code></p><pre>{
+  &quot;body_support&quot;: true,
+  &quot;metadata&quot;: {
+    &quot;acceptable_source_roles&quot;: [
+      &quot;concept&quot;
+    ],
+    &quot;critical&quot;: true,
+    &quot;scope&quot;: &quot;general_category_and_market_boundary_not_exact_lindt_classification_or_preference&quot;,
+    &quot;topic_cluster&quot;: &quot;chocolate_process_category_affordable_sampler_boundary&quot;
+  },
+  &quot;search_snippet_support&quot;: false,
+  &quot;verifier&quot;: {
+    &quot;accepted_phrases&quot;: [
+      &quot;The white-chocolate page describes cocoa butter, sugar and milk solids without nonfat cocoa solids and notes that some consumers dispute whether it is real chocolate. It is still treated as a traditional chocolate type, while composition rules vary by market. The page cannot independently classify the exact Lindt offer without its current label and market.&quot;
+    ],
+    &quot;kind&quot;: &quot;typed_claim&quot;,
+    &quot;matcher&quot;: &quot;normalized_text&quot;,
+    &quot;normalizers&quot;: [
+      &quot;casefold&quot;,
+      &quot;whitespace&quot;,
+      &quot;punctuation&quot;,
+      &quot;hyphen&quot;
+    ]
+  }
+}</pre></details><fieldset><legend>人工决定</legend><label>结论 <select name="decision"><option value="pending" selected>待定（pending）</option><option value="approve">通过（approve）</option><option value="reject">拒绝（reject）</option><option value="needs_more_context">需要更多上下文</option></select></label><label>span 正确 <select name="support_span_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label>proposition 被原文支持 <select name="proposition_supported"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>来源范围表达正确 <select name="source_scope_correct"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option><option value="not_applicable">不适用</option></select></label><label>上下文充分 <select name="context_sufficient"><option value="unknown" selected>不确定</option><option value="yes">是</option><option value="no">否</option></select></label><label class="note">审核备注<textarea name="reviewer_note"></textarea></label></fieldset></article></section>
+<section class="sources"><h2>冻结来源文件</h2><table><thead><tr><th>注册项</th><th>类型</th><th>SHA-256 / 快照</th><th>URL</th><th>字节数</th></tr></thead><tbody><tr><td>reg_case_spec_chocolate_sampler_0049</td><td>case_spec</td><td><a href="sources/80b2323303857a627d22451c7a52661844ca41ec99e5a189811c21f16a91b1b5">80b2323303857a627d22451c7a52661844ca41ec99e5a189811c21f16a91b1b5</a></td><td><a href="http://case-spec.local/dra_v3_formal_snacks_chocolate_0049" target="_blank" rel="noreferrer">来源 URL</a></td><td>12589</td></tr><tr><td>reg_magento_chocolove_ruby_0049</td><td>magento</td><td><a href="sources/8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e">8fc1f2598314810d5912a42eb4bdba471a2d6c4238ea6ccd58ffb6de3378b67e</a></td><td><a href="http://localhost:7770/chocolove-ruby-cacao-bar-2-bars.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>664</td></tr><tr><td>reg_magento_green_black_variety_0049</td><td>magento</td><td><a href="sources/9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03">9f08f858398868d57bc5806290b9c81d307ad9bdf281f774fe0993fa23896f03</a></td><td><a href="http://localhost:7770/green-black-s-organic-chocolate-variety-pack-85-dark-chocolate-70-dark-chocolate-milk-chocolate-milk-chocolate-with-almonds-white-chocolate-easter-chocolate-gift-8-3-17-oz-bars.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>2576</td></tr><tr><td>reg_magento_lindt_milk_0049</td><td>magento</td><td><a href="sources/0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f">0b257cb786ca60b55844759a628546367222845448e0ebfa697153e76f57cc9f</a></td><td><a href="http://localhost:7770/lindt-classic-recipe-milk-chocolate-bar-4-4-oz-2-pc.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>622</td></tr><tr><td>reg_magento_lindt_white_0049</td><td>magento</td><td><a href="sources/fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27">fb8c5ff8bbbd982f7ea9fe764ff87d5a0353d2dc12c3ed10153594da7bf68a27</a></td><td><a href="http://localhost:7770/product-of-lindt-white-chocolate-bar-count-1-chocolate-candy-grab-varieties-flavors.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>555</td></tr><tr><td>reg_magento_ritter_sixty_one_0049</td><td>magento</td><td><a href="sources/c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2">c46a11451809433c2c848e347aabfb0d6f2cab74daebf201e9080b783fa5f6e2</a></td><td><a href="http://localhost:7770/ritter-sport-61-fine-dark-chocolate-bar-candy-original-german-chocolate-100g-3-52oz.html" target="_blank" rel="noreferrer">来源 URL</a></td><td>1632</td></tr><tr><td>reg_postmill_eli5_flavor_0049</td><td>postmill</td><td><a href="sources/4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898">4d2dfeaff7dd555776dba62346b12261a70a81589b04cb8bf2819ef7c95a9898</a></td><td><a href="http://localhost:9999/f/explainlikeimfive/104197/eli5-if-the-tongue-can-only-taste-five-basic-flavors-sweet" target="_blank" rel="noreferrer">来源 URL</a></td><td>3991</td></tr><tr><td>reg_postmill_new_haven_cocoa_0049</td><td>postmill</td><td><a href="sources/ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900">ca445d0ba1551b94dc24a371aebe6cb8d2b78b0c71c8249b6a5dc39224482900</a></td><td><a href="http://localhost:9999/f/newhaven/86919/small-businesses-with-the-best-hot-cocoa" target="_blank" rel="noreferrer">来源 URL</a></td><td>2460</td></tr><tr><td>reg_postmill_nj_blind_test_0049</td><td>postmill</td><td><a href="sources/3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4">3d068b7f09c677c05cc7a8af5109d59d6e74ecb10eb543518b8fbb3a736d02d4</a></td><td><a href="http://localhost:9999/f/newjersey/43404/favorite-local-chocolate-candy-shop" target="_blank" rel="noreferrer">来源 URL</a></td><td>7238</td></tr><tr><td>reg_search_chocolate</td><td>search_result</td><td><a href="sources/7478564060b4b739568692175d476293ef6318de0e053182593f42a21ab8800d">7478564060b4b739568692175d476293ef6318de0e053182593f42a21ab8800d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=8af18cf7-0d3f-4454-8950-340c6d78b9f5" target="_blank" rel="noreferrer">来源 URL</a></td><td>61566</td></tr><tr><td>reg_search_chocolate_liquor</td><td>search_result</td><td><a href="sources/89a93f1fbc8917c466e06ba622753f48b00e0f62cbfcd7d47ddc47c5e0e8d750">89a93f1fbc8917c466e06ba622753f48b00e0f62cbfcd7d47ddc47c5e0e8d750</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=572d9187-66e6-4417-abc0-d4d24b124c32" target="_blank" rel="noreferrer">来源 URL</a></td><td>61029</td></tr><tr><td>reg_search_chocolove_ruby</td><td>search_result</td><td><a href="sources/1c41bdb1dad26980f87857a0f34c6963c0a773ad6dd792144e05dea788e1e100">1c41bdb1dad26980f87857a0f34c6963c0a773ad6dd792144e05dea788e1e100</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=ebab4f4c-7bb9-4ea6-91d5-0884ab81c78b" target="_blank" rel="noreferrer">来源 URL</a></td><td>5935</td></tr><tr><td>reg_search_cocoa_bean</td><td>search_result</td><td><a href="sources/fbcb5a84dafdb413ef987b32d2ca535c9f443c785e3cab28c0238bb87ab5e864">fbcb5a84dafdb413ef987b32d2ca535c9f443c785e3cab28c0238bb87ab5e864</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=e7cda72e-879d-4a94-b993-164cdc338cfd" target="_blank" rel="noreferrer">来源 URL</a></td><td>61160</td></tr><tr><td>reg_search_cocoa_butter</td><td>search_result</td><td><a href="sources/bda88d3ff957ac5a939d13feb3fb393949ea7c0d624c33a8f8155954105ce5fa">bda88d3ff957ac5a939d13feb3fb393949ea7c0d624c33a8f8155954105ce5fa</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=cb622b8d-dc72-41bc-80e3-50e905201853" target="_blank" rel="noreferrer">来源 URL</a></td><td>61076</td></tr><tr><td>reg_search_conching</td><td>search_result</td><td><a href="sources/85b6a68a3de7fabb9f1018e7d0d65e7097513da489f25aa55280ec8f19da7a88">85b6a68a3de7fabb9f1018e7d0d65e7097513da489f25aa55280ec8f19da7a88</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=4e7e978e-37de-4823-9910-60293403228d" target="_blank" rel="noreferrer">来源 URL</a></td><td>61291</td></tr><tr><td>reg_search_eli5_flavor</td><td>search_result</td><td><a href="sources/934a214ec3dc6351a75ee83a8427b90bf4e4f381717d58aa6561f9d4cd2bb58c">934a214ec3dc6351a75ee83a8427b90bf4e4f381717d58aa6561f9d4cd2bb58c</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=1e71b2ce-fd9a-424e-b383-4c4d64e89418" target="_blank" rel="noreferrer">来源 URL</a></td><td>49470</td></tr><tr><td>reg_search_green_black_variety</td><td>search_result</td><td><a href="sources/2bb73386e2ff02cb05cb7245d5c5f5ad076bb9c491cc51998c7e16e7435ae554">2bb73386e2ff02cb05cb7245d5c5f5ad076bb9c491cc51998c7e16e7435ae554</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=dea7948b-dc7d-46ae-a2d0-c336a5151db6" target="_blank" rel="noreferrer">来源 URL</a></td><td>6276</td></tr><tr><td>reg_search_lindt_milk</td><td>search_result</td><td><a href="sources/14d0b4dc446b172d6a584e5dc166b48eb70a72af1ca8de3f5fa100adc61fcdd5">14d0b4dc446b172d6a584e5dc166b48eb70a72af1ca8de3f5fa100adc61fcdd5</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=518c4ec7-3953-42e5-ad06-243c8ea3c3f1" target="_blank" rel="noreferrer">来源 URL</a></td><td>4856</td></tr><tr><td>reg_search_lindt_white</td><td>search_result</td><td><a href="sources/4338973ced154f1c32ca8d9ccf5ea570ccdd3e295bf7cb5156f7740398c57667">4338973ced154f1c32ca8d9ccf5ea570ccdd3e295bf7cb5156f7740398c57667</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=f8771bea-cec4-4fd8-abe1-bea647eb4320" target="_blank" rel="noreferrer">来源 URL</a></td><td>4619</td></tr><tr><td>reg_search_new_haven_cocoa</td><td>search_result</td><td><a href="sources/9d42e78e61ed1bf3711a4d4ee6004cdbb69d6260a80d9bf410ff35d4d6b201dd">9d42e78e61ed1bf3711a4d4ee6004cdbb69d6260a80d9bf410ff35d4d6b201dd</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=ec1d63b0-e2f4-4fed-b1ed-16d0f3e23ef6" target="_blank" rel="noreferrer">来源 URL</a></td><td>61921</td></tr><tr><td>reg_search_nj_blind_test</td><td>search_result</td><td><a href="sources/966713f8c7121a28c82081edf663b50d6c44a788781cb5f4e0ca141becb8026d">966713f8c7121a28c82081edf663b50d6c44a788781cb5f4e0ca141becb8026d</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=ca730e52-9932-47b2-9ce7-93770f05790d" target="_blank" rel="noreferrer">来源 URL</a></td><td>45639</td></tr><tr><td>reg_search_ritter_sixty_one</td><td>search_result</td><td><a href="sources/00762f996a4215de5fb5c05d853581bd31f58acdc7cb76c2b05fff6241f8ee13">00762f996a4215de5fb5c05d853581bd31f58acdc7cb76c2b05fff6241f8ee13</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=0610622c-c17a-4149-a821-a8148574cfed" target="_blank" rel="noreferrer">来源 URL</a></td><td>4987</td></tr><tr><td>reg_search_ruby_chocolate</td><td>search_result</td><td><a href="sources/8a6e060573df03a69b782425747d32ab9b6b0c840db95eb8ffe312b905d2e67f">8a6e060573df03a69b782425747d32ab9b6b0c840db95eb8ffe312b905d2e67f</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=e45957e3-66fe-4b90-b274-a79a5b4c95a6" target="_blank" rel="noreferrer">来源 URL</a></td><td>61503</td></tr><tr><td>reg_search_white_chocolate</td><td>search_result</td><td><a href="sources/43afb691bde43942de1db46ae3155f2f6e5b5eb26f850704dcc97ec0aa4a4fea">43afb691bde43942de1db46ae3155f2f6e5b5eb26f850704dcc97ec0aa4a4fea</a></td><td><a href="http://localhost:8081/search?capture_run=v3-corpus-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1&amp;request_id=a2e3fb09-9406-47b3-a7b0-49c95eb27983" target="_blank" rel="noreferrer">来源 URL</a></td><td>61393</td></tr><tr><td>reg_wikipedia_chocolate_0049</td><td>wikipedia</td><td><a href="sources/1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36">1e6996428a4ad70fcbc9726846a1af740396a0a46eac60304fa5e1539b8a8e36</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>20150</td></tr><tr><td>reg_wikipedia_chocolate_liquor_0049</td><td>wikipedia</td><td><a href="sources/b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03">b458dd01b79907e5c3bc5710896a8a74cd4823f4fe49368ee4c556b9413eaa03</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Chocolate_liquor" target="_blank" rel="noreferrer">来源 URL</a></td><td>5307</td></tr><tr><td>reg_wikipedia_cocoa_bean_0049</td><td>wikipedia</td><td><a href="sources/464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110">464710c8366947b9817aff66a06897fb661c36787a959001cdf8878e786ce110</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_bean" target="_blank" rel="noreferrer">来源 URL</a></td><td>20063</td></tr><tr><td>reg_wikipedia_cocoa_butter_0049</td><td>wikipedia</td><td><a href="sources/bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2">bd18ad726b8fa26aec5341570f84b968381113d6a6ce1d45f01b3786380373d2</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Cocoa_butter" target="_blank" rel="noreferrer">来源 URL</a></td><td>14218</td></tr><tr><td>reg_wikipedia_conching_0049</td><td>wikipedia</td><td><a href="sources/501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053">501ccc1ec7f8764f50fb397ee023da7c401bea6cb6f0680ecdbb46a00f311053</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Conching" target="_blank" rel="noreferrer">来源 URL</a></td><td>11774</td></tr><tr><td>reg_wikipedia_ruby_chocolate_0049</td><td>wikipedia</td><td><a href="sources/86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd">86ad9270a623d12f1eda3ae2b37926a46668d53cf978253f7877395c1efed7dd</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/Ruby_chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>12886</td></tr><tr><td>reg_wikipedia_white_chocolate_0049</td><td>wikipedia</td><td><a href="sources/ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb">ab80901269d64086674ed1fa69c2dfce215a0e5e89cfe62cd7426f5d7f0e15eb</a></td><td><a href="http://localhost:8090/content/wikipedia_en_all_nopic/White_chocolate" target="_blank" rel="noreferrer">来源 URL</a></td><td>20076</td></tr></tbody></table></section>
+</main>
+<script>
+const candidateId = "unassigned_candidate";
+const corpusSnapshot = "dra-v3-formal-snacks-chocolate-0049-process-category-sampler-boundary-20260716-r1";
+const graphHash = "1892e77683d64d322010fda2d36fccf69a7e1fd5d6bdfbe59e840f6769a40c05";
+const filter = document.getElementById('kind_filter');
+filter.addEventListener('change', () => {
+  document.querySelectorAll('.review-card').forEach(card => {
+    const decision = card.querySelector('[name="decision"]').value;
+    const visible = filter.value === 'all' || card.dataset.kind === filter.value || (filter.value === 'pending' && decision === 'pending');
+    card.classList.toggle('hidden', !visible);
+  });
+});
+document.getElementById('export_button').addEventListener('click', () => {
+  const items = Array.from(document.querySelectorAll('.review-card')).map(card => ({
+    review_item_id: card.dataset.itemId,
+    decision: card.querySelector('[name="decision"]').value,
+    support_span_correct: card.querySelector('[name="support_span_correct"]').value,
+    proposition_supported: card.querySelector('[name="proposition_supported"]').value,
+    source_scope_correct: card.querySelector('[name="source_scope_correct"]').value,
+    context_sufficient: card.querySelector('[name="context_sufficient"]').value,
+    reviewer_note: card.querySelector('[name="reviewer_note"]').value
+  }));
+  const evidence_gaps = Array.from(document.querySelectorAll('.gap')).map(gap => ({
+    gap_id: gap.dataset.gapId,
+    description: gap.dataset.gapDescription,
+    resolution: gap.querySelector('[name="gap_resolution"]').value,
+    reviewer_note: gap.querySelector('[name="gap_note"]').value
+  }));
+  const output = {
+    schema_version: 'dra_v3_human_review_decisions_v1',
+    corpus_snapshot: corpusSnapshot,
+    evidence_graph_hash: graphHash,
+    candidate_id: candidateId,
+    reviewer_id: document.getElementById('reviewer_id').value,
+    reviewed_at_utc: new Date().toISOString(),
+    independent_review: true,
+    candidate_verdict: document.getElementById('candidate_verdict').value,
+    items,
+    evidence_gaps
+  };
+  const blob = new Blob([JSON.stringify(output, null, 2) + '\n'], {type: 'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = candidateId + '.review-decisions.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+</script></body></html>

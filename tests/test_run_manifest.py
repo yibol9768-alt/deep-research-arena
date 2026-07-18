@@ -477,7 +477,7 @@ def test_manifest_pins_the_wiki_bloom_filter(tmp_path):
     """Wiki membership for ~19M articles lives in `wiki_bloom.bin`, not in
     `url_registry.json` (which lists ~1k explicit titles). The corpus fingerprint
     hashed only the JSON, so a host missing or rebuilding the bloom scored the
-    same reports with a different `reach`, and `truth = reach^1.5 * quality`
+    same reports with a different `reach`, and `truth = gate * quality`
     moved with it. `verify()` returned clean and two non-comparable boards were
     published as comparable.
     """

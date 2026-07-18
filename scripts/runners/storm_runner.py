@@ -203,6 +203,19 @@ class SandboxSearchRM(dspy.Retrieve):
         return collected_results
 
 
+def _writer_visible_snippets(url: str, snippets) -> list[str]:
+    """Attach the already-retrieved source identity to STORM writer evidence.
+
+    Upstream STORM's ``ConvToSection`` serialises only ``Information.snippets``
+    and discards ``Information.url`` before calling the writer. The writer then
+    sees ``[N] + prose`` but cannot know the URL belonging to ``[N]``. Preserve
+    the framework-selected snippets and prepend their canonical identity; this
+    performs no search, source choice, or final-report mutation.
+    """
+    unique = sorted({str(value).strip() for value in snippets if str(value).strip()})
+    return [f"Source URL (retrieved identity): {url}", *unique]
+
+
 def _install_offline_information_table_patch() -> None:
     """Avoid STORM's hard dependency on a HuggingFace sentence-transformer.
 
@@ -274,7 +287,9 @@ def _install_offline_information_table_patch() -> None:
         selected_url_to_info = {}
         for url, snippets in url_to_snippets.items():
             selected_url_to_info[url] = copy.deepcopy(self.url_to_info[url])
-            selected_url_to_info[url].snippets = list(snippets)
+            selected_url_to_info[url].snippets = _writer_visible_snippets(
+                url, snippets
+            )
         return list(selected_url_to_info.values())
 
     table_cls.prepare_table_for_retrieval = _prepare_table_for_retrieval
@@ -539,7 +554,18 @@ def _storm_native_worker(
         )
         runner.post_run()
         report = _extract_article(Path(scratch_dir), run_start_mtime)
-        out_q.put({"ok": True, "report": report})
+        citation_map = _extract_native_citation_map(
+            Path(scratch_dir), run_start_mtime
+        )
+        citation_sidecar = _persist_native_citation_map(citation_map)
+        out_q.put({
+            "ok": True,
+            "report": report,
+            # Do not send the potentially large native payload through the
+            # multiprocessing queue. The child has already atomically written
+            # it outside the scratch tree; this small flag is diagnostic only.
+            "native_citation_map_retained": citation_sidecar is not None,
+        })
     except BaseException as e:  # noqa: BLE001
         out_q.put({"ok": False, "error": f"{type(e).__name__}: {e}"})
 
@@ -590,6 +616,70 @@ def _install_strict_http_gate() -> None:
     _install_strict_http_gate._done = True  # type: ignore[attr-defined]
 
 
+def _extract_native_citation_map(
+    scratch_path: Path, run_start_mtime: float
+) -> dict | None:
+    """Return STORM's fresh ``url_to_info.json`` payload, unchanged.
+
+    The mapping is a native run artifact. It is retained next to the report for
+    audit and citation-index resolution, but is never inserted into or used to
+    mutate the sealed markdown. The scorer may consume the verified two-file
+    native bundle and resolve only numeric indices that STORM actually emitted.
+    Returning ``None`` distinguishes a missing/invalid artifact from a valid
+    mapping that happens to be empty.
+    """
+    candidates: list[Path] = []
+    for path in scratch_path.rglob("url_to_info.json"):
+        try:
+            if path.stat().st_mtime >= run_start_mtime:
+                candidates.append(path)
+        except OSError:
+            continue
+    if not candidates:
+        return None
+    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    try:
+        payload = json.loads(candidates[0].read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        logger.warning("Failed to read storm bibliography: %s", exc)
+        return None
+    if not isinstance(payload, dict):
+        logger.warning("STORM bibliography is not a JSON object: %s", candidates[0])
+        return None
+    return payload
+
+
+def _persist_native_citation_map(payload: dict | None) -> Path | None:
+    """Persist STORM's native citation table beside, never inside, the report."""
+    if payload is None:
+        return None
+    report_path = (os.environ.get("DEEP_RUN_REPORT_PATH") or "").strip()
+    if not report_path:
+        logger.warning(
+            "STORM citation map present but DEEP_RUN_REPORT_PATH is unset; "
+            "sidecar not persisted"
+        )
+        return None
+    sidecar = Path(report_path).with_suffix(".storm-url-to-info.json")
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    temporary = sidecar.with_name(f".{sidecar.name}.{uuid.uuid4().hex}.tmp")
+    try:
+        temporary.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(sidecar)
+    finally:
+        temporary.unlink(missing_ok=True)
+    count = len(payload.get("url_to_unified_index") or {})
+    print(
+        f"[storm-citations] retained native url_to_info map: "
+        f"{count} URLs -> {sidecar.name}",
+        flush=True,
+    )
+    return sidecar
+
+
 def _extract_article(scratch_path: Path, run_start_mtime: float) -> str:
     """Recover the STORM article from a scratch tree.
 
@@ -605,9 +695,8 @@ def _extract_article(scratch_path: Path, run_start_mtime: float) -> str:
             older than this are treated as stale and ignored.
 
     Returns:
-        The article markdown (with an appended References section when STORM's
-        url_to_info.json is available), or "(empty storm output)" if no fresh
-        article was produced.
+        The native article markdown unchanged, or "(empty storm output)" if no
+        fresh article was produced. Citation mappings are retained separately.
     """
 
     def _fresh(paths: List[Path]) -> List[Path]:
@@ -639,19 +728,21 @@ def _extract_article(scratch_path: Path, run_start_mtime: float) -> str:
         # rescore with the block removed: storm macro reach 0.9609 -> 0.0000.
         #
         # Whether STORM "really" retrieved those URLs is beside the point. Every
-        # other framework must put its citations in its own report to be
-        # credited for them, and none of them get the harness to do it. Removed
-        # 2026-07-08 (fairness audit). The bibliography is logged, not appended.
-        try:
-            url_info_paths = list(candidates[0].parent.glob("url_to_info.json"))
-            if not url_info_paths:
-                url_info_paths = list(scratch_path.rglob("url_to_info.json"))
-            if url_info_paths:
-                url_to_idx = json.loads(url_info_paths[0].read_text()).get("url_to_unified_index", {})
-                logger.info("storm retrieved %d sources (diagnostic only, not appended)",
-                            len(url_to_idx))
-        except Exception as e:
-            logger.warning(f"Failed to read storm bibliography: {e}")
+        # framework must put citations in its own native result bundle to be
+        # credited, and none gets guessed or retrieved URLs written into its
+        # sealed report by the harness. Removed 2026-07-08 (fairness audit).
+        # The bibliography is retained as STORM's second native artifact, never
+        # appended. The scorer verifies its manifest hash and resolves only
+        # indices that STORM actually emitted inline.
+        citation_map = _extract_native_citation_map(
+            scratch_path, run_start_mtime
+        )
+        if citation_map is not None:
+            url_to_idx = citation_map.get("url_to_unified_index") or {}
+            logger.info(
+                "storm retrieved %d sources (diagnostic only, not appended)",
+                len(url_to_idx),
+            )
         return result
 
     # Debug: list what STORM actually wrote.

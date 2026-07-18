@@ -303,31 +303,105 @@ def _load_one(path: Path) -> dict | None:
     return value if isinstance(value, dict) else None
 
 
+_USAGE_COUNT_KEYS = (
+    "n_calls",
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+    "usage_missing_calls",
+)
+
+
+def _usage_view(value: dict | None) -> dict[str, Any]:
+    """Return the stable summary fields for one cost-ledger bucket."""
+    source = value if isinstance(value, dict) else {}
+    result: dict[str, Any] = {
+        key: int(source.get(key) or 0) for key in _USAGE_COUNT_KEYS
+    }
+    cost = source.get("cost")
+    currency = source.get("cost_currency")
+    complete = bool(source.get("cost_complete"))
+    result.update({
+        "known_cost": source.get(
+            "known_cost", float(cost) if cost is not None else 0.0
+        ),
+        "cost": cost,
+        "cost_currency": currency,
+        "cost_complete": complete,
+        "pricing_status": source.get("pricing_status") or (
+            "complete" if complete and cost is not None and currency
+            else "partial" if cost is not None and currency
+            else "unpriced"
+        ),
+    })
+    return result
+
+
+def _formal_usage(ledger: dict, run_id: str | None) -> tuple[dict[str, Any], str]:
+    """Select the marked Harness run, excluding probes and scoring calls."""
+    runs = ledger.get("runs")
+    if run_id and isinstance(runs, list):
+        for candidate in runs:
+            if (
+                isinstance(candidate, dict)
+                and candidate.get("run_id") == run_id
+            ):
+                return _usage_view(candidate), "formal_run"
+    totals = ledger.get("totals")
+    return _usage_view(totals if isinstance(totals, dict) else {}), (
+        "whole_worker_fallback"
+    )
+
+
+def _rollup_usage(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    total: dict[str, Any] = {
+        key: sum(int(row.get(key) or 0) for row in rows)
+        for key in _USAGE_COUNT_KEYS
+    }
+    priced_costs = [
+        float(row["cost"])
+        for row in rows
+        if row.get("cost") is not None and row.get("cost_currency")
+    ]
+    currencies = {
+        str(row["cost_currency"])
+        for row in rows
+        if row.get("cost") is not None and row.get("cost_currency")
+    }
+    complete = (
+        bool(rows)
+        and all(bool(row.get("cost_complete")) for row in rows)
+        and len(priced_costs) == len(rows)
+        and len(currencies) == 1
+        and total["usage_missing_calls"] == 0
+    )
+    total["known_cost"] = round(sum(priced_costs), 6)
+    total["cost_currency"] = next(iter(currencies)) if len(currencies) == 1 else None
+    total["cost_complete"] = complete
+    total["cost"] = total["known_cost"] if complete else None
+    total["pricing_status"] = (
+        "complete" if complete else "partial" if priced_costs else "unpriced"
+    )
+    return total
+
+
 def _summarize(tag: str, model: str, task: str, lanes: list[Lane]) -> dict:
     rows: dict[str, dict[str, Any]] = {}
-    total = {
-        "n_calls": 0,
-        "prompt_tokens": 0,
-        "completion_tokens": 0,
-        "total_tokens": 0,
-        "usage_missing_calls": 0,
-        "cost": None,
-        "cost_currency": None,
-        "cost_complete": False,
-    }
+    formal_usages: list[dict[str, Any]] = []
+    worker_usages: list[dict[str, Any]] = []
     for lane in lanes:
         raw = lane.run_dir / "raw"
         meta = _load_one(raw / f"{lane.harness}__{task}_rep1.meta.json") or {}
         report = raw / f"{lane.harness}__{task}_rep1.md"
         score = lane.run_dir / "scores" / f"{lane.harness}__{task}_rep1.score.json"
         ledger = _load_one(lane.run_dir / f"api_costs.worker-{lane.worker_id}.json") or {}
-        usage = ledger.get("totals") if isinstance(ledger.get("totals"), dict) else {}
-        for key in (
-            "n_calls", "prompt_tokens", "completion_tokens", "total_tokens",
-            "usage_missing_calls",
-        ):
-            value = int(usage.get(key) or 0)
-            total[key] += value
+        usage, usage_scope = _formal_usage(ledger, meta.get("run_id"))
+        worker_usage = _usage_view(
+            ledger.get("totals")
+            if isinstance(ledger.get("totals"), dict) else {}
+        )
+        formal_usages.append(usage)
+        worker_usages.append(worker_usage)
         rows[lane.harness] = {
             "worker_rc": lane.worker_rc,
             "status": meta.get("status"),
@@ -341,6 +415,8 @@ def _summarize(tag: str, model: str, task: str, lanes: list[Lane]) -> dict:
             "network_verified": (meta.get("network_isolation") or {}).get("verified"),
             "egress_enforced": (meta.get("egress_evidence") or {}).get("enforced"),
             "usage": usage,
+            "usage_scope": usage_scope,
+            "worker_usage": worker_usage,
             "paths": {
                 "run_dir": str(lane.run_dir),
                 "worker_log": str(lane.worker_log),
@@ -358,7 +434,8 @@ def _summarize(tag: str, model: str, task: str, lanes: list[Lane]) -> dict:
         "scoreable": sum(bool(row["score_exists"]) for row in rows.values()),
         "harness_count": len(lanes),
         "agents": rows,
-        "totals": total,
+        "totals": _rollup_usage(formal_usages),
+        "worker_totals": _rollup_usage(worker_usages),
     }
 
 
@@ -408,6 +485,30 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--model-probe-timeout-s", type=int, default=900)
     parser.add_argument("--service-read-timeout-s", type=int, default=1200)
     parser.add_argument("--upstream-read-timeout-s", type=int, default=600)
+    parser.add_argument(
+        "--upstream-retry-max-attempts",
+        type=int,
+        default=8,
+        help=(
+            "bounded DS Proxy attempts per upstream request; defaults to the "
+            "proxy's production cap"
+        ),
+    )
+    pricing = parser.add_mutually_exclusive_group()
+    pricing.add_argument(
+        "--price-namespace",
+        help=(
+            "verified provider namespace used to price every model call, "
+            "including auxiliary scoring models"
+        ),
+    )
+    pricing.add_argument(
+        "--price-key",
+        help=(
+            "verified provider-specific price key for calls matching the "
+            "declared backbone"
+        ),
+    )
     parser.add_argument("--score-timeout-s", type=int, default=1800)
     return parser.parse_args()
 
@@ -434,6 +535,23 @@ def _parse_call_overrides(values: list[str]) -> dict[str, int]:
     return overrides
 
 
+def _pricing_env(*, price_namespace: str | None, price_key: str | None) -> dict[str, str]:
+    """Return an explicit cost-pricing contract for the worker.
+
+    The matrix intentionally does not inherit either pricing variable from its
+    parent shell.  A local API URL does not prove which paid provider sits
+    behind it, and silently inheriting a stale namespace can turn an otherwise
+    correct token ledger into invented money.
+    """
+    if price_namespace and price_key:
+        raise ValueError("price_namespace and price_key are mutually exclusive")
+    if price_namespace:
+        return {"DRA_COST_PRICE_NAMESPACE": price_namespace}
+    if price_key:
+        return {"DRA_COST_PRICE_KEY": price_key}
+    return {}
+
+
 def main() -> int:
     args = _parse_args()
     try:
@@ -446,6 +564,8 @@ def main() -> int:
         raise SystemExit("composite supervisor runtime .venv-camel is missing")
     if args.upstream_slots <= 0:
         raise SystemExit("--upstream-slots must be positive")
+    if args.upstream_retry_max_attempts <= 0:
+        raise SystemExit("--upstream-retry-max-attempts must be positive")
     if (
         args.max_calls < 0
         or args.max_total_tokens < 0
@@ -532,7 +652,9 @@ def main() -> int:
                 "OPENAI_PROXY_UPSTREAM": args.api_base.rstrip("/"),
                 "OPENAI_PROXY_KEY": key,
                 "OPENAI_PROXY_CHAT_READ_TIMEOUT_S": str(args.upstream_read_timeout_s),
-                "OPENAI_PROXY_RETRY_MAX_ATTEMPTS": "3",
+                "OPENAI_PROXY_RETRY_MAX_ATTEMPTS": str(
+                    args.upstream_retry_max_attempts
+                ),
                 "OPENAI_PROXY_SHARED_SLOTS_DIR": str(shared_slots_dir),
                 "OPENAI_PROXY_SHARED_SLOTS": str(args.upstream_slots),
                 "DSPROXY_MAX_CALLS": str(lane.max_calls),
@@ -585,6 +707,8 @@ def main() -> int:
 
         for lane in lanes:
             env = dict(os.environ)
+            env.pop("DRA_COST_PRICE_NAMESPACE", None)
+            env.pop("DRA_COST_PRICE_KEY", None)
             env.update(metadata)
             env.update({
                 "PYTHON": python,
@@ -614,10 +738,16 @@ def main() -> int:
                 "DSPROXY_MAX_TOTAL_TOKENS": str(lane.max_total_tokens),
                 "DSPROXY_ALLOWED_CLIENT_CIDRS": "127.0.0.0/8,10.240.0.0/16",
                 "OPENAI_PROXY_CHAT_READ_TIMEOUT_S": str(args.upstream_read_timeout_s),
-                "OPENAI_PROXY_RETRY_MAX_ATTEMPTS": "3",
+                "OPENAI_PROXY_RETRY_MAX_ATTEMPTS": str(
+                    args.upstream_retry_max_attempts
+                ),
                 "OPENAI_PROXY_SHARED_SLOTS_DIR": str(shared_slots_dir),
                 "OPENAI_PROXY_SHARED_SLOTS": str(args.upstream_slots),
             })
+            env.update(_pricing_env(
+                price_namespace=args.price_namespace,
+                price_key=args.price_key,
+            ))
             _start(
                 lane,
                 ["bash", "scripts/run_full_leaderboard.sh", str(lane.queue)],

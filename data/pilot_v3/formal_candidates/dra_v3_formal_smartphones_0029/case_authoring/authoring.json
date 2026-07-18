@@ -1,0 +1,579 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_formal_smartphones_0029",
+  "cluster_id": "smartphone_display_value_and_personal_threshold",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 4,
+    "distractor_density": 0.2,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "display_mechanism_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "LCD and OLED use different light paths. An LCD modulates light with liquid crystals and polarizers and requires a backlight or reflector because the liquid crystals do not emit light directly. An OLED's organic electroluminescent layer emits light under current, and AMOLED uses a TFT backplane to switch individual pixels. These mechanism facts do not by themselves rank brightness, contrast, outdoor visibility, comfort, or overall display quality, so neither panel-family label is a universal winner."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "listing_level_display_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Treat the four catalog pages as frozen listing snapshots, not independent display tests. The TCL listing advertises 179.99 dollars, a 6.53-inch FHD+ LCD, seller display-enhancement wording, and no posted review. The Samsung listing advertises 134.99 dollars, a 6.5-inch Super AMOLED, no posted review, and Verizon-only compatibility. The Motorola listing advertises 360 dollars, a 6.7-inch FHD+ 90 Hz OLED, five posted reviews, and an international model without a US warranty. The Xperia listing advertises 1496 dollars, a 6.5-inch 4K HDR OLED at 120 Hz, twelve posted reviews, and phone-only or headphone-bundle style choices. Use the separate refresh, luminance, ambient-contrast, and viewing-distance boundaries to identify what these listings do not measure. Compare exact configuration, compatibility or warranty, bundle status, return terms, and whole-phone differences separately; neither price, review count, panel label, nor seller wording proves measured display quality or isolates the screen's share of a price gap."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "display_measurement_context_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Keep display properties task- and condition-specific. Refresh rate is the hardware buffer update rate and is distinct from touch response rate and content frame rate, so test scrolling with appropriate content. Luminance is an objective directional intensity per area measured in candela per square metre or nits, while brightness is subjective. Contrast compares white and black luminance, but methods can differ and ambient reflections lower observed contrast, so test outdoor visibility in relevant light. Text sharpness depends on pixel density, viewing distance, angular resolution, and the observer rather than a universal phone-resolution cutoff. These properties cannot be collapsed into one price-derived quality number."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "scoped_display_experience_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "Interpret the community reports through the metric boundaries while keeping them at individual scope: refresh rate is distinct from touch response and content frame rate, objective luminance is distinct from subjective brightness, and ambient reflections affect observed contrast. The refresh-rate discussion contains people who strongly value 120 Hz and others who still find 60 Hz usable or prefer the savings for light use. One XR user reports eye strain after a five-to-ten-minute iPhone 14 store trial, while replies describe different adjustment or continued-discomfort outcomes. One user says an older LCD looked better or brighter than a newer OLED in some scenes, while replies raise settings or a possible defect. These unresolved and sometimes short experiences motivate person-specific testing; they do not establish prevalence, medical causation, or a universal LCD-versus-OLED or 60-versus-120 Hz ranking."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "evidence_bounded_display_value_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Explain the LCD and OLED mechanism boundary, keep refresh, luminance, ambient contrast, and distance-dependent sharpness separate, and treat seller pages as listing snapshots and forum posts as scoped experiences. Compare the current phone with returnable exact configurations under matched settings and relevant reading, messaging, scrolling, video, outdoor-visibility, and comfort conditions, while checking compatibility, warranty, bundle, battery, camera, software, size, price, and return terms. Choose the least expensive exact configuration that produces a repeatable improvement the buyer notices and values without failing comfort or whole-phone requirements; if no candidate clears that personal threshold or an exact comparison is unavailable, keep the current phone or defer. Do not infer quality from price or panel type and do not name a universal middle tier, winner, or stopping price."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "choose_the_least_expensive_returnable_exact_configuration_that_passes_or_defer": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "Choose the least expensive returnable exact configuration that passes matched person-specific display tests and all whole-phone requirements; otherwise keep the current phone or defer, without claiming a universal panel winner, middle tier, or stopping price.",
+            "Use a returnable exact-configuration trial and stop at the least expensive option whose repeatable benefit matters to this buyer, or defer when the frozen evidence and trial do not justify an upgrade."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      },
+      "admissible_conditions": [
+        {
+          "answer": "choose_the_least_expensive_returnable_exact_configuration_that_passes_or_defer",
+          "when": "the_material_supports_mechanism_and_metric_boundaries_listing_snapshots_and_scoped_experiences_but_lacks_controlled_product_measurements_a_universal_price_curve_and_this_buyers_trial_result",
+          "condition_matcher": {
+            "matcher": "normalized_text",
+            "accepted_phrases": [
+              "The frozen material supports LCD and OLED mechanism differences, definitions and limits for refresh, luminance, contrast, and viewing-distance-dependent sharpness, four seller snapshots, and conflicting individual experiences, but it contains no controlled laboratory comparison of the four displays, no causal medical evidence, no universal price-to-quality curve, and no result from this buyer's matched trial."
+            ],
+            "normalizers": [
+              "casefold",
+              "whitespace",
+              "punctuation",
+              "hyphen"
+            ]
+          },
+          "tradeoff_matchers": {
+            "mechanism_does_not_rank_complete_displays": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "LCD backlight modulation and OLED pixel emission are different mechanisms, but panel type alone does not determine brightness, contrast, outdoor visibility, comfort, or overall quality."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "metrics_are_task_and_condition_specific": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "Refresh, luminance, ambient contrast, and distance-dependent sharpness answer different questions and must be tested in the buyer's scrolling, outdoor, reading, video, and viewing-distance conditions rather than collapsed into one score."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "listing_prices_do_not_measure_screen_value": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The catalog pages establish advertised configurations, prices, review counts, compatibility or warranty caveats, and bundle status, but they do not independently measure display quality or isolate the screen's contribution to the whole-phone price."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "community_reports_do_not_establish_prevalence_or_causation": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "The community pages show conflicting individual noticeability, brightness, and comfort experiences, including a short store trial, but do not establish population prevalence, diagnosis, or causation."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            },
+            "personal_trial_and_whole_phone_fit_set_the_stop_rule": {
+              "matcher": "normalized_text",
+              "accepted_phrases": [
+                "A matched return-window trial must separate reading, messaging, scrolling, video, outdoor visibility, and comfort and include compatibility, warranty, bundle, battery, camera, software, size, price, and return terms; the stopping point is the least expensive passing exact configuration for this buyer, not a universal price."
+              ],
+              "normalizers": [
+                "casefold",
+                "whitespace",
+                "punctuation",
+                "hyphen"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_panel_type_is_a_universal_quality_ranking",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "OLED is universally better than LCD in every measurable display property and for every user because its pixels emit light."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_refresh_touch_and_content_rates_are_identical",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Display refresh rate, touch response rate, and content frame rate are the same property, so a 120 Hz label guarantees every interaction and video runs at 120 frames per second."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_luminance_equals_subjective_brightness_and_ambient_light_is_irrelevant",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Luminance and subjective brightness are identical, and ambient reflections cannot change the contrast or outdoor visibility a user sees."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_universal_pixel_density_or_resolution_cutoff",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "There is one universal phone resolution or pixel-density threshold above which no person at any viewing distance can see an improvement."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_pages_are_independent_display_tests",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The four seller pages independently measure display brightness, contrast, color accuracy, sharpness, motion quality, and comfort under comparable conditions."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_price_or_review_count_proves_display_quality",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The highest listed price or largest review count proves the best screen, and the entire price gap is caused by the display."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_forum_reports_establish_prevalence",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The forum comments establish how most users perceive 60 versus 120 Hz and LCD versus OLED."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_short_comfort_report_proves_medical_causation",
+      "contradicts_slot_id": "B4",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "A five-to-ten-minute store trial and replies prove that OLED medically causes eye strain and identify which panel type is safe for everyone."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_one_impression_can_replace_separate_task_tests",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "One brief overall impression can replace separate reading, messaging, scrolling, video, outdoor-visibility, comfort, and whole-phone checks."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_universal_middle_tier_or_stopping_price",
+      "contradicts_slot_id": "D1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The frozen listings prove one universal middle tier or fixed price at which screen improvement stops for every buyer."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Explain how LCD and OLED produce or modulate light and establish why the mechanism distinction alone cannot rank complete displays or users' outcomes.",
+      "critical": true,
+      "requires": [
+        "E7",
+        "E10",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Separate refresh rate, touch response, content frame rate, luminance, subjective brightness, contrast under ambient light, and distance-dependent sharpness, then map each property to a relevant use condition.",
+      "critical": true,
+      "requires": [
+        "E5",
+        "E8",
+        "E11",
+        "E12",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Compare all four exact seller snapshots across advertised display configuration, price, review state, compatibility or warranty, and bundle caveats without treating them as comparable display measurements or attributing the whole price gap to the screen.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E8",
+        "E11",
+        "E12",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Reconcile conflicting refresh, brightness, and comfort reports while preserving their individual, unresolved, or short-trial scope and avoiding prevalence or medical claims.",
+      "critical": true,
+      "requires": [
+        "E5",
+        "E6",
+        "E8",
+        "E9",
+        "E12",
+        "E13",
+        "B4"
+      ],
+      "local_conclusion_slot_id": "B4"
+    },
+    {
+      "subgoal_id": "G5",
+      "description": "Combine the four evidence branches into a matched, returnable, person-specific display and whole-phone trial that selects the least expensive passing exact configuration or defers without a universal stopping price.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Explain the LCD backlight-and-modulation path and OLED pixel-emission path, then state exactly why panel type alone cannot establish a universal winner for brightness, contrast, outdoor visibility, comfort, or overall display quality.",
+      "slot_ids": [
+        "E7",
+        "E10",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Distinguish refresh rate from touch response and content frame rate, objective luminance from subjective brightness, contrast from ambient-light performance, and pixel density from distance- and observer-dependent visible detail; map them separately to scrolling, reading, video, and outdoor use.",
+      "slot_ids": [
+        "E5",
+        "E8",
+        "E11",
+        "E12",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "Compare the four frozen seller snapshots across exact advertised display configuration and price plus review, compatibility or warranty, and bundle caveats; do not rank measured quality, infer it from price or panel label, or attribute the whole-phone price gap to the screen.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E8",
+        "E11",
+        "E12",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Use the refresh-rate, short comfort, and older-LCD-versus-newer-OLED discussions only as scoped and conflicting individual experiences; do not convert them into prevalence, medical causation, or a general panel ranking.",
+      "slot_ids": [
+        "E5",
+        "E6",
+        "E8",
+        "E9",
+        "E12",
+        "E13",
+        "B4"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q5",
+      "text": "Give a return-window comparison process with matched settings and separate checks for reading, messaging, scrolling, video, outdoor visibility, and comfort plus compatibility, warranty, bundle, battery, camera, software, size, price, and returns; choose the least expensive exact configuration that passes the buyer's repeatable threshold or defer, without naming a universal middle tier or stopping price.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12",
+        "E13",
+        "B1",
+        "B2",
+        "B3",
+        "B4",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G5"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    {
+      "answer": "choose_the_least_expensive_returnable_exact_configuration_that_passes_or_defer",
+      "when": "the_material_supports_mechanism_and_metric_boundaries_listing_snapshots_and_scoped_experiences_but_lacks_controlled_product_measurements_a_universal_price_curve_and_this_buyers_trial_result",
+      "required_tradeoffs": [
+        "mechanism_does_not_rank_complete_displays",
+        "metrics_are_task_and_condition_specific",
+        "listing_prices_do_not_measure_screen_value",
+        "community_reports_do_not_establish_prevalence_or_causation",
+        "personal_trial_and_whole_phone_fit_set_the_stop_rule"
+      ]
+    }
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "E8",
+      "E9",
+      "E10",
+      "E11",
+      "E12",
+      "E13",
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {"outcome": "decision_unresolved"},
+      "E2": {"outcome": "decision_unresolved"},
+      "E3": {"outcome": "decision_unresolved"},
+      "E4": {"outcome": "decision_unresolved"},
+      "E5": {"outcome": "decision_unresolved"},
+      "E6": {"outcome": "decision_unresolved"},
+      "E7": {"outcome": "decision_unresolved"},
+      "E8": {"outcome": "decision_unresolved"},
+      "E9": {"outcome": "decision_unresolved"},
+      "E10": {"outcome": "decision_unresolved"},
+      "E11": {"outcome": "decision_unresolved"},
+      "E12": {"outcome": "decision_unresolved"},
+      "E13": {"outcome": "decision_unresolved"}
+    },
+    "human_solve_minutes": 45,
+    "minimum_required_evidence_nodes": 13,
+    "minimum_reasoning_depth": 2
+  }
+}

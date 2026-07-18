@@ -1,0 +1,323 @@
+{
+  "schema": "dra_v3_case_authoring_v1",
+  "task_id": "dra_v3_dev_keyboard_0004",
+  "cluster_id": "keyboard_120",
+  "difficulty": {
+    "proof_depth": 2,
+    "branching_factor": 3,
+    "distractor_density": 0.35,
+    "contradiction_count": 0
+  },
+  "rule_definitions": {
+    "keyboard_budget_layout_matrix_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The RK100 costs $85.99, leaves $34.01 from $120, and provides the listed 96-percent 100-key hot-swap platform; the K12 costs $99.99, leaves $20.01, and has 61 keys with arrow access by combinations, while both listings include a wired path."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "owner_regret_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The other-model height complaint makes physical fit worth checking and the Sun68 PCB failure shows that hot swapping is not a durability guarantee, but neither report establishes RK100 or K12 comfort, reliability, or failure rate."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "switch_preference_scope_v1": {
+      "type": "bridge",
+      "matcher": "normalized_text",
+      "accepted_phrases": [
+        "The listings and switch table distinguish linear Red from feedback-bearing Brown or tactile labels, while the two owners prefer opposite sensations; under the explicit noticeable-feedback and no-Blue-click requirement, RK100 Brown is the supported starting route without proving universal gaming superiority."
+      ],
+      "normalizers": [
+        "casefold",
+        "whitespace",
+        "punctuation",
+        "hyphen"
+      ]
+    },
+    "first_keyboard_reserve_decision_v1": {
+      "type": "decision",
+      "decision_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Because more than 61 keys, a $30 reserve, and noticeable feedback without a Blue-style click are hard requirements, I recommend the RK100 Brown reserve route while retaining the high-profile, seller-claim, and absent same-model owner-validation caveats."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      },
+      "conclusion_matchers": {
+        "rk100_brown_reserve": {
+          "matcher": "normalized_text",
+          "accepted_phrases": [
+            "I recommend the RK100 Brown reserve route.",
+            "The RK100 Brown reserve route is the recommendation."
+          ],
+          "normalizers": [
+            "casefold",
+            "whitespace",
+            "punctuation",
+            "hyphen"
+          ]
+        }
+      }
+    }
+  },
+  "decidable_claims": [
+    {
+      "claim_id": "wrong_k12_meets_reserve",
+      "contradicts_slot_id": "B1",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The $99.99 K12 leaves at least $30 from a $120 budget."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_linear_universally_best_for_shooters",
+      "contradicts_slot_id": "B3",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "Linear Red switches are universally better than feedback-bearing switches for every shooter player."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_other_model_failure_is_candidate_rate",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The Sun68 owner's failed PCB proves that the RK100 and K12 hot-swap PCBs will fail after a few months."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    },
+    {
+      "claim_id": "wrong_seller_ergonomics_is_comfort_test",
+      "contradicts_slot_id": "B2",
+      "critical": true,
+      "rejected_matcher": {
+        "matcher": "normalized_text",
+        "accepted_phrases": [
+          "The K12 seller's ergonomic-support wording proves all-day comfort for this buyer."
+        ],
+        "normalizers": [
+          "casefold",
+          "whitespace",
+          "punctuation",
+          "hyphen"
+        ]
+      }
+    }
+  ],
+  "research_subgoals": [
+    {
+      "subgoal_id": "G1",
+      "description": "Compare both frozen product bodies and calculate which routes meet the budget, reserve, key-count, hot-swap, and wired-operation constraints.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "B1"
+      ],
+      "local_conclusion_slot_id": "B1"
+    },
+    {
+      "subgoal_id": "G2",
+      "description": "Distinguish switch classifications and seller descriptions from personal fit, using the conflicting owner reports without inventing a universal typing or gaming winner.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E5",
+        "E6",
+        "E7",
+        "B3"
+      ],
+      "local_conclusion_slot_id": "B3"
+    },
+    {
+      "subgoal_id": "G3",
+      "description": "Use the other-model height and PCB-failure reports only to identify checks, not to assign candidate comfort or failure rates.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "B2"
+      ],
+      "local_conclusion_slot_id": "B2"
+    },
+    {
+      "subgoal_id": "G4",
+      "description": "Apply every verified branch to one starting route and preserve all seller-evidence, fit, reliability, and same-model-validation caveats.",
+      "critical": true,
+      "requires": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "D1"
+      ],
+      "local_conclusion_slot_id": "D1"
+    }
+  ],
+  "query_requirements": [
+    {
+      "requirement_id": "Q1",
+      "text": "Compare the exact frozen price, unspent reserve, key count, switch variant, hot-swap scope, connection path, review display, and profile or ergonomic wording for both products.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "B1"
+      ],
+      "subgoal_ids": [
+        "G1"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q2",
+      "text": "Explain what Red, Brown, linear, and tactile classifications do and do not prove, and reconcile the two conflicting owner preferences within their source scope.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E5",
+        "E6",
+        "E7",
+        "B3"
+      ],
+      "subgoal_ids": [
+        "G2"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q3",
+      "text": "State exactly what the other-board height complaint and hot-swap PCB failure add, and why neither is current-model comfort or reliability evidence.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "B2"
+      ],
+      "subgoal_ids": [
+        "G3"
+      ],
+      "required": true
+    },
+    {
+      "requirement_id": "Q4",
+      "text": "Recommend one route under the hard constraints while preserving the marketing, switch-preference, ergonomic-fit, PCB-reliability, and absent same-model owner-validation caveats.",
+      "slot_ids": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "B1",
+        "B2",
+        "B3",
+        "D1"
+      ],
+      "subgoal_ids": [
+        "G4"
+      ],
+      "required": true
+    }
+  ],
+  "acceptable_conclusions": [
+    "rk100_brown_reserve"
+  ],
+  "oracle": {
+    "proof": [
+      "E1",
+      "E2",
+      "E3",
+      "E4",
+      "E5",
+      "E6",
+      "E7",
+      "B1",
+      "B2",
+      "B3",
+      "D1"
+    ],
+    "single_page_sufficient": false,
+    "critical_node_ablation": {
+      "E1": {
+        "outcome": "decision_unresolved"
+      },
+      "E2": {
+        "outcome": "decision_unresolved"
+      },
+      "E3": {
+        "outcome": "decision_unresolved"
+      },
+      "E4": {
+        "outcome": "decision_unresolved"
+      },
+      "E5": {
+        "outcome": "decision_unresolved"
+      },
+      "E6": {
+        "outcome": "decision_unresolved"
+      },
+      "E7": {
+        "outcome": "decision_unresolved"
+      }
+    },
+    "human_solve_minutes": 18,
+    "minimum_required_evidence_nodes": 7,
+    "minimum_reasoning_depth": 2
+  }
+}

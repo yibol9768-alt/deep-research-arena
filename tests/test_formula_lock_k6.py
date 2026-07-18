@@ -25,6 +25,13 @@ def test_quality_weights_three_axes_sum_one():
     assert abs(sum(w.values()) - 1.0) < 1e-9
 
 
+def test_default_gate_is_direct_multiplication():
+    """The headline formula has no nonlinear provenance penalty."""
+    assert ds.GAMMA_DEFAULT == 1.0
+    truth, quality, _ = ds.compose_truth(0.6, 0.4, 0.3, 0.2)
+    assert truth == 0.6 * quality
+
+
 def test_spec_not_in_truth():
     """Two reports identical on the evidence axes but differing on spec compose
     to the SAME truth: spec is not multiplied in."""

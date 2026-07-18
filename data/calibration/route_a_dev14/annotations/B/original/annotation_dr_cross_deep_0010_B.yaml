@@ -1,0 +1,71 @@
+packet_version: route_a_interview_v1
+questionnaire_version: route_a_qbank_v1
+annotation_mode: human_interviewed
+annotator_id: B
+task_id: dr_cross_deep_0010
+query_sha256: "37c01d4dcf7d18b1492109697d2ce8a80c90660554940efe9b60a745fd895095"
+
+# === Batch 1: 无辅助提取（原文保存）===
+initial_response: |-
+  Q1: 分析戴眼镜的用户如何选择降噪耳机类型，以及降噪能力与佩戴方便程度之间的取舍。
+
+  Q2: 必须覆盖降噪耳机产品、眼镜与降噪耳机的冲突分析、时效性近期。
+
+  Q3: 解释眼镜和耳机的冲突原理。
+
+  Q4: 一定要有两者（眼镜 vs 耳机）的对比分析。
+
+  Q5: 没有明确要求有经验，但有的话更好。
+
+  Q6: 不可省略：镜腿对密封的影响分析、三种形态对比、验证是否真实问题、具体推荐、用户场景约束。
+
+  Q7: "eat half my bag"、"glasses arms break the seal"、"compact on-ears"、"ten hours in the air" 等有歧义。
+
+initial_requirements:
+  - 分析眼镜镜腿对降噪密封的影响
+  - 对比头戴/贴耳/耳塞三种形态
+  - 推荐适合戴眼镜的常旅客的降噪耳机
+
+# === Batch 2: 挑战与决策后的最终要求 ===
+requirements:
+  - local_id: R1
+    requirement: 分析眼镜镜腿对降噪耳机紧密封的物理影响，验证"镜腿导致降噪失效"是真实物理问题还是被夸大
+    necessity_reason: Query 直接提问"is that a real physical problem or overblown"，省略则用户的根本技术疑虑未解决
+    query_basis: "I've read glasses arms break the seal so the noise cancelling stops working properly. Is that a real physical problem or overblown?"
+    output_form: verify
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R2
+    requirement: 对比头戴大耳、贴耳耳机、耳塞三种形态对戴眼镜用户的长途飞行场景（降噪效果+佩戴舒适度+便携性）适配性
+    necessity_reason: |-
+      Query 直接问"Would compact on-ears or good earbuds actually serve a glasses wearer better for ten hours in the air?"，
+      对比三种形态才能回答戴眼镜用户的最佳选择。
+    query_basis: "Would compact on-ears or good earbuds actually serve a glasses wearer better for ten hours in the air?"
+    output_form: compare
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+  - local_id: R3
+    requirement: 基于 R1-R2 的分析，推荐一款适合戴眼镜的常旅客使用的降噪耳机（必须装得进小背包、适合十小时长途飞行长时间佩戴）
+    necessity_reason: Query 结尾明确要求"a pick that fits my bag and my face"，且推荐必须建立在之前分析之上——有分析无推荐不算完整
+    query_basis: "a pick that fits my bag and my face"
+    output_form: recommend
+    intrinsic_source_roles: []
+    source_role_reason: none
+
+optional_items: []
+
+ambiguities:
+  - phrase: "eat half my bag"
+    note: "吃掉半个包"的比例取决于背包大小，不同标注者对便携性的权重可能不同
+  - phrase: "glasses arms break the seal"
+    note: 镜腿粗细/材质不同，对密封的破坏程度差异大
+  - phrase: "compact on-ears"
+    note: "紧凑型贴耳"边界不清
+  - phrase: "ten hours in the air"
+    note: 长时间佩戴舒适性标准主观
+
+unresolved: []
+
+evidence_answerability: not_assessed
