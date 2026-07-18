@@ -1,9 +1,12 @@
 # DRA 沙盒原生 Deep Research 评测体系完整设计
 
-> 版本：2026-07-18 Draft v3.1（LoHoSearch-informed redesign）  
-> 状态：方法、数据构建、评分、验证与工程实施统一设计稿  
+> 初稿日期：2026-07-17（文件名保留该日期以维持引用稳定）
+>
+> 当前修订：2026-07-18 Draft v3.2（LoHoSearch-informed, adversarially reviewed redesign）
+>
+> 状态：可执行的方法、数据构建、评分、验证与工程实施统一计划
 > 核心目标：利用冻结网页沙盒，在不全量理解所有网页语义、也不要求复现唯一答案路线的前提下，自动构建可审计的 Deep Research 任务，并衡量报告以本次真实观察证据完成了多少研究工作。  
-> 关键变化：把旧版“全量 WCET/OFT 语义抽取”改为“全量轻量 World Index + 按题 Task World Model + 开放证据路线的 Research Test Compiler”；把 pivotality 从主分权重降为可选的建题与诊断工具。
+> 关键变化：把旧版“全量 WCET/OFT 语义抽取”改为“全量轻量 World Index + 按题 Task World Model + 基于证据合同的 Research Test Compiler”；新页面不受 witness URL 白名单限制，但不假设每个命题天然拥有多条路线；pivotality 从主分权重降为可选的建题与诊断工具。
 
 ---
 
@@ -21,11 +24,12 @@ $$
 \text{自动与人工验证}
 $$
 
-DRA 应采用同一工程原则，但不能照抄 LoHoSearch 的唯一答案目标。LoHoSearch 评测“找到唯一实体”，DRA 评测“生成覆盖多个研究方向、综合多类证据、正确表达条件与冲突、最终对用户有用的报告”。因此新版采用三层资产：
+DRA 应采用同一工程原则，但不能照抄 LoHoSearch 的唯一答案目标。LoHoSearch 评测“找到唯一实体”，DRA 评测“生成覆盖多个研究方向、综合多类证据、正确表达条件与冲突、最终对用户有用的报告”。因此新版采用三层资产和一层运行审计：
 
 1. **World Index（全量）**：URL、快照、哈希、页面类型、DOM 段落、结构化字段、链接和检索索引；
 2. **Task World Model（按题）**：只对题目相关、协议可达的页面跨度抽取任务事实、经验事件、机制、冲突和证据角色；
 3. **Research Test Suite（按题）**：从 query facets 与 Task World Model 编译“研究单元”，而不是把所有事实都变成得分项。
+4. **Execution Audit（按运行）**：使用带变换血统的 Observation Ledger，确认原页面中的支持内容经过 harness 变换后确实交付给 agent。
 
 主分改名为：
 
@@ -76,11 +80,29 @@ $$
 - 部分通过来自“完成了多少检查”，不需要拍脑袋规定 0.5 分；
 - 主分仍是一句话能说明白的比例，不重新发明复杂综合指数。
 
-`Full Pass` 继续单独报告：所有核心研究方向和检查均完成、输出合同满足、无决定性矛盾。URL 造假、引用完整性、搜索—交付—利用漏斗、Research Quality Panel、成本和反事实证书仍然独立展示。
+`Full Pass` 继续单独报告：所有核心研究方向和检查均完成、输出合同满足、无决定性矛盾。唯一主排名是固定任务集上的 penalized mean DRA-GRC：确认的 fabricated citation 使该道任务正式分清零，但不再额外把整个 harness 放入另一个排名层。引用完整性、搜索—交付—利用漏斗、Research Quality Panel、成本和反事实证书仍然独立展示。
 
 最核心的论文叙事改为：
 
-> DRA does not semantically exhaust its entire sandbox. It exhaustively indexes the frozen world, compiles query-conditioned task worlds, and evaluates report-level research coverage through executable evidence contracts that accept any valid in-sandbox evidence route.
+> DRA does not semantically exhaust its entire sandbox. It exhaustively indexes the frozen world, compiles query-conditioned task worlds, and evaluates report-level research coverage through executable evidence contracts that admit any qualifying in-sandbox evidence, without presuming that every proposition has multiple independent routes.
+
+### 0.1 全局符号约定
+
+为避免旧指标、层级索引和局部优化式复用同一个字母，正文统一采用下列约定；未列出的求和下标、候选池轮次等符号只在所在小节局部有效。
+
+| 符号 | 含义 |
+|---|---|
+| $t,f,u,k$ | task、facet、research unit、check 的层级索引 |
+| $\mathcal T_{formal}$ | 所有正式 harness 共享、在运行前冻结的任务集合 |
+| $\mathcal F_t,\mathcal U_{t,f},\mathcal K_{t,f,u}$ | 任务 $t$ 的 facet、unit 与 check 集合 |
+| $a_{t,f,u,k}$ | 冻结的 applicability / benchmark-attributability mask |
+| $C,E,z=CE$ | 内容合同、证据门与 grounded check pass |
+| $R_{t,f,u},F_{t,f}$ | unit 分与 facet 分；$F_{t,f}$ 不等于旧公式的 Fact 指标 |
+| $G_t^{pre},G_t^{official}$ | 完整性门之前的任务 GRC 与进入唯一主排名的正式任务分 |
+| $\rho$ | Decision Envelope 中“行动变化/理由变化”的局部混合参数，只用于诊断 |
+| $\lambda_{red}$ | 构题目标中的近重复惩罚系数，不进入 agent 得分 |
+
+凡同一公式中出现 $m$、$N/M/Q$ 或其他大写字母，其定义以紧邻公式的文字为准，不视为跨章节全局量。旧公式中的 Fact 记作 $F_t^{old}$，避免与新版 facet score 混淆。
 
 ---
 
@@ -120,7 +142,7 @@ DRA 还必须坚持以下工程原则：
 
 - 自动化程度高；
 - 结果可复现；
-- 不依赖复杂的逐题人工 rubric；
+- 不为每道题从零手写复杂 rubric；每题测试由统一 compiler 生成、审计后冻结，并公开人工工时、编辑率与致命错误率；
 - 能检查商品事实、页面获取、引用支持与答案键覆盖；
 - 适合冻结环境；
 - 对 12 个 harness 使用同一套语义和程序；
@@ -142,23 +164,25 @@ DRA 还必须坚持以下工程原则：
 当前思路大致是：
 
 $$
-Q_t
+Q_t^{old}
 =
-0.39F_t+0.28PoF_t+0.33C_t
+0.39F_t^{old}+0.28PoF_t+0.33C_t^{old}
 $$
 
 $$
-Truth_t
+Truth_t^{old}
 =
-Provenance_t\times Q_t
+Provenance_t\times Q_t^{old}
 $$
 
 其中：
 
-- $F_t$：结构化事实正确度；
+- $F_t^{old}$：结构化事实正确度；
 - $PoF_t$：Proof of Fetch；
-- $C_t$：答案键覆盖；
+- $C_t^{old}$：答案键覆盖；
 - $Provenance_t$：引用来源与运行轨迹的真实性。
+
+早期讨论还考虑过把最后一式改为 $Provenance_t^{1.5}\times Q_t^{old}$，希望增强惩罚；它从未获得独立构念或校准依据，因此本节把它与线性乘法一并作为历史候选，而不是现行定义。
 
 ### 2.2 旧方案不是“完全错误”，而是抽象层级不对
 
@@ -286,7 +310,7 @@ DRA 不采用参考报告相似度作为主分，但保留两点：研究完成�
 
 ### 3.8 ALCE 与 FActScore：claim precision 不能替代 query-conditioned recall
 
-[ALCE](https://aclanthology.org/2023.emnlp-main.398/) 分开 citation correctness 与 citation completeness；[FActScore](https://aclanthology.org/2023.emnlp-main.741/) 衡量输出中原子事实被来源支持的比例。两者都很适合检查“已经说出的内容”，却不能自动得到“用户要求但报告遗漏的研究方向”。
+[ALCE](https://aclanthology.org/2023.emnlp-main.398/) 分开 citation recall 与 citation precision；其中“correctness”在该文语境中另指答案正确性，不应误写为 citation correctness。[FActScore](https://aclanthology.org/2023.emnlp-main.741/) 衡量输出中原子事实被来源支持的比例。两者都很适合检查“已经说出的内容”，却不能自动得到“用户要求但报告遗漏的研究方向”。
 
 因此 DRA 仍需由 query 和任务世界生成分母。全报告 claim audit 只作事实性与引用诊断，不能承担主广度分。
 
@@ -309,9 +333,9 @@ DRA 必须更开放：已知 witness 只证明测试可答，不是运行时允�
 | 工作 | 值得吸收的机制 | 仍未解决的 DRA 问题 |
 |---|---|---|
 | [ResearcherBench](https://arxiv.org/abs/2507.16280) | 专家 insight rubrics、Faithfulness/Groundedness 分解，重视研究洞察 | 领域窄、人工成本高；“有引用”不等于本次交付且真实支持 |
-| [Mind2Web 2](https://arxiv.org/abs/2506.21506) | 树状 evaluator 同时报 partial completion 与 full success | 叶节点多、人工构造昂贵；不是引用真实性和长报告综合评测 |
+| [Mind2Web 2](https://arxiv.org/abs/2506.21506) | 树状 evaluator 同时报 partial completion 与 full success；judge 脚本由 LLM 起草后经两阶段人工精修 | 全基准人工投入超过 1,000 小时；critical gate 不只在叶节点；不是引用真实性和长报告综合评测 |
 | [FutureSearch DRB / RetroSearch](https://arxiv.org/abs/2506.06287) | 冻结网页集合证明离线可复现研究环境有现实价值 | 任务答案形式混合，语料召回仍可能漏掉新路线；没有 DRA 的 span delivery audit |
-| [DeepResearch Bench II](https://arxiv.org/abs/2601.08536) | 从专家 survey 反向构题，并细分 information、analysis、presentation | 大量专家 rubric 成本高，也可能继承单篇参考报告的内容路线 |
+| [DeepResearch Bench II](https://arxiv.org/abs/2601.08536) | 从专家 survey 反向构题，并细分 information、analysis、presentation | 大量专家 rubric 成本高；“可能继承单篇参考报告的内容路线”是本设计的风险推断，不是该论文的自述结论 |
 | [DREAM](https://aclanthology.org/2026.acl-long.448/) | 关键内容、事实性、引用与写作分开评估，承认报告是多维产物 | 开放网络 evaluator 本身会形成检索偏差；关键点分母仍由 evaluator 生成 |
 | [DeepFact](https://aclanthology.org/2026.acl-long.1586/) | 允许 challenger 用证据挑战 gold，说明复杂事实审计需版本化治理 | 专注高风险 claim，不测完整报告广度、综合和用户效用 |
 
@@ -333,7 +357,7 @@ DRA 必须更开放：已知 witness 只证明测试可答，不是运行时允�
 
 ---
 
-## 4. 核心架构：Closed Documents, Task-Scoped Semantics, Open Evidence Routes
+## 4. 核心架构：Closed Documents, Task-Scoped Semantics, Contract-Admissible Evidence
 
 ### 4.1 我们真正“闭合”的是什么
 
@@ -385,7 +409,7 @@ $$
 
 ### 4.3 与 LoHoSearch 的同与不同
 
-| 维度 | LoHoSearch | DRA v3.1 |
+| 维度 | LoHoSearch | DRA v3.2 |
 |---|---|---|
 | 全量世界层 | Wikipedia 节点、链接、类型、入度 | 所有沙盒页面、span、结构字段、链接、检索索引 |
 | 局部语义层 | 采样子图的关系描述 | 单题相关 span 的事实、经验、机制、冲突和证据角色 |
@@ -408,7 +432,7 @@ TWM 中的底层 assertion 可以有 `entailed / contradicted / unknown` 状态�
 
 所以原子真假只是证据层，研究完成度才是评分层。
 
-### 4.5 Open-route, closed-world
+### 4.5 Contract-admissible evidence, closed-document world
 
 “不绑路线”不要求提前穷尽所有等价 URL。对测试 $u$，compiler 冻结的是证据合同 $\Gamma_u$：需要支持哪些前提、允许什么来源角色、证据如何组合、哪些推断不允许。
 
@@ -432,7 +456,7 @@ $$
 4. 语义上满足合同中的前提；
 5. 来源角色和范围适合该推断。
 
-第一次遇到的替代证据由冻结 matcher 在线判定并缓存为证书；它不需要等待 benchmark 作者修改 rubric。这样“正式测试固定”和“未来 harness 路线开放”可以同时成立。
+第一次遇到的替代证据由冻结 matcher 判定并缓存为全局共享证书；它不需要等待 benchmark 作者修改 rubric。但“不使用 URL 白名单”不等于“每个命题都有多条路线”：已知支持只有一处的 check 必须标为 `single_source`，只有 known-support multiplicity 至少为 2 时才评估替代路线接受率。这样“正式测试固定”和“新合格证据可被接受”可以同时成立，却不夸大路线数。
 
 ### 4.6 执行流程图
 
@@ -444,15 +468,15 @@ flowchart LR
     C --> D["Task World Model<br/>局部 assertion、经验事件、机制、冲突"]
     Q --> E["Research Test Compiler<br/>facet → unit → executable checks"]
     D --> E
-    E --> T["Research Test Suite<br/>证据合同 + answerability witnesses"]
-    H["任意新旧 Harness"] --> L["Observation Ledger<br/>实际交付的 span"]
+    E --> T["Research Test Suite<br/>证据合同 + 冻结 premise DAG + witnesses"]
+    H["任意新旧 Harness"] --> L["Observation Ledger v2<br/>raw fetch → transform lineage → delivered artifact"]
     H --> R["Final Report<br/>内容、主张与就地引用"]
     T --> S["Grounded Research Runner"]
     B --> S
     D --> S
     L --> S
     R --> S
-    S --> O["一个主分<br/>DRA-GRC"]
+    S --> O["一个主分<br/>固定任务集 penalized mean DRA-GRC"]
     S --> X["独立诊断<br/>Full Pass、URL、漏斗、表达、成本"]
 ```
 
@@ -466,7 +490,7 @@ flowchart LR
 
 > 对“技术是否只是营销”这一 facet，报告须完成三个 checks：准确转述产品主张；用合格机制或测量证据说明它能与不能推出什么；把结论连接到用户场景。所有外部前提必须由本次观察、就地引用且角色合适的 span 支持。
 
-它仍包含语义判断，但判断被约束到具体 report span、具体 evidence span 和具体合同，不再让 judge 凭整体印象打一个分。
+它仍包含语义判断，但判断被约束到具体 report span、具体 evidence span 和具体合同，不再让 judge 凭整体印象打一个分。因此更准确的说法是 **compiler-generated, audit-frozen per-task test suite**，不是“完全没有逐题 rubric”。构建报告必须公布每题工时、check 的 split/merge/delete/edit 率、致命错误率和复审率，用数据而不是口号证明自动化。
 
 ---
 
@@ -500,11 +524,11 @@ World Compiler 的根输入不是网页 URL 列表，而是一个完整 `WorldSn
 4. section、paragraph、list item、table cell、forum post 等稳定 span；
 5. 页面级与 span 级出链；
 6. JSON-LD、商品规格表、论坛层级等确定性结构字段；
-7. 页面类型、来源 family 和初始 source role；
+7. 页面类型与来源 family；高风险 family 做全量人工复核，但不在全量层把页面语义粗暴固化为某一 assertion role；
 8. BM25、dense embedding 和实体别名检索索引；
 9. exact duplicate 与 near-duplicate 页面簇。
 
-这里不调用开放式 LLM 去列举页面所有事实。全量成本应主要是线性解析、索引和 embedding，而不是每页几十次语义推理。
+这里不调用开放式 LLM 去列举页面所有事实。全量成本应主要是线性解析、索引和 embedding，而不是每页几十次语义推理。证据角色分成两层：`source_family` 由 WI 确定性分类；“厂商宣称/独立测量/用户经验/机制解释”等 assertion modality 在单题 TWM 中判定。按需 matcher 可以把角色降级，不得把不确定证据升级为更强角色。
 
 ### 5.3 页面与 span schema
 
@@ -777,17 +801,18 @@ Route family B
 
 测试不保存“只能 URL A + URL B”。[Minimal Evidence Groups](https://aclanthology.org/2025.trustnlp-main.8/) 同样强调一个复合 claim 可能由不同最小证据组完整支持。
 
-运行时若报告引用了 registry 中、但 Task Candidate Pool/TWM 未收录的页面，不能因“不在 gold”直接失败。开放路线 fallback 固定为：
+运行时若报告引用了 registry 中、但 Task Candidate Pool/TWM 未收录的页面，不能因“不在 gold”直接失败。合同接受 fallback 固定为：
 
 1. 解析引用 URL 与局部 report claim；
 2. 从 World Index 取回本次真正交付的 cited span 与相邻上下文；
 3. 使用同一冻结版本的按需 extractor 生成带 span 的候选 assertion；
 4. 用 frozen matcher 检查它能否满足 evidence contract 的命题、范围、角色与组合要求；
-5. 通过则写入只读 evidence certificate cache，不修改 RTS；
-6. 反驳、不支持或角色不合适则按失败码拒绝；
-7. matcher `abstain` 且该证据决定分数时，标为 `withheld_for_review`，不能把 evaluator 不确定性算作 agent 错误。
+5. 候选 `(span, contract)` 对按全局 canonical sort 进入固定批次，先执行确定性规则，再由两个异构、冻结的 judge 独立判定；
+6. 两 judge 一致且均不 abstain 时签发全局共享的 evidence certificate；不一致或任一 abstain 进入对 harness 盲的人工裁决；
+7. 反驳、不支持或角色不合适按失败码拒绝；未裁决状态为 `PENDING`，始终留在冻结分母中，任何正式条目发布前必须清零 PENDING，禁止默认通过、默认失败或动态删分母；
+8. 新证据暴露 TWM/合同的 benchmark 侧错误时进入 `REPAIR_TRIGGERED`，生成新 manifest 并对所有受影响运行重算；旧 manifest 下的历史分不静默改写。
 
-因此 Evidence Class 是“已经认证的可替代 spans 集合”，其数量只是已知下界，不代表语义完备；真正的开放性由这条 on-demand 路径和 held-out route FRR/FAR 验证。
+证书缓存键必须包含 `span_hash × contract_hash × world_hash × protocol_version × matcher_version`；提交顺序不得改变证书。因此 Evidence Class 是“已经认证的可替代 spans 集合”，其数量只是已知下界，不代表语义完备；合同泛化由 held-out valid-route FRR 与 invalid-route FAR 证明，而不是由“路线开放”的口号证明。
 
 ### 5.12 冲突检测不是所有 assertion 两两 NLI
 
@@ -841,27 +866,27 @@ graph LR
 }
 ```
 
-`delivery_complete_for_scope` 要求指定页面/字段被扫描器完整读取，并且运行时 agent 收到足以作该有界判断的结果或相关字段；只看搜索摘要或页面一段不能通过。合法结论是“在这两个冻结 listing 的指定字段中未发现”，不能扩张成“该产品从未支持”或“互联网没有相关证据”。
+`delivery_complete_for_scope` 要求指定页面/字段被扫描器完整读取，并且运行时 agent 收到足以作该有界判断的结果或相关字段；只看搜索摘要或页面一段不能通过。该证书只允许 `delivery_class ∈ {raw, normalized, extractive}`；抽象摘要无法证明指定范围被完整扫描，因此不能支持 bounded absence。合法结论是“在这两个冻结 listing 的指定字段中未发现”，不能扩张成“该产品从未支持”或“互联网没有相关证据”。
 
 ### 5.14 三值状态只属于底层 assertion
 
 $$
 \mathrm{ProtocolEvidenceStatus}(c)
 \in
-\{\text{supported},\text{contradicted},\text{unresolved}\}
+\{\text{supported-in-protocol},\text{contradicted-in-protocol},\text{unresolved-in-protocol}\}
 $$
 
 它用于 claim audit 和 research checks 的前提验证。`unresolved` 不等于 false，也不证明整个冻结世界不存在证据；它可能来自候选召回、语义抽取、条件歧义或协议本身的边界。对 query 要求但当前证据不足的方向，优秀报告可能因正确表达“按本协议仍未解决”而通过 uncertainty check。由此可见 DRA 的目标不是让所有结论落成 true/false。
 
 ### 5.15 缓存、增量与成本公式
 
-缓存键至少为：
+语义抽取缓存键至少为：
 
 ```text
 span_hash × ontology_version × extractor_version × verifier_version
 ```
 
-多题命中同一 span 时复用抽取；页面 hash 不变时不重跑；ontology 或 matcher 改变时生成新 benchmark 版本。总成本近似为：
+多题命中同一 span 时复用抽取；页面 hash 不变时不重跑。evidence certificate 另使用包含 contract/world/protocol/matcher 版本的完整键，不能仅因 span 相同就跨合同复用。ontology、matcher、证据合同或决策协议改变时生成新 benchmark 版本。总成本近似为：
 
 $$
 C
@@ -895,6 +920,14 @@ $$
 | Task Candidate Pool | 人工相关页 recall、source-role coverage、saturation curve |
 | Evidence Contract | false merge、false split、alternative-route FRR |
 | TWM | facet answerability、witness sufficiency、unknown rate |
+
+证书还必须报告每个 core check 的 known-support multiplicity 下界及 `single_source` 标记，以及每张共享 evidence certificate 的重数
+
+$$
+m_c=\#\{(run,check):\text{depends on certificate }c\}.
+$$
+
+高 $m_c$、高分数影响的证书按 $m_c\times$ 影响量分层抽样人工复审，防止一张错证书通过全局缓存同时污染多个 harness。
 
 正式测试只允许使用达到预注册质量门槛的 assertion 类型。低置信条目可用于检索提示和人工审计，但不能悄悄进入主分分母。
 
@@ -1044,9 +1077,10 @@ $$
 $$
 I_i^{total}
 =
-\lambda\,d(A,A')
+\rho\,d(A,A')
 +
-(1-\lambda)\,d(R,R')
+(1-\rho)\,d(R,R'),
+\qquad 0\leq\rho\leq1
 $$
 
 其中 $R$ 是决策核输出的理由条件集合。新版不把 $I_i$ 直接变成主分权重。它用于：删除任务外围事实、发现边界事实、选择反事实变异、解释任务难度，并帮助 compiler 把多个低层事实聚合成少量 research checks。
@@ -1102,7 +1136,7 @@ $$
 \mathcal{C}_t=\{C_1,C_2,\ldots,C_m\}
 $$
 
-它们可以提示多种决策理由组合，但不能证明已经枚举现实语言中的所有合理研究路线。agent 也不需要复现任何证书；正式通过仍由 research checks 与开放 evidence contracts 决定。
+它们可以提示多种决策理由组合，但不能证明已经枚举现实语言中的所有合理研究路线。agent 也不需要复现任何证书；正式通过仍由 research checks 与 contract-admissible evidence 决定。
 
 ### 5A.8 如何参与 Research Test Compiler
 
@@ -1339,9 +1373,11 @@ Blueprint 保存 query 意图、facet portfolio、用户约束、输出合同和
 - community versus specifications；
 - durability / lifecycle；
 - budget allocation；
-- evolution / explainer；
+- evolution / explainer（仅限冻结快照内可确定解析日期的叙事综合）；
 - use-case fit；
-- tutorial / action plan。
+- tutorial / action plan；
+- bounded enumeration（有界实体/字段的完整召回）；
+- cross-page aggregation（跨页面聚合、去重和范围对齐）。
 
 每种 shape 定义需要的 facet 类型和图模式。例如 `claim_audit_plus_decision` 通常需要：
 
@@ -1352,7 +1388,7 @@ Blueprint 保存 query 意图、facet portfolio、用户约束、输出合同和
 5. 可选的社区经验或冲突；
 6. 一个必须综合前述证据的输出。
 
-只有当语料真实支持这种结构时才生成题，不能为追求模板齐全而伪造第三来源或冲突。
+只有当语料真实支持这种结构时才生成题，不能为追求模板齐全而伪造第三来源或冲突。Evolution 另过冻结可答门：目标 facet 上至少 $N$ 条可排序带日期声明，跨至少 $M$ 个时点和两种来源角色；审计后满足条件的候选少于 $Q$ 道，则本 world 版本明记 `unsupported-in-this-world` 并放弃该 shape，不为凑类型临时扩世界。$N/M/Q$ 在执行语料审计前预注册。Evolution 结论必须写作 `as-documented-in-corpus`，不外推为现实历史全景。
 
 ### 6.4 子图采样目标
 
@@ -1371,7 +1407,7 @@ J(G_t)
 +
 \xi A_t
 -
-\lambda Red_t
+\lambda_{red} Red_t
 $$
 
 这里不是主评分公式，只是构题目标：
@@ -1411,7 +1447,7 @@ $$
 Blueprint\rightarrow Query\rightarrow \widehat{Blueprint}
 $$
 
-检查 $\widehat{Blueprint}$ 是否覆盖原核心 facets、是否引入额外义务、约束是否保持。如果不一致，先自动修订，仍不一致则丢弃。
+检查 $\widehat{Blueprint}$ 是否覆盖原核心 facets、是否引入额外义务、约束是否保持，以及一个不看 Blueprint 的标注者能否从 query 恢复每个强制 source-role 义务的认识论功能。任何无法从 query 恢复的角色义务不得进入 core。如果不一致，先自动修订，仍不一致则丢弃。
 
 自动 round trip 之后还要按 task type 分层抽样做人类审计：问题是否像真实用户会问的问题、是否过度贴合语料中的专有词、是否暗示特定来源/结论、是否可由通用常识直接回答、以及读者能否在不看 Blueprint 时恢复核心需求。该自然性审计与 answerability 同等重要；否则 evidence-first 构题会得到“非常可判，但不像真实研究”的问题。
 
@@ -1437,7 +1473,7 @@ Query
 
 Research unit 必须是用户可理解的一项研究工作；低层 facts 只为 checks 提供证据。
 
-### 6.8 九类通用 research-unit 模板
+### 6.8 十二类通用 research-unit 模板
 
 1. **Facet coverage**：是否有证据地覆盖用户明确维度；
 2. **Candidate coverage / comparison matrix**：是否用共同维度比较所有必要候选；
@@ -1448,6 +1484,9 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 7. **Cross-source synthesis**：是否把不同认识论角色组合成结论；
 8. **Trade-off / decision justification**：是否把证据连接到用户约束并给出合法分支；
 9. **Tutorial / action plan**：步骤、条件分支、预算分配、风险与防吃灰建议是否完整。
+10. **Evolution synthesis**：在单一冻结快照中，是否按可解析日期组织变化，并把结论限定为语料所记录的演化。
+11. **Bounded enumeration**：是否在冻结的可枚举范围中覆盖必要实体/字段，正确去重并报告未解决项。
+12. **Cross-page aggregation**：是否对齐跨页面实体、单位、时间和条件，再进行聚合，而不是把不可比数值直接相加。
 
 ### 6.9 六类必要性与捷径测试
 
@@ -1486,7 +1525,7 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 5. bounded absence 的扫描范围与 hash；
 6. query—blueprint round-trip 结果；
 7. 在标准工具预算下的 oracle/probe 可行性；
-8. 已认证 route-family 下界、known witness count 与单源风险；
+8. 每个 check 的 known-support multiplicity 下界、route-family 下界与 `single_source` 风险标记；
 9. compiler、matcher 和 world manifest hash。
 
 证书只证明“至少有一条路线可以完成”，不声明它列出了所有合法路线。
@@ -1514,7 +1553,7 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 - 不因为单一 probe 失败就删除；
 - 不因未来新 harness 输出修改已冻结正向测试。
 
-12 个 harness 的作用是冻结前压力测试 evaluator 和观察协议，不是证明“所有未来路线都已覆盖”。真正的路线泛化由替代路线 FRR 和 open-route evidence matcher 证明。
+12 个 harness 的作用是冻结前压力测试 evaluator 和观察协议，不是证明“所有未来路线都已覆盖”。真正需要验证的是：合同允许的替代证据是否被 matcher 接受、困难负例是否被拒绝，以及 `single_source` 风险是否被诚实披露；对应证据分别来自 ARA/FRR、FAR 与 multiplicity 审计。
 
 ### 6.12 Research Test schema
 
@@ -1550,6 +1589,8 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 }
 ```
 
+`premise_check_ids` 编译为冻结的 OR-of-AND premise routes，不得根据被评报告临时改路。`evidence_exempt` check 只能依赖带 evidence contract 的非 exempt checks；禁止 exempt → exempt 链，使依赖深度不超过两层。一个上游证据 check 失败导致下游综合 check 失败，是“端到端有证据完成”的有意义测量，不是重复计分；诊断报告仍必须给出 root-cause 失败和下游级联失败，避免误解。
+
 ### 6.13 正式集公开策略
 
 - 公开任务类型学、公式、schemas、compiler 代码和完整开发题；
@@ -1558,6 +1599,7 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 - 新替代页面由合同 matcher 直接判，不要求修改测试；
 - 合同或 judge 的真实错误进入 erratum 和下一 benchmark 版本；
 - 旧榜永远绑定旧 manifest，不静默重算。
+- 所有进入正式轨的 harness 运行相同的固定任务集；不为不同 harness 临时取不同任务交集。
 
 ---
 
@@ -1582,7 +1624,7 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 
 为兼容现有代码，本文件仍使用 `ObservedSpan` 和 observation ledger 字段；其严格操作定义始终是 `delivered/exposed to the model context`。它不能证明模型在内部真正注意、理解或因果使用了该跨度。
 
-### 7.2 Span-level Observation Ledger
+### 7.2 Observation Ledger v2：从原始抓取到真正交付的变换血统
 
 每次工具返回都标准化记录：
 
@@ -1592,13 +1634,21 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
   "harness": "...",
   "event_id": "...",
   "canonical_url": "...",
-  "delivery_mode": "search_snippet|full_page|structured_api|browser_text",
-  "delivered_span_hashes": ["sha256:..."],
-  "delivered_text_hash": "sha256:...",
+  "raw_fetch_hash": "sha256:http-body-or-api-response",
+  "transform_lineage": [
+    {"op": "html_to_text", "version": "...", "output_hash": "sha256:..."},
+    {"op": "extractive_chunking", "version": "...", "output_hash": "sha256:..."}
+  ],
+  "delivery_class": "raw|normalized|extractive|abstractive",
+  "delivered_artifact_hash": "sha256:actual-model-visible-artifact",
+  "delivered_span_or_fragment_hashes": ["sha256:..."],
+  "capture_channel_version": "...",
   "timestamp": "...",
   "status": "success"
 }
 ```
+
+`raw_fetch_hash` 证明系统从页面取回了什么；`transform_lineage` 证明 adapter 怎样规范化、抽取、分块或摘要；`delivered_artifact_hash` 才对应模型可见内容。仅有 raw HTTP 200 或一个工具事件，不足以通过 Observation 门。血统中的每一个变换程序都绑定代码版本与输出 hash；无法重建的变换不得冒充确定性观察。
 
 ### 7.3 搜索摘要与完整页面的区别
 
@@ -1614,13 +1664,26 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 
 三者分别表示“搜索暴露”“正文交付”“作为页面中的链接出现”，不能互相替代。这里不使用“被读取”，因为评测器无法观察模型内部注意。
 
-### 7.4 仪器盲区不能算 agent 失败
+### 7.4 资格在 harness 层判定，不在题后动态改分母
 
-如果某 harness 的日志无法证明某段内容是否被交付，应该标记：
+正式运行前，每个 harness 用其真实 adapter 通过 delivery canary 与 lineage 回放测试。通过后进入 instrumentation-eligible 正式轨，并在 campaign 期间持续运行 canary；无法捕获真正 delivered artifact 的系统进入 report-only 辅助轨，可报内容与引用诊断，不报 DRA-GRC，不与正式轨比较。
 
-`instrumentation_blind / withheld`
+已具备资格的 harness 若某次运行出现预注册的 ledger blind 事件，该次 run 是 `INVALID`，不是某些难 check 从分母中消失。只许按 `first-valid-run` 规则重跑，最多 $K$ 次，禁止 best-of-run；超过 $K$ 或 blind 率超门槛则进入 structural-blindness 资格复审。run 有效性只能由预注册日志规则在查看报告之前判定，禁止提交方看到伪造引用后追溯宣告 run invalid。正式轨中的所有 harness 均运行相同的固定任务集。
 
-而不是直接记为 0。正式榜单要求各 harness 达到最低观测协议，否则该 harness 不具备正式评分资格。
+### 7.5 摘要式交付（mediated observation）
+
+`delivery_class=abstractive` 不自动失去正式资格，但 Observation 门改为：
+
+$$
+O_e=\mathrm{CaptureFidelity}_e\land\mathrm{Sufficiency}_e.
+$$
+
+- `CaptureFidelity`：捕获通道通过已知真值 artifact canary，能证明记录的摘要就是实际交付物；
+- `Sufficiency`：交付物向模型传达了该前提的完整内容，包括否定、概率、归因、条件与 modality；
+- Semantic Support 与 Source Role 永远回到 raw page span 判定，防止摘要把“厂商宣称”洗成无保留的客观事实；
+- bounded absence 不允许 abstractive delivery，因为摘要无法证明完整范围已扫描。
+
+这类证据标记 `mediated_observation`，强制报告每个 harness 的 mediated 占比，但不为其任意打折。捕获通道无法通过 canary 或无法保存实际交付物时，只能进入 report-only 轨。
 
 ---
 
@@ -1668,7 +1731,27 @@ $$
 - $S_e$：span 语义支持前提，未偷换范围；
 - $R_e$：source role 满足合同，例如营销页不能替代独立测量。
 
+$V$ 在 URL canonicalization、redirect alias 与 registry snapshot 确认后确定性判定；$B$ 使用冻结的句子/段落绑定协议与最大窗口，不为某个 harness 临时改窗口；$R$ 等于 WI 的 page/source family 与 TWM/matcher 的 assertion modality 联合同时满足。对 mediated observation，$O$ 使用第 7.5 节的 `CaptureFidelity ∧ Sufficiency`，$S/R$ 仍对 raw span 判定。
+
 如果一个前提需要多份证据联合支持，$\mathcal{A}(p)$ 中的元素是一个 evidence bundle，bundle 内部取 AND；不同 bundles 之间取 OR。这就是 OR-of-AND，但路线由合同在线接受，不是 URL 白名单。
+
+#### Check 状态机
+
+```mermaid
+stateDiagram-v2
+    [*] --> COMPILED
+    COMPILED --> EXCLUDED_BY_DESIGN: a=0（发布前冻结）
+    COMPILED --> SCORING: a=1
+    SCORING --> PASS: C=1 且 E=1
+    SCORING --> FAIL: C=0 或证据门明确失败
+    SCORING --> PENDING: matcher 分歧/abstain
+    SCORING --> REPAIR_TRIGGERED: benchmark 合同/TWM 被新证据反证
+    PENDING --> PASS: 盲裁通过
+    PENDING --> FAIL: 盲裁拒绝
+    REPAIR_TRIGGERED --> [*]: 新 manifest + 全部受影响运行重算
+```
+
+`PENDING` 不离开冻结分母；发布前不得仍存在 PENDING。内部调试可报 $[\mathrm{GRC}_{min},\mathrm{GRC}_{max}]$，但不得把区间中点或保守端当正式分。`REPAIR_TRIGGERED` 是 benchmark 版本事件，不得只修某个 harness 的分。
 
 ### 8.3 纯分析、格式和用户已给信息如何处理
 
@@ -1680,17 +1763,23 @@ $$
 - 在已通过证据前提上的预算计算；
 - 可读性或组织要求。
 
-但“纯分析”不能成为无证据事实的逃生口。若一个 recommendation check 依赖价格、耐久或技术效果，则这些前提必须由其他 checks 通过 evidence gate，recommendation check 只检查推理和约束连接。
+但“纯分析”不能成为无证据事实的逃生口。若一个 recommendation check 依赖价格、耐久或技术效果，则这些前提必须由其他 checks 通过 evidence gate，recommendation check 只检查推理和约束连接。对带冻结 premise routes $\mathcal{R}_k$ 的 evidence-exempt check，有效得分为：
+
+$$
+z_k=C_k\max_{r\in\mathcal{R}_k}\prod_{j\in r}z_j.
+$$
+
+这里只允许直接依赖带证据合同的 checks，禁止 exempt 链串联；依赖图在报告之前冻结。
 
 ### 8.4 层级 macro average
 
 先为每个 check 冻结 applicability mask：
 
 $$
-a_{t,f,u,k}in\{0,1\}
+a_{t,f,u,k}\in\{0,1\}
 $$
 
-$a=1$ 表示该 check 对当前 task snapshot 适用且 benchmark 侧可归责；$a=0$ 只允许来自预声明 conditional 条件不成立，或发布前已确认的 benchmark-side `withheld`。它不能根据报告写得好坏动态改变。若某 harness 在运行时发生 instrumentation blind，整道任务对该 harness 不进入共同 eligible 集，不能只删掉困难 check。
+$a=1$ 表示该 check 对当前 task snapshot 适用且 benchmark 侧可归责；$a=0$ 只允许来自预声明 conditional 条件不成立，或在任何正式运行之前已确认的 benchmark-side exclusion。它不能根据报告、harness 或 matcher 不确定性动态改变。instrumentation-blind 按第 7.4 节使整次 run invalid 并受固定重跑规则约束，不删任务或 check 分母。
 
 Research unit：
 
@@ -1722,7 +1811,7 @@ $$
 \sum_{f\in\mathcal{F}^{+}_t}F_{t,f}
 $$
 
-所有 applicable core facets 等权；facet 内 units 等权；unit 内 checks 等权。这样权重来自 query 结构而不是事实数量。每个 unit 限制为 2—5 个 canonical checks，每个 facet 限制 unit 数，冻结 merge/split 规则并发布 raw counts，防止 compiler 通过拆分粒度改变分数。任何层级空分母都标为 `withheld`，不能设为 0 或 1。
+所有 applicable core facets 等权；facet 内 units 等权；unit 内 checks 等权。这样权重来自 query 结构而不是事实数量。每个 unit 限制为 2—5 个 canonical checks，每个 facet 限制 unit 数，冻结 merge/split 规则并发布 raw counts，防止 compiler 通过拆分粒度改变分数。发布前仍出现任何 core 空分母是 compiler 失败，该 benchmark 版本不得进入正式运行；不允许在看到 harness 报告后才 `withheld`。
 
 ### 8.5 为什么不使用 pivotality 权重
 
@@ -1768,22 +1857,24 @@ $$
 ### 8.7 完整通过与 Task Solve Rate
 
 $$
+\begin{aligned}
 \mathrm{FullPass}_t
-=
-\mathbb{1}
-\left[
-\forall f,u,k\in Core_t,\ z_{t,f,u,k}=1
-\land
-\mathrm{OutputContract}=1
-\land
-\mathrm{NoCriticalError}=1
-\right]
+&=
+\mathbb{1}\Big[
+\forall f,u,k\in Core_t:\ z_{t,f,u,k}=1
+\\[-2pt]
+&\qquad\land\ \mathrm{OutputContract}=1
+\land\ \mathrm{NoCriticalError}=1
+\\[-2pt]
+&\qquad\land\ \mathrm{NoFabricatedCitation}=1
+\Big].
+\end{aligned}
 $$
 
 $$
 \mathrm{TaskSolveRate}
 =
-\frac{\sum_t\mathrm{FullPass}_t}{N_{eligible}}
+\frac{\sum_{t\in\mathcal{T}_{formal}}\mathrm{FullPass}_t}{|\mathcal{T}_{formal}|}
 $$
 
 Deep Research 范围广，Full Pass 很可能远低于连续覆盖。这不是 benchmark 失败。[WideSearch](https://arxiv.org/abs/2508.07999) 与 [DeepSearchQA](https://arxiv.org/abs/2601.20975) 都表明严格完全成功和细粒度完成度会出现明显差距。因此主排序使用 DRA-GRC，同时报告 Task Solve Rate。
@@ -1795,7 +1886,7 @@ Deep Research 范围广，Full Pass 很可能远低于连续覆盖。这不是 b
 - `optional`：增强性内容，只作诊断；
 - `pitfall`：过度概括、营销偷换、型号混淆等错误检测，不提供正向覆盖分，但可触发 critical error。
 
-主分只统计适用 core checks。若 TWM 本身不足以归责，在发布前将相应 check/task 标为 benchmark-side `withheld`；若 observation instrumentation 对某 run 不足以归责，则该 harness-task 从共同 eligible 集排除并显示资格问题。两者都不能悄悄记 0，也不能为单个 harness 临时缩小 check 分母。
+主分只统计适用 core checks。若 TWM 本身不足以归责，必须在 benchmark 发布前修复或把相应 check/task 从**全体 harness 共享的正式 manifest**中排除；一旦 manifest 冻结，分母不随报告和 harness 变化。observation blind 是 run 有效性/资格问题，不是动态缺失值；其重跑与 report-only 处理见第 7.4 节。
 
 ---
 
@@ -1936,7 +2027,7 @@ $$
 
 $$
 \begin{aligned}
-\mathcal{P} &= \{supported, contradicted, unresolved\}, \\
+\mathcal{P} &= \{supported\text{-}in\text{-}protocol, contradicted\text{-}in\text{-}protocol, unresolved\text{-}in\text{-}protocol\}, \\
 \mathcal{C} &= \{correctly\ cited, mis\text{-}cited, uncited\}, \\
 \mathcal{D} &= \{delivered, not\text{-}delivered, unverifiable\}, \\
 \mathrm{AuditGrid} &= \mathcal{P} \times \mathcal{C} \times \mathcal{D}.
@@ -1962,7 +2053,7 @@ $$
 
 | 类型 | 含义 | 对测试的处理 |
 |---|---|---|
-| `fabricated_url` | URL 不在冻结 registry | 对应测试失败，记录完整性事件 |
+| `fabricated_url` | canonicalize 后 URL 不在冻结 registry，并经盲复核排除 registry/canonicalizer 错误 | 对应测试失败；该任务正式 GRC 清零，签发 fabrication certificate |
 | `unobserved_citation` | URL 存在，但支持内容本次未交付给 agent | 对应测试失败 |
 | `unsupported_citation` | 页面内容已交付，但不支持附近说法 | 对应测试失败 |
 | `wrong_binding` | 页面可能相关，但引用没有绑定对应 claim | 对应测试失败 |
@@ -1988,16 +2079,26 @@ $$
 
 这些数据是重要诊断，但不与 DRA-GRC 主分再做任意乘法。
 
-### 10.4 伪造 URL 对排名的处理
+### 10.4 伪造 URL 通过任务级完整性门进入唯一主排名
 
-推荐使用资格标记，而不是用一个任意惩罚系数：
+首先分开“模型生成了伪造引用”与“提交方篡改测量通道”。URL canonicalize 后不在 registry 时，状态先是 `FABRICATION_CANDIDATE`，并进入对 harness 盲的人工复核。canonicalizer、alias 或 registry 缺失属 benchmark 侧错误，修正后走 repair，不记 integrity。确认伪造（包括引用开放网真实域名、但该 URL 不属于本冻结世界的 `off_world_citation`）后，对报告中任何引用都成立，不限于已绑定到 core check 的引用。
 
-- 主分仍按测试通过率计算；
-- 任何 `fabricated_url` 都明确显示红旗；
-- 正式榜可规定 clean runs 排在存在 fabricated URL 的 runs 之前；
-- 同时报告事件数量和涉及的关键测试。
+设任务 $t$ 的预完整性分为 $G_t^{pre}$，$I_t^{fab}=1$ 表示至少一个确认的 fabricated citation，则：
 
-这样既不会让一处错误把整篇报告的信息全部抹掉，也能确保造假者不会依靠高覆盖登顶。
+$$
+G_t^{official}
+=
+(1-I_t^{fab})G_t^{pre}.
+$$
+
+- 相关 check 的 $V=0$，因而 $E=0$；
+- 该 task-run 的正式 $G_t^{official}=0$；$G_t^{pre}$ 只保留在诊断中，永不进入排名、等效性判定或 tie-break；
+- 同一 benchmark 版本内不得用重跑替换该清零任务；下一 benchmark 版本可以重新提交；
+- 整个 harness 仍然按固定任务集上的 $|\mathcal T|^{-1}\sum_tG_t^{official}$ 排名，不再额外实施 `clean-first` 或“有事件即无名次”的二次惩罚。
+
+同一主表强制展示 fabricated-citation rate（确认事件/报告引用）、affected-task rate（清零任务/固定任务）和 clean-run rate，并给出置信区间。这一任务级二值门不是任意连续乘数：诚实省略最多失去对应 check，伪造则失去整个 task，因而伪造在每次选择上都严格劣于省略；但一次模型错误也不会把整个 56 题 harness 永久放到所有 clean 系统之后。
+
+伪造 Observation Ledger、篡改 trace 或 adapter 作弊属于对测量通道动手，记为 `misconduct`，取消该 submission 资格并公开披露。它与模型输出的 fabricated citation 严格分界。若 blind/invalid 事件系统性地只发生在含伪造引用的 run 上，必须升级为 misconduct 调查。
 
 ### 10.5 决策合法性
 
@@ -2012,7 +2113,7 @@ $$
 \right]
 $$
 
-其中 $A_{admissible}$ 至少要求：满足 query 明示硬约束；在明示维度和偏好下不被另一方案以已通过 checks 证实为严格支配；trade-off 理由由已通过前提支撑。若维度或偏好未定义完整，则返回条件化集合或 `unresolved`，不能把“非支配”单独当作合理推荐的充分条件。DecisionValidity 可作为任务证书列，不再与主分相乘。
+其中 $A_{admissible}$ 由冻结的 Task Contract 与（经正式 repair 后的）TWM 计算，不由被评报告自己通过了哪些 checks 来重新定义。它至少要求：满足 query 明示硬约束；在明示维度和偏好下不被另一方案严格支配。“报告的 trade-off 理由是否由已通过前提支撑”另由 `TradeoffSupported` check 判定，防止报告因没有找到证据而把决策世界缩小到对自己有利。若维度或偏好未定义完整，则返回条件化集合或 `unresolved-in-protocol`，不能把“非支配”单独当作合理推荐的充分条件。DecisionValidity 可作为任务证书列，不再与主分相乘。
 
 ---
 
@@ -2024,6 +2125,8 @@ $$
 2. `Delivered`：支持跨度内容实际交付给 agent；
 3. `UtilizedDelivered`：报告使用了该已交付证据；
 4. `VerifiedPass`：答案正确、引用绑定且证据支持。
+
+这个漏斗不对“搜索返回的每个 URL × 所有 checks”做全组合语义判定。`SearchExposed` 只对已认证 Evidence Class 成员以及该 run 实际引用的 URL 计算；其余搜索结果标为 `not-evaluated-for-contract`。这保留搜索质量诊断，又避免评分成本随无关搜索页数乘法爆炸。
 
 对**经搜索发现的路线**，按定义有：
 
@@ -2138,7 +2241,7 @@ $$
 
 反事实双胞胎成本较高，不建议覆盖全部正式任务。推荐选取 8—10 道代表性任务作为审计子集，用来证明 DRA-GRC 所依赖的证据门确实捕捉到运行内证据依赖，而不只是参数记忆。
 
-对随机 harness，必须在 World A/B 使用相同随机种子集合做 paired repeated runs，并分别报告 targeted-change rate、unrelated-stability rate 和 mutated-evidence-delivery rate；单次运行不作因果结论。
+对可控、可设随机种子的 harness，在 World A/B 使用相同随机种子集合做 paired repeated runs。对不暴露随机性或无法锁定 seed 的 hosted harness，不伪造“同 seed”；用预注册的 $n$ 次非配对重复运行比较两个分布，并明确标为 unpaired audit。两档都分别报告 targeted-change rate、unrelated-stability rate 和 mutated-evidence-delivery rate；单次运行不作因果结论。
 
 最终产出 `Counterfactual Grounding Audit`，独立于主分展示。它提供 harness 对受控世界干预具有响应性的证据，不是对内部因果机制的完整证明，也不应与常规主分相乘，否则少量昂贵审计题会支配全部排名。
 
@@ -2370,11 +2473,13 @@ $$
 - 文风更漂亮但删除一条关键证据的反向 pairs，确认 panel 不会污染主分；
 - 排名 Kendall/Spearman 相关和配对翻转率。
 
+四轴不因相关系数高就自动合并。判别效度需要三类证据同时支持：只改变某轴的受控 rewrite 能定向改变该轴；探索/验证性因子结构不强迫其们崩为一因子；人类能在类似主分报告间稳定区分轴向差异。若无法建立判别效度，将相关轴对联合报告或降为探索性诊断，但不把它们合成主分。
+
 $\kappa$ 只说明标注者在该协议下是否一致，不能证明 DRA-GRC 的构念有效。主分仍需通过第 19 节的 oracle、腐蚀、合法替代路线和人类效度实验验证。
 
 ### 16.6 榜单角色
 
-Research Quality Panel 在论文中另表列出四轴或汇报一个小型雷达图；正式主排名仍只由 eligibility、integrity policy 和 DRA-GRC 决定。DRA-GRC 的成对差异落入预注册等效区间时，宣布并列；质量面板与成本用于解释 Pareto 取舍，不偷偷破同分。
+Research Quality Panel 在论文中另表列出四轴或汇报一个小型雷达图；正式主排名只使用通过 harness 级资格后、固定任务集上的 penalized mean DRA-GRC。DRA-GRC 的成对差异落入预注册等效区间时，宣布并列；质量面板与成本用于解释 Pareto 取舍，不偷偷破同分。
 
 不发布 `0.4×Synthesis+0.2×Utility+...` 之类新的总体质量分，也不把质量面板与 grounding 相乘。
 
@@ -2387,7 +2492,7 @@ Research Quality Panel 在论文中另表列出四轴或汇报一个小型雷达
 | A. 旧公式 | Fact、PoF、Completeness 加权后乘 Provenance | 高 | 弱 | 部分 | 中 | 历史 baseline |
 | B. Key-point Coverage | 自动关键点命中比例 | 高 | 中 | 否 | 高 | 内容覆盖诊断 |
 | C. Citation P/R/F1 | 检查引用支持与关键 claim 引用 | 高 | 是 | 需结合 ledger | 高 | 引用诊断 |
-| D. OGC/Rubric Gate | 每个义务内容通过且证据通过 | 中 | 可设计为是 | 是 | 高 | 过渡方案 |
+| D. OGC/Rubric Gate | 每个义务内容通过且证据通过 | 中 | 可设计为是 | 是 | 高 | 仅 Dev-14 影子 baseline，不发过渡榜 |
 | E. DRA-GRC | WI + TWM 自动编译 facet/unit/check，逐检查 evidence gate | 高 | 是 | 是 | 很高 | **推荐主方案** |
 | F. Report Utility QA | 报告能回答多少隐藏问题 | 高 | 是 | 结合 ledger 后是 | 高 | GRC 执行器/辅助 |
 | G. Counterfactual Twin | 世界改变时结论是否正确变化 | 中 | 是 | 极强 | 高 | 审计子集 |
@@ -2417,27 +2522,29 @@ Research Quality Panel 在论文中另表列出四轴或汇报一个小型雷达
 - Provenance：下沉为每个证据路径的 Valid/Observed/Binding/Support；
 - 原公式：仅用于旧榜对照，不再作为新主榜。
 
+过渡 OGC 方案中的 `0/0.5/1` 主观档与 `4/2/1` 义务权重在 v3.2 明确停用，不与本文的二值 checks 和层级宏平均并存。其人工校准集、伪证据腐蚀实验与 PPI 置信区间思想保留并并入第 19—20 节。
+
 ---
 
 ## 18. 最终榜单如何报告
 
 ### 18.1 主表
 
-推荐主表只保留决定正式排序和可复核资格的字段：
+推荐主表只保留决定正式排序、引用可靠性和可复核资格的字段：
 
-| Harness | DRA-GRC ↑ (95% CI) | Task Solve Rate ↑ | Fabricated URL | Formal Eligible | Cost |
-|---|---:|---:|---:|---|---:|
-| Harness A | 0.63 [0.57, 0.69] | 0.18 | 0 | Yes | USD … |
-| Harness B | 0.57 [0.51, 0.63] | 0.11 | 2 | Yes / Integrity Flag | USD … |
+| Rank | Harness | Penalized DRA-GRC ↑ (95% CI) | Task Solve Rate ↑ | Fabricated citation rate ↓ | Affected-task rate ↓ | Clean-run rate ↑ | Formal Eligible | Cost |
+|---:|---|---:|---:|---:|---:|---:|---|---:|
+| 1 | Harness A | 0.63 [0.57, 0.69] | 0.18 | 0/84 | 0/56 | 56/56 | Yes | USD … |
+| 2 | Harness B | 0.55 [0.49, 0.61] | 0.11 | 2/91 | 1/56 | 55/56 | Yes | USD … |
 
 Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Utility 和 Presentation，避免读者误以为它们被合入 DRA-GRC。
 
 排序规则：
 
-1. 先检查 `Formal Eligible`：instrumentation blind、world/scorer 故障与结果完整性分开处理；
-2. eligible 结果再按预注册 integrity policy 分为 clean 与 fabricated-URL flagged；
-3. clean runs 按 `DRA-GRC` 排序；flagged 结果仍展示，但不排在 clean runs 之上；
-4. 成对差异落入预注册等效区间时宣布并列，不用写作或成本偷偷改主排名；
+1. 先检查 harness 级 `Formal Eligible`：adapter/capture canary 通过，使用固定任务集，所有 run 按预注册规则有效，PENDING=0，无 misconduct；
+2. 唯一主排名按固定任务集上的 penalized mean DRA-GRC（第 10.4 节）降序；不另建 clean/flagged 全序，不使用质量面板或成本 tie-break；
+3. 题目/blueprint 簇 cluster bootstrap 置信区间与预注册等效 margin 共同定义并列层；落入同一并列层时只报点估计顺序，不声称显著优劣；
+4. fabricated-citation、affected-task 和 clean-run 三个比率及 CI 是主表强制列，任何摘要榜或宣传表都不得省略；
 5. Task Solve Rate、质量面板和成本只作完整解决率与 Pareto 诊断。
 
 ### 18.2 任务级下钻
@@ -2463,10 +2570,12 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
   "check_id": "...",
   "facet_id": "...",
   "unit_id": "...",
+  "state": "PASS|FAIL|PENDING|REPAIR_TRIGGERED",
   "content_contract_pass": true,
   "evidence_bundle_used": ["span_1", "span_7"],
   "valid_url": true,
-  "delivered_span": true,
+  "observation_class": "raw|normalized|extractive|mediated_observation",
+  "delivered_artifact_hash": "sha256:...",
   "local_binding": true,
   "semantic_support": true,
   "source_role_compatible": true,
@@ -2474,6 +2583,7 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
   "failure_code": null,
   "report_excerpt": "...",
   "evidence_excerpt_hashes": ["sha256:..."],
+  "evidence_certificate_hashes": ["sha256:..."],
   "world_manifest_hash": "...",
   "task_world_version": "...",
   "compiler_version": "...",
@@ -2502,7 +2612,7 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 
 ### 19.2 完整验证矩阵
 
-下表不是把 25 项实验当成同等重要的“检查清单”，而是形成四道连续发布门：
+下表不是把 30 项实验当成同等重要的“检查清单”，而是形成四道连续发布门：
 
 1. **Scoring invariants（V1—V10）**：先证明 oracle、空报告、事实堆砌、证据删除、合法/非法路线和粒度变化会产生预期的局部响应；
 2. **World / Compiler quality（V11—V19）**：再证明文档索引、候选池、assertion/role/relation、query 对齐、必要性、可答性和 held-out probe 没有系统性缺口；
@@ -2532,12 +2642,17 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 | V17 | Test necessity | 逐个删除 test 所对应内容，做人类任务充分性比较；运行 shortcut probe | 删除必要 check 应造成可感知缺失；仅套模板不能全过 | deletion effect、shortcut pass |
 | V18 | Answerability | 对每个 core check 执行 witness route；验证 API 实际可搜索和抓取 support span | 至少一条运行可达路线；不可答 check 不进正式分母 | answerability rate |
 | V19 | Probe generalization | construction probes 调试，冻结后只在 held-out harness/合成策略上测试 | 测试不能只区分参与构建的策略 | train–heldout gap |
-| V20 | Observation normalization | 同一文本经 12 种 adapter 的搜索、抓取、浏览器或结构化 API 交付 | span observation 语义一致；仪器盲区必须 `withheld` | agreement、withheld rate |
+| V20 | Observation normalization | 同一证据经 12 个真实 adapter 的 raw/normalized/extractive/abstractive 变换交付，并注入 delivery-fidelity canary | lineage 可回放；捕获物等于实际交付物；不合格 harness 进 report-only，不动态删题 | agreement、capture fidelity、blind rate |
 | V21 | Runner/judge | 人工盲标 `(report, check, evidence)` | 自动判定达到预注册的人际一致性带 | accuracy、macro-F1、$\kappa/\alpha$ |
 | V22 | Route FRR/FAR | 分层合法替代与非法腐蚀样本 | 误拒和误收均有置信上界 | FRR、FAR、Wilson CI |
 | V23 | Holistic validity | 专家同题比较真实报告的 grounded research breadth | DRA-GRC 比旧公式更贴近该构念；质量轴与主分可分离 | Kendall、Spearman、paired accuracy |
 | V24 | Counterfactual twin | 翻转任务关键事实和无关事实，重跑同一 harness | 相关结论随世界变，无关结论稳定 | causal response、invariance |
 | V25 | Reproducibility/externality | 固定全部版本重算；小样本与现实网络或独立语料结果比较 | 同版本可重复；沙盒排名边界如实量化 | exact repeat、rank correlation |
+| V26 | Mirror corruption / repair | 从 TWM 删除或改坏一个已知 witness，再提交由 registry 内新证据支持的 oracle report | 新证据若满足合同应通过；若暴露 benchmark 错误应 `REPAIR_TRIGGERED`，不得简单 C=0 | repair recall、wrong-agent-blame rate |
+| V27 | Abstain bait / queue gaming | 构造大量边界新 span-contract 对触发 judge 分歧 | PENDING 不改分母、不默认得分；per-entry 队列不阻塞其他提交 | pending rate、queue latency、cross-entry delay |
+| V28 | Dependency cascade | 对冻结 premise DAG 注入单点证书/支持判定翻转，按 task 拓扑分层，包含 Route G | 实测级联与冻结 DAG 一致；静态可达性只作保守界 | $\kappa_e$、TFRR、拓扑分层 CI |
+| V29 | Fabrication integrity | 将合法引用替换为伪造、off-world、alias 误报与 registry 缺失 | 真伪造使任务正式分清零；benchmark 错误走 repair；二者不混淆 | detection P/R、adjudication agreement |
+| V30 | Release capacity | 在 Dev-14 上测 novel pairs、judge 分歧、人工时间和队列峰值 | ValidityGate 与 CapacityGate 均通过，正式条目 PENDING=0 | FRR/FAR/$\kappa$、人时/条目、throughput |
 
 ### 19.3 候选池“抽够了”怎么证明
 
@@ -2573,11 +2688,31 @@ $$
 {N_{invalid\ routes}}
 $$
 
-替代路线必须由独立 annotator 或 held-out retriever 构造，且不得使用 known witness URL。每条路线先由人工确认其 evidence bundle 确实满足合同，再交给 frozen runner。ARA 高而 FAR 低，才说明“开放路线”不是口号。
+替代路线必须由独立 annotator 或 held-out retriever 构造，且不得使用 known witness URL。每条路线先由人工确认其 evidence bundle 确实满足合同，再交给 frozen runner。ARA 只对 known-support multiplicity 至少为 2 的 checks 定义；`single_source` checks 只评估新合格证据的接受机制与困难负例 FAR，不伪造替代路线。ARA 高而 FAR 低，才说明“不绑定 witness URL”不是口号。
 
 若某一层约 300 个独立样本观察到 0 个错误，可用三分法则给出约 95% 置信下错误率低于 1% 的上界；若出现错误，则报告 Wilson 或 bootstrap 区间，不能继续声称小于 1%。
 
-### 19.5 Compiler 不是一次生成就冻结
+### 19.5 依赖级联与全局证书错误如何认证
+
+不使用 `FRR\times(1+平均 fanout)` 之类公式当统计定理：误判可以相关，OR-of-AND 冗余可以阻断级联，共享证书又可以跨 run 放大错误。对每个注入的基础误判 $e$，定义经验级联因子：
+
+$$
+\kappa_e
+=
+\#\{(run,check):z_{run,check}\text{ 在注入 }e\text{ 后翻转}\}.
+$$
+
+$\kappa$ 通过 V28 mirror-corruption 按 premise DAG 拓扑分层估计，必须包含 Route G；冻结 DAG 可达后继数只作图结构保守上界，不当作误差等式。除单个判定的 FRR/FAR 外，还要认证：
+
+$$
+\mathrm{TFRR}
+=
+P(\text{一份合法整报告至少有一个 applicable core check 被误拒}).
+$$
+
+合法整报告层约 300 个独立样本零错时，可用三分法则给出 TFRR 约低于 1% @95% 的上界；出错时报 Wilson 区间，不继续声称低于 1%。另按第 5.16 节的 $m_c\times$分数影响抽审高重数证书，用 repair/erratum 处理跨 run 污染。
+
+### 19.6 Compiler 不是一次生成就冻结
 
 每个 query 必须依次通过：
 
@@ -2591,7 +2726,7 @@ $$
 
 前 14 题需要双人独立审计，用来校准通用 compiler、合并/拆分规则和错误 taxonomy；不是让人逐题重新写一套大 rubric。后 42 题由同一冻结 compiler 自动生成，再按风险分层抽审。
 
-### 19.6 人类效度要问对问题
+### 19.7 人类效度要问对问题
 
 专家比较任务不能问笼统的“哪篇更好”，而应分开问：
 
@@ -2601,7 +2736,7 @@ $$
 
 第一问验证 DRA-GRC；第二问验证 integrity 与 evidence gate；第三问验证 Research Quality Panel。三个问题混在一起会让文风、长度和品牌偏好污染主分效度。
 
-### 19.7 Gold 允许被挑战，但发布版本不可静默改变
+### 19.8 Gold 允许被挑战，但发布版本不可静默改变
 
 [DeepFact](https://aclanthology.org/2026.acl-long.1586/) 一类 evidence-backed audit 的经验提醒我们：复杂报告的初始 gold 也可能错。DRA 应提供 challenger 机制：任何人都可提交 `check + report span + registry evidence span + 理由`；系统只把分歧送人工复核。
 
@@ -2613,18 +2748,43 @@ $$
 
 这比把首次 LLM 抽取叫作 ground truth 更可信，也保留了可复现性。
 
+### 19.9 裁决质量与裁决产能是两道独立发布门
+
+$$
+\mathrm{ReleaseGate}(matcher_v,compiler_v)
+=
+\mathrm{ValidityGate}\land\mathrm{CapacityGate}.
+$$
+
+- `ValidityGate`：冻结校准层上的 FRR、FAR、TFRR 和 $\kappa$ 落入预注册带内。这是质量问题，加人无法修复，必须改 matcher/compiler；
+- `CapacityGate`：
+
+$$
+\begin{aligned}
+&E[\text{novel pairs/entry}]
+\times \text{disagreement rate}
+\times \text{human time/pair}
+\\
+&\qquad\leq
+\text{configured adjudication capacity}
+\times \text{safety factor}.
+\end{aligned}
+$$
+
+这是产能问题，可以加人或减少 matcher 分歧来修复。两门的机制与失败处置先写入协议，具体带宽与安全系数在 Dev-14 测量开始前预注册。任一门未过，该 matcher/compiler 版本不得发布正式榜；发布时任一条目都必须 PENDING=0，禁止保守 fallback。裁决队列按 submission entry 隔离，一个高分歧提交只延迟自己，不得队头阻塞别人。gate 状态与实测数公开；改 gate 数值即为协议版本事件，不得在发榜压力下静默放宽。
+
 ---
 
 ## 20. 统计报告
 
-每个任务先按 facet → unit → check 层级宏平均，整个 benchmark 再对可归责任务做 macro average：
+每个任务先按 facet → unit → check 层级宏平均，经第 10.4 节的任务级完整性门得到 $G_t^{official}$，整个 benchmark 再对所有正式轨 harness 共享的固定任务集做 macro average：
 
 $$
 \mathrm{DRA\text{-}GRC}
 =
-\frac{1}{|T_{eligible}|}
-\sum_{t\in T_{eligible}}
-\mathrm{DRA\text{-}GRC}_t
+\frac{1}{|\mathcal T_{formal}|}
+\sum_{t\in\mathcal T_{formal}}
+G_t^{official}
 $$
 
 不得把所有 checks 直接 micro average，因为 compiler 生成更多检查的任务会支配榜单。除主均值外，必须同时报告：
@@ -2635,7 +2795,7 @@ $$
 - 每个 facet 和 research-test family 的 macro pass rate；
 - ContentBreadth 与 UnsupportedBreadthGap；
 - fabricated、unobserved、unsupported、wrong-binding、contradicted 与 source-role violation；
-- `withheld` 任务/check 的数量、原因和 harness 分布；
+- 发布前 benchmark-side exclusion/repair 的数量与原因，以及已清零的 PENDING 队列统计；
 - Search → Delivered → Utilized → Passed 条件转化率；
 - 成本、延迟和报告长度。
 
@@ -2652,17 +2812,9 @@ $$
 - integrity 事件差；
 - 成本差。
 
-### 20.1 适用性与缺失值
+### 20.1 适用性在 manifest 层冻结，不制造 harness-specific 缺失值
 
-`withheld` 不是 0 分，也不是通过。正式均值只在同一预注册资格规则下计算：
-
-$$
-T_{eligible}
-=
-\{t:\text{world、instrumentation、RTS 均可归责}\}
-$$
-
-若两个 harness 的 eligible 集不同，主比较使用二者共同可归责任务，并另报各自覆盖率。禁止用不同分母的均值直接排序。
+$\mathcal T_{formal}$ 在 world/RTS 发布前固定，且所有 core check 的 applicability mask 一并冻结。benchmark-side 不可答或无法归责的题必须在任何 harness 正式运行前对全体移除或修复。harness 级 observation 能力在进入正式轨前认证；进入后的 blind run 按 first-valid-run/$K$ 规则处理。因此正式榜不存在“Harness A 评 53 题、Harness B 评 56 题，然后用交集或各自均值排名”的可变分母。无法满足该条件的系统只进 report-only 轨。
 
 ### 20.2 LLM 语义判定的不确定性
 
@@ -2673,6 +2825,8 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 - 将裁决概率或不确定性保存在证书中，但正式通过仍按冻结阈值；
 - 可采用 prediction-powered inference 或分层误差校正，给出人类标注校正后的总体估计与 CI；
 - 主榜同时展示未经校正的可复现机器分和校正估计，不能只展示后者。
+
+PPI 或其他校正不使用一个混合金标池；每种高风险判定类型（内容合同、语义支持、来源角色、mediated sufficiency、fabrication 复核）至少保留 150 个分层人工金标对，并单独报区间。机器原始分是可重放的 leaderboard quantity；PPI 是带标注误差的总体推断证书，两者不互相替换。
 
 ### 20.3 多重比较与排名稳定性
 
@@ -2685,6 +2839,8 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 - anchored Research Quality Panel 的独立排序。
 
 最终论文应强调效应量和置信区间，不把小数点后三位的名次差解释成真实能力差。
+
+在锁定 56 题正式集之前，使用 Dev-14 的簇内方差做功效分析，公布可检出最小效应（MDE）与预注册等效 margin。如果两系统差异落入等效带或区间无法区分，榜单展示为同一并列层，而不是强行给出全序。若 56 题只足以稳定区分数个能力层，这是统计结论，不是需要用质量面板偷偷破平的问题。
 
 ---
 
@@ -2709,7 +2865,7 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 - HTML 主体、section、paragraph、list、table、forum post/quote 的 span 化；
 - 页面与 span 链接图；
 - JSON-LD、规格表和已有结构化字段解析；
-- 页面/来源角色初分类；
+- 页面类型/来源 family 初分类，高风险 family 全审；assertion modality 留到按题 TWM；
 - exact alias、BM25、dense 与近重复索引；
 - 所有产物的版本 manifest。
 
@@ -2731,7 +2887,7 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 
 验收门：所有 core facet 有至少一个运行可达 witness；独立人工/检索路线的关键证据具有足够召回；source role 和 modality 不发生高风险升级；所有 assertion 都能回到原始 span。
 
-### Phase 3：Research Test Compiler 与开放路线 matcher
+### Phase 3：Research Test Compiler 与合同接受 matcher
 
 从 Task Contract 和 TWM 编译：
 
@@ -2740,24 +2896,26 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 - 每 unit 2—5 个 canonical checks；
 - content contract；
 - evidence contract 与 route family；
+- 冻结 OR-of-AND premise DAG，exempt 链深度不超两层；
 - answerability witnesses；
+- known-support multiplicity 与 `single_source` 标记；
 - disallowed inference 与 applicability 条件。
 
-同时实现 on-demand fallback：报告若引用 registry 中但不在 TWM 的 span，冻结 extractor/verifier 现场判断其是否满足 evidence contract，缓存 `evidence certificate`。若 matcher abstain 且该证据决定得分，标为 `withheld_for_review`，不能直接判错。
+同时实现 on-demand fallback：报告若引用 registry 中但不在 TWM 的 span，冻结 extractor/verifier 判断其是否满足 evidence contract。新 pair 按 canonical sort 批处理，确定性规则先行，两个异构冻结 judge 一致才自动签发全局证书；分歧/abstain 进 PENDING 盲裁，发布前必须清零。新证据推翻 benchmark 侧状态时触发 repair 版本，不让新路线替 agent 背错。
 
 验收门：oracle、null、URL dump、局部腐蚀、合法替代路线、非法相似路线和 granularity invariance 全部按预期工作。
 
 ### Phase 4：12 Harness 观察协议统一
 
-升级 observation ledger：
+升级 Observation Ledger v2：
 
-- 搜索摘要记录交付跨度；
-- 完整网页记录正文跨度；
-- 结构化 API 映射到规范字段证据；
-- 浏览器/代理输出记录实际可见文本；
-- 无法观测的路径标记 withheld。
+- 每次交付保存 `raw_fetch_hash → transform_lineage[] → delivered_artifact_hash`；
+- 分类 raw/normalized/extractive/abstractive，使用真实 adapter 做 lineage 回放；
+- 摘要式交付过 CaptureFidelity/Sufficiency canary，S/R 仍对 raw span；
+- 每 harness 先做 instrumentation eligibility，过后持续 canary；不能捕获交付物则 report-only；
+- 预注册 first-valid-run、$K$ 次上限和 structural-blindness 复审。
 
-验收：同内容经不同工具交付，测试语义一致。
+验收：同内容经不同工具交付，测试语义一致；摘要丢限定词会使 O 门失败；bounded absence 不接受 abstractive。
 
 ### Phase 5：Grounded Research Runner 与可审计报告
 
@@ -2769,6 +2927,8 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 - local citation binding；
 - semantic support；
 - source-role contract 与 OR-of-AND route 执行；
+- `PASS/FAIL/PENDING/REPAIR_TRIGGERED` 状态机和全局证书缓存；
+- fabricated-citation 盲复核、任务级清零与 misconduct 分界；
 - facet → unit → check 分层聚合；
 - failure ledger；
 - 主表、任务下钻与 test certificate。
@@ -2783,6 +2943,8 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 - 与 compiler 输出做 merge/split/necessity adjudication；
 - 对每题执行 answerability、deletion、shortcut 与替代路线审计；
 - 校准 assertion、role、support、binding 和 check completion judge；
+- 实测每题人工工时、compiler edit/split/merge/delete/fatal 率、novel-pair 数、judge 分歧率与裁决时间；
+- 在测量开始前预注册 ValidityGate、CapacityGate、TFRR/$\kappa$ 门槛、等效 margin 与安全系数；
 - 冻结 compiler 规则、prompt、ontology 和阈值。
 
 人工标注的目的，是证明通用构建器和评分器的接受率，而不是给每题写唯一 gold 报告。所有人工变更必须归纳为可复用规则或明确标记为 task exception，并报告 exception rate。
@@ -2795,13 +2957,14 @@ URL registry、content hash、observation 和结构化字段尽量确定性化�
 2. 程序化证据腐蚀；
 3. 合法替代路线。
 
-补充边界样本，完成 V1—V25，尤其报告 FRR/FAR、$\kappa/\alpha$、人类 grounded-breadth 排序相关、candidate-pool 饱和与 granularity invariance。
+补充边界、mediated observation、mirror-corruption、abstain-bait、fabrication 与依赖级联样本，完成 V1—V30，尤其报告 FRR/FAR/TFRR、$\kappa_e$、$\kappa/\alpha$、人类 grounded-breadth 排序相关、candidate-pool 饱和、证书重数与 granularity invariance。
 
 ### Phase 8：扩展到 56 题
 
 - Route S 的 14 题使用 query-first Task Contract；
 - Route G 的其余题使用 Case Blueprint → query/RTS 共同生成；
 - 按 task type、主题、来源角色和难度平衡；
+- 前置审计 evolution/bounded-enumeration/cross-page-aggregation 的语料可答性；不达门即披露 unsupported，不为凑配额扩世界；
 - 只用冻结 construction probes 做过滤；
 - 留出部分路线与 harness 风格直到 compiler 冻结后测试；
 - 发布每题 answerability 与 compiler 质量证书。
@@ -2817,6 +2980,7 @@ Decision Envelope 只在适合形式化的购买决策题启用，用于检查�
 ### Phase 10：正式冻结与发布
 
 - 冻结 world、index、TWM、RTS、matcher、judge、scorer 和 adapter manifest；
+- 确认 ReleaseGate 两门均过且所有待发布条目 PENDING=0；
 - 对 12 harness 运行仅作为 benchmark characterization，不反向修改正式测试；
 - 发布主榜、质量面板、完整性事件、过程漏斗、成本、CI 和方法卡；
 - 公开 dev 样例、schema、验证集构造法与 scorer；
@@ -2830,7 +2994,8 @@ Decision Envelope 只在适合形式化的购买决策题启用，用于检查�
 - 语义成本随 `unique task-relevant spans` 增长，而不是随全库页面数增长；
 - 多题复用 span 时缓存命中率上升；
 - on-demand matcher 只处理报告真实引用的新证据；
-- 人工时间主要用于分歧与高风险抽样，而不是逐页全文阅读。
+- 人工时间主要用于分歧与高风险抽样，而不是逐页全文阅读；
+- CapacityGate 在实测 novel pairs、分歧率、单对人时与安全系数后能支持一个完整提交；超载只延迟该 entry，不降级评分规则。
 
 ---
 
@@ -2887,17 +3052,23 @@ src/eval/evidence_matcher/
   contract_matcher.py
   source_role_gate.py
   evidence_certificate.py
+  canonical_batch.py
+  adjudication_queue.py
+  repair_engine.py
 
 src/eval/execution_audit/
   report_parser.py
   citation_parser.py
   observation_matcher.py
+  transform_lineage.py
+  delivery_fidelity.py
   local_binding.py
   semantic_support.py
   evidence_bundle_executor.py
   failure_ledger.py
   grc_scorer.py
   score_certificate.py
+  integrity_gate.py
 
 src/eval/report_quality/
   evidence_packet.py
@@ -2930,6 +3101,8 @@ src/eval/validation/
   agreement.py
   bootstrap.py
   audit_estimator.py
+  cascade_injection.py
+  release_gate.py
 
 src/eval/publishing/
   leaderboard.py
@@ -2937,6 +3110,8 @@ src/eval/publishing/
   funnel_report.py
   method_card.py
 ```
+
+`src/eval/protocol_v3.py` 中需新增独立协议 ID（例如 `grc_v3_2`），不在旧 protocol ID 下静默改语义。
 
 推荐数据布局：
 
@@ -3002,7 +3177,7 @@ scorer_hash
 - 现有 12 harness adapters
 - 已有 Route Flexible pilot 的 OR-of-AND 路线思想
 
-其中 evidence graph 必须降级为 construction witness；旧 Fact parser 作为 deterministic extractor/check executor；旧 route-flexible scorer 的路线表达可迁移，但不继承其固定 URL 假设。
+当前工程现状必须如实记录：`route_flexible_scorer.py`/`route_flexible_judge.py` 和相关测试已存在，但只有一道 dev rubric 落盘；`observation_ledger.py`、`url_registry.py`、`semantic_matcher.py` 是 v1 底座，还没有 Ledger v2 血统、双 judge 证书、裁决队列和 repair engine；`scripts/build_deep_leaderboard_v3.py` 目前只能视为合成/展示占位，不是 v3.2 正式榜 scorer。其中 evidence graph 必须降级为 construction witness；旧 Fact parser 作为 deterministic extractor/check executor；旧 route-flexible scorer 的路线表达可迁移，但不继承其固定 URL 假设。
 
 ---
 
@@ -3013,16 +3188,22 @@ scorer_hash
 | 重新滑向全库语义抽取 | 成本爆炸，ontology 永远不完备，却假装拥有世界真值 | 全库 LLM token/页、无 span assertion 数 | 全量只建 WI；语义限于 task pool 与报告新引用；声明 closed documents 而非 complete semantics |
 | Candidate Pool 漏召回 | TWM 和 RTS 遗漏重要 facet、冲突或方案 | pooled recall、saturation、池外独立检索 | 混合检索、来源配额、link expansion、独立 pooled audit；运行时引用不依赖候选池白名单 |
 | TWM 抽取幻觉 | 错 assertion 污染 answerability 和测试 | assertion/span P/R、abstain、challenger cases | 确定性字段优先；强制 span；高风险抽审；低置信不能作唯一 core witness |
+| TWM 漏抽导致错合同 | 新合法证据通过 E 却因错 content contract 失败 | mirror-corruption、challenger repair rate | 新证据反证 TWM/合同时 `REPAIR_TRIGGERED`；新 manifest 统一重算，不单独惩罚新路线 harness |
 | Source role / modality 错 | 把营销、论坛个案或零售描述升级成客观事实 | role macro-F1、高风险误标、MarketingTrap | span 级角色证书；厂商/实测/经验分开；不确定角色只支持更弱合同 |
 | 论坛经验被当发生率 | 少数帖子被夸成普遍规律 | scope-overreach 与 population claim audit | 保存型号、时间、条件和样本范围；无分母不得生成发生率 |
 | 有界否定被无限外推 | “指定页面没写”被说成“世界不存在” | absence scope certificate | 固定扫描页面、字段、快照与完整交付证书；超范围记 `scope_overreach` |
 | Evidence contract 仍绑 witness | 新 harness 找到真实新证据也被拒 | held-out ARA/FRR、challenger evidence | contract 不含 URL；on-demand matcher；known witness 只证可答；版本化修正 |
+| “多路线”声称过度 | 某些事实只有一处来源，ARA 分母不成立 | known-support multiplicity 直方图 | 术语改为 contract-admissible evidence；multiplicity=1 标 `single_source`；ARA 只对 multiplicity≥2 定义 |
 | Matcher 过宽 | 任何主题相关 URL 都能通过 | hard-negative FAR、source-role FAR | 受约束前提匹配、local binding、角色门和反驳检查；abstain 不自动通过 |
+| Matcher 证书顺序依赖/全局污染 | 先提交者的错 judge 证书影响之后所有 run | canonical batch 重放、$m_c$、高重数抽审 | 全局排序批处理；两异构 judge + 人工 fallback；完整版本键；高 $m_c$ repair |
+| Premise 级联放大误判 | 一个叶判定使多个综合 check 同时翻转 | V28、$\kappa_e$、TFRR、DAG 后继数 | DAG 发布前冻结；exempt 链禁止；深度≤2；级联作端到端主分，root-cause 单独诊断 |
 | Check 粒度操纵权重 | compiler 多拆某方向即可改变榜单 | split/merge score drift、raw counts | 固定 facet ontology；每 unit 2—5 checks；语义去重；层级 macro 与 invariance gate |
 | 原子事实淹没 DR 能力 | 规格抄写胜过比较、冲突和综合 | family distribution、fact-dump probe | fact 只作证据前提；正式包含比较、机制、综合、决策、教程等 units |
 | Query 过度 corpus-shaped | 问题自然性差，只考语料图关键词 | Route S/G 人审、round-trip、live 对照 | 先选用户场景和 research shape，再选证据；自然性与非 scorer-shaped 审核 |
 | 用现有 12 harness 调题 | benchmark 过拟合当前参赛者 | construction/held-out gap | 只用固定 probes；正式 harness 冻结后评测；问题进入下一版本而非回改 |
 | Observation 不公平 | 某工具抓到但模型未收到，或收到但日志没记 | adapter canary、instrumentation-blind rate | 统一 delivered-span 语义；capability manifest；系统性盲区取消 formal eligibility |
+| Abstractive delivery 洗掉限定词 | 摘要把营销宣称升级为客观事实 | delivery-fidelity canary、mediated 占比、qualifier corruption | O=CaptureFidelity∧Sufficiency；S/R 回 raw span；bounded absence 禁用 abstractive；无法捕获即 report-only |
+| Structural blindness 选择性重跑 | 只在低分/伪造 run 宣告日志失效 | first-valid-run、blind 率、integrity 条件相关 | run 有效性规则事前冻结；$K$ 上限；相关失明升 misconduct 调查 |
 | “Delivered”被写成“读过” | 把可观察的输入暴露夸成内部注意或因果使用 | 术语审计、canary/twin audit | 正文只声称 delivered/exposed；真正因果依赖仅由反事实审计提供有限证据 |
 | 语义 judge 漂移/偏长文 | 同报告跨时间变分，长文获得风格奖励 | human gold、paraphrase/order/length test | 固定快照与 prompt；逐 check 短上下文；缓存裁决；换 judge 建新榜 |
 | 长报告超上下文 | 后部证据被漏判或开头获得偏置 | full-context 抽审、report-span retrieval recall | 按 check 定位相关 section + 相邻上下文；不一次批判整篇；记录未见段落 |
@@ -3034,9 +3215,12 @@ scorer_hash
 | Full Pass 接近全零 | 只报成功率掩盖能力差异 | solve-rate distribution | DRA-GRC 为主，Full Pass 仅严格诊断；Wide/Deep family 分层 |
 | 沙盒不代表开放网络 | 排名只适用于特定语料与搜索 API | sandbox/live 子集、datasheet | 限定外推范围；报告语料/来源覆盖；不声称等价全部现实调研 |
 | Gold 被新证据挑战 | 静态错误影响榜单公信力 | challenger queue、erratum rate | 当前 manifest 不变；新证据人工复核后进入新版本；公布 bridge 结果 |
+| 裁决队列成为瓶颈/DoS | PENDING 无法清零，高分歧提交拖延别人 | novel pairs、分歧率、人时/对、per-entry latency | Validity/Capacity 双 ReleaseGate；per-entry 队列隔离；超门不发榜，不用保守 fallback |
+| Fabrication 惩罚太轻或太重 | 与诚实省略同价，或一次错误把整个 harness 永久降级 | fabricated/affected-task/clean-run 三比率与复现方差 | 确认伪造使当题清零并进同一主分；不再 clean-first；测量通道篡改才取消 submission |
+| Evolution 来源结构偏斜 | 只在 forum/wiki 可答，shape 差异被误解为能力差异 | N/M/Q 可答门、shape 内 role 分布 | 只考语料内带日期综合；报告 role 分布；不达门即 unsupported，不扩世界 |
 | 成本高、缓存失效 | 56 题难以扩展或版本更新全重跑 | unique-span token、cache hit、人时 | content-addressed cache；只重跑依赖变化资产；先 1→14→56 实测扩容 |
 
-风险表本身也应进入方法卡。若某个高风险错误尚未达到验证门槛，正确处理是降低对应 check 的 applicability 或将任务 `withheld`，而不是用总体平均把它掩盖。
+风险表本身也应进入方法卡。若某个高风险错误尚未达到验证门槛，正确处理是在任何正式运行之前修复 compiler，或对所有 harness 统一从新 manifest 移除对应 check/task；一旦冻结，不得为某个 harness 动态降 applicability，也不得用总体平均掩盖。
 
 ---
 
@@ -3045,35 +3229,39 @@ scorer_hash
 推荐直接采用以下默认值：
 
 1. **世界边界**：闭合 URL、快照、页面和 span，不声称闭合全部自然语言语义；
-2. **架构**：全量 `World Index`，任务局部 `Task World Model`，按题 `Research Test Suite`；
-3. **主分**：唯一主分为 `DRA-GRC`；
-4. **聚合**：适用 check → unit → facet → task 的层级等权 macro average；
+2. **架构**：`World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；
+3. **主分**：唯一主排名量为固定任务集上的 penalized mean `DRA-GRC`；
+4. **聚合**：冻结 applicability 下 check → unit → facet → task 的层级等权 macro average，不跨题 micro average；
 5. **评分对象**：最小对象是 executable check，不是 URL 数、claim 数或整篇报告印象；
-6. **证据门**：ValidURL、DeliveredSpan、LocalBinding、SemanticSupport、SourceRole 全部通过；
+6. **证据门**：ValidURL、ObservedDelivery、LocalBinding、SemanticSupport、SourceRole 全部通过；
 7. **部分完成**：来自 2—5 个 canonical checks 的通过比例，不由整体 judge 任意给 0.5；
-8. **适用性**：conditional/withheld 使用显式 mask；空分母层级从正式比较中按协议排除；
-9. **Full Pass**：所有适用 core checks 和输出合同通过，且无 critical error；
-10. **URL 造假**：相关 checks 失败并记录 integrity flag；正式结果 clean-first，但仍展示其连续分和错误；
-11. **路线政策**：evidence contract + OR-of-AND；known witnesses 只证明 answerability，不是 allowlist；
-12. **新证据政策**：registry 内、本次 delivered、正确绑定且满足合同的未知页面，可由冻结 on-demand matcher 通过；
-13. **Matcher abstain**：决定得分且无法可靠判定时 `withheld_for_review`，不能默认失败；
-14. **观察定义**：只能证明文本被交付/暴露给 agent，不以 HTTP 200、URL 出现或抓取后台缓存代替；
-15. **Fact**：保留为确定性 extractor 与 check executor，不再独立加权；
-16. **Report-level Grounded**：不再与主分相乘，因为 grounding 已在每个 check 内门控；
-17. **Research Quality Panel**：四轴独立、状态遮蔽、anchored pairwise；不与 DRA-GRC 合成；
-18. **Decision Envelope**：仅用于可形式化决策子集，返回可接受集合，不固定唯一推荐；
-19. **Pivotality**：只作选题、边界事实和反事实诊断，不作主分权重；
-20. **任务插件**：decision、audit/explanation、experience/durability、tutorial/action-plan 预先标记并分层报告；
-21. **任务构建**：Route S 与 Route G 分别标记；自动题先 research shape 与 blueprint，再生成 query/RTS；
-22. **构建 probes**：固定合成策略；正式 12 harness 不参与动态调题；
-23. **人工工作**：审核 query、compiler、answerability、替代路线与 scorer，不逐题从零手写复杂 rubric；
-24. **正式公开**：schema、类型学、dev 样例和验证公开；正式实例按预注册策略延迟公开；
-25. **Gold 治理**：challenger evidence 经复核进入下一版本，旧 manifest 和历史榜不静默改变；
-26. **反事实/Canary**：8—10 题审计子集，paired repeated runs，独立于主分；
-27. **Formal eligibility**：world/RTS/observation/scorer 均可归责；instrumentation blind 与 integrity flag 分开；
-28. **统计**：主题/blueprint cluster bootstrap、paired comparison、共同 eligible 集与 CI；
-29. **论文术语**：使用 `Closed Documents, Task-Scoped Semantics, Open Evidence Routes`；
-30. **明确停用**：`Omniscient Fact Table`、全量语义 WCET、`DRA-WorldClosure` 和报告级 Truth 乘法。
+8. **适用性**：conditional mask 与正式任务集在运行前对所有 harness 统一冻结；不因报告、PENDING 或 harness 动态改分母；
+9. **Full Pass**：所有适用 core checks 和输出合同通过，且无 critical error 和 fabricated citation；
+10. **URL 造假**：先经盲复核排除 benchmark 错误；确认后相关 check 失败、整道任务正式分清零，但不再 clean-first；三个 integrity rate 与 CI 强制同表展示；
+11. **Misconduct**：伪造 ledger、篡改 trace 或 adapter 作弊取消 submission 资格，与模型引用幻觉严格分界；
+12. **证据政策**：evidence contract + OR-of-AND；known witnesses 只证 answerability，不是 allowlist；multiplicity=1 标 `single_source`；
+13. **新证据**：registry 内、本次 delivered、正确绑定且满足合同的未知页面，由冻结 on-demand matcher 判定；可推翻 benchmark 错误并触发 repair；
+14. **Matcher**：canonical 批处理、确定性规则先行、两异构冻结 judge、分歧/abstain 人工盲裁；PENDING 始终在分母，正式发布前必须清零；
+15. **观察定义**：只能证明文本被交付/暴露给 agent，不以 HTTP 200、URL 出现或抓取后台缓存代替；
+16. **Observation Ledger v2**：保存 `raw_fetch_hash → transform_lineage → delivered_artifact_hash`；摘要式交付过 CaptureFidelity/Sufficiency，S/R 仍回 raw span；
+17. **Harness 资格**：先做 adapter/capture canary；过后用 first-valid-run 与 $K$ 上限；不能捕获交付物则 report-only；
+18. **Fact**：保留为确定性 extractor 与 check executor，不再独立加权；
+19. **Report-level Grounded**：不再与主分做连续乘法，因为 grounding 已在每个 check 内门控；只保留任务级 fabricated-citation 二值门；
+20. **Research Quality Panel**：四轴独立、状态遮蔽、anchored pairwise；判别效度失败的轴降为联合/探索报告，永不与 DRA-GRC 合成；
+21. **Decision Envelope**：仅用于可形式化决策子集；支配世界来自冻结 TWM，不来自报告已通过 checks；返回可接受集合，不固定唯一推荐；
+22. **Pivotality**：只作选题、边界事实和反事实诊断，不作主分权重；
+23. **任务形状**：核心 consumer-information DR 范围加 evolution、bounded enumeration、cross-page aggregation；后三者必须先过语料可答门，不达标即披露 unsupported；
+24. **任务构建**：Route S 与 Route G 分别标记；自动题先 research shape 与 blueprint，再生成 query/RTS；
+25. **构建 probes**：固定合成策略；正式 12 harness 不参与动态调题，只在冻结前压力测试 evaluator/观察协议；
+26. **人工工作**：审核 query、compiler、answerability、替代证据与 scorer，不逐题从零手写复杂 rubric；公布工时、编辑率和 fatal 率；
+27. **正式公开**：schema、类型学、dev 样例和验证公开；正式实例按预注册策略延迟公开；
+28. **Gold 治理**：challenger evidence 经复核进入新 manifest，对所有受影响 run 统一重算；旧 manifest 与历史榜不静默改变；
+29. **依赖错误**：DAG 冻结、exempt 链禁止、深度≤2；用 $\kappa_e$、TFRR 与 $m_c$ 验证级联/共享证书风险，不使用未证明的 fanout 乘法定理；
+30. **ReleaseGate**：ValidityGate 与 CapacityGate 双门；任一未过不发正式榜，禁止保守 fallback；裁决队列 per-entry 隔离；
+31. **反事实/Canary**：8—10 题审计子集；可控 harness 做 paired seeds，hosted harness 做预注册非配对分布审计；独立于主分；
+32. **统计**：主题/blueprint cluster bootstrap、paired comparison、PPI 人工校正、MDE 与预注册等效并列层；不强行全序；
+33. **论文术语**：使用 `Closed Documents, Task-Scoped Semantics, Contract-Admissible Evidence`，不声称每个命题都有多条路线；
+34. **明确停用**：`Omniscient Fact Table`、全量语义 WCET、`DRA-WorldClosure`、旧 OGC 0.5/4-2-1 档与报告级 Truth 连续乘法。
 
 ---
 
@@ -3081,17 +3269,17 @@ scorer_hash
 
 ### 25.1 推荐表述
 
-> DRA introduces a closed-document, task-scoped evaluation protocol for long-form deep research. Rather than attempting to extract every semantic fact from the corpus, DRA exhaustively compiles the frozen sandbox into a versioned structural World Index and constructs Task World Models only over evidence regions relevant to each query. It co-generates naturalistic tasks and hierarchical Research Test Suites from case blueprints, and scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content contract is satisfied and every decisive external premise is supported by a valid in-registry span that was delivered to the agent, locally bound to the report claim, semantically supportive, and compatible with the required source role. Construction witnesses certify answerability but do not restrict admissible evidence: previously unseen in-registry pages may pass through the same frozen on-demand matcher. Full-task success, citation integrity, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity are audited separately.
+> DRA introduces a closed-document, task-scoped evaluation protocol for long-form consumer-information deep research. Rather than attempting to extract every semantic fact from the corpus, DRA compiles the complete frozen sandbox into a versioned structural World Index and constructs Task World Models only over query-relevant evidence regions. A shared compiler produces audit-frozen hierarchical Research Test Suites from task contracts and case blueprints; human construction time and edits are disclosed rather than hidden behind a claim of rubric-free evaluation. DRA scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content contract is satisfied and every decisive external premise is supported by a valid in-registry span that was delivered through a replayable adapter lineage, locally bound to the report claim, semantically supportive, and compatible with the required source role. Construction witnesses certify answerability but are not URL allowlists: previously unseen in-registry evidence may pass the same frozen, calibrated matcher. The official benchmark score is the fixed-task mean of task scores after a task-level fabricated-citation gate. Full-task success, citation reliability rates, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity remain separately auditable.
 
 ### 25.2 中文版
 
-> DRA 提出一种面向长篇 Deep Research 报告的“文档闭合、任务局部语义、开放证据路线”评测协议。DRA 不尝试从全语料抽取所有可能事实，而是先将完整冻结沙盒编译为版本化的结构性 World Index，再只针对每道 query 的相关证据区域构建 Task World Model。系统从 Case Blueprint 共同生成自然 query 与分层 Research Test Suite，并以逐 check 证据门计算 query-balanced Grounded Research Coverage。只有当报告满足内容合同，且每个决定性外部前提都有冻结 registry 内、本次实际交付、就地绑定、语义支持并符合来源角色要求的证据跨度时，该 check 才贡献得分。构题 witness 仅用于证明可答性，不限制 agent 的证据路线；构建期未预选的在册页面也可以通过同一冻结的按需 matcher。完整通过、引用完整性、过程瓶颈、长报告质量、效率与反事实敏感性则独立报告。
+> DRA 提出一种面向长篇消费信息类 Deep Research 报告的“文档闭合、任务局部语义、合同接受证据”评测协议。DRA 不尝试从全语料抽取所有可能事实，而是先将完整冻结沙盒编译为版本化的结构性 World Index，再只针对每道 query 的相关证据区域构建 Task World Model。统一 compiler 从 Task Contract/Case Blueprint 生成审计后冻结的分层 Research Test Suite，并公布人工工时与编辑率。只有当报告满足内容合同，且每个决定性外部前提都有冻结 registry 内、经可回放 adapter 血统在本次交付、就地绑定、语义支持并符合来源角色要求的 span 时，该 check 才贡献得分。构题 witness 仅用于证明可答性，不是 URL 白名单；构建期未预选的在册证据也可以通过同一冻结、经校准的 matcher。正式主分是固定任务集上、经 fabricated-citation 任务级门控后的 DRA-GRC 均值；完整通过、三个引用可靠性比率、过程瓶颈、长报告质量、效率与反事实敏感性则独立审计。
 
 ### 25.3 与 LoHoSearch 的边界
 
 推荐明确写：
 
-> LoHoSearch demonstrates that a large corpus can be exhaustively represented at the structural graph level while semantic generation and verification remain local to sampled subgraphs. DRA adopts this layered engineering principle but targets a different object: multi-facet, citation-rich research reports rather than unique-entity answers. DRA therefore replaces global answer uniqueness with query–test alignment, task-scoped answerability, open evidence contracts, delivered-span auditing, and hierarchical grounded research coverage.
+> LoHoSearch demonstrates that a large corpus can be exhaustively represented at the structural graph level while semantic generation and verification remain local to sampled subgraphs. DRA adopts this layered engineering principle but targets a different object: multi-facet, citation-rich research reports rather than unique-entity answers. DRA therefore replaces global answer uniqueness with query–test alignment, task-scoped answerability, contract-admissible evidence, delivered-artifact lineage auditing, and hierarchical grounded research coverage.
 
 不能写“美团已经证明全量事实抽取可行”。LoHoSearch 全量构建的是 Wikipedia 页面、链接、类型和入度图；语义关系描述、query 生成、替代答案检查和人工审核都发生在局部子图或最终题目上。DRA 借鉴的是分层原则，不是唯一答案目标。
 
@@ -3099,12 +3287,13 @@ scorer_hash
 
 | 拟声称贡献 | 必须先完成的证据 |
 |---|---|
-| 全量冻结文档索引可复现 | V1/V2 World Index 双构建与 parser audit |
+| 全量冻结文档索引可复现 | V11 World Index 双构建与 parser audit |
 | Task-scoped semantics 足够支持正式题 | V12—V15 的召回、抽取、角色与冲突审计 |
 | Query 和 Research Tests 对齐 | V16—V18 的 round trip、deletion、answerability |
 | 不绑定构题 URL 路线 | held-out ARA/FRR、on-demand matcher、hard-negative FAR |
 | DRA-GRC 测到 grounded research breadth | 专家 pairwise 构念效度与旧公式对照 |
-| Observation ledger 能区分运行内证据 | adapter invariance、unobserved injection、instrumentation audit |
+| Observation ledger 能区分运行内证据 | V7/V20 adapter lineage、delivery-fidelity canary、unobserved injection |
+| Matcher 不会因新路线误拒或主题相关误收 | V5/V6/V22/V26/V27 的 ARA、FRR/FAR、repair 与 abstain-bait |
 | 反事实敏感性体现证据依赖 | paired repeated twin-world audit；只能称审计证书 |
 
 完成这些实验后，可以主张的实质贡献包括：
@@ -3112,10 +3301,11 @@ scorer_hash
 1. 冻结文档世界与任务局部语义编译的分层 DR 评测架构；
 2. 面向长报告的 facet → unit → check 分层 Grounded Research Coverage；
 3. 将 URL、实际交付、绑定、语义支持与来源角色下沉到每个得分 check；
-4. 将 answerability witness 与 admissible evidence 分离，使测试冻结而路线开放；
-5. 基于 observation ledger 的搜索—交付—利用—通过失败归因；
-6. 合法替代路线 FRR、未观察引用和 wrong binding 的专门校准；
-7. 冻结世界下的反事实证据依赖审计。
+4. 将 answerability witness 与 admissible evidence 分离，使测试冻结而新合格证据仍可接受，并如实标记 single-source checks；
+5. 基于 Observation Ledger v2 的 raw fetch—变换血统—交付—利用—通过失败归因；
+6. 合法替代证据 FRR、无效证据 FAR、TFRR、依赖级联 $\kappa_e$、未观察引用和 wrong binding 的专门校准；
+7. 在单一主排名中对 fabricated citation 实施任务级门，同时将模型输出失败与提交方篡改测量通道分界；
+8. 冻结世界下的反事实证据依赖审计。
 
 若要使用“首次”表述，仍需在投稿前做系统检索；当前设计文档不预先声称 absolute first。
 
@@ -3135,6 +3325,8 @@ scorer_hash
 - 高 $\kappa$ 已证明 benchmark 的全部效度；
 - 沙盒排名与开放网络排名必然相同。
 
+名称治理也必须写入项目页和论文：arXiv:2509.01396 已使用 **DeepResearch Arena** 名称并于 AAAI 2026 出版，因此我们对外首次出现时要用完整项目名与冻结沙盒定义消歧，不把“DRA”缩写本身当作独占名称贡献。
+
 ---
 
 ## 26. 最小可行实验
@@ -3148,12 +3340,13 @@ scorer_hash
 3. 建立 Task Candidate Pool，并输出各来源角色的饱和曲线；
 4. 抽取 task-local assertions、经验事件、机制、冲突与 unknown；
 5. 编译 facets、units、2—5 个 checks 及 applicability；
-6. 为每个 core check 保存至少一组 answerability witnesses；
-7. 实现 registry 新页面的 on-demand evidence matcher；
-8. 将 gpt-researcher 的 ledger 标准化为 delivered spans；
+6. 为每个 core check 保存至少一组 answerability witnesses，同时记录 known-support multiplicity 与 `single_source`；
+7. 实现 registry 新页面的 on-demand evidence matcher，包括 canonical batch、双 judge、PENDING 盲裁与 repair；
+8. 用 gpt-researcher 的真实 adapter 将 ledger 升级为 `raw_fetch_hash → transform_lineage → delivered_artifact_hash`；
 9. 评分英文报告，输出 DRA-GRC、Full Pass、integrity 和过程漏斗；
 10. 为每个 check 输出 report/evidence 摘录与失败码；
-11. 与旧公式和 Route Flexible 手工结果并排展示。
+11. 与旧公式和 Route Flexible 手工结果并排展示，但只把 v3.2 认定为候选正式协议；
+12. 运行 lineage smoke、mirror-corruption 与 abstain-bait，验证摘要限定词、repair 和固定分母状态机。
 
 一题只证明工程管道闭环，不能证明整个 benchmark 已有效。
 
@@ -3172,7 +3365,7 @@ scorer_hash
 - 至少一个需要区分来源角色的 check；
 - 至少一个条件、冲突或不确定性 check；
 - 至少一个连接用户场景的决策/教程输出；
-- 至少一个不用 known witness URL 的合法替代路线。
+- 对 multiplicity≥2 的 check 至少一个不用 known witness URL 的合法替代证据；对 `single_source` 不伪造第二路线。
 
 这一步专门验证 DRA 没有被音频购物题的结构绑住。
 
@@ -3193,7 +3386,11 @@ scorer_hash
 11. wrong binding；
 12. source-role misuse；
 13. scope overreach；
-14. 一份或多份自然 harness 报告。
+14. mediated summary 丢失 modality/限定词；
+15. canonical alias 误报与真 fabricated/off-world 对照；
+16. mirror-corruption 下的新合法证据；
+17. abstain-bait 新 span-contract 对；
+18. 一份或多份自然 harness 报告。
 
 两名标注者盲审全部 `(report span, check, evidence bundle)`，第三人只处理分歧。
 
@@ -3206,7 +3403,7 @@ scorer_hash
 - fact/URL dump 只能通过真正完成的局部，不会伪装成 DR；
 - 两条合法路线通过相同研究要求；
 - 未预选但合法的 registry 页面可通过 matcher；
-- fabricated、unobserved、unsupported、wrong-binding 和 role misuse 被正确区分；
+- fabricated、benchmark-side URL/canonical 错误、unobserved、unsupported、wrong-binding 和 role misuse 被正确区分；确认 fabricated 只使该任务正式分清零，misconduct 才取消 submission；
 - 腐蚀只影响依赖该证据的 checks；
 - 层级 split/merge 不导致明显分数漂移；
 - 每一分都能回溯到 report/evidence spans；
@@ -3226,8 +3423,11 @@ scorer_hash
 - alternative-route FRR 与 invalid-route FAR 有置信区间；
 - on-demand matcher 能接受新合法证据并拒绝困难负例；
 - 12 adapter 满足 observation protocol；
+- Ledger v2 血统可回放，abstractive delivery 的 capture/sufficiency 与 bounded-absence 限制已验收；
 - check granularity 稳定；
 - scorer–human 校准完成；
+- TFRR、$\kappa_e$、高重数证书抽审和 fabricated-citation 复核达到预注册门槛；
+- ValidityGate 与 CapacityGate 均通过，无 PENDING 进入发布；
 - Route S/G 分布差异已量化；
 - 版本、缓存与重算可复现。
 
@@ -3249,24 +3449,22 @@ $$
 
 ## 27. 最终建议
 
-1. 不再围绕 `0.39/0.28/0.33` 或 `Provenance^1.5` 调参；
-2. 冻结旧公式作为历史 baseline，保留 URL、Fact 和 observation 检测器，不保留旧主公式；
-3. 按 LoHoSearch 真正可借鉴的层次建设：全量廉价结构索引，局部任务语义，不做全库开放式事实抽取；
-4. 正式架构冻结为 `World Index → Task World Model → Research Test Suite → Execution Audit`；
-5. 将现有 evidence graph 降级为 query 构造与 answerability witness，不作为 agent 的标准路线；
-6. 从 query facets 编译 research units 和 executable checks，以层级等权 `DRA-GRC` 作为唯一主分；
-7. 原子真假只处于证据层；比较、机制、冲突、跨来源综合、约束连接、教程与推荐都进入正式 test family；
-8. 每一分都要求决定性外部前提通过 URL 在册、实际交付、就地绑定、语义支持与来源角色合同；
-9. known witnesses 不限制证据页面；运行时用冻结 on-demand matcher 接受 registry 中的新合法路线；
-10. 内容写到但无证据只进入 ContentBreadth，不进入 DRA-GRC；
-11. URL 真实性继续严格审计：局部 check 失败、记录完整性事件，正式结果 clean-first；
-12. Full Pass 与 Task Solve Rate 单列，用连续 DRA-GRC 表示广泛任务完成到了哪里；
-13. Research Quality Panel、成本、过程漏斗和反事实敏感性独立报告，不再乘成另一个 Truth；
-14. 12 harness 不是 gold 的生成器，只在 compiler 冻结后作为被评对象和压力测试；
-15. 人工投入用于 query/blueprint、compiler、answerability、替代路线与 scorer 校准，不是逐题从零写大 rubric；
-16. 用合法替代路线、证据腐蚀、困难负例、粒度不变性和专家排序共同证明构念有效；
-17. 先完成一题工程闭环，再覆盖三种 DR 任务、Dev-14、56 题，最后正式运行 12 harness；
-18. 发布主榜、逐题下钻、逐 check 证书、验证报告、datasheet、manifest 与版本治理规则。
+1. 停止为 `0.39/0.28/0.33`、`Provenance^1.5` 或新的报告级乘法调参；旧公式只作历史 baseline；
+2. 按 LoHoSearch 真正可借鉴的层次建设：全量廉价结构索引，局部任务语义，不做全库开放式事实抽取；
+3. 正式架构冻结为 `World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；
+4. 将 evidence graph 降级为 query 构造与 answerability witness，不作为 agent 必须复现的标准路线；同时不夸大“人人都有多路线”，公布 multiplicity 与 single-source 风险；
+5. 从 query facets 编译 research units 和 2—5 个 executable checks，以固定任务集上的 penalized mean `DRA-GRC` 作为唯一主排名；
+6. 原子真假只处于证据层；比较、机制、冲突、跨来源综合、历史综合、有界枚举/聚合、约束连接、教程与推荐都可进入正式 test family，但必须先过语料可答门；
+7. 每一分都要求决定性外部前提通过 URL 在册、本次交付、就地绑定、语义支持与来源角色合同；用 Ledger v2 保留 raw fetch 到 delivered artifact 的血统；
+8. known witnesses 不限制证据页面；运行时用冻结、经校准的 matcher 接受 registry 中的新合法证据；分歧进 PENDING 盲裁，新证据暴露 benchmark 错误则 repair；
+9. 内容写到但无证据只进入 ContentBreadth，不进入 DRA-GRC；
+10. URL 真实性继续进主分：确认 fabricated citation 使当题正式 GRC 清零，整个 harness 仍按 56 题均值排名；三个 integrity rate 强制同表；篡改测量通道才取消 submission；
+11. Full Pass 与 Task Solve Rate 单列，用连续 DRA-GRC 表示广泛任务完成到了哪里；Research Quality Panel、成本、过程漏斗和反事实敏感性独立报告，不合成 Overall；
+12. 12 harness 不是 gold 生成器；先用它们校验 adapter 语义与压力测评分器，冻结后才作为被评对象；新 benchmark 使用者无需先跑 12 个旧 harness 才能评分；
+13. 人工投入用于 query/blueprint、compiler、answerability、新证据裁决与 scorer 校准，不是逐题从零写大 rubric；必须公布工时、编辑率和致命错误率；
+14. 用合法替代证据、证据腐蚀、困难负例、lineage canary、mirror-corruption、abstain-bait、粒度不变性、TFRR/$\kappa_e$ 和专家排序共同证明构念有效；
+15. 先完成一题工程闭环，再覆盖三类 DR 方法学 MVP、Dev-14、双 ReleaseGate、56 题，最后正式运行 12 harness；任一 gate 未过不发榜；
+16. 发布唯一主榜、统计等效并列层、逐题下钻、逐 check/证据证书、验证报告、datasheet、manifest 与版本治理规则。
 
 最终，DRA 不试图回答一个过度承诺的问题：
 

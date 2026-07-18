@@ -1,0 +1,29 @@
+\begin{center}
+\begin{tikzpicture}[
+  state/.style={draw=DraBlue, rounded corners=3pt, thick, fill=DraLight,
+    align=center, text width=3.0cm, minimum height=0.9cm,
+    inner sep=4pt, font=\small},
+  terminal/.style={state, fill=DraBlue!13, very thick},
+  arrow/.style={-{Latex[length=2.1mm]}, thick, draw=DraBlue},
+  label/.style={font=\scriptsize, align=center, fill=white, inner sep=1.5pt}
+]
+\node[state] (compiled) at (0,3.0) {COMPILED};
+\node[state] (excluded) at (-4.6,1.35) {EXCLUDED\_BY\_\\DESIGN\\$a=0$，发布前冻结};
+\node[state] (scoring) at (0,1.35) {SCORING\\$a=1$};
+\node[state] (repair) at (5.0,1.35) {REPAIR\_\\TRIGGERED\\benchmark 合同/TWM 被反证};
+\node[terminal] (pass) at (-3.7,-1.0) {PASS\\$C=1\land E=1$};
+\node[terminal] (fail) at (0,-1.0) {FAIL\\内容或证据门失败};
+\node[state] (pending) at (3.2,-1.0) {PENDING\\matcher 分歧 / abstain};
+\node[terminal] (manifest) at (5.0,-3.35) {新 manifest\\统一重算受影响运行};
+
+\draw[arrow] (compiled) -- (excluded);
+\draw[arrow] (compiled) -- (scoring);
+\draw[arrow] (scoring) -- (pass);
+\draw[arrow] (scoring) -- (fail);
+\draw[arrow] (scoring) -- (pending);
+\draw[arrow] (scoring) -- (repair);
+\draw[arrow] (pending.west) -- node[label, midway, yshift=5pt]{盲裁拒绝} (fail.east);
+\draw[arrow] (pending.south west) to[out=-135,in=-45] node[label, midway]{盲裁通过} (pass.south east);
+\draw[arrow] (repair) -- (manifest);
+\end{tikzpicture}
+\end{center}

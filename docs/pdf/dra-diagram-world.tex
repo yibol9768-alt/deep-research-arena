@@ -1,0 +1,42 @@
+\begin{center}
+\begin{tikzpicture}[
+  box/.style={draw=DraBlue, rounded corners=3pt, very thick, fill=DraLight,
+    align=center, text width=3.55cm, minimum height=1.05cm,
+    inner sep=4pt, font=\small},
+  compact/.style={box, text width=3.15cm},
+  output/.style={box, fill=DraBlue!13, text width=3.25cm},
+  arrow/.style={-{Latex[length=2.2mm]}, very thick, draw=DraBlue},
+  audit/.style={arrow, dashed, draw=DraGray}
+]
+\node[box] (sandbox) at (-5.2,2.5) {冻结网页沙盒\\URL、快照、页面结构};
+\node[box] (index) at (0,2.5) {World Index\\全量解析、链接、结构字段、检索索引};
+\node[box] (pool) at (5.2,2.5) {Task Candidate Pool\\混合召回、来源配额、有限链接扩展};
+\node[box] (query) at (-5.2,0.55) {Query / Case Blueprint\\用户约束、facets、输出需求};
+\node[box] (world) at (0,0.55) {Task World Model\\局部 assertion、经验、机制与冲突};
+\node[box] (compiler) at (5.2,0.55) {Research Test Compiler\\facet $\rightarrow$ unit $\rightarrow$ checks};
+\node[box] (suite) at (5.2,-1.4) {Research Test Suite\\证据合同 + 冻结 premise DAG + witnesses};
+
+\node[box] (harness) at (-5.2,-3.45) {任意新旧 Harness};
+\node[compact] (ledger) at (-0.9,-2.65) {Observation Ledger v2\\raw fetch $\rightarrow$ lineage $\rightarrow$ delivered artifact};
+\node[compact] (report) at (-0.9,-4.25) {Final Report\\内容、主张与就地引用};
+\node[box] (runner) at (4.25,-3.45) {Grounded Research\\Runner};
+\node[output] (score) at (2.25,-5.45) {唯一主分\\固定任务集 penalized mean DRA-GRC};
+\node[output] (diag) at (6.25,-5.45) {独立诊断\\Full Pass、URL、漏斗、质量、成本};
+
+\draw[arrow] (sandbox) -- (index);
+\draw[arrow] (index) -- (pool);
+\draw[arrow] (query.north east) to[out=25,in=205] (pool.south west);
+\draw[arrow] (pool) -- (world);
+\draw[arrow] (query.south) -- ++(0,-0.55) -- (3.25,-0.55) -- (compiler.west);
+\draw[arrow] (world) -- (compiler);
+\draw[arrow] (compiler) -- (suite);
+\draw[arrow] (harness) -- (ledger);
+\draw[arrow] (harness) -- (report);
+\draw[arrow] (ledger) -- (runner);
+\draw[arrow] (report) -- (runner);
+\draw[arrow] (suite) -- (runner);
+\draw[audit] (world.south east) to[out=-55,in=135] (runner.north west);
+\draw[arrow] (runner) -- (score);
+\draw[arrow] (runner) -- (diag);
+\end{tikzpicture}
+\end{center}

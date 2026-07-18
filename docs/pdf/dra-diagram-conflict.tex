@@ -1,0 +1,21 @@
+\begin{center}
+\begin{tikzpicture}[
+  box/.style={draw=DraBlue, rounded corners=3pt, thick, fill=DraLight,
+    align=center, text width=4.0cm, minimum height=1.0cm,
+    inner sep=5pt, font=\small},
+  claim/.style={box, fill=DraBlue!12, very thick, text width=4.5cm},
+  contract/.style={box, fill=DraBlue!18, very thick, text width=4.5cm},
+  arrow/.style={-{Latex[length=2.2mm]}, thick, draw=DraBlue},
+  label/.style={fill=white, inner sep=1.2pt, font=\scriptsize}
+]
+\node[claim] (claim) at (0,0) {研究问题\\眼镜是否影响耳罩密封};
+\node[box] (tech) at (-5.2,2.1) {技术机制\\旁路泄漏可能降低被动密封};
+\node[box] (user) at (-5.2,0) {同场景长期飞行用户报告};
+\node[box] (counter) at (-5.2,-2.1) {另一型号用户未遇到问题};
+\node[contract] (out) at (5.2,0) {研究合同\\表达条件、异质性与不确定性};
+\draw[arrow] (tech) -- node[label, above, sloped, pos=.45]{supports mechanism} (claim);
+\draw[arrow] (user) -- node[label, above, pos=.43]{conditional experience} (claim);
+\draw[arrow] (counter) -- node[label, below, sloped, pos=.45]{heterogeneous counterexample} (claim);
+\draw[arrow] (claim) -- (out);
+\end{tikzpicture}
+\end{center}
