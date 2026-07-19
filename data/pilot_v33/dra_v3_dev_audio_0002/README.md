@@ -26,6 +26,7 @@ PYTHONPATH=. python3 scripts/score_sandbox_native_grc.py \
   --pretty
 ```
 
-The controlled judgments are construction-known test labels. The real-run
-judgment is manual and has `formal_eligible=false`; it demonstrates replay, not
-leaderboard validity.
+The construction judgments are known test labels. A second oracle replay and
+the real report are judged by the deterministic TWM-backed mock evaluator. Its
+outputs have `formal_eligible=false`: they demonstrate the complete automated
+World Model path, not leaderboard validity.

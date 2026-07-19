@@ -6,7 +6,11 @@ import subprocess
 import sys
 
 from src.eval.observation_ledger import load_observation_ledger
-from src.eval.sandbox_native_grc import score_grounded_research_coverage
+from src.eval.sandbox_native_grc import (
+    canonical_sha256,
+    score_grounded_research_coverage,
+)
+from src.eval.twm_mock_evaluator import evaluate_report_with_twm_mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +58,42 @@ def test_compiled_suite_has_balanced_hierarchy_and_no_url_allowlist() -> None:
     assert "acceptable_conclusions" not in json.dumps(suite)
 
 
+def test_task_world_model_is_rebuilt_from_frozen_page_bodies() -> None:
+    structural = _json(BASE / "world-index-structural.json")
+    world = _json(BASE / "world-index.json")
+    twm = _json(BASE / "task-world-model.json")
+    assert all(not page["spans"] for page in structural["pages"])
+    assert structural["compiler"]["legacy_support_spans_imported"] is False
+    assert twm["builder"]["legacy_case_facts_used"] is False
+    assert twm["builder"]["legacy_support_spans_used"] is False
+    assert twm["world_sha256"] == canonical_sha256(world)
+    assert len(twm["assertions"]) == 15
+    assert len(twm["relations"]) == 6
+    assertion_ids = {row["assertion_id"] for row in twm["assertions"]}
+    traces = twm["extraction_trace"]
+    assert len(traces) == 19
+    assert {row["span_id"] for row in traces} == {
+        span["span_id"]
+        for page in world["pages"]
+        for span in page["spans"]
+    }
+    assert all(row["span_id"].startswith("twm_") for row in traces)
+    assert all(set(row["assertion_ids"]) <= assertion_ids for row in traces)
+    page_by_url = {page["canonical_url"]: page for page in world["pages"]}
+    span_by_id = {
+        span["span_id"]: span
+        for page in world["pages"]
+        for span in page["spans"]
+    }
+    for trace in traces:
+        page = page_by_url[trace["canonical_url"]]
+        body = (ROOT / page["content_blob_ref"]).read_bytes()
+        span = span_by_id[trace["span_id"]]
+        extracted = body[trace["byte_start"] : trace["byte_end"]]
+        assert extracted.decode("utf-8") == span["text"]
+        assert trace["match_cardinality"] == 1
+
+
 def test_reference_and_bounded_search_routes_are_equivalent() -> None:
     reference = _replay("oracle_reference")
     alternative = _replay("oracle_alternative")
@@ -63,6 +103,16 @@ def test_reference_and_bounded_search_routes_are_equivalent() -> None:
     assert next(route for route in community["routes"] if route["passed"])[
         "route_id"
     ] == "bounded_search"
+
+
+def test_twm_mock_recovers_the_construction_known_oracle() -> None:
+    result = _replay("twm_mock_oracle")
+    judgment = _json(BASE / "controlled/judgments/twm_mock_oracle.json")
+    assert judgment["evaluator"]["provider"] == "twm_backed_mock_evaluator"
+    assert judgment["evaluator"]["formal_eligible"] is False
+    assert result["raw_grc"] == 1.0
+    assert result["passed_checks"] == result["applicable_checks"] == 25
+    assert result["full_pass"] == 1
 
 
 def test_null_url_dump_and_fluent_unsupported_have_zero_grc() -> None:
@@ -139,7 +189,18 @@ def test_real_report_replays_as_partial_and_ineligible() -> None:
     world = _json(BASE / "world-index.json")
     report = (BASE / "real_run/report.md").read_text(encoding="utf-8")
     ledger = load_observation_ledger(BASE / "real_run/observation-ledger-projection.json")
-    judgment = _json(BASE / "real_run/judgment-manual.json")
+    twm = _json(BASE / "task-world-model.json")
+    judgment = _json(BASE / "real_run/judgment-twm-mock.json")
+    recomputed = evaluate_report_with_twm_mock(
+        suite=suite,
+        world=world,
+        twm=twm,
+        report=report,
+        ledger=ledger,
+    )
+    assert recomputed == judgment
+    assert judgment["evaluator"]["provider"] == "twm_backed_mock_evaluator"
+    assert judgment["seals"]["task_world_model_sha256"] == canonical_sha256(twm)
     result = score_grounded_research_coverage(
         suite=suite,
         world=world,
@@ -150,10 +211,20 @@ def test_real_report_replays_as_partial_and_ineligible() -> None:
     assert result["passed_checks"] == 6
     assert result["applicable_checks"] == 25
     assert result["raw_grc"] == 0.19166666666666665
-    assert result["content_breadth"] == 0.6333333333333333
+    assert result["content_breadth"] == 0.6583333333333333
     assert result["full_pass"] == 0
     assert result["formal_eligible"] is False
     assert result["integrity"]["fabricated_urls"] == []
+
+
+def test_real_report_does_not_use_a_hidden_manual_verdict_table() -> None:
+    source = (ROOT / "scripts/run_audio_0002_sandbox_native_slice.py").read_text(
+        encoding="utf-8"
+    )
+    assert "REAL_CONTENT_LABELS" not in source
+    assert "REAL_ORTIZAN_SUPPORT" not in source
+    assert "real_run_judgment" not in source
+    assert not (BASE / "real_run/judgment-manual.json").exists()
 
 
 def test_experiment_summary_has_no_pending_controlled_case() -> None:

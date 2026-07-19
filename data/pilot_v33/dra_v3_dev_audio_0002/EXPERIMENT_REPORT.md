@@ -1,25 +1,35 @@
 # `dra_v3_dev_audio_0002` 沙盒原生评分纵向实验
 
-> 状态：development-only。受控报告的语义标签由构造已知；真实旧报告使用人工 pilot 判断，因此不能进入正式榜单。
+> 状态：development-only。受控基线的语义标签由构造已知；真实旧报告由 TWM-backed deterministic mock 自动判断。mock 尚未经过人工校准，因此不能进入正式榜单。
 
 ## 本次真正跑通的链路
 
 ```text
-冻结 task / case / graph / run
-  -> 轻量 Task World Index
-  -> Task World Model
+冻结 task / graph / page bodies / run
+  -> 轻量 structural World Index（不导入旧答案 span）
+  -> 从冻结正文确定性抽取 task-local spans
+  -> Task World Model（assertions + conflicts + bounded unknowns）
   -> 5 facets / 8 units / 25 checks 的 Research Test Suite
-  -> report + observation ledger + sealed semantic judgment
+  -> report + observation ledger + sealed TWM-backed mock judgment
   -> ContentBreadth / Raw GRC / Official GRC / Full Pass / URL 与证据诊断
 ```
 
 每个 check 只有在内容合同满足，并且至少一条完整、连贯的证据路线全部通过时才得分。不同路线之间不能逐前提拼接。构题 witness 只证明可答，不是 URL 白名单。
+
+## 这次重构的边界
+
+- World Index 只从 registry 和冻结正文建立，明确不导入旧 case facts 与旧 `support_spans.jsonl`。
+- TWM builder 用 19 条可审计的唯一字节匹配规则，从冻结正文重新抽取 task-local spans；每条都记录页面哈希、字节偏移、规则哈希和唯一命中数。
+- 15 条 assertion 的语义表述仍属于单题 compiler 模板，不宣称已经实现跨 56 题的自动事实归纳。
+- 真实报告的 25 项 verdict 不再由人工表填写，而由 suite 内冻结的 regex 合同自动生成；这是可替换的 mock，不是经过人类校准的正式 judge。
+- 引用是否在册、是否本次观察、是否就地绑定、页面角色与 span/certificate 是否有效，仍由确定性 scorer 独立复核，mock 不能自行加分。
 
 ## 受控实验结果
 
 | 场景 | ContentBreadth | Raw GRC | Official GRC | Full Pass | 说明 |
 |---|---:|---:|---:|---:|---|
 | `oracle_reference` | 1.000 | 1.000 | 1.000 | 1 | 已知论坛 witness 路线 |
+| `twm_mock_oracle` | 1.000 | 1.000 | 1.000 | 1 | 同一 oracle 由 TWM-backed mock 自动判定 |
 | `oracle_alternative` | 1.000 | 1.000 | 1.000 | 1 | 有界搜索替代路线 |
 | `null` | 0.000 | 0.000 | 0.000 | 0 | 空报告 |
 | `url_dump` | 0.000 | 0.000 | 0.000 | 0 | 只有链接，没有研究内容 |
@@ -35,7 +45,7 @@
 
 | 指标 | 结果 |
 |---|---:|
-| ContentBreadth | 0.633 |
+| ContentBreadth | 0.658 |
 | Raw GRC | 0.192 |
 | Official GRC | 0.192 |
 | Grounded checks | 6/25 |
@@ -43,13 +53,14 @@
 | Fabricated URL | 0 |
 | Formal eligible | false |
 
-这个结果不再是旧固定路线的 0/15，也不会因为报告写得流畅就抬高证据分。它保留了报告确实从 Ortizan 商品页完成的局部研究，同时把 Soundcore 无 URL、技术页无引用、论坛范围过度概括、THD 条件过推和推荐依赖失败逐项暴露出来。
+这个结果不再来自人工填写的 25 项 verdict，也不是旧固定路线的 0/15。它由冻结的页面正文重构 TWM 后自动得到：报告确实从 Ortizan 商品页完成的局部研究被保留；Soundcore 无 URL、技术页无引用、论坛范围过度概括、THD 条件过推和推荐依赖失败则被逐项暴露。
 
 ## 验收门
 
 | 验收项 | 结果 |
 |---|:---:|
 | `oracle_full_pass` | PASS |
+| `twm_mock_recovers_oracle` | PASS |
 | `null_floor` | PASS |
 | `url_dump_floor` | PASS |
 | `fluent_unsupported_separation` | PASS |
@@ -66,7 +77,7 @@
 ## 仍未被这一个样例证明的内容
 
 - 25 个 checks 是否代表跨题通用 compiler 的稳定输出，仍需 Dev-14 的双人校准与编辑率统计。
-- 真实报告的语义判断尚未通过冻结双 judge 与人工金标校准；当前只证明了确定性执行与回放层。
+- TWM-backed mock 的 regex 合同尚未通过双人金标、替代表述集和腐蚀集校准；当前只证明世界模型到评分器的自动闭环，不证明正式语义判定精度。
 - 真实运行使用的是两页候选商品 fetch 的评分投影，不能用来评价完整搜索 API 召回或整个 harness 的检索效率。
 - Observation Ledger v2 的 raw fetch 到 model-delivered artifact 血统仍需在 12 个 adapter 上逐一做 canary。
 

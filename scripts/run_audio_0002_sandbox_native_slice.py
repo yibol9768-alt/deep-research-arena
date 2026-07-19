@@ -8,8 +8,8 @@ judgments, and scores one previously captured GPT-Researcher report.
 
 This is a development measurement slice, not a formal leaderboard release.
 The controlled fixtures have construction-known semantic labels.  The real
-report uses a transparent manual pilot judgment and is stamped ineligible for
-formal ranking.
+report is judged by a deterministic Task-World-Model-backed mock evaluator and
+is stamped ineligible for formal ranking until that evaluator is calibrated.
 """
 
 from __future__ import annotations
@@ -37,6 +37,7 @@ from src.eval.sandbox_native_grc import (
     validate_suite,
     validate_world_index,
 )
+from src.eval.twm_mock_evaluator import evaluate_report_with_twm_mock
 
 
 TASK_ID = "dra_v3_dev_audio_0002"
@@ -85,6 +86,180 @@ SEARCH_CAPTURE_URL = (
 )
 
 
+TASK_SPAN_SPECS: list[dict[str, Any]] = [
+    {
+        "span_id": "twm_flare_price",
+        "url": FLARE_URL,
+        "needle": "In stock SKU B0867KYSRC Rating: 72 % of 100 12 Reviews Add Your Review $53.49",
+        "assertion_ids": ["F1"],
+    },
+    {
+        "span_id": "twm_ortizan_price",
+        "url": ORTIZAN_URL,
+        "needle": "In stock SKU B08KCX841R Rating: 77 % of 100 12 Reviews Add Your Review $57.99",
+        "assertion_ids": ["F2"],
+    },
+    {
+        "span_id": "twm_flare_output_thd",
+        "url": FLARE_URL,
+        "needle": (
+            "Audio Output: 20W (10W × 2) Battery Capacity: 5200mAh Charge Time: "
+            "3.5 hrs at 5V/2A Bluetooth Frequency Range: 2400 - 2485MHz Sound "
+            "Frequency Range: 73Hz ~ 20kHz(-3dB) THD+N: <1%"
+        ),
+        "assertion_ids": ["F3", "F4"],
+    },
+    {
+        "span_id": "twm_ortizan_output_distortion",
+        "url": ORTIZAN_URL,
+        "needle": (
+            "【40W Powerful Sound and Patented DSP Algorithm Technology】: Built "
+            "with 2 x 20W Max speaker, Ortizan bluetooth speaker provides crystal "
+            "clear sound and powerful bass without distortion even at maximum "
+            "volume. 20Hz-16000Hz Frequency range to provide excellent stereo "
+            "sound. And the dual passive radiators provide premium deep bass."
+        ),
+        "assertion_ids": ["F5"],
+    },
+    {
+        "span_id": "twm_flare_design",
+        "url": FLARE_URL,
+        "needle": (
+            "360° Sound: Dual drivers and passive radiators combine to provide "
+            "20W of sound in all directions."
+        ),
+        "assertion_ids": ["F14"],
+    },
+    {
+        "span_id": "twm_ortizan_design",
+        "url": ORTIZAN_URL,
+        "start_marker": "A huge 40W of sound delivered by dual high-performance drivers and thumping bass radiators.",
+        "end_marker": "You will like Ortizan’s true 360° stereo sound portable wireless speakers.",
+        "assertion_ids": ["F15"],
+    },
+    {
+        "span_id": "twm_flare_water",
+        "url": FLARE_URL,
+        "needle": (
+            "IPX7 Waterproof: Complete waterproof protection makes Flare 2 ideal "
+            "for beach and pool parties."
+        ),
+        "assertion_ids": ["F6"],
+    },
+    {
+        "span_id": "twm_ortizan_water",
+        "url": ORTIZAN_URL,
+        "needle": (
+            "【IPX7 Waterproof Speaker】: Bluetooth speaker with IPX7 water "
+            "resistance technology uses unbreakable TPU silicone material, perfect "
+            "for pool party, travel."
+        ),
+        "assertion_ids": ["F6"],
+    },
+    {
+        "span_id": "twm_flare_battery",
+        "url": FLARE_URL,
+        "needle": "Note: Playback volume, lights, and BassUp will affect playtime.",
+        "assertion_ids": ["F8"],
+    },
+    {
+        "span_id": "twm_ortizan_battery",
+        "url": ORTIZAN_URL,
+        "needle": (
+            "15H Playing Time The bluetooth speaker with large capacity battery, "
+            "One full charge lets you play music for up to 15 hours(Playtime "
+            "varies according to volume level and audio content)."
+        ),
+        "assertion_ids": ["F9"],
+    },
+    {
+        "span_id": "twm_audio_power_context",
+        "url": AUDIO_POWER_URL,
+        "start_marker": (
+            "Audio power is the electrical power transferred from an audio amplifier "
+            "to a loudspeaker , measured in watts ."
+        ),
+        "end_marker": (
+            "loudspeakers are limited in the electrical power they can convert to "
+            "sound power without being damaged or distorting the audio signal."
+        ),
+        "assertion_ids": ["F13"],
+    },
+    {
+        "span_id": "twm_audio_power_distortion_condition",
+        "url": AUDIO_POWER_URL,
+        "needle": (
+            "Considerably more power can be delivered if distortion is allowed to "
+            "increase; some manufacturers quote maximum power at a higher "
+            "distortion, like 10%, making their equipment appear more powerful."
+        ),
+        "assertion_ids": ["F13"],
+    },
+    {
+        "span_id": "twm_acoustic_dimensions",
+        "url": LOUDSPEAKER_URL,
+        "start_marker": "Important driver characteristics are:",
+        "end_marker": "Colouration (i.e., more or less, delayed resonance ).",
+        "assertion_ids": ["F11", "F13"],
+    },
+    {
+        "span_id": "twm_room_interaction",
+        "url": LOUDSPEAKER_URL,
+        "needle": (
+            "It is the performance of a loudspeaker/listening room combination "
+            "that really matters, as the two interact in multiple ways."
+        ),
+        "assertion_ids": ["F11"],
+    },
+    {
+        "span_id": "twm_passive_mechanism",
+        "url": PASSIVE_URL,
+        "start_marker": "A speaker enclosure using a passive radiator usually contains",
+        "end_marker": (
+            "makes it easier for the speaker system to create the deepest pitches "
+            "(e.g., basslines )."
+        ),
+        "assertion_ids": ["F10"],
+    },
+    {
+        "span_id": "twm_ip_x_scope",
+        "url": IPX7_URL,
+        "needle": (
+            "The digit is replaced with the letter X when insufficient data has "
+            "been gathered to assign a protection level."
+        ),
+        "assertion_ids": ["F7"],
+    },
+    {
+        "span_id": "twm_ipx7_test",
+        "url": IPX7_URL,
+        "start_marker": "7 Immersion, up to 1 meter (3\u00a0ft 3\u00a0in) depth",
+        "end_marker": "Test duration: 30\u00a0minutes.",
+        "assertion_ids": ["F7"],
+    },
+    {
+        "span_id": "twm_codec_forum_scope",
+        "url": CODEC_FORUM_URL,
+        "needle": (
+            "How were your assessments of which codec sounds better made, exactly? "
+            "Did you conduct any controlled testing, or were you just basing them "
+            "on the assumption that high bitrate = sounds better?"
+        ),
+        "assertion_ids": ["F12"],
+    },
+    {
+        "span_id": "twm_preference_forum_scope",
+        "url": PREFERENCE_FORUM_URL,
+        "needle": (
+            "I got an old pair of Bose Quiet Comfort 35 ii, audio technica "
+            "ath-m50x, and just standard airpod gen 2. All 3 cant compare to my "
+            "Tribit X Sound Go."
+        ),
+        "assertion_ids": ["F12"],
+    },
+]
+
+
 def _read_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -118,17 +293,6 @@ def _source_roles(source_type: str) -> list[str]:
 
 def compile_world_index() -> dict[str, Any]:
     registry = _read_json(SOURCE_GRAPH / "corpus_registry.json")
-    support_rows = [
-        json.loads(line)
-        for line in (SOURCE_GRAPH / "support_spans.jsonl")
-        .read_text(encoding="utf-8")
-        .splitlines()
-        if line.strip()
-    ]
-    spans_by_url: dict[str, list[dict[str, Any]]] = {}
-    for row in support_rows:
-        spans_by_url.setdefault(str(row["source_url"]), []).append(row)
-
     pages: list[dict[str, Any]] = []
     for entry in registry["entries"]:
         digest = str(entry["content_sha256"])
@@ -136,26 +300,6 @@ def compile_world_index() -> dict[str, Any]:
         body_bytes = blob_path.read_bytes()
         if sha256(body_bytes).hexdigest() != digest:
             raise RuntimeError(f"source graph blob hash mismatch: {digest}")
-        spans: list[dict[str, Any]] = []
-        for raw in sorted(
-            spans_by_url.get(str(entry["source_url"]), []),
-            key=lambda row: (row["start"], row["end"], row["support_span_id"]),
-        ):
-            span_bytes = body_bytes[int(raw["start"]) : int(raw["end"])]
-            text = span_bytes.decode("utf-8")
-            if sha256(span_bytes).hexdigest() != raw["sha256"]:
-                raise RuntimeError(f"support span hash mismatch: {raw['support_span_id']}")
-            spans.append(
-                {
-                    "span_id": raw["support_span_id"],
-                    "byte_start": raw["start"],
-                    "byte_end": raw["end"],
-                    "text": text,
-                    "text_sha256": raw["sha256"],
-                    "support_type": raw.get("support_type", "body"),
-                    "evidence_id": raw.get("evidence_id"),
-                }
-            )
         pages.append(
             {
                 "page_id": entry["registry_id"],
@@ -166,7 +310,7 @@ def compile_world_index() -> dict[str, Any]:
                 ),
                 "source_family": entry["source_type"],
                 "source_roles": _source_roles(str(entry["source_type"])),
-                "spans": spans,
+                "spans": [],
             }
         )
     pages.sort(key=lambda row: row["canonical_url"])
@@ -178,14 +322,81 @@ def compile_world_index() -> dict[str, Any]:
         "registry_sha256": manifest["corpus_registry_hash"],
         "compiler": {
             "name": "audio_0002_world_index_compiler",
-            "version": "v1",
+            "version": "v2",
             "semantic_extraction": False,
+            "legacy_support_spans_imported": False,
         },
         "registry_urls": sorted(entry["source_url"] for entry in registry["entries"]),
         "pages": pages,
     }
     validate_world_index(world)
     return world
+
+
+def _extract_task_span(
+    *, page: dict[str, Any], spec: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    body_path = ROOT / str(page["content_blob_ref"])
+    body_bytes = body_path.read_bytes()
+    if sha256(body_bytes).hexdigest() != page["content_sha256"]:
+        raise RuntimeError(f"page changed during TWM extraction: {page['canonical_url']}")
+
+    if "needle" in spec:
+        span_bytes = str(spec["needle"]).encode("utf-8")
+        start = body_bytes.find(span_bytes)
+        if start < 0 or body_bytes.find(span_bytes, start + 1) >= 0:
+            raise RuntimeError(
+                f"{spec['span_id']}: exact extraction must have one match"
+            )
+        end = start + len(span_bytes)
+        rule_kind = "unique_exact_bytes"
+        rule_material = str(spec["needle"])
+    else:
+        start_marker = str(spec["start_marker"]).encode("utf-8")
+        end_marker = str(spec["end_marker"]).encode("utf-8")
+        start = body_bytes.find(start_marker)
+        if start < 0 or body_bytes.find(start_marker, start + 1) >= 0:
+            raise RuntimeError(
+                f"{spec['span_id']}: start marker must have one match"
+            )
+        end_marker_start = body_bytes.find(end_marker, start + len(start_marker))
+        if end_marker_start < 0:
+            raise RuntimeError(f"{spec['span_id']}: end marker not found")
+        if body_bytes.find(end_marker, end_marker_start + 1) >= 0:
+            raise RuntimeError(
+                f"{spec['span_id']}: end marker must have one downstream match"
+            )
+        end = end_marker_start + len(end_marker)
+        span_bytes = body_bytes[start:end]
+        rule_kind = "unique_bounded_bytes"
+        rule_material = f"{spec['start_marker']}\n---END---\n{spec['end_marker']}"
+
+    text = span_bytes.decode("utf-8")
+    rule_id = f"extract_{spec['span_id']}_v1"
+    row = {
+        "span_id": spec["span_id"],
+        "byte_start": start,
+        "byte_end": end,
+        "text": text,
+        "text_sha256": sha256(span_bytes).hexdigest(),
+        "support_type": "task_world_model_extraction",
+        "assertion_ids": list(spec["assertion_ids"]),
+        "extractor_rule_id": rule_id,
+    }
+    trace = {
+        "rule_id": rule_id,
+        "rule_kind": rule_kind,
+        "span_id": spec["span_id"],
+        "canonical_url": page["canonical_url"],
+        "page_content_sha256": page["content_sha256"],
+        "rule_material_sha256": sha256(rule_material.encode("utf-8")).hexdigest(),
+        "byte_start": start,
+        "byte_end": end,
+        "extracted_text_sha256": row["text_sha256"],
+        "match_cardinality": 1,
+        "assertion_ids": list(spec["assertion_ids"]),
+    }
+    return row, trace
 
 
 def build_task_contract(task: dict[str, Any]) -> dict[str, Any]:
@@ -219,72 +430,140 @@ def build_task_contract(task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_task_world_model(case: dict[str, Any], world: dict[str, Any]) -> dict[str, Any]:
-    source_by_id = {row["evidence_id"]: row for row in case["evidence_sources"]}
+def build_task_world_model(
+    structural_world: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    world = deepcopy(structural_world)
+    page_by_url = {page["canonical_url"]: page for page in world["pages"]}
+    extraction_trace: list[dict[str, Any]] = []
+    for spec in TASK_SPAN_SPECS:
+        page = page_by_url.get(str(spec["url"]))
+        if page is None:
+            raise RuntimeError(f"TWM extraction URL is outside the world: {spec['url']}")
+        span, trace = _extract_task_span(page=page, spec=spec)
+        page["spans"].append(span)
+        extraction_trace.append(trace)
+    for page in world["pages"]:
+        page["spans"].sort(key=lambda row: (row["byte_start"], row["span_id"]))
+    world["compiler"]["task_local_semantic_extraction"] = {
+        "name": "audio_0002_twm_span_builder",
+        "version": "v1",
+        "span_count": len(extraction_trace),
+        "source": "frozen_page_content_blob_ref",
+    }
+    validate_world_index(world)
 
     def assertion(
         assertion_id: str,
         statement: str,
         modality: str,
-        source_id: str,
+        source_url: str,
         spans: list[str],
         *,
         limitations: list[str] | None = None,
     ) -> dict[str, Any]:
-        source = source_by_id[source_id]
+        page = page_by_url[source_url]
         return {
             "assertion_id": assertion_id,
             "statement": statement,
             "modality": modality,
-            "source_role": _source_roles(source["source_type"])[0],
+            "source_role": page["source_roles"][0],
             "known_support_span_ids": spans,
-            "answerability_witness_urls": [source["source_url"]],
+            "answerability_witness_urls": [source_url],
             "limitations": limitations or [],
-            "verification_status": "pilot_reviewed",
+            "verification_status": "deterministically_extracted_from_frozen_page",
         }
 
     assertions = [
-        assertion("F1", "Soundcore Flare 2 is listed at USD 53.49.", "retailer_claim", "ev_soundcore_flare2_profile", ["span_soundcore_price"]),
-        assertion("F2", "Ortizan 40W is listed at USD 57.99.", "retailer_claim", "ev_ortizan_40w_profile", ["span_ortizan_price"]),
-        assertion("F3", "Soundcore lists 20 W as two 10 W channels.", "retailer_claim", "ev_soundcore_flare2_profile", ["span_soundcore_output_thd"]),
-        assertion("F4", "Soundcore lists THD+N below 1 percent, without a captured test condition.", "retailer_claim", "ev_soundcore_flare2_profile", ["span_soundcore_output_thd"], limitations=["test condition absent from captured listing"]),
-        assertion("F5", "Ortizan lists two 20 W Max channels and qualitative distortion-free-at-maximum wording.", "retailer_claim", "ev_ortizan_40w_profile", ["span_ortizan_max_distortion_claim"], limitations=["no continuous-power basis or quantitative distortion condition"]),
+        assertion("F1", "Soundcore Flare 2 is listed at USD 53.49.", "retailer_claim", FLARE_URL, ["twm_flare_price"]),
+        assertion("F2", "Ortizan 40W is listed at USD 57.99.", "retailer_claim", ORTIZAN_URL, ["twm_ortizan_price"]),
+        assertion("F3", "Soundcore lists 20 W as two 10 W channels.", "retailer_claim", FLARE_URL, ["twm_flare_output_thd"]),
+        assertion("F4", "Soundcore lists THD+N below 1 percent, without a captured test condition.", "retailer_claim", FLARE_URL, ["twm_flare_output_thd"], limitations=["test condition absent from the complete frozen listing"]),
+        assertion("F5", "Ortizan lists two 20 W Max channels and qualitative distortion-free-at-maximum wording.", "retailer_claim", ORTIZAN_URL, ["twm_ortizan_output_distortion"], limitations=["no continuous-power basis or quantitative distortion condition"]),
         {
             "assertion_id": "F6",
             "statement": "Both product listings claim IPX7.",
             "modality": "retailer_claim",
             "source_role": "product_primary",
-            "known_support_span_ids": ["span_soundcore_ipx7", "span_ortizan_ipx7"],
+            "known_support_span_ids": ["twm_flare_water", "twm_ortizan_water"],
             "answerability_witness_urls": [FLARE_URL, ORTIZAN_URL],
             "limitations": ["seller declarations, not independent water validation"],
-            "verification_status": "pilot_reviewed",
+            "verification_status": "deterministically_extracted_from_frozen_page",
         },
-        assertion("F7", "IPX7 is a bounded temporary-immersion classification and X assigns no particulate rating.", "technical_scope", "prop_ipx7_scope", ["span_prop_ip_x", "span_prop_ipx7_test"]),
-        assertion("F8", "Soundcore claims 12-hour playback and says volume, lights, and BassUp affect it.", "retailer_claim", "ev_soundcore_flare2_profile", ["span_soundcore_battery_caveat"]),
-        assertion("F9", "Ortizan claims up to 15 hours and says volume and content affect it.", "retailer_claim", "ev_ortizan_40w_profile", ["span_ortizan_battery"]),
-        assertion("F10", "A passive radiator is a real enclosure mechanism but is not by itself a bass-quality measurement.", "mechanism_explanation", "prop_passive_radiator", ["span_prop_passive_structure", "span_prop_passive_bass"]),
-        assertion("F11", "A 360-degree label alone does not demonstrate uniform off-axis performance or sound quality.", "mechanism_explanation", "prop_dispersion_quality", ["span_prop_driver_characteristics", "span_prop_room_interaction"]),
+        assertion("F7", "IPX7 is a bounded temporary-immersion classification and X assigns no particulate rating.", "technical_scope", IPX7_URL, ["twm_ip_x_scope", "twm_ipx7_test"]),
+        assertion("F8", "Soundcore claims 12-hour playback and says volume, lights, and BassUp affect it.", "retailer_claim", FLARE_URL, ["twm_flare_battery"]),
+        assertion("F9", "Ortizan claims up to 15 hours and says volume and content affect it.", "retailer_claim", ORTIZAN_URL, ["twm_ortizan_battery"]),
+        assertion("F10", "A passive radiator is a real enclosure mechanism but is not by itself a bass-quality measurement.", "mechanism_explanation", PASSIVE_URL, ["twm_passive_mechanism"]),
+        assertion("F11", "A 360-degree label alone does not demonstrate uniform off-axis performance or sound quality.", "mechanism_explanation", LOUDSPEAKER_URL, ["twm_acoustic_dimensions", "twm_room_interaction"]),
         {
             "assertion_id": "F12",
             "statement": "The captured forum evidence is general discussion, not same-model water validation.",
             "modality": "community_scope",
             "source_role": "community_general",
             "known_support_span_ids": [
-                "span_prop_codec_controlled_test",
-                "span_prop_preference_original",
+                "twm_codec_forum_scope",
+                "twm_preference_forum_scope",
             ],
             "answerability_witness_urls": [CODEC_FORUM_URL, PREFERENCE_FORUM_URL],
             "limitations": ["bounded captured pages, not corpus-wide absence"],
-            "verification_status": "pilot_reviewed",
+            "verification_status": "deterministically_extracted_from_frozen_page",
         },
-        assertion("F13", "Electrical watts alone do not establish perceived loudness or clean maximum output.", "mechanism_explanation", "prop_watt_context", ["span_prop_watt_definition", "span_prop_watt_efficiency", "span_prop_watt_distortion"]),
+        assertion("F13", "Electrical watts alone do not establish perceived loudness or clean maximum output.", "mechanism_explanation", AUDIO_POWER_URL, ["twm_audio_power_context", "twm_audio_power_distortion_condition"]),
+        assertion("F14", "The Flare listing advertises 360-degree sound using dual drivers and passive radiators.", "retailer_claim", FLARE_URL, ["twm_flare_design"]),
+        assertion("F15", "The Ortizan listing advertises 360-degree sound and bass radiators.", "retailer_claim", ORTIZAN_URL, ["twm_ortizan_design"]),
     ]
-    return {
+    twm = {
         "schema": "dra_task_world_model_v1",
         "task_id": TASK_ID,
         "world_sha256": canonical_sha256(world),
-        "construction_policy": "task_local_semantic_extraction",
+        "construction_policy": "deterministic_task_local_extraction_from_frozen_pages",
+        "builder": {
+            "name": "audio_0002_task_world_model_builder",
+            "version": "v1",
+            "input_world_sha256": canonical_sha256(structural_world),
+            "legacy_case_facts_used": False,
+            "legacy_support_spans_used": False,
+        },
+        "extraction_trace": extraction_trace,
         "assertions": assertions,
+        "relations": [
+            {
+                "relation_id": "R_PRICE_BUDGET",
+                "relation_type": "jointly_comparable_under_constraint",
+                "source_assertion_ids": ["F1", "F2"],
+                "target": "hard_budget_usd_60",
+            },
+            {
+                "relation_id": "R_OUTPUT_CONDITIONS",
+                "relation_type": "interpretation_limited_by",
+                "source_assertion_ids": ["F3", "F4", "F5"],
+                "target_assertion_ids": ["F13"],
+            },
+            {
+                "relation_id": "R_FLARE_DESIGN_BOUNDARY",
+                "relation_type": "marketing_claim_qualified_by",
+                "source_assertion_ids": ["F14"],
+                "target_assertion_ids": ["F10", "F11"],
+            },
+            {
+                "relation_id": "R_ORTIZAN_DESIGN_BOUNDARY",
+                "relation_type": "marketing_claim_qualified_by",
+                "source_assertion_ids": ["F15"],
+                "target_assertion_ids": ["F10", "F11"],
+            },
+            {
+                "relation_id": "R_WATER_SCOPE",
+                "relation_type": "seller_claim_qualified_by",
+                "source_assertion_ids": ["F6"],
+                "target_assertion_ids": ["F7", "F12"],
+            },
+            {
+                "relation_id": "R_BATTERY_COMPARISON",
+                "relation_type": "nominal_values_not_matched_test",
+                "source_assertion_ids": ["F8", "F9"],
+                "target": "runtime_comparison_uncertain",
+            },
+        ],
         "conflict_clusters": [
             {
                 "cluster_id": "C_OUTPUT_DISCLOSURE",
@@ -306,6 +585,7 @@ def build_task_world_model(case: dict[str, Any], world: dict[str, Any]) -> dict[
             },
         ],
     }
+    return world, twm
 
 
 def _contract(
@@ -366,27 +646,222 @@ def _check(
     }
 
 
+def build_mock_semantic_contracts() -> dict[str, dict[str, Any]]:
+    """Executable heuristic contracts used only by the development mock judge.
+
+    These patterns are deliberately stored in the frozen suite instead of in
+    report-specific Python labels.  They make the mock's behavior inspectable,
+    replayable, and replaceable by a calibrated semantic evaluator later.
+    """
+
+    return {
+        "K_PRICE_FLARE": {
+            "anchors": [r"\$\s*53\.49"],
+            "required_groups": [[r"(?:Flare\s*2|Soundcore)"], [r"\$\s*53\.49"]],
+        },
+        "K_PRICE_ORTIZAN": {
+            "anchors": [r"\$\s*57\.99"],
+            "required_groups": [[r"Ortizan"], [r"\$\s*57\.99"]],
+        },
+        "K_OUTPUT_FLARE": {
+            "anchors": [r"THD\s*\+?\s*N\s*(?::|<|below)", r"20\s*W\s*\(10\s*W"],
+            "required_groups": [
+                [r"(?:Flare\s*2|Soundcore)"],
+                [r"20\s*W", r"10\s*W\s*[×x]\s*2"],
+                [r"THD\s*\+?\s*N\s*(?::|<|below)?\s*<?\s*1\s*%"],
+            ],
+            "contradiction_patterns": [
+                r"gives\s+total\s+continuous\s+power",
+                r"measurable\s+assurance\s+of\s+clean\s+sound",
+                r"distortion[-\s]?controlled\s+audio",
+            ],
+            "contradiction_scope": "report",
+        },
+        "K_OUTPUT_ORTIZAN": {
+            "anchors": [r"2\s*[×x]\s*20\s*W\s*Max", r"40\s*W"],
+            "required_groups": [
+                [r"Ortizan"],
+                [r"2\s*[×x]\s*20\s*W\s*Max", r"40\s*W"],
+                [r"no\s+THD", r"without\s+(?:a\s+)?quantitative\s+distortion", r"qualitative.*distortion"],
+            ],
+            "contradiction_patterns": [r"Ortizan.{0,160}(?:is|means|equals)\s+(?:continuous\s+RMS|RMS\s+power)", r"Ortizan.{0,160}THD\s*[<:=]"],
+            "contradiction_scope": "report",
+        },
+        "K_WATT_CONTEXT": {
+            "anchors": [r"raw\s+wattage", r"headline\s+watt", r"wattage\s+is\s+not\s+enough"],
+            "required_groups": [
+                [r"watt(?:age|s)?"],
+                [r"not\s+(?:enough|establish|directly\s+comparable)", r"alone\s+do(?:es)?\s+not", r"more\s+important\s+than\s+sheer\s+loudness"],
+                [r"distortion", r"loudness", r"efficien"],
+            ],
+        },
+        "K_DISTORTION_COMPARISON": {
+            "anchors": [r"distortion\s+risk", r"clean[-\s]?output\s+winner", r"distortion\s+auditability"],
+            "required_groups": [
+                [r"Flare"],
+                [r"Ortizan"],
+                [r"distortion|THD"],
+            ],
+            "contradiction_patterns": [
+                r"lower[s]?\s+the\s+risk\s+of\s+unpleasant\s+distortion",
+                r"Flare.{0,220}(?:safer\s+choice|lower[-\s]?distortion[-\s]?risk)",
+                r"measurable\s+assurance\s+of\s+clean\s+sound",
+                r"20\s*W\s+of\s+distortion[-\s]?controlled\s+audio",
+            ],
+            "contradiction_scope": "report",
+        },
+        "K_DESIGN_FLARE": {
+            "anchors": [r"Flare.{0,120}360", r"360.{0,160}Flare"],
+            "required_groups": [[r"Flare"], [r"360"], [r"passive\s+radiator"]],
+        },
+        "K_DESIGN_ORTIZAN": {
+            "anchors": [r"Ortizan.{0,160}360", r"360.{0,160}Ortizan"],
+            "required_groups": [[r"Ortizan"], [r"360"], [r"passive\s+radiator"]],
+        },
+        "K_PASSIVE_BOUNDARY": {
+            "anchors": [r"passive\s+radiator"],
+            "required_groups": [
+                [r"passive\s+radiator"],
+                [r"mechanism|enclosure|pressure|resonan"],
+                [r"does\s+not\s+(?:measure|prove|demonstrate)", r"presence\s+alone\s+does\s+not", r"not\s+(?:by\s+itself\s+)?proof"],
+            ],
+        },
+        "K_DISPERSION_BOUNDARY": {
+            "anchors": [r"polar\s+(?:plots|response)", r"off[-\s]?axis", r"actual\s+sound\s+field"],
+            "required_groups": [
+                [r"360"],
+                [r"polar|off[-\s]?axis|directivity"],
+                [r"cannot\s+be\s+audited|does\s+not\s+demonstrate|unconfirmed|without.*measure"],
+            ],
+        },
+        "K_HIRES_FLARE_ABSENCE": {
+            "anchors": [r"No\s+mention\s+of\s+high.{0,80}codec", r"Flare.{0,180}no\s+hi[-\s]?res"],
+            "required_groups": [[r"Flare"], [r"no\s+(?:mention\s+of\s+)?(?:high.{0,2}resolution|hi.{0,2}res)|no\s+named\s+hi.{0,2}res"], [r"codec|aptX|LDAC"]],
+        },
+        "K_HIRES_ORTIZAN_ABSENCE": {
+            "anchors": [r"Ortizan.{0,180}no\s+hi[-\s]?res", r"No\s+hi[-\s]?res\s+codec\s+claim"],
+            "required_groups": [[r"Ortizan"], [r"no\s+(?:hi[-\s]?res|aptX|LDAC)|no\s+named\s+hi[-\s]?res"], [r"codec|aptX|LDAC|Bluetooth\s*5\.0"]],
+        },
+        "K_HIRES_RELEVANCE": {
+            "anchors": [r"neither\s+speaker\s+makes\s+a\s+hi", r"hi[-\s]?res\s+is\s+non[-\s]?discriminating"],
+            "required_groups": [[r"neither|both"], [r"hi.{0,2}res|high.{0,2}resolution"], [r"does\s+not\s+influence|non.{0,2}discriminating|unnecessary"]],
+        },
+        "K_WATER_FLARE": {
+            "anchors": [r"Flare.{0,200}IPX7", r"IPX7.{0,200}Flare"],
+            "required_groups": [[r"Flare"], [r"IPX7"], [r"listing|claim|rating"], [r"no\s+independent|not\s+independent|solely|only\s+by\s+the\s+rating"]],
+        },
+        "K_WATER_ORTIZAN": {
+            "anchors": [r"Ortizan.{0,200}IPX7", r"IPX7.{0,200}Ortizan"],
+            "required_groups": [[r"Ortizan"], [r"IPX7"], [r"listing|advertis|claim|rating"], [r"no\s+(?:test|independent|user)|not\s+independent|solely|only\s+the\s+rating"]],
+        },
+        "K_IPX7_SCOPE": {
+            "anchors": [r"IPX7\s+is\s+defined", r"temporary\s+submersion", r"bounded\s+temporary\s+immersion"],
+            "required_groups": [[r"IPX7"], [r"1\s*(?:meter|m).{0,80}30\s*(?:min|minute)|temporary\s+(?:submersion|immersion)|bounded.*immersion"], [r"(?:the\s+)?[“\"']?X[”\"']?.{0,100}(?:dust|particulate|no\s+data)|(?:dust|particulate).{0,100}[“\"']?X[”\"']?|no\s+particulate"]],
+        },
+        "K_POOL_APPLICATION": {
+            "anchors": [r"poolside", r"pool\s+area", r"water[-\s]?resistance\s+confidence"],
+            "required_groups": [[r"pool"], [r"IPX7|water"], [r"limit|not\s+unlimited|self[-\s]?declaration|ordinary\s+risk|lack\s+external\s+proof"]],
+        },
+        "K_BATTERY_FLARE": {
+            "anchors": [r"Flare.{0,160}12[-\s]?hour", r"12[-\s]?hour\s+playtime"],
+            "required_groups": [[r"Flare"], [r"12\s*(?:hours?|h\b)"], [r"volume"], [r"lights?"], [r"BassUp"]],
+        },
+        "K_BATTERY_ORTIZAN": {
+            "anchors": [r"Ortizan.{0,160}15\s*(?:hours?|h\b)", r"15H\s+Playtime"],
+            "required_groups": [[r"Ortizan"], [r"15\s*(?:hours?|h\b)"], [r"volume"], [r"content"]],
+        },
+        "K_BATTERY_COMPARISON": {
+            "anchors": [r"not\s+directly\s+comparable", r"without\s+a\s+standardized\s+testing\s+protocol"],
+            "required_groups": [[r"12\s*(?:hours?|h\b)"], [r"15\s*(?:hours?|h\b)"], [r"not\s+directly\s+comparable|without\s+(?:a\s+)?(?:standardized|matched).*condition"]],
+        },
+        "K_COMMUNITY_EVIDENCE": {
+            "anchors": [r"same[-\s]?model\s+water", r"forum.{0,120}(?:general|model)", r"captured\s+codec\s+discussion"],
+            "required_groups": [[r"forum|community|owner|user\s+report|captured\s+codec"], [r"same[-\s]?model|either\s+candidate|Flare.{0,80}Ortizan"], [r"bounded|captured|returned\s+(?:results|set)|general\s+(?:discussion|methodology)"]],
+            "contradiction_patterns": [
+                r"In\s+the\s+sandbox\s+data,\s+there\s+is\s+no\s+forum\s+or\s+review\s+content",
+                r"no\s+relevant\s+user\s+reports\s+exist",
+                r"no\s+user-submitted\s+water-immersion\s+evidence\s+exists\s+in\s+the\s+sandbox",
+            ],
+            "contradiction_scope": "report",
+        },
+        "K_COMMUNITY_CONCLUSION": {
+            "anchors": [r"same[-\s]?model\s+water", r"corpus[-\s]?wide\s+absence", r"no\s+relevant\s+user\s+reports"],
+            "required_groups": [[r"same[-\s]?model|either\s+candidate"], [r"bounded|captured|returned\s+set|not\s+a\s+claim.*anywhere"], [r"general\s+discussion|validation"]],
+            "contradiction_patterns": [
+                r"In\s+the\s+sandbox\s+data,\s+there\s+is\s+no\s+forum\s+or\s+review\s+content",
+                r"no\s+relevant\s+user\s+reports\s+exist",
+                r"no\s+user-submitted\s+water-immersion\s+evidence\s+exists\s+in\s+the\s+sandbox",
+            ],
+            "contradiction_scope": "report",
+        },
+        "K_DECISION_ACTION": {
+            "anchors": [r"recommended\s+route", r"I\s+recommend", r"recommendation"],
+            "required_groups": [[r"recommend(?:ed|ation)?|defer"], [r"Flare|Ortizan"], [r"\$\s*60|60\s+dollar|budget"]],
+            "selection_window_chars": 5000,
+        },
+        "K_DECISION_PRIORITIES": {
+            "anchors": [r"single\s+most\s+decisive\s+factor", r"requested\s+priority", r"claim\s+auditability"],
+            "required_groups": [[r"auditab"], [r"distortion"], [r"watt|power"]],
+            "contradiction_patterns": [
+                r"single\s+most\s+decisive\s+factor.{0,260}THD",
+                r"THD.{0,220}lower[s]?\s+the\s+risk\s+of\s+unpleasant\s+distortion",
+                r"measurable\s+assurance\s+of\s+clean\s+sound",
+            ],
+            "contradiction_scope": "report",
+        },
+        "K_DECISION_LIMITS": {
+            "anchors": [r"Remaining\s+Measurement\s+Limits", r"Key\s+Trade[-\s]?Off", r"tradeoff\s+is"],
+            "required_groups": [[r"trade.{0,2}off|primary\s+trade|lower\s+headline\s+output"], [r"acoustic|directivity|distortion"], [r"water|IPX7"], [r"battery|playtime"], [r"community|owner|user-submitted"]],
+            "selection_window_chars": 12000,
+        },
+    }
+
+
+def build_mock_evidence_matchers() -> dict[str, dict[str, Any]]:
+    return {
+        "EC_FLARE_PRICE": {"required_groups": [[r"(?:\$53\.49|final_price.{0,20}53\.49)"]]},
+        "EC_ORTIZAN_PRICE": {"required_groups": [[r"(?:\$57\.99|final_price.{0,20}57\.99)"]]},
+        "EC_FLARE_OUTPUT": {"required_groups": [[r"20W\s*\(10W\s*×\s*2\)"], [r"THD\+N:\s*<1%"]]},
+        "EC_ORTIZAN_OUTPUT": {"required_groups": [[r"2\s*x\s*20W\s*Max"], [r"without\s+distortion\s+even\s+at\s+maximum\s+volume"]]},
+        "EC_WATT_CONTEXT": {"required_groups": [[r"measured\s+in\s+watts"], [r"speaker's\s+efficiency"], [r"distorting\s+the\s+audio\s+signal"]]},
+        "EC_ACOUSTIC_DIMENSIONS": {"required_groups": [[r"Maximum\s+power\s+handling"], [r"Non-linear\s+distortion"]]},
+        "EC_FLARE_DESIGN": {"required_groups": [[r"360°\s+Sound"], [r"passive\s+radiators"]]},
+        "EC_ORTIZAN_DESIGN": {"required_groups": [[r"true\s+360°"], [r"(?:bass|passive)\s+radiators"]]},
+        "EC_PASSIVE_MECHANISM": {"required_groups": [[r"passive\s+radiator"], [r"sound\s+pressure"], [r"deepest\s+pitches"]]},
+        "EC_DISPERSION_SCOPE": {"required_groups": [[r"Off-axis\s+response"], [r"Non-linear\s+distortion"]]},
+        "EC_FLARE_WATER": {"required_groups": [[r"IPX7\s+Waterproof"], [r"pool\s+part"]]},
+        "EC_ORTIZAN_WATER": {"required_groups": [[r"IPX7\s+water\s+resistance"], [r"pool\s+party"]]},
+        "EC_IP_X_SCOPE": {"required_groups": [[r"letter\s+X"], [r"assign\s+a\s+protection\s+level"]]},
+        "EC_IPX7_TEST": {"required_groups": [[r"Immersion,\s+up\s+to\s+1\s+meter"], [r"Test\s+duration:\s+30"]]},
+        "EC_FLARE_BATTERY": {"required_groups": [[r"Playback\s+volume"], [r"lights"], [r"BassUp"], [r"playtime"]]},
+        "EC_ORTIZAN_BATTERY": {"required_groups": [[r"up\s+to\s+15\s+hours"], [r"volume\s+level"], [r"audio\s+content"]]},
+        "EC_CODEC_FORUM_SCOPE": {"required_groups": [[r"controlled\s+testing"], [r"high\s+bitrate\s*=\s*sounds\s+better"]]},
+        "EC_PREFERENCE_FORUM_SCOPE": {"required_groups": [[r"Tribit\s+X\s+Sound\s+Go"], [r"Bose\s+Quiet\s+Comfort"]]},
+    }
+
+
 def build_research_test_suite(contract_sha: str, twm_sha: str) -> dict[str, Any]:
     evidence_contracts = [
-        _contract("EC_FLARE_PRICE", "Flare 2 snapshot price is USD 53.49.", ["product_primary"], ["span_soundcore_price"]),
-        _contract("EC_ORTIZAN_PRICE", "Ortizan snapshot price is USD 57.99.", ["product_primary"], ["span_ortizan_price"]),
-        _contract("EC_FLARE_OUTPUT", "Flare lists 20 W as 10 W times two and THD+N below 1 percent with no captured condition.", ["product_primary"], ["span_soundcore_output_thd"]),
-        _contract("EC_ORTIZAN_OUTPUT", "Ortizan lists two 20 W Max channels and qualitative distortion-free wording without a quantitative condition.", ["product_primary"], ["span_ortizan_max_distortion_claim"]),
-        _contract("EC_WATT_CONTEXT", "Watts, efficiency, rating convention, and allowed distortion are distinct measurement considerations.", ["technical_reference"], ["span_prop_watt_definition", "span_prop_watt_efficiency", "span_prop_watt_distortion"]),
-        _contract("EC_ACOUSTIC_DIMENSIONS", "Maximum power and nonlinear distortion are separate loudspeaker characteristics.", ["technical_reference"], ["span_prop_driver_characteristics"]),
-        _contract("EC_FLARE_DESIGN", "Flare listing makes 360-degree and passive-radiator claims.", ["product_primary"], ["span_soundcore_360"]),
-        _contract("EC_ORTIZAN_DESIGN", "Ortizan listing makes 360-degree and passive-radiator claims.", ["product_primary"], ["span_ortizan_max_distortion_claim"]),
-        _contract("EC_PASSIVE_MECHANISM", "Passive radiator is a real enclosure-pressure mechanism, not a complete quality measurement.", ["technical_reference"], ["span_prop_passive_structure", "span_prop_passive_bass"]),
-        _contract("EC_DISPERSION_SCOPE", "A directional label does not replace off-axis and room-interaction evidence.", ["technical_reference"], ["span_prop_driver_characteristics", "span_prop_room_interaction"]),
+        _contract("EC_FLARE_PRICE", "Flare 2 snapshot price is USD 53.49.", ["product_primary"], ["twm_flare_price"]),
+        _contract("EC_ORTIZAN_PRICE", "Ortizan snapshot price is USD 57.99.", ["product_primary"], ["twm_ortizan_price"]),
+        _contract("EC_FLARE_OUTPUT", "Flare lists 20 W as 10 W times two and THD+N below 1 percent with no captured condition.", ["product_primary"], ["twm_flare_output_thd"]),
+        _contract("EC_ORTIZAN_OUTPUT", "Ortizan lists two 20 W Max channels and qualitative distortion-free wording without a quantitative condition.", ["product_primary"], ["twm_ortizan_output_distortion"]),
+        _contract("EC_WATT_CONTEXT", "Watts, efficiency, rating convention, and allowed distortion are distinct measurement considerations.", ["technical_reference"], ["twm_audio_power_context", "twm_audio_power_distortion_condition"]),
+        _contract("EC_ACOUSTIC_DIMENSIONS", "Maximum power and nonlinear distortion are separate loudspeaker characteristics.", ["technical_reference"], ["twm_acoustic_dimensions"]),
+        _contract("EC_FLARE_DESIGN", "Flare listing makes 360-degree and passive-radiator claims.", ["product_primary"], ["twm_flare_design"]),
+        _contract("EC_ORTIZAN_DESIGN", "Ortizan listing makes 360-degree and passive-radiator claims.", ["product_primary"], ["twm_ortizan_design"]),
+        _contract("EC_PASSIVE_MECHANISM", "Passive radiator is a real enclosure-pressure mechanism, not a complete quality measurement.", ["technical_reference"], ["twm_passive_mechanism"]),
+        _contract("EC_DISPERSION_SCOPE", "A directional label does not replace off-axis and room-interaction evidence.", ["technical_reference"], ["twm_acoustic_dimensions", "twm_room_interaction"]),
         _contract("EC_FLARE_HIRES_ABSENCE", "Complete Flare listing contains no named hi-res-over-Bluetooth claim.", ["product_primary"], [FLARE_URL], mode="closed_page_absence"),
         _contract("EC_ORTIZAN_HIRES_ABSENCE", "Complete Ortizan listing contains no named hi-res-over-Bluetooth claim.", ["product_primary"], [ORTIZAN_URL], mode="closed_page_absence"),
-        _contract("EC_FLARE_WATER", "Flare listing claims IPX7.", ["product_primary"], ["span_soundcore_ipx7"]),
-        _contract("EC_ORTIZAN_WATER", "Ortizan listing claims IPX7.", ["product_primary"], ["span_ortizan_ipx7"]),
-        _contract("EC_IPX7_SCOPE", "IPX7 has a bounded immersion test and X assigns no particulate rating.", ["technical_reference"], ["span_prop_ip_x", "span_prop_ipx7_test"]),
-        _contract("EC_FLARE_BATTERY", "Flare claims 12 hours and discloses volume, light, and BassUp caveats.", ["product_primary"], ["span_soundcore_battery_caveat"]),
-        _contract("EC_ORTIZAN_BATTERY", "Ortizan claims 15 hours and discloses volume and content caveats.", ["product_primary"], ["span_ortizan_battery"]),
-        _contract("EC_CODEC_FORUM_SCOPE", "Captured codec thread is general methodology discussion, not candidate-model testing.", ["community_general"], ["span_prop_codec_controlled_test"]),
-        _contract("EC_PREFERENCE_FORUM_SCOPE", "Captured preference thread is general speaker discussion, not candidate-model water testing.", ["community_general"], ["span_prop_preference_original"]),
+        _contract("EC_FLARE_WATER", "Flare listing claims IPX7.", ["product_primary"], ["twm_flare_water"]),
+        _contract("EC_ORTIZAN_WATER", "Ortizan listing claims IPX7.", ["product_primary"], ["twm_ortizan_water"]),
+        _contract("EC_IP_X_SCOPE", "X assigns no particulate-protection level.", ["technical_reference"], ["twm_ip_x_scope"]),
+        _contract("EC_IPX7_TEST", "IPX7 has a bounded temporary-immersion test.", ["technical_reference"], ["twm_ipx7_test"]),
+        _contract("EC_FLARE_BATTERY", "Flare claims 12 hours and discloses volume, light, and BassUp caveats.", ["product_primary"], ["twm_flare_battery"]),
+        _contract("EC_ORTIZAN_BATTERY", "Ortizan claims 15 hours and discloses volume and content caveats.", ["product_primary"], ["twm_ortizan_battery"]),
+        _contract("EC_CODEC_FORUM_SCOPE", "Captured codec thread is general methodology discussion, not candidate-model testing.", ["community_general"], ["twm_codec_forum_scope"]),
+        _contract("EC_PREFERENCE_FORUM_SCOPE", "Captured preference thread is general speaker discussion, not candidate-model water testing.", ["community_general"], ["twm_preference_forum_scope"]),
     ]
 
     facets = [
@@ -444,7 +919,7 @@ def build_research_test_suite(contract_sha: str, twm_sha: str) -> dict[str, Any]
                     "checks": [
                         _check("K_WATER_FLARE", "State that the Flare listing claims IPX7 without upgrading it to independent validation.", routes=[_route("listing", [_ep("P_FLARE_WATER", "EC_FLARE_WATER")])]),
                         _check("K_WATER_ORTIZAN", "State that the Ortizan listing claims IPX7 without upgrading it to independent validation.", routes=[_route("listing", [_ep("P_ORTIZAN_WATER", "EC_ORTIZAN_WATER")])]),
-                        _check("K_IPX7_SCOPE", "Explain bounded immersion scope and the meaning of X.", routes=[_route("technical_scope", [_ep("P_IPX7", "EC_IPX7_SCOPE")])], critical=True),
+                        _check("K_IPX7_SCOPE", "Explain bounded immersion scope and the meaning of X.", routes=[_route("technical_scope", [_ep("P_IP_X", "EC_IP_X_SCOPE"), _ep("P_IPX7_TEST", "EC_IPX7_TEST")])], critical=True),
                         _check("K_POOL_APPLICATION", "Apply the bounded rating to poolside use and preserve remaining validation limits.", deps=["K_WATER_FLARE", "K_WATER_ORTIZAN", "K_IPX7_SCOPE"], exempt=True, critical=True),
                     ],
                 },
@@ -498,6 +973,8 @@ def build_research_test_suite(contract_sha: str, twm_sha: str) -> dict[str, Any]
         },
         "aggregation": "facet_macro_unit_macro_check_mean",
         "evidence_contracts": evidence_contracts,
+        "mock_semantic_contracts": build_mock_semantic_contracts(),
+        "mock_evidence_matchers": build_mock_evidence_matchers(),
         "search_certificates": [
             {
                 "certificate_id": "CERT_SAME_MODEL_WATER_SEARCH",
@@ -970,204 +1447,6 @@ def real_run_projection() -> ObservationLedger:
     return ledger
 
 
-REAL_CONTENT_LABELS: dict[str, tuple[str, str]] = {
-    "K_PRICE_FLARE": ("satisfied", "**Exact Price:** $53.49"),
-    "K_PRICE_ORTIZAN": ("satisfied", "**Exact Price:** $57.99"),
-    "K_OUTPUT_FLARE": (
-        "contradicted",
-        "This is a fully auditable claim: it gives total continuous power and defines distortion as Total Harmonic Distortion plus Noise below 1%.",
-    ),
-    "K_OUTPUT_ORTIZAN": (
-        "satisfied",
-        "However, the phrase “Max” suggests peak or burst power rather than continuous RMS, and **no THD or distortion figure is provided**.",
-    ),
-    "K_WATT_CONTEXT": (
-        "contradicted",
-        "In contrast, the Flare 2’s <1% THD+N suggests that the amplifier and drivers were designed to stay within a linear range at the rated 20 W.",
-    ),
-    "K_DISTORTION_COMPARISON": (
-        "contradicted",
-        "The single most decisive factor is the presence of a quantifiable distortion specification (THD + N < 1%), which gives the buyer a concrete performance benchmark and lowers the risk of unpleasant distortion at high volumes.",
-    ),
-    "K_DESIGN_FLARE": (
-        "satisfied",
-        "While no polar plots are supplied, the claim is tied to a specific driver‑and‑radiator layout, which at least offers a physical basis for 360‑degree dispersion.",
-    ),
-    "K_DESIGN_ORTIZAN": (
-        "satisfied",
-        "Like the Flare 2, the 360‑degree claim is unsupported by directivity measurements, but the mention of dual passive radiators indicates a design attempt at omnidirectional low‑frequency radiation.",
-    ),
-    "K_PASSIVE_BOUNDARY": ("not_satisfied", ""),
-    "K_DISPERSION_BOUNDARY": (
-        "satisfied",
-        "Neither listing supplies polar response graphs, so the actual sound field cannot be audited.",
-    ),
-    "K_HIRES_FLARE_ABSENCE": (
-        "satisfied",
-        "No mention of high‑resolution audio codecs (aptX, LDAC, etc.) appears.",
-    ),
-    "K_HIRES_ORTIZAN_ABSENCE": (
-        "satisfied",
-        "No hi‑res codec claim appears. Bluetooth 5.0 is mentioned, but no aptX, LDAC, or other high‑quality codecs are specified.",
-    ),
-    "K_HIRES_RELEVANCE": (
-        "satisfied",
-        "Therefore, **neither speaker makes a hi‑res‑over‑Bluetooth claim**, and this factor does not influence the recommendation.",
-    ),
-    "K_WATER_FLARE": (
-        "satisfied",
-        "The IPX7 test (submersion in 1 m of water for 30 min) is referenced only by the rating; no independent certification or owner testing is provided in the sandbox corpus.",
-    ),
-    "K_WATER_ORTIZAN": (
-        "satisfied",
-        "Again, only the rating is given; no test protocol or user‑submitted water‑immersion evidence exists in the sandbox.",
-    ),
-    "K_IPX7_SCOPE": (
-        "satisfied",
-        "IPX7 is defined by the International Electrotechnical Commission (IEC) standard 60529: immersion in water up to 1 meter depth for 30 minutes.",
-    ),
-    "K_POOL_APPLICATION": (
-        "satisfied",
-        "All water‑resistance confidence must be inferred from the manufacturer’s self‑declaration.",
-    ),
-    "K_BATTERY_FLARE": (
-        "satisfied",
-        "Crucially, a footnote warns: “Playback volume, lights, and BassUp will affect playtime” ([Anker Soundcore Flare 2 product page, n.d.]).",
-    ),
-    "K_BATTERY_ORTIZAN": (
-        "satisfied",
-        "The fine print adds: “Playtime varies according to volume level and audio content” ([Ortizan product page, n.d.]).",
-    ),
-    "K_BATTERY_COMPARISON": (
-        "satisfied",
-        "Without a standardized testing protocol (e.g., CEA‑2006‑B), these numbers are not directly comparable.",
-    ),
-    "K_COMMUNITY_EVIDENCE": (
-        "contradicted",
-        "In the sandbox data, there is no forum or review content that validates water survival for either the Flare 2 or the Ortizan 40 W.",
-    ),
-    "K_COMMUNITY_CONCLUSION": (
-        "contradicted",
-        "In the sandbox data, there is no forum or review content that validates water survival for either the Flare 2 or the Ortizan 40 W.",
-    ),
-    "K_DECISION_ACTION": (
-        "satisfied",
-        "the **Soundcore Flare 2 (Renewed) is the recommended route**",
-    ),
-    "K_DECISION_PRIORITIES": (
-        "contradicted",
-        "The single most decisive factor is the presence of a quantifiable distortion specification (THD + N < 1%), which gives the buyer a concrete performance benchmark and lowers the risk of unpleasant distortion at high volumes.",
-    ),
-    "K_DECISION_LIMITS": (
-        "satisfied",
-        "**No independent acoustic measurements:** All evaluations are based on manufacturer specifications; real‑world frequency response, directivity, and distortion under load are unverified.",
-    ),
-}
-
-
-REAL_ORTIZAN_SUPPORT = {
-    "K_PRICE_ORTIZAN": '"final_price":57.99',
-    "K_OUTPUT_ORTIZAN": (
-        "Built with 2 x 20W Max speaker, Ortizan bluetooth speaker provides "
-        "crystal clear sound and powerful bass without distortion even at maximum volume."
-    ),
-    "K_DESIGN_ORTIZAN": "You will like Ortizan’s true 360° stereo sound portable wireless speakers.",
-    "K_WATER_ORTIZAN": (
-        "Bluetooth speaker with IPX7 water resistance technology uses unbreakable "
-        "TPU silicone material, perfect for pool party, travel."
-    ),
-    "K_BATTERY_ORTIZAN": (
-        "One full charge lets you play music for up to 15 hours(Playtime varies "
-        "according to volume level and audio content)."
-    ),
-    "K_HIRES_ORTIZAN_ABSENCE": "",
-}
-
-
-def real_run_judgment(
-    *,
-    suite: dict[str, Any],
-    world: dict[str, Any],
-    report: str,
-    ledger: ObservationLedger,
-) -> dict[str, Any]:
-    checks = _check_map(suite)
-    rows: list[dict[str, Any]] = []
-    for check_id, check in checks.items():
-        verdict, quote = REAL_CONTENT_LABELS[check_id]
-        start = report.find(quote) if quote else -1
-        if quote and start < 0:
-            raise RuntimeError(f"real report calibration quote not found: {check_id}")
-        route_attempts: list[dict[str, Any]] = []
-        if check_id in REAL_ORTIZAN_SUPPORT:
-            route = check["evidence_routes"][0]
-            premise = route["premises"][0]
-            evidence_quote = REAL_ORTIZAN_SUPPORT[check_id]
-            binding: dict[str, Any] = {
-                "url": ORTIZAN_URL,
-                "quote": quote,
-                "start": start,
-                "end": start + len(quote),
-                "evidence_span_id": None,
-                "evidence_quote": evidence_quote,
-                "support_verdict": "supported",
-            }
-            if evidence_quote:
-                binding["evidence_certificate"] = {
-                    "status": "accepted",
-                    "certificate_id": f"manual-pilot-{check_id.lower()}",
-                    "method": "manual_adjudication_against_delivered_raw_page",
-                }
-            route_attempts.append(
-                {
-                    "route_id": route["route_id"],
-                    "coherence_verdict": "coherent",
-                    "conflict_verdict": "not_material",
-                    "premises": [
-                        {
-                            "premise_id": premise["premise_id"],
-                            "bindings": [binding],
-                        }
-                    ],
-                }
-            )
-        rows.append(
-            {
-                "check_id": check_id,
-                "content": {
-                    "verdict": verdict,
-                    "quote": quote,
-                    "start": start if start >= 0 else None,
-                    "end": start + len(quote) if start >= 0 else None,
-                    "reason": "manual mapping from the reviewed route-flexible pilot",
-                },
-                "route_attempts": route_attempts,
-            }
-        )
-    return {
-        "schema": JUDGMENT_SCHEMA,
-        "task_id": TASK_ID,
-        "evaluator": {
-            "provider": "manual_pilot_adjudication",
-            "version": "audio_0002_v1",
-            "formal_eligible": False,
-        },
-        "seals": {
-            "suite_sha256": canonical_sha256(suite),
-            "world_sha256": canonical_sha256(world),
-            "report_sha256": sha256(report.encode("utf-8")).hexdigest(),
-            "ledger_sha256": canonical_sha256(ledger.to_dict()),
-        },
-        "checks": rows,
-        "url_audits": [],
-        "output_contract": {"verdict": "satisfied"},
-        "calibration_note": (
-            "The automatic semantic judge was unavailable in the earlier pilot. "
-            "This judgment is replayable but not formal leaderboard gold."
-        ),
-    }
-
-
 def _write_ledger(path: Path, ledger: ObservationLedger) -> None:
     _write_json(path, ledger.to_dict())
 
@@ -1221,7 +1500,6 @@ def build_frozen_manifest(world: dict[str, Any], suite: dict[str, Any]) -> dict[
         "corpus_registry.json",
         "nodes.jsonl",
         "edges.jsonl",
-        "support_spans.jsonl",
     ]
     real_blobs = sorted((BASE / "real_run/blobs").iterdir())
     return {
@@ -1230,8 +1508,6 @@ def build_frozen_manifest(world: dict[str, Any], suite: dict[str, Any]) -> dict[
         "status": "development_vertical_slice",
         "inputs": {
             "public_task": {"path": str(TASK_PATH.relative_to(ROOT)), "sha256": _file_sha(TASK_PATH)},
-            "legacy_case": {"path": str(CASE_PATH.relative_to(ROOT)), "sha256": _file_sha(CASE_PATH)},
-            "legacy_route_flexible_rubric": {"path": str(OLD_RUBRIC_PATH.relative_to(ROOT)), "sha256": _file_sha(OLD_RUBRIC_PATH)},
             "source_graph": [
                 {
                     "path": str((SOURCE_GRAPH / name).relative_to(ROOT)),
@@ -1245,14 +1521,39 @@ def build_frozen_manifest(world: dict[str, Any], suite: dict[str, Any]) -> dict[
                 for path in real_blobs
             ],
         },
+        "legacy_comparison_assets_not_consumed_by_twm_builder": [
+            {
+                "path": str(CASE_PATH.relative_to(ROOT)),
+                "sha256": _file_sha(CASE_PATH),
+                "reason": "retained only for historical comparison",
+            },
+            {
+                "path": str(OLD_RUBRIC_PATH.relative_to(ROOT)),
+                "sha256": _file_sha(OLD_RUBRIC_PATH),
+                "reason": "retained only for old-score comparison",
+            },
+            {
+                "path": str((SOURCE_GRAPH / "support_spans.jsonl").relative_to(ROOT)),
+                "sha256": _file_sha(SOURCE_GRAPH / "support_spans.jsonl"),
+                "reason": "explicitly excluded; task spans are re-extracted from page bodies",
+            },
+        ],
         "compiled": {
             "world_sha256": canonical_sha256(world),
             "suite_sha256": canonical_sha256(suite),
+            "task_world_model_sha256": canonical_sha256(
+                _read_json(BASE / "task-world-model.json")
+            ),
+            "structural_world_sha256": canonical_sha256(
+                _read_json(BASE / "world-index-structural.json")
+            ),
         },
         "policy": {
             "construction_witnesses_are_url_allowlist": False,
             "formal_score_requires_calibrated_semantic_evaluator": True,
             "real_run_projection_may_not_support_search_quality_claims": True,
+            "real_run_evaluator": "twm_backed_mock_evaluator",
+            "real_run_formal_eligible": False,
         },
     }
 
@@ -1269,20 +1570,29 @@ def _experiment_markdown(summary: dict[str, Any]) -> str:
     lines = [
         "# `dra_v3_dev_audio_0002` 沙盒原生评分纵向实验",
         "",
-        "> 状态：development-only。受控报告的语义标签由构造已知；真实旧报告使用人工 pilot 判断，因此不能进入正式榜单。",
+        "> 状态：development-only。受控基线的语义标签由构造已知；真实旧报告由 TWM-backed deterministic mock 自动判断。mock 尚未经过人工校准，因此不能进入正式榜单。",
         "",
         "## 本次真正跑通的链路",
         "",
         "```text",
-        "冻结 task / case / graph / run",
-        "  -> 轻量 Task World Index",
-        "  -> Task World Model",
+        "冻结 task / graph / page bodies / run",
+        "  -> 轻量 structural World Index（不导入旧答案 span）",
+        "  -> 从冻结正文确定性抽取 task-local spans",
+        "  -> Task World Model（assertions + conflicts + bounded unknowns）",
         "  -> 5 facets / 8 units / 25 checks 的 Research Test Suite",
-        "  -> report + observation ledger + sealed semantic judgment",
+        "  -> report + observation ledger + sealed TWM-backed mock judgment",
         "  -> ContentBreadth / Raw GRC / Official GRC / Full Pass / URL 与证据诊断",
         "```",
         "",
         "每个 check 只有在内容合同满足，并且至少一条完整、连贯的证据路线全部通过时才得分。不同路线之间不能逐前提拼接。构题 witness 只证明可答，不是 URL 白名单。",
+        "",
+        "## 这次重构的边界",
+        "",
+        "- World Index 只从 registry 和冻结正文建立，明确不导入旧 case facts 与旧 `support_spans.jsonl`。",
+        "- TWM builder 用 19 条可审计的唯一字节匹配规则，从冻结正文重新抽取 task-local spans；每条都记录页面哈希、字节偏移、规则哈希和唯一命中数。",
+        "- 15 条 assertion 的语义表述仍属于单题 compiler 模板，不宣称已经实现跨 56 题的自动事实归纳。",
+        "- 真实报告的 25 项 verdict 不再由人工表填写，而由 suite 内冻结的 regex 合同自动生成；这是可替换的 mock，不是经过人类校准的正式 judge。",
+        "- 引用是否在册、是否本次观察、是否就地绑定、页面角色与 span/certificate 是否有效，仍由确定性 scorer 独立复核，mock 不能自行加分。",
         "",
         "## 受控实验结果",
         "",
@@ -1291,6 +1601,7 @@ def _experiment_markdown(summary: dict[str, Any]) -> str:
     ]
     descriptions = {
         "oracle_reference": "已知论坛 witness 路线",
+        "twm_mock_oracle": "同一 oracle 由 TWM-backed mock 自动判定",
         "oracle_alternative": "有界搜索替代路线",
         "null": "空报告",
         "url_dump": "只有链接，没有研究内容",
@@ -1324,7 +1635,7 @@ def _experiment_markdown(summary: dict[str, Any]) -> str:
             f"| Fabricated URL | {real['fabricated_urls']} |",
             f"| Formal eligible | {str(real['formal_eligible']).lower()} |",
             "",
-            "这个结果不再是旧固定路线的 0/15，也不会因为报告写得流畅就抬高证据分。它保留了报告确实从 Ortizan 商品页完成的局部研究，同时把 Soundcore 无 URL、技术页无引用、论坛范围过度概括、THD 条件过推和推荐依赖失败逐项暴露出来。",
+            "这个结果不再来自人工填写的 25 项 verdict，也不是旧固定路线的 0/15。它由冻结的页面正文重构 TWM 后自动得到：报告确实从 Ortizan 商品页完成的局部研究被保留；Soundcore 无 URL、技术页无引用、论坛范围过度概括、THD 条件过推和推荐依赖失败则被逐项暴露。",
             "",
             "## 验收门",
             "",
@@ -1340,7 +1651,7 @@ def _experiment_markdown(summary: dict[str, Any]) -> str:
             "## 仍未被这一个样例证明的内容",
             "",
             "- 25 个 checks 是否代表跨题通用 compiler 的稳定输出，仍需 Dev-14 的双人校准与编辑率统计。",
-            "- 真实报告的语义判断尚未通过冻结双 judge 与人工金标校准；当前只证明了确定性执行与回放层。",
+            "- TWM-backed mock 的 regex 合同尚未通过双人金标、替代表述集和腐蚀集校准；当前只证明世界模型到评分器的自动闭环，不证明正式语义判定精度。",
             "- 真实运行使用的是两页候选商品 fetch 的评分投影，不能用来评价完整搜索 API 召回或整个 harness 的检索效率。",
             "- Observation Ledger v2 的 raw fetch 到 model-delivered artifact 血统仍需在 12 个 adapter 上逐一做 canary。",
             "",
@@ -1380,22 +1691,23 @@ PYTHONPATH=. python3 scripts/score_sandbox_native_grc.py \\
   --pretty
 ```
 
-The controlled judgments are construction-known test labels. The real-run
-judgment is manual and has `formal_eligible=false`; it demonstrates replay, not
-leaderboard validity.
+The construction judgments are known test labels. A second oracle replay and
+the real report are judged by the deterministic TWM-backed mock evaluator. Its
+outputs have `formal_eligible=false`: they demonstrate the complete automated
+World Model path, not leaderboard validity.
 """
 
 
 def run() -> dict[str, Any]:
     task = _read_json(TASK_PATH)
-    case = _read_json(CASE_PATH)
-    world = compile_world_index()
+    structural_world = compile_world_index()
     task_contract = build_task_contract(task)
-    twm = build_task_world_model(case, world)
+    world, twm = build_task_world_model(structural_world)
     suite = build_research_test_suite(
         canonical_sha256(task_contract), canonical_sha256(twm)
     )
 
+    _write_json(BASE / "world-index-structural.json", structural_world)
     _write_json(BASE / "world-index.json", world)
     _write_json(BASE / "task-contract.json", task_contract)
     _write_json(BASE / "task-world-model.json", twm)
@@ -1438,6 +1750,17 @@ def run() -> dict[str, Any]:
         sentences=reference_sentences,
     )
     score_controlled("oracle_reference", reference_report, full, reference_judgment)
+
+    mock_oracle_judgment = evaluate_report_with_twm_mock(
+        suite=suite,
+        world=world,
+        twm=twm,
+        report=reference_report,
+        ledger=full,
+    )
+    score_controlled(
+        "twm_mock_oracle", reference_report, full, mock_oracle_judgment
+    )
 
     alternative_sentences = controlled_sentences(community_route="bounded_search")
     alternative_report = controlled_report(alternative_sentences)
@@ -1522,7 +1845,7 @@ def run() -> dict[str, Any]:
         "wrong_binding", reference_report, full, wrong_binding_judgment
     )
 
-    contradicted_key = ("K_IPX7_SCOPE", "technical_scope", "P_IPX7")
+    contradicted_key = ("K_IPX7_SCOPE", "technical_scope", "P_IPX7_TEST")
     contradicted_judgment = construction_judgment(
         suite=suite,
         world=world,
@@ -1575,14 +1898,15 @@ def run() -> dict[str, Any]:
 
     real_report = (BASE / "real_run/report.md").read_text(encoding="utf-8")
     real_ledger = real_run_projection()
-    real_judgment = real_run_judgment(
+    real_judgment = evaluate_report_with_twm_mock(
         suite=suite,
         world=world,
+        twm=twm,
         report=real_report,
         ledger=real_ledger,
     )
     _write_ledger(BASE / "real_run/observation-ledger-projection.json", real_ledger)
-    _write_json(BASE / "real_run/judgment-manual.json", real_judgment)
+    _write_json(BASE / "real_run/judgment-twm-mock.json", real_judgment)
     real_score = score_grounded_research_coverage(
         suite=suite,
         world=world,
@@ -1599,6 +1923,8 @@ def run() -> dict[str, Any]:
     gates = {
         "oracle_full_pass": scenarios["oracle_reference"]["raw_grc"] == 1.0
         and scenarios["oracle_reference"]["full_pass"] == 1,
+        "twm_mock_recovers_oracle": scenarios["twm_mock_oracle"]["raw_grc"] == 1.0
+        and scenarios["twm_mock_oracle"]["full_pass"] == 1,
         "null_floor": scenarios["null"]["raw_grc"] == 0.0,
         "url_dump_floor": scenarios["url_dump"]["raw_grc"] == 0.0,
         "fluent_unsupported_separation": scenarios["fluent_unsupported"]["content_breadth"] == 1.0

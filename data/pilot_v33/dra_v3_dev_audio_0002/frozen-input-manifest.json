@@ -1,17 +1,11 @@
 {
   "compiled": {
-    "suite_sha256": "7083269e0682c462ec597632d1bfdced7a8f0af037f27920c20e61fc69842672",
-    "world_sha256": "6f6bf0f33164cd3329f62b296678f4ffc9283c11f2a42f5092a1507673c6f026"
+    "structural_world_sha256": "8a6cd87f03c8baecbc8ff9896d7fe9eff179cac691cce69c8bb9c377958b69bd",
+    "suite_sha256": "ee212a481b86c7fe1cf155abdda570b058df76276cf3506aaceff38e66f5b51e",
+    "task_world_model_sha256": "769300c7cf993b607ab6320a0f352432165c029a7b57faaad9ed61b4a35eb5da",
+    "world_sha256": "0461afd75a75672852c95fea7efe1ce382126ccf019b311f95420a42d302da6e"
   },
   "inputs": {
-    "legacy_case": {
-      "path": "data/golden/cases_v3/development/dra_v3_dev_audio_0002.json",
-      "sha256": "3964d1fbd1db688cb81a24ca1362436df426a9613b56e154844bbecb552ccea4"
-    },
-    "legacy_route_flexible_rubric": {
-      "path": "data/golden/route_flexible_rubrics/development/dra_v3_dev_audio_0002.json",
-      "sha256": "db6137e2cf139d1caf2f787b8beba25e045827cc989d7ad65228ca5e83813ef3"
-    },
     "public_task": {
       "path": "data/tasks/deep_research/v3/development/dra_v3_dev_audio_0002.json",
       "sha256": "01f22616857cbb1a909f53e3f56158192d64da6a9960affbaf42517fb5f447a1"
@@ -46,16 +40,31 @@
       {
         "path": "data/evidence_graph/dra-v3-pilot-audio-speaker-claims-20260715-r1/edges.jsonl",
         "sha256": "fd805409fbf24ebb90c12fd35a84ab1285c4fd615f7262df85ee2e913f766df1"
-      },
-      {
-        "path": "data/evidence_graph/dra-v3-pilot-audio-speaker-claims-20260715-r1/support_spans.jsonl",
-        "sha256": "79c40fdd3fe2439b4386c6af330015d4199f056786c7e9f4670cdc97fe228a20"
       }
     ]
   },
+  "legacy_comparison_assets_not_consumed_by_twm_builder": [
+    {
+      "path": "data/golden/cases_v3/development/dra_v3_dev_audio_0002.json",
+      "reason": "retained only for historical comparison",
+      "sha256": "3964d1fbd1db688cb81a24ca1362436df426a9613b56e154844bbecb552ccea4"
+    },
+    {
+      "path": "data/golden/route_flexible_rubrics/development/dra_v3_dev_audio_0002.json",
+      "reason": "retained only for old-score comparison",
+      "sha256": "db6137e2cf139d1caf2f787b8beba25e045827cc989d7ad65228ca5e83813ef3"
+    },
+    {
+      "path": "data/evidence_graph/dra-v3-pilot-audio-speaker-claims-20260715-r1/support_spans.jsonl",
+      "reason": "explicitly excluded; task spans are re-extracted from page bodies",
+      "sha256": "79c40fdd3fe2439b4386c6af330015d4199f056786c7e9f4670cdc97fe228a20"
+    }
+  ],
   "policy": {
     "construction_witnesses_are_url_allowlist": false,
     "formal_score_requires_calibrated_semantic_evaluator": true,
+    "real_run_evaluator": "twm_backed_mock_evaluator",
+    "real_run_formal_eligible": false,
     "real_run_projection_may_not_support_search_quality_claims": true
   },
   "schema": "dra_single_task_frozen_input_manifest_v1",
