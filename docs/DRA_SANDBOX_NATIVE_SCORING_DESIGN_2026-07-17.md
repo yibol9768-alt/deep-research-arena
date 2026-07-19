@@ -2,17 +2,17 @@
 
 > 初稿日期：2026-07-17（文件名保留该日期以维持引用稳定）
 >
-> 当前修订：2026-07-18 Draft v3.2（LoHoSearch-informed, adversarially reviewed redesign）
+> 当前修订：2026-07-19 Draft v3.3（environment-scaling redesign；经 KimiCode 四轮反方审阅）
 >
 > 状态：可执行的方法、数据构建、评分、验证与工程实施统一计划
 > 核心目标：利用冻结网页沙盒，在不全量理解所有网页语义、也不要求复现唯一答案路线的前提下，自动构建可审计的 Deep Research 任务，并衡量报告以本次真实观察证据完成了多少研究工作。  
-> 关键变化：把旧版“全量 WCET/OFT 语义抽取”改为“全量轻量 World Index + 按题 Task World Model + 基于证据合同的 Research Test Compiler”；新页面不受 witness URL 白名单限制，但不假设每个命题天然拥有多条路线；pivotality 从主分权重降为可选的建题与诊断工具。
+> 关键变化：把旧版“全量 WCET/OFT 语义抽取”改为“多域大规模冻结环境 + 全量结构 World Index + 按题 Task World Model + 基于证据合同的 Research Test Compiler”。环境不再等同于现有购物三源：完整 Wikimedia 骨架、商品/服务、社区、论文/技术、旅行/地理与公共数据被组织为版本化 Domain Packs；新页面不受 witness URL 白名单限制，但不假设每个命题天然拥有多条路线；pivotality 从主分权重降为可选的建题与诊断工具。
 
 ---
 
 ## 0. 执行摘要：我们不需要拥有“所有事实”，需要拥有“评分协议所需的世界”
 
-DRA 不应继续把 `Fact`、`ProofOfFetch`、`Completeness` 和 `Provenance` 压成几个报告级分数后加权或相乘；但也不应走向另一个极端：让 LLM 对 23 万页面逐页抽取所有自然语言事实，再把 Deep Research 报告降格成大量事实判断题。
+DRA 不应继续把 `Fact`、`ProofOfFetch`、`Completeness` 和 `Provenance` 压成几个报告级分数后加权或相乘；但也不应走向另一个极端：让 LLM 对数百万页面逐页抽取所有自然语言事实，再把 Deep Research 报告降格成大量事实判断题。当前 registry 已含约 104,368 个商品 URL 与 127,391 个论坛主题；Wikipedia 则由 48.4GB 的完整 Kiwix ZIM 提供、尚待全量 entry census。现有规模不能再被口头概括成“约 23 万页面”，因为文档、实体、span、关系和可检索条目必须分别清点。
 
 [LoHoSearch](https://arxiv.org/abs/2606.12837) 提供了关键纠偏。它确实遍历完整英文 Wikipedia dump，但全量层只构建了约 762 万实体、2.65 亿超链接边以及来自 Wikidata 的实体类型；昂贵的关系描述抽取、问题生成、搜索验证和人工审核只发生在采样子图上。它采用的是：
 
@@ -24,9 +24,9 @@ $$
 \text{自动与人工验证}
 $$
 
-DRA 应采用同一工程原则，但不能照抄 LoHoSearch 的唯一答案目标。LoHoSearch 评测“找到唯一实体”，DRA 评测“生成覆盖多个研究方向、综合多类证据、正确表达条件与冲突、最终对用户有用的报告”。因此新版采用三层资产和一层运行审计：
+DRA 应采用同一工程原则，但不能照抄 LoHoSearch 的唯一答案目标，也不能把环境扩容误写成“只给 Wikipedia 建图”。LoHoSearch 评测“找到唯一实体”，DRA 评测“生成覆盖多个研究方向、综合多类证据、正确表达条件与冲突、最终对用户有用的报告”。DRA v3.3 先将环境拆成“研究垂直 × 认识来源角色 × 交互形态”的覆盖矩阵，再采用三层评分资产和一层运行审计：
 
-1. **World Index（全量）**：URL、快照、哈希、页面类型、DOM 段落、结构化字段、链接和检索索引；
+1. **Environment / World Index（全量）**：版本化 Domain Packs、URL/entry、快照、哈希、页面类型、DOM 段落、结构化字段、链接、检索与交互索引；
 2. **Task World Model（按题）**：只对题目相关、协议可达的页面跨度抽取任务事实、经验事件、机制、冲突和证据角色；
 3. **Research Test Suite（按题）**：从 query facets 与 Task World Model 编译“研究单元”，而不是把所有事实都变成得分项。
 4. **Execution Audit（按运行）**：使用带变换血统的 Observation Ledger，确认原页面中的支持内容经过 harness 变换后确实交付给 agent。
@@ -82,9 +82,21 @@ $$
 
 `Full Pass` 继续单独报告：所有核心研究方向和检查均完成、输出合同满足、无决定性矛盾。唯一主排名是固定任务集上的 penalized mean DRA-GRC：确认的 fabricated citation 使该道任务正式分清零，但不再额外把整个 harness 放入另一个排名层。引用完整性、搜索—交付—利用漏斗、Research Quality Panel、成本和反事实证书仍然独立展示。
 
+环境扩容与评分的依赖关系是：先拥有与题目无关的全量结构世界，才允许构建单题候选池。题目 graph 中已有的 19 个 spans 只能作为 answerability witnesses 或回归探针，不能再被命名为 World Index。完整链路为：
+
+$$
+\begin{aligned}
+\text{Raw snapshots / captures}
+&\rightarrow \text{Versioned Domain Packs} \\
+&\rightarrow \text{Full structural World Index} \\
+&\rightarrow \text{Task Candidate Pool / TWM} \\
+&\rightarrow \text{RTS / Execution Audit}
+\end{aligned}
+$$
+
 最核心的论文叙事改为：
 
-> DRA does not semantically exhaust its entire sandbox. It exhaustively indexes the frozen world, compiles query-conditioned task worlds, and evaluates report-level research coverage through executable evidence contracts that admit any qualifying in-sandbox evidence, without presuming that every proposition has multiple independent routes.
+> DRA does not semantically exhaust its sandbox. It compiles heterogeneous, versioned domain packs into a complete structural index of the frozen benchmark world, constructs query-conditioned task worlds over high-recall candidate regions, and evaluates report-level research coverage through executable evidence contracts that admit any qualifying agent-visible in-sandbox evidence, without presuming that every proposition has multiple independent routes.
 
 ### 0.1 全局符号约定
 
@@ -259,7 +271,7 @@ $$
 - 树结构默认使用 $N=3$ 个一级关系、每个中间实体 $M=2$ 个二级关系，并要求删除任一一级关系后答案不再唯一；
 - 图结构最多 10 个实体，通过全图回溯搜索检查是否存在满足相同类型与邻接约束的替代解。
 
-只有被采样的边和叶属性才交给 DeepSeek-V3.2 做描述抽取、实体隐藏、问题生成和自动验证；最终问题再经多搜索 agent 排除替代答案，并由专业标注者审核。最终 544 题中，75.5% 直接通过人工审核、22.3% 轻微修改、2.2% 严重问题淘汰；只有 70.8% 被人工明确确认唯一，剩余 29.2% 是“未找到替代答案”而非严格证明不存在。
+只有被采样的边和叶属性才交给 DeepSeek-V3.2 做描述抽取、实体隐藏、问题生成和自动验证；最终问题再经多搜索 agent 排除替代答案，并由专业标注者审核。最终 544 题中，75.5\% 直接通过人工审核、22.3\% 轻微修改、2.2\% 严重问题淘汰；只有 70.8\% 被人工明确确认唯一，剩余 29.2\% 是“未找到替代答案”而非严格证明不存在。
 
 这对 DRA 有两条直接启示：
 
@@ -409,7 +421,7 @@ $$
 
 ### 4.3 与 LoHoSearch 的同与不同
 
-| 维度 | LoHoSearch | DRA v3.2 |
+| 维度 | LoHoSearch | DRA v3.3 |
 |---|---|---|
 | 全量世界层 | Wikipedia 节点、链接、类型、入度 | 所有沙盒页面、span、结构字段、链接、检索索引 |
 | 局部语义层 | 采样子图的关系描述 | 单题相关 span 的事实、经验、机制、冲突和证据角色 |
@@ -462,7 +474,9 @@ $$
 
 ```mermaid
 flowchart LR
-    A["冻结网页沙盒<br/>URL、快照、页面结构"] --> B["World Index<br/>全量解析、链接、结构字段、检索索引"]
+    A["Raw snapshots / captures<br/>官方 dump、DB、API、crawl、synthetic"] --> P["Versioned Domain Packs<br/>许可、覆盖、renderer、manifest"]
+    P --> B["World Index<br/>全量页面/entry、结构、链接、检索与交互索引"]
+    O["Construction Oracle<br/>实体类型、全局统计、隐藏图"] --> C
     Q["Query / Case Blueprint<br/>用户约束、研究 facets、输出需求"] --> C["Task Pool Builder<br/>混合检索、来源配额、有限链接扩展"]
     B --> C
     C --> D["Task World Model<br/>局部 assertion、经验事件、机制、冲突"]
@@ -494,6 +508,359 @@ flowchart LR
 
 ---
 
+## 4A. Environment Scaling：先扩大并冻结“研究世界”，再谈单题世界模型
+
+### 4A.1 这次纠正的不是实现细节，而是评测对象
+
+此前单题 pilot 从已有 evidence graph 对应的少量页面正文中重新抽取 19 个 spans，然后把产物命名为 `World Index`。这条管线可以证明 scorer、TWM 与 RTS 的接口连通，却不能证明系统能够在完整环境中发现证据：抽取器已经由构题 graph 告知“去哪几页看”。正式方法必须满足：
+
+$$
+\text{World build is task-agnostic}
+$$
+
+$$
+\text{Task retrieval starts from the full frozen index}
+$$
+
+$$
+\text{Construction witnesses are evaluation probes, not extraction inputs}
+$$
+
+Environment scaling 也不能被缩减为“给 Wikipedia 建一张更大的图”。DRA 当前购物任务只是第一个可控垂直域；长期对象应是一个自建、冻结、可搜索、可浏览、可回放的多域研究沙盒。环境本身要同时扩大：
+
+- **规模**：从几十万商业/社区 URL 扩展到数百万级公共知识骨架和多个垂直 pack；
+- **领域**：从消费决策扩展到科学技术、旅行地理、公共数据、政策标准和历史时序等研究问题；
+- **来源角色**：从商品、论坛、百科扩展到官方文档、论文、标准、数据表和时间档案；
+- **交互形态**：从文本搜索/抓取扩展到分页、过滤、表格、地图、版本选择、浏览器和 MCP/API 等等价入口；
+- **可控变化**：允许版本快照、冲突、缺失、更新和反事实 fork，而不是只有静态正确页面。
+
+规模本身不自动等于难度，更不自动消除参数记忆。Wikipedia 是预训练高频语料；七百万节点只能扩大潜在候选空间。是否真正测到 research，必须由候选空间、搜索排序、组合约束、跨来源角色、运行内观察和反事实敏感性共同证明。
+
+### 4A.2 三维覆盖矩阵：研究垂直、认识来源角色与交互形态必须分开
+
+“购物、Wikipedia、论坛”不处于同一分类层级。正式环境卡使用三维坐标：
+
+$$
+\boxed{
+\mathcal E
+=
+\mathcal V_{research}
+\times
+\mathcal R_{epistemic}
+\times
+\mathcal I_{interaction}
+}
+$$
+
+| 轴 | 回答的问题 | v1 示例 |
+|---|---|---|
+| Research vertical | 用户在研究什么 | 消费/技术决策、科学技术综述、旅行规划、公共数据解释 |
+| Epistemic source role | 这份材料凭什么支持该结论 | 商业主张、社区经验、百科背景、原始/官方规范、论文研究、结构化统计、时间档案 |
+| Interaction form | agent 如何发现和读取 | SERP、URL browse、超链接、表格/信息框、filter/pagination、地图/时间选择、JSON API/MCP、browser/computer-use |
+
+任务不需要机械地覆盖所有格子，也不需要固定“三源齐全”。Case Blueprint 先选择一个 research shape，再选择完成该 shape 真正需要的来源角色与交互。环境发布时则报告矩阵覆盖率和空格，避免把“增加一个网站”误写成“增加一个研究能力”。
+
+### 4A.3 Domain Pack 是环境扩容的最小治理单位
+
+每个新增子世界不是一袋网页，而是一个可独立冻结、编译、渲染和审计的 `DomainPack`：
+
+```yaml
+pack_id: dra-wikimedia-en-2026q3
+verticals: [general_knowledge, science_technology, travel_geography]
+source_roles: [encyclopedic_reference, construction_typing]
+snapshot:
+  raw_artifacts: []
+  freeze_window: null
+  manifest_hash: sha256:...
+acquisition:
+  rung: official_bulk
+  population_definition: "..."
+  coverage_certificate_hash: sha256:...
+rights_and_safety:
+  license_inventory: []
+  redistribution_class: full_or_derived_or_internal_only
+  pii_policy: none_or_filtered_or_restricted
+compiler:
+  parser_version: page-parser-v2
+  renderer_version: local-renderer-v1
+  index_version: search-v4
+surfaces:
+  - text_search_api
+  - browser_serp
+  - url_fetch
+construction_oracle:
+  visible_to_agent: false
+  artifacts: []
+agent_visible_world:
+  artifacts: []
+quality_gates: []
+```
+
+一个 pack 只有同时具备以下六类资产才可进入正式 world：
+
+1. 原始快照或捕获记录及其内容哈希；
+2. 全量文档/结构编译器；
+3. agent 实际可见的本地渲染或 API；
+4. 搜索、分页、过滤和链接的冻结语义；
+5. 许可、隐私、覆盖和解析质量证书；
+6. 面向构题的 hidden oracle 与面向评分的 visible evidence 的边界声明。
+
+### 4A.4 推荐的 v1 / v2 环境组成
+
+v1 不推翻现有环境；它保留消费/社区基线，同时增加完整公共骨架和两个结构差异明显的新 pack。具体数量只有在 census 后冻结，不先用拍脑袋的“每域 20 万”作为发布门。
+
+| Pack | v1/v2 | 原始候选 | Agent-visible 形态 | 主要能力与理由 |
+|---|---|---|---|---|
+| Wikimedia backbone | v1 全量 | 同期 Wikipedia XML、Wikidata JSON；旧榜另保留现有 48.4GB ZIM | 本地 Wikipedia/Kiwix 页面、表格、链接、搜索 | 数百万级公共骨架、全局图统计、长尾实体、机制和背景；Wikidata 默认只作 construction oracle |
+| Commerce / services | v1 保留并扩容 | 当前 Magento DB；开放或自有商品/服务结构数据；规则化多版本快照 | 商品、服务、库存/价格历史、分类、筛选、比较页 | 商业主张、结构化规格、预算与选择；可控制造版本、缺失和营销冲突 |
+| Community / experience | v1 保留；扩容需单独审计 | 当前 Postmill；许可兼容的公开论坛 dump 或自建/合成社区 | 主题、回复树、引用、投票、时间、搜索/板块 | 主观经验、长期使用、分歧与群体偏差；PII 和许可是硬门 |
+| Science / technical | v1 pilot | IETF RFC 等公开规范；license-filtered PMC OA；OpenAlex 等元数据 sidecar | 技术文档、论文 XML/HTML、引用表、版本/勘误 | 方法比较、机制、证据强度、版本与引用链；全文仅收录允许再利用的子集 |
+| Travel / geography | v1 pilot | Wikivoyage、区域 OSM PBF、GeoNames 或自建服务数据 | 地点页、地图/列表、路线、地域与时间过滤 | 空间约束、组合行程、服务可用性；先做区域 extract，不从全 Planet 起步 |
+| Public statistics | v2 或 v1.5 | 许可清楚的政府/国际组织快照 | 数据门户、CSV/JSON、表格、时间/地区筛选 | 数值综合、趋势、口径差异；要求单位、版本和缺失值语义可冻结 |
+| Law / policy / news archive | v2 | 可再分发的官方法令、公开档案或获授权快照 | 条款、修订、事件时间线 | 版本冲突和时序综合价值高，但版权、时效与高风险解释需单独治理 |
+
+候选 pack 的纳入标准不是“能抓到”，而是：
+
+- 对至少一个 research vertical 提供现有环境没有的新构念；
+- 数据许可、抓取权限、再分发和 PII 处理有人工责任人签字；
+- 可以定义稳定 population 或诚实估计外部覆盖；
+- 可以冻结并通过本地 surface 重放；
+- 页面/数据结构不是把纯文本重复换皮；
+- 可以生成跨来源、开放结论的 DR 任务，而不只是短答案 QA；
+- 构建与维护成本通过 CapacityGate。
+
+### 4A.5 完整 Wikipedia dump 可以直接处理，但新旧世界走两条路线
+
+答案是可以，而且应该直接流式处理；但必须区分保护旧结果与建设新世界。
+
+#### 路线 L：旧世界 served-artifact-first
+
+当前 agent 实际看到的是既有 Kiwix ZIM，因此旧榜重建以 served artifact 为真值：
+
+1. 使用 `zimdump`/libzim 全量枚举 entry，而不是只依赖已观察 URL 或 Bloom membership；
+2. 保存 entry path、title、MIME、redirect、raw/rendered content hash 和 archive metadata；
+3. 从实际服务内容解析 block/span/link/table；稳定定位使用 `entry_path + content_hash + parser_version + block_index/char_range`，不假设 ZIM 一定携带 page/revision ID；
+4. 对 Kiwix HTTP 输出做抽样 round-trip，验证离线条目和 agent-visible 页面一致；
+5. Magento/Postmill 从数据库做同一 snapshot 的全量结构 dump，并与 HTTP 页面抽样对齐。
+
+#### 路线 N：新世界 synchronized-dumps-first
+
+新 world 不再先下载一个不透明 ZIM 再猜来源，而是从同期原始资产构建并最终生成服务 artifact：
+
+1. 冻结 Wikipedia `pages-articles`/元数据 dump、Wikidata JSON dump 和站点信息文件；官方 Wikimedia dump 提供 current revision 的页面、元数据和内容；
+2. 流式解析，不把完整 XML/JSON 解压进内存；按 page/revision/QID 分片写入列式存储；
+3. Wikipedia—Wikidata 只用精确 sitelink 进入 gold entity map；模糊 title 对齐只进入 uncertain candidate table；
+4. 保留 Wikidata statement 的 rank、qualifier、reference、时间范围和 snak 类型；selected/truthy property index 的选择规则单独版本化；
+5. 编译 document graph、entity/construction graph、structured fields、全文/BM25 索引、可选 dense index 和重复簇；
+6. 从同一 canonical store 生成 Kiwix 或自有本地 renderer，再对 served output 做逆向 census 和哈希抽验；
+7. raw snapshot、compiler、served artifact、search index 任一变化都生成新 world version。
+
+[Wikimedia 官方 dump 入口](https://dumps.wikimedia.org/)提供按项目与日期冻结的公开数据产物；所选快照的 current pages、revision metadata、content、title/siteinfo 与校验和必须逐项写入 pack manifest。ZIM 是服务封装，不应成为 construction metadata 的唯一来源；原始 dump 则不能在没有 round-trip 的情况下冒充 agent 实际看到的页面。
+
+### 4A.6 无官方 bulk 入口时：Acquisition Ladder 与近全量自建快照
+
+DRA 不被“是否恰好存在官方 dump”完全限制，但技术可抓取不等于允许抓取或允许再分发。每个 pack 使用下列 Acquisition Ladder：
+
+| Rung | 获取方式 | 默认政策 |
+|---|---|---|
+| A0 | 官方 bulk dump / licensed mirror | 首选；记录版本、校验和与许可 |
+| A1 | 官方 API、feed、sitemap、OAI-PMH、结构导出 | 全量枚举分页/游标；冻结原始响应 |
+| A2 | 经人工审查允许的公开近全量 crawl | 速率限制、明确范围、WARC/响应/渲染 lineage、覆盖证书；不绕过访问控制 |
+| A3 | 用开放数据重建本地同构站点，或显式 synthetic augmentation | 自建 renderer；真实与合成字段逐条标记，不伪装为原站镜像 |
+| A4 | 拒绝纳入 | 权利、PII、付费/登录绕过、稳定性或维护成本不可接受 |
+
+`robots.txt` 是抓取政策信号，不是法律授权；公开可访问也不自动授予缓存、训练或再分发权。法律/伦理结论必须由指定责任人独立记录，不能由 Coverage Score 代替。
+
+对于 A2，冻结窗口、frontier 与母体边界必须在抓取前定义：允许的 host/path/namespace、是否包含用户页、分页深度、附件、语言、时间范围和状态码。发现器至少包含两个尽量独立的入口，例如 sitemap/API 与目录/链接 crawl。capture–recapture 可以作为漏失估计之一，但其独立性与等捕获概率通常不成立，因此只报告带假设的区间，不把估计值当作真分母。
+
+#### A2 近全量抓取的工程协议
+
+如果一个高价值来源没有官方 bulk 入口，DRA 可以投入工程力量做接近完整的自建快照；但“比较完整”必须是可复核结论。每个 A2 pack 按以下顺序执行：
+
+1. **定义 population**：先冻结可数的资源类型、host/path、语言、时间、附件与排除规则；不能在抓完后重新定义分母以美化覆盖率；
+2. **多路发现**：并行使用 sitemap、站内搜索、目录/分页枚举、公开 API/feed、链接 frontier、外部已知 URL 清单与必要的实体枚举；每个 URL 保存 discovery provenance；
+3. **规范化与去重**：在请求前处理 canonical URL、参数、session、分页与内容别名，请求后再以 raw/rendered hash 和结构指纹识别 exact/near duplicates；
+4. **礼貌抓取与失败恢复**：按 host 配置速率、并发、退避、重试和 freeze window；保存 3xx/4xx/5xx、超时、robots/policy 信号与永久失败，不绕过登录、付费墙、验证码或技术访问控制；
+5. **双形态留存**：至少保留可审计的原始响应定位与 agent-visible rendered artifact；对 JS 页面记录重放所需资源和交互，不把空 HTML 当作成功页面；
+6. **分层校验**：按资源类型、时间、目录深度、流行度和状态分层抽样，检查正文完整性、链接、表格、附件、编码、renderer 和搜索可见性；
+7. **独立补漏**：冻结主 frontier 后，再用未参与主抓取的 discovery 方法和人工长尾样本找漏项；将发现的新有效 URL 作为 unseen-discovery audit，而不是悄悄加入分子；
+8. **发布裁决**：只有 rights/PII、capture fidelity、结构解析、search exposure 和预注册 coverage 用途全部过门，才进入正式 pack。否则降级为 `partial-source pack`、仅内部使用，或拒绝纳入。
+
+抓取停止不能只看“连续若干页没有新链接”。至少同时监控：已知 population 覆盖、各 discovery source 的边际新增、失败类型、重复率、目录/时间分层空洞、独立补漏率与关键资源解析成功率。若没有可信外部分母，发布声明只能是：
+
+> 在明确 frontier 与冻结窗口下形成了可枚举、可重放的 benchmark world；对外部原站的覆盖率未知或仅有带假设区间。
+
+这仍然有研究价值：benchmark-world closure 由 manifest 保证；只是不能把它包装成原网站的完整镜像。若原站权利或稳定性不适合快照，优先走 A3：用许可清晰的开放数据重建功能等价的本地站点，并明确标注 synthetic/derived 内容。
+
+每个 `capture_id` 可以绑定：
+
+- 请求、响应 header/body 与 WARC locator；
+- 规范 URL、状态、重定向和抓取时间；
+- 渲染 DOM、可选截图及浏览动作；
+- raw、normalized、rendered 三类哈希；
+- 发现来源、frontier 深度和重试/失败码；
+- rights/PII/release class。
+
+若删除请求或权利审查要求删除正文，公开与内部存储都按治理决定执行；审计层最多保留不含正文的 tombstone、hash 和删除原因，不默认永久保留 WARC 内容。
+
+### 4A.7 Coverage Certificate：外部覆盖与沙盒闭合不能混为一谈
+
+需要同时报告两个不同命题：
+
+1. **External-source coverage**：我们相对某个外部站点/数据源的预定义 population 捕获了多少；
+2. **Benchmark-world closure**：正式 world manifest 中有哪些对象，这个集合是否可枚举、可冻结、可重放。
+
+即使某个 A2 crawl 只覆盖原站的一部分，只要 registry 冻结，它仍能形成闭合沙盒；但论文不能声称代表整个外部网站。Coverage Certificate 至少包括：
+
+```json
+{
+  "pack_id": "...",
+  "acquisition_rung": "A2",
+  "population_definition": "...",
+  "freeze_window": ["...", "..."],
+  "discovery_methods": [],
+  "captured": 0,
+  "validated": 0,
+  "external_population_estimate": {
+    "estimate": null,
+    "interval": null,
+    "assumptions": []
+  },
+  "failure_breakdown": {},
+  "benchmark_registry_count": 0,
+  "raw_manifest_hash": "sha256:...",
+  "rights_review_id": "human-review:...",
+  "pii_review_id": "human-review:...",
+  "redistribution_class": "...",
+  "deletions": []
+}
+```
+
+不使用跨 pack 统一的 95\%/85\%/70\% 任意阈值。每个 pack 根据其科学用途预注册 coverage lower bound、允许失败类型和不确定性区间；若不能证明外部代表性，就把任务声明限定为“在冻结捕获世界内”，而不是降低法律或质量门。
+
+### 4A.8 全量清点必须分层，不能用一个“7M”覆盖所有对象
+
+每个 world version 至少分别报告：
+
+| 记号 | 清点对象 |
+|---|---|
+| $N_D$ | agent-visible documents / pages / API records |
+| $N_B$ | stable structural blocks/spans/table cells/posts |
+| $N_E$ | normalized entities；注明 exact 与 uncertain alignment |
+| $N_L$ | document/entity/link/reply/citation/temporal edges，按类型分组 |
+| $N_S$ | searchable units 与实际进入各索引的比例 |
+| $N_C$ | deterministic structured claims/fields；不等于所有语义事实 |
+| $N_I$ | search/filter/pagination/interaction states 或可参数化操作 |
+
+LoHoSearch 的约 762 万节点、2.65 亿链接边只能与对应层比较，不能直接与 DRA 的 URL registry 数比较。DRA 的 Wikipedia v1 目标是对选定完整 dump/served artifact 做全量结构编译；规模实验通过 nested views 实现，不通过永久丢弃五百万页面实现。
+
+### 4A.9 “有效研究规模”是环境表征面板，不并入 agent 主分
+
+仅报告 $N_D$ 会奖励空壳页面。环境还要报告下列 task-conditioned 指标：
+
+1. 单约束候选空间：
+
+$$
+S(c)=|\{x:x\models c\}|
+$$
+
+2. 联合约束收缩：
+
+$$
+\chi(c_1,\ldots,c_m)
+=
+\frac{\min_i S(c_i)}{|\bigcap_i C(c_i)|}
+$$
+
+3. Retrieval rank/exposure：关键来源在 exact、BM25、dense 与 rerank 后的 rank、Recall@$k$ 和分页暴露；
+4. Query ambiguity / decomposition：同一需求需要多少类查询才能覆盖不同 facet；
+5. Source-role diversity：完成任务至少需要哪些认识角色，而不是 URL 数；
+6. Conflict/temporal density：可信来源间的条件冲突、版本分歧和缺失；
+7. Route multiplicity：满足同一 evidence contract 的已知路线族数量，并区分真正独立与同源镜像；
+8. Minimal Research Cost：在一个可控 oracle policy 下达到目标测试覆盖所需的最少 search/browse/interaction 成本；
+9. Long-tail profile：实体流行度、文档长度、关系度数与任务分布；
+10. Scale-response curve：模型表现、候选池召回、检索成本和错误类型随 world view 扩大如何变化。
+
+这些指标用于证明环境与任务的难度、选择 scale、做分层抽样和解释失败，不再被加权成另一个“环境总分”，也不改变 DRA-GRC 的含义。
+
+### 4A.10 Search 与 Interaction Scaling 决定数百万页面是否真的可用
+
+如果型号或实体名一搜即中，七百万页面仍可能只是一跳任务；如果搜索随机污染，难度又来自基础设施故障。统一 search layer 必须：
+
+- 在完整 manifest 上建立 exact alias、BM25、可选 dense、来源 family 和时间字段；
+- 固定 tokenizer、normalizer、tie-break、reranker、过滤、分页和最大返回数；
+- 保存 query、候选集、各阶段分数、最终 rank 与 index hash；
+- 允许构题器计算全局 selectivity 与 rank exposure，但不向 agent 泄露 hidden graph；
+- 为 text API、浏览器 SERP、MCP 与 computer-use 渲染语义等价的 canonical result set；
+- 基础 search/browse 能力必须对 12 harness 都存在等价路径；高级地图/筛选交互只有在 adapter eligibility 通过时才进入跨 harness 正式分母；
+- 将搜索错误、页面交付错误和 agent 利用错误通过 Observation Ledger 分开。
+
+公平不要求 12 个 harness 使用相同工具，也不要求它们得到相同最终报告。公平要求：相同规范请求指向相同 world snapshot、同一 canonical ranking/page content；各 adapter 对内容的变换血统可回放，工具特有能力在 manifest 中预先声明。
+
+### 4A.11 Construction Oracle 不等于可引用证据世界
+
+大规模图可以包含 agent 看不到的构题信息：Wikidata 类型/入度、OpenAlex citation graph、站点全局统计、已知冲突簇、难度估计和隐藏答案 envelope。它们属于 `Construction Oracle`，用于：
+
+- 选择长尾实体和 research shape；
+- 估计搜索空间与约束收缩；
+- 检查可答性、捷径与题目泄漏；
+- 构造 counterfactual fork；
+- 生成 Case Blueprint、Task Contract 和初始检索 probes。
+
+只有 agent-visible local surfaces 中实际存在、并能通过运行 ledger 证明交付的内容，才是 admissible evidence。若一个命题只存在于 hidden Wikidata/OpenAlex sidecar，而没有通过正式页面/API 暴露，则它不能支持报告 check，也不能因为 agent 未提而扣分。
+
+### 4A.12 规模因果实验：全量编译，使用嵌套视图做消融
+
+直接编译完整 Wikipedia/Wikimedia 骨架后，通过稳定 hash prefix 或分层采样生成 nested views：
+
+$$
+W_{100K}\subset W_{1M}\subset W_{full}
+$$
+
+对固定任务骨架，核心支持证据在各视图中保持存在，仅逐层加入长尾候选、近邻干扰和替代路线；另构造 matched tasks，使候选空间而非答案内容随规模变化。每个 scale 报告：
+
+- oracle retriever 与统一 search 的 candidate recall；
+- 关键证据 rank、查询数、页面数与 wall-clock；
+- DRA-GRC、Full Pass 和失败漏斗；
+- 参数知识-only、report-only 与 proof-of-fetch 的差异；
+- 合法路线数量、冲突发现和新 facet 增量；
+- 同一 harness 多 seed 的 paired effect 与 cluster bootstrap CI。
+
+只有当扩大世界稳定增加研究搜索空间或区分能力、而不是只增加 API 失败时，environment scaling 才被视为有效。七百万不是预先保证的贡献结论，而是需要验证的环境条件。
+
+### 4A.13 当前 19-span pilot 的正式处置
+
+现有 `audio_0002` 19-span 资产保留，但降级并重命名为：
+
+> **seed-capture plumbing test / witness-conditioned negative control**
+
+它只验证：span locator、TWM schema、RTS executor、mock verdict 和 scorer 能否连通。它不能证明：
+
+- World Index 已完成；
+- candidate pool 能从全库召回证据；
+- compiler 不绑定 construction route；
+- 当前分数可以进入正式榜单。
+
+在全量 Domain Pack 与 World Index 通过门后，重新从 query-only Task Contract 启动 `audio_0002`：禁止读取旧 case support spans 作为 retrieval seed；旧 19 spans 只在输出后用于 recall probe。新实验必须报告找回了多少已知 witnesses、发现了多少未预选合格证据、candidate saturation 和与旧分数的差异。
+
+### 4A.14 四轮 KimiCode 反方审阅后的裁决记录
+
+本节经过 KimiCode 四轮独立提案与反方修订。保留的共识是：Domain Pack、多域三维矩阵、served/compiled 双路线、Construction Oracle 与 visible evidence 分离、Acquisition Ladder、Coverage Certificate 和 scale-response 实验。明确否决的建议包括：
+
+- “七百万页面会自动阻止参数记忆”；
+- 把 document、entity、edge 和 fact 合成一个规模数；
+- 用 `golden_answer_hash` 描述开放式 DR 报告；
+- 要求 12 harness 最终答案一致；
+- 把 compressed source line/byte offset 当作跨版本稳定 provenance；
+- 用 BFS 连通率替代 search 可达性；
+- 预先拍定每域页面数、孤立率或统一 crawl 覆盖阈值；
+- 把 `robots.txt` 当作法律授权，或删除后默认继续保留原始 WARC；
+- 只编译 150—200 万 Wikipedia 页面而不解释为何丢弃其余完整 dump。
+
+KimiCode 是内部设计审阅者，不是文献来源；最终方案、事实核验和责任由 DRA 作者承担。
+
+---
+
 ## 5. World Compiler：每一层到底抽什么、怎么抽、抽错了怎么办
 
 ### 5.1 输入与版本边界
@@ -502,47 +869,62 @@ World Compiler 的根输入不是网页 URL 列表，而是一个完整 `WorldSn
 
 ```json
 {
-  "snapshot_id": "dra-world-2026-07",
+  "snapshot_id": "dra-world-2026q3-v1",
   "registry_hash": "sha256:...",
-  "allowed_source_families": ["shop", "forum", "wiki", "technical"],
-  "search_index_version": "search-v3",
-  "parser_version": "page-parser-v1",
-  "embedding_version": "embed-v1",
-  "ontology_version": "dra-ontology-v1"
+  "domain_packs": [
+    {"pack_id": "wikimedia-en", "manifest_hash": "sha256:..."},
+    {"pack_id": "commerce-v1", "manifest_hash": "sha256:..."},
+    {"pack_id": "community-v1", "manifest_hash": "sha256:..."},
+    {"pack_id": "technical-pilot", "manifest_hash": "sha256:..."}
+  ],
+  "agent_visible_registry_hash": "sha256:...",
+  "construction_oracle_hash": "sha256:...",
+  "search_index_version": "search-v4",
+  "interaction_contract_version": "interaction-v1",
+  "parser_version": "page-parser-v2",
+  "embedding_version": "embed-v2",
+  "ontology_version": "dra-ontology-v2"
 }
 ```
 
-任何 URL、页面正文、parser、retriever、ontology 或 semantic matcher 改变，都必须生成新的 manifest。正式榜单结果绑定完整 manifest hash，不能只写“使用 2026 年 7 月语料”。
+任何 pack、URL/entry、页面正文、renderer、parser、retriever、interaction contract、ontology 或 semantic matcher 改变，都必须生成新的 manifest。正式榜单结果绑定完整 manifest hash，不能只写“使用 2026 年 7 月语料”。Hidden construction oracle 与 agent-visible registry 分别哈希：前者变化会触发构题版本，后者变化会触发 world 与所有运行结果版本。
 
-### 5.2 World Index：全量执行的九件事
+### 5.2 World Index：全量执行的十一件事
 
-对 registry 中每个 URL 全量执行：
+对 agent-visible registry 中每个 URL、ZIM entry、API record 或本地文档全量执行：
 
-1. URL canonicalization、redirect chain 与 source identity；
-2. HTTP 状态、MIME、语言、抓取时间和内容哈希；
-3. 主体正文解析，同时保存原始 DOM/结构化响应引用；
+1. pack identity、URL/entry canonicalization、redirect chain 与 source identity；
+2. HTTP/API/archive 状态、MIME、语言、快照时间和 raw/rendered 内容哈希；
+3. 主体正文解析，同时保存 WARC/archive locator、原始 DOM/结构化响应引用；
 4. section、paragraph、list item、table cell、forum post 等稳定 span；
 5. 页面级与 span 级出链；
 6. JSON-LD、商品规格表、论坛层级等确定性结构字段；
 7. 页面类型与来源 family；高风险 family 做全量人工复核，但不在全量层把页面语义粗暴固化为某一 assertion role；
-8. BM25、dense embedding 和实体别名检索索引；
-9. exact duplicate 与 near-duplicate 页面簇。
+8. exact alias、BM25、可选 dense embedding、时间/地理/facet 字段和检索索引；
+9. exact duplicate、near-duplicate、镜像和跨版本页面簇；
+10. search、pagination、filter、table/map/time-view 等 agent-visible interaction state；
+11. 分层 census、外部 coverage certificate、rights/PII class 和编译质量证书。
 
-这里不调用开放式 LLM 去列举页面所有事实。全量成本应主要是线性解析、索引和 embedding，而不是每页几十次语义推理。证据角色分成两层：`source_family` 由 WI 确定性分类；“厂商宣称/独立测量/用户经验/机制解释”等 assertion modality 在单题 TWM 中判定。按需 matcher 可以把角色降级，不得把不确定证据升级为更强角色。
+这里不调用开放式 LLM 去列举页面所有事实。全量成本应主要是线性解析、索引和可缓存 embedding，而不是每页几十次语义推理。证据角色分成两层：`source_family` 由 WI 确定性分类；“厂商宣称/独立测量/用户经验/机制解释”等 assertion modality 在单题 TWM 中判定。按需 matcher 可以把角色降级，不得把不确定证据升级为更强角色。Wikidata/OpenAlex 等 hidden oracle 的实体关系不自动进入 evidence store；只有在 agent-visible surface 中能够解析并引用的内容才可用于 $E=1$。
 
 ### 5.3 页面与 span schema
 
 ```json
 {
   "page_snapshot_id": "ps_...",
+  "pack_id": "commerce-v1",
   "canonical_url": "http://localhost/...",
+  "archive_entry_path": null,
   "redirect_chain": [],
   "http_status": 200,
   "source_family": "shop",
   "page_type": "product",
-  "snapshot_id": "dra-world-2026-07",
-  "content_hash": "sha256:...",
-  "parser_version": "page-parser-v1"
+  "snapshot_id": "dra-world-2026q3-v1",
+  "raw_content_hash": "sha256:...",
+  "rendered_content_hash": "sha256:...",
+  "capture_or_archive_locator": "...",
+  "rights_class": "redistributable",
+  "parser_version": "page-parser-v2"
 }
 ```
 
@@ -557,11 +939,12 @@ World Compiler 的根输入不是网页 URL 列表，而是一个完整 `WorldSn
   "char_end": 1217,
   "text_hash": "sha256:...",
   "outgoing_url_ids": [],
-  "embedding_id": "emb_..."
+  "embedding_id": "emb_...",
+  "locator_version": "block-locator-v2"
 }
 ```
 
-复杂表格不能只扁平化成一段文字；必须保留 header、row、column 和 cell 关系。论坛也必须保留 post、reply、quote 与 author 结构。否则后续证据绑定看似 span-level，实际已经丢掉语义上下文。[FEVEROUS](https://aclanthology.org/2021.fever-1.1/) 证明了文本与表格联合证据在事实验证中的必要性。
+复杂表格不能只扁平化成一段文字；必须保留 header、row、column、cell、单位、缺失值与时间/地区维度。论坛也必须保留 post、reply、quote、匿名化 author key 与时间结构；论文保留 section、figure/table caption、citation anchor；旅行/地图 pack 保留 place、route、geometry、opening/season condition。否则后续证据绑定看似 span-level，实际已经丢掉语义上下文。[FEVEROUS](https://aclanthology.org/2021.fever-1.1/) 证明了文本与表格联合证据在事实验证中的必要性。
 
 ### 5.4 Query / Case Blueprint 先编译成 Task Contract
 
@@ -776,6 +1159,30 @@ $$
 $$
 
 如果 `ProductUses` 或条件 $c$ 没有证据，就不能从百科机制页推出该商品结论。
+
+### 5.10A 论文、公共数据、旅行地理和时间档案怎么抽
+
+环境扩容不能把所有新 pack 都塞进 `technical page` parser。每类结构先全量确定性恢复，再做单题语义抽取：
+
+#### 论文与研究文档
+
+全量保存 DOI/PMCID/RFC 编号、版本、license、标题、摘要、section、参考文献、figure/table caption、citation anchor、勘误和撤稿/更新状态。OpenAlex 等 citation graph 默认属于 construction oracle；只有 agent-visible 的论文全文/摘要页才可引用。[PMC Open Access Subset](https://pmc.ncbi.nlm.nih.gov/tools/openftlist/)明确指出并非所有 PMC 文章都允许文本挖掘或再利用，且 OA subset 内许可仍有差异，所以 pack 必须逐文档保存 license class，不能以“在 PMC”代替权利审查。
+
+Task World 层抽取研究问题、方法、样本、人群/数据、比较基线、主要结果、不确定性、限制和作者结论。`paper_reports(result)` 不自动升级为普遍事实；跨论文综合必须保留可比性条件和证据等级。
+
+#### 统计/公共数据
+
+全量恢复 dataset、table、series、measure、unit、geography、time、revision、missing code、seasonal adjustment 和 footnote。一个表格单元的证据 locator 必须同时带 row/column header 与维度上下文。Task World 层再抽取趋势、组间比较、口径变化和边界；不得把不同单位、基期或修订版本直接相减。
+
+#### 旅行/地理
+
+全量恢复 place/POI、坐标、区域层级、route、distance、opening/season interval、transport relation、服务类别和来源更新时间。OpenStreetMap 全 Planet 很大且使用 ODbL；v1 先使用预注册区域 PBF 和明确 attribution/派生数据库政策，而不是为了数字直接导入全 Planet。[OpenStreetMap 官方 Planet 入口](https://planet.openstreetmap.org/)提供完整 planet 产物；DRA 应先从区域 extract 验证管线，再决定是否有科学必要扩大范围。
+
+Task World 层抽取行程约束、可达性、季节/营业条件、预算与替代路线。地图几何或路网 oracle 可以用于计算候选路线，但只有 agent-visible 地图/列表/API 返回才能成为报告证据。
+
+#### 历史、法规与新闻时间档案
+
+全量恢复 document version、effective/published date、supersedes/amends/corrects 关系、jurisdiction、section/clause 和 source identity。Task World 层抽取事件、版本变化、因果主张和来源分歧。由于版本、版权和高风险解释复杂，这类 pack 在 v2 前必须先通过 temporal round-trip、rights review 与专家抽样门。
 
 ### 5.11 证据合同、Evidence Class 与 Route Family
 
@@ -1201,7 +1608,7 @@ $$
 | F1 | Soundcore 价格为 USD 53.49 | product fact |
 | F2 | Ortizan 价格为 USD 57.99 | product fact |
 | F3 | Soundcore 写明 20W、两个 10W 声道 | product claim |
-| F4 | Soundcore 写明 THD+N 低于 1%，但未给测试条件 | product claim + limitation |
+| F4 | Soundcore 写明 THD+N 低于 1\%，但未给测试条件 | product claim + limitation |
 | F5 | Ortizan 写明 2 × 20W Max，并宣称最大音量无失真，但没有连续功率/THD 条件 | product claim + limitation |
 | F6 | 两者均宣称 IPX7 | product claim |
 | F7 | IPX7 是有边界的临时浸水等级，不等于任何泳池/海滩条件下无限防水 | technical scope |
@@ -1265,7 +1672,7 @@ required_facets:
 |---|---|---|
 | U1 预算可行性 | 正确比较两个冻结价格与 USD 60 预算 | 任一能支持两价格、且本次已交付的合格 product evidence bundle |
 | U2 输出披露 | 正确区分 20W/2×10W 与 2×20W Max | 任一分别支持两产品规格的合格 evidence bundle |
-| U3 失真可审计性 | 不把“THD+N 低于 1%”或“无失真”过度推出为实测优胜 | 产品措辞 + 任一合格测量语境证据 |
+| U3 失真可审计性 | 不把“THD+N 低于 1\%”或“无失真”过度推出为实测优胜 | 产品措辞 + 任一合格测量语境证据 |
 | U4 watt 含义 | 不从 headline watts 直接推出响度/干净输出 | 任一满足技术机制合同的合格证据 |
 | U5 IPX7 | 表达测试范围，避免无限防水推断 | 产品宣称 + 任一满足 IPX7 scope 合同的证据 |
 | U6 电池 | 比较 12h/15h 并保留使用条件 | 两产品电池证据类 |
@@ -2509,7 +2916,7 @@ Research Quality Panel 在论文中另表列出四轴或汇报一个小型雷达
 - 不需要逐题手写复杂 rubric；
 - 可接受多条合法证据路线；
 - 不需要提前枚举所有替代 URL；
-- 不需要对 23 万页面做全量语义抽取；
+- 不需要对多域完整环境中的数百万页面做开放式全量语义抽取；
 - 对所有 harness 使用相同测试；
 - 主分是一句人话可以解释的通过率；
 - 可以定位搜索、抓取、利用、归因和答案错误。
@@ -2522,7 +2929,7 @@ Research Quality Panel 在论文中另表列出四轴或汇报一个小型雷达
 - Provenance：下沉为每个证据路径的 Valid/Observed/Binding/Support；
 - 原公式：仅用于旧榜对照，不再作为新主榜。
 
-过渡 OGC 方案中的 `0/0.5/1` 主观档与 `4/2/1` 义务权重在 v3.2 明确停用，不与本文的二值 checks 和层级宏平均并存。其人工校准集、伪证据腐蚀实验与 PPI 置信区间思想保留并并入第 19—20 节。
+过渡 OGC 方案中的 `0/0.5/1` 主观档与 `4/2/1` 义务权重在 v3.3 明确停用，不与本文的二值 checks 和层级宏平均并存。其人工校准集、伪证据腐蚀实验与 PPI 置信区间思想保留并并入第 19—20 节。
 
 ---
 
@@ -2532,7 +2939,7 @@ Research Quality Panel 在论文中另表列出四轴或汇报一个小型雷达
 
 推荐主表只保留决定正式排序、引用可靠性和可复核资格的字段：
 
-| Rank | Harness | Penalized DRA-GRC ↑ (95% CI) | Task Solve Rate ↑ | Fabricated citation rate ↓ | Affected-task rate ↓ | Clean-run rate ↑ | Formal Eligible | Cost |
+| Rank | Harness | Penalized DRA-GRC ↑ (95\% CI) | Task Solve Rate ↑ | Fabricated citation rate ↓ | Affected-task rate ↓ | Clean-run rate ↑ | Formal Eligible | Cost |
 |---:|---|---:|---:|---:|---:|---:|---|---:|
 | 1 | Harness A | 0.63 [0.57, 0.69] | 0.18 | 0/84 | 0/56 | 56/56 | Yes | USD … |
 | 2 | Harness B | 0.55 [0.49, 0.61] | 0.11 | 2/91 | 1/56 | 55/56 | Yes | USD … |
@@ -2591,7 +2998,7 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 }
 ```
 
-这使“为什么得 0.63”不再是一个 judge 黑箱，而是可以沿 facet → unit → check 逐项复核的“63% query-balanced grounded research coverage”。它不是简单的 raw checks 通过率。
+这使“为什么得 0.63”不再是一个 judge 黑箱，而是可以沿 facet → unit → check 逐项复核的“63\% query-balanced grounded research coverage”。它不是简单的 raw checks 通过率。
 
 ---
 
@@ -2612,12 +3019,13 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 
 ### 19.2 完整验证矩阵
 
-下表不是把 30 项实验当成同等重要的“检查清单”，而是形成四道连续发布门：
+下表不是把 36 项实验当成同等重要的“检查清单”，而是形成五道连续发布门：
 
-1. **Scoring invariants（V1—V10）**：先证明 oracle、空报告、事实堆砌、证据删除、合法/非法路线和粒度变化会产生预期的局部响应；
-2. **World / Compiler quality（V11—V19）**：再证明文档索引、候选池、assertion/role/relation、query 对齐、必要性、可答性和 held-out probe 没有系统性缺口；
-3. **Execution acceptance（V20—V22）**：校准 12 个 adapter 的交付语义，以及 runner 对合法路线的误拒率和无效路线的误收率；
-4. **Benchmark validity（V23—V25）**：最后检查专家构念效度、受控反事实敏感性、版本复现和沙盒外推边界。
+1. **Environment validity（V31—V36，逻辑上先执行）**：先证明 Domain Packs 可重建、可枚举、可重放，抓取覆盖声明诚实，interaction surfaces 等价，规模增加的不是基础设施噪声；
+2. **Scoring invariants（V1—V10）**：再证明 oracle、空报告、事实堆砌、证据删除、合法/非法路线和粒度变化会产生预期的局部响应；
+3. **World / Compiler quality（V11—V19）**：证明文档索引、候选池、assertion/role/relation、query 对齐、必要性、可答性和 held-out probe 没有系统性缺口；
+4. **Execution acceptance（V20—V22）**：校准 12 个 adapter 的交付语义，以及 runner 对合法路线的误拒率和无效路线的误收率；
+5. **Benchmark validity（V23—V30）**：最后检查专家构念效度、受控反事实敏感性、版本复现、完整性治理、发布产能和沙盒外推边界。
 
 每个实验都要在运行前冻结输入生成器、预期不变量、统计量、失败阈值与处置动作。某一层不通过时，不能靠后层平均分“抵消”：例如 Candidate Pool 召回不足应修 compiler 或将题 withheld，不能用较高的人类排序相关掩盖。
 
@@ -2653,6 +3061,12 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 | V28 | Dependency cascade | 对冻结 premise DAG 注入单点证书/支持判定翻转，按 task 拓扑分层，包含 Route G | 实测级联与冻结 DAG 一致；静态可达性只作保守界 | $\kappa_e$、TFRR、拓扑分层 CI |
 | V29 | Fabrication integrity | 将合法引用替换为伪造、off-world、alias 误报与 registry 缺失 | 真伪造使任务正式分清零；benchmark 错误走 repair；二者不混淆 | detection P/R、adjudication agreement |
 | V30 | Release capacity | 在 Dev-14 上测 novel pairs、judge 分歧、人工时间和队列峰值 | ValidityGate 与 CapacityGate 均通过，正式条目 PENDING=0 | FRR/FAR/$\kappa$、人时/条目、throughput |
+| V31 | Domain Pack reconstruction | 从冻结 raw manifests 独立重建两次 canonical store、served artifacts 与索引 | pack hash、对象 ID、内容与索引语义稳定；差异可定位 | exact repeat、diff taxonomy |
+| V32 | Layered census | 对 documents、blocks、entities、typed edges、search units 与 interaction states 分层清点并抽样回查 | 不用单个页面数替代所有规模；每层有解析/遗漏区间 | $N_D,N_B,N_E,N_L,N_S,N_I$、audit CI |
+| V33 | A2 coverage audit | 对无官方 dump 的 pack 使用预注册 population、多路 discovery、冻结后的独立补漏与失败分解 | 只在证据允许时声称近全量；否则明确 partial/unknown external coverage | known-population recall、unseen-discovery yield、failure strata |
+| V34 | Served-world round trip | 从 raw/compiled 对象抽样到 browser/API/MCP，再反查 canonical object 和渲染内容 | agent-visible 内容、URL、表格、分页与过滤可回放；空壳/资源缺失被检出 | content agreement、broken-render rate |
+| V35 | Surface equivalence | 对同一 canonical 请求比较 text API、SERP、browser、MCP 与 eligible adapters | canonical candidates/ranking/content 一致，变换差异进入 lineage | rank overlap、content fidelity、blind rate |
+| V36 | Scale and oracle separation | 在 nested views 上跑 matched tasks，并对 hidden oracle 信息做泄漏探针 | 难度随有效候选/组合成本变化；construction-only 信息不能直接支持得分或泄露给 agent | scale-response、infra-error share、oracle-leak rate |
 
 ### 19.3 候选池“抽够了”怎么证明
 
@@ -2690,7 +3104,7 @@ $$
 
 替代路线必须由独立 annotator 或 held-out retriever 构造，且不得使用 known witness URL。每条路线先由人工确认其 evidence bundle 确实满足合同，再交给 frozen runner。ARA 只对 known-support multiplicity 至少为 2 的 checks 定义；`single_source` checks 只评估新合格证据的接受机制与困难负例 FAR，不伪造替代路线。ARA 高而 FAR 低，才说明“不绑定 witness URL”不是口号。
 
-若某一层约 300 个独立样本观察到 0 个错误，可用三分法则给出约 95% 置信下错误率低于 1% 的上界；若出现错误，则报告 Wilson 或 bootstrap 区间，不能继续声称小于 1%。
+若某一层约 300 个独立样本观察到 0 个错误，可用三分法则给出约 95\% 置信下错误率低于 1\% 的上界；若出现错误，则报告 Wilson 或 bootstrap 区间，不能继续声称小于 1\%。
 
 ### 19.5 依赖级联与全局证书错误如何认证
 
@@ -2710,7 +3124,7 @@ $$
 P(\text{一份合法整报告至少有一个 applicable core check 被误拒}).
 $$
 
-合法整报告层约 300 个独立样本零错时，可用三分法则给出 TFRR 约低于 1% @95% 的上界；出错时报 Wilson 区间，不继续声称低于 1%。另按第 5.16 节的 $m_c\times$分数影响抽审高重数证书，用 repair/erratum 处理跨 run 污染。
+合法整报告层约 300 个独立样本零错时，可用三分法则给出 TFRR 约低于 1\% @95\% 的上界；出错时报 Wilson 区间，不继续声称低于 1\%。另按第 5.16 节的 $m_c\times$分数影响抽审高重数证书，用 repair/erratum 处理跨 run 污染。
 
 ### 19.6 Compiler 不是一次生成就冻结
 
@@ -2806,7 +3220,7 @@ $$
 成对比较 harness 时，对相同任务做 paired cluster bootstrap，并同时报告：
 
 - 均值差；
-- 95% CI；
+- 95\% CI；
 - win/tie/loss；
 - Task Solve Rate 差；
 - integrity 事件差；
@@ -2846,6 +3260,75 @@ PPI 或其他校正不使用一个混合金标池；每种高风险判定类型�
 
 ## 21. 实施路线
 
+本节分成两条有依赖关系的轨道：`E` 轨先构建环境，`S` 轨再构建评分。旧编号 Phase 0—10 属于评分轨；任何单题 TWM 都不能绕过环境轨直接从 evidence graph 建“世界”。
+
+### Phase E0：环境宪章、Domain Pack 治理与旧世界只读冻结
+
+产物：
+
+- 研究垂直 × 来源角色 × 交互形态覆盖矩阵；
+- Domain Pack schema、Acquisition Ladder、Coverage Certificate 与 rights/PII review 模板；
+- 旧 Magento、Postmill、Kiwix、search shim 与 12 adapter 的镜像/版本/hash；
+- construction-oracle 与 agent-visible evidence 的访问边界；
+- pack 纳入/拒绝标准和人工责任人。
+
+验收门：旧榜可重放；任何 pack 都不能在没有 population、权利、PII、renderer、search 与 manifest 责任人的情况下进入构建队列。
+
+### Phase E1：百分之一 shard 编译器 smoke，而不是单题 19-span smoke
+
+对每个 v1 pack 选取稳定 hash shard 或预注册区域：
+
+1. 流式导入 raw artifact/capture；
+2. 生成 document/block/link/structured/interaction stores；
+3. 构建 exact/BM25 索引；
+4. 生成 agent-visible renderer/API；
+5. 对 raw → parsed → served 做 round-trip；
+6. 输出吞吐、峰值内存、磁盘放大、失败类型和质量抽样。
+
+验收门：相同输入双构建 ID/hash 一致；span 能回到 served page；关键表格、回复树、引用、时间和地理结构无系统丢失；测得的资源曲线允许外推全量。未过门先修 parser，不准用题目 witnesses 手工补洞。
+
+### Phase E2：全量 Wikimedia backbone
+
+旧世界按 served-artifact-first 枚举完整 ZIM；新世界按 synchronized-dumps-first 流式编译 Wikipedia/Wikidata，并从 canonical store 生成正式服务 artifact。产物包括：
+
+- 分层 census：$N_D,N_B,N_E,N_L,N_S,N_C,N_I$；
+- document/link graph、exact sitelink entity map、uncertain alignment table；
+- construction-only Wikidata global statistics；
+- 全文/BM25 与别名索引、重复簇；
+- raw/compiled/served 三方 manifest 与抽样 HTTP round-trip；
+- `W_{100K}\subset W_{1M}\subset W_{full}` 嵌套视图。
+
+验收门：完整输入无静默分片丢失；exact/uncertain 对齐分开；agent 看不到的 Wikidata assertion 不进入 evidence store；完整 served artifact 可枚举、可搜索、可重建。
+
+### Phase E3：现有 Commerce / Community pack 全量重建
+
+从 Magento 与 Postmill 数据库全量导出，而不是从当前 56 题页面反推 corpus。恢复商品 variant/规格/价格/评价/分类，以及论坛 thread/post/reply/quote/time/匿名化 author 结构；生成本地页面、过滤/分页和统一 search 索引。当前 registry 的约 104,368 个商品 URL 与 127,391 个论坛主题是输入 census 起点，不是质量结论。
+
+验收门：数据库对象、registry 与 HTTP page 三方对齐；不存在 query-conditioned inclusion；评论引用不被错归作者；产品 variant 不被错误合并；当前已知 task witnesses 仅在构建完成后用作召回 probe。
+
+### Phase E4：两个新垂直 pack 的端到端 pilot
+
+优先选择结构差异最大、许可路径最清楚的两个组合：
+
+1. Science / technical：IETF RFC + license-filtered PMC OA + metadata oracle；
+2. Travel / geography：Wikivoyage + 预注册区域 OSM/GeoNames + 本地地图/列表 renderer。
+
+每个 pack 都先完成 rights/PII/coverage certificate，再构建 agent-visible surface；不因下载技术成功自动进入正式集。
+
+验收门：每个 pack 至少支持一种现有购物环境无法测到的 research unit；生成的任务至少需要两个认识来源角色或一个非文本交互；版权/再分发边界明确；独立专家能从 agent-visible 页面完成答案，而无需 hidden oracle。
+
+### Phase E5：统一 Search / Browse / Interaction Contract
+
+将 text API、browser SERP、MCP、computer-use、分页、过滤、表格/地图视图绑定同一 canonical corpus 和 ranking manifest。对 12 harness 分别做 content equivalence 与 delivery lineage canary；不要求工具调用序列或最终答案一致。
+
+验收门：相同 canonical request 返回相同 result IDs/ranking hash；各 adapter 能获得等价核心文本和结构；不支持高级交互的 harness 在运行前标记 eligibility，不能题后动态改分母。
+
+### Phase E6：Environment Scaling 效度实验
+
+在嵌套 views 与 matched tasks 上测量 candidate space、rank exposure、minimal research cost、source-role coverage、合法路线、参数知识-only、proof-of-fetch、DRA-GRC 和失败漏斗。只有规模增长带来稳定的研究空间/区分度变化而非基础设施错误，才冻结 v1 full world；否则保留完整 corpus 但重新设计任务采样或 search surface。
+
+验收门：预注册 scale-response 实验完成、world/compiler gates 通过、CapacityGate 可支持正式任务构建。到此才允许进入评分轨 Phase 2 的单题 TWM。
+
 ### Phase 0：冻结旧结果与版本
 
 产物：
@@ -2857,9 +3340,9 @@ PPI 或其他校正不使用一个混合金标池；每种高风险判定类型�
 
 验收：任何新实现都能在不改旧榜的情况下做并排对照。
 
-### Phase 1：全量 World Index，只做廉价、可复现的世界层
+### Phase 1：冻结并验证 E 轨产出的全量 World Index
 
-一次性遍历冻结 registry 的全部页面，完成：
+本 phase 不再从单题 graph 创建一份局部 `world-index.json`，而是加载并验证 Phase E2—E5 已构建的完整 world manifest。对冻结 registry 的全部页面/entry/API record 确认：
 
 - URL canonicalization、redirect、HTTP/status、快照与 hash；
 - HTML 主体、section、paragraph、list、table、forum post/quote 的 span 化；
@@ -2871,19 +3354,19 @@ PPI 或其他校正不使用一个混合金标池；每种高风险判定类型�
 
 这一阶段不调用 LLM 对每个页面抽“全部事实”。随机抽样与高风险分层抽样核对正文、表格、帖子和链接坐标。
 
-验收门：相同快照重复构建 ID/hash 一致；支持 span 可从 ID 复原到页面；索引中不存在静默丢页；解析误差达到预注册质量门槛。
+验收门：相同快照重复构建 ID/hash 一致；支持 span 可从 ID 复原到 agent-visible 页面；索引中不存在静默丢页；各 Domain Pack 的 coverage/rights/PII/compiler 证书齐全；解析误差达到预注册质量门槛。若 E 轨未过门，本 phase 不能以任务局部 blobs 代替。
 
 ### Phase 2：单题 Task Pool + Task World Model MVP
 
-以 `dra_v3_dev_audio_0002` 为第一题：
+只有 Phase E6 和评分轨 Phase 1 通过后，才以 `dra_v3_dev_audio_0002` 为第一题：
 
 1. 从 query 与已有 Case Spec 生成 Task Contract；
-2. 按 `entity × facet × source role` 运行 exact/BM25/dense/link expansion；
+2. 只从 query/Task Contract 生成 probes，按 `entity × facet × source role` 在完整索引上运行 exact/BM25/dense/link expansion；禁止读取旧 19-span support list 作为 retrieval seed；
 3. 画 candidate-pool saturation curve；
 4. 仅对候选 spans 做两阶段 assertion 抽取；
 5. 构建 product claim、technical mechanism、community event、conflict 和 unknown；
 6. 人工核验高影响 assertions 及其原始 spans；
-7. 保存 known witnesses，但不生成 URL allowlist。
+7. 保存 known witnesses，但不生成 URL allowlist；旧 19 spans 只在候选池冻结后用于 recall probe。
 
 验收门：所有 core facet 有至少一个运行可达 witness；独立人工/检索路线的关键证据具有足够召回；source role 和 modality 不发生高风险升级；所有 assertion 都能回到原始 span。
 
@@ -2989,12 +3472,28 @@ Decision Envelope 只在适合形式化的购买决策题启用，用于检查�
 
 ### 21.1 成本闸门
 
-每个 phase 都先记录页面数、span 数、LLM 输入/输出 token、缓存命中、人工分钟和失败重试。只有在一题和 Dev-14 上得到实测成本后，才外推 56 题预算。扩容条件不是“脚本能跑”，而是：
+每个 phase 都先记录 raw bytes、文档/entry、block/span、edge、索引项、解析吞吐、峰值内存、磁盘放大、LLM 输入/输出 token、缓存命中、人工分钟和失败重试。环境成本与评分成本分开建模：
+
+$$
+C_{env}
+=
+C_{acquire}+C_{parse}+C_{index}+C_{render}+C_{audit}
+$$
+
+$$
+C_{task}
+=
+C_{retrieve}+C_{semantic}+C_{compile}+C_{judge}+C_{adjudicate}
+$$
+
+先用每个 pack 的 1\% shard 测实际吞吐和放大系数，再决定全量资源；不承诺未经实测的“单机 48 小时”等数字。只有在全量 world、一题和 Dev-14 上分别得到实测成本后，才外推正式 world 维护和 56 题预算。扩容条件不是“脚本能跑”，而是：
 
 - 语义成本随 `unique task-relevant spans` 增长，而不是随全库页面数增长；
 - 多题复用 span 时缓存命中率上升；
 - on-demand matcher 只处理报告真实引用的新证据；
 - 人工时间主要用于分歧与高风险抽样，而不是逐页全文阅读；
+- 全量结构编译随 raw documents/edges 近线性增长，且可中断续跑、分片校验；
+- 新 Domain Pack 的任务增益、矩阵新覆盖与维护成本有可审计 trade-off；
 - CapacityGate 在实测 novel pairs、分歧率、单对人时与安全系数后能支持一个完整提交；超载只延迟该 entry，不降级评分规则。
 
 ---
@@ -3002,6 +3501,41 @@ Decision Envelope 只在适合形式化的购买决策题启用，用于检查�
 ## 22. 推荐的代码模块边界
 
 ```text
+src/environment/
+  pack_manifest.py
+  acquisition_ladder.py
+  coverage_certificate.py
+  rights_pii_registry.py
+  capture_store.py
+  warc_lineage.py
+  snapshot_freezer.py
+  canonical_document_store.py
+  renderer_contract.py
+  surface_equivalence.py
+  census.py
+
+src/environment/packs/
+  wikimedia/
+    zim_census.py
+    wikipedia_stream.py
+    wikidata_stream.py
+    sitelink_join.py
+    served_roundtrip.py
+  commerce/
+    magento_export.py
+    product_renderer.py
+  community/
+    postmill_export.py
+    thread_renderer.py
+  science_technical/
+    rfc_import.py
+    pmc_oa_import.py
+    citation_sidecar.py
+  travel_geo/
+    wikivoyage_import.py
+    osm_region_import.py
+    place_renderer.py
+
 src/eval/world_index/
   snapshot_manifest.py
   url_canonicalizer.py
@@ -3013,6 +3547,8 @@ src/eval/world_index/
   duplicate_clusters.py
   sparse_index.py
   dense_index.py
+  interaction_index.py
+  scale_views.py
 
 src/eval/task_world/
   task_contract.py
@@ -3111,11 +3647,28 @@ src/eval/publishing/
   method_card.py
 ```
 
-`src/eval/protocol_v3.py` 中需新增独立协议 ID（例如 `grc_v3_2`），不在旧 protocol ID 下静默改语义。
+`src/eval/protocol_v3.py` 中需新增独立协议 ID（例如 `grc_v3_3`），不在旧 protocol ID 下静默改语义。环境 manifest 另有独立 `world_v1`/pack 版本，评分协议升级不自动改 world，world 升级也不静默复用旧分。
 
 推荐数据布局：
 
 ```text
+data/environment/raw/<pack_id>/<snapshot>/
+  source-manifest.json
+  rights-inventory.json
+  captures-or-dump-parts/
+
+data/environment/packs/<pack_id>/<pack_version>/
+  pack-manifest.yaml
+  coverage-certificate.json
+  compiler-certificate.json
+  documents/
+  blocks/
+  links/
+  structured/
+  interactions/
+  construction-oracle/
+  agent-visible/
+
 data/world_index/<world_version>/
   manifest.json
   pages/
@@ -3123,6 +3676,8 @@ data/world_index/<world_version>/
   links/
   structured/
   indexes/
+  census.json
+  scale-views/
 
 data/golden/task_worlds/<task_world_version>/<task_id>/
   task-contract.json
@@ -3155,8 +3710,13 @@ data/results/<run_id>/
 所有资产通过内容哈希串联。一个正式结果至少绑定：
 
 ```text
+domain_pack_manifest_hashes
+coverage_certificate_hashes
 world_hash
 world_index_hash
+construction_oracle_hash
+agent_visible_registry_hash
+search_interaction_contract_hash
 task_contract_hash
 task_world_hash
 rts_hash
@@ -3177,7 +3737,7 @@ scorer_hash
 - 现有 12 harness adapters
 - 已有 Route Flexible pilot 的 OR-of-AND 路线思想
 
-当前工程现状必须如实记录：`route_flexible_scorer.py`/`route_flexible_judge.py` 和相关测试已存在，但只有一道 dev rubric 落盘；`observation_ledger.py`、`url_registry.py`、`semantic_matcher.py` 是 v1 底座，还没有 Ledger v2 血统、双 judge 证书、裁决队列和 repair engine；`scripts/build_deep_leaderboard_v3.py` 目前只能视为合成/展示占位，不是 v3.2 正式榜 scorer。其中 evidence graph 必须降级为 construction witness；旧 Fact parser 作为 deterministic extractor/check executor；旧 route-flexible scorer 的路线表达可迁移，但不继承其固定 URL 假设。
+当前工程现状必须如实记录：`route_flexible_scorer.py`/`route_flexible_judge.py` 和相关测试已存在，但只有一道 dev rubric 落盘；`observation_ledger.py`、`url_registry.py`、`semantic_matcher.py` 是 v1 底座，还没有 Ledger v2 血统、双 judge 证书、裁决队列和 repair engine；`scripts/build_deep_leaderboard_v3.py` 目前只能视为合成/展示占位，不是 v3.3 正式榜 scorer。环境侧也尚无完整 Domain Pack compiler、ZIM census、Wikimedia synchronized build、Coverage Certificate 或多域 renderer。其中 evidence graph 必须降级为 construction witness；旧 Fact parser 作为 deterministic extractor/check executor；旧 route-flexible scorer 的路线表达可迁移，但不继承其固定 URL 假设。
 
 ---
 
@@ -3185,6 +3745,12 @@ scorer_hash
 
 | 风险 | 会怎样破坏结论 | 监测 | 缓解与披露 |
 |---|---|---|---|
+| 用页面数冒充有效规模 | 数百万空壳/镜像页没有增加研究能力，却被包装成贡献 | 分层 census、duplicate clusters、scale-response、effective candidate space | 分别报告 $N_D,N_B,N_E,N_L,N_S,N_C,N_I$；规模面板不并入 agent 分；用嵌套视图做因果消融 |
+| Source environment 与 research vertical 混淆 | 加一个网站被误说成增加一个领域，任务仍只测购物 | 三维覆盖矩阵与空格审计 | 每题、每 pack 标记 vertical × source role × interaction；新 pack 必须贡献新构念 |
+| Hidden oracle 泄入评分 | agent 不可见的 Wikidata/OpenAlex relation 被当成必答证据 | oracle/visible store diff、不可见 witness audit | construction oracle 单独权限与 hash；只有 agent-visible delivered span 可使 $E=1$ |
+| 自抓语料覆盖/许可夸大 | 把部分 crawl 称为全站、把可访问误作可再分发 | Coverage Certificate、rights/PII review、deletion log | Acquisition Ladder；外部覆盖与沙盒闭合分开；无统一拍脑袋阈值；高风险 pack 拒绝发布 |
+| Search 让大世界仍然一跳或随机污染 | 难度与规模脱钩，结果测到排序 bug | candidate/rank exposure、minimal research cost、search oracle gap | 固定 search contract；计算 selectivity/ambiguity；API 错误与 agent 错误分离 |
+| 多域 renderer 不等价 | 不同 harness 因工具面不同看到不同事实 | surface-equivalence canary、delivery lineage | canonical result/page IDs；核心能力提供等价入口；高级交互预先做 eligibility |
 | 重新滑向全库语义抽取 | 成本爆炸，ontology 永远不完备，却假装拥有世界真值 | 全库 LLM token/页、无 span assertion 数 | 全量只建 WI；语义限于 task pool 与报告新引用；声明 closed documents 而非 complete semantics |
 | Candidate Pool 漏召回 | TWM 和 RTS 遗漏重要 facet、冲突或方案 | pooled recall、saturation、池外独立检索 | 混合检索、来源配额、link expansion、独立 pooled audit；运行时引用不依赖候选池白名单 |
 | TWM 抽取幻觉 | 错 assertion 污染 answerability 和测试 | assertion/span P/R、abstain、challenger cases | 确定性字段优先；强制 span；高风险抽审；低置信不能作唯一 core witness |
@@ -3228,8 +3794,8 @@ scorer_hash
 
 推荐直接采用以下默认值：
 
-1. **世界边界**：闭合 URL、快照、页面和 span，不声称闭合全部自然语言语义；
-2. **架构**：`World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；
+1. **世界边界**：闭合版本化 Domain Packs、agent-visible URL/entry/API records、快照、页面和 span，不声称闭合全部自然语言语义或完整外部网站；
+2. **架构**：`Raw/Captured Sources → Domain Packs → Full World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；
 3. **主分**：唯一主排名量为固定任务集上的 penalized mean `DRA-GRC`；
 4. **聚合**：冻结 applicability 下 check → unit → facet → task 的层级等权 macro average，不跨题 micro average；
 5. **评分对象**：最小对象是 executable check，不是 URL 数、claim 数或整篇报告印象；
@@ -3250,7 +3816,7 @@ scorer_hash
 20. **Research Quality Panel**：四轴独立、状态遮蔽、anchored pairwise；判别效度失败的轴降为联合/探索报告，永不与 DRA-GRC 合成；
 21. **Decision Envelope**：仅用于可形式化决策子集；支配世界来自冻结 TWM，不来自报告已通过 checks；返回可接受集合，不固定唯一推荐；
 22. **Pivotality**：只作选题、边界事实和反事实诊断，不作主分权重；
-23. **任务形状**：核心 consumer-information DR 范围加 evolution、bounded enumeration、cross-page aggregation；后三者必须先过语料可答门，不达标即披露 unsupported；
+23. **任务形状**：消费/技术决策是首个垂直基线，正式扩展包括科学技术、旅行地理与公共数据；evolution、bounded enumeration、cross-page aggregation 等形状必须先过 pack 可答门，不达标即披露 unsupported；
 24. **任务构建**：Route S 与 Route G 分别标记；自动题先 research shape 与 blueprint，再生成 query/RTS；
 25. **构建 probes**：固定合成策略；正式 12 harness 不参与动态调题，只在冻结前压力测试 evaluator/观察协议；
 26. **人工工作**：审核 query、compiler、answerability、替代证据与 scorer，不逐题从零手写复杂 rubric；公布工时、编辑率和 fatal 率；
@@ -3262,6 +3828,16 @@ scorer_hash
 32. **统计**：主题/blueprint cluster bootstrap、paired comparison、PPI 人工校正、MDE 与预注册等效并列层；不强行全序；
 33. **论文术语**：使用 `Closed Documents, Task-Scoped Semantics, Contract-Admissible Evidence`，不声称每个命题都有多条路线；
 34. **明确停用**：`Omniscient Fact Table`、全量语义 WCET、`DRA-WorldClosure`、旧 OGC 0.5/4-2-1 档与报告级 Truth 连续乘法。
+35. **环境扩容单位**：Domain Pack，不用“多抓一个网站”冒充新领域；每 pack 必须带 acquisition、rights/PII、coverage、compiler、renderer、surface 与 manifest；
+36. **多域定义**：使用 research vertical × epistemic source role × interaction form 三维矩阵，三轴不混称；
+37. **Wikipedia 规模**：对选定完整 ZIM/dump 全量结构编译；10万/100万/full 只作为嵌套实验 view，不作为永久删库理由；
+38. **新旧世界**：旧榜 served-artifact-first；新 world synchronized-dumps-first，并对 compiled → served 做 round-trip；
+39. **获取阶梯**：官方 bulk、官方 API/feed、经审查近全量 crawl、本地同构/显式合成、拒绝纳入；技术可抓不等于允许抓或允许公开；
+40. **覆盖声明**：External-source coverage 与 benchmark-world closure 分开；Coverage Certificate 披露估计和假设，不设跨 pack 任意统一阈值；
+41. **Oracle 边界**：Wikidata/OpenAlex/global stats 可作为 construction oracle；未通过 agent-visible surface 交付的内容不能成为报告证据；
+42. **规模报告**：分别报告 documents、blocks、entities、edges、searchable units、deterministic fields 与 interaction states；不发布单一“环境规模分”；
+43. **Search/Interaction**：canonical corpus/ranking/page hash 跨 adapter 等价；不要求 12 harness 工具序列或答案一致；
+44. **19-span pilot**：仅保留为 witness-conditioned plumbing/negative control；全量 world 未过门前不得称正式 World Index 或正式 pilot 分。
 
 ---
 
@@ -3269,11 +3845,11 @@ scorer_hash
 
 ### 25.1 推荐表述
 
-> DRA introduces a closed-document, task-scoped evaluation protocol for long-form consumer-information deep research. Rather than attempting to extract every semantic fact from the corpus, DRA compiles the complete frozen sandbox into a versioned structural World Index and constructs Task World Models only over query-relevant evidence regions. A shared compiler produces audit-frozen hierarchical Research Test Suites from task contracts and case blueprints; human construction time and edits are disclosed rather than hidden behind a claim of rubric-free evaluation. DRA scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content contract is satisfied and every decisive external premise is supported by a valid in-registry span that was delivered through a replayable adapter lineage, locally bound to the report claim, semantically supportive, and compatible with the required source role. Construction witnesses certify answerability but are not URL allowlists: previously unseen in-registry evidence may pass the same frozen, calibrated matcher. The official benchmark score is the fixed-task mean of task scores after a task-level fabricated-citation gate. Full-task success, citation reliability rates, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity remain separately auditable.
+> DRA introduces a multi-domain, closed-document, task-scoped evaluation protocol for long-form deep research. It builds a frozen benchmark world from versioned domain packs with explicit acquisition, coverage, rights, rendering, and search contracts, while keeping construction-only global graphs separate from agent-visible evidence. Rather than attempting to extract every semantic fact from millions of documents, DRA exhaustively compiles their identities and structures and constructs Task World Models only over query-relevant, high-recall evidence regions. A shared compiler produces audit-frozen hierarchical Research Test Suites from task contracts and case blueprints; human construction time and edits are disclosed rather than hidden behind a claim of rubric-free evaluation. DRA scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content contract is satisfied and every decisive external premise is supported by a valid in-registry span that was delivered through a replayable adapter lineage, locally bound to the report claim, semantically supportive, and compatible with the required source role. Construction witnesses certify answerability but are not URL allowlists: previously unseen in-registry evidence may pass the same frozen, calibrated matcher. Environment scale is characterized separately through layered census and pre-registered scale-response experiments; page count is not included in the agent score. The official benchmark score is the fixed-task mean of task scores after a task-level fabricated-citation gate. Full-task success, citation reliability rates, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity remain separately auditable.
 
 ### 25.2 中文版
 
-> DRA 提出一种面向长篇消费信息类 Deep Research 报告的“文档闭合、任务局部语义、合同接受证据”评测协议。DRA 不尝试从全语料抽取所有可能事实，而是先将完整冻结沙盒编译为版本化的结构性 World Index，再只针对每道 query 的相关证据区域构建 Task World Model。统一 compiler 从 Task Contract/Case Blueprint 生成审计后冻结的分层 Research Test Suite，并公布人工工时与编辑率。只有当报告满足内容合同，且每个决定性外部前提都有冻结 registry 内、经可回放 adapter 血统在本次交付、就地绑定、语义支持并符合来源角色要求的 span 时，该 check 才贡献得分。构题 witness 仅用于证明可答性，不是 URL 白名单；构建期未预选的在册证据也可以通过同一冻结、经校准的 matcher。正式主分是固定任务集上、经 fabricated-citation 任务级门控后的 DRA-GRC 均值；完整通过、三个引用可靠性比率、过程瓶颈、长报告质量、效率与反事实敏感性则独立审计。
+> DRA 提出一种面向多域长篇 Deep Research 报告的“文档闭合、任务局部语义、合同接受证据”评测协议。DRA 以带获取、覆盖、权利、渲染和搜索合同的版本化 Domain Packs 构建冻结世界，并将仅用于构题的全局图与 agent 可见证据严格分开。DRA 不尝试从数百万文档抽取所有可能事实，而是全量编译其身份与结构，再只针对每道 query 的高召回证据区域构建 Task World Model。统一 compiler 从 Task Contract/Case Blueprint 生成审计后冻结的分层 Research Test Suite，并公布人工工时与编辑率。只有当报告满足内容合同，且每个决定性外部前提都有冻结 registry 内、经可回放 adapter 血统在本次交付、就地绑定、语义支持并符合来源角色要求的 span 时，该 check 才贡献得分。构题 witness 仅用于证明可答性，不是 URL 白名单；构建期未预选的在册证据也可以通过同一冻结、经校准的 matcher。环境规模通过分层 census 与预注册 scale-response 实验独立刻画，页面数不进入 agent 主分。正式主分是固定任务集上、经 fabricated-citation 任务级门控后的 DRA-GRC 均值；完整通过、三个引用可靠性比率、过程瓶颈、长报告质量、效率与反事实敏感性则独立审计。
 
 ### 25.3 与 LoHoSearch 的边界
 
@@ -3281,12 +3857,15 @@ scorer_hash
 
 > LoHoSearch demonstrates that a large corpus can be exhaustively represented at the structural graph level while semantic generation and verification remain local to sampled subgraphs. DRA adopts this layered engineering principle but targets a different object: multi-facet, citation-rich research reports rather than unique-entity answers. DRA therefore replaces global answer uniqueness with query–test alignment, task-scoped answerability, contract-admissible evidence, delivered-artifact lineage auditing, and hierarchical grounded research coverage.
 
-不能写“美团已经证明全量事实抽取可行”。LoHoSearch 全量构建的是 Wikipedia 页面、链接、类型和入度图；语义关系描述、query 生成、替代答案检查和人工审核都发生在局部子图或最终题目上。DRA 借鉴的是分层原则，不是唯一答案目标。
+不能写“美团已经证明全量事实抽取可行”，也不能写“我们复用了 LoHoSearch 的开源构建代码”。截至本设计修订日，官方公开仓库提供 benchmark/train 数据与解密脚本，没有公开完整 Wikipedia graph construction、subgraph sampling 或 uniqueness backtracking pipeline。LoHoSearch 全量构建的是 Wikipedia 页面、链接、类型和入度图；语义关系描述、query 生成、替代答案检查和人工审核都发生在局部子图或最终题目上。DRA 借鉴的是论文公开的分层原则，并独立实现多域环境编译，不是复现其唯一答案系统。
 
 ### 25.4 贡献与验证门槛
 
 | 拟声称贡献 | 必须先完成的证据 |
 |---|---|
+| 多域冻结研究环境可重建 | Domain Pack manifests、raw→compiled→served round-trip、surface-equivalence 与 rights/PII/coverage certificates |
+| 数百万级世界提高了有效研究空间 | nested views / matched tasks 的 scale-response、candidate/rank exposure 与 minimal research cost 曲线；不能只报页面数 |
+| 无官方 dump 的近全量自建快照可审计 | 预注册 population、独立 discovery、失败分解、Coverage Certificate 和外部覆盖不确定性 |
 | 全量冻结文档索引可复现 | V11 World Index 双构建与 parser audit |
 | Task-scoped semantics 足够支持正式题 | V12—V15 的召回、抽取、角色与冲突审计 |
 | Query 和 Research Tests 对齐 | V16—V18 的 round trip、deletion、answerability |
@@ -3298,14 +3877,17 @@ scorer_hash
 
 完成这些实验后，可以主张的实质贡献包括：
 
-1. 冻结文档世界与任务局部语义编译的分层 DR 评测架构；
-2. 面向长报告的 facet → unit → check 分层 Grounded Research Coverage；
-3. 将 URL、实际交付、绑定、语义支持与来源角色下沉到每个得分 check；
-4. 将 answerability witness 与 admissible evidence 分离，使测试冻结而新合格证据仍可接受，并如实标记 single-source checks；
-5. 基于 Observation Ledger v2 的 raw fetch—变换血统—交付—利用—通过失败归因；
-6. 合法替代证据 FRR、无效证据 FAR、TFRR、依赖级联 $\kappa_e$、未观察引用和 wrong binding 的专门校准；
-7. 在单一主排名中对 fabricated citation 实施任务级门，同时将模型输出失败与提交方篡改测量通道分界；
-8. 冻结世界下的反事实证据依赖审计。
+1. 以 Domain Pack、三维覆盖矩阵和 Acquisition/Coverage certificates 构建多域冻结研究环境的方法；
+2. 将数百万级全量结构编译与按题局部语义抽取分开的世界构建架构；
+3. 用嵌套 world views 量化环境规模对研究空间、检索成本和区分度的影响；
+4. 冻结文档世界与任务局部语义编译的分层 DR 评测架构；
+5. 面向长报告的 facet → unit → check 分层 Grounded Research Coverage；
+6. 将 URL、实际交付、绑定、语义支持与来源角色下沉到每个得分 check；
+7. 将 answerability witness 与 admissible evidence 分离，使测试冻结而新合格证据仍可接受，并如实标记 single-source checks；
+8. 基于 Observation Ledger v2 的 raw fetch—变换血统—交付—利用—通过失败归因；
+9. 合法替代证据 FRR、无效证据 FAR、TFRR、依赖级联 $\kappa_e$、未观察引用和 wrong binding 的专门校准；
+10. 在单一主排名中对 fabricated citation 实施任务级门，同时将模型输出失败与提交方篡改测量通道分界；
+11. 冻结世界下的反事实证据依赖审计。
 
 若要使用“首次”表述，仍需在投稿前做系统检索；当前设计文档不预先声称 absolute first。
 
@@ -3322,6 +3904,12 @@ scorer_hash
 - DRA-GRC 等于现实世界绝对真理或完整报告质量；
 - 12 harness 覆盖未来所有研究路线；
 - 高 URL 数、事实数或篇幅等于研究广度；
+- 七百万级页面本身证明任务更难、能阻止参数记忆或构成论文贡献；
+- A2 自建快照因为可枚举就等于完整复制了外部原站；
+- `robots.txt`、公开访问或技术可抓取本身授予了缓存、训练或再分发权；
+- hidden Wikidata、OpenAlex 或其他 Construction Oracle 中的内容可以直接作为 agent 报告证据；
+- 当前 19-span pilot 已经构成完整 World Index、路线自由证明或正式榜单实验；
+- LoHoSearch 已开源其完整世界构建代码，或 DRA 已复现其未公开管线；
 - 高 $\kappa$ 已证明 benchmark 的全部效度；
 - 沙盒排名与开放网络排名必然相同。
 
@@ -3331,45 +3919,66 @@ scorer_hash
 
 ## 26. 最小可行实验
 
-### 26.1 工程 Smoke Test：先跑一题
+### 26.1 Environment Compiler Smoke：先在分层 shard 上证明能完整编译
 
-使用已经有英文报告和 observation ledger 的音频任务，完成以下闭环：
+第一步不再是拿已知的 19 个 spans 评分，而是在每个候选 Domain Pack 上选一个**确定性、可复现的分层 shard**（建议约 1\%，但以对象数与结构覆盖为准）跑完整环境管线：
 
-1. 构建该 world 版本的 World Index 或验证现有全量索引；
-2. 从 query 与 Case Spec 编译 Task Contract；
-3. 建立 Task Candidate Pool，并输出各来源角色的饱和曲线；
-4. 抽取 task-local assertions、经验事件、机制、冲突与 unknown；
-5. 编译 facets、units、2—5 个 checks 及 applicability；
-6. 为每个 core check 保存至少一组 answerability witnesses，同时记录 known-support multiplicity 与 `single_source`；
-7. 实现 registry 新页面的 on-demand evidence matcher，包括 canonical batch、双 judge、PENDING 盲裁与 repair；
-8. 用 gpt-researcher 的真实 adapter 将 ledger 升级为 `raw_fetch_hash → transform_lineage → delivered_artifact_hash`；
-9. 评分英文报告，输出 DRA-GRC、Full Pass、integrity 和过程漏斗；
-10. 为每个 check 输出 report/evidence 摘录与失败码；
-11. 与旧公式和 Route Flexible 手工结果并排展示，但只把 v3.2 认定为候选正式协议；
-12. 运行 lineage smoke、mirror-corruption 与 abstain-bait，验证摘要限定词、repair 和固定分母状态机。
+1. 冻结 raw artifact、population 定义、许可/PII 分类和 manifest；
+2. 流式枚举 shard 内全部文档/records，不以 query 或 witness 筛页面；
+3. 全量解析结构 blocks、表格、帖子、链接、确定性字段和 interaction states；
+4. 建 exact/BM25/search 索引并生成本地 served artifact；
+5. 对 raw → canonical → served → indexed 做双向抽样回查；
+6. 重建两次，比较 hash、ID、census 和 search ranking；
+7. 统计吞吐、峰值内存、存储放大、失败分布和每类对象单位成本；
+8. 对 A2 来源额外运行 frozen-frontier 独立补漏与 Coverage Certificate；
+9. 只有 parser fidelity、surface round-trip、rights/PII 与可恢复性过门，才允许全量编译。
 
-一题只证明工程管道闭环，不能证明整个 benchmark 已有效。
+shard 的作用是发现 schema 和成本灾难，不是代替完整 world。它必须覆盖长文、短页、表格、重定向、附件、分页、非 ASCII、时间版本和失败页等结构 strata；不能只取最容易的头部页面。
 
-### 26.2 方法学 MVP：至少三种 DR 任务
+### 26.2 World Foundation MVP：先形成可用的大范围多域世界
 
-在一题 smoke test 后，至少覆盖：
+在单题 TWM 之前，先交付一个可枚举的环境基础版：
 
-1. 购物/多方案决策；
-2. claim audit 或耐久性/长期经验；
-3. tutorial、预算拆分或 action plan。
+1. **Wikimedia backbone**：对选定完整 Wikipedia dump/现有 ZIM 做全量 entry census 与结构编译；新 world 同期引入 Wikidata construction sidecar，但不默认暴露给 agent；
+2. **Commerce / Community**：对现有 Magento 与 Postmill 做全量数据库—页面—搜索 round-trip，清点当前约 10.4 万商品 URL 与 12.7 万论坛主题的真实 served coverage；
+3. **Science / Technical pilot**：至少接入一个官方 bulk/标准来源和一个许可过滤的论文/元数据来源；
+4. **Travel / Geo pilot**：至少接入一个区域地理 dump 与一个可浏览的行程/地点来源；
+5. **A2 feasibility pack**：只在确有新增研究价值、权利允许且 population 可定义时，选择一个没有官方 dump 的来源，实际演示近全量自建快照；不能为了证明会爬而选择无必要的网站；
+6. **统一 surface**：同一 canonical world 同时提供搜索、URL browse 与至少一种结构化 interaction，12 个 adapter 的 eligible 能力预先登记；
+7. **嵌套视图**：由完整 manifest 生成稳定的 small/medium/full views，用于规模实验，不通过永久删除长尾页面伪造“干净子集”。
 
-每题必须包含：
+World Foundation 的验收物不是一句“约 700 万页面”，而是一组可校验的 pack manifests、分层 census、Coverage Certificates、rights/PII 决议、编译报告、served-world round-trip、search/surface 测试和资源成本实测。
 
-- 至少两个 query facets；
-- 至少一个非原子比较或综合 unit；
-- 至少一个需要区分来源角色的 check；
-- 至少一个条件、冲突或不确定性 check；
-- 至少一个连接用户场景的决策/教程输出；
-- 对 multiplicity≥2 的 check 至少一个不用 known witness URL 的合法替代证据；对 `single_source` 不伪造第二路线。
+### 26.3 单题评分管线 Smoke：环境过门后再跑 `audio_0002`
 
-这一步专门验证 DRA 没有被音频购物题的结构绑住。
+环境基础版通过后，才重新运行已有英文报告与 observation ledger 的音频任务：
 
-### 26.3 每题的对照报告
+1. 只从 query/Task Contract 生成检索 probes；禁止把旧 graph URL 或 19 spans 喂给 retriever；
+2. 从完整冻结索引建立 Task Candidate Pool，输出各 facet、来源角色和轮次的 saturation curve；
+3. 局部抽取 assertions、经验事件、机制、冲突与 unknown；
+4. 编译 facets、units、2—5 个 checks 及 applicability；
+5. 保存 answerability witnesses、multiplicity 与 `single_source`，但不生成 URL allowlist；
+6. 实现 registry 新页面的 on-demand evidence matcher、PENDING 盲裁与 benchmark repair；
+7. 用真实 adapter 将 ledger 升级为 `raw_fetch_hash → transform_lineage → delivered_artifact_hash`；
+8. 输出 DRA-GRC、Full Pass、integrity、ContentBreadth gap、过程漏斗以及逐 check report/evidence 摘录；
+9. 运行合法替代、mirror-corruption、abstain-bait 与 lineage canary；
+10. 旧 19 spans 只在候选池冻结后作为 recall probe；旧公式和 Route Flexible 结果只作 baseline，v3.3 仍只是候选正式协议。
+
+这一题只证明“完整世界 → 局部语义 → 研究测试 → 运行证据”的接口闭环，不能证明多域构念效度。
+
+### 26.4 多域方法学 MVP：至少三个 vertical、五种 research shape
+
+最小集合不再是三道购物变体，而应覆盖至少三个 research vertical，并在其中覆盖五种 research shape：
+
+1. 多方案比较与约束决策；
+2. claim/mechanism audit；
+3. 社区长期经验、冲突与不确定性综合；
+4. tutorial、预算拆分或 action plan；
+5. 论文/规范/结构化数据/时空信息中的至少一种跨文档综合。
+
+每题须有至少两个 query facets、一个非原子比较或综合 unit、一个来源角色合同、一个条件/冲突/unknown check，以及一个连接用户需求的输出。对 multiplicity≥2 的 check 构造不用 known witness URL 的合法替代证据；对 `single_source` 不伪造第二路线。不同 vertical 允许需要不同来源与 interaction，不强制套用相同三源模板。
+
+### 26.5 每题的对照报告
 
 每题至少构造：
 
@@ -3394,10 +4003,14 @@ scorer_hash
 
 两名标注者盲审全部 `(report span, check, evidence bundle)`，第三人只处理分歧。
 
-### 26.4 MVP 成功标准
+### 26.6 MVP 成功标准
 
 成功不等于强 harness 分数高，而是：
 
+- Domain Packs 能从冻结 raw manifests 独立重建，分层 census 与 served-world round-trip 可复核；
+- A2 pack 的“近全量”或“局部”结论与 Coverage Certificate 一致，不能以 benchmark closure 冒充外站完整覆盖；
+- small/medium/full views 的差异来自候选空间与组合研究成本，而不是 search 故障或页面缺失；
+- hidden construction oracle 没有进入 agent-visible evidence 或 scorer support；
 - oracle 的所有适用 core checks 都能通过；
 - null 和无关报告没有实质覆盖；
 - fact/URL dump 只能通过真正完成的局部，不会伪装成 DR；
@@ -3412,10 +4025,13 @@ scorer_hash
 
 验收阈值必须在查看正式 12 harness 排名之前冻结，不能因为某个系统得分低而调宽。
 
-### 26.5 从 MVP 到 56 题的 Gate
+### 26.7 从环境 MVP 到 56 题的 Gate
 
 只有以下条件满足，才能扩展：
 
+- Domain Pack reconstruction、layered census、Coverage Certificate、served-world round-trip 与 surface equivalence 通过；
+- 至少三个 vertical 的 agent-visible 内容与 hidden construction assets 完成隔离审计；
+- nested scale views 的 candidate/rank exposure、infra-error share 与成本曲线已测量；
 - World Index parser audit 完成；
 - query ↔ Task Contract/Blueprint alignment 通过；
 - candidate pool 有独立 pooled recall 与 saturation 报告；
@@ -3434,37 +4050,40 @@ scorer_hash
 扩展顺序固定为：
 
 $$
-1\ \text{题工程闭环}
-\rightarrow
-3\ \text{类方法学 MVP}
-\rightarrow
-14\ \text{道 Dev 校准}
-\rightarrow
-56\ \text{道冻结集}
-\rightarrow
-12\ \text{Harness 正式运行}
+\begin{aligned}
+\text{分层 shard 编译器 smoke}
+&\rightarrow \text{多域 World Foundation} \\
+&\rightarrow 1\ \text{题评分闭环} \\
+&\rightarrow 3\ \text{vertical / 5 类 research-shape MVP} \\
+&\rightarrow 14\ \text{道 Dev 校准} \\
+&\rightarrow 56\ \text{道冻结集} \\
+&\rightarrow 12\ \text{Harness 正式运行}
+\end{aligned}
 $$
 
 ---
 
 ## 27. 最终建议
 
-1. 停止为 `0.39/0.28/0.33`、`Provenance^1.5` 或新的报告级乘法调参；旧公式只作历史 baseline；
-2. 按 LoHoSearch 真正可借鉴的层次建设：全量廉价结构索引，局部任务语义，不做全库开放式事实抽取；
-3. 正式架构冻结为 `World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；
-4. 将 evidence graph 降级为 query 构造与 answerability witness，不作为 agent 必须复现的标准路线；同时不夸大“人人都有多路线”，公布 multiplicity 与 single-source 风险；
-5. 从 query facets 编译 research units 和 2—5 个 executable checks，以固定任务集上的 penalized mean `DRA-GRC` 作为唯一主排名；
-6. 原子真假只处于证据层；比较、机制、冲突、跨来源综合、历史综合、有界枚举/聚合、约束连接、教程与推荐都可进入正式 test family，但必须先过语料可答门；
-7. 每一分都要求决定性外部前提通过 URL 在册、本次交付、就地绑定、语义支持与来源角色合同；用 Ledger v2 保留 raw fetch 到 delivered artifact 的血统；
-8. known witnesses 不限制证据页面；运行时用冻结、经校准的 matcher 接受 registry 中的新合法证据；分歧进 PENDING 盲裁，新证据暴露 benchmark 错误则 repair；
-9. 内容写到但无证据只进入 ContentBreadth，不进入 DRA-GRC；
-10. URL 真实性继续进主分：确认 fabricated citation 使当题正式 GRC 清零，整个 harness 仍按 56 题均值排名；三个 integrity rate 强制同表；篡改测量通道才取消 submission；
-11. Full Pass 与 Task Solve Rate 单列，用连续 DRA-GRC 表示广泛任务完成到了哪里；Research Quality Panel、成本、过程漏斗和反事实敏感性独立报告，不合成 Overall；
-12. 12 harness 不是 gold 生成器；先用它们校验 adapter 语义与压力测评分器，冻结后才作为被评对象；新 benchmark 使用者无需先跑 12 个旧 harness 才能评分；
-13. 人工投入用于 query/blueprint、compiler、answerability、新证据裁决与 scorer 校准，不是逐题从零写大 rubric；必须公布工时、编辑率和致命错误率；
-14. 用合法替代证据、证据腐蚀、困难负例、lineage canary、mirror-corruption、abstain-bait、粒度不变性、TFRR/$\kappa_e$ 和专家排序共同证明构念有效；
-15. 先完成一题工程闭环，再覆盖三类 DR 方法学 MVP、Dev-14、双 ReleaseGate、56 题，最后正式运行 12 harness；任一 gate 未过不发榜；
-16. 发布唯一主榜、统计等效并列层、逐题下钻、逐 check/证据证书、验证报告、datasheet、manifest 与版本治理规则。
+1. **先建世界，再建题，再评分。** 当前 19-span 音频 pilot 只保留为 plumbing/negative control；正式单题实验必须从完整冻结索引、query-only probes 启动；
+2. 用 `Research vertical × Epistemic role × Interaction form` 规划环境，不再把 DRA 等同于购物、论坛和 Wikipedia 三个站点；
+3. 以 Domain Pack 为扩容、许可、隐私、编译、搜索、渲染、覆盖和版本治理单位；v1 保留 Commerce/Community，完成 Wikimedia backbone，并增加 Science/Technical 与 Travel/Geo pilot；
+4. 有官方 dump 时优先全量流式处理；没有官方入口但来源确有研究价值时，可做 A2 近全量自建快照，不过必须预定义 population、使用多路 discovery、保留捕获血统、运行独立补漏并发布 Coverage Certificate；抓取能力不能代替权利与 PII 审查；
+5. 全量层只做可复现的结构编译与检索/交互索引；昂贵的自然语言 assertion、机制、冲突和证据角色只在单题候选池中抽取。不要对数百万页做开放式“所有事实”抽取；
+6. hidden Wikidata/OpenAlex/全局图统计只作 Construction Oracle；没有通过 agent-visible 本地页面或 API 暴露并在本次运行交付的内容，不能支持得分；
+7. 用分层 census 描述世界，以 nested views 和 matched tasks 验证规模效应；不能用一个“700 万”数字证明难度、完整性或免参数记忆；
+8. 正式架构冻结为 `Raw snapshots → Domain Packs → World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；
+9. 停止为 `0.39/0.28/0.33`、`Provenance^1.5` 或新的报告级乘法调参；旧公式只作历史 baseline；
+10. 将 evidence graph 降级为 query 构造、难度控制与 answerability witness，不作为 agent 必须复现的标准路线；公布 multiplicity 与 single-source 风险；
+11. 从 query facets 编译 research units 和少量 executable checks，以固定任务集上的 penalized mean `DRA-GRC` 作为唯一主排名；原子真假只处于证据层，比较、机制、冲突、跨来源综合、教程与推荐均可成为研究测试；
+12. 每一分都要求决定性外部前提通过 URL 在册、本次交付、就地绑定、语义支持与来源角色合同；用 Ledger v2 保留 raw fetch 到 delivered artifact 的血统；
+13. known witnesses 不限制证据页面；运行时用冻结、经校准的 matcher 接受 registry 内的新合法证据；分歧进 PENDING 盲裁，新证据暴露 benchmark 错误则 repair；
+14. 内容写到但无证据只进入 ContentBreadth，不进入 DRA-GRC；确认 fabricated citation 使当题正式 GRC 清零，整个 harness 仍按固定任务集均值排名，integrity rates 强制同表；
+15. Full Pass 与 Task Solve Rate 单列；Research Quality Panel、成本、过程漏斗、环境规模表征和反事实敏感性独立报告，不再拼成第二个不可解释的 Overall；
+16. 12 harness 不是 gold 生成器；它们先用于校验 adapter 语义和压力测协议，冻结后才成为被评对象；新 benchmark 使用者不需要先重跑 12 个旧 harness 才能评分；
+17. 人工投入用于 pack 审计、query/blueprint、compiler、answerability、新证据裁决与 matcher/scorer 校准，不是逐页写事实或逐题从零写大 rubric；所有工时、编辑率、失败率和 PENDING 产能公开；
+18. 实施顺序固定为：分层 shard 编译 smoke → 多域 World Foundation → 单题完整闭环 → 三个 vertical/五类 research-shape MVP → Dev-14 → 双 ReleaseGate → 56 题冻结集 → 12 harness 正式运行。任一环境或评分 gate 未过不发榜；
+19. 发布唯一主榜、统计等效并列层、逐题/逐 check 证书、environment card、Coverage Certificates、validation report、datasheet、world/scorer manifests 和版本治理规则。
 
 最终，DRA 不试图回答一个过度承诺的问题：
 
