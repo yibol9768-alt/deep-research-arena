@@ -3411,11 +3411,15 @@ E1 的明确非目标是：不重写 Magento/Postmill/Kiwix 前端，不要求 a
 
 验收门：完整输入无静默分片丢失；exact/uncertain 对齐分开；agent 看不到的 Wikidata assertion 不进入 evidence store；完整 served artifact 可枚举、可搜索、可重建。
 
-E2 direct-stream compiler v1 已按该边界实现。它不生成全量 JSONL staging，而是把冻结 ZIM entry 经 E1/E2 共享 record builder 直接写入 compact SQLite/FTS；documents、FTS rows、`next_entry_index`、census 和 rolling record chain 在同一事务内 checkpoint，外部 checkpoint 只在 commit 后原子替换。恢复时强制核对 ZIM UUID/checksum/size/census、snapshot、view threshold、scan end、compiler/builder/store/parser/libzim binding hash、Python/SQLite runtime 以及数据库 documents/FTS/cursor，一项不符即拒绝续跑。同一 64 位稳定秩阈值机械保证 `W100K subset W1M subset Wfull`；W100K/W1M 是目标规模视图，manifest 报告实际入选数，不伪装成恰好 100,000/1,000,000。
+E2 direct-stream compiler v2 已按该边界实现。它不生成全量 JSONL staging，而是把冻结 ZIM entry 经 E1/E2 共享 record builder 直接写入 compact SQLite/FTS；documents、FTS rows、`next_entry_index`、census 和 rolling record chain 在同一事务内 checkpoint，外部 checkpoint 只在 commit 后原子替换。恢复时强制核对 ZIM UUID/checksum/size/census、namespace scheme、URL identity version、snapshot、view threshold、scan end、compiler/builder/store/parser/libzim binding hash、Python/SQLite runtime 以及数据库 documents/FTS/cursor，一项不符即拒绝续跑。同一 64 位稳定秩阈值机械保证 `W100K subset W1M subset Wfull`；W100K/W1M 是目标规模视图，manifest 报告实际入选数，不伪装成恰好 100,000/1,000,000。
 
 logical build ID 明确排除 checkpoint 次数、耗时、资源曲线和 source diagnostic path，只绑定冻结 pipeline contract 与逻辑世界内容。真实 ZIM 的 2,000-entry A/B 构建中，一次完成与 entry 750 后停机并改变提交批次再恢复的最终 checkpoint sequence 分别为 6 和 8，raw SQLite hash 因事务历史而不同，但 logical build ID、record chain、census 和全部质量门完全一致。正式比较由 `verify_e2_reproducibility.py` 自动判定。每次 checkpoint 使用 document 主键 high-watermark 做常数级一致性检查，避免 Wfull 因重复全表 `COUNT(*)` 退化为近二次成本；恢复和最终验收仍执行完整 census/FTS 校验。
 
-真实 ZIM 已完成三项工程验证：在 entry 700 主动 checkpoint 后恢复至 2,000；在 checkpoint 4,000 后对未提交批次执行 `kill -9`，重开时 documents、FTS 和内外 cursor 均回到 4,000 且 integrity check 为 `ok`，随后恢复至 5,000；按完整 population 的 W100K threshold 扫描前 100,000 entries，入选 540 个并通过结构、round-trip、exact alias 与 BM25 门。正式 W100K 已于 2026-07-20 启动完整 population 扫描，但在 manifest 与全部晋级门完成前不记为通过。这些 smoke 只证明 direct stream、稀疏 checkpoint 和 crash recovery，不构成 E2 PASS。即使 Wfull structural build 通过，本组件 manifest 也保持 `formal_eligible=false`，直到 served-artifact、Wikidata alignment/statistics 和外部 E2 certificate 通过。
+真实 ZIM 已完成三项工程验证：在 entry 700 主动 checkpoint 后恢复至 2,000；在 checkpoint 4,000 后对未提交批次执行 `kill -9`，重开时 documents、FTS 和内外 cursor 均回到 4,000 且 integrity check 为 `ok`，随后恢复至 5,000；按完整 population 的 W100K threshold 扫描前 100,000 entries，入选 540 个并通过结构、round-trip、exact alias 与 BM25 门。
+
+第一次 W1M 扩展在 entry 26,375 处被 canonical URL 唯一约束拦截：新 namespace ZIM 中 `/0.9` 与 `0.9` 是两个不同 URL-index paths，v1 却同时投影为 `A/0.9`。v2 改为精确保留新 namespace path，并将 projection version 纳入 pipeline contract；完整 W1M identity-only 预检对实际入选的 999,921 个 source IDs 与 999,921 个 URLs 验证零碰撞。旧 W100K 仅作为故障发现证据，修复后从零重建，不静默跳行。
+
+W100K v2 已完整扫描 19,551,505 entries 并编译 99,810 documents，耗时 1,693.622 秒、SQLite 888,602,624 bytes、峰值 RSS 553,056 KiB。exhaustive canonical audit 99,810/99,810、native Kiwix content/redirect round-trip 328/328、identity edge 28/28、debug HTTP document hash 100/100、exact alias 99,810/99,810、BM25 Top-20 96/98；URL identity、SQLite integrity/census、task blindness 与资源预算均通过。20 项 promotion checks 全 true，W1M 随后在独立目录启动。上述结果仍只构成 Wikimedia structural backbone 的 W100K 晋级，不构成 E2 PASS。即使 Wfull structural build 通过，本组件 manifest 也保持 `formal_eligible=false`，直到 served-artifact 完整证书、Wikidata alignment/statistics 和外部 E2 certificate 通过。
 
 ### Phase E3：现有 Commerce / Community pack 全量重建
 

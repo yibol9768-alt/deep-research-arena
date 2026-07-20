@@ -1,8 +1,9 @@
 # DRA Phase E2：Wikimedia Backbone 直接流式构建手册
 
-状态：direct-stream compiler v1 已实现；本地单元测试、真实 ZIM 主动停机
-恢复、`kill -9` 崩溃恢复及 W100K 稀疏选择前缀测试已通过。正式 W100K
-已于 2026-07-20 启动完整 population 扫描，尚未完成晋级。本文件只说明 Wikimedia structural backbone 组件，不提前把
+状态：direct-stream compiler v2 已实现；本地单元测试、真实 ZIM 主动停机
+恢复、`kill -9` 崩溃恢复及 W100K 稀疏选择前缀测试已通过。新版 W100K
+已于 2026-07-20 完成完整 population 扫描并通过全部 W1M 晋级门，W1M 已在
+独立目录启动。本文件只说明 Wikimedia structural backbone 组件，不提前把
 Wikidata 对齐、served-artifact HTTP 审计或整个 E2 阶段记为完成。
 
 ## 1. 这一阶段“全量抽取”什么
@@ -92,8 +93,8 @@ checkpoint 的批次大小不影响内容身份，可以在恢复时调整。
 
 ```bash
 PYTHONPATH=. python3 scripts/compile_e2_wikimedia_backbone.py \
-  --zim /mnt/d/dr-eval-release-20260611/wiki/wikipedia_en_all_nopic.zim \
-  --out /root/dra-e2/w100k-v1 \
+  --zim /root/dra-e2/sources/wikipedia_en_all_nopic.zim \
+  --out /root/dra-e2/w100k-v2 \
   --snapshot-id dra-world-v0-2026-07-19 \
   --view w100k \
   --checkpoint-every-scanned 250000 \
@@ -106,8 +107,8 @@ PYTHONPATH=. python3 scripts/compile_e2_wikimedia_backbone.py \
 
 ```bash
 PYTHONPATH=. python3 scripts/compile_e2_wikimedia_backbone.py \
-  --zim /mnt/d/dr-eval-release-20260611/wiki/wikipedia_en_all_nopic.zim \
-  --out /root/dra-e2/w100k-v1 \
+  --zim /root/dra-e2/sources/wikipedia_en_all_nopic.zim \
+  --out /root/dra-e2/w100k-v2 \
   --snapshot-id dra-world-v0-2026-07-19 \
   --view w100k \
   --resume \
@@ -181,9 +182,46 @@ record chain、census 和质量门一致。该边界由
 - scanned checkpoint 在没有大量选中页面时仍持续推进；
 - 最终结构、round-trip、exact alias 和 BM25 门全部通过。
 
-这些结果证明流式、稀疏选择和恢复机制已跑通；正式 W100K 已开始，但在
-完整扫描与全部晋级门结束前不记为通过。这些 smoke 不替代完整 W100K 的
+这些结果证明流式、稀疏选择和恢复机制已跑通；smoke 不替代完整 W100K 的
 全 source scan、资源曲线和分层内容审计。
+
+### 7.4 百万视图暴露的 URL 身份碰撞与 v2 修复
+
+compiler v1 在 W1M 的 entry 26,375 处按唯一约束失败。根因不是重复页面，
+而是新 namespace ZIM 中两个不同 source path：`/0.9` 与 `0.9`，被旧兼容
+函数同时投影为 `A/0.9`。前者是指向 HTTP 条目的合法 redirect，后者是独立
+百科条目；静默跳过或覆盖任何一个都会破坏闭世界身份。
+
+v2 对 `archive.has_new_namespace_scheme=true` 的 ZIM 精确保留 URL-index path，
+包括有意义的前导 `/`，并将 mapping version、namespace scheme、builder hash
+写入 source/pipeline contract。完整 W1M 身份预检扫描 19,551,505 entries，
+实际选择 999,921 个 source IDs 与 999,921 个 canonical URLs，二者碰撞均为
+零。跨过原故障点的 30,000-entry 正文 smoke 编译 1,620 页并通过内置门；其
+原生 Kiwix 回源抽样中 59/59 内容或跳转一致，含 39 个路径归一化边界样本。
+
+旧 W100K v1 因使用旧 URL projection，只保留为发现故障的工程证据，不进入
+v2 正式谱系。修复后从零重建，不通过跳过异常行伪造连续性。
+
+### 7.5 W100K v2 正式结果
+
+W100K v2 完整扫描 19,551,505 entries，实际编译 99,810 documents：37,025
+article、60,193 redirect、2,592 resource。构建耗时 1,693.622 秒，SQLite
+为 888,602,624 bytes，峰值 RSS 553,056 KiB，读取 1,804,134,423 content
+bytes，共完成 80 次原子 checkpoint。
+
+独立门的结果为：
+
+- exhaustive canonical structure audit：99,810/99,810，无失败；
+- table cells 3,645,113，empty cells 436,446，tables 154,939；
+- exact alias 99,810/99,810，BM25 Top-20 96/98；
+- debug HTTP projection document hash 100/100；
+- native Kiwix content/redirect round-trip 328/328，其中 identity edge 28/28；
+- URL identity、SQLite hash/integrity、census、task blindness 和资源预算全过。
+
+最终 logical build ID 为
+`5b64fa56ca7fcb22471a7cc78b3781c1338e156370537e893810902832f21a76`，
+promotion report 的 20 项检查全部为 true，`promote_next_view=true`。这只批准
+启动 W1M，不等于整个 E2 阶段完成。
 
 ## 8. 晋级规则
 
@@ -195,7 +233,9 @@ W100K 必须满足：
 4. canonical structure audit 无失败；
 5. exact alias 为 100%，标题 BM25 Top-20 至少 90%；
 6. 分层 round-trip 与浏览器 projection 检查通过；
-7. 实测资源曲线没有突破 E1 的磁盘、时间和内存上界。
+7. selected source IDs 与 canonical URLs 一一对应；
+8. canonical URL 能回到原生 Kiwix，正文/资源 raw hash 或 redirect target 一致；
+9. 实测资源曲线没有突破磁盘、时间和内存上界。
 
 只有 W100K 通过才启动 W1M；只有 W1M 通过才启动 Wfull。不得因为长时间
 运行而跳过失败 entry、手工补 task witness，或把未完成 manifest 标成正式。
