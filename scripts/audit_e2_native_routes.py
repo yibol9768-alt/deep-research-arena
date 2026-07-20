@@ -10,7 +10,7 @@ from pathlib import Path
 import sqlite3
 from typing import Any
 from urllib.error import HTTPError
-from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.parse import unquote, urljoin, urlsplit, urlunsplit
 from urllib.request import HTTPRedirectHandler, build_opener, urlopen
 
 
@@ -41,7 +41,11 @@ def rewrite_origin(url: str, base_url: str) -> str:
 
 def normalized_route(url: str) -> tuple[str, str]:
     parsed = urlsplit(url)
-    return parsed.path, parsed.query
+    # Kiwix may emit a legal reserved character literally in Location while
+    # the registry uses its percent-encoded spelling.  Compare decoded route
+    # identities rather than wire spellings; host and scheme are rewritten to
+    # the same frozen service before this comparison.
+    return unquote(parsed.path), unquote(parsed.query)
 
 
 def request_without_redirect(url: str, timeout: float) -> dict[str, Any]:

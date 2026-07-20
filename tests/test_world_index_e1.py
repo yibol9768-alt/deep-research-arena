@@ -443,6 +443,11 @@ def test_native_route_origin_rewrite_preserves_double_slash_identity():
     )
     assert rewritten == "http://127.0.0.1:18090/content/book//0.9"
     assert normalized_route(rewritten) == ("/content/book//0.9", "")
+    assert normalized_route(
+        "http://localhost/content/book/Mama%2C_I%27m_Alive"
+    ) == normalized_route(
+        "http://localhost/content/book/Mama%2C_I'm_Alive"
+    )
 
 
 def test_html_soft_redirect_extracts_meta_refresh_target():
