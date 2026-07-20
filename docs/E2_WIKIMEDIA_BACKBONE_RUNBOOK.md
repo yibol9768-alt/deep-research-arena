@@ -124,6 +124,20 @@ W100K 全部门通过后，用独立 output 将 `--view` 改为 `w1m`。W1M 通�
 再运行 `wfull`。三个数据库是同一 membership 合同的独立物化视图，避免
 上一级工程事故污染下一级正式产物。
 
+### 5.3 长运行 ladder supervisor
+
+`scripts/run_e2_ladder_supervisor.py` 可在已启动的 W1M 后台等待，不接管或
+重复启动当前 compiler。观察到 W1M manifest 后，它依次执行：completed
+resume validation、URL identity、canonical 全审、原生 Kiwix 回源、调试
+HTTP、资源预算与 Wfull promotion。只有全部门通过才创建 Wfull；Wfull 若有
+checkpoint 则严格恢复，否则从空目录开始。最后同样完成全套审计并写
+`wfull-candidate-certificate.json`。
+
+supervisor 将每个状态原子写入 `ladder-state.json`，每条外部命令有独立 log；
+任何非零退出都会把 ladder 标为 failed 并停止，不会自动跳过失败 entry 或
+绕过 promotion。Wfull candidate 仍固定 `formal_eligible=false`，因为该
+supervisor 不替代 Wikidata 和 E2 外部阶段证书。
+
 ## 6. 产物
 
 每个完成的 view 包含：
