@@ -43,6 +43,10 @@ from scripts.compile_e2_wikimedia_backbone import (
     view_contract,
 )
 from scripts.export_e1_shard_sources import build_wikimedia_record
+from scripts.audit_e2_native_routes import (
+    normalized_route,
+    rewrite_origin,
+)
 
 
 def _records():
@@ -430,6 +434,15 @@ def test_new_namespace_leading_slash_urls_do_not_collide():
     assert (
         leading_record["canonical_url"] != plain_record["canonical_url"]
     )
+
+
+def test_native_route_origin_rewrite_preserves_double_slash_identity():
+    rewritten = rewrite_origin(
+        "http://localhost:8090/content/book//0.9",
+        "http://127.0.0.1:18090",
+    )
+    assert rewritten == "http://127.0.0.1:18090/content/book//0.9"
+    assert normalized_route(rewritten) == ("/content/book//0.9", "")
 
 
 def test_html_soft_redirect_extracts_meta_refresh_target():

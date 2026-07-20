@@ -35,6 +35,8 @@ def main() -> int:
     parser.add_argument("--build-dir", type=Path, required=True)
     parser.add_argument("--canonical-audit", type=Path, required=True)
     parser.add_argument("--http-audit", type=Path, required=True)
+    parser.add_argument("--native-audit", type=Path, required=True)
+    parser.add_argument("--identity-audit", type=Path, required=True)
     parser.add_argument("--next-view", choices=VIEW_ORDER, required=True)
     parser.add_argument("--available-disk-bytes", type=int, required=True)
     parser.add_argument("--total-memory-bytes", type=int, required=True)
@@ -65,6 +67,8 @@ def main() -> int:
     resource = load(build_dir / "resource-report.json")
     canonical = load(args.canonical_audit.resolve())
     http = load(args.http_audit.resolve())
+    native = load(args.native_audit.resolve())
+    identity = load(args.identity_audit.resolve())
     db_path = build_dir / "world-index.sqlite"
     current_view = str(manifest["view"]["view_id"])
     current_index = VIEW_ORDER.index(current_view)
@@ -132,6 +136,24 @@ def main() -> int:
             == manifest.get("logical_build_id")
             and http.get("sqlite_sha256") == manifest.get("sqlite_sha256")
         ),
+        "native_route_audit_pass": (
+            native.get("passed") is True
+            and native.get("logical_build_id")
+            == manifest.get("logical_build_id")
+            and native.get("sqlite_sha256")
+            == manifest.get("sqlite_sha256")
+        ),
+        "url_identity_audit_pass": (
+            identity.get("passed") is True
+            and identity.get("view", {}).get("view_id") == current_view
+            and int(identity.get("scan_end") or -1)
+            == int(manifest["source_identity"]["entry_count"])
+            and int(identity.get("selected") or -1) == observed_documents
+            and identity.get("zim_uuid")
+            == manifest["source_identity"].get("zim_uuid")
+            and identity.get("url_identity_version")
+            == manifest["source_identity"].get("url_identity_version")
+        ),
         "sqlite_manifest_hash_valid": (
             actual_sqlite_hash == manifest.get("sqlite_sha256")
         ),
@@ -170,6 +192,12 @@ def main() -> int:
         "pipeline_contract_id": manifest["pipeline_contract_id"],
         "current_view": current_view,
         "next_view": args.next_view,
+        "audit_inputs": {
+            "canonical": str(args.canonical_audit.resolve()),
+            "http_projection": str(args.http_audit.resolve()),
+            "native_route": str(args.native_audit.resolve()),
+            "url_identity": str(args.identity_audit.resolve()),
+        },
         "checks": checks,
         "observed": {
             "documents": observed_documents,
