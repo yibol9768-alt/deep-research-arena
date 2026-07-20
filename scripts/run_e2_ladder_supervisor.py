@@ -445,7 +445,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--http-port", type=int, default=18094)
     parser.add_argument("--poll-seconds", type=int, default=60)
-    parser.add_argument("--max-full-hours", type=float, default=240.0)
+    parser.add_argument("--max-full-hours", type=float, default=336.0)
     return parser.parse_args()
 
 
