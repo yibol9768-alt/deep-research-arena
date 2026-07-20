@@ -42,6 +42,7 @@ from scripts.export_e1_shard_sources import (
     DEFAULT_SNAPSHOT,
     DEFAULT_ZIM,
     PACK_WIKIMEDIA,
+    WIKI_URL_IDENTITY_VERSION,
     build_wikimedia_record,
 )
 from src.world_index.e1 import (
@@ -58,7 +59,7 @@ from src.world_index.e1_compact import (
 )
 
 
-E2_SCHEMA = "dra_e2_wikimedia_direct_stream_v1"
+E2_SCHEMA = "dra_e2_wikimedia_direct_stream_v2"
 CHECKPOINT_SCHEMA = "dra_e2_wikimedia_checkpoint_v1"
 CHECKPOINT_KEY = "e2_wikimedia_checkpoint"
 RANK_SPACE = 1 << 64
@@ -170,6 +171,10 @@ def source_identity(archive: Any, zim_path: Path) -> dict[str, Any]:
         "article_count": int(archive.article_count),
         "has_fulltext_index": bool(archive.has_fulltext_index),
         "has_title_index": bool(archive.has_title_index),
+        "has_new_namespace_scheme": bool(
+            archive.has_new_namespace_scheme
+        ),
+        "url_identity_version": WIKI_URL_IDENTITY_VERSION,
         "diagnostic_path": str(zim_path.resolve()),
     }
 
@@ -214,6 +219,7 @@ def pipeline_contract(
         "renderer_version": RENDERER_VERSION,
         "search_version": COMPACT_SEARCH_VERSION,
         "artifact_codec": ARTIFACT_CODEC,
+        "url_identity_version": WIKI_URL_IDENTITY_VERSION,
         "code_sha256": {
             name: file_sha256(path) for name, path in files.items()
         },
@@ -540,12 +546,18 @@ def main() -> int:
         (int(state["scanned"]) // args.progress_every) + 1
     ) * args.progress_every
     failed_index: int | None = None
+    failed_identity: dict[str, Any] | None = None
     try:
         if not state.get("scan_complete"):
             for index in range(int(state["next_entry_index"]), scan_end):
                 failed_index = index
                 entry = archive._get_entry_by_id(index)
                 path = str(entry.path)
+                failed_identity = {
+                    "source_id": path,
+                    "title": str(entry.title),
+                    "selected": False,
+                }
                 state["next_entry_index"] = index + 1
                 state["scanned"] = int(state["scanned"]) + 1
                 if selected_for_view(
@@ -553,9 +565,14 @@ def main() -> int:
                     source_id=path,
                     contract=view,
                 ):
+                    failed_identity["selected"] = True
                     built = build_wikimedia_record(
                         archive, index=index, entry=entry
                     )
+                    failed_identity.update({
+                        "canonical_url": built.record["canonical_url"],
+                        "page_type": built.page_type,
+                    })
                     writer.add_record_atomic(built.record)
                     state["compiled"] = int(state["compiled"]) + 1
                     by_type = dict(state.get("compiled_by_type") or {})
@@ -655,6 +672,7 @@ def main() -> int:
             "schema": "dra_e2_wikimedia_failure_v1",
             "failed_at": utc_now(),
             "failed_entry_index": failed_index,
+            "failed_entry_identity": failed_identity,
             "error": repr(exc),
             "last_committed_checkpoint": committed_state,
             "resume_command_required": True,

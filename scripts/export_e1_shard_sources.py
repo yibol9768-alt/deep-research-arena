@@ -46,6 +46,7 @@ WIKI_BOOK = "wikipedia_en_all_nopic"
 PACK_COMMERCE = "commerce-magento-v0"
 PACK_COMMUNITY = "community-postmill-v0"
 PACK_WIKIMEDIA = "wikimedia-zim-v0"
+WIKI_URL_IDENTITY_VERSION = "exact-zim-url-index-v2"
 REQUIRED_PACK_NAMES = ("commerce", "community", "wikimedia")
 
 
@@ -210,18 +211,49 @@ def tool_version(command: Sequence[str]) -> str:
     return normalize_text(result.stdout or result.stderr)
 
 
-def wiki_served_path(path: str) -> str:
+def wiki_served_path(
+    path: str,
+    *,
+    has_new_namespace_scheme: bool | None = None,
+) -> str:
     """Map a libzim entry path to the path exposed by kiwix-serve.
 
+    New-namespace ZIM paths are already the exact URL-index identity.  They
+    must be preserved byte-for-byte, including a meaningful leading slash.
     Older ZIMs expose a namespace prefix such as ``A/`` in ``Entry.path``;
-    newer bindings may return an article path without that prefix.  Preserve
-    explicit namespaces and add the article namespace only when absent.
+    bindings that omit that legacy prefix need ``A/`` restored.
+
+    ``None`` retains the old compatibility behavior for callers that do not
+    have an Archive object.  Formal E1/E2 builds always pass the archive's
+    namespace-scheme flag explicitly.
     """
 
-    clean = str(path or "").lstrip("/")
+    raw = str(path or "")
+    if not raw:
+        raise ValueError("empty ZIM entry path")
+    if has_new_namespace_scheme is True:
+        return raw
+    clean = raw.lstrip("/")
     if re.match(r"^(?:[A-Za-z]|-)/", clean):
         return clean
     return f"A/{clean}"
+
+
+def wiki_canonical_url(
+    path: str,
+    *,
+    has_new_namespace_scheme: bool,
+) -> str:
+    """Return the collision-free Kiwix URL for one exact ZIM path."""
+
+    served_path = wiki_served_path(
+        path,
+        has_new_namespace_scheme=has_new_namespace_scheme,
+    )
+    return (
+        f"http://localhost:8090/content/{WIKI_BOOK}/"
+        f"{quote(served_path, safe='/-._~()')}"
+    )
 
 
 def html_soft_redirect(html: str) -> str | None:
@@ -787,10 +819,10 @@ def build_wikimedia_record(
     """
 
     path = str(entry.path)
-    served_path = wiki_served_path(path)
-    canonical_url = (
-        f"http://localhost:8090/content/{WIKI_BOOK}/"
-        f"{quote(served_path, safe='/-._~()')}"
+    namespace_scheme = bool(archive.has_new_namespace_scheme)
+    canonical_url = wiki_canonical_url(
+        path,
+        has_new_namespace_scheme=namespace_scheme,
     )
     base = {
         "pack_id": PACK_WIKIMEDIA,
@@ -809,14 +841,15 @@ def build_wikimedia_record(
         "metadata": {
             "zim_entry_index": index,
             "zim_uuid": str(archive.uuid),
+            "zim_new_namespace_scheme": namespace_scheme,
+            "url_identity_version": WIKI_URL_IDENTITY_VERSION,
         },
     }
     if entry.is_redirect:
         target = entry.get_redirect_entry()
-        target_served_path = wiki_served_path(target.path)
-        redirect_url = (
-            f"http://localhost:8090/content/{WIKI_BOOK}/"
-            f"{quote(target_served_path, safe='/-._~()')}"
+        redirect_url = wiki_canonical_url(
+            target.path,
+            has_new_namespace_scheme=namespace_scheme,
         )
         raw = canonical_json({
             "path": path,

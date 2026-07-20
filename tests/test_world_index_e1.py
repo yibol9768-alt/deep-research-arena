@@ -259,6 +259,7 @@ class _FakeWikiEntry:
 
 class _FakeWikiArchive:
     uuid = "fixture-zim"
+    has_new_namespace_scheme = False
 
 
 def test_shared_wikimedia_record_builder_preserves_page_roles():
@@ -388,6 +389,47 @@ def test_wiki_served_path_preserves_or_adds_namespace():
         "A/Noise-cancelling_headphones"
     )
     assert wiki_served_path("-/style.css") == "-/style.css"
+
+
+def test_wiki_served_path_preserves_new_namespace_identity():
+    assert wiki_served_path(
+        "Noise-cancelling_headphones",
+        has_new_namespace_scheme=True,
+    ) == "Noise-cancelling_headphones"
+    assert wiki_served_path(
+        "/0.9", has_new_namespace_scheme=True
+    ) == "/0.9"
+    assert wiki_served_path(
+        "0.9", has_new_namespace_scheme=True
+    ) == "0.9"
+
+
+def test_new_namespace_leading_slash_urls_do_not_collide():
+    archive = _FakeWikiArchive()
+    archive.has_new_namespace_scheme = True
+    redirect_target = _FakeWikiEntry(path="HTTP", title="HTTP")
+    leading = _FakeWikiEntry(
+        path="/0.9", title="/0.9", redirect=redirect_target
+    )
+    plain = _FakeWikiEntry(
+        path="0.9",
+        title="0.9",
+        item=_FakeWikiItem(b"<html><body>0.9</body></html>", "text/html"),
+    )
+    leading_record = build_wikimedia_record(
+        archive, index=1, entry=leading
+    ).record
+    plain_record = build_wikimedia_record(
+        archive, index=2, entry=plain
+    ).record
+
+    assert leading_record["source_id"] == "/0.9"
+    assert plain_record["source_id"] == "0.9"
+    assert leading_record["canonical_url"].endswith("//0.9")
+    assert plain_record["canonical_url"].endswith("/0.9")
+    assert (
+        leading_record["canonical_url"] != plain_record["canonical_url"]
+    )
 
 
 def test_html_soft_redirect_extracts_meta_refresh_target():
