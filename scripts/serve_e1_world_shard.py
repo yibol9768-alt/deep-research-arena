@@ -76,6 +76,9 @@ def make_handler(db_path: Path):
 
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
+            if parsed.path == "/ready":
+                self.send_json(200, {"ok": True})
+                return
             writer = open_writer(db_path)
             try:
                 if parsed.path == "/health":

@@ -55,6 +55,28 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def audit_report_matches_build(
+    report: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+    *,
+    kind: str,
+) -> bool:
+    if (
+        report.get("passed") is not True
+        or not manifest.get("logical_build_id")
+        or report.get("logical_build_id") != manifest.get("logical_build_id")
+        or report.get("sqlite_sha256") != manifest.get("sqlite_sha256")
+    ):
+        return False
+    if kind == "canonical":
+        return int((report.get("totals") or {}).get("documents") or -1) == int(
+            (manifest.get("census") or {}).get("documents") or -2
+        )
+    if kind in {"native-route", "http"}:
+        return int(report.get("sampled") or 0) > 0
+    raise ValueError(f"unknown audit kind: {kind}")
+
+
 class Supervisor:
     def __init__(self, args: argparse.Namespace):
         self.args = args
@@ -228,7 +250,7 @@ class Supervisor:
             stderr=subprocess.STDOUT,
         )
         try:
-            health = f"http://127.0.0.1:{self.args.http_port}/health"
+            health = f"http://127.0.0.1:{self.args.http_port}/ready"
             deadline = time.monotonic() + 60
             while True:
                 if server.poll() is not None:
@@ -269,35 +291,86 @@ class Supervisor:
                     server.wait(timeout=15)
             server_log.close()
 
+    def reuse_audit(
+        self,
+        *,
+        view: str,
+        kind: str,
+        path: Path,
+        build_dir: Path,
+    ) -> bool:
+        if not path.is_file():
+            return False
+        try:
+            report = load_json(path)
+            manifest = load_json(build_dir / "build-manifest.json")
+        except (OSError, ValueError, TypeError):
+            return False
+        if not audit_report_matches_build(report, manifest, kind=kind):
+            return False
+        self.mark(
+            f"reused:{view}-{kind}-audit",
+            path=str(path),
+            logical_build_id=report.get("logical_build_id"),
+            sqlite_sha256=report.get("sqlite_sha256"),
+            auditor_sha256=report.get("auditor_sha256"),
+        )
+        return True
+
     def audit_view(self, view: str, build_dir: Path) -> dict[str, Path]:
         canonical = build_dir / "canonical-structure-audit.json"
-        self.run(
-            f"{view}-canonical-audit",
-            [
-                sys.executable,
-                str(self.args.code_root / "scripts/audit_e1_canonical_structures.py"),
-                "--build-dir", str(build_dir),
-                "--out", str(canonical),
-                "--progress-every", (
-                    "100000" if view == "w1m" else "1000000"
-                ),
-            ],
-            cwd=self.args.code_root,
-        )
+        if not self.reuse_audit(
+            view=view,
+            kind="canonical",
+            path=canonical,
+            build_dir=build_dir,
+        ):
+            self.run(
+                f"{view}-canonical-audit",
+                [
+                    sys.executable,
+                    str(
+                        self.args.code_root
+                        / "scripts/audit_e1_canonical_structures.py"
+                    ),
+                    "--build-dir", str(build_dir),
+                    "--out", str(canonical),
+                    "--progress-every", (
+                        "100000" if view == "w1m" else "1000000"
+                    ),
+                ],
+                cwd=self.args.code_root,
+            )
         native = build_dir / "native-route-audit.json"
-        self.run(
-            f"{view}-native-route-audit",
-            [
-                sys.executable,
-                str(self.args.auditor_root / "audit_e2_native_routes.py"),
-                "--db", str(build_dir / "world-index.sqlite"),
-                "--base-url", self.args.kiwix_base_url,
-                "--per-type", "100",
-                "--edge-identity-limit", "1000",
-                "--out", str(native),
-            ],
-        )
-        http = self.run_http_audit(view, build_dir)
+        if not self.reuse_audit(
+            view=view,
+            kind="native-route",
+            path=native,
+            build_dir=build_dir,
+        ):
+            self.run(
+                f"{view}-native-route-audit",
+                [
+                    sys.executable,
+                    str(
+                        self.args.auditor_root
+                        / "audit_e2_native_routes.py"
+                    ),
+                    "--db", str(build_dir / "world-index.sqlite"),
+                    "--base-url", self.args.kiwix_base_url,
+                    "--per-type", "100",
+                    "--edge-identity-limit", "1000",
+                    "--out", str(native),
+                ],
+            )
+        http = build_dir / "http-audit.json"
+        if not self.reuse_audit(
+            view=view,
+            kind="http",
+            path=http,
+            build_dir=build_dir,
+        ):
+            http = self.run_http_audit(view, build_dir)
         return {"canonical": canonical, "native": native, "http": http}
 
     def promote_w1m(

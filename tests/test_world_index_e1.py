@@ -47,6 +47,86 @@ from scripts.audit_e2_native_routes import (
     normalized_route,
     rewrite_origin,
 )
+from scripts.audit_e1_canonical_structures import (
+    file_sha256 as canonical_audit_file_sha256,
+)
+from scripts.audit_e1_http_surface import sample_ids as http_sample_ids
+from scripts.run_e2_ladder_supervisor import audit_report_matches_build
+
+
+def test_canonical_audit_file_sha256_streams(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    payload = (b"canonical-audit-streaming-hash\x00" * 4096) + b"tail"
+    artifact = tmp_path / "artifact.bin"
+    artifact.write_bytes(payload)
+
+    def reject_read_bytes(_path: Path) -> bytes:
+        raise AssertionError("file_sha256 must not read the whole file")
+
+    monkeypatch.setattr(Path, "read_bytes", reject_read_bytes)
+    assert canonical_audit_file_sha256(artifact) == sha256(payload).hexdigest()
+
+
+def test_http_sample_ids_matches_full_deterministic_order() -> None:
+    connection = sqlite3.connect(":memory:")
+    connection.execute(
+        "CREATE TABLE documents ("
+        "page_snapshot_id TEXT PRIMARY KEY, pack_id TEXT NOT NULL, "
+        "title TEXT, rendered_content_hash TEXT NOT NULL)"
+    )
+    records = [
+        (f"page-{index:03d}", f"pack-{index % 3}", f"Title {index}",
+         f"hash-{index:03d}")
+        for index in range(60)
+    ]
+    connection.executemany(
+        "INSERT INTO documents VALUES (?,?,?,?)", records
+    )
+    expected = []
+    for pack in sorted({record[1] for record in records}):
+        candidates = [record for record in records if record[1] == pack]
+        candidates.sort(key=lambda record: (
+            sha256(record[0].encode("utf-8")).digest(), record[0]
+        ))
+        expected.extend(
+            (record[0], record[2], record[3])
+            for record in candidates[:4]
+        )
+    assert http_sample_ids(connection, 4) == expected
+    connection.close()
+
+
+def test_ladder_reuses_only_audits_bound_to_current_build() -> None:
+    manifest = {
+        "logical_build_id": "build-a",
+        "sqlite_sha256": "a" * 64,
+        "census": {"documents": 123},
+    }
+    canonical = {
+        "passed": True,
+        "logical_build_id": "build-a",
+        "sqlite_sha256": "a" * 64,
+        "totals": {"documents": 123},
+    }
+    assert audit_report_matches_build(
+        canonical, manifest, kind="canonical"
+    )
+    assert not audit_report_matches_build(
+        {**canonical, "sqlite_sha256": "b" * 64},
+        manifest,
+        kind="canonical",
+    )
+    assert audit_report_matches_build(
+        {
+            "passed": True,
+            "logical_build_id": "build-a",
+            "sqlite_sha256": "a" * 64,
+            "sampled": 10,
+        },
+        manifest,
+        kind="http",
+    )
 
 
 def _records():
@@ -1487,9 +1567,10 @@ def test_http_renderer_and_auditor_roundtrip(tmp_path):
         for _ in range(50):
             try:
                 with urlopen(
-                    f"http://127.0.0.1:{port}/health",
+                    f"http://127.0.0.1:{port}/ready",
                     timeout=0.2,
-                ):
+                ) as response:
+                    assert json.loads(response.read()) == {"ok": True}
                     break
             except OSError:
                 time.sleep(0.05)

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from hashlib import sha256
+import heapq
 import json
 from pathlib import Path
 import sqlite3
@@ -41,15 +42,19 @@ def sample_ids(
         )
     ]
     for pack in packs:
-        rows = list(conn.execute(
-            "SELECT page_snapshot_id,title,rendered_content_hash "
-            "FROM documents WHERE pack_id=? ORDER BY page_snapshot_id",
-            (pack,),
-        ))
-        rows.sort(
-            key=lambda row: sha256(row[0].encode("utf-8")).digest()
+        rows = heapq.nsmallest(
+            per_pack,
+            conn.execute(
+                "SELECT page_snapshot_id,title,rendered_content_hash "
+                "FROM documents WHERE pack_id=?",
+                (pack,),
+            ),
+            key=lambda row: (
+                sha256(row[0].encode("utf-8")).digest(),
+                row[0],
+            ),
         )
-        output.extend(rows[:per_pack])
+        output.extend(rows)
     return output
 
 
