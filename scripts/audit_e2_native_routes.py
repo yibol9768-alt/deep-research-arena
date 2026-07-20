@@ -78,6 +78,23 @@ def sample_rows(
     ))
 
 
+def edge_identity_rows(
+    connection: sqlite3.Connection,
+    *,
+    limit: int,
+) -> list[sqlite3.Row]:
+    """Select paths most likely to be damaged by URL normalization."""
+
+    return list(connection.execute(
+        "SELECT page_snapshot_id,source_id,canonical_url,redirect_target,"
+        "raw_content_hash,page_type,metadata_json FROM documents "
+        "WHERE source_id LIKE '/%' "
+        "OR (length(source_id)>=2 AND substr(source_id,2,1)='/') "
+        "ORDER BY page_snapshot_id LIMIT ?",
+        (limit,),
+    ))
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--db", type=Path, required=True)
@@ -87,6 +104,7 @@ def parse_args() -> argparse.Namespace:
         help="Origin of the frozen native Kiwix service.",
     )
     parser.add_argument("--per-type", type=int, default=100)
+    parser.add_argument("--edge-identity-limit", type=int, default=1_000)
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--build-manifest", type=Path)
     parser.add_argument("--out", type=Path)
@@ -99,6 +117,8 @@ def main() -> int:
         raise SystemExit("--per-type must be positive")
     if args.timeout <= 0:
         raise SystemExit("--timeout must be positive")
+    if args.edge_identity_limit <= 0:
+        raise SystemExit("--edge-identity-limit must be positive")
 
     db_path = args.db.resolve()
     manifest_path = (
@@ -133,9 +153,26 @@ def main() -> int:
                 "wiki_redirect",
             )
         }
+        edge_rows = edge_identity_rows(
+            connection, limit=args.edge_identity_limit
+        )
     finally:
         connection.close()
 
+    edge_ids = {str(row["page_snapshot_id"]) for row in edge_rows}
+    selected_ids = {
+        str(row["page_snapshot_id"])
+        for rows in rows_by_type.values()
+        for row in rows
+    }
+    for row in edge_rows:
+        page_id = str(row["page_snapshot_id"])
+        if page_id in selected_ids:
+            continue
+        rows_by_type.setdefault(str(row["page_type"]), []).append(row)
+        selected_ids.add(page_id)
+
+    edge_passed = 0
     for page_type, rows in rows_by_type.items():
         passed = 0
         counts[page_type] = {"sampled": len(rows), "passed": 0}
@@ -195,6 +232,8 @@ def main() -> int:
                         })
                         continue
                 passed += 1
+                if str(row["page_snapshot_id"]) in edge_ids:
+                    edge_passed += 1
             except Exception as exc:
                 failures.append({
                     **failure_base,
@@ -213,6 +252,9 @@ def main() -> int:
             value["sampled"] > 0 for value in counts.values()
         ),
         "native_roundtrip_rate_1_0": sampled > 0 and passed == sampled,
+        "edge_identity_roundtrip_rate_1_0": (
+            len(edge_ids) > 0 and edge_passed == len(edge_ids)
+        ),
     }
     report = {
         "schema": "dra_e2_native_route_audit_v1",
@@ -225,6 +267,8 @@ def main() -> int:
         "counts": counts,
         "sampled": sampled,
         "passed_samples": passed,
+        "edge_identity_sampled": len(edge_ids),
+        "edge_identity_passed": edge_passed,
         "failures": failures,
         "gates": gates,
         "passed": all(gates.values()),
