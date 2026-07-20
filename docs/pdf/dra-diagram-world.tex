@@ -1,42 +1,72 @@
 \begin{center}
 \begin{tikzpicture}[
-  box/.style={draw=DraBlue, rounded corners=3pt, very thick, fill=DraLight,
-    align=center, text width=3.55cm, minimum height=1.05cm,
+  main/.style={draw=DraBlue, rounded corners=3pt, very thick, fill=DraLight,
+    align=center, text width=3.35cm, minimum height=0.95cm,
     inner sep=4pt, font=\small},
-  compact/.style={box, text width=3.15cm},
-  output/.style={box, fill=DraBlue!13, text width=3.25cm},
+  lanehead/.style={main, fill=DraBlue!18, text width=10.75cm,
+    minimum height=0.50cm, font=\small\bfseries},
+  compact/.style={main, text width=2.30cm, minimum height=1.18cm,
+    font=\footnotesize},
+  audit/.style={main, dashed, draw=DraGray, fill=DraGray!8,
+    text width=3.35cm, minimum height=1.10cm, font=\footnotesize},
+  bridge/.style={main, draw=DraGray, fill=white, text width=5.55cm,
+    minimum height=1.10cm, font=\footnotesize},
+  runner/.style={main, text width=4.0cm},
+  output/.style={main, fill=DraBlue!13, text width=3.25cm},
   arrow/.style={-{Latex[length=2.2mm]}, very thick, draw=DraBlue},
-  audit/.style={arrow, dashed, draw=DraGray}
+  dashedarrow/.style={-{Latex[length=2.2mm]}, thick, dashed, draw=DraGray}
 ]
-\node[box] (sandbox) at (-5.2,2.5) {冻结网页沙盒\\URL、快照、页面结构};
-\node[box] (index) at (0,2.5) {World Index\\全量解析、链接、结构字段、检索索引};
-\node[box] (pool) at (5.2,2.5) {Task Candidate Pool\\混合召回、来源配额、有限链接扩展};
-\node[box] (query) at (-5.2,0.55) {Query / Case Blueprint\\用户约束、facets、输出需求};
-\node[box] (world) at (0,0.55) {Task World Model\\局部 assertion、经验、机制与冲突};
-\node[box] (compiler) at (5.2,0.55) {Research Test Compiler\\facet $\rightarrow$ unit $\rightarrow$ checks};
-\node[box] (suite) at (5.2,-1.4) {Research Test Suite\\证据合同 + 冻结 premise DAG + witnesses};
+% One frozen pack feeds two operationally separate planes.
+\node[main, text width=9.6cm] (pack) at (0,7.85)
+  {Versioned Domain Packs（两条平面的共同冻结输入）\\raw snapshots、DB/ZIM、assets、manifest};
 
-\node[box] (harness) at (-5.2,-3.45) {任意新旧 Harness};
-\node[compact] (ledger) at (-0.9,-2.65) {Observation Ledger v2\\raw fetch $\rightarrow$ lineage $\rightarrow$ delivered artifact};
-\node[compact] (report) at (-0.9,-4.25) {Final Report\\内容、主张与就地引用};
-\node[box] (runner) at (4.25,-3.45) {Grounded Research\\Runner};
-\node[output] (score) at (2.25,-5.45) {唯一主分\\固定任务集 penalized mean DRA-GRC};
-\node[output] (diag) at (6.25,-5.45) {独立诊断\\Full Pass、URL、漏斗、质量、成本};
+% Plane 1: benchmark construction and evaluation.
+\node[lanehead] (construction) at (0,6.55)
+  {Construction / evaluation plane};
+\node[main] (wi) at (-3.95,5.15)
+  {Canonical World Index\\blocks、table topology、reply edges、links、hashes};
+\node[main] (twm) at (3.55,5.15)
+  {Task World Model\\+ Research Test Suite};
+\node[audit] (audit) at (-3.95,3.45)
+  {Canonical audit projection\\只供 round-trip / 人审\\非原站、非 harness 页面};
+\node[bridge] (manifest) at (2.00,3.45)
+  {Bridge manifest\\canonical page/span $\leftrightarrow$ native route\\$\leftrightarrow$ delivered artifact hash};
 
-\draw[arrow] (sandbox) -- (index);
-\draw[arrow] (index) -- (pool);
-\draw[arrow] (query.north east) to[out=25,in=205] (pool.south west);
-\draw[arrow] (pool) -- (world);
-\draw[arrow] (query.south) -- ++(0,-0.55) -- (3.25,-0.55) -- (compiler.west);
-\draw[arrow] (world) -- (compiler);
-\draw[arrow] (compiler) -- (suite);
-\draw[arrow] (harness) -- (ledger);
-\draw[arrow] (harness) -- (report);
-\draw[arrow] (ledger) -- (runner);
-\draw[arrow] (report) -- (runner);
-\draw[arrow] (suite) -- (runner);
-\draw[audit] (world.south east) to[out=-55,in=135] (runner.north west);
-\draw[arrow] (runner) -- (score);
-\draw[arrow] (runner) -- (diag);
+% Plane 2: what an eligible harness actually receives.
+\node[lanehead] (deliverylane) at (0,2.00)
+  {Agent delivery plane};
+\node[compact] (native) at (-4.65,0.65)
+  {Source-native\\browser surface\\Magento / Postmill / Kiwix};
+\node[compact] (adapter) at (-1.55,0.65)
+  {Registered delivery\\transform $D_h$\\browser / text API / MCP};
+\node[compact] (harness) at (1.55,0.65)
+  {Harness delivery surface\\+ Eligible Harness};
+\node[compact] (runout) at (4.65,0.65)
+  {Run outputs\\Observation Ledger v2\\+ Final Report};
+
+% Only audit artefacts and run outputs enter scoring.
+\node[runner, font=\footnotesize] (grader) at (0,-1.05)
+  {Grounded Research Runner\\consumes RTS + bridge + ledger/report};
+\node[output] (score) at (-2.10,-2.65)
+  {唯一主分\\penalized mean DRA-GRC};
+\node[output] (diag) at (2.10,-2.65)
+  {独立诊断\\Full Pass、URL、漏斗、质量、成本};
+
+\draw[arrow] ([xshift=-3.95cm]construction.south) -- (wi.north);
+\draw[arrow] (wi) -- (twm);
+\draw[dashedarrow] (wi) -- (audit);
+
+\draw[arrow] ([xshift=-4.65cm]deliverylane.south) -- (native.north);
+\draw[arrow] (native) -- (adapter);
+\draw[arrow] (adapter) -- (harness);
+\draw[arrow] (harness) -- (runout);
+
+% Cross-plane correspondence is represented by the manifest itself.  Avoid
+% long crossing arrows that could be mistaken for an agent-visible route.
+\draw[dashedarrow] (wi.south east) to[out=-25,in=150] (manifest.north west);
+
+\draw[arrow] (runout.south) to[out=-90,in=0] (grader.east);
+\draw[arrow] (grader.south west) to[out=-105,in=90] (score.north);
+\draw[arrow] (grader.south east) to[out=-75,in=90] (diag.north);
 \end{tikzpicture}
 \end{center}

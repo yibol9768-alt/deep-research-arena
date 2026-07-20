@@ -2,7 +2,7 @@
 
 > 初稿日期：2026-07-17（文件名保留该日期以维持引用稳定）
 >
-> 当前修订：2026-07-19 Draft v3.3（environment-scaling redesign；经 KimiCode 四轮反方审阅）
+> 当前修订：2026-07-20 Draft v3.7（construction / delivery surface boundary correction；R4 全库审计、双构建规范化复现与九层浏览器 spot-check；E2 direct-stream、嵌套视图和 crash-resume compiler v1；结合 Kimi Code K3 对 LoHoSearch 公开论文的独立核对）
 >
 > 状态：可执行的方法、数据构建、评分、验证与工程实施统一计划
 > 核心目标：利用冻结网页沙盒，在不全量理解所有网页语义、也不要求复现唯一答案路线的前提下，自动构建可审计的 Deep Research 任务，并衡量报告以本次真实观察证据完成了多少研究工作。  
@@ -26,10 +26,12 @@ $$
 
 DRA 应采用同一工程原则，但不能照抄 LoHoSearch 的唯一答案目标，也不能把环境扩容误写成“只给 Wikipedia 建图”。LoHoSearch 评测“找到唯一实体”，DRA 评测“生成覆盖多个研究方向、综合多类证据、正确表达条件与冲突、最终对用户有用的报告”。DRA v3.3 先将环境拆成“研究垂直 × 认识来源角色 × 交互形态”的覆盖矩阵，再采用三层评分资产和一层运行审计：
 
-1. **Environment / World Index（全量）**：版本化 Domain Packs、URL/entry、快照、哈希、页面类型、DOM 段落、结构化字段、链接、检索与交互索引；
+1. **Environment / World Index（全量）**：版本化 Domain Packs、URL/entry、快照、哈希、页面类型、DOM 段落、结构化字段、链接、检索与交互索引；它是构题、检索和评分使用的 canonical representation，不是给 browser harness 看的替代网站；
 2. **Task World Model（按题）**：只对题目相关、协议可达的页面跨度抽取任务事实、经验事件、机制、冲突和证据角色；
 3. **Research Test Suite（按题）**：从 query facets 与 Task World Model 编译“研究单元”，而不是把所有事实都变成得分项。
 4. **Execution Audit（按运行）**：使用带变换血统的 Observation Ledger，确认原页面中的支持内容经过 harness 变换后确实交付给 agent。
+
+这里必须补上 v3.3 没有写清的边界：**World Index 的 deterministic HTML 只是一种结构 round-trip / 人工审计投影，不是 agent-visible browser surface。** Magento、Postmill 和 Kiwix 的原生网页服务继续承担正常浏览；text API、MCP 等 harness 通过单独版本化的 delivery serializer 获取内容。构图投影可以没有原站 CSS，但底层 canonical artifact 必须保存表格拓扑、回复父子边、字段、链接和媒体引用；任何 construction-only 字段、oracle 或审计元数据都不得泄漏到 agent delivery plane。
 
 主分改名为：
 
@@ -273,10 +275,13 @@ $$
 
 只有被采样的边和叶属性才交给 DeepSeek-V3.2 做描述抽取、实体隐藏、问题生成和自动验证；最终问题再经多搜索 agent 排除替代答案，并由专业标注者审核。最终 544 题中，75.5\% 直接通过人工审核、22.3\% 轻微修改、2.2\% 严重问题淘汰；只有 70.8\% 被人工明确确认唯一，剩余 29.2\% 是“未找到替代答案”而非严格证明不存在。
 
-这对 DRA 有两条直接启示：
+更重要的是，LoHoSearch 没有让被测 agent 浏览这张图的裸记录。§2.1（v2 PDF 第 2 页）把 Wikipedia 图用于后续子图采样和验证；§3.1（第 5 页）明确给模型提供传统搜索引擎（如 Google）的 `search` 与按 URL 读取正常网页的 `browse`；§4.2（第 8 页）把它概括为将 knowledge graph 与 question content / answer storage 解耦，并扩展到 open-web browsing agent evaluation。论文没有把 762 万节点重新渲染成网页。DRA 真正应借鉴的是 **construction representation 与 evaluation browsing surface 分离**。
+
+这对 DRA 有三条直接启示：
 
 1. 大世界可以全量建廉价结构索引，但不应全量做开放式语义抽取；
-2. 即使目标只是唯一实体，自动构建仍需要多轮验证和人工抽查，因此 DRA 必须报告 compiler 的误差边界，不能把自动抽取称为绝对真理。
+2. 构题图、结构审计投影与 agent 实际研究的 search/browse surface 必须分离；
+3. 即使目标只是唯一实体，自动构建仍需要多轮验证和人工抽查，因此 DRA 必须报告 compiler 的误差边界，不能把自动抽取称为绝对真理。
 
 ### 3.2 DEEPRUBRIC：先有证据结构，再共同生成 query 和评价目标
 
@@ -419,11 +424,98 @@ $$
 
 使用 report、citation、URL registry 和 observation ledger 执行测试。它回答“足够证据是否在本次运行被交付，并在报告中正确绑定和使用”；不声称直接观察模型内部阅读过程。
 
+### 4.2.1 两条平面、四种 surface：本次 E1 纠错
+
+`page`、`renderer` 和 `served` 在旧稿中被混用了。正式设计必须先区分两条互不泄漏的运行平面：
+
+- **Construction / evaluation plane**：负责全量结构编译、构图、单题语义抽取、测试生成与评分；
+- **Agent delivery plane**：负责把冻结世界通过 browser、text API、MCP 或其他已登记 adapter 交付给 harness。
+
+两条平面包含四种不同对象：
+
+| 对象 | 目的 | 谁能访问 | 是否要求复刻原站视觉 |
+|---|---|---|---|
+| Source-native browser surface | 正常浏览 Magento、Postmill、Kiwix 等冻结网站 | browser harness、人工研究者 | 是；应加载原生 HTML/CSS/静态资源并保留导航、表格和交互结构 |
+| Harness delivery surface | 通过 text API、MCP、computer-use 等能力向某个 harness 交付内容 | 对应 eligible harness | 不一定；但必须满足预注册的内容与结构等价合同 |
+| Canonical structural representation | 保存 document、block、table coordinates、interaction edges、field、link、hash，供 WI/TWM/RTS 使用 | 构建器、检索器、评分器 | 否；它不是网站 |
+| Canonical audit projection | 把 canonical artifact 确定性投影成人可检查的 HTML/JSON，做 round-trip 和人工抽审 | benchmark 构建与审计人员 | 否；只需把保存的结构清楚暴露出来，不得伪装成原站页面 |
+
+令 $W^{native}$ 为冻结原生网站，$C$ 为 task-blind structural compiler，$W^{canon}=C(W^{native})$ 为 canonical World Index；令 $A$ 为人工审计投影，$D_h$ 为 harness $h$ 的 delivery transform：
+
+$$
+W^{native}\xrightarrow{C}W^{canon}\xrightarrow{A}P^{audit}
+$$
+
+$$
+W^{native}\xrightarrow{D_h}V_h\rightarrow h
+$$
+
+关键禁止关系是：
+
+$$
+\boxed{P^{audit}\neq V_h}
+$$
+
+也就是说，E1 的裸 HTML 可以作为 `canonical audit projection` 存在，但不能因为它能通过 HTTP 打开，就被称为给 browser agent 使用的正常网页。某些 text/API harness 的 delivery serializer 可以复用 canonical blocks，但必须是单独版本、单独 endpoint、单独 lineage 的 $D_h$，不能直接暴露 construction-only metadata。
+
+四种 surface 通过一张不可变 bridge manifest 关联：
+
+```text
+page_snapshot_id
+↔ canonical_url / native route
+↔ raw source locator + raw hash
+↔ canonical block / interaction / table locator
+↔ adapter-delivered artifact hash
+```
+
+正式不变量为：
+
+1. **Identity**：同一 snapshot 中，每个 canonical document 都能解析到明确的 native route 或有界的非页面资源；redirect 单独版本化；
+2. **Structural fidelity**：表格行列与 rowspan/colspan、论坛 reply/quote parent edge、商品字段/variant/review attribution、链接 anchor 和必要媒体引用在 canonical artifact 中可恢复；
+3. **Locator fidelity**：任何进入 TWM/RTS 的 support span 都能反查 raw/native locator，反向抽样也能定位 canonical object；
+4. **Delivery lineage**：本次 adapter 实际交付的 fragment 能映射到 canonical spans 或带哈希的 raw artifact；
+5. **Non-interference**：hidden graph、Wikidata oracle、答案、witness 标签、审计状态和其他 construction-only 字段不能经 search、browse、API 或页面资源泄漏给 harness；
+6. **Surface honesty**：audit projection 必须显式标记“结构审计视图，非原站、非 harness 页面”；source-native 与 adapter surface 分别声明自己的能力；
+7. **No accidental route**：audit endpoint 不进入 agent URL registry、搜索结果或 harness 网络路由；
+8. **Capability fairness**：不同 delivery surface 不要求像素一致，但任务所需的核心文本与结构必须等价；无法表达某种必要交互的 harness 在运行前标记 eligibility。
+
+这次 R3 的正确判定因此不是“因为不好看，所以 E1 parser 失败”，而应按下表拆开：
+
+| R3 现象 | 对 E1 structural compiler 的判定 |
+|---|---|
+| 没有 Magento/Postmill/Wikipedia CSS | 不是失败；audit projection 不承担网站复刻 |
+| 商品图片显示为路径/引用 | 对纯文本构图不自动失败；必须保留媒体 identity/locator；若任务需要视觉证据则另设 media gate |
+| Wikipedia 单元格被显示成连续 `div` | 视觉审计体验不足；若 canonical artifact 仍保存 table/row/column/rowspan/colspan，则不是结构丢失 |
+| Postmill 回复顺序平铺显示 | 视觉审计体验不足；若 `interaction_id` 与 `parent_interaction_id` 可重建完整树，则不是结构丢失 |
+| R3 audit HTML 被注册给 harness 或混入搜索结果 | 严重边界失败，E1/E5 均不得通过 |
+| canonical artifact 无法恢复表格拓扑、回复树或 source locator | 真正的 parser/representation 失败，E1 不得通过 |
+
+首轮判断“主要是视觉问题”只对论坛成立，不能泛化到全部结构。对 R3 的 180 个分层样本逐页重算后得到：
+
+- 论坛 40 页的 1,260 条 interaction、1,220 条 parent edge、正文/作者/时间/评分均能往返；33 个含嵌套回复的页面只是把树视觉平铺，最大深度为 18；
+- 20 个高风险表格页中，75 张表的 1,415 个非空 cell、62 个 rowspan cell 与 118 个 colspan cell 均能往返，但旧 parser 因 `if not text: continue` 实际漏掉 116 个空 cell；另外 4 页共有 391 个 cell 的物理 sibling index 与逻辑 grid column 不同；
+- 20 个 resource 页全部把 ZIM 字面 `null` 当作标题，且人工投影只明显显示 `item_size`；MIME、archive path、raw hash、locator 与 `resource_content_omitted` 虽在 record/metadata 中，却没有在投影中暴露。
+
+因此 R4 不能只改措辞。结构编译器升级为 `dra-structural-html-v3`：空的 `th/td` 也进入 canonical artifact；`cell_index` 保存物理顺序，`column_index/grid_column_index` 按前序 rowspan 占位计算逻辑列；caption 绑定 table identity。审计 renderer 升级为 `dra-e1-renderer-v2`：从 canonical coordinates 重建真实 `<table>`，按 `parent_interaction_id` 显示 reply depth/parent，并显式展示 resource path、MIME、raw hash、archive locator 和 omission marker。projection 中仍保留带 `data-dra-structural` 的 canonical block stream，所以可读视图不会替代或污染 hashable artifact。
+
+旧 core round-trip 还有一个验收漏洞：它只检查“原 block text 是否仍在 reparsed text 集合中”。因此，即使空 cell 被删、父节点或坐标改变，只要其他文字还在，仍可能报告 300/300。R4 将其替换为有序 exact comparison：block type/section/DOM/text/structural JSON、field value/unit/type/provenance、interaction ID/parent/kind/author/time/score/text/metadata，以及 link href/target/anchor/DOM 必须逐项一致；专门的反例测试只篡改 parent 或 column 而保持正文不变，必须触发失败。
+
+新版同时增加 projection-specific machine gate：逐格比较重建表格的 table/row/column/span/text；逐条比较 interaction ID、parent 和计算深度；逐字段比较 resource identity、size 与 omission marker。在不更换抽样身份的同一 180 项上，R4 模拟预检与 exact round-trip 均为 180/180 通过。该结果是结构回归证据，不替代 reviewer 对原始材料语义归属的独立判断。
+
+人工抽样本身也必须跨编译器版本稳定。若用 `logical_build_id` 作为抽样随机种子，修一个 renderer 就会换掉全部审阅页，既浪费人工标注，也使 R3/R4 无法配对比较。正式默认锚改为 `source_manifest_id`；历史回归允许显式冻结旧锚点。queue definition 仍绑定新 `logical_build_id`，所以旧审阅只能作为 history 显示，不能自动满足新 build 的人工门。
+
+R4 的正式百分之一实测进一步覆盖了 198,699 个对象。全库结构审计遍历 15,071,547 个 blocks、7,358,310 个 table cells、303,096 张表和 28,112 条 interactions，failure 为 0；分层 HTTP 审计为 300/300 document hash，标题检索为 292/296（98.65\%）。另从商品、含评论商品、普通论坛、含回复论坛、表格百科、链接百科、普通百科、redirect 与 resource 九层各随机打开两页，共 18 页做完整浏览器 spot-check；商品评论位于字段区之后，两张回复页的实际最大深度分别为 7 和 3，重建表格保留空格与合并关系，redirect target 与 resource identity/omission 均可见，未发现新的空白页、覆盖、平铺或 `null` 标题问题。该 18 页结果只是一项补充视觉检查，不把 AI/operator spot-check 冒充为 180 项正式人工 gate。
+
+同 parser/renderer 版本的行式 fidelity baseline 随后也完成了全部 198,699 个对象：compiler failure 为 0，BM25 Top-20 为 98.65\%，SQLite 为 18,177,605,632 bytes。与 1,748,926,464-byte compact candidate 做全库对照后，document identity/hash mismatch、双向缺失均为 0，全部 census 相等，另有 300 个分层 render/search 样本零失败；compact/row 比为 9.62\%。这关闭了“新版 compact 只和旧 parser baseline 比较”的版本混淆，但仍不替代尚未完成的 180 项正式人工 gate。
+
+双构建复现还暴露了一个容易误报的问题：A/B 的逻辑 ID、census、全部 SQL 表内容与除 header 外的文件字节完全一致，但 raw SQLite SHA-256 不同。逐字节定位后只有 offsets 27 与 95 各一个字节不同，分别落在 SQLite [官方文件格式](https://www.sqlite.org/fileformat.html#the_database_header)定义的 24--27 `file change counter` 与 92--95 `version-valid-for number`；这两个字段记录写事务状态，不是 benchmark 内容。正式 reproducibility v2 因此同时保存 raw hash 作为诊断，并以“只归零这两个四字节字段后的 canonical SQLite SHA-256”作为内容字节门；任何其他 header 或 payload 字节变化仍失败。本次 A/B canonical SQLite SHA-256 均为 `65b94ef93aad4a9eae677f2a67e37fc4b9f7689bf6835d9397cae5bc7c9a1ca1`，复现门通过。
+
 ### 4.3 与 LoHoSearch 的同与不同
 
 | 维度 | LoHoSearch | DRA v3.3 |
 |---|---|---|
 | 全量世界层 | Wikipedia 节点、链接、类型、入度 | 所有沙盒页面、span、结构字段、链接、检索索引 |
+| 构题表示与浏览面的关系 | KG 只用于构题与唯一性验证；agent 用传统搜索引擎与 URL browse 访问开放网页 | WI/TWM/RTS 位于 construction plane；harness 只经 source-native 或已登记 delivery surface 访问冻结世界 |
 | 局部语义层 | 采样子图的关系描述 | 单题相关 span 的事实、经验、机制、冲突和证据角色 |
 | query 目标 | 隐藏实体，唯一答案 | 多 facet 用户研究需求，多种合理结论 |
 | 构造保证 | 删除关系后的唯一性与全图回溯 | facet 对齐、可答性、来源组合、替代路线与报告效用 |
@@ -473,25 +565,41 @@ $$
 ### 4.6 执行流程图
 
 ```mermaid
-flowchart LR
-    A["Raw snapshots / captures<br/>官方 dump、DB、API、crawl、synthetic"] --> P["Versioned Domain Packs<br/>许可、覆盖、renderer、manifest"]
-    P --> B["World Index<br/>全量页面/entry、结构、链接、检索与交互索引"]
-    O["Construction Oracle<br/>实体类型、全局统计、隐藏图"] --> C
-    Q["Query / Case Blueprint<br/>用户约束、研究 facets、输出需求"] --> C["Task Pool Builder<br/>混合检索、来源配额、有限链接扩展"]
-    B --> C
-    C --> D["Task World Model<br/>局部 assertion、经验事件、机制、冲突"]
-    Q --> E["Research Test Compiler<br/>facet → unit → executable checks"]
-    D --> E
-    E --> T["Research Test Suite<br/>证据合同 + 冻结 premise DAG + witnesses"]
-    H["任意新旧 Harness"] --> L["Observation Ledger v2<br/>raw fetch → transform lineage → delivered artifact"]
-    H --> R["Final Report<br/>内容、主张与就地引用"]
-    T --> S["Grounded Research Runner"]
-    B --> S
-    D --> S
-    L --> S
-    R --> S
-    S --> O["一个主分<br/>固定任务集 penalized mean DRA-GRC"]
-    S --> X["独立诊断<br/>Full Pass、URL、漏斗、表达、成本"]
+flowchart TB
+    RAW["Raw snapshots / captures<br/>dump、DB、ZIM、assets"] --> PACK["Versioned Domain Packs<br/>许可、覆盖、native-service manifest"]
+
+    subgraph CP["Construction / evaluation plane"]
+      PACK --> WI["Canonical World Index<br/>documents、blocks、tables、interaction edges、links、hashes"]
+      WI --> AUD["Canonical audit projection<br/>只供 round-trip 与人工审计；不是 harness 页面"]
+      CORACLE["Construction Oracle<br/>类型、全局统计、隐藏图"] --> POOL["Task Pool Builder"]
+      QUERY["Query / Case Blueprint"] --> POOL
+      WI --> POOL
+      POOL --> TWM["Task World Model"]
+      QUERY --> RTC["Research Test Compiler"]
+      TWM --> RTC
+      RTC --> RTS["Research Test Suite"]
+    end
+
+    subgraph AP["Agent delivery plane"]
+      PACK --> NATIVE["Source-native browser surface<br/>Magento / Postmill / Kiwix"]
+      NATIVE --> ADAPTER["Registered delivery transform D_h<br/>browser / text API / MCP / computer-use"]
+      ADAPTER --> HARNESS["任意 eligible Harness"]
+      HARNESS --> LEDGER["Observation Ledger v2<br/>raw fetch → transform lineage → delivered artifact"]
+      HARNESS --> REPORT["Final Report<br/>内容、主张与就地引用"]
+    end
+
+    BRIDGE["Bridge manifest<br/>native route ↔ page/span ↔ delivered hash"]
+    NATIVE --- BRIDGE
+    WI --- BRIDGE
+    ADAPTER --- BRIDGE
+
+    RTS --> RUNNER["Grounded Research Runner"]
+    WI --> RUNNER
+    TWM --> RUNNER
+    LEDGER --> RUNNER
+    REPORT --> RUNNER
+    RUNNER --> SCORE["一个主分<br/>固定任务集 penalized mean DRA-GRC"]
+    RUNNER --> DIAG["独立诊断<br/>Full Pass、URL、漏斗、表达、成本"]
 ```
 
 ### 4.7 rubric 并没有消失，而是换了形态
@@ -3061,11 +3169,11 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 | V28 | Dependency cascade | 对冻结 premise DAG 注入单点证书/支持判定翻转，按 task 拓扑分层，包含 Route G | 实测级联与冻结 DAG 一致；静态可达性只作保守界 | $\kappa_e$、TFRR、拓扑分层 CI |
 | V29 | Fabrication integrity | 将合法引用替换为伪造、off-world、alias 误报与 registry 缺失 | 真伪造使任务正式分清零；benchmark 错误走 repair；二者不混淆 | detection P/R、adjudication agreement |
 | V30 | Release capacity | 在 Dev-14 上测 novel pairs、judge 分歧、人工时间和队列峰值 | ValidityGate 与 CapacityGate 均通过，正式条目 PENDING=0 | FRR/FAR/$\kappa$、人时/条目、throughput |
-| V31 | Domain Pack reconstruction | 从冻结 raw manifests 独立重建两次 canonical store、served artifacts 与索引 | pack hash、对象 ID、内容与索引语义稳定；差异可定位 | exact repeat、diff taxonomy |
+| V31 | Domain Pack reconstruction | 从冻结 raw manifests 独立重建两次 canonical store、source-native service artifact、audit projection 与索引 | 各层 manifest/hash、对象 ID、内容与索引语义稳定；差异可定位 | exact repeat、diff taxonomy |
 | V32 | Layered census | 对 documents、blocks、entities、typed edges、search units 与 interaction states 分层清点并抽样回查 | 不用单个页面数替代所有规模；每层有解析/遗漏区间 | $N_D,N_B,N_E,N_L,N_S,N_I$、audit CI |
 | V33 | A2 coverage audit | 对无官方 dump 的 pack 使用预注册 population、多路 discovery、冻结后的独立补漏与失败分解 | 只在证据允许时声称近全量；否则明确 partial/unknown external coverage | known-population recall、unseen-discovery yield、failure strata |
-| V34 | Served-world round trip | 从 raw/compiled 对象抽样到 browser/API/MCP，再反查 canonical object 和渲染内容 | agent-visible 内容、URL、表格、分页与过滤可回放；空壳/资源缺失被检出 | content agreement、broken-render rate |
-| V35 | Surface equivalence | 对同一 canonical 请求比较 text API、SERP、browser、MCP 与 eligible adapters | canonical candidates/ranking/content 一致，变换差异进入 lineage | rank overlap、content fidelity、blind rate |
+| V34 | Native/delivery round trip | 从 raw/canonical 对象抽样到 source-native browser 与已登记 API/MCP，再反查 canonical object；audit projection 单独测结构 round-trip | agent-visible 内容、URL、表格、分页与过滤可回放；audit 页面不会被误当 delivery；空壳/资源缺失被检出 | content agreement、broken-render rate、audit-leak rate |
+| V35 | Delivery-surface equivalence | 对同一 canonical request 比较 text API、SERP、source-native browser、MCP 与 eligible adapters；不纳入 audit projection | canonical candidates/ranking/任务必需内容与结构等价，变换差异进入 lineage | rank overlap、content/structure fidelity、blind rate |
 | V36 | Scale and oracle separation | 在 nested views 上跑 matched tasks，并对 hidden oracle 信息做泄漏探针 | 难度随有效候选/组合成本变化；construction-only 信息不能直接支持得分或泄露给 agent | scale-response、infra-error share、oracle-leak rate |
 
 ### 19.3 候选池“抽够了”怎么证明
@@ -3270,9 +3378,10 @@ PPI 或其他校正不使用一个混合金标池；每种高风险判定类型�
 - Domain Pack schema、Acquisition Ladder、Coverage Certificate 与 rights/PII review 模板；
 - 旧 Magento、Postmill、Kiwix、search shim 与 12 adapter 的镜像/版本/hash；
 - construction-oracle 与 agent-visible evidence 的访问边界；
+- source-native surface、harness delivery transform、canonical structural store 与 audit projection 的独立 manifest；
 - pack 纳入/拒绝标准和人工责任人。
 
-验收门：旧榜可重放；任何 pack 都不能在没有 population、权利、PII、renderer、search 与 manifest 责任人的情况下进入构建队列。
+验收门：旧榜可重放；任何 pack 都不能在没有 population、权利、PII、native surface、delivery transform、canonical compiler、audit projection、search 与 manifest 责任人的情况下进入构建队列；audit endpoint 不得进入 harness registry 或搜索路由。
 
 ### Phase E1：百分之一 shard 编译器 smoke，而不是单题 19-span smoke
 
@@ -3281,15 +3390,17 @@ PPI 或其他校正不使用一个混合金标池；每种高风险判定类型�
 1. 流式导入 raw artifact/capture；
 2. 生成 document/block/link/structured/interaction stores；
 3. 构建 exact/BM25 索引；
-4. 生成 agent-visible renderer/API；
-5. 对 raw → parsed → served 做 round-trip；
+4. 生成 deterministic canonical audit projection/API，只用于结构 round-trip、检索调试与人工抽审；
+5. 对 raw → canonical → audit projection → indexed 做 round-trip，并抽样验证 canonical locator 能回到 frozen source-native route；
 6. 输出吞吐、峰值内存、磁盘放大、失败类型和质量抽样。
 
-验收门：相同输入双构建 ID/hash 一致；span 能回到 served page；关键表格、回复树、引用、时间和地理结构无系统丢失；测得的资源曲线允许外推全量。未过门先修 parser，不准用题目 witnesses 手工补洞。
+E1 的明确非目标是：不重写 Magento/Postmill/Kiwix 前端，不要求 audit projection 保留原站 CSS/像素布局，也不把该 projection 交给 harness。原生网站与 adapter delivery 的正式验收分别属于 E0/E3/E5；E1 只做一组桥接 canary，防止结构编译与原生世界脱节。
+
+验收门：相同输入双构建 logical ID、census 与 canonical SQLite hash 一致，raw hash 差异只能位于预注册的 SQLite 非内容 header 字段；span 能回到 canonical artifact 与 frozen source locator/native route；关键表格拓扑、回复/引用父子边、商品字段归属、时间和地理结构无系统丢失；audit projection 明确标记非 agent surface；测得的资源曲线允许外推全量。未过门先修 parser，不准用题目 witnesses 手工补洞。缺少 CSS 本身不是 E1 失败；丢失 canonical table/reply topology 才是。
 
 ### Phase E2：全量 Wikimedia backbone
 
-旧世界按 served-artifact-first 枚举完整 ZIM；新世界按 synchronized-dumps-first 流式编译 Wikipedia/Wikidata，并从 canonical store 生成正式服务 artifact。产物包括：
+旧世界按 source-native Kiwix served-artifact-first 枚举完整 ZIM；新世界按 synchronized-dumps-first 流式编译 Wikipedia/Wikidata，并分别生成 canonical store 与正式 Kiwix/browser service artifact。产物包括：
 
 - 分层 census：$N_D,N_B,N_E,N_L,N_S,N_C,N_I$；
 - document/link graph、exact sitelink entity map、uncertain alignment table；
@@ -3300,9 +3411,15 @@ PPI 或其他校正不使用一个混合金标池；每种高风险判定类型�
 
 验收门：完整输入无静默分片丢失；exact/uncertain 对齐分开；agent 看不到的 Wikidata assertion 不进入 evidence store；完整 served artifact 可枚举、可搜索、可重建。
 
+E2 direct-stream compiler v1 已按该边界实现。它不生成全量 JSONL staging，而是把冻结 ZIM entry 经 E1/E2 共享 record builder 直接写入 compact SQLite/FTS；documents、FTS rows、`next_entry_index`、census 和 rolling record chain 在同一事务内 checkpoint，外部 checkpoint 只在 commit 后原子替换。恢复时强制核对 ZIM UUID/checksum/size/census、snapshot、view threshold、scan end、compiler/builder/store/parser/libzim binding hash、Python/SQLite runtime 以及数据库 documents/FTS/cursor，一项不符即拒绝续跑。同一 64 位稳定秩阈值机械保证 `W100K subset W1M subset Wfull`；W100K/W1M 是目标规模视图，manifest 报告实际入选数，不伪装成恰好 100,000/1,000,000。
+
+logical build ID 明确排除 checkpoint 次数、耗时、资源曲线和 source diagnostic path，只绑定冻结 pipeline contract 与逻辑世界内容。真实 ZIM 的 2,000-entry A/B 构建中，一次完成与 entry 750 后停机并改变提交批次再恢复的最终 checkpoint sequence 分别为 6 和 8，raw SQLite hash 因事务历史而不同，但 logical build ID、record chain、census 和全部质量门完全一致。正式比较由 `verify_e2_reproducibility.py` 自动判定。每次 checkpoint 使用 document 主键 high-watermark 做常数级一致性检查，避免 Wfull 因重复全表 `COUNT(*)` 退化为近二次成本；恢复和最终验收仍执行完整 census/FTS 校验。
+
+真实 ZIM 已完成三项工程验证：在 entry 700 主动 checkpoint 后恢复至 2,000；在 checkpoint 4,000 后对未提交批次执行 `kill -9`，重开时 documents、FTS 和内外 cursor 均回到 4,000 且 integrity check 为 `ok`，随后恢复至 5,000；按完整 population 的 W100K threshold 扫描前 100,000 entries，入选 540 个并通过结构、round-trip、exact alias 与 BM25 门。正式 W100K 已于 2026-07-20 启动完整 population 扫描，但在 manifest 与全部晋级门完成前不记为通过。这些 smoke 只证明 direct stream、稀疏 checkpoint 和 crash recovery，不构成 E2 PASS。即使 Wfull structural build 通过，本组件 manifest 也保持 `formal_eligible=false`，直到 served-artifact、Wikidata alignment/statistics 和外部 E2 certificate 通过。
+
 ### Phase E3：现有 Commerce / Community pack 全量重建
 
-从 Magento 与 Postmill 数据库全量导出，而不是从当前 56 题页面反推 corpus。恢复商品 variant/规格/价格/评价/分类，以及论坛 thread/post/reply/quote/time/匿名化 author 结构；生成本地页面、过滤/分页和统一 search 索引。当前 registry 的约 104,368 个商品 URL 与 127,391 个论坛主题是输入 census 起点，不是质量结论。
+从 Magento 与 Postmill 数据库全量导出，而不是从当前 56 题页面反推 corpus。恢复商品 variant/规格/价格/评价/分类，以及论坛 thread/post/reply/quote/time/匿名化 author 结构；继续使用冻结 Magento/Postmill 应用、主题和 assets 生成 source-native 页面，同时独立编译 canonical store、过滤/分页和统一 search 索引。不能用 WI audit projection 替换原生网站。当前 registry 的约 104,368 个商品 URL 与 127,391 个论坛主题是输入 census 起点，不是质量结论。
 
 验收门：数据库对象、registry 与 HTTP page 三方对齐；不存在 query-conditioned inclusion；评论引用不被错归作者；产品 variant 不被错误合并；当前已知 task witnesses 仅在构建完成后用作召回 probe。
 
@@ -3319,7 +3436,7 @@ PPI 或其他校正不使用一个混合金标池；每种高风险判定类型�
 
 ### Phase E5：统一 Search / Browse / Interaction Contract
 
-将 text API、browser SERP、MCP、computer-use、分页、过滤、表格/地图视图绑定同一 canonical corpus 和 ranking manifest。对 12 harness 分别做 content equivalence 与 delivery lineage canary；不要求工具调用序列或最终答案一致。
+将 text API、browser SERP、MCP、computer-use、分页、过滤、表格/地图视图绑定同一 frozen native world、canonical bridge manifest 和 ranking manifest。canonical audit projection 明确排除在可用 surface 之外。对 12 harness 分别做 content/structure equivalence 与 delivery lineage canary；不要求像素、工具调用序列或最终答案一致。
 
 验收门：相同 canonical request 返回相同 result IDs/ranking hash；各 adapter 能获得等价核心文本和结构；不支持高级交互的 harness 在运行前标记 eligibility，不能题后动态改分母。
 
@@ -3748,9 +3865,10 @@ scorer_hash
 | 用页面数冒充有效规模 | 数百万空壳/镜像页没有增加研究能力，却被包装成贡献 | 分层 census、duplicate clusters、scale-response、effective candidate space | 分别报告 $N_D,N_B,N_E,N_L,N_S,N_C,N_I$；规模面板不并入 agent 分；用嵌套视图做因果消融 |
 | Source environment 与 research vertical 混淆 | 加一个网站被误说成增加一个领域，任务仍只测购物 | 三维覆盖矩阵与空格审计 | 每题、每 pack 标记 vertical × source role × interaction；新 pack 必须贡献新构念 |
 | Hidden oracle 泄入评分 | agent 不可见的 Wikidata/OpenAlex relation 被当成必答证据 | oracle/visible store diff、不可见 witness audit | construction oracle 单独权限与 hash；只有 agent-visible delivered span 可使 $E=1$ |
+| Audit projection 被误当网站 | 裸结构页混入 registry/search，使 browser agent 面对与正常网页不同的任务，或泄漏 construction metadata | audit endpoint crawl、registry diff、oracle-leak canary | audit host/path 与 delivery network 隔离；页面显式水印；ReleaseGate 要求 audit-leak rate=0 |
 | 自抓语料覆盖/许可夸大 | 把部分 crawl 称为全站、把可访问误作可再分发 | Coverage Certificate、rights/PII review、deletion log | Acquisition Ladder；外部覆盖与沙盒闭合分开；无统一拍脑袋阈值；高风险 pack 拒绝发布 |
 | Search 让大世界仍然一跳或随机污染 | 难度与规模脱钩，结果测到排序 bug | candidate/rank exposure、minimal research cost、search oracle gap | 固定 search contract；计算 selectivity/ambiguity；API 错误与 agent 错误分离 |
-| 多域 renderer 不等价 | 不同 harness 因工具面不同看到不同事实 | surface-equivalence canary、delivery lineage | canonical result/page IDs；核心能力提供等价入口；高级交互预先做 eligibility |
+| Agent delivery surface 不等价 | 不同 harness 因 browser/API/MCP 变换不同而看到不同事实或结构 | delivery-surface equivalence canary、delivery lineage | canonical result/page IDs；核心能力提供等价入口；audit projection 不参与；高级交互预先做 eligibility |
 | 重新滑向全库语义抽取 | 成本爆炸，ontology 永远不完备，却假装拥有世界真值 | 全库 LLM token/页、无 span assertion 数 | 全量只建 WI；语义限于 task pool 与报告新引用；声明 closed documents 而非 complete semantics |
 | Candidate Pool 漏召回 | TWM 和 RTS 遗漏重要 facet、冲突或方案 | pooled recall、saturation、池外独立检索 | 混合检索、来源配额、link expansion、独立 pooled audit；运行时引用不依赖候选池白名单 |
 | TWM 抽取幻觉 | 错 assertion 污染 answerability 和测试 | assertion/span P/R、abstain、challenger cases | 确定性字段优先；强制 span；高风险抽审；低置信不能作唯一 core witness |
@@ -3795,7 +3913,7 @@ scorer_hash
 推荐直接采用以下默认值：
 
 1. **世界边界**：闭合版本化 Domain Packs、agent-visible URL/entry/API records、快照、页面和 span，不声称闭合全部自然语言语义或完整外部网站；
-2. **架构**：`Raw/Captured Sources → Domain Packs → Full World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；
+2. **架构与 surface 边界**：construction plane 为 `Raw/Captured Sources → Domain Packs → Full World Index → Task Contract/Candidate Pool → Task World Model → Research Test Suite → Execution Audit`；agent delivery plane 为 `Source-native service → registered delivery transform → harness`；canonical audit projection 只供构建审计，禁止进入 harness registry/search/network route；
 3. **主分**：唯一主排名量为固定任务集上的 penalized mean `DRA-GRC`；
 4. **聚合**：冻结 applicability 下 check → unit → facet → task 的层级等权 macro average，不跨题 micro average；
 5. **评分对象**：最小对象是 executable check，不是 URL 数、claim 数或整篇报告印象；
@@ -3828,15 +3946,15 @@ scorer_hash
 32. **统计**：主题/blueprint cluster bootstrap、paired comparison、PPI 人工校正、MDE 与预注册等效并列层；不强行全序；
 33. **论文术语**：使用 `Closed Documents, Task-Scoped Semantics, Contract-Admissible Evidence`，不声称每个命题都有多条路线；
 34. **明确停用**：`Omniscient Fact Table`、全量语义 WCET、`DRA-WorldClosure`、旧 OGC 0.5/4-2-1 档与报告级 Truth 连续乘法。
-35. **环境扩容单位**：Domain Pack，不用“多抓一个网站”冒充新领域；每 pack 必须带 acquisition、rights/PII、coverage、compiler、renderer、surface 与 manifest；
+35. **环境扩容单位**：Domain Pack，不用“多抓一个网站”冒充新领域；每 pack 必须分别带 acquisition、rights/PII、coverage、canonical compiler、source-native surface、delivery transforms、audit projection 与 bridge manifest；
 36. **多域定义**：使用 research vertical × epistemic source role × interaction form 三维矩阵，三轴不混称；
 37. **Wikipedia 规模**：对选定完整 ZIM/dump 全量结构编译；10万/100万/full 只作为嵌套实验 view，不作为永久删库理由；
-38. **新旧世界**：旧榜 served-artifact-first；新 world synchronized-dumps-first，并对 compiled → served 做 round-trip；
+38. **新旧世界**：旧榜 source-native-served-artifact-first；新 world synchronized-dumps-first，并分别对 raw → canonical → audit projection 和 canonical/raw → source-native/delivery 做 round-trip；
 39. **获取阶梯**：官方 bulk、官方 API/feed、经审查近全量 crawl、本地同构/显式合成、拒绝纳入；技术可抓不等于允许抓或允许公开；
 40. **覆盖声明**：External-source coverage 与 benchmark-world closure 分开；Coverage Certificate 披露估计和假设，不设跨 pack 任意统一阈值；
 41. **Oracle 边界**：Wikidata/OpenAlex/global stats 可作为 construction oracle；未通过 agent-visible surface 交付的内容不能成为报告证据；
 42. **规模报告**：分别报告 documents、blocks、entities、edges、searchable units、deterministic fields 与 interaction states；不发布单一“环境规模分”；
-43. **Search/Interaction**：canonical corpus/ranking/page hash 跨 adapter 等价；不要求 12 harness 工具序列或答案一致；
+43. **Search/Interaction**：canonical corpus/ranking/page hash 通过 bridge manifest 跨 delivery adapter 等价；audit projection 不参与；不要求 12 harness 像素、工具序列或答案一致；
 44. **19-span pilot**：仅保留为 witness-conditioned plumbing/negative control；全量 world 未过门前不得称正式 World Index 或正式 pilot 分。
 
 ---
@@ -3845,17 +3963,17 @@ scorer_hash
 
 ### 25.1 推荐表述
 
-> DRA introduces a multi-domain, closed-document, task-scoped evaluation protocol for long-form deep research. It builds a frozen benchmark world from versioned domain packs with explicit acquisition, coverage, rights, rendering, and search contracts, while keeping construction-only global graphs separate from agent-visible evidence. Rather than attempting to extract every semantic fact from millions of documents, DRA exhaustively compiles their identities and structures and constructs Task World Models only over query-relevant, high-recall evidence regions. A shared compiler produces audit-frozen hierarchical Research Test Suites from task contracts and case blueprints; human construction time and edits are disclosed rather than hidden behind a claim of rubric-free evaluation. DRA scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content contract is satisfied and every decisive external premise is supported by a valid in-registry span that was delivered through a replayable adapter lineage, locally bound to the report claim, semantically supportive, and compatible with the required source role. Construction witnesses certify answerability but are not URL allowlists: previously unseen in-registry evidence may pass the same frozen, calibrated matcher. Environment scale is characterized separately through layered census and pre-registered scale-response experiments; page count is not included in the agent score. The official benchmark score is the fixed-task mean of task scores after a task-level fabricated-citation gate. Full-task success, citation reliability rates, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity remain separately auditable.
+> DRA introduces a multi-domain, closed-document, task-scoped evaluation protocol for long-form deep research. It builds a frozen benchmark world from versioned domain packs with explicit acquisition, coverage, rights, rendering, and search contracts, while separating the construction plane from the agent-delivery plane. Source-native websites and registered adapter transforms deliver the research world to harnesses; the canonical World Index and its deterministic audit projection support construction and evaluation and are never substituted for the browser surface. Rather than attempting to extract every semantic fact from millions of documents, DRA exhaustively compiles their identities and structures and constructs Task World Models only over query-relevant, high-recall evidence regions. A shared compiler produces audit-frozen hierarchical Research Test Suites from task contracts and case blueprints; human construction time and edits are disclosed rather than hidden behind a claim of rubric-free evaluation. DRA scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content contract is satisfied and every decisive external premise is supported by a valid in-registry span that was delivered through a replayable adapter lineage, locally bound to the report claim, semantically supportive, and compatible with the required source role. Construction witnesses certify answerability but are not URL allowlists: previously unseen in-registry evidence may pass the same frozen, calibrated matcher. Environment scale is characterized separately through layered census and pre-registered scale-response experiments; page count is not included in the agent score. The official benchmark score is the fixed-task mean of task scores after a task-level fabricated-citation gate. Full-task success, citation reliability rates, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity remain separately auditable.
 
 ### 25.2 中文版
 
-> DRA 提出一种面向多域长篇 Deep Research 报告的“文档闭合、任务局部语义、合同接受证据”评测协议。DRA 以带获取、覆盖、权利、渲染和搜索合同的版本化 Domain Packs 构建冻结世界，并将仅用于构题的全局图与 agent 可见证据严格分开。DRA 不尝试从数百万文档抽取所有可能事实，而是全量编译其身份与结构，再只针对每道 query 的高召回证据区域构建 Task World Model。统一 compiler 从 Task Contract/Case Blueprint 生成审计后冻结的分层 Research Test Suite，并公布人工工时与编辑率。只有当报告满足内容合同，且每个决定性外部前提都有冻结 registry 内、经可回放 adapter 血统在本次交付、就地绑定、语义支持并符合来源角色要求的 span 时，该 check 才贡献得分。构题 witness 仅用于证明可答性，不是 URL 白名单；构建期未预选的在册证据也可以通过同一冻结、经校准的 matcher。环境规模通过分层 census 与预注册 scale-response 实验独立刻画，页面数不进入 agent 主分。正式主分是固定任务集上、经 fabricated-citation 任务级门控后的 DRA-GRC 均值；完整通过、三个引用可靠性比率、过程瓶颈、长报告质量、效率与反事实敏感性则独立审计。
+> DRA 提出一种面向多域长篇 Deep Research 报告的“文档闭合、任务局部语义、合同接受证据”评测协议。DRA 以带获取、覆盖、权利、渲染和搜索合同的版本化 Domain Packs 构建冻结世界，并严格分开 construction plane 与 agent delivery plane：原生网站和已登记 adapter 向 harness 交付研究世界，canonical World Index 及其 deterministic audit projection 只供构题、检索、评分和审计，不能替代 browser surface。DRA 不尝试从数百万文档抽取所有可能事实，而是全量编译其身份与结构，再只针对每道 query 的高召回证据区域构建 Task World Model。统一 compiler 从 Task Contract/Case Blueprint 生成审计后冻结的分层 Research Test Suite，并公布人工工时与编辑率。只有当报告满足内容合同，且每个决定性外部前提都有冻结 registry 内、经可回放 adapter 血统在本次交付、就地绑定、语义支持并符合来源角色要求的 span 时，该 check 才贡献得分。构题 witness 仅用于证明可答性，不是 URL 白名单；构建期未预选的在册证据也可以通过同一冻结、经校准的 matcher。环境规模通过分层 census 与预注册 scale-response 实验独立刻画，页面数不进入 agent 主分。正式主分是固定任务集上、经 fabricated-citation 任务级门控后的 DRA-GRC 均值；完整通过、三个引用可靠性比率、过程瓶颈、长报告质量、效率与反事实敏感性则独立审计。
 
 ### 25.3 与 LoHoSearch 的边界
 
 推荐明确写：
 
-> LoHoSearch demonstrates that a large corpus can be exhaustively represented at the structural graph level while semantic generation and verification remain local to sampled subgraphs. DRA adopts this layered engineering principle but targets a different object: multi-facet, citation-rich research reports rather than unique-entity answers. DRA therefore replaces global answer uniqueness with query–test alignment, task-scoped answerability, contract-admissible evidence, delivered-artifact lineage auditing, and hierarchical grounded research coverage.
+> LoHoSearch demonstrates that a large corpus can be exhaustively represented at the structural graph level while semantic generation and verification remain local to sampled subgraphs, and that this construction graph need not become the agent's browsing surface: its evaluated agents still use conventional search and URL-based browse tools. DRA adopts this construction/delivery separation but targets a different object: multi-facet, citation-rich research reports rather than unique-entity answers. DRA therefore replaces global answer uniqueness with query–test alignment, task-scoped answerability, contract-admissible evidence, delivered-artifact lineage auditing, and hierarchical grounded research coverage.
 
 不能写“美团已经证明全量事实抽取可行”，也不能写“我们复用了 LoHoSearch 的开源构建代码”。截至本设计修订日，官方公开仓库提供 benchmark/train 数据与解密脚本，没有公开完整 Wikipedia graph construction、subgraph sampling 或 uniqueness backtracking pipeline。LoHoSearch 全量构建的是 Wikipedia 页面、链接、类型和入度图；语义关系描述、query 生成、替代答案检查和人工审核都发生在局部子图或最终题目上。DRA 借鉴的是论文公开的分层原则，并独立实现多域环境编译，不是复现其唯一答案系统。
 
@@ -3863,7 +3981,7 @@ scorer_hash
 
 | 拟声称贡献 | 必须先完成的证据 |
 |---|---|
-| 多域冻结研究环境可重建 | Domain Pack manifests、raw→compiled→served round-trip、surface-equivalence 与 rights/PII/coverage certificates |
+| 多域冻结研究环境可重建 | Domain Pack manifests、raw→canonical→audit round-trip、source-native/delivery round-trip、audit-leak=0、delivery-surface-equivalence 与 rights/PII/coverage certificates |
 | 数百万级世界提高了有效研究空间 | nested views / matched tasks 的 scale-response、candidate/rank exposure 与 minimal research cost 曲线；不能只报页面数 |
 | 无官方 dump 的近全量自建快照可审计 | 预注册 population、独立 discovery、失败分解、Coverage Certificate 和外部覆盖不确定性 |
 | 全量冻结文档索引可复现 | V11 World Index 双构建与 parser audit |
@@ -3926,8 +4044,8 @@ scorer_hash
 1. 冻结 raw artifact、population 定义、许可/PII 分类和 manifest；
 2. 流式枚举 shard 内全部文档/records，不以 query 或 witness 筛页面；
 3. 全量解析结构 blocks、表格、帖子、链接、确定性字段和 interaction states；
-4. 建 exact/BM25/search 索引并生成本地 served artifact；
-5. 对 raw → canonical → served → indexed 做双向抽样回查；
+4. 建 exact/BM25/search 索引并生成 canonical audit projection；该 projection 不注册给 harness；
+5. 对 raw → canonical → audit projection → indexed 做双向抽样回查，并通过 bridge manifest 抽样回到 source-native route；
 6. 重建两次，比较 hash、ID、census 和 search ranking；
 7. 统计吞吐、峰值内存、存储放大、失败分布和每类对象单位成本；
 8. 对 A2 来源额外运行 frozen-frontier 独立补漏与 Coverage Certificate；
@@ -3940,11 +4058,11 @@ shard 的作用是发现 schema 和成本灾难，不是代替完整 world。它
 在单题 TWM 之前，先交付一个可枚举的环境基础版：
 
 1. **Wikimedia backbone**：对选定完整 Wikipedia dump/现有 ZIM 做全量 entry census 与结构编译；新 world 同期引入 Wikidata construction sidecar，但不默认暴露给 agent；
-2. **Commerce / Community**：对现有 Magento 与 Postmill 做全量数据库—页面—搜索 round-trip，清点当前约 10.4 万商品 URL 与 12.7 万论坛主题的真实 served coverage；
+2. **Commerce / Community**：对现有 Magento 与 Postmill 做全量数据库—canonical artifact—source-native HTTP—搜索 round-trip，清点当前约 10.4 万商品 URL 与 12.7 万论坛主题的真实 native coverage；
 3. **Science / Technical pilot**：至少接入一个官方 bulk/标准来源和一个许可过滤的论文/元数据来源；
 4. **Travel / Geo pilot**：至少接入一个区域地理 dump 与一个可浏览的行程/地点来源；
 5. **A2 feasibility pack**：只在确有新增研究价值、权利允许且 population 可定义时，选择一个没有官方 dump 的来源，实际演示近全量自建快照；不能为了证明会爬而选择无必要的网站；
-6. **统一 surface**：同一 canonical world 同时提供搜索、URL browse 与至少一种结构化 interaction，12 个 adapter 的 eligible 能力预先登记；
+6. **统一 delivery contract**：同一 frozen native world 经 bridge manifest 提供搜索、URL browse 与至少一种结构化 interaction；canonical audit projection 不算一种 agent surface，12 个 adapter 的 eligible 能力预先登记；
 7. **嵌套视图**：由完整 manifest 生成稳定的 small/medium/full views，用于规模实验，不通过永久删除长尾页面伪造“干净子集”。
 
 World Foundation 的验收物不是一句“约 700 万页面”，而是一组可校验的 pack manifests、分层 census、Coverage Certificates、rights/PII 决议、编译报告、served-world round-trip、search/surface 测试和资源成本实测。
@@ -4007,7 +4125,8 @@ World Foundation 的验收物不是一句“约 700 万页面”，而是一组�
 
 成功不等于强 harness 分数高，而是：
 
-- Domain Packs 能从冻结 raw manifests 独立重建，分层 census 与 served-world round-trip 可复核；
+- Domain Packs 能从冻结 raw manifests 独立重建，分层 census、canonical structural round-trip 与 source-native/delivery round-trip 可分别复核；
+- canonical audit projection 不进入任何 harness registry/search/network route，audit-leak rate 为 0；
 - A2 pack 的“近全量”或“局部”结论与 Coverage Certificate 一致，不能以 benchmark closure 冒充外站完整覆盖；
 - small/medium/full views 的差异来自候选空间与组合研究成本，而不是 search 故障或页面缺失；
 - hidden construction oracle 没有进入 agent-visible evidence 或 scorer support；
@@ -4029,7 +4148,7 @@ World Foundation 的验收物不是一句“约 700 万页面”，而是一组�
 
 只有以下条件满足，才能扩展：
 
-- Domain Pack reconstruction、layered census、Coverage Certificate、served-world round-trip 与 surface equivalence 通过；
+- Domain Pack reconstruction、layered census、Coverage Certificate、canonical structural round-trip、source-native/delivery round-trip 与 delivery-surface equivalence 通过；
 - 至少三个 vertical 的 agent-visible 内容与 hidden construction assets 完成隔离审计；
 - nested scale views 的 candidate/rank exposure、infra-error share 与成本曲线已测量；
 - World Index parser audit 完成；
