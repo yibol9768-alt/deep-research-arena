@@ -1,0 +1,41 @@
+\resizebox{\linewidth}{!}{
+\begin{tikzpicture}[
+  font=\small,
+  >=Latex,
+  node distance=7mm and 8mm,
+  box/.style={draw=DraBlue!75, rounded corners=2pt, fill=DraLight, align=center,
+              minimum height=10mm, text width=30mm, inner sep=4pt},
+  strong/.style={draw=DraBlue, rounded corners=2pt, fill=DraBlue!12, align=center,
+                 minimum height=11mm, text width=32mm, inner sep=4pt, very thick},
+  side/.style={draw=DraGray!70, rounded corners=2pt, fill=gray!7, align=center,
+               minimum height=9mm, text width=28mm, inner sep=3pt},
+  arrow/.style={->, thick, draw=DraBlue!80}
+]
+  \node[box] (world) {Frozen Corpus\\原生页面与快照};
+  \node[box, right=of world] (compiler) {Per-task Compiler\\多通道扫描与归一化};
+  \node[strong, right=of compiler] (tec) {Task Evidence Census\\事实、关系、rubric、等价证据};
+  \node[box, right=of tec] (manifest) {Frozen Manifest\\固定分母、要求与证书};
+
+  \node[box, below=16mm of world] (run) {Agent Run\\报告、搜索与抓取账本};
+  \node[box, right=of run] (extract) {Report Compiler\\claims、relations、bindings};
+  \node[strong, right=of extract, text width=36mm] (axes)
+    {四个内轴\\Fact · Evidence\\Completeness · Rubric};
+  \node[strong, right=of axes] (truth) {$Truth_t$\\$Provenance_t\times Quality_t$};
+
+  \node[side, below=8mm of axes] (elo) {Writing Jury / Elo\\只评表达，单独汇报};
+
+  \draw[arrow] (world) -- (compiler);
+  \draw[arrow] (compiler) -- (tec);
+  \draw[arrow] (tec) -- (manifest);
+  \draw[arrow] (run) -- (extract);
+  \draw[arrow] (extract) -- (axes);
+  \draw[arrow] (axes) -- (truth);
+  \draw[arrow] (manifest) |- (extract);
+  \draw[arrow] (run.south east) |- (elo.west);
+  \draw[arrow] (extract.south) |- (elo.west);
+  \draw[->, thick, dashed, draw=DraGray] (elo.east) -| (truth.south);
+
+  \node[above=2mm of tec, text=DraGray] {构建期：昂贵、一次性、版本化};
+  \node[below=2mm of run, text=DraGray] {运行期：所有 harness 使用同一 manifest};
+\end{tikzpicture}
+}

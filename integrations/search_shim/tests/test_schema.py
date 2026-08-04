@@ -169,6 +169,9 @@ def test_brave_schema(client: TestClient) -> None:
     assert len(results) == 2
     item = results[0]
     assert set(item.keys()) == {"url", "title", "description"}
+    assert client.get(
+        "/v1/brave/web/search", params={"q": "anc headphones", "count": 0}
+    ).json()["web"]["results"] == []
 
 
 # ---------------------------------------------------------------------------
@@ -179,12 +182,18 @@ def test_searxng_schema(client: TestClient) -> None:
     """SearxNG returns `{"results": [{url, title, content}], "query": "..."}`."""
     r = client.get(
         "/searxng/search",
-        params={"q": "anc headphones", "format": "json", "pageno": 1},
+        params={
+            "q": "anc headphones",
+            "format": "json",
+            "pageno": 1,
+            "count": 1,
+        },
     )
     assert r.status_code == 200
     data = r.json()
     assert set(data.keys()) >= {"results", "query"}
     assert data["query"] == "anc headphones"
+    assert len(data["results"]) == 1
     item = data["results"][0]
     assert {"url", "title", "content"} <= set(item.keys())
 
@@ -195,18 +204,22 @@ def test_searxng_schema(client: TestClient) -> None:
 
 def test_duckduckgo_schema(client: TestClient) -> None:
     """DDG Instant Answer returns `{"AbstractText", "RelatedTopics": [{FirstURL, Text}]}`."""
-    r = client.get("/duckduckgo/search", params={"q": "anc headphones"})
+    r = client.get(
+        "/duckduckgo/search",
+        params={"q": "anc headphones", "count": 1},
+    )
     assert r.status_code == 200
     data = r.json()
     assert set(data.keys()) >= {"AbstractText", "RelatedTopics"}
     assert data["AbstractText"]  # populated from top hit
+    assert len(data["RelatedTopics"]) == 1
     topic = data["RelatedTopics"][0]
     assert {"FirstURL", "Text"} <= set(topic.keys())
     assert topic["FirstURL"].startswith("http")
 
 
 # ---------------------------------------------------------------------------
-# OpenAI-compat passthrough — mock httpx so we don't hit ds_proxy
+# OpenAI-compat passthrough: mock httpx so we don't hit ds_proxy
 # ---------------------------------------------------------------------------
 
 class _StubAsyncResponse:
@@ -270,7 +283,7 @@ def test_openai_passthrough(monkeypatch: pytest.MonkeyPatch, client: TestClient)
 
 
 # ---------------------------------------------------------------------------
-# Anthropic-compat passthrough — mock httpx, verify Anthropic envelope
+# Anthropic-compat passthrough: mock httpx, verify Anthropic envelope
 # ---------------------------------------------------------------------------
 
 def test_anthropic_passthrough(monkeypatch: pytest.MonkeyPatch, client: TestClient) -> None:
@@ -426,8 +439,7 @@ def test_post_lookup_field_mapping(
             "num_comments": 1,
         }
 
-    import envs.reddit.scrape as scrape_mod
-    monkeypatch.setattr(scrape_mod, "get_submission", _fake_get_submission)
+    monkeypatch.setattr(app_module, "_get_submission", _fake_get_submission)
 
     r = client.post(
         "/post_lookup",
@@ -456,8 +468,7 @@ def test_post_lookup_strict_blocks_offlist_url(
     def _boom(*_a: Any, **_kw: Any) -> dict:
         raise AssertionError("get_submission must not be called for blocked URL")
 
-    import envs.reddit.scrape as scrape_mod
-    monkeypatch.setattr(scrape_mod, "get_submission", _boom)
+    monkeypatch.setattr(app_module, "_get_submission", _boom)
 
     r = client.post("/post_lookup", json={"url": "http://evil.example.com/x"})
     assert r.status_code == 403

@@ -501,7 +501,7 @@ def _setup_sandbox_shim() -> None:
     # This catches requests/httpx/aiohttp calls to api.tavily.com and
     # en.wikipedia.org regardless of which Python object made them.
     try:
-        import src.shim_intercept  # noqa: F401 — auto-patches on import
+        import src.shim_intercept  # noqa: F401: auto-patches on import
     except Exception as e:
         print(f"  warn: shim_intercept install failed: {e}")
 
@@ -636,7 +636,7 @@ def _uncorpus_sample(urls: list[str]) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Workstream C — in-process HTTP gate
+# Workstream C: in-process HTTP gate
 # ---------------------------------------------------------------------------
 #
 # Used by `_run_smolagents` and `_run_camel` (which both run in the parent
@@ -683,7 +683,7 @@ def _install_inproc_sandbox_gate() -> None:
     patch). Lanes on those transports stay fetch_observable=false in
     config/lane_protocol.yaml. See FETCH_PATH_AUDIT_2026-07-08.md.
 
-    The interceptor is reset when the parent process exits — these in-
+    The interceptor is reset when the parent process exits: these in-
     process runners always run one task per parent process anyway.
     """
     if getattr(_install_inproc_sandbox_gate, "_done", False):
@@ -796,7 +796,7 @@ async def _run_smolagents(intent: str, model: str, *, strict_sandbox: bool = Fal
     # FIX #2: Switch from CodeAgent to ToolCallingAgent.
     # CodeAgent generates Python code that *constructs* URLs from patterns, producing
     # 92% wrong URLs.  ToolCallingAgent uses tool calls (structured JSON), so it must
-    # copy exact URLs returned by the search tool — dramatically improving URL accuracy.
+    # copy exact URLs returned by the search tool: dramatically improving URL accuracy.
     from smolagents import Tool, ToolCallingAgent, OpenAIServerModel
     from smolagents.default_tools import VisitWebpageTool
 
@@ -969,7 +969,7 @@ async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -
         return await _degrade("forced", "CAMEL_FORCE_FALLBACK requested the evidence writer")
 
     if strict_sandbox:
-        # Same gate as smolagents — camel-ai's SearchToolkit may add new
+        # Same gate as smolagents: camel-ai's SearchToolkit may add new
         # tools at any release; the HTTP-layer gate catches anything that
         # doesn't go through the patched TavilyClient.
         _install_inproc_sandbox_gate()
@@ -1038,7 +1038,7 @@ async def _run_camel(intent: str, model: str, *, strict_sandbox: bool = False) -
         return await _degrade("native", f"{type(e).__name__}: {e}")
     content = resp.msg.content if resp.msg else "(empty)"
 
-    # Fairness audit 2026-07-06: sanitize the SAVED report only — strip
+    # Fairness audit 2026-07-06: sanitize the SAVED report only: strip
     # <think>...</think> reasoning and dangling tool-call XML scaffolding that
     # qwen emits as literal text. Prose and citations are untouched.
     content = _sanitize_camel_report(content)
@@ -2133,12 +2133,12 @@ async def _run_local_deep_researcher(intent: str, model: str) -> str:
     return await lcdr_run(intent=intent, model=model, shim_url=shim, proxy_url=proxy)
 
 
-# Manually-wired agents — these need bespoke env-var setup beyond the standard
+# Manually-wired agents: these need bespoke env-var setup beyond the standard
 # (intent, model, shim_url, proxy_url) contract (e.g. gpt-researcher's
 # FAST_LLM/SMART_LLM split, camel-ai's tool registration). Don't touch unless
 # you know what you're doing.
 _MANUAL_RUNNERS = {
-    # gpt-researcher: removed — subprocess runner at
+    # gpt-researcher: removed: subprocess runner at
     # scripts/runners/gpt_researcher_runner.py takes precedence via
     # auto-discovery.  Function body is kept for reference/fallback.
     "smolagents":            _run_smolagents,
@@ -2262,7 +2262,7 @@ def _wrap_runner(run_fn):
 def _build_runners_map():
     """Merge manual entries with auto-discovered runner modules.
 
-    Manual entries always win on conflict — the registry shouldn't accidentally
+    Manual entries always win on conflict: the registry shouldn't accidentally
     replace a hand-tuned in-process runner with its bare module-level run().
     A new framework only needs to drop a `<name>_runner.py` with AGENT_NAME +
     async def run(...) into scripts/runners/ to appear here automatically.
@@ -2296,7 +2296,7 @@ def runner_choices() -> tuple[str, ...]:
 
 
 # ---------------------------------------------------------------------------
-# Strict-sandbox plumbing — Workstream C
+# Strict-sandbox plumbing: Workstream C
 # ---------------------------------------------------------------------------
 #
 # `--strict-sandbox` flips the arena into an audited closed-book mode where
@@ -2304,14 +2304,14 @@ def runner_choices() -> tuple[str, ...]:
 # (Magento :7770, Postmill :9999, Kiwix :8090, search shim :8081).
 #
 # The flag is enforced at three independent layers:
-#   1. Per-adapter tool allowlist — passed as `strict_sandbox=True` to each
+#   1. Per-adapter tool allowlist: passed as `strict_sandbox=True` to each
 #      runner; runners that honour it whitelist Read/Write/Bash(curl localhost*)
 #      and reject everything else. Runners that cannot honour it raise
 #      `NotImplementedError` here BEFORE the run starts.
-#   2. Shim-level URL gate — set SHIM_MODE=strict in the subprocess env so
+#   2. Shim-level URL gate: set SHIM_MODE=strict in the subprocess env so
 #      `integrations/search_shim/app.py` returns 403 for any non-sandbox
 #      target. (Not all runners use the shim, but those that do get gated.)
-#   3. Post-run domain audit — `src/verifiers/sandbox_compliance_verifier`
+#   3. Post-run domain audit: `src/verifiers/sandbox_compliance_verifier`
 #      scans the final report and writes ``policy_violation`` into the
 #      .meta.json so leaderboard composites can disqualify offending runs.
 #
@@ -2336,7 +2336,7 @@ def _runner_supports_strict(runner) -> bool:
 
 # Manual in-process runners (defined above in this file) that ARE strict-
 # sandbox eligible. Each entry was hand-reviewed for the closing of the
-# "Bash/raw HTTP can leak past the patched search" gap — see
+# "Bash/raw HTTP can leak past the patched search" gap: see
 # docs/STRICT_SANDBOX_CONTRACT.md for the per-adapter table.
 _INPROC_STRICT_ELIGIBLE: set[str] = {
     "smolagents",
@@ -2402,7 +2402,7 @@ def _post_audit_sandbox(report: str) -> dict:
             verify_sandbox_compliance,
         )
         return verify_sandbox_compliance(report)
-    except Exception as e:  # pragma: no cover — defensive
+    except Exception as e:  # pragma: no cover: defensive
         return {"audit_error": f"{type(e).__name__}: {e}"}
 
 
@@ -2804,7 +2804,7 @@ async def main() -> int:
         eligible = _runner_module_strict_eligible(args.agent)
         if eligible is False:
             err = (
-                f"agent={args.agent} is marked STRICT_SANDBOX_ELIGIBLE=False — "
+                f"agent={args.agent} is marked STRICT_SANDBOX_ELIGIBLE=False: "
                 "its upstream framework cannot honour the per-adapter "
                 "allowlist. Rerun without --strict-sandbox or pick a "
                 "different agent. See docs/STRICT_SANDBOX_CONTRACT.md."
@@ -3065,6 +3065,22 @@ async def main() -> int:
         _SOURCE_CHECK["state"] = "ok" if h.get("ok") else "down"
         _SOURCE_CHECK["hits"] = {s: d.get("n_results")
                                  for s, d in (h.get("sources") or {}).items()}
+        expected_backend_sha256 = os.environ.get(
+            "DRA_EXPECTED_SEARCH_BACKEND_SHA256", ""
+        ).strip()
+        actual_backend_sha256 = str(h.get("backend_sha256") or "")
+        _SOURCE_CHECK["backend_sha256"] = actual_backend_sha256 or None
+        if (
+            expected_backend_sha256
+            and actual_backend_sha256 != expected_backend_sha256
+        ):
+            _SOURCE_CHECK["state"] = "code_mismatch"
+            raise RuntimeError(
+                "search shim code mismatch: expected backend "
+                f"{expected_backend_sha256}, got "
+                f"{actual_backend_sha256 or '(missing)'}. Refusing to mix "
+                "search implementations in one evaluation."
+            )
         if h.get("degraded"):
             # Answered, but part of its fan-out failed. Not grounds to refuse the
             # run; grounds to know afterwards which runs saw a thinner corpus.

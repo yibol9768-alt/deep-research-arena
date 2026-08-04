@@ -244,7 +244,79 @@ def test_concept_query_prioritises_wiki_without_padding():
         "wiki": [_hit("IP code", source="wiki", slug="w")],
     }
     rows = backend._merge_source_hits("IPX7 definition", groups, 2)
+    assert [row.source for row in rows] == ["wiki"]
+
+
+def test_concept_query_honours_explicit_multi_source_request():
+    groups = {
+        "shopping": [_hit("IPX7 speaker", source="shopping", slug="p")],
+        "wiki": [_hit("IP code", source="wiki", slug="w")],
+    }
+    rows = backend._merge_source_hits(
+        "IPX7 definition",
+        groups,
+        2,
+        explicit_sources=True,
+    )
     assert [row.source for row in rows] == ["wiki", "shopping"]
+
+
+def test_multi_item_shopping_query_is_split_into_named_product_phrases():
+    assert backend._shopping_query_variants(
+        "home fitness resistance bands yoga mat dumbbell foam roller"
+    ) == (
+        "resistance band",
+        "yoga mat",
+        "dumbbell",
+        "foam roller",
+    )
+
+
+def test_decomposed_product_heads_reject_known_lexical_homonyms():
+    yoga_sandal = _hit(
+        "Yoga Mat Leather Flip Flops Sandals",
+        source="shopping",
+        slug="yoga-sandal",
+    )
+    hair_roller = _hit(
+        "Foam Sponge Hair Rollers and Curlers",
+        source="shopping",
+        slug="hair-roller",
+    )
+    assert backend._product_variant_conflicts("yoga mat", yoga_sandal)
+    assert backend._product_variant_conflicts("foam roller", hair_roller)
+
+
+def test_exact_product_identity_is_never_split():
+    query = "Ortizan 40W portable Bluetooth speaker under $60 budget"
+    assert backend._shopping_query_variants(query) == (query,)
+
+
+def test_long_forum_query_accepts_an_exact_topic_phrase():
+    row = _hit(
+        "Coffee grinder still working after eleven years",
+        "The burrs remain aligned after daily use.",
+        slug="coffee-grinder",
+    )
+    rows = backend._rerank_hits(
+        "coffee grinder burr durability long term owner experience",
+        [row],
+        5,
+        allow_phrase_relaxation=True,
+    )
+    assert [item.url for item in rows] == [row.url]
+
+
+def test_concept_only_search_does_not_query_commerce_or_forum(monkeypatch):
+    wiki = _hit("IP code", source="wiki", slug="ip-code")
+
+    def unexpected(*_args, **_kwargs):
+        raise AssertionError("concept-only query reached a non-canonical source")
+
+    monkeypatch.setattr(backend, "_search_shopping", unexpected)
+    monkeypatch.setattr(backend, "_search_reddit", unexpected)
+    monkeypatch.setattr(backend, "_search_kiwix", lambda *_a, **_k: [wiki])
+    assert backend.search("IPX7 definition", max_results=5) == [wiki]
 
 
 def test_search_respects_single_source_include_filter(monkeypatch):
@@ -290,6 +362,19 @@ def test_kiwix_variants_use_frozen_audio_concept_pages():
         "High-resolution audio",
         "Bluetooth",
     )
+
+
+def test_kiwix_variants_cover_explicit_general_research_concepts():
+    assert backend._kiwix_query_variants(
+        "artificial intelligence large language model job displacement"
+    ) == (
+        "Artificial intelligence",
+        "Large language model",
+        "Technological unemployment",
+    )
+    assert backend._kiwix_query_variants(
+        "noise cancelling wireless headphones under 100"
+    ) == ("Active noise control",)
 
 
 def test_kiwix_uses_short_concept_queries_and_filters_rows(monkeypatch):

@@ -2,7 +2,7 @@
 
 > 初稿日期：2026-07-17（文件名保留该日期以维持引用稳定）
 >
-> 当前修订：2026-07-20 Draft v3.7（construction / delivery surface boundary correction；R4 全库审计、双构建规范化复现与九层浏览器 spot-check；E2 direct-stream、嵌套视图和 crash-resume compiler v1；结合 Kimi Code K3 对 LoHoSearch 公开论文的独立核对）
+> 当前修订：2026-07-21 Draft v3.8（明确“关键外部前提需要本次观察证据、合理连接推理不逐句引用”的边界；深度改为按既有 research-unit family 报闭合剖面；移除 exempt 链任意层数限制；结合 Kimi Code K3 三轮反方审查）
 >
 > 状态：可执行的方法、数据构建、评分、验证与工程实施统一计划
 > 核心目标：利用冻结网页沙盒，在不全量理解所有网页语义、也不要求复现唯一答案路线的前提下，自动构建可审计的 Deep Research 任务，并衡量报告以本次真实观察证据完成了多少研究工作。  
@@ -47,9 +47,9 @@ z_{t,f,u,k}
 C_{t,f,u,k}\,E_{t,f,u,k}
 $$
 
-- $C=1$：报告完成该检查的内容合同；
-- $E=1$：该检查的外部世界前提，沿任一合法证据路线通过 URL 在册、实际观察、就地绑定、语义支持和来源角色要求；
-- 纯推理、格式和用户已给定信息可以声明为 evidence-exempt，此时 $E=1$，但其外部事实前提仍须通过其他检查。
+- $C=1$：报告完成该检查的内容合同；普通解释、比较和推理判断是否合理、是否保留条件以及是否真正回答用户，确定性计算优先由程序验证；
+- $E=1$：该检查中会改变结论或用户答案的关键外部前提，沿任一合法证据路线通过 URL 在册、实际观察、就地绑定、语义支持和来源角色要求；
+- 用户已给定信息、确定性计算以及从已通过前提出发的合理连接推理不要求逐句引用；但推理若引入新的关键外部事实，该事实只有通过同样的 evidence gate 才能支撑得分，否则该推理合同失败。
 
 研究单元、方向与任务分依次做等权 macro average。为便于执行摘要阅读，下式省略第 8 节定义的 applicability mask；正式 scorer 只平均适用且可归责的 checks/units/facets：
 
@@ -79,7 +79,7 @@ $$
 这个层级平均有三个目的：
 
 - 一个包含 30 个简单规格的方向不能淹没一个只有 3 个检查、但需要真正综合的方向；
-- 部分通过来自“完成了多少检查”，不需要拍脑袋规定 0.5 分；
+- 部分通过来自“端到端闭合了多少检查”；上游证据缺失造成的级联失败在主分中保留，root-cause 与内容完成度另作诊断，不需要让 judge 拍脑袋规定 0.5 分；
 - 主分仍是一句话能说明白的比例，不重新发明复杂综合指数。
 
 `Full Pass` 继续单独报告：所有核心研究方向和检查均完成、输出合同满足、无决定性矛盾。唯一主排名是固定任务集上的 penalized mean DRA-GRC：确认的 fabricated citation 使该道任务正式分清零，但不再额外把整个 harness 放入另一个排名层。引用完整性、搜索—交付—利用漏斗、Research Quality Panel、成本和反事实证书仍然独立展示。
@@ -111,7 +111,10 @@ $$
 | $\mathcal F_t,\mathcal U_{t,f},\mathcal K_{t,f,u}$ | 任务 $t$ 的 facet、unit 与 check 集合 |
 | $a_{t,f,u,k}$ | 冻结的 applicability / benchmark-attributability mask |
 | $C,E,z=CE$ | 内容合同、证据门与 grounded check pass |
+| $\mathcal P^{ext}_k$ | check $k$ 在运行前冻结的关键外部前提集合 |
+| $C_k^{content},C_k^{reason}$ | 内容完成与连接推理合理性判定 |
 | $R_{t,f,u},F_{t,f}$ | unit 分与 facet 分；$F_{t,f}$ 不等于旧公式的 Fact 指标 |
+| $\mathrm{UnitClosure}_{t,g}$ | 按既有 unit/check family 分层的闭合度诊断向量，不进入主排名 |
 | $G_t^{pre},G_t^{official}$ | 完整性门之前的任务 GRC 与进入唯一主排名的正式任务分 |
 | $\rho$ | Decision Envelope 中“行动变化/理由变化”的局部混合参数，只用于诊断 |
 | $\lambda_{red}$ | 构题目标中的近重复惩罚系数，不进入 agent 得分 |
@@ -1266,7 +1269,7 @@ $$
 \mathrm{ConditionalInference}(p,c\Rightarrow y)
 $$
 
-如果 `ProductUses` 或条件 $c$ 没有证据，就不能从百科机制页推出该商品结论。
+如果 `ProductUses` 或条件 $c$ 是会改变具体商品结论的外部前提，它们没有证据时就不能推出该商品结论。机制本身若是 query 明确要求研究或核查的对象，也必须有本次观察证据；若它只是把已通过前提连接到结论的普通、定性且合理的解释，则不要求为这条连接单独补引用，只由内容 judge 检查推理是否成立、是否保留条件、是否偷带新的外部事实。
 
 ### 5.10A 论文、公共数据、旅行地理和时间档案怎么抽
 
@@ -1781,7 +1784,7 @@ required_facets:
 | U1 预算可行性 | 正确比较两个冻结价格与 USD 60 预算 | 任一能支持两价格、且本次已交付的合格 product evidence bundle |
 | U2 输出披露 | 正确区分 20W/2×10W 与 2×20W Max | 任一分别支持两产品规格的合格 evidence bundle |
 | U3 失真可审计性 | 不把“THD+N 低于 1\%”或“无失真”过度推出为实测优胜 | 产品措辞 + 任一合格测量语境证据 |
-| U4 watt 含义 | 不从 headline watts 直接推出响度/干净输出 | 任一满足技术机制合同的合格证据 |
+| U4 watt 含义 | 不从 headline watts 直接推出响度/干净输出 | headline watts 的产品披露必须有证据；若题目明确要求核查 watt 机制，再要求技术证据；普通推断边界只评合理性 |
 | U5 IPX7 | 表达测试范围，避免无限防水推断 | 产品宣称 + 任一满足 IPX7 scope 合同的证据 |
 | U6 电池 | 比较 12h/15h 并保留使用条件 | 两产品电池证据类 |
 | U7 设计宣传 | 区分真实机制与未证实性能结论 | listing claim + mechanism/measurement evidence |
@@ -1796,7 +1799,7 @@ required_facets:
 3. 不把机制存在直接推出声音质量更好；
 4. 将该不确定性放回本用户的阳台/泳池边决策。
 
-这四项完成多少决定 U7 的部分完成度；前 3 项的外部事实前提分别经过证据门。它比把四个网页 fact 当四分更接近“完成了一个 claim audit research unit”。
+这四项完成多少决定 U7 的部分完成度。listing 中是否存在主张、产品采用什么结构、是否存在测量等关键外部前提经过证据门；“机制存在不能直接推出声音质量更好”这类连接推理若不引入新外部事实，只检查合理性，不强制再找一张网页。它比把四个网页 fact 当四分更接近“完成了一个 claim audit research unit”。
 
 ### 5B.6 多路线不等于强行保证每个事实都有多个网页
 
@@ -2027,7 +2030,7 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
 
 #### Counterfactual unanswerability
 
-在审计副本中删掉某维度证据，合格报告应表达 bounded uncertainty，而不是用参数知识补出确定结论。
+在审计副本中删掉某维度的关键外部前提证据，合格报告应表达 bounded uncertainty，而不是用参数知识补出该前提。Agent 仍可使用用户给定信息、确定性计算和从剩余已证前提出发的合理通用推理；这不算参数知识作弊。真正需要被拦截的是虚构已删除前提，或在连接性文字中夹带新的关键外部事实。
 
 ### 6.10 每题 Answerability Certificate
 
@@ -2082,29 +2085,35 @@ Research unit 必须是用户可理解的一项研究工作；低层 facts 只�
     {
       "check_id": "identify_listing_claim",
       "content_contract": "report_identifies_claim_without_strengthening",
+      "decisive_external_premises": ["listing_claim_exists"],
       "evidence_contract_ids": ["ec_product_claim"]
     },
     {
       "check_id": "state_inference_limit",
       "content_contract": "report_distinguishes_mechanism_from_measured_outcome",
-      "evidence_contract_ids": ["ec_mechanism_or_measurement"]
+      "decisive_external_premises": [],
+      "evidence_exempt": true,
+      "premise_check_ids": ["identify_listing_claim"]
     },
     {
       "check_id": "connect_user_constraint",
       "content_contract": "report_applies_uncertainty_to_user_scenario",
+      "decisive_external_premises": [],
       "evidence_exempt": true,
-      "premise_check_ids": ["identify_listing_claim", "state_inference_limit"]
+      "premise_check_ids": ["state_inference_limit"]
     }
   ],
   "answerability_witnesses": ["private_witness_bundle_1"],
   "disallowed_inferences": ["mechanism_implies_superior_quality"],
   "applicability": "core",
   "world_version": "dra-world-2026-07",
-  "compiler_version": "rtc-v1"
+  "compiler_version": "rtc-v2"
 }
 ```
 
-`premise_check_ids` 编译为冻结的 OR-of-AND premise routes，不得根据被评报告临时改路。`evidence_exempt` check 只能依赖带 evidence contract 的非 exempt checks；禁止 exempt → exempt 链，使依赖深度不超过两层。一个上游证据 check 失败导致下游综合 check 失败，是“端到端有证据完成”的有意义测量，不是重复计分；诊断报告仍必须给出 root-cause 失败和下游级联失败，避免误解。
+`decisive_external_premises` 在看到任何正式报告之前由 query、Task Contract 与 check contract 编译并冻结；它不是 judge 在评分时临时决定的引用清单。`evidence_exempt` 是为便于检查而存储的冗余派生字段：只有该集合为空时才能为 `true`，scorer 始终以前提集合为准，二者不一致视为 compiler error。集合为空时，check 不要求额外网页引用，但仍须满足内容与推理合同。若机制本身是 query 明确要求研究的对象，compiler 另生成带 evidence contract 的机制 check；若这里只是在已通过前提上说明“机制存在不能直接推出测量结果”，则它是连接推理。
+
+`premise_check_ids` 编译为冻结的 OR-of-AND premise routes，不得根据被评报告临时改路。premise DAG 必须在发布前冻结且无环，但不再禁止 exempt → exempt 依赖，也不设置任意的两层上限；级联误差直接通过 V28、TFRR 与 $\kappa_e$ 做端到端校准。一个上游证据 check 失败导致下游综合 check 失败，是“端到端有证据完成”的有意义测量；诊断报告仍必须同时给出 root-cause 失败、内容完成和下游级联失败，避免把它误解成 agent 完全没有做相关工作。
 
 ### 6.13 正式集公开策略
 
@@ -2224,21 +2233,31 @@ $$
 z_{t,f,u,k}=C_{t,f,u,k}E_{t,f,u,k}
 $$
 
-部分完成不是让 judge 随意给 0.5，而是一个 unit 的 2—5 个 checks 中完成了多少。例如一个 claim audit unit 完成“识别主张”和“解释机制”，却没有说明“不能推出的效果”和“对用户决策的意义”，则完成 2/4。
+部分完成不是让 judge 随意给 0.5，而是一个 unit 的 2—5 个 checks 中有多少实现了端到端闭合。例如一个 claim audit unit 完成“识别主张”和“解释机制”，却没有说明“不能推出的效果”和“对用户决策的意义”，则内容层完成 2/4；若上游证据门失败，依赖它的下游 check 也不能计作 grounded closure。主分报告闭合度，内容完成度与 root-cause 失败另外展示。
 
 ### 8.2 Evidence gate 的精确定义
 
-设 check $k$ 的决定性外部前提集合为 $\mathcal{P}_k$，报告为前提 $p$ 绑定的候选证据跨度为 $\mathcal{A}(p)$：
+设 check $k$ 的关键外部前提集合为 $\mathcal{P}^{\mathrm{ext}}_k$。一个命题只有同时满足下面三点才进入该集合：
+
+1. 它是需要从外部世界核验的主张，而不是用户已经给出的条件、确定性计算或输出格式；
+2. query / Task Contract 要求报告建立它，删除或改变它会实质改变该 check 的结论或用户答案；
+3. 它不能仅靠已经通过的前提做合理、定性的连接推理得到。
+
+价格、规格、测量、用户经验、页面是否提出某项宣传、定量结论，以及 query 明确要求核查的标准或机制通常属于关键外部前提。背景性解释、从已证前提出发的普通推论和不改变结论的旁枝不进入分母。compiler 必须在正式运行之前为每个 check 冻结并发布其前提类型和删除测试结果；不能看到某个 harness 的报告后才决定“这句话原来需要引用”。
+
+报告为前提 $p$ 绑定的候选证据跨度为 $\mathcal{A}(p)$：
 
 $$
 E_k
 =
-\prod_{p\in\mathcal{P}_k}
+\prod_{p\in\mathcal{P}^{\mathrm{ext}}_k}
 \max_{e\in\mathcal{A}(p)}
 \left[
 V_eO_eB_eS_eR_e
 \right]
 $$
+
+当 $\mathcal{P}^{\mathrm{ext}}_k=\varnothing$ 时取空积为 1；这只表示该 check 不需要新增外部引用，不表示其内容和推理自动正确。
 
 - $V_e$：URL 与页面快照属于冻结 registry；
 - $O_e$：支持 span 本次确实交付给 agent；
@@ -2268,23 +2287,33 @@ stateDiagram-v2
 
 `PENDING` 不离开冻结分母；发布前不得仍存在 PENDING。内部调试可报 $[\mathrm{GRC}_{min},\mathrm{GRC}_{max}]$，但不得把区间中点或保守端当正式分。`REPAIR_TRIGGERED` 是 benchmark 版本事件，不得只修某个 harness 的分。
 
-### 8.3 纯分析、格式和用户已给信息如何处理
+### 8.3 关键处引用，连接处评理
 
-以下 check 可以 `evidence_exempt=true`：
+报告中的内容相对于某个 check 只需区分三类：
 
-- 用户 query 已直接给出的事实；
-- 纯逻辑连接；
-- 输出格式；
-- 在已通过证据前提上的预算计算；
-- 可读性或组织要求。
+1. **关键外部前提**：价格、规格、测量、用户经验、定量结论，以及题目要求核查的主张、标准或机制。它们进入 $\mathcal{P}^{\mathrm{ext}}_k$，必须通过 evidence gate。
+2. **给定与确定性内容**：用户 query 已给条件、在已通过前提上的算术/单位换算、输出格式。它们不要求外部引用，能确定性验证的部分优先由程序验证。
+3. **连接推理**：从已通过前提和用户条件出发的解释、比较、条件化、取舍与推荐。它们不要求逐句引用，但 judge 必须检查推理是否合理、是否保留限定条件，以及是否真正回答用户。
 
-但“纯分析”不能成为无证据事实的逃生口。若一个 recommendation check 依赖价格、耐久或技术效果，则这些前提必须由其他 checks 通过 evidence gate，recommendation check 只检查推理和约束连接。对带冻结 premise routes $\mathcal{R}_k$ 的 evidence-exempt check，有效得分为：
+因此“耳罩密封下降通常会削弱被动隔音”可以作为已证前提之间的合理定性连接，不必为了链上的每条边寻找网页。反过来，“某电池一年后一定衰减 20%”或“某单元天然解析力更高”是在推理中加入新的、会影响结论的外部主张，不能伪装成常识。若报告没有为它们提供通过同一 evidence gate 的本次观察证据，它们不能支撑该 check，且 $C_k^{\mathrm{reason}}=0$；冻结的 check 分母和前提清单不因某份报告临时扩张。
+
+内容判定可写为：
+
+$$
+C_k
+=
+C_k^{\mathrm{content}}C_k^{\mathrm{reason}}.
+$$
+
+$C_k^{\mathrm{reason}}=1$ 只在以下三点同时成立时给出：推理只使用已经通过的前提、用户给定信息和确定性计算；推理本身合理且没有把“可能/通常”升级为“必然”；推理没有夹带新的关键外部事实。judge 只回答这三个有界问题，不负责判断外部事实真假，也不按篇幅、专业词或引用密度奖励报告。边界样本进入冻结校准集，而不是临时要求某个 harness 补引用。
+
+若一个 recommendation check 依赖价格、耐久或技术效果，这些外部前提必须由其他 checks 通过 evidence gate；recommendation check 只检查合理推理和用户约束连接。对带冻结 premise routes $\mathcal{R}_k$ 的 evidence-exempt check，有效得分仍为：
 
 $$
 z_k=C_k\max_{r\in\mathcal{R}_k}\prod_{j\in r}z_j.
 $$
 
-这里只允许直接依赖带证据合同的 checks，禁止 exempt 链串联；依赖图在报告之前冻结。
+这里允许通过多个连接或确定性 checks 逐步形成比较、综合和推荐，但 premise DAG 必须在报告之前冻结且无环。是否可靠不再由任意链长上限代理，而由逐节点校准、V28 级联注入和合法整报告 TFRR 直接证明。
 
 ### 8.4 层级 macro average
 
@@ -2399,7 +2428,7 @@ Deep Research 范围广，Full Pass 很可能远低于连续覆盖。这不是 b
 - `core`：来自 query 明确 facet 或构造时不可删除的研究要求，进入主分；
 - `conditional`：只有报告或世界满足预声明条件时适用；适用性由 query/TWM 判，不由被评报告自由触发；
 - `optional`：增强性内容，只作诊断；
-- `pitfall`：过度概括、营销偷换、型号混淆等错误检测，不提供正向覆盖分，但可触发 critical error。
+- `pitfall`：过度概括、营销偷换、型号混淆、`smuggled_external_premise`（解释或推荐夹带未经证据门的新关键外部事实）和 `reasoning_scope_overreach`（把“可能/通常/在特定条件下”升级成“必然/普遍成立”）等错误检测；不提供正向覆盖分，但可触发 critical error。
 
 主分只统计适用 core checks。若 TWM 本身不足以归责，必须在 benchmark 发布前修复或把相应 check/task 从**全体 harness 共享的正式 manifest**中排除；一旦 manifest 冻结，分母不随报告和 harness 变化。observation blind 是 run 有效性/资格问题，不是动态缺失值；其重跑与 report-only 处理见第 7.4 节。
 
@@ -2562,7 +2591,7 @@ $$
 
 `unresolved` 不进入该分母，而单独报告 Unresolved Rate。ProtocolClaimAccuracy 会鼓励少写，不能代表研究广度，所以只作诊断；主分仍由 query 所需的 Grounded Research Coverage 决定。`unresolved` 也可能源于 candidate recall 或 extractor 边界，不等于冻结世界没有证据。
 
-还需谨慎解释 `entailed + unobserved`：它证明报告中的说法没有可见的本次证据路径，但不必然等于参数知识泄漏，因为该说法也可能由其他已观察事实逻辑推出。正式名称建议使用 `untraceable-in-run`。只有排除可接受推导路线后，才能把它作为参数知识或事后补引的强嫌疑。
+还需谨慎解释 `entailed + unobserved`：它证明报告中的说法没有可见的本次证据路径，但不必然等于参数知识泄漏，因为该说法也可能由其他已观察事实经过合理计算或连接推理推出。正式名称建议使用 `untraceable-in-run`。检查可接受推导路线时不要求每条推理边另有引用，但所有会改变结论的外部前提都必须已经通过 evidence gate；只有排除这种路线后，才能把它作为参数知识或事后补引的强嫌疑。
 
 ### 10.1 五类关键失败
 
@@ -2670,6 +2699,8 @@ $$
 - `fabricated_url`
 - `unobserved_citation`
 - `answer_wrong`
+- `smuggled_external_premise`
+- `reasoning_scope_overreach`
 - `instrumentation_blind`
 - `protocol_model_incomplete`
 
@@ -2814,17 +2845,20 @@ $$
 
 ### 15.2 深度
 
-深度不是篇幅、网页数或引用数，而是 research unit 的依赖结构：
+深度不是篇幅、网页数、引用数，也不是“有引用的完整研究链数量”。链上的关键外部前提需要证据，但普通比较、解释和推理连接不要求逐边引用。DRA 将深度定义为：**query 所要求的非原子研究单元是否闭合完成**，包括是否在共同维度上比较、是否正确应用机制、是否处理冲突与条件、是否跨来源综合，以及推荐是否连接到用户约束。
 
-- 单页原子事实；
-- 两对象比较；
-- 跨来源综合；
-- 冲突与条件化；
-- 基于约束的决策。
+这里不构造另一个单一 Depth 分，也不假设 comparison、mechanism、conflict、synthesis 和 decision 存在严格高低顺序。令 $\mathcal{U}^{+}_{t,g}$ 为任务 $t$ 中类型为 $g$ 的 applicable core units，则报告一个按现有 `unit_type` 分层的向量：
 
-每个 unit 保存 `evidence_hops`、`source_roles`、`cross_candidate_edges`、`condition_branches` 和 `conflict_edges`。按 family 报告通过率与结构复杂度，但不再人为加权成第二个主分。
+$$
+\mathrm{UnitClosure}_{t,g}
+=
+\frac{1}{|\mathcal{U}^{+}_{t,g}|}
+\sum_{u\in\mathcal{U}^{+}_{t,g}}R_{t,f(u),u}.
+$$
 
-一个报告可以 breadth 高但 depth 低，例如抄完规格却没有解释意义；也可以 depth 高但 breadth 低，例如深入一个技术点却遗漏价格、用户场景和推荐。facet 宏平均与 synthesis units 会同时暴露这两类失败。
+$g$ 使用第 6.8 与第 9 节已经冻结的 unit/check family 映射，例如 atomic fact、candidate comparison、mechanism application、claim audit、conflict and uncertainty、cross-source synthesis、trade-off / decision justification 和 tutorial / action plan；不再新建 D1—D5 或其他任意层级。原子检查通过率高、而 comparison/synthesis/decision closure 低，表示“搜到事实但研究浅”；某一复杂 unit 很强却遗漏多个 facet，则表示“局部深入但广度不足”。主排名仍只使用 DRA-GRC，`UnitClosure` 是解释性剖面。
+
+每个 unit 仍保存 `source_roles`、`cross_candidate_edges`、`condition_branches` 和 `conflict_edges` 作为结构描述，但不再使用 `evidence_hops` 暗示链上每一跳都必须有引用。V3 fact-dump probe 与第 6.9 节 shortcut test 用来证明只复制规格无法通过非原子 units。
 
 ### 15.3 效率
 
@@ -3121,7 +3155,7 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 1. **自然层**：不同主题、长度、分数区间和 harness 的真实报告；
 2. **程序腐蚀层**：对真实报告定向替换数字、型号、结论、URL、引用位置或观察状态，真值由构造已知；
 3. **合法替代层**：刻意避开构题 witnesses，使用其他在册来源完成同一合同；
-4. **边界层**：条件变化、论坛个案、营销主张、相似型号、时间变化、有界否定和真正 unknown。
+4. **边界层**：条件变化、论坛个案、营销主张、相似型号、时间变化、有界否定、真正 unknown，以及“合理无引用连接”与“在连接文字中夹带外部事实”的最小对照。
 
 自然层证明现实表现；腐蚀层证明局部因果响应；替代层证明不绑路线；边界层证明语义合同没有把复杂 DR 简化成真假二分类。
 
@@ -3146,7 +3180,7 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 | V5 | Unseen valid route | 不用 known witnesses，改用独立找到的在册等价或组合证据 | 满足合同的路线应通过 | Alternative Route Acceptance |
 | V6 | Invalid route | 使用主题相关但不支持、角色不合适或范围过宽的页面 | 应被拒绝且原因正确 | FAR、failure-code F1 |
 | V7 | Unobserved injection | 引用 registry 中真实但本次未交付的页面 | 对应证据门失败，标记 `unobserved_citation` | 检出率 |
-| V8 | Local corruption | 改数字、型号、否定词、条件、URL、绑定位置或结论方向 | 只影响依赖该元素的 checks | targeted flip、collateral flip |
+| V8 | Local corruption / reasoning boundary | 改数字、型号、否定词、条件、URL、绑定位置或结论方向；另构造“合理连接推理不配引用”与“连接文字夹带新外部事实/抹去限定词”的配对报告 | 正确的无引用连接推理与全引用版等效；夹带事实或范围升级只使依赖它的 checks 失败 | targeted flip、collateral flip、equivalence gap |
 | V9 | Monotonicity | 增加一个不引入错误、且完成缺失 check 的证据段 | 对应 unit 与任务 DRA-GRC 不得下降 | violation rate |
 | V10 | Granularity invariance | 在语义不变时合并/拆分同一 unit 内 checks | facet 权重不因 compiler 啰嗦程度系统改变 | score drift |
 | V11 | World Index | 两次全量构建同一 snapshot；人工核对页面、表格、帖子和链接 | hash/ID 稳定；正文、表格和链接定位可复核 | determinism、P/R |
@@ -3159,7 +3193,7 @@ Research Quality Panel 另表展示 Synthesis、Uncertainty / Conflict、User Ut
 | V18 | Answerability | 对每个 core check 执行 witness route；验证 API 实际可搜索和抓取 support span | 至少一条运行可达路线；不可答 check 不进正式分母 | answerability rate |
 | V19 | Probe generalization | construction probes 调试，冻结后只在 held-out harness/合成策略上测试 | 测试不能只区分参与构建的策略 | train–heldout gap |
 | V20 | Observation normalization | 同一证据经 12 个真实 adapter 的 raw/normalized/extractive/abstractive 变换交付，并注入 delivery-fidelity canary | lineage 可回放；捕获物等于实际交付物；不合格 harness 进 report-only，不动态删题 | agreement、capture fidelity、blind rate |
-| V21 | Runner/judge | 人工盲标 `(report, check, evidence)` | 自动判定达到预注册的人际一致性带 | accuracy、macro-F1、$\kappa/\alpha$ |
+| V21 | Runner/judge | 人工盲标 `(report, check, evidence)`，包含推理合理性、限定保留和“是否引入新关键外部事实”的边界对 | 自动判定达到预注册的人际一致性带；不能系统性错罚合理无引用推理或放过事实走私 | accuracy、macro-F1、$\kappa/\alpha$ |
 | V22 | Route FRR/FAR | 分层合法替代与非法腐蚀样本 | 误拒和误收均有置信上界 | FRR、FAR、Wilson CI |
 | V23 | Holistic validity | 专家同题比较真实报告的 grounded research breadth | DRA-GRC 比旧公式更贴近该构念；质量轴与主分可分离 | Kendall、Spearman、paired accuracy |
 | V24 | Counterfactual twin | 翻转任务关键事实和无关事实，重跑同一 harness | 相关结论随世界变，无关结论稳定 | causal response、invariance |
@@ -3500,7 +3534,8 @@ W100K v2 已完整扫描 19,551,505 entries 并编译 99,810 documents，耗时 
 - 每 unit 2—5 个 canonical checks；
 - content contract；
 - evidence contract 与 route family；
-- 冻结 OR-of-AND premise DAG，exempt 链深度不超两层；
+- 冻结且无环的 OR-of-AND premise DAG；允许给定、计算和合理连接 checks 继续依赖，但不设置任意链长上限；
+- 为每个 check 冻结关键外部前提；连接推理只评合理性、限定条件与是否夹带新外部事实；
 - answerability witnesses；
 - known-support multiplicity 与 `single_source` 标记；
 - disallowed inference 与 applicability 条件。
@@ -3884,7 +3919,8 @@ scorer_hash
 | “多路线”声称过度 | 某些事实只有一处来源，ARA 分母不成立 | known-support multiplicity 直方图 | 术语改为 contract-admissible evidence；multiplicity=1 标 `single_source`；ARA 只对 multiplicity≥2 定义 |
 | Matcher 过宽 | 任何主题相关 URL 都能通过 | hard-negative FAR、source-role FAR | 受约束前提匹配、local binding、角色门和反驳检查；abstain 不自动通过 |
 | Matcher 证书顺序依赖/全局污染 | 先提交者的错 judge 证书影响之后所有 run | canonical batch 重放、$m_c$、高重数抽审 | 全局排序批处理；两异构 judge + 人工 fallback；完整版本键；高 $m_c$ repair |
-| Premise 级联放大误判 | 一个叶判定使多个综合 check 同时翻转 | V28、$\kappa_e$、TFRR、DAG 后继数 | DAG 发布前冻结；exempt 链禁止；深度≤2；级联作端到端主分，root-cause 单独诊断 |
+| Premise 级联放大误判 | 一个叶判定使多个综合 check 同时翻转 | V28、$\kappa_e$、TFRR、DAG 后继数 | DAG 发布前冻结且无环；不以任意链长代替误差测量；级联作端到端主分，root-cause 单独诊断 |
+| 合理推理被过度要求引用，或“常识”夹带关键事实 | 正确分析因没有逐边 citation 被错罚；反之流畅伪机制绕过证据门 | V8 推理边界对、V21 人工金标、scope-overreach 率 | 只对关键外部前提执行 evidence gate；连接推理检查合理性、限定保留和新事实走私；边界判定冻结校准 |
 | Check 粒度操纵权重 | compiler 多拆某方向即可改变榜单 | split/merge score drift、raw counts | 固定 facet ontology；每 unit 2—5 checks；语义去重；层级 macro 与 invariance gate |
 | 原子事实淹没 DR 能力 | 规格抄写胜过比较、冲突和综合 | family distribution、fact-dump probe | fact 只作证据前提；正式包含比较、机制、综合、决策、教程等 units |
 | Query 过度 corpus-shaped | 问题自然性差，只考语料图关键词 | Route S/G 人审、round-trip、live 对照 | 先选用户场景和 research shape，再选证据；自然性与非 scorer-shaped 审核 |
@@ -3944,7 +3980,7 @@ scorer_hash
 26. **人工工作**：审核 query、compiler、answerability、替代证据与 scorer，不逐题从零手写复杂 rubric；公布工时、编辑率和 fatal 率；
 27. **正式公开**：schema、类型学、dev 样例和验证公开；正式实例按预注册策略延迟公开；
 28. **Gold 治理**：challenger evidence 经复核进入新 manifest，对所有受影响 run 统一重算；旧 manifest 与历史榜不静默改变；
-29. **依赖错误**：DAG 冻结、exempt 链禁止、深度≤2；用 $\kappa_e$、TFRR 与 $m_c$ 验证级联/共享证书风险，不使用未证明的 fanout 乘法定理；
+29. **依赖错误**：DAG 冻结且无环，不禁止合理的 exempt 依赖，也不设置任意深度上限；用 $\kappa_e$、TFRR 与 $m_c$ 直接验证级联/共享证书风险，不使用未证明的 fanout 乘法定理；
 30. **ReleaseGate**：ValidityGate 与 CapacityGate 双门；任一未过不发正式榜，禁止保守 fallback；裁决队列 per-entry 隔离；
 31. **反事实/Canary**：8—10 题审计子集；可控 harness 做 paired seeds，hosted harness 做预注册非配对分布审计；独立于主分；
 32. **统计**：主题/blueprint cluster bootstrap、paired comparison、PPI 人工校正、MDE 与预注册等效并列层；不强行全序；
@@ -3967,11 +4003,11 @@ scorer_hash
 
 ### 25.1 推荐表述
 
-> DRA introduces a multi-domain, closed-document, task-scoped evaluation protocol for long-form deep research. It builds a frozen benchmark world from versioned domain packs with explicit acquisition, coverage, rights, rendering, and search contracts, while separating the construction plane from the agent-delivery plane. Source-native websites and registered adapter transforms deliver the research world to harnesses; the canonical World Index and its deterministic audit projection support construction and evaluation and are never substituted for the browser surface. Rather than attempting to extract every semantic fact from millions of documents, DRA exhaustively compiles their identities and structures and constructs Task World Models only over query-relevant, high-recall evidence regions. A shared compiler produces audit-frozen hierarchical Research Test Suites from task contracts and case blueprints; human construction time and edits are disclosed rather than hidden behind a claim of rubric-free evaluation. DRA scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content contract is satisfied and every decisive external premise is supported by a valid in-registry span that was delivered through a replayable adapter lineage, locally bound to the report claim, semantically supportive, and compatible with the required source role. Construction witnesses certify answerability but are not URL allowlists: previously unseen in-registry evidence may pass the same frozen, calibrated matcher. Environment scale is characterized separately through layered census and pre-registered scale-response experiments; page count is not included in the agent score. The official benchmark score is the fixed-task mean of task scores after a task-level fabricated-citation gate. Full-task success, citation reliability rates, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity remain separately auditable.
+> DRA introduces a multi-domain, closed-document, task-scoped evaluation protocol for long-form deep research. It builds a frozen benchmark world from versioned domain packs with explicit acquisition, coverage, rights, rendering, and search contracts, while separating the construction plane from the agent-delivery plane. Source-native websites and registered adapter transforms deliver the research world to harnesses; the canonical World Index and its deterministic audit projection support construction and evaluation and are never substituted for the browser surface. Rather than attempting to extract every semantic fact from millions of documents, DRA exhaustively compiles their identities and structures and constructs Task World Models only over query-relevant, high-recall evidence regions. A shared compiler produces audit-frozen hierarchical Research Test Suites from task contracts and case blueprints; human construction time and edits are disclosed rather than hidden behind a claim of rubric-free evaluation. DRA scores query-balanced Grounded Research Coverage through per-check evidence gates. A check contributes only when its content and reasoning contracts are satisfied and every precompiled key external premise is supported by a valid in-registry span that was delivered through a replayable adapter lineage, locally bound to the report claim, semantically supportive, and compatible with the required source role. User-provided conditions, deterministic computations, and reasonable connective inferences from already grounded premises do not require sentence-level citations; if such reasoning introduces a new material external claim, that claim cannot support the check without passing the same evidence gate. Construction witnesses certify answerability but are not URL allowlists: previously unseen in-registry evidence may pass the same frozen, calibrated matcher. Environment scale is characterized separately through layered census and pre-registered scale-response experiments; page count is not included in the agent score. The official benchmark score is the fixed-task mean of task scores after a task-level fabricated-citation gate. Full-task success, citation reliability rates, process bottlenecks, long-form quality, efficiency, and counterfactual sensitivity remain separately auditable.
 
 ### 25.2 中文版
 
-> DRA 提出一种面向多域长篇 Deep Research 报告的“文档闭合、任务局部语义、合同接受证据”评测协议。DRA 以带获取、覆盖、权利、渲染和搜索合同的版本化 Domain Packs 构建冻结世界，并严格分开 construction plane 与 agent delivery plane：原生网站和已登记 adapter 向 harness 交付研究世界，canonical World Index 及其 deterministic audit projection 只供构题、检索、评分和审计，不能替代 browser surface。DRA 不尝试从数百万文档抽取所有可能事实，而是全量编译其身份与结构，再只针对每道 query 的高召回证据区域构建 Task World Model。统一 compiler 从 Task Contract/Case Blueprint 生成审计后冻结的分层 Research Test Suite，并公布人工工时与编辑率。只有当报告满足内容合同，且每个决定性外部前提都有冻结 registry 内、经可回放 adapter 血统在本次交付、就地绑定、语义支持并符合来源角色要求的 span 时，该 check 才贡献得分。构题 witness 仅用于证明可答性，不是 URL 白名单；构建期未预选的在册证据也可以通过同一冻结、经校准的 matcher。环境规模通过分层 census 与预注册 scale-response 实验独立刻画，页面数不进入 agent 主分。正式主分是固定任务集上、经 fabricated-citation 任务级门控后的 DRA-GRC 均值；完整通过、三个引用可靠性比率、过程瓶颈、长报告质量、效率与反事实敏感性则独立审计。
+> DRA 提出一种面向多域长篇 Deep Research 报告的“文档闭合、任务局部语义、合同接受证据”评测协议。DRA 以带获取、覆盖、权利、渲染和搜索合同的版本化 Domain Packs 构建冻结世界，并严格分开 construction plane 与 agent delivery plane：原生网站和已登记 adapter 向 harness 交付研究世界，canonical World Index 及其 deterministic audit projection 只供构题、检索、评分和审计，不能替代 browser surface。DRA 不尝试从数百万文档抽取所有可能事实，而是全量编译其身份与结构，再只针对每道 query 的高召回证据区域构建 Task World Model。统一 compiler 从 Task Contract/Case Blueprint 生成审计后冻结的分层 Research Test Suite，并公布人工工时与编辑率。只有当报告满足内容与推理合同，且每个预先编译的关键外部前提都有冻结 registry 内、经可回放 adapter 血统在本次交付、就地绑定、语义支持并符合来源角色要求的 span 时，该 check 才贡献得分。用户给定条件、确定性计算和从已通过前提出发的合理连接推理不要求逐句引用；若连接推理引入新的关键外部主张，该主张只有通过同样的 evidence gate 才能支撑得分。构题 witness 仅用于证明可答性，不是 URL 白名单；构建期未预选的在册证据也可以通过同一冻结、经校准的 matcher。环境规模通过分层 census 与预注册 scale-response 实验独立刻画，页面数不进入 agent 主分。正式主分是固定任务集上、经 fabricated-citation 任务级门控后的 DRA-GRC 均值；完整通过、三个引用可靠性比率、过程瓶颈、长报告质量、效率与反事实敏感性则独立审计。
 
 ### 25.3 与 LoHoSearch 的边界
 
@@ -4199,7 +4235,7 @@ $$
 9. 停止为 `0.39/0.28/0.33`、`Provenance^1.5` 或新的报告级乘法调参；旧公式只作历史 baseline；
 10. 将 evidence graph 降级为 query 构造、难度控制与 answerability witness，不作为 agent 必须复现的标准路线；公布 multiplicity 与 single-source 风险；
 11. 从 query facets 编译 research units 和少量 executable checks，以固定任务集上的 penalized mean `DRA-GRC` 作为唯一主排名；原子真假只处于证据层，比较、机制、冲突、跨来源综合、教程与推荐均可成为研究测试；
-12. 每一分都要求决定性外部前提通过 URL 在册、本次交付、就地绑定、语义支持与来源角色合同；用 Ledger v2 保留 raw fetch 到 delivered artifact 的血统；
+12. 每一分都要求关键外部前提通过 URL 在册、本次交付、就地绑定、语义支持与来源角色合同；用户给定、确定性计算和从已通过前提出发的合理连接推理不要求逐句引用，但不得夹带新的关键外部事实；用 Ledger v2 保留 raw fetch 到 delivered artifact 的血统；
 13. known witnesses 不限制证据页面；运行时用冻结、经校准的 matcher 接受 registry 内的新合法证据；分歧进 PENDING 盲裁，新证据暴露 benchmark 错误则 repair；
 14. 内容写到但无证据只进入 ContentBreadth，不进入 DRA-GRC；确认 fabricated citation 使当题正式 GRC 清零，整个 harness 仍按固定任务集均值排名，integrity rates 强制同表；
 15. Full Pass 与 Task Solve Rate 单列；Research Quality Panel、成本、过程漏斗、环境规模表征和反事实敏感性独立报告，不再拼成第二个不可解释的 Overall；

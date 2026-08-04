@@ -1,0 +1,64 @@
+\begin{figure}[htbp]
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tikzpicture}[
+  node distance=7mm and 8mm,
+  box/.style={
+    draw=DraBlue,
+    rounded corners=2pt,
+    fill=DraLight,
+    align=center,
+    minimum height=11mm,
+    text width=30mm,
+    font=\small
+  },
+  score/.style={
+    draw=DraGreen,
+    rounded corners=2pt,
+    fill=DraGreen!8,
+    align=center,
+    minimum height=11mm,
+    text width=31mm,
+    font=\small\bfseries
+  },
+  audit/.style={
+    draw=DraOrange,
+    rounded corners=2pt,
+    fill=DraOrange!9,
+    align=center,
+    minimum height=11mm,
+    text width=31mm,
+    font=\small
+  },
+  arrow/.style={-{Latex[length=2mm]}, thick, draw=DraGray}
+]
+\node[box] (world) {冻结世界\\Registry 与索引};
+\node[box, right=of world] (contract) {题目合同\\必要研究单元};
+\node[box, right=of contract] (report) {Agent 报告\\观察账本};
+\node[box, right=of report] (ledger) {Claim 与引用\\可审计账本};
+
+\node[score, below=10mm of contract] (gcp) {Grounded Claim\\Precision};
+\node[score, below=10mm of report] (grr) {Grounded Research\\Recall};
+\node[audit, below=10mm of ledger] (integrity) {Integrity 与\\失败诊断};
+
+\node[box, below=12mm of gcp, xshift=20mm, text width=39mm] (shadow) {影子发布\\GCP、GRR、区间};
+\node[box, right=9mm of shadow, text width=39mm] (validate) {人工校准与\\Meta-evaluation};
+\node[score, right=9mm of validate, text width=39mm] (promote) {通过后升级\\否则保留 Legacy};
+
+\draw[arrow] (world) -- (contract);
+\draw[arrow] (contract) -- (report);
+\draw[arrow] (report) -- (ledger);
+\draw[arrow] (ledger) |- (gcp);
+\draw[arrow] (contract) -- (gcp);
+\draw[arrow] (ledger) -- (grr);
+\draw[arrow] (contract) -- (grr);
+\draw[arrow] (ledger) -- (integrity);
+\draw[arrow] (gcp) -- (shadow);
+\draw[arrow] (grr) -- (shadow);
+\draw[arrow] (integrity) |- (validate);
+\draw[arrow] (shadow) -- (validate);
+\draw[arrow] (validate) -- (promote);
+\end{tikzpicture}
+}
+\caption{DRA 新评分候选的双轨验证流程。检索只召回证据，语义判断和运行账本共同形成可审计 verdict。}
+\end{figure}

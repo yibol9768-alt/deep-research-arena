@@ -66,6 +66,17 @@ def test_all_sources_up_is_ok(client, monkeypatch):
                         _fake_search({"shopping": 2, "forum": 2, "wiki": 2}))
     h = c.get("/_sources/health").json()
     assert h["ok"] is True and not h["down"]
+    assert len(h["backend_sha256"]) == 64
+    assert len(h["app_sha256"]) == 64
+
+
+def test_healthz_exposes_exact_search_build_identity(client):
+    c, _ = client
+    h = c.get("/healthz").json()
+    assert h["version"] == "0.2.0"
+    assert len(h["backend_sha256"]) == 64
+    assert len(h["app_sha256"]) == 64
+    assert "build_commit" in h
 
 
 def test_a_dead_store_is_not_ok(client, monkeypatch):

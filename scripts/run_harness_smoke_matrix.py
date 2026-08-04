@@ -592,6 +592,11 @@ def main() -> int:
     shared_slots_dir.mkdir(parents=True, mode=0o755, exist_ok=True)
 
     metadata = _cliproxy_metadata()
+    expected_search_backend_sha256 = _sha256_file(
+        ROOT / "integrations/search_shim/backend.py"
+    )
+    if not expected_search_backend_sha256:
+        raise SystemExit("cannot hash integrations/search_shim/backend.py")
     lanes: list[Lane] = []
     for harness in harnesses:
         index = DEFAULT_HARNESSES.index(harness)
@@ -704,6 +709,17 @@ def main() -> int:
                 lane, "shim", f"http://127.0.0.1:{lane.shim_port}/healthz",
                 lane.shim_proc,
             )
+            shim_health = _json_get(
+                f"http://127.0.0.1:{lane.shim_port}/healthz",
+                timeout=5,
+            )
+            actual_search_backend_sha256 = shim_health.get("backend_sha256")
+            if actual_search_backend_sha256 != expected_search_backend_sha256:
+                raise RuntimeError(
+                    f"{lane.harness} shim code mismatch: expected backend "
+                    f"{expected_search_backend_sha256}, got "
+                    f"{actual_search_backend_sha256!r}"
+                )
 
         for lane in lanes:
             env = dict(os.environ)
@@ -731,6 +747,9 @@ def main() -> int:
                 "JUDGE_PROVIDER": "openai",
                 "JUDGE_API_KEY": "worker-uses-server-side-key",
                 "SHIM_URL": f"http://127.0.0.1:{lane.shim_port}",
+                "DRA_EXPECTED_SEARCH_BACKEND_SHA256": (
+                    expected_search_backend_sha256
+                ),
                 **SANDBOX_SOURCE_ENV,
                 "WIKIPEDIA": "http://127.0.0.1:8090",
                 "DSPROXY_USAGE_LOG": str(lane.usage_log),

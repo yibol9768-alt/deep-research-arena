@@ -9,7 +9,7 @@ agent is GLM-5, the judge must be a *different-family* model.
 Select backend with env vars (all optional; defaults kept for back-
 compat with the legacy Anthropic path):
 
-    JUDGE_PROVIDER     anthropic | openai      (default: anthropic)
+    JUDGE_PROVIDER     anthropic | openai | ssh_openai (default: anthropic)
     JUDGE_MODEL        deepseek-chat / glm-5 / claude-3-7-sonnet / ...
     JUDGE_BASE_URL     https://api.deepseek.com / https://open.bigmodel.cn/api/anthropic / ...
     JUDGE_API_KEY      dedicated judge key (separate from OPENAI_API_KEY / ANTHROPIC_API_KEY)
@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import subprocess
 from typing import Any
 
 
@@ -282,6 +283,7 @@ def call_judge(
     model: str | None = None,
     max_tokens: int = 2000,
     temperature: float = 0.2,
+    response_schema: dict[str, Any] | None = None,
 ) -> tuple[str | None, str | None]:
     """Return (text, error). Uses whichever backend is configured.
 
@@ -304,7 +306,23 @@ def call_judge(
     )
 
     if provider == "openai":
-        return _call_openai(system, user, model=model, max_tokens=max_tokens, temperature=temperature)
+        openai_kwargs: dict[str, Any] = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        if response_schema is not None:
+            openai_kwargs["response_schema"] = response_schema
+        return _call_openai(system, user, **openai_kwargs)
+    if provider in {"ssh_openai", "ssh-openai"}:
+        ssh_kwargs: dict[str, Any] = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+        if response_schema is not None:
+            ssh_kwargs["response_schema"] = response_schema
+        return _call_ssh_openai(system, user, **ssh_kwargs)
     # default: anthropic
     return _call_anthropic(system, user, model=model, max_tokens=max_tokens)
 
@@ -337,6 +355,14 @@ def call_judge_heavy(
 
     if provider == "openai":
         return _call_openai(system, user, model=model, max_tokens=max_tokens, temperature=temperature)
+    if provider in {"ssh_openai", "ssh-openai"}:
+        return _call_ssh_openai(
+            system,
+            user,
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
     return _call_anthropic(system, user, model=model, max_tokens=max_tokens)
 
 
@@ -386,6 +412,7 @@ def _call_anthropic(system: str, user: str, *, model: str, max_tokens: int) -> t
 def _call_openai(
     system: str, user: str, *, model: str,
     max_tokens: int, temperature: float,
+    response_schema: dict[str, Any] | None = None,
 ) -> tuple[str | None, str | None]:
     try:
         from openai import OpenAI  # type: ignore
@@ -440,33 +467,168 @@ def _call_openai(
     timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "120"))
     try:
         client = OpenAI(base_url=base, api_key=key, timeout=timeout_s, max_retries=1)
-        resp = client.chat.completions.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=[
+        request_kwargs: dict[str, Any] = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": [
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            extra_body=extra_body or None,
+            "extra_body": extra_body or None,
+        }
+        if response_schema is not None:
+            request_kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "dra_audited_judge_response",
+                    "schema": response_schema,
+                    "strict": True,
+                },
+            }
+        elif os.environ.get("JUDGE_JSON_OBJECT", "").lower() in {
+            "1",
+            "true",
+            "yes",
+        }:
+            # vLLM and current OpenAI-compatible endpoints can constrain
+            # decoding to a complete JSON object.  Keep this opt-in because
+            # several legacy providers do not implement response_format.
+            request_kwargs["response_format"] = {"type": "json_object"}
+        resp = client.chat.completions.create(
+            **request_kwargs,
         )
         msg = resp.choices[0].message
         text = msg.content or ""
         if not text.strip():
             reasoning = getattr(msg, "reasoning_content", "") or ""
             if reasoning and max_tokens < 8000:
-                resp = client.chat.completions.create(
-                    model=model,
-                    max_tokens=8192,
-                    temperature=temperature,
-                    messages=[
-                        {"role": "system", "content": system},
-                        {"role": "user", "content": user},
-                    ],
-                    extra_body=extra_body or None,
-                )
+                request_kwargs["max_tokens"] = 8192
+                resp = client.chat.completions.create(**request_kwargs)
                 msg = resp.choices[0].message
                 text = msg.content or ""
         return text, None
     except Exception as e:
         return None, f"{type(e).__name__}: {e}"
+
+
+def _call_ssh_openai(
+    system: str,
+    user: str,
+    *,
+    model: str,
+    max_tokens: int,
+    temperature: float,
+    response_schema: dict[str, Any] | None = None,
+) -> tuple[str | None, str | None]:
+    """Call an OpenAI-compatible server reachable only inside remote WSL.
+
+    The request body is delivered over SSH stdin.  No TCP forwarding, shell
+    interpolation, API key, temporary request file, or command-line JSON is
+    used.  The remote side only runs WSL curl against its loopback endpoint.
+    """
+
+    ssh_host = os.environ.get("JUDGE_SSH_HOST")
+    if not ssh_host:
+        return None, "JUDGE_SSH_HOST is required for ssh_openai"
+    distro = os.environ.get("JUDGE_SSH_WSL_DISTRO", "Ubuntu")
+    base = os.environ.get(
+        "JUDGE_SSH_BASE_URL",
+        "http://127.0.0.1:8000/v1",
+    ).rstrip("/")
+    endpoint = f"{base}/chat/completions"
+    timeout_s = float(os.environ.get("JUDGE_TIMEOUT_S", "600"))
+    connect_timeout_s = int(
+        float(os.environ.get("JUDGE_SSH_CONNECT_TIMEOUT_S", "15"))
+    )
+    retries = max(1, int(os.environ.get("JUDGE_SSH_RETRIES", "2")))
+    extra_body: dict[str, Any] = {}
+    if model.lower().startswith("qwen3"):
+        extra_body["chat_template_kwargs"] = {"enable_thinking": False}
+    request = {
+        "model": model,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        **extra_body,
+    }
+    if response_schema is not None:
+        request["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "dra_audited_judge_response",
+                "schema": response_schema,
+                "strict": True,
+            },
+        }
+    command = [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        f"ConnectTimeout={connect_timeout_s}",
+        "-o",
+        "ServerAliveInterval=15",
+        "-o",
+        "ServerAliveCountMax=20",
+        ssh_host,
+        "wsl.exe",
+        "-d",
+        distro,
+        "--",
+        "curl",
+        "-fsS",
+        "--max-time",
+        str(int(timeout_s)),
+        "--json",
+        "@-",
+        endpoint,
+    ]
+    payload = json.dumps(
+        request,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    last_error = ""
+    for attempt in range(1, retries + 1):
+        try:
+            completed = subprocess.run(
+                command,
+                input=payload,
+                text=True,
+                capture_output=True,
+                timeout=timeout_s + connect_timeout_s + 30,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            last_error = f"ssh_openai timeout on attempt {attempt}"
+            continue
+        except OSError as exc:
+            last_error = f"{type(exc).__name__}: {exc}"
+            continue
+        if completed.returncode != 0:
+            stderr = (completed.stderr or "").strip().replace("\n", " ")
+            last_error = (
+                f"ssh_openai exit {completed.returncode} on attempt "
+                f"{attempt}: {stderr[:500]}"
+            )
+            continue
+        try:
+            response = json.loads(completed.stdout)
+            message = response["choices"][0]["message"]
+        except (json.JSONDecodeError, KeyError, IndexError, TypeError) as exc:
+            last_error = (
+                f"invalid ssh_openai response on attempt {attempt}: "
+                f"{type(exc).__name__}"
+            )
+            continue
+        text = str(message.get("content") or "")
+        if not text.strip():
+            text = str(message.get("reasoning_content") or "")
+        if text.strip():
+            return text, None
+        last_error = f"empty ssh_openai response on attempt {attempt}"
+    return None, last_error or "ssh_openai call failed"

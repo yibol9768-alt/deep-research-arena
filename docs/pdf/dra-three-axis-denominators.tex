@@ -1,0 +1,41 @@
+\begin{tikzpicture}[
+  font=\small,
+  >=Latex,
+  node distance=5mm and 8mm,
+  den/.style={draw=DraBlue!70, rounded corners=2pt, fill=DraLight, align=center,
+              minimum height=12mm, text width=33mm, inner sep=4pt},
+  score/.style={draw=DraBlue, rounded corners=2pt, fill=DraBlue!13, align=center,
+                minimum height=12mm, text width=26mm, inner sep=4pt, very thick},
+  arrow/.style={->, thick, draw=DraBlue!80}
+]
+  \node[den] (claims) {报告可裁决 atomic claims\\+ 独立多来源证据包};
+  \node[score, right=of claims] (fact) {Fact\\事实准确率};
+
+  \node[den, below=5mm of claims] (bindings) {citation bindings\\+ citation-required units};
+  \node[score, right=of bindings] (evidence) {Evidence\\证据 precision–coverage};
+
+  \node[den, below=5mm of bindings] (research) {TEC atomic + research units\\facet × unit type};
+  \node[score, right=of research] (complete) {Completeness\\内容 coverage};
+
+  \node[den, below=5mm of research] (rubrics) {explicit + latent rubrics\\query-only 双人冻结};
+  \node[score, right=of rubrics] (rubric) {Rubric\\任务履约率};
+
+  \node[den, below=5mm of rubrics] (urls) {唯一 cited URLs\\registry + frozen snapshot};
+  \node[score, right=of urls] (prov) {Provenance\\URL 有效率};
+
+  \node[score, right=17mm of complete, text width=38mm, minimum height=29mm] (truth)
+    {$Truth_t=Provenance_t\times Quality_t$\\[2pt]
+     $Quality_t=\frac14(Fact_t+Evidence_t$\\
+     $+Completeness_t+Rubric_t)$};
+
+  \draw[arrow] (claims) -- (fact);
+  \draw[arrow] (bindings) -- (evidence);
+  \draw[arrow] (research) -- (complete);
+  \draw[arrow] (rubrics) -- (rubric);
+  \draw[arrow] (urls) -- (prov);
+  \draw[arrow] (fact.east) -| (truth.north west);
+  \draw[arrow] (evidence) -- (truth);
+  \draw[arrow] (complete) -- (truth);
+  \draw[arrow] (rubric.east) -| (truth.south west);
+  \draw[arrow] (prov.east) -| (truth.south);
+\end{tikzpicture}

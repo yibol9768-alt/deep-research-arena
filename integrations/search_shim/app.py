@@ -11,6 +11,7 @@ internet without adding a real token gate.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -44,12 +45,12 @@ LLM_UPSTREAM = os.environ.get(
 # Optional model-name rewrite. If set, every incoming `model` field is
 # replaced with this value before the upstream call. Lets you point a fleet
 # of agents that hardcode "deepseek-v4-flash" at an LM Studio server whose
-# loaded model is "qwen3.5-35b-a3b" — without touching agent code.
+# loaded model is "qwen3.5-35b-a3b": without touching agent code.
 LLM_REWRITE_MODEL = os.environ.get("SHIM_LLM_REWRITE_MODEL", "").strip() or None
 
 
 # ---------------------------------------------------------------------------
-# Strict mode — Workstream C
+# Strict mode: Workstream C
 # ---------------------------------------------------------------------------
 #
 # When `--mode strict` (or SHIM_MODE=strict) is set, the shim ENFORCES the
@@ -62,12 +63,12 @@ LLM_REWRITE_MODEL = os.environ.get("SHIM_LLM_REWRITE_MODEL", "").strip() or None
 # responses and triggers an HTTP 403 in /extract|/scrape. Every blocked URL
 # is appended to logs/shim_blocks.jsonl for audit.
 #
-# Open mode (the default and previous behavior) is unchanged — the gate is
+# Open mode (the default and previous behavior) is unchanged: the gate is
 # a no-op and every URL flows through.
 # ---------------------------------------------------------------------------
 
 # Origins that the strict gate accepts. Same set as
-# `src/verifiers/sandbox_compliance_verifier.DEFAULT_ALLOWED_ORIGINS` —
+# `src/verifiers/sandbox_compliance_verifier.DEFAULT_ALLOWED_ORIGINS`:
 # kept duplicated here so the shim has no Python-path dependency on the
 # verifier package (the shim can be deployed standalone).
 SHIM_ALLOWLIST_HOSTS: tuple[str, ...] = (
@@ -94,7 +95,7 @@ _SHIM_BLOCKS_LOG = _SHIM_ROOT / "logs" / "shim_blocks.jsonl"
 
 
 def _shim_mode() -> str:
-    """Return the current shim mode — 'strict' or 'open'.
+    """Return the current shim mode: 'strict' or 'open'.
 
     Read at request time (not import time) so test fixtures can toggle the
     mode via the environment without restarting the process.
@@ -106,7 +107,7 @@ def _shim_mode() -> str:
 def _url_is_sandbox(url: str) -> bool:
     """Strict host:port equality check against `SHIM_ALLOWLIST_HOSTS`.
 
-    Substring matching (``"localhost:7770" in url``) is unsafe — it admits
+    Substring matching (``"localhost:7770" in url``) is unsafe: it admits
     ``http://localhost:77703/leak`` because the literal "localhost:7770" is
     a prefix. We parse the URL and compare ``host:port`` netlocs exactly.
     """
@@ -137,7 +138,7 @@ def _url_is_sandbox(url: str) -> bool:
 def _log_blocked_url(url: str, endpoint: str, *, query: str | None = None) -> None:
     """Append a JSON line to `logs/shim_blocks.jsonl` for audit.
 
-    Best-effort — log failures are swallowed so a missing/unwritable logs
+    Best-effort: log failures are swallowed so a missing/unwritable logs
     dir never breaks a request. The directory is created on first call.
     """
     try:
@@ -193,12 +194,28 @@ def _ensure_url_allowed(url: str, endpoint: str) -> None:
 
 app = FastAPI(
     title="Sandbox Search Shim",
-    version="0.1.0",
+    version="0.2.0",
     description="Tavily + Firecrawl-compatible wire protocol over our "
                 "Magento + Postmill benchmark sandbox. Lets any research "
                 "framework hit our sandbox with zero code change by "
                 "overriding TAVILY_API_URL / FIRECRAWL_BASE_URL.",
 )
+
+
+def _file_sha256(path: Path) -> str:
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return ""
+
+
+def _build_identity() -> dict[str, str]:
+    """Content identity used by launch gates to reject stale shim processes."""
+    return {
+        "app_sha256": _file_sha256(Path(__file__)),
+        "backend_sha256": _file_sha256(Path(__file__).with_name("backend.py")),
+        "build_commit": os.environ.get("DRA_SEARCH_BUILD_COMMIT", "unknown"),
+    }
 
 
 # ============================================================================
@@ -263,9 +280,16 @@ def sources_health(fresh: bool = False):
     try:
         hits = search(SOURCE_CANARY, max_results=3)
     except Exception as e:  # noqa: BLE001
-        return {"ok": False, "sources": {}, "down": {"*": f"{type(e).__name__}: {e}"},
-                "not_queried": [], "sample_urls": [], "query": SOURCE_CANARY,
-                "cached": False}
+        return {
+            "ok": False,
+            "sources": {},
+            "down": {"*": f"{type(e).__name__}: {e}"},
+            "not_queried": [],
+            "sample_urls": [],
+            "query": SOURCE_CANARY,
+            "cached": False,
+            **_build_identity(),
+        }
 
     # The caller holds the registry; the shim does not. Hand back what a real
     # search would have handed the agent, so the harness can ask the question the
@@ -284,7 +308,8 @@ def sources_health(fresh: bool = False):
     never_asked = [s for s in ("shopping", "forum", "wiki") if s not in diag]
     payload = {"ok": not down and not never_asked, "sources": diag, "down": down,
                "degraded": degraded, "not_queried": never_asked,
-               "sample_urls": sample_urls, "query": SOURCE_CANARY}
+               "sample_urls": sample_urls, "query": SOURCE_CANARY,
+               **_build_identity()}
     _SOURCES_CACHE.update(at=now, payload=payload)
     return {**payload, "cached": False}
 
@@ -356,7 +381,7 @@ def sandbox_fetch(url: str = Query(..., description="canonical sandbox URL")):
 # ============================================================================
 
 class TavilySearchRequest(BaseModel):
-    # Lenient schema — real Tavily clients (gpt-researcher, langchain,
+    # Lenient schema: real Tavily clients (gpt-researcher, langchain,
     # raw curl) send mildly different payloads. Accept None where list
     # is expected, ignore unknown fields (api_key in body, days, use_cache
     # etc. from gpt-researcher).
@@ -675,7 +700,7 @@ def _do_firecrawl_search(req: FirecrawlSearchRequest) -> FirecrawlSearchResponse
     hits = _filter_hits_strict(hits, endpoint="/v2/search", query=req.query)
     web = [FirecrawlSearchItem(
         title=h.title, description=h.content, url=h.url,
-        markdown=h.content,  # shallow — /v2/scrape is where full markdown goes
+        markdown=h.content,  # shallow: /v2/scrape is where full markdown goes
     ).model_dump() for h in hits]
     return FirecrawlSearchResponse(success=True, data={"web": web})
 
@@ -774,7 +799,7 @@ def firecrawl_scrape(
 
 
 # ============================================================================
-# DB lookup endpoints — structured JSON lookup to equalize info access
+# DB lookup endpoints: structured JSON lookup to equalize info access
 # across agents (fixes the methodology bias flagged in 2026-04-20 paper
 # discussion: react uses envs.*.scrape directly, everyone else only sees
 # Tavily-compat snippets; these endpoints expose the same structured data
@@ -815,6 +840,13 @@ def _forum_from_url(url: str) -> Optional[str]:
     return m.group(1) if m else None
 
 
+def _get_submission(url: str) -> dict:
+    """Lazy production adapter, patchable when optional envs are absent."""
+    from envs.reddit.scrape import get_submission
+
+    return get_submission(url)
+
+
 @app.post("/post_lookup", response_model=PostLookupResponse)
 def post_lookup(req: PostLookupRequest) -> PostLookupResponse:
     """Return structured JSON for a single Postmill submission. Delegates
@@ -826,8 +858,7 @@ def post_lookup(req: PostLookupRequest) -> PostLookupResponse:
     # tavily_extract and firecrawl_scrape BEFORE any fetch.
     _ensure_url_allowed(req.url, endpoint="/post_lookup")
     try:
-        from envs.reddit.scrape import get_submission  # lazy import
-        data = get_submission(req.url)
+        data = _get_submission(req.url)
         if not data or not data.get("title"):
             return PostLookupResponse(ok=False, url=req.url, error="post not found or empty")
         # get_submission (envs/reddit/scrape.py:127-145) only sets these
@@ -877,7 +908,7 @@ class ProductLookupResponse(BaseModel):
 @app.post("/product_lookup", response_model=ProductLookupResponse)
 def product_lookup(req: ProductLookupRequest) -> ProductLookupResponse:
     """Return structured JSON for a single Magento PDP. This is an HTTP-only
-    best-effort extractor (no Playwright) — it parses price/rating/sku from
+    best-effort extractor (no Playwright): it parses price/rating/sku from
     the server-rendered HTML. Accuracy is lower than the Playwright-based
     envs.shopping.oracle_dr.magento_scrape.product_details, but all agents
     can call it through the shim."""
@@ -1065,7 +1096,7 @@ def brave_search(
 ) -> BraveResponse:
     """Brave Search API compat (`api.search.brave.com/res/v1/web/search`).
     Returns Brave-style `{"web": {"results": [{url, title, description}]}}`."""
-    hits = _search_recorded(q, endpoint="/v1/brave/web/search", max_results=count or 10)
+    hits = _search_recorded(q, endpoint="/v1/brave/web/search", max_results=count)
     hits = _filter_hits_strict(hits, endpoint="/v1/brave/web/search", query=q)
     items = [
         BraveResultItem(url=h.url, title=h.title, description=h.content)
@@ -1099,13 +1130,14 @@ def searxng_search(
     q: str = Query(...),
     format: str = Query(default="json"),
     pageno: int = Query(default=1, ge=1),
+    count: int = Query(default=10, ge=0, le=50),
     categories: Optional[str] = Query(default=None),
     language: Optional[str] = Query(default=None),
 ) -> SearxNGResponse:
     """SearxNG meta-search compat (`/search?q=...&format=json&pageno=1`).
     Used by Perplexica and ii-researcher. Returns `{"results": [{url, title,
     content}], "query": "..."}`."""
-    hits = _search_recorded(q, endpoint="/searxng/search", max_results=10)
+    hits = _search_recorded(q, endpoint="/searxng/search", max_results=count)
     hits = _filter_hits_strict(hits, endpoint="/searxng/search", query=q)
     items = [
         SearxNGResultItem(url=h.url, title=h.title, content=h.content)
@@ -1144,11 +1176,12 @@ def duckduckgo_search(
     format: str = Query(default="json"),
     no_html: int = Query(default=1),
     skip_disambig: int = Query(default=1),
+    count: int = Query(default=10, ge=0, le=50),
 ) -> DDGResponse:
     """DuckDuckGo Instant Answer compat (`api.duckduckgo.com/?q=...`). Used
     by smolagents' default `DuckDuckGoSearchTool`. Returns
     `{"AbstractText": "...", "RelatedTopics": [{FirstURL, Text}]}`."""
-    hits = _search_recorded(q, endpoint="/duckduckgo/search", max_results=10)
+    hits = _search_recorded(q, endpoint="/duckduckgo/search", max_results=count)
     hits = _filter_hits_strict(hits, endpoint="/duckduckgo/search", query=q)
     abstract = hits[0].content if hits else ""
     abstract_url = hits[0].url if hits else ""
@@ -1173,7 +1206,7 @@ def duckduckgo_search(
 # `langchain` with a fixed base) sometimes prefer to share the shim's host
 # rather than juggle a second port. This endpoint simply proxies to the
 # ds_proxy on :8088 (which itself injects `thinking:disabled` for
-# `deepseek-v4-*`). Auth header is accepted but ignored — ds_proxy uses its
+# `deepseek-v4-*`). Auth header is accepted but ignored: ds_proxy uses its
 # own server-side key.
 
 _THINK_TAG_RE = re.compile(r"<think>.*?</think>\s*", flags=re.DOTALL | re.IGNORECASE)
@@ -1349,11 +1382,16 @@ async def llm_messages(
 
 @app.get("/healthz")
 def healthz() -> dict:
-    return {"ok": True, "version": app.version, "mode": _shim_mode()}
+    return {
+        "ok": True,
+        "version": app.version,
+        "mode": _shim_mode(),
+        **_build_identity(),
+    }
 
 
 # ============================================================================
-# Direct CLI launch — `python integrations/search_shim/app.py --mode strict`
+# Direct CLI launch: `python integrations/search_shim/app.py --mode strict`
 # ============================================================================
 #
 # Most callers run the shim via `uvicorn integrations.search_shim.app:app`,
@@ -1361,7 +1399,7 @@ def healthz() -> dict:
 # (sets SHIM_MODE=strict for the lifetime of the process) so the operator
 # does not have to remember to export an env var separately.
 #
-# Either approach works — strict mode is keyed off the SHIM_MODE env var
+# Either approach works: strict mode is keyed off the SHIM_MODE env var
 # inside the request path, so `SHIM_MODE=strict uvicorn ...` is equivalent.
 # This `__main__` block is just the convenience entrypoint.
 
@@ -1378,7 +1416,7 @@ if __name__ == "__main__":
         help=(
             "open: every backend hit flows through unchanged (default, "
             "previous behavior). "
-            "strict: enforce the sandbox URL allowlist — non-allowlist "
+            "strict: enforce the sandbox URL allowlist: non-allowlist "
             "URLs are dropped from /search responses and rejected with "
             "HTTP 403 from /extract|/scrape, and every block is logged "
             "to logs/shim_blocks.jsonl. Equivalent to SHIM_MODE=strict."

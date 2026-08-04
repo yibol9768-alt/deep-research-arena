@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SOURCE="$ROOT/docs/DRA_SANDBOX_NATIVE_SCORING_DESIGN_2026-07-17.md"
-OUTPUT="$ROOT/docs/DRA_SANDBOX_NATIVE_SCORING_DESIGN_2026-07-18.pdf"
+OUTPUT="$ROOT/docs/DRA_SANDBOX_NATIVE_SCORING_DESIGN_2026-07-21.pdf"
 ASSETS="$ROOT/docs/pdf"
 BUILD_DIR="${DRA_PDF_BUILD_DIR:-/tmp/dra-scoring-pdf-build}"
 
@@ -15,6 +15,14 @@ for command in python3 xelatex pdfinfo; do
 done
 
 mkdir -p "$BUILD_DIR"
+rm -f \
+  "$BUILD_DIR/dra_scoring_pdf.aux" \
+  "$BUILD_DIR/dra_scoring_pdf.log" \
+  "$BUILD_DIR/dra_scoring_pdf.out" \
+  "$BUILD_DIR/dra_scoring_pdf.toc" \
+  "$BUILD_DIR/dra_scoring_pdf.pdf" \
+  "$BUILD_DIR/dra_scoring_pdf.xdv" \
+  "$BUILD_DIR/dra-input.md"
 cp "$ASSETS/dra_scoring_pdf.tex" "$BUILD_DIR/"
 cp "$ASSETS/dra-diagram-world.tex" "$BUILD_DIR/"
 cp "$ASSETS/dra-diagram-conflict.tex" "$BUILD_DIR/"
@@ -24,7 +32,7 @@ python3 "$ROOT/scripts/build_dra_pdf_input.py" \
   --source "$SOURCE" \
   --output "$BUILD_DIR/dra-input.md"
 
-export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1784332800}"
+export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1784678400}"
 
 for _ in 1 2; do
   (

@@ -1,12 +1,12 @@
-"""Usefulness jury: pairwise battles judging human-usefulness of DR reports.
+"""Writing jury: anonymous pairwise presentation battles for DR reports.
 
 Design contract: internal/docs/USEFULNESS_JURY_DESIGN_2026-07-07.md (secs 1-10).
 This module is the "load-bearing" implementation of section 10's CLI.
 
-Rubric (told to every judge, protocol="uj_v1"):
-  q1 answer directness / q2 actionability / q3 time-to-insight /
-  q4 verifiability-for-a-human. Judges do NOT check citation truthfulness
-  (a separate system does) and must not reward length or citation count.
+Rubric (protocol="dra_writing_elo_v1"):
+  q1 organization / q2 prose clarity / q3 economy and time-to-insight /
+  q4 presentation mechanics. Judges do NOT check factual correctness,
+  completeness, evidence support, or URL provenance; those are separate axes.
 
 Mechanics:
   - Battle bank: an append-only JSONL file. Each line is one immutable
@@ -42,9 +42,18 @@ from typing import Any, Optional
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-PROTOCOL = "uj_v2"
-DEFAULT_WORD_BUDGET = 1500
-DEFAULT_MAX_TOKENS = 600
+from src.scoring.writing_elo_prompt import (
+    PROMPT_VERSION,
+    PROTOCOL,
+    SYSTEM_PROMPT,
+    TRUNCATION_POLICY,
+    USER_PROMPT_VERSION,
+    render_user_prompt,
+)
+
+
+DEFAULT_WORD_BUDGET = 4000
+DEFAULT_MAX_TOKENS = 900
 DEFAULT_TIMEOUT_S = 30.0
 DEFAULT_RETRIES = 3
 DEFAULT_TASKS_DIR = ROOT / "data" / "tasks" / "deep_research" / "cross_site_deep"
@@ -176,8 +185,8 @@ PRICE_TABLE = {
 DEFAULT_PRICE = {"in": 2.0, "out": 8.0, "estimated": True}
 # Design doc sec 6: ~5.2k input / ~0.25k output tokens per call, used only
 # before any real usage data exists (dry-run / pre-flight budget estimate).
-EST_PROMPT_TOKENS = 5200
-EST_COMPLETION_TOKENS = 250
+EST_PROMPT_TOKENS = 11000
+EST_COMPLETION_TOKENS = 350
 
 
 def price_for(model_id: str) -> dict:
@@ -191,52 +200,25 @@ def call_cost_cny(model_id: str, prompt_tokens: int, completion_tokens: int) -> 
 
 
 # ---------------------------------------------------------------------------
-# Rubric prompt
+# Frozen Writing Elo prompt
 # ---------------------------------------------------------------------------
-SYSTEM_PROMPT = f"""You are one judge on a panel scoring which of two AI-generated \
-deep-research reports (A and B) is more USEFUL TO A HUMAN who asked the question \
-below. Both reports attempt to answer the SAME question.
-
-Judge only usefulness. A separate system independently checks whether cited \
-URLs/facts are genuine -- you must NOT judge citation truthfulness, and you must \
-NOT reward a report for being longer or for citing more sources. A short, direct, \
-well-organized report can beat a long padded one.
-
-Answer four sub-questions, each 1-2 sentences comparing A vs B, then a single \
-overall verdict:
-  q1 answer directness    -- which report answers the user's actual question \
-                              most directly, rather than a broad survey of the topic?
-  q2 actionability         -- after reading, which report lets the user actually \
-                              decide/act (e.g. pick a product, reach a conclusion)?
-  q3 time-to-insight       -- which report's structure (front-loaded conclusion, \
-                              comparison table, clear headings) gets the point \
-                              across in the first 30 seconds of reading?
-  q4 verifiability for a human -- which report's citations are easier for a human \
-                              to spot-check (inline next to the claim) rather than \
-                              dumped in an unlinked list at the end?
-
-Respond with ONLY one JSON object, no markdown code fence, no text before or \
-after it, exactly these keys:
-{{"q1": "...", "q2": "...", "q3": "...", "q4": "...", "winner": "A", "rationale": "..."}}
-"winner" must be exactly "A", "B", or "tie". protocol={PROTOCOL}"""
-
-
 def build_user_prompt(intent: str, report_a: str, report_b: str, word_budget: int) -> str:
     a = truncate_words(report_a, word_budget)
     b = truncate_words(report_b, word_budget)
-    return (
-        f"# User question\n{intent.strip()}\n\n"
-        f"# Report A\n{a}\n\n"
-        f"# Report B\n{b}\n\n"
-        "Now output the JSON verdict only."
-    )
+    return render_user_prompt(intent, a, b)
 
 
 def truncate_words(text: str, budget: int) -> str:
     words = (text or "").split()
     if len(words) <= budget:
         return text or ""
-    return " ".join(words[:budget]) + " [... truncated at word budget ...]"
+    head = (budget + 1) // 2
+    tail = budget - head
+    return (
+        " ".join(words[:head])
+        + "\n\n[... symmetric middle omission at frozen word budget ...]\n\n"
+        + " ".join(words[-tail:])
+    )
 
 
 def word_count(text: str) -> int:
@@ -280,6 +262,9 @@ def normalize_verdict(obj: dict) -> tuple[Optional[dict], Optional[str]]:
     winner = str(obj.get("winner", "")).strip().strip('"').upper()
     if winner not in ("A", "B", "TIE"):
         return None, f"invalid winner field: {obj.get('winner')!r}"
+    confidence = str(obj.get("confidence", "")).strip().lower()
+    if confidence not in ("low", "medium", "high"):
+        return None, f"invalid confidence field: {obj.get('confidence')!r}"
     winner = "tie" if winner == "TIE" else winner
     out = {
         "q1": str(obj.get("q1", ""))[:600],
@@ -287,6 +272,7 @@ def normalize_verdict(obj: dict) -> tuple[Optional[dict], Optional[str]]:
         "q3": str(obj.get("q3", ""))[:600],
         "q4": str(obj.get("q4", ""))[:600],
         "winner": winner,
+        "confidence": confidence,
         "rationale": str(obj.get("rationale", ""))[:600],
     }
     return out, None
@@ -414,7 +400,8 @@ def call_mock_judge(model: str, system: str, user: str, **_kw) -> dict:
     winner = "A" if r < 4 else ("B" if r < 8 else "tie")
     obj = {
         "q1": "mock", "q2": "mock", "q3": "mock", "q4": "mock",
-        "winner": winner, "rationale": "mock deterministic verdict",
+        "winner": winner, "confidence": "medium",
+        "rationale": "mock deterministic verdict",
     }
     text = json.dumps(obj)
     return {
@@ -598,7 +585,19 @@ def append_bank(bank_path: Path, rec: dict) -> None:
 # Battle execution
 # ---------------------------------------------------------------------------
 def rubric_hash() -> str:
-    return hashlib.sha256(SYSTEM_PROMPT.encode("utf-8")).hexdigest()[:16]
+    payload = json.dumps(
+        {
+            "protocol": PROTOCOL,
+            "prompt_version": PROMPT_VERSION,
+            "user_prompt_version": USER_PROMPT_VERSION,
+            "truncation_policy": TRUNCATION_POLICY,
+            "system_prompt": SYSTEM_PROMPT,
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
 def run_one_battle_judge(
@@ -649,7 +648,8 @@ def run_one_battle_judge(
     }
     if result.get("error"):
         base.update({
-            "q1": None, "q2": None, "q3": None, "q4": None, "winner": None,
+            "q1": None, "q2": None, "q3": None, "q4": None,
+            "winner": None, "confidence": None,
             "usage": result.get("usage", {"prompt": 0, "completion": 0}),
             "error": result["error"],
         })
@@ -657,7 +657,8 @@ def run_one_battle_judge(
     verdict, verr = normalize_verdict(extract_last_json_object(result["text"]))
     if verr:
         base.update({
-            "q1": None, "q2": None, "q3": None, "q4": None, "winner": None,
+            "q1": None, "q2": None, "q3": None, "q4": None,
+            "winner": None, "confidence": None,
             "usage": result.get("usage", {"prompt": 0, "completion": 0}),
             "error": verr,
         })
@@ -716,7 +717,8 @@ def walkover_record(
         "walkover_infra": walkover_infra,
         "walkover_class": "infra_debt" if walkover_infra else "healthy_empty",
         "q1": winner_pos, "q2": winner_pos, "q3": winner_pos, "q4": winner_pos,
-        "winner": winner_pos, "usage": {"prompt": 0, "completion": 0},
+        "winner": winner_pos, "confidence": "high",
+        "usage": {"prompt": 0, "completion": 0},
         "error": None, "same_family": False,
     }
 
@@ -1079,7 +1081,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--judges", type=str, default=None,
                     help="CSV of judge model ids, or 'mock' for the built-in offline judge")
     ap.add_argument("--bank", type=Path, default=None)
-    ap.add_argument("--order-audit", type=float, default=0.1)
+    ap.add_argument(
+        "--order-audit",
+        type=float,
+        default=1.0,
+        help="fraction of unordered pairs judged in both A/B orders (formal default: 1.0)",
+    )
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--calibrate", type=int, default=None,
                     help="run K real battle-judge calls, print usage/cost, do NOT write to bank")
@@ -1296,7 +1303,8 @@ def main(argv=None) -> int:
                     "judge": c["judge"], "model_id": c["judge"],
                     "report_sha_a": c["report_sha_a"],
                     "report_sha_b": c["report_sha_b"], "walkover": c.get("walkover", False),
-                    "q1": None, "q2": None, "q3": None, "q4": None, "winner": None,
+                    "q1": None, "q2": None, "q3": None, "q4": None,
+                    "winner": None, "confidence": None,
                     "usage": {"prompt": 0, "completion": 0},
                     "error": f"{type(e).__name__}: {e}\n{traceback.format_exc()[-500:]}",
                 }

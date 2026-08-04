@@ -1,4 +1,4 @@
-"""Sandbox query backend — translates free-text queries into Magento
+"""Sandbox query backend: translates free-text queries into Magento
 catalogsearch + Postmill forum fetches and returns a unified list of
 SearchHit dicts. Schema-specific adapters (Tavily, Firecrawl) then wrap
 these hits in their respective response envelopes.
@@ -349,70 +349,112 @@ def _get_source(
 
 
 def _search_shopping(query: str, max_results: int) -> list[SearchHit]:
-    r = _get_source("shopping", SHOPPING, SHOPPING_PUBLIC,
-                    f"/catalogsearch/result/?q={urllib.parse.quote(query)}")
-    if r is None:
-        return []
-    soup = BeautifulSoup(r.text, "html.parser")
-    hits: list[SearchHit] = []
-    # Magento's own rank is only a candidate generator. Pull a wider window and
-    # apply the same exact-token/IDF gate used for forum and wiki results.
-    candidate_cap = max(max_results * 5, 20)
-    for el in soup.select(
-        "li.item.product.product-item, .products-grid .product-item"
-    )[:candidate_cap]:
-        a = el.select_one("a.product-item-link, .product-item-name a")
-        if not a:
-            continue
-        title = a.get_text(strip=True)
-        # Always expose the public identity.  Magento can emit either relative
-        # links or absolute links carrying the compose-only dial host.
-        href = _public_link(a.get("href") or "", SHOPPING_PUBLIC)
-        price = None
-        p_el = el.select_one("[data-price-amount]")
-        if p_el and p_el.get("data-price-amount"):
-            try:
-                price = float(p_el["data-price-amount"])
-            except Exception:
-                pass
-        rating = None
-        r_el = el.select_one("[title]")
-        if r_el:
-            m = re.search(r"(\d+)%", r_el.get("title") or "")
-            if m:
-                rating = int(m.group(1)) / 20
-        parts: list[str] = []
-        if price is not None:
-            parts.append(f"${price:.2f}")
-        if rating is not None:
-            parts.append(f"rated {rating:.1f}/5")
-        snippet = f"{title}. " + " · ".join(parts) if parts else title
-        hits.append(SearchHit(
-            url=href, title=title, content=snippet,
-            score=0.0,
-            source="shopping",
-        ))
-    ranked = _rerank_hits(query, hits, max_results)
-    if ranked:
-        return ranked
+    def candidates_for(retrieval_query: str) -> list[SearchHit]:
+        r = _get_source(
+            "shopping",
+            SHOPPING,
+            SHOPPING_PUBLIC,
+            f"/catalogsearch/result/?q={urllib.parse.quote(retrieval_query)}",
+        )
+        if r is None:
+            return []
+        soup = BeautifulSoup(r.text, "html.parser")
+        hits: list[SearchHit] = []
+        # Magento's own rank is only a candidate generator. Pull a wider window
+        # and apply the same exact-token/IDF gate used for forum and wiki.
+        candidate_cap = max(max_results * 5, 20)
+        for el in soup.select(
+            "li.item.product.product-item, .products-grid .product-item"
+        )[:candidate_cap]:
+            a = el.select_one("a.product-item-link, .product-item-name a")
+            if not a:
+                continue
+            title = a.get_text(strip=True)
+            href = _public_link(a.get("href") or "", SHOPPING_PUBLIC)
+            price = None
+            p_el = el.select_one("[data-price-amount]")
+            if p_el and p_el.get("data-price-amount"):
+                try:
+                    price = float(p_el["data-price-amount"])
+                except Exception:
+                    pass
+            rating = None
+            r_el = el.select_one("[title]")
+            if r_el:
+                m = re.search(r"(\d+)%", r_el.get("title") or "")
+                if m:
+                    rating = int(m.group(1)) / 20
+            parts: list[str] = []
+            if price is not None:
+                parts.append(f"${price:.2f}")
+            if rating is not None:
+                parts.append(f"rated {rating:.1f}/5")
+            snippet = f"{title}. " + " · ".join(parts) if parts else title
+            hits.append(SearchHit(
+                url=href,
+                title=title,
+                content=snippet,
+                score=0.0,
+                source="shopping",
+            ))
+        return hits
 
-    # A store can match a category through fields that are absent from the
-    # rendered grid.  For example, `headphones` legitimately returns
-    # "Sony WH-1000XM4", whose card never repeats the category name.  Trust
-    # Magento's candidate order only for one unambiguous topic term; multi-term
-    # research queries must still pass the absolute relevance gate so an
-    # accidental `battery` match cannot admit an unrelated phone product.
-    profile = _query_profile(query)
-    if len(profile.terms) == 1 and len(profile.anchors) == 1:
-        denominator = max(1, min(len(hits), max_results))
-        return [
-            dataclass_replace(
-                hit,
-                score=round(max(0.01, 1.0 - index / denominator), 6),
-            )
-            for index, hit in enumerate(hits[:max_results])
-        ]
-    return []
+    variants = _shopping_query_variants(query)
+    ranked_groups: list[list[SearchHit]] = []
+    for retrieval_query in variants:
+        candidates = candidates_for(retrieval_query)
+        ranked = _rerank_hits(retrieval_query, candidates, max_results)
+        if len(variants) > 1:
+            ranked = [
+                hit for hit in ranked
+                if not _product_variant_conflicts(retrieval_query, hit)
+            ]
+        if ranked:
+            ranked_groups.append(ranked)
+            continue
+
+        # A store can match a category through fields absent from the rendered
+        # grid.  Trust Magento's candidate order only for one unambiguous topic
+        # term. Multi-term queries still require lexical evidence.
+        profile = _query_profile(retrieval_query)
+        if (
+            len(variants) == 1
+            and len(profile.terms) == 1
+            and len(profile.anchors) == 1
+        ):
+            denominator = max(1, min(len(candidates), max_results))
+            ranked_groups.append([
+                dataclass_replace(
+                    hit,
+                    score=round(max(0.01, 1.0 - index / denominator), 6),
+                )
+                for index, hit in enumerate(candidates[:max_results])
+            ])
+
+    if len(variants) == 1:
+        return ranked_groups[0] if ranked_groups else []
+
+    # Multi-item query: one result per named item before taking a second result
+    # for any item.  This prevents the first easy product family from consuming
+    # the entire result budget.
+    out: list[SearchHit] = []
+    seen: set[str] = set()
+    depth = 0
+    while len(out) < max_results and any(
+        depth < len(rows) for rows in ranked_groups
+    ):
+        for rows in ranked_groups:
+            if depth >= len(rows):
+                continue
+            hit = rows[depth]
+            if hit.url in seen:
+                continue
+            seen.add(hit.url)
+            out.append(hit)
+            if len(out) >= max_results:
+                break
+        depth += 1
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -460,6 +502,51 @@ _WEAK_QUERY_TERMS = frozenset({
 _BROAD_DOMAIN_TERMS = frozenset({
     "audio", "battery", "bluetooth", "device", "driver", "headphone",
     "portable", "sound", "speaker", "waterproof", "wireless",
+})
+
+# Product-list queries are not one bag of words.  A task such as
+# "resistance bands yoga mat dumbbell foam roller" names four independent
+# retrieval targets.  Sending the whole sentence to Magento and then accepting
+# any card that happens to cover three tokens admitted headbands, flip-flops and
+# hair rollers.  These are semantic item heads, used only to split an explicit
+# multi-item query into short, reviewable lexical searches.  They do not invent
+# a product that the caller did not name.
+_PRODUCT_ITEM_HEADS = frozenset({
+    "accessory", "adapter", "bag", "band", "bean", "bed", "blanket", "book",
+    "bottle", "brewer", "bulb", "cable", "camera", "case", "chair", "charger",
+    "cleaner", "clothing", "controller", "converter", "cooker", "cushion",
+    "desk", "dumbbell", "earbud", "filter", "flask", "grinder",
+    "headphone", "kettle", "keyboard", "kit", "lamp", "light", "lighting",
+    "mat", "monitor", "mouse", "mug", "organizer", "pan", "pen", "phone",
+    "powerbank", "roller", "rope", "serum", "shoe", "speaker", "stand",
+    "storage", "supplement", "table", "tool", "toy", "tripod", "vacuum",
+})
+
+_PRODUCT_CONTEXT_TERMS = frozenset({
+    "beginner", "budget", "category", "cheap", "compare", "comparison",
+    "equipment", "essential", "fitness", "gear", "home", "item", "office",
+    "outdoor", "product", "recommendation", "setup", "starter", "under",
+})
+
+_PRODUCT_HEAD_CONFLICTS: dict[str, frozenset[str]] = {
+    "band": frozenset({"headband", "wristband"}),
+    "dumbbell": frozenset({"poster", "shirt", "tank", "tee"}),
+    "mat": frozenset({"flip", "flop", "sandal", "shoe", "slipper"}),
+    "roller": frozenset({"curler", "curling", "hair"}),
+}
+
+_CONCEPT_INTENT_CUES = frozenset({
+    "concept", "definition", "explain", "explainer", "meaning", "mechanism",
+    "overview", "principle", "standard", "theory", "what",
+})
+
+_COMMERCE_INTENT_CUES = frozenset({
+    "amazon", "buy", "listing", "price", "product", "rating", "review", "shop",
+    "store",
+})
+
+_COMMUNITY_INTENT_CUES = frozenset({
+    "community", "complaint", "experience", "forum", "owner", "reddit", "user",
 })
 
 # Capitalisation is a useful model/brand signal in agent-generated queries, but
@@ -513,6 +600,77 @@ def _lexical_tokens(text: str) -> list[str]:
         for raw in _LEXICAL_TOKEN_RE.findall(text or "")
         if raw
     ]
+
+
+def _shopping_query_variants(query: str) -> tuple[str, ...]:
+    """Split an explicit multi-item shopping query into short noun phrases.
+
+    The splitter is intentionally lexical and conservative.  It activates only
+    when at least two distinct product heads are present and the query carries
+    no named/model identity.  Exact product queries therefore retain their
+    current strict identity behaviour.
+    """
+    profile = _query_profile(query)
+    if profile.identity_groups:
+        return (query,)
+
+    terms = _lexical_tokens(query)
+    positions = [
+        index for index, term in enumerate(terms)
+        if term in _PRODUCT_ITEM_HEADS
+    ]
+    if len({terms[index] for index in positions}) < 2:
+        return (query,)
+
+    variants: list[str] = []
+    for index in positions:
+        head = terms[index]
+        phrase = [head]
+        cursor = index - 1
+        while cursor >= 0 and len(phrase) < 3:
+            term = terms[cursor]
+            if term in _STOP_TERMS or term in _WEAK_QUERY_TERMS:
+                break
+            if term in _PRODUCT_CONTEXT_TERMS:
+                break
+            # A preceding item head normally starts the previous target.  The
+            # one useful exception is a compound ending in a role noun, such as
+            # "desk converter" or "camera bag".
+            if term in _PRODUCT_ITEM_HEADS:
+                if head in {"accessory", "adapter", "bag", "case", "converter",
+                            "kit", "organizer", "stand"}:
+                    phrase.insert(0, term)
+                    cursor -= 1
+                    continue
+                break
+            phrase.insert(0, term)
+            cursor -= 1
+        value = " ".join(phrase)
+        if value not in variants:
+            variants.append(value)
+
+    return tuple(variants) if len(variants) >= 2 else (query,)
+
+
+def _product_variant_conflicts(retrieval_query: str, hit: SearchHit) -> bool:
+    """Reject obvious lexical homonyms for a decomposed product target."""
+    terms = _lexical_tokens(retrieval_query)
+    if not terms:
+        return False
+    conflicts = _PRODUCT_HEAD_CONFLICTS.get(terms[-1], frozenset())
+    if not conflicts:
+        return False
+    title_terms = set(_lexical_tokens(hit.title))
+    return bool(title_terms & conflicts)
+
+
+def _concept_only_intent(query: str) -> bool:
+    """Whether a query asks for canonical explanation rather than products."""
+    terms = set(_lexical_tokens(query))
+    concept = bool(terms & _CONCEPT_INTENT_CUES)
+    commerce = bool(terms & _COMMERCE_INTENT_CUES)
+    community = bool(terms & _COMMUNITY_INTENT_CUES)
+    return concept and not commerce and not community
 
 
 def _unique_in_order(items: Iterable[str]) -> tuple[str, ...]:
@@ -641,7 +799,12 @@ def _contains_phrase(tokens: list[str], phrase: tuple[str, ...]) -> bool:
                for i in range(0, len(tokens) - size + 1))
 
 
-def _passes_relevance_gate(profile: _QueryProfile, document_terms: set[str]) -> bool:
+def _passes_relevance_gate(
+    profile: _QueryProfile,
+    document_terms: set[str],
+    *,
+    phrase_match: bool = False,
+) -> bool:
     """Reject rows admitted solely by a generic term.
 
     Identity-bearing queries are strict about the named model/brand. Otherwise
@@ -675,7 +838,7 @@ def _passes_relevance_gate(profile: _QueryProfile, document_terms: set[str]) -> 
     elif profile.anchors:
         if len(profile.anchors) == 1:
             required = 1
-        elif len(profile.anchors) <= 5:
+        elif len(profile.anchors) <= 5 or phrase_match:
             required = 2
         else:
             required = 3
@@ -699,7 +862,15 @@ def _score_relevance_single(query: str, title: str, body: str) -> float:
     title_terms = _lexical_tokens(title)
     body_terms = _lexical_tokens(body)
     doc_terms = set(title_terms) | set(body_terms)
-    if not _passes_relevance_gate(profile, doc_terms):
+    phrase_match = any(
+        _contains_phrase(title_terms, phrase)
+        or _contains_phrase(body_terms, phrase)
+        for phrase in profile.phrases
+        if len(phrase) >= 2
+    )
+    if not _passes_relevance_gate(
+        profile, doc_terms, phrase_match=phrase_match
+    ):
         return 0.0
     total_weight = sum(profile.weights.values()) or 1.0
     covered = sum(
@@ -725,7 +896,13 @@ def _search_hit_title_for_ranking(hit: SearchHit) -> str:
     return re.sub(r"^r/[^:]+:\s*", "", hit.title or "", flags=re.I)
 
 
-def _rerank_hits(query: str, hits: Iterable[SearchHit], max_results: int) -> list[SearchHit]:
+def _rerank_hits(
+    query: str,
+    hits: Iterable[SearchHit],
+    max_results: int,
+    *,
+    allow_phrase_relaxation: bool = False,
+) -> list[SearchHit]:
     """BM25/IDF-style source-local reranking with an absolute relevance gate."""
     candidates = list(hits)
     if max_results <= 0 or not candidates:
@@ -735,7 +912,20 @@ def _rerank_hits(query: str, hits: Iterable[SearchHit], max_results: int) -> lis
     for index, hit in enumerate(candidates):
         title_terms = _lexical_tokens(_search_hit_title_for_ranking(hit))
         body_terms = _lexical_tokens(hit.content or hit.raw_content or "")
-        if not _passes_relevance_gate(profile, set(title_terms) | set(body_terms)):
+        # Relaxing a long query from three anchors to two is safe only when the
+        # exact topic phrase is in the title.  A body-only aside such as "some
+        # coffee grinders" inside an unrelated vintage-cast-iron post is not a
+        # strong enough reason to surface that post.
+        phrase_match = any(
+            _contains_phrase(title_terms, phrase)
+            for phrase in profile.phrases
+            if len(phrase) >= 2
+        )
+        if not _passes_relevance_gate(
+            profile,
+            set(title_terms) | set(body_terms),
+            phrase_match=phrase_match and allow_phrase_relaxation,
+        ):
             continue
         prepared.append((index, hit, title_terms, body_terms))
     if not prepared:
@@ -1038,7 +1228,12 @@ def _search_reddit_index(query: str, max_results: int) -> list[SearchHit]:
                 source="reddit",
                 raw_content=(body or title),
             ))
-    return _rerank_hits(query, hits, max_results)
+    return _rerank_hits(
+        query,
+        hits,
+        max_results,
+        allow_phrase_relaxation=True,
+    )
 
 
 def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
@@ -1096,7 +1291,12 @@ def _search_reddit(query: str, max_results: int) -> list[SearchHit]:
     # Dedupe by URL (hinted iteration may overlap)
     seen: set[str] = set()
     out: list[SearchHit] = []
-    for h in _rerank_hits(query, hits, max(len(hits), max_results)):
+    for h in _rerank_hits(
+        query,
+        hits,
+        max(len(hits), max_results),
+        allow_phrase_relaxation=True,
+    ):
         if h.url in seen:
             continue
         seen.add(h.url)
@@ -1131,6 +1331,18 @@ def _kiwix_query_variants(query: str) -> tuple[str, ...]:
         if condition and value not in variants:
             variants.append(value)
 
+    add("Artificial intelligence", {"artificial", "intelligence"} <= terms)
+    add("Large language model", {"large", "language", "model"} <= terms)
+    add("Technological unemployment", (
+        "job" in terms and bool({"displacement", "automation"} & terms)
+    ))
+    add("Inflation", "inflation" in terms)
+    add("Consumer price index", {"consumer", "price", "index"} <= terms)
+    add("Active noise control", (
+        "noise" in terms
+        and bool({"cancel", "cancelling", "cancellation"} & terms)
+        and "headphone" in terms
+    ))
     add("IP code", "ipx7" in terms or {"ingress", "protection"} <= terms)
     add("Passive radiator (speaker)", {"passive", "radiator"} <= terms)
     add("Total harmonic distortion", bool({"distortion", "thd"} & terms))
@@ -1255,6 +1467,8 @@ def _merge_source_hits(
     query: str,
     groups: dict[str, list[SearchHit]],
     max_results: int,
+    *,
+    explicit_sources: bool = False,
 ) -> list[SearchHit]:
     """Quota merge already-filtered sources instead of comparing fake scores.
 
@@ -1265,6 +1479,16 @@ def _merge_source_hits(
     """
     if max_results <= 0:
         return []
+    # A canonical definition/mechanism query with a good encyclopedia hit is
+    # harmed, not helped, by quota-padding the remaining slots with products
+    # that merely repeat the term.  Explicit include_domains remains sovereign:
+    # callers that deliberately requested multiple sources still receive them.
+    if (
+        not explicit_sources
+        and _concept_only_intent(query)
+        and groups.get("wiki")
+    ):
+        groups = {"wiki": groups["wiki"]}
     order = _source_priority(query, (s for s, rows in groups.items() if rows))
     out: list[SearchHit] = []
     seen: set[str] = set()
@@ -1296,9 +1520,19 @@ def search(
     exclude = {d.lower() for d in exclude_domains}
 
     groups: dict[str, list[SearchHit]] = {}
+    concept_only = not include and _concept_only_intent(query)
 
-    want_shopping = (not include) or any(d in {"shopping", "localhost:7770", "magento"} for d in include)
-    want_reddit = (not include) or any(d in {"reddit", "localhost:9999", "postmill", "reddit.com"} for d in include)
+    want_shopping = (
+        ((not include) and not concept_only)
+        or any(d in {"shopping", "localhost:7770", "magento"} for d in include)
+    )
+    want_reddit = (
+        ((not include) and not concept_only)
+        or any(
+            d in {"reddit", "localhost:9999", "postmill", "reddit.com"}
+            for d in include
+        )
+    )
     want_wiki = (not include) or any(d in {"wiki", "wikipedia", "wikipedia.org", "localhost:8090", "kiwix"} for d in include)
 
     _diag_store().clear()
@@ -1334,7 +1568,12 @@ def search(
             for source, hits in groups.items()
         }
 
-    return _merge_source_hits(query, groups, max_results)
+    return _merge_source_hits(
+        query,
+        groups,
+        max_results,
+        explicit_sources=bool(include),
+    )
 
 
 def _navigable_links(node, page_url: str, *, cap: int = 300) -> list[str]:

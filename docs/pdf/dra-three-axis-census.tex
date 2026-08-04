@@ -1,0 +1,31 @@
+\begin{tikzpicture}[
+  font=\small,
+  >=Latex,
+  node distance=6mm and 8mm,
+  stage/.style={draw=DraBlue!70, rounded corners=2pt, fill=DraLight, align=center,
+                minimum height=10mm, text width=28mm, inner sep=4pt},
+  cert/.style={draw=green!45!black, rounded corners=2pt, fill=green!7, align=center,
+               minimum height=10mm, text width=29mm, inner sep=4pt},
+  fail/.style={draw=red!55!black, rounded corners=2pt, fill=red!5, align=center,
+               minimum height=9mm, text width=29mm, inner sep=4pt},
+  arrow/.style={->, thick, draw=DraBlue!80}
+]
+  \node[stage] (query) {Query / Task Contract\\用户约束、facets 与 rubrics};
+  \node[stage, right=of query] (retrieve) {Hybrid Global Retrieval\\BM25 + dense + SQL + graph};
+  \node[stage, right=of retrieve] (closure) {Task Page Closure\\来源分层与反向检索};
+  \node[stage, right=of closure] (units) {Semantic Census\\atomic + research + rubric units};
+
+  \node[cert, below=11mm of retrieve] (answer) {Answerability Certificate\\每个 core unit 有冻结 span};
+  \node[cert, below=11mm of closure] (discover) {Discoverability Certificate\\公开 API 可发现};
+  \node[cert, below=11mm of units] (freeze) {Frozen TEC\\manifest hash + version};
+  \node[fail, below=11mm of query] (gap) {正式运行发现有效漏项\\$census\_gap$ → 升版重算};
+
+  \draw[arrow] (query) -- (retrieve);
+  \draw[arrow] (retrieve) -- (closure);
+  \draw[arrow] (closure) -- (units);
+  \draw[arrow] (units) -- (answer);
+  \draw[arrow] (answer) -- (discover);
+  \draw[arrow] (discover) -- (freeze);
+  \draw[->, thick, dashed, draw=red!60!black] (gap) -- (query);
+  \draw[->, thick, dashed, draw=red!60!black] (freeze.west) -| (gap.east);
+\end{tikzpicture}

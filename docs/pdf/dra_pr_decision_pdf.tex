@@ -1,0 +1,93 @@
+\documentclass[UTF8,a4paper,10.5pt]{ctexart}
+\usepackage[a4paper,margin=1.8cm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{pdflscape}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{seqsplit}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit,backgrounds,calc}
+\usepackage[
+  pipeTables,
+  fencedCode,
+  texMathDollars,
+  html,
+  smartEllipses,
+  hybrid
+]{markdown}
+% markdown loads paralist; load enumitem afterwards so list begin/end macros
+% come from the same implementation.
+\usepackage{enumitem}
+
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+\setCJKmonofont{Noto Sans Mono CJK SC}
+\setmainfont{TeX Gyre Pagella}
+\setsansfont{TeX Gyre Heros}
+\setmonofont{Noto Sans Mono CJK SC}
+
+\definecolor{DraBlue}{HTML}{174A7E}
+\definecolor{DraLight}{HTML}{EEF4FA}
+\definecolor{DraGray}{HTML}{5F6B76}
+\definecolor{DraGreen}{HTML}{24785C}
+\definecolor{DraOrange}{HTML}{B3651D}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=DraBlue,
+  urlcolor=DraBlue,
+  citecolor=DraBlue,
+  pdftitle={DRA Grounded Research 评分方案最终方法学设计},
+  pdfauthor={DRA Project}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{DraGray}DRA Grounded Research 评分方案}
+\fancyhead[R]{\small\color{DraGray}20 篇原文审计 · Kimi K3 × GPT-5.6 Sol}
+\fancyfoot[C]{\thepage}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setcounter{secnumdepth}{-1}
+\setlist{nosep,leftmargin=2em}
+\allowdisplaybreaks
+\emergencystretch=3em
+\sloppy
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  breakatwhitespace=false,
+  frame=single,
+  rulecolor=\color{DraGray!35},
+  backgroundcolor=\color{DraLight},
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false
+}
+\lstdefinelanguage{json}{}
+\lstdefinelanguage{yaml}{}
+\lstdefinelanguage{text}{}
+
+\begin{document}
+\begin{titlepage}
+  \centering
+  \vspace*{2.6cm}
+  {\Huge\bfseries\color{DraBlue}DRA Grounded Research\\评分方案最终方法学设计\par}
+  \vspace{0.9cm}
+  {\LARGE\bfseries Precision、Recall 与冻结沙盒证据审计\par}
+  \vspace{0.45cm}
+  {\Large 20 篇原文审计 · Kimi K3 max × GPT-5.6 Sol max\par}
+  \vspace{1.35cm}
+  {\large 双轨影子运行 · 预注册升级条件 · 历史结果兼容\par}
+  \vfill
+  {\large 2026-08-02 · Methodology Decision v1.0\par}
+  \vspace{0.8cm}
+\end{titlepage}
+\tableofcontents
+\clearpage
+\markdownInput{dra-pr-decision-input.md}
+\end{document}

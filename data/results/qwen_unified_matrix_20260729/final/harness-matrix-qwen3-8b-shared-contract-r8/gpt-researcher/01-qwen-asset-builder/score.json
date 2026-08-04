@@ -1,0 +1,132 @@
+{
+  "schema": "dra_four_axis_score_v2",
+  "task_id": "dra_v3_dev_audio_0002",
+  "models": {
+    "default": "qwen3-8b",
+    "task_compiler": null,
+    "claim_proposal": "qwen3-8b",
+    "nli": "qwen3-8b",
+    "structural": "qwen3-8b",
+    "fact": "qwen3-8b",
+    "evidence_coverage_rubric": "qwen3-8b"
+  },
+  "manual_claim_decisions": 0,
+  "instrument_mode": {
+    "task_contract": "frozen",
+    "claim_ledger": "runtime_extracted",
+    "fact_packets": "runtime_retrieved"
+  },
+  "instrument_warnings": [
+    "Claim Ledger was extracted in this run; cross-judge comparisons must reuse its sealed ledger rather than re-extract claims",
+    "the official fixed-judge protocol uses one Qwen snapshot for claim extraction and semantic scoring; formal publication still requires an axis-level human calibration certificate"
+  ],
+  "task_contract_sha256": "3d734c061b43c4a89f6774b62fc692ca52acce93b5caec2c36f9633468edc2cc",
+  "claim_ledger_sha256": "3019feea63ff3ca130891cd6c8b39314c2e8f78b517d988c34d33698656a5a7b",
+  "fact_packet_bundle_sha256": "bbd17f8d04aa1ca4053a40d5711ef3f8ef909d375bb1bbc2e4edeeaa82d52d6d",
+  "formal_eligible": false,
+  "formal_eligibility_notes": [
+    "transition compiler adapts an existing TWM/RTS rather than a protocol-complete TEC",
+    "query-only rubrics have not completed frozen calibration review",
+    "coverage and alternative-route certificates are not yet frozen",
+    "contract was sealed after report inputs existed; diagnostic reuse only",
+    "URL registry lacks per-snapshot hashes and build attestation",
+    "Fact contains unresolved instrument-ambiguous verdicts",
+    "Rubric contains ambiguous model verdicts"
+  ],
+  "formal_truth": null,
+  "diagnostic_score_available": true,
+  "diagnostic_label": "good_with_gaps",
+  "execution_audit": {
+    "schema": "dra_execution_audit_v1",
+    "native_tool_calls": 1,
+    "native_observed_documents": 20,
+    "unique_search_returned_urls": 20,
+    "unique_cited_urls": 10,
+    "search_discovered_url_rate": 1.0,
+    "snippet_observation_rate": 1.0,
+    "full_page_observation_rate": 0.0,
+    "fetched_200_rate": 0.0,
+    "search_returned_but_unopened_rate": 1.0,
+    "observation_tier_counts": {
+      "search_snippet": 10
+    },
+    "citation_map_fully_attributable": true,
+    "shared_ledger_used": false
+  },
+  "fact": {
+    "score": 1.0,
+    "true_mass": 81.0,
+    "false_mass": 0,
+    "conflicted_mass": 0,
+    "decidable_mass": 81.0,
+    "in_world_material_mass": 158.0,
+    "claim_count": 169,
+    "verdict_counts": {
+      "census_gap": 0,
+      "conflicted": 0,
+      "exempt": 0,
+      "false": 0,
+      "instrument_ambiguous": 66,
+      "out_of_world": 11,
+      "retrieval_failure": 0,
+      "true": 81,
+      "unresolved": 11,
+      "world_scope_gap": 0
+    },
+    "adjudication_coverage": 0.5126582278481012,
+    "resolution_rate": 0.47928994082840237
+  },
+  "evidence": {
+    "score": 0.5812753409509768,
+    "precision": 0.9325842696629213,
+    "recall": 0.4222222222222222,
+    "passing_bindings": 83,
+    "binding_count": 89,
+    "grounded_units": 76,
+    "citation_required_unit_count": 180,
+    "failure_counts": {
+      "incomplete_scope_observation": 2,
+      "unsupported_citation": 4
+    }
+  },
+  "completeness": {
+    "score": 0.5099206349206349,
+    "group_scores": {
+      "F_COMMUNITY_VALIDATION::community_pattern": 1.0,
+      "F_DECISION::decision": 0.6666666666666666,
+      "F_DESIGN_CODEC::mechanism": 0.7142857142857143,
+      "F_LISTING_MEASUREMENT::budget_allocation": 0.0,
+      "F_LISTING_MEASUREMENT::mechanism": 0.25,
+      "F_USE_CASE_RELIABILITY::mechanism": 0.42857142857142855
+    },
+    "covered_units": 13,
+    "core_unit_count": 25,
+    "macro_group_count": 6,
+    "grounded_covered_units": 12
+  },
+  "rubric": {
+    "score": 0.6,
+    "weighted_credit": 3.0,
+    "weight_total": 5.0,
+    "item_count": 5,
+    "ambiguous_count": 2,
+    "verdict_counts": {
+      "ambiguous": 2,
+      "fulfilled": 3
+    }
+  },
+  "provenance": {
+    "score": 1.0,
+    "valid_urls": 10,
+    "cited_url_count": 10,
+    "fabricated_or_unregistered_urls": 0,
+    "failure_counts": {}
+  },
+  "quality": 0.672798993967903,
+  "truth": 0.672798993967903,
+  "truth_linear_diagnostic": 0.672798993967903,
+  "truth_geometric_candidate": 0.6493949906476525,
+  "legacy_weight_ablation": 0.721030904990083,
+  "minimum_axis": 0.5099206349206349,
+  "geometric_quality_ablation": 0.6493949906476525
+}

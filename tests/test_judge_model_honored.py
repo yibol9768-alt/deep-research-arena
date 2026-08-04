@@ -191,6 +191,55 @@ def test_non_reasoning_model_sends_no_thinking_flag(monkeypatch):
     assert _FakeOpenAIClient.last_kwargs.get("extra_body") is None
 
 
+def test_openai_json_object_mode_is_explicitly_opt_in(monkeypatch):
+    import openai as openai_mod
+
+    monkeypatch.setenv("JUDGE_PROVIDER", "openai")
+    monkeypatch.setenv("JUDGE_API_KEY", "dummy-key")
+    monkeypatch.setenv("JUDGE_JSON_OBJECT", "1")
+    monkeypatch.setattr(openai_mod, "OpenAI", _FakeOpenAIClient, raising=False)
+
+    _FakeOpenAIClient.last_kwargs = {}
+    call_judge("sys", "user", model="qwen3-8b", max_tokens=1500)
+
+    assert _FakeOpenAIClient.last_kwargs["response_format"] == {
+        "type": "json_object"
+    }
+
+
+def test_openai_json_schema_takes_precedence_over_json_object_mode(monkeypatch):
+    import openai as openai_mod
+
+    schema = {
+        "type": "object",
+        "properties": {"verdicts": {"type": "array"}},
+        "required": ["verdicts"],
+        "additionalProperties": False,
+    }
+    monkeypatch.setenv("JUDGE_PROVIDER", "openai")
+    monkeypatch.setenv("JUDGE_API_KEY", "dummy-key")
+    monkeypatch.setenv("JUDGE_JSON_OBJECT", "1")
+    monkeypatch.setattr(openai_mod, "OpenAI", _FakeOpenAIClient, raising=False)
+
+    _FakeOpenAIClient.last_kwargs = {}
+    call_judge(
+        "sys",
+        "user",
+        model="qwen3-8b",
+        max_tokens=1500,
+        response_schema=schema,
+    )
+
+    assert _FakeOpenAIClient.last_kwargs["response_format"] == {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "dra_audited_judge_response",
+            "schema": schema,
+            "strict": True,
+        },
+    }
+
+
 # --- anthropic-compatible (bigmodel) path -----------------------------------
 # The anthropic SDK may not be installed in CI. ``_call_anthropic`` imports it
 # locally, so we inject a fake ``anthropic`` module into sys.modules; the local
