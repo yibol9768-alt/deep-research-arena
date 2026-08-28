@@ -1,0 +1,689 @@
+"""DeerFlow runner for the deep-research benchmark.
+
+Runs DeerFlow as a subprocess using its own venv and native configuration
+mechanisms.  NO monkey-patching of Python internals.
+
+Configuration approach (all via DeerFlow's own supported mechanisms):
+  - LLM: env vars BASIC_MODEL__base_url / BASIC_MODEL__model / BASIC_MODEL__api_key
+         (read by src/llms/llm.py  _get_env_llm_conf)
+  - Search: SEARCH_API=tavily env var  +  TAVILY_API_KEY env var
+  - Tavily base URL: langchain_tavily._utilities.TAVILY_API_URL module constant
+         (the ONLY config knob the library exposes; DeerFlow's wrapper imports it)
+  - Crawl: custom lightweight tool that fetches via the shim's /extract endpoint
+         (Jina default would call https://r.jina.ai/ which is external)
+  - conf.yaml: written at runtime with ENABLE_WEB_SEARCH: true
+"""
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+import os
+import subprocess
+import sys
+import tempfile
+import textwrap
+import time
+from pathlib import Path
+
+from scripts.runners import _egress
+from scripts.runners._runner_lock import runner_exclusive_lock
+
+logger = logging.getLogger(__name__)
+
+ROOT = Path(os.environ.get("DRA_REPO_ROOT") or Path(__file__).resolve().parents[2])
+DEERFLOW_ROOT = ROOT / "third_party" / "deer-flow-v1"
+DEERFLOW_PYTHON = str(DEERFLOW_ROOT / ".venv" / "bin" / "python")
+
+# Workstream C — strict-sandbox eligibility.
+# DeerFlow's crawl_tool was historically the leak point: the default Jina
+# crawler POSTs to https://r.jina.ai/ (external). The driver below already
+# overrides three import paths (`src.tools`, `src.tools.crawl`,
+# `src.graph.nodes`). Under strict_sandbox=True we ALSO refuse the run if
+# `src.graph.builder` is not pre-import-patched. The fallthrough cases
+# below the crawl_tool override block document the remaining attack
+# surface. SHIM_MODE=strict is forwarded so even an un-patched code path
+# is gated by the shim itself.
+STRICT_SANDBOX_ELIGIBLE = True
+
+# Concurrency: DeerFlow's library reads ``conf.yaml`` from CWD and the runner
+# writes a single ``_benchmark_driver.py`` script file. Parallel workers must
+# serialize on these shared paths — see scripts/runners/_runner_lock.py.
+
+# ---------------------------------------------------------------------------
+# Timeout (seconds) for one DeerFlow run.  The LLM can be slow under rate
+# limits so we allow a generous window.
+# ---------------------------------------------------------------------------
+DEFAULT_TIMEOUT_S = 1800
+DEERFLOW_MAX_OUTPUT_TOKENS_DEFAULT = 8192
+
+
+def _resolve_max_output_tokens(raw: str | None) -> int:
+    """Return the shared output cap used by every DeerFlow LLM role.
+
+    DeerFlow/ChatOpenAI otherwise defaults to 2048 tokens.  On models that
+    expose thinking tokens through the OpenAI-compatible route, the reporter
+    can spend the entire 2048-token budget on reasoning and return no visible
+    choice, which crashes DeerFlow's reporter node.  The benchmark-wide 8192
+    cap leaves room for both reasoning and the actual report.
+    """
+    try:
+        value = int(str(raw or DEERFLOW_MAX_OUTPUT_TOKENS_DEFAULT).strip())
+    except (TypeError, ValueError):
+        value = DEERFLOW_MAX_OUTPUT_TOKENS_DEFAULT
+    return max(1, value)
+
+
+def _resolve_token_limit(raw: str | None) -> int | None:
+    """Parse the DEERFLOW_TOKEN_LIMIT env value into a positive int, else None.
+
+    ``None`` means "do not write a token_limit into conf.yaml" so DeerFlow
+    falls back to its own model-name inference (see
+    ``src/llms/llm.py::get_llm_token_limit_by_type``). A non-numeric or
+    non-positive value also degrades to ``None`` so a typo can't silently
+    disable context compression by writing ``token_limit: 0``.
+
+    Why this knob exists: the runner writes ``model: "placeholder"`` into
+    conf.yaml (the real model is injected via the ``BASIC_MODEL__model`` env
+    var, which ``get_llm_token_limit_by_type`` does NOT read). DeerFlow's
+    context-compression guard therefore infers its limit from "placeholder",
+    which matches no known model and lands on the blind ``default`` of
+    100000 tokens. That exceeds qwen3-8b's real usable context (e.g. 65536
+    under the YaRN plan), so the guard never fires for that backbone. Setting
+    DEERFLOW_TOKEN_LIMIT lets the operator pin the compression threshold to
+    the backbone's real window from env/config instead of a hardcoded
+    constant, without changing default behaviour when the var is unset.
+    """
+    if raw is None:
+        return None
+    try:
+        value = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return None
+    return value if value > 0 else None
+
+
+def _uses_legacy_max_tokens(model: str) -> bool:
+    """Return whether the OpenAI-compatible route requires ``max_tokens``.
+
+    LangChain 1.4 maps its ``max_tokens`` constructor field to
+    ``max_completion_tokens``.  The Claude Adams route accepts that request
+    but ignores the field and falls back to 2048, while its native
+    ``max_tokens`` field is honoured.  ``extra_body`` is LangChain's supported
+    escape hatch for preserving that legacy wire field.
+    """
+    normalized = str(model or "").strip().lower()
+    return normalized.startswith("claude-") or normalized.startswith(
+        "anthropic/claude-"
+    )
+
+
+def _build_conf_yaml(
+    shim_url: str,
+    token_limit: int | None = None,
+    *,
+    legacy_max_tokens: int | None = None,
+) -> str:
+    """Build a minimal conf.yaml for the DeerFlow subprocess.
+
+    The LLM is configured entirely via env vars (BASIC_MODEL__*), so
+    conf.yaml only needs a placeholder model block plus search/crawl
+    settings.
+
+    ``token_limit`` (when a positive int) is written into the BASIC_MODEL
+    block. ``get_llm_token_limit_by_type`` reads conf.yaml directly (not the
+    BASIC_MODEL__* env vars), so this is the only supported surface for
+    pinning DeerFlow's context-compression threshold to the real backbone
+    window. When ``None`` the line is omitted and DeerFlow keeps its own
+    model-name inference (identical to the historical behaviour).
+    """
+    # The BASIC_MODEL block in conf.yaml is overridden by env vars for the
+    # LLM client itself, but DeerFlow's loader still needs _something_ here
+    # to avoid KeyError. Build the block line-by-line (instead of via an
+    # f-string + textwrap.dedent) so an injected token_limit line cannot
+    # perturb dedent's common-leading-whitespace calculation.
+    basic_model = [
+        "BASIC_MODEL:",
+        '  base_url: "http://placeholder.invalid/v1"',
+        '  model: "placeholder"',
+        '  api_key: "placeholder"',
+        "  max_retries: 3",
+    ]
+    if token_limit:
+        basic_model.append(f"  token_limit: {token_limit}")
+    if legacy_max_tokens:
+        basic_model.extend(
+            ["  extra_body:", f"    max_tokens: {legacy_max_tokens}"]
+        )
+
+    rest = textwrap.dedent("""\
+        ENABLE_WEB_SEARCH: true
+
+        SEARCH_ENGINE:
+          engine: tavily
+          search_depth: "advanced"
+          include_raw_content: true
+          include_images: false
+          include_image_descriptions: false
+    """)
+    return "\n".join(basic_model) + "\n\n" + rest
+
+
+def _build_driver_script(
+    intent: str,
+    shim_url: str,
+    timeout_s: int = DEFAULT_TIMEOUT_S,
+    *,
+    strict_sandbox: bool = False,
+    truth1000_adapter=None,
+) -> str:
+    """Build the Python driver script that runs inside DeerFlow's venv.
+
+    This script is executed as a subprocess with cwd=DEERFLOW_ROOT so that
+    ``import src.*`` resolves to DeerFlow's own modules.
+
+    The configuration points used:
+      1. ``langchain_tavily._utilities.TAVILY_API_URL`` -- the module-level
+         constant that DeerFlow's EnhancedTavilySearchAPIWrapper imports
+         and passes to ``requests.post(f"{TAVILY_API_URL}/search", ...)``.
+         Setting this before DeerFlow's search module loads is the library's
+         own configuration surface (it is a public module attribute, not a
+         private implementation detail).
+      2. ``SEARCH_API`` env var -- selects "tavily" engine.
+      3. ``TAVILY_API_KEY`` env var -- required by the Tavily wrapper.
+      4. ``BASIC_MODEL__*`` env vars -- override conf.yaml LLM settings.
+      5. ``crawl_tool`` replacement -- DeerFlow's default Jina crawler
+         calls an external API (r.jina.ai); we provide a tool that calls
+         our shim's /extract endpoint instead.  This is done by reassigning
+         the module-level ``crawl_tool`` in ``src.tools.crawl`` and
+         ``src.graph.nodes`` before the graph is built, which is the same
+         pattern DeerFlow's own MCP-tool-injection uses.
+    """
+    adapter_block = ""
+    if truth1000_adapter is not None:
+        from scripts.runners.truth1000_deerflow_adapter import (
+            build_deerflow_adapter_block,
+        )
+
+        adapter_block = textwrap.indent(
+            build_deerflow_adapter_block(
+                shim_url,
+                truth1000_adapter,
+            ),
+            "        ",
+        )
+
+    # Escape the intent for embedding in a Python string literal
+    intent_escaped = intent.replace("\\", "\\\\").replace("'", "\\'").replace("\n", "\\n")
+
+    return textwrap.dedent(f"""\
+        #!/usr/bin/env python3
+        \"\"\"Auto-generated DeerFlow driver for benchmark runner.\"\"\"
+        import os, sys, json, asyncio, re
+        sys.path.insert(0, os.getcwd())
+
+        # --- 1. Set env vars BEFORE any imports ---
+        # These are read by DeerFlow's native config machinery:
+        #   SEARCH_API  -> src/config/tools.py  SELECTED_SEARCH_ENGINE
+        #   TAVILY_API_KEY -> langchain_tavily validator
+        os.environ.setdefault("SEARCH_API", "tavily")
+        os.environ.setdefault("TAVILY_API_KEY", "tvly-sandbox-fake-key")
+
+        # --- 2. Redirect the Tavily base URL ---
+        # langchain_tavily._utilities.TAVILY_API_URL is the public module
+        # constant that controls where Tavily HTTP requests go.  DeerFlow's
+        # EnhancedTavilySearchAPIWrapper imports and uses this constant.
+        # Setting it before DeerFlow loads its search modules is the
+        # library's supported configuration path.
+        SHIM = '{shim_url}'
+        try:
+            import langchain_tavily._utilities as _ltu
+            _ltu.TAVILY_API_URL = SHIM
+        except ImportError:
+            pass
+
+        # DeerFlow's own copy of the constant (imported at module level
+        # in tavily_search_api_wrapper.py)
+        try:
+            import src.tools.tavily_search.tavily_search_api_wrapper as _tw
+            _tw.TAVILY_API_URL = SHIM
+        except Exception:
+            pass
+
+        # --- 2b. Deterministic aiohttp environment policy ---
+        # Trust the recording door in harness mode; reject ambient host proxies
+        # in standalone mode.
+        try:
+            import aiohttp as _aio
+            _orig_cs_init = _aio.ClientSession.__init__
+            def _no_trust_init(self, *a, **kw):
+                kw['trust_env'] = bool(os.environ.get('DRA_EGRESS_PROXY', '').strip())
+                _orig_cs_init(self, *a, **kw)
+            _aio.ClientSession.__init__ = _no_trust_init
+        except ImportError:
+            pass
+
+        # --- 3. Replace the crawl tool ---
+        # DeerFlow's Jina crawler calls https://r.jina.ai/ (external). crawl_tool
+        # is the ONLY page-read affordance DeerFlow hands the agent, so routing it
+        # through the shim's recorded POST /extract makes every page read of this
+        # lane observable and attributable. The previous version did a raw
+        # _req.get(url) straight to the sandbox origin: the page was fetched but
+        # never crossed the shim, so logs/fetch/<run_id>.jsonl saw zero fetches
+        # and the scorer could not distinguish a page the agent opened from one it
+        # recited from memory. The shim fetches the origin server-side and returns
+        # raw_content, which we tag-strip exactly as before. This also resolves the
+        # long-standing contradiction between this block and the module docstring
+        # (which already claimed crawl went through the shim's /extract).
+        # See FETCH_PATH_AUDIT_2026-07-08.md.
+        import requests as _req
+        from langchain_core.tools import tool as _tool_dec
+
+        @_tool_dec
+        def _sandbox_crawl(url: str) -> str:
+            \"\"\"Crawl a URL through the sandbox shim and return readable content.\"\"\"
+            try:
+                r = _req.post(SHIM.rstrip('/') + '/extract',
+                              json={{"urls": [url]}}, timeout=20)
+                if r.status_code >= 400:
+                    return json.dumps({{"error": f"HTTP {{r.status_code}}", "url": url}})
+                _results = (r.json() or {{}}).get("results") or []
+                text = _results[0].get("raw_content", "") if _results else ""
+                if not text:
+                    return json.dumps({{"error": "no content", "url": url}})
+                text = re.sub(r'<script[^>]*>.*?</script>', '', text, flags=re.DOTALL)
+                text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.DOTALL)
+                text = re.sub(r'<[^>]+>', ' ', text)
+                text = re.sub(r'\\s+', ' ', text).strip()[:2000]
+                return json.dumps({{"url": url, "crawled_content": text}}, ensure_ascii=False)
+            except Exception as e:
+                return json.dumps({{"error": str(e), "url": url}})
+
+        _sandbox_crawl.name = "crawl_tool"
+
+        # Inject the sandbox crawl tool into DeerFlow's tool registry
+        # BEFORE the graph is built.  This is the same injection point
+        # that DeerFlow's MCP tool system uses.
+        import src.tools as _tools_pkg
+        import src.tools.crawl as _crawl_mod
+        _tools_pkg.crawl_tool = _sandbox_crawl
+        _crawl_mod.crawl_tool = _sandbox_crawl
+
+        # Also patch in src.graph.nodes which imports crawl_tool at module
+        # level from src.tools.
+        import src.graph.nodes as _nodes_mod
+        _nodes_mod.crawl_tool = _sandbox_crawl
+
+        # === Workstream C extra coverage ===
+        # DeerFlow re-exports crawl_tool from several sub-modules. Loop
+        # over every loaded src.* module and overwrite any attribute
+        # named "crawl_tool" so a code path that imported it BEFORE our
+        # primary patch ran can't fall through to the Jina version.
+        import sys as _sys_after_patch
+        _patched = 0
+        for _name, _mod in list(_sys_after_patch.modules.items()):
+            if not _name.startswith("src."):
+                continue
+            if _mod is None:
+                continue
+            if hasattr(_mod, "crawl_tool"):
+                try:
+                    setattr(_mod, "crawl_tool", _sandbox_crawl)
+                    _patched += 1
+                except Exception:
+                    pass
+        print(f'[deerflow-patch] crawl_tool re-bound in {{_patched}} src.* modules')
+
+{adapter_block}
+
+        # === Workstream C HTTP-layer gate ===
+        # Belt-and-suspenders: refuse any HTTP request to a non-sandbox
+        # host. The driver below redirects crawl_tool, but a future
+        # DeerFlow update might add a new tool that bypasses crawl_tool
+        # entirely (Jina, Firecrawl, raw httpx) — this catches that case.
+        _STRICT = {'1' if strict_sandbox else '0'}
+        if _STRICT == '1':
+            from urllib.parse import urlparse as _up_strict
+            def _strict_origin(value):
+                p = _up_strict(value)
+                if p.scheme not in ('http', 'https') or not p.hostname:
+                    raise RuntimeError('invalid strict DeerFlow endpoint')
+                port = p.port or (443 if p.scheme == 'https' else 80)
+                return (p.scheme, p.hostname.lower(), port)
+            _SBX_ORIGINS = {{
+                _strict_origin(SHIM),
+                _strict_origin(os.environ.get('BASIC_MODEL__base_url', '')),
+            }}
+            def _sandbox_only(url):
+                try:
+                    return _strict_origin(url) in _SBX_ORIGINS
+                except Exception:
+                    return False
+            import requests as _rq_strict
+            _orig_send_strict = _rq_strict.Session.send
+            def _gated_send(self, request, **kw):
+                if not _sandbox_only(request.url):
+                    print(f'[deerflow-strict] BLOCK non-sandbox: {{request.url[:120]}}')
+                    from requests.models import Response as _Resp
+                    r = _Resp()
+                    r.status_code = 403
+                    r._content = b'{{"error":"non_sandbox_url_blocked"}}'
+                    return r
+                return _orig_send_strict(self, request, **kw)
+            _rq_strict.Session.send = _gated_send
+            print('[deerflow-strict] HTTP-layer sandbox-only gate active')
+
+        # --- 4. Build and run the graph ---
+        from src.graph.builder import build_graph
+        from src.config.configuration import get_recursion_limit
+
+        graph = build_graph()
+
+        QUERY = '{intent_escaped}'
+
+        init_state = {{
+            "messages": [{{"role": "user", "content": QUERY}}],
+            "auto_accepted_plan": True,
+            "enable_background_investigation": True,
+            "enable_clarification": False,
+            "research_topic": QUERY,
+            "clarified_research_topic": QUERY,
+        }}
+        config = {{
+            "configurable": {{
+                "thread_id": "benchmark-run",
+                "max_plan_iterations": 1,
+                # Preserve DeerFlow's native default. The old adapter doubled
+                # this from 3 to 6, granting only this lane twice as many
+                # planned research steps and directly moving completeness.
+                "max_step_num": 3,
+                "mcp_settings": {{"servers": {{}}}},
+            }},
+            "recursion_limit": get_recursion_limit(default=80),
+        }}
+
+        async def _run():
+            final_state = None
+            async for s in graph.astream(
+                input=init_state, config=config, stream_mode="values"
+            ):
+                final_state = s
+                msgs = s.get("messages") or []
+                if msgs:
+                    last = msgs[-1]
+                    role = getattr(last, "type", "") or getattr(last, "role", "")
+                    name = getattr(last, "name", "") or ""
+                    content = getattr(last, "content", "")
+                    preview = content if isinstance(content, str) else str(content)
+                    print(f"[{{role}}/{{name}}] {{preview[:300]}}", flush=True)
+            return final_state
+
+        final = asyncio.run(_run())
+        report = ""
+        if final:
+            report = final.get("final_report") or ""
+            if not isinstance(report, str):
+                report = str(report)
+
+        # Emit the report on a sentinel-delimited block so the parent
+        # process can reliably extract it from mixed stdout.
+        print("===DEERFLOW_REPORT_START===", flush=True)
+        print(report, flush=True)
+        print("===DEERFLOW_REPORT_END===", flush=True)
+    """)
+
+
+# Agent identifier for the auto-discovery registry. Must match the
+# AGENT_NAME used in score files: data/results/deep_v3/deerflow__<task>_matrix.score.json
+AGENT_NAME = "deerflow"
+
+
+async def run(
+    intent: str,
+    model: str,
+    shim_url: str,
+    proxy_url: str,
+    *,
+    timeout_s: int = DEFAULT_TIMEOUT_S,
+    strict_sandbox: bool = False,
+    truth1000_adapter=None,
+) -> str:
+    """Run DeerFlow and return the markdown report.
+
+    Args:
+        intent: The research query / task description.
+        model: OpenAI-compatible model name (e.g. "deepseek-v4-flash").
+        shim_url: Tavily-compatible search API URL (e.g. "http://localhost:8081").
+        proxy_url: OpenAI-compatible LLM endpoint (e.g. "http://localhost:8100/v1").
+        timeout_s: Subprocess timeout in seconds.
+        strict_sandbox: when True, the driver script installs an HTTP-layer
+            gate that rejects any non-sandbox URL (belt-and-suspenders on
+            top of the crawl_tool monkey-patch) and the subprocess env
+            forwards SHIM_MODE=strict so the shim gates search responses.
+        truth1000_adapter: optional seven-layer canonical adapter binding. When
+            provided, DeerFlow's background search, researcher search, crawl,
+            and final model-prompt transport are all rebound fail-closed.
+
+    Returns:
+        The markdown report produced by DeerFlow, or an error string.
+    """
+    if truth1000_adapter is None:
+        serialized_adapter = os.environ.get(
+            "TRUTH1000_DEERFLOW_ADAPTER_JSON",
+            "",
+        ).strip()
+        if serialized_adapter:
+            parsed_adapter = json.loads(serialized_adapter)
+            if not isinstance(parsed_adapter, dict):
+                raise ValueError(
+                    "TRUTH1000_DEERFLOW_ADAPTER_JSON must decode to an object"
+                )
+            truth1000_adapter = parsed_adapter
+
+    if not DEERFLOW_ROOT.exists():
+        return f"(error: DeerFlow not found at {DEERFLOW_ROOT})"
+    if not Path(DEERFLOW_PYTHON).exists():
+        return f"(error: DeerFlow venv not found at {DEERFLOW_PYTHON})"
+
+    # Acquire exclusive lock — multiple parallel workers cannot share the
+    # ``conf.yaml`` and ``_benchmark_driver.py`` paths without trampling each
+    # other. See _runner_lock.py for rationale.
+    _lock_cm = runner_exclusive_lock("deerflow")
+    _lock_cm.__enter__()
+
+    # Write a temporary conf.yaml in DeerFlow's root
+    conf_yaml_path = DEERFLOW_ROOT / "conf.yaml"
+    conf_yaml_backup = None
+    if conf_yaml_path.exists():
+        conf_yaml_backup = conf_yaml_path.read_text()
+
+    try:
+        # Optional, opt-in: pin DeerFlow's context-compression threshold to the
+        # backbone's real window via env (defaults to None -> DeerFlow's own
+        # inference, i.e. unchanged behaviour). See _resolve_token_limit.
+        token_limit = _resolve_token_limit(os.environ.get("DEERFLOW_TOKEN_LIMIT"))
+        max_output_tokens = _resolve_max_output_tokens(
+            os.environ.get("DEERFLOW_MAX_OUTPUT_TOKENS")
+        )
+        legacy_max_tokens = (
+            max_output_tokens if _uses_legacy_max_tokens(model) else None
+        )
+        if token_limit is not None:
+            logger.info("deerflow: conf.yaml token_limit pinned to %d", token_limit)
+        conf_yaml_path.write_text(
+            _build_conf_yaml(
+                shim_url,
+                token_limit,
+                legacy_max_tokens=legacy_max_tokens,
+            )
+        )
+
+        # Write the driver script to a temp file
+        driver_code = _build_driver_script(
+            intent,
+            shim_url,
+            timeout_s,
+            strict_sandbox=strict_sandbox,
+            truth1000_adapter=truth1000_adapter,
+        )
+        driver_path = _egress.scratch_path("deerflow-benchmark-driver")
+        driver_path.write_text(driver_code)
+
+        # Build the subprocess environment
+        env = {**os.environ}
+        # Canonical recording door in harness mode, standalone scrub otherwise.
+        _egress.scrub_or_apply(env)
+        # LLM configuration via DeerFlow's native env-var mechanism
+        # (src/llms/llm.py  _get_env_llm_conf reads BASIC_MODEL__* vars)
+        env["BASIC_MODEL__base_url"] = proxy_url
+        env["BASIC_MODEL__model"] = model
+        env["BASIC_MODEL__api_key"] = env.get("OPENAI_API_KEY", "sk-placeholder")
+        if legacy_max_tokens is not None:
+            # Prevent an inherited spelling variant from reintroducing
+            # LangChain's max_completion_tokens field and shadowing the
+            # route-native extra_body contract above.
+            for key in list(env):
+                if key.upper() == "BASIC_MODEL__MAX_TOKENS":
+                    env.pop(key, None)
+        else:
+            env["BASIC_MODEL__max_tokens"] = str(max_output_tokens)
+        # Search
+        env["SEARCH_API"] = "tavily"
+        env["TAVILY_API_KEY"] = "tvly-sandbox-fake-key"
+        # Disable optional integrations that would fail in sandbox
+        env.pop("JINA_API_KEY", None)
+        env.pop("LANGSMITH_TRACING", None)
+        env.pop("LANGSMITH_API_KEY", None)
+        # Keep DEBUG for verbose logs
+        env["DEBUG"] = "True"
+
+        # Workstream C: propagate strict-sandbox to the shim and to the
+        # driver's HTTP gate.
+        if strict_sandbox:
+            env["SHIM_MODE"] = "strict"
+            env["DEERFLOW_STRICT_SANDBOX"] = "1"
+            logger.info("deerflow: strict-sandbox HTTP gate + shim gate active")
+
+        logger.info(
+            "Starting DeerFlow subprocess: model=%s shim=%s proxy=%s",
+            model, shim_url, proxy_url,
+        )
+
+        t0 = time.time()
+        proc = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: subprocess.run(
+                [DEERFLOW_PYTHON, str(driver_path)],
+                cwd=str(DEERFLOW_ROOT),
+                capture_output=True,
+                text=True,
+                timeout=timeout_s,
+                env=env,
+            ),
+        )
+        elapsed = time.time() - t0
+
+        # Extract the report from stdout
+        stdout = proc.stdout or ""
+        stderr = proc.stderr or ""
+
+        if proc.returncode != 0:
+            logger.error(
+                "DeerFlow exited %d after %.0fs\nstderr (last 1000): %s",
+                proc.returncode, elapsed, stderr[-1000:],
+            )
+
+        # Parse the report from the sentinel-delimited block
+        report = _extract_report(stdout)
+
+        if not report:
+            # Fallback: return the raw stdout tail + error info
+            logger.warning("No report extracted from DeerFlow output")
+            snippet = stdout[-2000:] if stdout else "(no stdout)"
+            err_snippet = stderr[-1000:] if stderr else "(no stderr)"
+            return (
+                f"(DeerFlow produced no report after {elapsed:.0f}s, "
+                f"exit={proc.returncode})\n\n"
+                f"--- stdout tail ---\n{snippet}\n\n"
+                f"--- stderr tail ---\n{err_snippet}"
+            )
+
+        logger.info(
+            "DeerFlow completed in %.0fs, report=%d chars",
+            elapsed, len(report),
+        )
+        return report
+
+    except subprocess.TimeoutExpired:
+        logger.error("DeerFlow timed out after %ds", timeout_s)
+        return f"(DeerFlow timeout after {timeout_s}s)"
+    except Exception as e:
+        logger.exception("DeerFlow runner error")
+        return f"(DeerFlow error: {e})"
+    finally:
+        # Restore original conf.yaml
+        if conf_yaml_backup is not None:
+            conf_yaml_path.write_text(conf_yaml_backup)
+        elif conf_yaml_path.exists():
+            # We created it; leave it (don't delete, DeerFlow may need it)
+            pass
+        # Clean up driver script
+        driver_path = DEERFLOW_ROOT / "_benchmark_driver.py"
+        if driver_path.exists():
+            driver_path.unlink(missing_ok=True)
+        # Release the cross-process lock now that conf/driver files are restored.
+        try:
+            _lock_cm.__exit__(None, None, None)
+        except Exception:
+            logger.exception("deerflow lock release failed")
+
+
+def _extract_report(stdout: str) -> str:
+    """Extract the report from the sentinel-delimited block in stdout."""
+    start_marker = "===DEERFLOW_REPORT_START==="
+    end_marker = "===DEERFLOW_REPORT_END==="
+
+    start_idx = stdout.find(start_marker)
+    end_idx = stdout.find(end_marker)
+
+    if start_idx == -1 or end_idx == -1 or end_idx <= start_idx:
+        return ""
+
+    report = stdout[start_idx + len(start_marker):end_idx].strip()
+    return report
+
+
+# ---------------------------------------------------------------------------
+# CLI entry point for standalone testing
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run DeerFlow benchmark")
+    parser.add_argument("intent", help="Research query")
+    parser.add_argument("--model", default="deepseek-v4-flash")
+    parser.add_argument("--shim-url", default="http://localhost:8081")
+    parser.add_argument("--proxy-url", default="http://localhost:8100/v1")
+    parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT_S)
+    parser.add_argument("--output", "-o", help="Write report to file")
+    parser.add_argument("--strict-sandbox", action="store_true", default=False)
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
+
+    report = asyncio.run(
+        run(
+            intent=args.intent,
+            model=args.model,
+            shim_url=args.shim_url,
+            proxy_url=args.proxy_url,
+            timeout_s=args.timeout,
+            strict_sandbox=args.strict_sandbox,
+        )
+    )
+
+    if args.output:
+        Path(args.output).write_text(report)
+        print(f"Report written to {args.output} ({len(report)} chars)")
+    else:
+        print(report)

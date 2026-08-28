@@ -16,7 +16,7 @@ VENV=".venv-camel/bin/python3"
 
 # Use GLM Coding Plan (DeepSeek balance exhausted)
 export OPENAI_BASE_URL="https://open.bigmodel.cn/api/coding/paas/v4"
-export OPENAI_API_KEY="5e4b5082f8954dc98d63935220002707.9Go2OiZMkcbDDXVx"
+export OPENAI_API_KEY=""
 export GEN_MODEL="glm-4-flash"
 
 # Intent mapping (from TASK_EXPANSION_MATRIX.md)

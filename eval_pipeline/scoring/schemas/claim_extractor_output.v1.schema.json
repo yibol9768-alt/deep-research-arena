@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "truth1000://biodiv/claim-extractor-output/v1",
+  "type": "object",
+  "properties": {
+    "claims": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "properties": {
+          "exact_report_quote": {"type": "string", "minLength": 1, "maxLength": 4000},
+          "normalized_claim": {"type": "string", "minLength": 1, "maxLength": 4000},
+          "claim_kind": {
+            "type": "string",
+            "enum": ["external_atomic", "derived_arithmetic", "bounded_absence", "higher_order_relation"]
+          },
+          "evidence_policy": {
+            "type": "string",
+            "enum": ["citation_required", "citation_exempt"]
+          },
+          "citation_refs": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {"type": "string", "pattern": "^CITE[0-9]{3}$"},
+            "uniqueItems": true
+          }
+        },
+        "required": ["exact_report_quote", "normalized_claim", "claim_kind", "evidence_policy", "citation_refs"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["claims"],
+  "additionalProperties": false
+}

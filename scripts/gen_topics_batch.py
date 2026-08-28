@@ -106,7 +106,7 @@ def call_llm(prompt: str, system: str) -> str:
     from openai import OpenAI
     client = OpenAI(
         base_url="https://open.bigmodel.cn/api/coding/paas/v4",
-        api_key=os.environ.get("GLM_API_KEY", "5e4b5082f8954dc98d63935220002707.9Go2OiZMkcbDDXVx"),
+        api_key=os.environ.get("GLM_API_KEY", ""),
     )
     resp = client.chat.completions.create(
         model="glm-4-flash",

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "truth1000://biodiv/completeness-adjudication-output/v1",
+  "type": "object",
+  "properties": {
+    "completeness_judgments": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "properties": {
+          "unit_id": {"type": "string", "pattern": "^IU[0-9]{3}$"},
+          "content_covered": {"type": "boolean"},
+          "matched_claim_ids": {"type": "array", "maxItems": 4, "items": {"type": "string", "pattern": "^C[0-9]{3}$"}, "uniqueItems": true},
+          "exact_report_quotes": {"type": "array", "maxItems": 3, "items": {"type": "string", "minLength": 1, "maxLength": 300}, "uniqueItems": true},
+          "reason_code": {"type": "string", "minLength": 1, "maxLength": 128},
+          "explanation": {"type": "string", "minLength": 1, "maxLength": 1200}
+        },
+        "required": ["unit_id", "content_covered", "matched_claim_ids", "exact_report_quotes", "reason_code", "explanation"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["completeness_judgments"],
+  "additionalProperties": false
+}

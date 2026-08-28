@@ -1,0 +1,1 @@
+(runner error: RuntimeError: local opencode is unavailable and OPENCODE_SSH_HOST is unset; the remote path is opt-in. Set it to an ssh alias, never a bare port number.)

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "truth1000://biodiv/claim-binding-adjudication-output/v1",
+  "type": "object",
+  "properties": {
+    "claim_judgments": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim_id": {"type": "string", "pattern": "^C[0-9]{3}$"},
+          "verdict": {"type": "string", "enum": ["true", "false", "conflicted", "unresolved", "out_of_world", "census_gap", "exempt", "instrument_ambiguous"]},
+          "support_evidence_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "contradiction_evidence_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "reason_code": {"type": "string", "minLength": 1, "maxLength": 128},
+          "explanation": {"type": "string", "minLength": 1, "maxLength": 1200}
+        },
+        "required": ["claim_id", "verdict", "support_evidence_ids", "contradiction_evidence_ids", "reason_code", "explanation"],
+        "additionalProperties": false
+      }
+    },
+    "binding_judgments": {
+      "type": "array",
+      "maxItems": 48,
+      "items": {
+        "type": "object",
+        "properties": {
+          "binding_id": {"type": "string", "pattern": "^B[0-9]{4}$"},
+          "bound": {"type": "boolean"},
+          "support_verdict": {"type": "string", "enum": ["support", "refute", "insufficient", "wrong_scope", "wrong_role", "ambiguous"]},
+          "role_ok": {"type": "boolean"},
+          "reason_code": {"type": "string", "minLength": 1, "maxLength": 128},
+          "explanation": {"type": "string", "minLength": 1, "maxLength": 1200}
+        },
+        "required": ["binding_id", "bound", "support_verdict", "role_ok", "reason_code", "explanation"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["claim_judgments", "binding_judgments"],
+  "additionalProperties": false
+}
