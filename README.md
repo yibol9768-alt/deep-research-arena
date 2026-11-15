@@ -1,3 +1,9 @@
+<!-- repository-brand:start -->
+<p align="center"><img src=".github/assets/repository-cover.jpg" alt="Deep Research Arena" width="100%"></p>
+<p align="center"><strong>Grounded evaluation for deep-research agents.</strong></p>
+<p align="center"><a href="https://github.com/yibol9768-alt/deep-research-arena">Code</a> · <a href="https://github.com/yibol9768-alt/deep-research-arena/issues">Issues</a> · <a href="https://deepresearcharena.com">Live demo</a></p>
+<!-- repository-brand:end -->
+
 # Deep Research Arena
 
 **A controlled-sandbox benchmark and Elo arena for Deep-Research agents, with judge-independent grounding verification.**
